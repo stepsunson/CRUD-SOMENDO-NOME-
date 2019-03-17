@@ -1,0 +1,27 @@
+name: BCC Build and tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+  pull-requests: read # to read pull requests (dorny/paths-filter)
+
+jobs:
+  test_bcc:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        os: [{distro: "ubuntu", version: "18.04", nick: bionic}, {distro: "ubuntu", version: "20.04", nick: focal}]
+        env:
+        - TYPE: Debug
+          PYTHON_TES
