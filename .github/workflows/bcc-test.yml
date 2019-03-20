@@ -140,4 +140,55 @@ jobs:
       with:
         filters: |
           docker:
-           
+            - 'docker/build/**'
+    - name: System info
+      run: |
+        uname -a
+        ip addr
+    - name: Pull docker container
+      if: steps.changes.outputs.docker == 'false'
+      run: |
+        docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.os.distro }}-${{ matrix.os.version }}
+    - name: Build docker container
+      if: steps.changes.outputs.docker == 'true'
+      uses: ./.github/actions/build-container
+      with:
+        os_distro: ${{ matrix.os.distro }}
+        os_version: ${{ matrix.os.version }}
+        os_nick: ${{ matrix.os.nick }}
+    - name: Tag docker container
+      run: |
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.os.distro }}-${{ matrix.os.version }} bcc-docker
+    - name: Run bcc build
+      env: ${{ matrix.env }}
+      run: |
+        /bin/bash -c \
+                   "docker run --privileged \
+                   --pid=host \
+                   -v $(pwd):/bcc \
+                   -v /sys/kernel/debug:/sys/kernel/debug:rw \
+                   -v /lib/modules:/lib/modules:ro \
+                   -v /usr/src:/usr/src:ro \
+                   -v /usr/include/linux:/usr/include/linux:ro \
+                   bcc-docker \
+                   /bin/bash -c \
+                   'mkdir -p /bcc/build && cd /bcc/build && \
+                    cmake -DCMAKE_BUILD_TYPE=${TYPE} -DENABLE_LLVM_SHARED=ON -DRUN_LUA_TESTS=OFF .. && make -j9'"
+    - name: Run libbpf-tools build
+      env: ${{ matrix.env }}
+      run: |
+        /bin/bash -c \
+                   "docker run --privileged \
+                   --pid=host \
+                   -v $(pwd):/bcc \
+                   -v /sys/kernel/debug:/sys/kernel/debug:rw \
+                   -v /lib/modules:/lib/modules:ro \
+                   -v /usr/src:/usr/src:ro \
+                   -v /usr/include/linux:/usr/include/linux:ro \
+                   bcc-docker \
+                   /bin/bash -c \
+                   'cd /bcc/libbpf-tools && make -j9'"
+
+    - name: Run bcc's cc tests
+      env: ${{ matrix.env }}
+      # tests are wrapped with `script` as a h
