@@ -1,0 +1,41 @@
+name: Publish Build Artifacts
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+jobs:
+  # Optionally publish container images to custom docker repository,
+  # guarded by presence of all required github secrets.
+  # GitHub secrets can be configured as follows:
+  #   - DOCKER_IMAGE = docker.io/myorg/bcc
+  #   - DOCKER_USERNAME = username
+  #   - DOCKER_PASSWORD = password
+  publish_dockerhub:
+    name: Publish To Dockerhub
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v1
+
+    - name: Initialize workflow variables
+      id: vars
+      shell: bash
+      run: |
+          if [ -n "${DOCKER_IMAGE}" ] && \
+             [ -n "${DOCKER_USERNAME}" ] && \
+             [ -n "${DOCKER_PASSWORD}" ];then
+            echo "Custom docker credentials set, will push an image"
+            echo ::set-output name=DOCKER_PUBLISH::true
+          else
+            echo "Custom docker credentials not, skipping"
+          fi
+      env:
+        DOCKER_IMAGE: ${{ secrets.DOCKER_IMAGE }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCK
