@@ -141,4 +141,48 @@ if(NOT PYTHON_ONLY)
     # clang is linked as a library, but the library path searching is
     # primitively supported, unlike libLLVM
     set(CLANG_SEARCH "/opt/local/llvm/lib;/usr/lib/llvm-3.7/lib;${LLVM_LIBRARY_DIRS}")
-    find_library(libclangAnalysis NAMES clangAnalysis cla
+    find_library(libclangAnalysis NAMES clangAnalysis clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangAST NAMES clangAST clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangBasic NAMES clangBasic clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangCodeGen NAMES clangCodeGen clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangDriver NAMES clangDriver clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangEdit NAMES clangEdit clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangFrontend NAMES clangFrontend clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangLex NAMES clangLex clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangParse NAMES clangParse clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangRewrite NAMES clangRewrite clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangSema NAMES clangSema clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangSerialization NAMES clangSerialization clang-cpp HINTS ${CLANG_SEARCH})
+    find_library(libclangASTMatchers NAMES clangASTMatchers clang-cpp HINTS ${CLANG_SEARCH})
+
+    if(${LLVM_PACKAGE_VERSION} VERSION_EQUAL 15 OR ${LLVM_PACKAGE_VERSION} VERSION_GREATER 15)
+      find_library(libclangSupport NAMES clangSupport clang-cpp HINTS ${CLANG_SEARCH})
+    endif()
+
+    find_library(libclang-shared libclang-cpp.so HINTS ${CLANG_SEARCH})
+
+    if(libclangBasic STREQUAL "libclangBasic-NOTFOUND")
+      message(FATAL_ERROR "Unable to find clang libraries")
+    endif()
+
+    FOREACH(DIR ${LLVM_INCLUDE_DIRS})
+      include_directories("${DIR}/../tools/clang/include")
+    ENDFOREACH()
+
+  endif(ENABLE_CLANG_JIT)
+
+  # Set to a string path if system places kernel lib directory in
+  # non-default location.
+  if(NOT DEFINED BCC_KERNEL_MODULES_DIR)
+    set(BCC_KERNEL_MODULES_DIR "/lib/modules")
+  endif()
+
+  if(NOT DEFINED BCC_PROG_TAG_DIR)
+    set(BCC_PROG_TAG_DIR "/var/tmp/bcc")
+  endif()
+
+  # As reported in issue #735, GCC 6 has some behavioral problems when
+  # dealing with -isystem. Hence, skip the warning optimization
+  # altogether on that compiler.
+  option(USINGISYSTEM "using -isystem" ON)
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -du
