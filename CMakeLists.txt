@@ -185,4 +185,52 @@ if(NOT PYTHON_ONLY)
   # dealing with -isystem. Hence, skip the warning optimization
   # altogether on that compiler.
   option(USINGISYSTEM "using -isystem" ON)
-  execute_process(COMMAND ${CMAKE_C_COMPILER} -du
+  execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  if(USINGISYSTEM AND GCC_VERSION VERSION_LESS 6.0)
+    # iterate over all available directories in LLVM_INCLUDE_DIRS to
+    # generate a correctly tokenized list of parameters
+    foreach(ONE_LLVM_INCLUDE_DIR ${LLVM_INCLUDE_DIRS})
+      set(CXX_ISYSTEM_DIRS "${CXX_ISYSTEM_DIRS} -isystem ${ONE_LLVM_INCLUDE_DIR}")
+    endforeach()
+  endif()
+
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  if(${LLVM_PACKAGE_VERSION} VERSION_EQUAL 16 OR ${LLVM_PACKAGE_VERSION} VERSION_GREATER 16)
+    set(CMAKE_CXX_STANDARD 17)
+  else()
+    set(CMAKE_CXX_STANDARD 14)
+  endif()
+
+endif(NOT PYTHON_ONLY)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall ${CXX_ISYSTEM_DIRS}")
+
+add_subdirectory(src)
+add_subdirectory(introspection)
+
+if(ENABLE_CLANG_JIT)
+  if(ENABLE_EXAMPLES)
+    add_subdirectory(examples)
+  endif(ENABLE_EXAMPLES)
+
+  if(ENABLE_MAN)
+    add_subdirectory(man)
+  endif(ENABLE_MAN)
+
+  if(ENABLE_TESTS)
+    add_subdirectory(tests)
+  endif(ENABLE_TESTS)
+
+  add_subdirectory(tools)
+endif(ENABLE_CLANG_JIT)
+
+if(NOT TARGET uninstall)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CmakeUninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/CmakeUninstall.cmake"
+    IMMEDIATE @ONLY)
+
+  add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/CmakeUninstall.cmake)
+endif()
