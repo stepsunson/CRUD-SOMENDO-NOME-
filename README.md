@@ -141,4 +141,21 @@ pair of .c and .py files, and some are directories of files.
 - tools/[opensnoop](tools/opensnoop.py): Trace open() syscalls. [Examples](tools/opensnoop_example.txt).
 - tools/[pidpersec](tools/pidpersec.py): Count new processes (via fork). [Examples](tools/pidpersec_example.txt).
 - tools/[ppchcalls](tools/ppchcalls.py): Summarize ppc hcall counts and latencies. [Examples](tools/ppchcalls_example.txt).
-- tools/[profile](tools/profile.py): Profile CPU usage by sampling sta
+- tools/[profile](tools/profile.py): Profile CPU usage by sampling stack traces at a timed interval. [Examples](tools/profile_example.txt).
+- tools/[readahead](tools/readahead.py): Show performance of read-ahead cache [Examples](tools/readahead_example.txt).
+- tools/[reset-trace](tools/reset-trace.sh): Reset the state of tracing. Maintenance tool only. [Examples](tools/reset-trace_example.txt).
+- tools/[runqlat](tools/runqlat.py): Run queue (scheduler) latency as a histogram. [Examples](tools/runqlat_example.txt).
+- tools/[runqlen](tools/runqlen.py): Run queue length as a histogram. [Examples](tools/runqlen_example.txt).
+- tools/[runqslower](tools/runqslower.py): Trace long process scheduling delays. [Examples](tools/runqslower_example.txt).
+- tools/[shmsnoop](tools/shmsnoop.py): Trace System V shared memory syscalls. [Examples](tools/shmsnoop_example.txt).
+- tools/[sofdsnoop](tools/sofdsnoop.py): Trace FDs passed through unix sockets. [Examples](tools/sofdsnoop_example.txt).
+- tools/[slabratetop](tools/slabratetop.py): Kernel SLAB/SLUB memory cache allocation rate top. [Examples](tools/slabratetop_example.txt).
+- tools/[softirqs](tools/softirqs.py):  Measure soft IRQ (soft interrupt) event time. [Examples](tools/softirqs_example.txt).
+- tools/[solisten](tools/solisten.py): Trace TCP socket listen. [Examples](tools/solisten_example.txt).
+- tools/[sslsniff](tools/sslsniff.py): Sniff OpenSSL written and readed data. [Examples](tools/sslsniff_example.txt).
+- tools/[stackcount](tools/stackcount.py): Count kernel function calls and their stack traces. [Examples](tools/stackcount_example.txt).
+- tools/[syncsnoop](tools/syncsnoop.py): Trace sync() syscall. [Examples](tools/syncsnoop_example.txt).
+- tools/[syscount](tools/syscount.py): Summarize syscall counts and latencies. [Examples](tools/syscount_example.txt).
+- tools/[tcpaccept](tools/tcpaccept.py): Trace TCP passive connections (accept()). [Examples](tools/tcpaccept_example.txt).
+- tools/[tcpconnect](tools/tcpconnect.py): Trace TCP active connections (connect()). [Examples](tools/tcpconnect_example.txt).
+- tools/[tcpconnlat](tools/tcpconnlat.py)
