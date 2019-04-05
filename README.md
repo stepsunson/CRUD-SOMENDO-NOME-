@@ -125,4 +125,20 @@ pair of .c and .py files, and some are directories of files.
 - tools/[hardirqs](tools/hardirqs.py):  Measure hard IRQ (hard interrupt) event time. [Examples](tools/hardirqs_example.txt).
 - tools/[inject](tools/inject.py): Targeted error injection with call chain and predicates [Examples](tools/inject_example.txt).
 - tools/[killsnoop](tools/killsnoop.py): Trace signals issued by the kill() syscall. [Examples](tools/killsnoop_example.txt).
-- tools/[klockstat](tools/klockstat.py): Traces kernel mutex lock events and dis
+- tools/[klockstat](tools/klockstat.py): Traces kernel mutex lock events and display locks statistics. [Examples](tools/klockstat_example.txt).
+- tools/[kvmexit](tools/kvmexit.py): Display the exit_reason and its statistics of each vm exit. [Examples](tools/kvmexit_example.txt).
+- tools/[llcstat](tools/llcstat.py): Summarize CPU cache references and misses by process. [Examples](tools/llcstat_example.txt).
+- tools/[mdflush](tools/mdflush.py): Trace md flush events. [Examples](tools/mdflush_example.txt).
+- tools/[memleak](tools/memleak.py): Display outstanding memory allocations to find memory leaks. [Examples](tools/memleak_example.txt).
+- tools/[mountsnoop](tools/mountsnoop.py): Trace mount and umount syscalls system-wide. [Examples](tools/mountsnoop_example.txt).
+- tools/[mysqld_qslower](tools/mysqld_qslower.py): Trace MySQL server queries slower than a threshold. [Examples](tools/mysqld_qslower_example.txt).
+- tools/[netqtop](tools/netqtop.py) tools/[netqtop.c](tools/netqtop.c): Trace and display packets distribution on NIC queues. [Examples](tools/netqtop_example.txt).
+- tools/[nfsslower](tools/nfsslower.py): Trace slow NFS operations. [Examples](tools/nfsslower_example.txt).
+- tools/[nfsdist](tools/nfsdist.py): Summarize NFS operation latency distribution as a histogram. [Examples](tools/nfsdist_example.txt).
+- tools/[offcputime](tools/offcputime.py): Summarize off-CPU time by kernel stack trace. [Examples](tools/offcputime_example.txt).
+- tools/[offwaketime](tools/offwaketime.py): Summarize blocked time by kernel off-CPU stack and waker stack. [Examples](tools/offwaketime_example.txt).
+- tools/[oomkill](tools/oomkill.py): Trace the out-of-memory (OOM) killer. [Examples](tools/oomkill_example.txt).
+- tools/[opensnoop](tools/opensnoop.py): Trace open() syscalls. [Examples](tools/opensnoop_example.txt).
+- tools/[pidpersec](tools/pidpersec.py): Count new processes (via fork). [Examples](tools/pidpersec_example.txt).
+- tools/[ppchcalls](tools/ppchcalls.py): Summarize ppc hcall counts and latencies. [Examples](tools/ppchcalls_example.txt).
+- tools/[profile](tools/profile.py): Profile CPU usage by sampling sta
