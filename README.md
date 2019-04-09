@@ -232,4 +232,39 @@ The features of this toolkit include:
   * Integration with llvm-bpf backend for JIT
   * Dynamic (un)loading of JITed programs
   * Support for BPF kernel hooks: socket filters, tc classifiers,
-      tc 
+      tc actions, and kprobes
+* Bindings for Python
+* Examples for socket filters, tc classifiers, and kprobes
+* Self-contained tools for tracing a running system
+
+In the future, more bindings besides python will likely be supported. Feel free
+to add support for the language of your choice and send a pull request!
+
+## Tutorials
+
+- [docs/tutorial.md](docs/tutorial.md): Using bcc tools to solve performance, troubleshooting, and networking issues.
+- [docs/tutorial_bcc_python_developer.md](docs/tutorial_bcc_python_developer.md): Developing new bcc programs using the Python interface.
+
+### Networking
+
+At Red Hat Summit 2015, BCC was presented as part of a [session on BPF](http://www.devnation.org/#7784f1f7513e8542e4db519e79ff5eec).
+A multi-host vxlan environment is simulated and a BPF program used to monitor
+one of the physical interfaces. The BPF program keeps statistics on the inner
+and outer IP addresses traversing the interface, and the userspace component
+turns those statistics into a graph showing the traffic distribution at
+multiple granularities. See the code [here](examples/networking/tunnel_monitor).
+
+## Contributing
+
+Already pumped up to commit some code? Here are some resources to join the
+discussions in the [IOVisor](https://www.iovisor.org/) community and see
+what you want to work on.
+
+* _Mailing List:_ https://lists.iovisor.org/mailman/listinfo/iovisor-dev
+* _IRC:_ #iovisor at irc.oftc.net
+* _BCC Issue Tracker:_ [Github Issues](https://github.com/iovisor/bcc/issues)
+* _A guide for contributing scripts:_ [CONTRIBUTING-SCRIPTS.md](CONTRIBUTING-SCRIPTS.md)
+
+## External links
+
+Looking for more information on BCC and how it's being used? You can find links to other BCC content on the web in [LINKS.md](LINKS.md).
