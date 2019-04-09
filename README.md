@@ -196,4 +196,40 @@ Examples:
 - examples/networking/[http_filter/](examples/networking/http_filter): Simple HTTP filter example.
 - examples/networking/[simple_tc.py](examples/networking/simple_tc.py): Simple traffic control example.
 - examples/networking/[simulation.py](examples/networking/simulation.py): Simulation helper.
-- examples/networking/neighbor_sharing/[tc_neighbor_sharing.py](examples/networking/neighbor_sharing/tc_neighbor
+- examples/networking/neighbor_sharing/[tc_neighbor_sharing.py](examples/networking/neighbor_sharing/tc_neighbor_sharing.py) examples/networking/neighbor_sharing/[tc_neighbor_sharing.c](examples/networking/neighbor_sharing/tc_neighbor_sharing.c): Per-IP classification and rate limiting.
+- examples/networking/[tunnel_monitor/](examples/networking/tunnel_monitor): Efficiently monitor traffic flows.
+- examples/networking/vlan_learning/[vlan_learning.py](examples/networking/vlan_learning/vlan_learning.py) examples/[vlan_learning.c](examples/networking/vlan_learning/vlan_learning.c): Demux Ethernet traffic into worker veth+namespaces.
+
+### BPF Introspection:
+
+Tools that help to introspect BPF programs.
+
+- introspection/[bps.c](introspection/bps.c): List all BPF programs loaded into the kernel. 'ps' for BPF programs. [Examples](introspection/bps_example.txt).
+
+## Motivation
+
+BPF guarantees that the programs loaded into the kernel cannot crash, and
+cannot run forever, but yet BPF is general purpose enough to perform many
+arbitrary types of computation. Currently, it is possible to write a program in
+C that will compile into a valid BPF program, yet it is vastly easier to
+write a C program that will compile into invalid BPF (C is like that). The user
+won't know until trying to run the program whether it was valid or not.
+
+With a BPF-specific frontend, one should be able to write in a language and
+receive feedback from the compiler on the validity as it pertains to a BPF
+backend. This toolkit aims to provide a frontend that can only create valid BPF
+programs while still harnessing its full flexibility.
+
+Furthermore, current integrations with BPF have a kludgy workflow, sometimes
+involving compiling directly in a linux kernel source tree. This toolchain aims
+to minimize the time that a developer spends getting BPF compiled, and instead
+focus on the applications that can be written and the problems that can be
+solved with BPF.
+
+The features of this toolkit include:
+* End-to-end BPF workflow in a shared library
+  * A modified C language for BPF backends
+  * Integration with llvm-bpf backend for JIT
+  * Dynamic (un)loading of JITed programs
+  * Support for BPF kernel hooks: socket filters, tc classifiers,
+      tc 
