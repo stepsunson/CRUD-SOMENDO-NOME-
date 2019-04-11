@@ -58,4 +58,45 @@ make install/strip DESTDIR=%{buildroot}
 
 %package -n libbcc
 Summary: Shared Library for BPF Compiler Collection (BCC)
-Requires: elfut
+Requires: elfutils-libelf
+%description -n libbcc
+Shared Library for BPF Compiler Collection (BCC)
+
+%package -n libbcc-examples
+Summary: Examples for BPF Compiler Collection (BCC)
+Requires: libbcc
+%description -n libbcc-examples
+Examples for BPF Compiler Collection (BCC)
+
+%package -n python-bcc
+Summary: Python bindings for BPF Compiler Collection (BCC)
+Requires: libbcc
+%description -n python-bcc
+Python bindings for BPF Compiler Collection (BCC)
+
+%package -n bcc-tools
+Summary: Command line tools for BPF Compiler Collection (BCC)
+Requires: python-bcc
+%description -n bcc-tools
+Command line tools for BPF Compiler Collection (BCC)
+
+%files -n python-bcc
+%{python_sitelib}/bcc*
+
+%files -n libbcc
+/usr/lib64/*
+/usr/include/bcc/*
+
+%files -n libbcc-examples
+/usr/share/bcc/examples/*
+%exclude /usr/share/bcc/examples/*.pyc
+%exclude /usr/share/bcc/examples/*.pyo
+%exclude /usr/share/bcc/examples/*/*.pyc
+%exclude /usr/share/bcc/examples/*/*.pyo
+%exclude /usr/share/bcc/examples/*/*/*.pyc
+%exclude /usr/share/bcc/examples/*/*/*.pyo
+
+%files -n bcc-tools
+/usr/share/bcc/introspection/*
+/usr/share/bcc/tools/*
+/usr/share/bcc/man/*
