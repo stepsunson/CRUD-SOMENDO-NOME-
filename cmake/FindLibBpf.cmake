@@ -66,4 +66,5 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(LibBpf "Please install the libbpf development 
 
 mark_as_advanced(LIBBPF_INCLUDE_DIR ${PATHS})
 else()
-message(Please install the libbpf developme
+message(Please install the libbpf development package)
+endif()
