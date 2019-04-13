@@ -18,3 +18,28 @@ find_path (LIBLZMA_INCLUDE_DIRS
     /opt/local/include
     /sw/include
     ENV CPATH)
+
+find_library (LIBLZMA_LIBRARIES
+  NAMES
+    lzma
+  PATHS
+    /usr/lib
+    /usr/local/lib
+    /opt/local/lib
+    /sw/lib
+    ENV LIBRARY_PATH
+    ENV LD_LIBRARY_PATH)
+
+include (FindPackageHandleStandardArgs)
+
+
+# handle the QUIETLY and REQUIRED arguments and set LIBLZMA_FOUND to TRUE if all listed variables are TRUE
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(LibLzma DEFAULT_MSG
+  LIBLZMA_LIBRARIES
+  LIBLZMA_INCLUDE_DIRS)
+
+if (LIBLZMA_FOUND)
+  add_definitions(-DHAVE_LIBLZMA)
+endif (LIBLZMA_FOUND)
+
+mark_as_advanced(LIBLZMA_INCLUDE_DIRS LIBLZMA_LIBRARIES)
