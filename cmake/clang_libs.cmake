@@ -40,4 +40,41 @@ else()
 set(clang_libs
   ${libclangFrontend}
   ${libclangSerialization}
-  ${lib
+  ${libclangDriver})
+
+if (${LLVM_PACKAGE_VERSION} VERSION_EQUAL 8 OR ${LLVM_PACKAGE_VERSION} VERSION_GREATER 8)
+  list(APPEND clang_libs ${libclangASTMatchers})
+endif()
+
+list(APPEND clang_libs
+  ${libclangParse}
+  ${libclangSema}
+  ${libclangCodeGen}
+  ${libclangAnalysis}
+  ${libclangRewrite}
+  ${libclangEdit}
+  ${libclangAST}
+  ${libclangLex})
+
+# if (${LLVM_PACKAGE_VERSION} VERSION_EQUAL 15 OR ${LLVM_PACKAGE_VERSION} VERSION_GREATER 15)
+  list(APPEND clang_libs ${libclangSupport})
+# endif()
+
+list(APPEND clang_libs
+  ${libclangBasic})
+endif()
+
+# prune unused llvm static library stuff when linking into the new .so
+set(_exclude_flags)
+foreach(_lib ${clang_libs})
+  get_filename_component(_lib ${_lib} NAME)
+  set(_exclude_flags "${_exclude_flags} -Wl,--exclude-libs=${_lib}")
+endforeach(_lib)
+set(clang_lib_exclude_flags "${_exclude_flags}")
+
+set(_exclude_flags)
+foreach(_lib ${llvm_libs})
+  get_filename_component(_lib ${_lib} NAME)
+  set(_exclude_flags "${_exclude_flags} -Wl,--exclude-libs=lib${_lib}.a")
+endforeach(_lib)
+set(llvm_lib_exclude_flags "${_exclude_flags}")
