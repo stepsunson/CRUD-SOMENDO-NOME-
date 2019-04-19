@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+DEBIAN_VERSION := $(shell dpkg-parsechangelog | sed -rne "s,^Version: (.*),\1,p")
+DEBIAN_REVISION := $(shell dpkg-parsechangelog | sed -rne "s,^Version: ([0-9.]+)(~|-)(.*),\3,p")
+UPSTREAM_VERSION := $(shell dpkg-parsechangelog | sed -rne "s,^Version: ([0-9.]+)(~|-)(.*),\1,p")
+
+%:
+	dh $@ --buildsystem=cmake --parallel --with python2,python3
+
+# tests cannot be run in parallel
+override_dh_
