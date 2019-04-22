@@ -78,4 +78,12 @@ RUN pip3 install pyroute2==0.5.18 netaddr==0.8.0 dnslib==0.9.14 cachetools==3.1.
 
 RUN wget -O ruby-install-${RUBY_INSTALL_VERSION}.tar.gz \
          https://github.com/postmodern/ruby-install/archive/v${RUBY_INSTALL_VERSION}.tar.gz && \
-    tar -xzvf ruby-install-${RUBY_INSTALL_VERSION}.ta
+    tar -xzvf ruby-install-${RUBY_INSTALL_VERSION}.tar.gz && \
+    cd ruby-install-${RUBY_INSTALL_VERSION}/ && \
+    make install && \
+    cd .. && \
+    rm -rf ruby-install-${RUBY_INSTALL_VERSION}*
+
+RUN ruby-install --system ruby ${RUBY_VERSION} -c -- --enable-dtrace
+RUN if [ ! -f "/usr/bin/python" ]; then ln -s /bin/python3 /usr/bin/python; fi
+RUN if [ ! -f "/usr/local/bin/python" ]; then ln -s /usr/bin/python3 /usr/local/bin/python; fi
