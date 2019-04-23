@@ -33,4 +33,16 @@
 |  | CONFIG_KPROBES | Enable kprobes-based dynamic events |
 |  | CONFIG_HAVE_KPROBES | Check if krpobes enabled |
 |  | CONFIG_HAVE_REGS_AND_STACK_ACCESS_API | This symbol should be selected by an architecture if it supports the API needed to access registers and stack entries from pt_regs. For example the kprobes-based event tracer needs this API. |
-|  | CONFIG_KPROBES_ON_FTRACE | Have k
+|  | CONFIG_KPROBES_ON_FTRACE | Have kprobes on function tracer if arch supports full passing of pt_regs to function tracing |
+| **kprobe multi** | CONFIG_FPROBE | Enable fprobe to attach the probe on multiple functions at once |
+| **kprobe override** | CONFIG_BPF_KPROBE_OVERRIDE | Enable BPF programs to override a kprobed function |
+| **uprobes** | CONFIG_UPROBE_EVENTS | Enable uprobes-based dynamic events |
+|  | CONFIG_ARCH_SUPPORTS_UPROBES | Arch specific uprobes support |
+|  | CONFIG_UPROBES | Uprobes is the user-space counterpart to kprobes: they enable instrumentation applications (such as 'perf probe') to establish unintrusive probes in user-space binaries and libraries, by executing handler functions when the probes are hit by user-space applications. |
+|  | CONFIG_MMU | MMU-based virtualised addressing space support by paged memory management |
+| **Tracepoints** | CONFIG_TRACEPOINTS | Enable inserting tracepoints in the kernel and connect to proble functions |
+|  | CONFIG_HAVE_SYSCALL_TRACEPOINTS | Enable syscall enter/exit tracing |
+| **Raw Tracepoints** | Same as Tracepoints | |
+| **LSM** | CONFIG_BPF_LSM | Enable instrumentation of the security hooks with BPF programs for implementing dynamic MAC and Audit Policies |
+| **LIRC** | CONFIG_BPF_LIRC_MODE2 | Allow attaching BPF programs to a lirc device |
+
