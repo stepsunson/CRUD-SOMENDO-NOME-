@@ -82,4 +82,44 @@ The BPF hash map can be created by:
         name mnt_ns_set flags 0
 ```
 
-Execute the `execsno
+Execute the `execsnoop` tool filtering only the mount namespaces
+in `/sys/fs/bpf/mnt_ns_set`:
+
+```
+# tools/execsnoop.py --mntnsmap /sys/fs/bpf/mnt_ns_set
+```
+
+Start a terminal in a new mount namespace:
+
+```
+# unshare -m bash
+```
+
+Update the hash map with the mount namespace ID of the terminal above:
+
+```
+FILE=/sys/fs/bpf/mnt_ns_set
+if [ $(printf '\1' | od -dAn) -eq 1 ]; then
+ HOST_ENDIAN_CMD=tac
+else
+  HOST_ENDIAN_CMD=cat
+fi
+
+NS_ID_HEX="$(printf '%016x' $(stat -Lc '%i' /proc/self/ns/mnt) | sed 's/.\{2\}/&\n/g' | $HOST_ENDIAN_CMD)"
+bpftool map update pinned $FILE key hex $NS_ID_HEX value hex 00 00 00 00 any
+```
+
+Execute a command in this terminal:
+
+```
+# ping kinvolk.io
+```
+
+You'll see how on the `execsnoop` terminal you started above the call is logged:
+
+```
+# tools/execsnoop.py --mntnsmap /sys/fs/bpf/mnt_ns_set
+[sudo] password for mvb:
+PCOMM            PID    PPID   RET ARGS
+ping             8096   7970     0 /bin/ping kinvolk.io
+```
