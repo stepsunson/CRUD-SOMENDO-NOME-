@@ -50,4 +50,36 @@ int main(int argc, char** argv) {
   ebpf::BPF bpf;
   auto init_res = bpf.init(BPF_PROGRAM);
   if (!init_res.ok()) {
-    std::cerr << init_res.msg() << st
+    std::cerr << init_res.msg() << std::endl;
+    return 1;
+  }
+
+  auto cgroup_array = bpf.get_cgroup_array("cgroup");
+  auto update_res = cgroup_array.update_value(0, argv[1]);
+  if (!update_res.ok()) {
+    std::cerr << update_res.msg() << std::endl;
+    return 1;
+  }
+
+  auto attach_res =
+      bpf.attach_kprobe("vfs_open", "on_vfs_open");
+  if (!attach_res.ok()) {
+    std::cerr << attach_res.msg() << std::endl;
+    return 1;
+  }
+
+  std::ifstream pipe("/sys/kernel/debug/tracing/trace_pipe");
+  std::string line;
+
+  std::cout << "Started tracing open event, hit Ctrl-C to terminate." << std::endl;
+  while (std::getline(pipe, line))
+    std::cout << line << std::endl;
+
+  auto detach_res = bpf.detach_kprobe("vfs_open");
+  if (!detach_res.ok()) {
+    std::cerr << detach_res.msg() << std::endl;
+    return 1;
+  }
+
+  return 0;
+}
