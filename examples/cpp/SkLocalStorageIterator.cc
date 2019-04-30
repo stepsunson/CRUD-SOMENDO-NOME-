@@ -152,3 +152,33 @@ int main() {
     close(sockfd1);
     return 1;
   }
+
+  // Header.
+  printf("family\tprot\tval\n");
+
+  struct info_t info[20];
+  int len, leftover = 0, info_size = 20 * sizeof(struct info_t);
+  while ((len = read(iter_fd, (char *)info + leftover, info_size - leftover))) {
+    if (len < 0) {
+      if (len == -EAGAIN)
+        continue;
+      std::cerr << "read failed: " << len << std::endl;
+      break;
+    }
+
+    int num_info = len / sizeof(struct info_t);
+    for (int i = 0; i < num_info; i++) {
+      printf("%d\t%d\t%lld\n", info[i].family, info[i].protocol, info[i].val);
+    }
+
+    leftover = len % sizeof(struct info_t);
+    if (num_info > 0)
+      memcpy(info, (void *)&info[num_info], leftover);
+  }
+
+  close(iter_fd);
+  close(link_fd);
+  close(sockfd2);
+  close(sockfd1);
+  return 0;
+}
