@@ -87,4 +87,45 @@ int main(int argc, char** argv) {
   std::sort(
       table.begin(), table.end(),
       [](std::pair<stack_key_t, uint64_t> a,
-         std::pair<stack_key_t, uint64_t> b) { return a.second < b.second; }
+         std::pair<stack_key_t, uint64_t> b) { return a.second < b.second; });
+  auto stacks = bpf.get_stack_table("stack_traces");
+
+  int lost_stacks = 0;
+  for (auto it : table) {
+    std::cout << "PID: " << it.first.pid << " (" << it.first.name << ") "
+              << "made " << it.second
+              << " TCP sends on following stack: " << std::endl;
+    if (it.first.kernel_stack >= 0) {
+      std::cout << "  Kernel Stack:" << std::endl;
+      auto syms = stacks.get_stack_symbol(it.first.kernel_stack, -1);
+      for (auto sym : syms)
+        std::cout << "    " << sym << std::endl;
+    } else {
+      // -EFAULT normally means the stack is not available and not an error
+      if (it.first.kernel_stack != -EFAULT) {
+        lost_stacks++;
+        std::cout << "    [Lost Kernel Stack" << it.first.kernel_stack << "]"
+                  << std::endl;
+      }
+    }
+    if (it.first.user_stack >= 0) {
+      std::cout << "  User Stack:" << std::endl;
+      auto syms = stacks.get_stack_symbol(it.first.user_stack, it.first.pid);
+      for (auto sym : syms)
+        std::cout << "    " << sym << std::endl;
+    } else {
+      // -EFAULT normally means the stack is not available and not an error
+      if (it.first.user_stack != -EFAULT) {
+        lost_stacks++;
+        std::cout << "    [Lost User Stack " << it.first.user_stack << "]"
+                  << std::endl;
+      }
+    }
+  }
+
+  if (lost_stacks > 0)
+    std::cout << "Total " << lost_stacks << " stack-traces lost due to "
+              << "hash collision or stack table full" << std::endl;
+
+  return 0;
+}
