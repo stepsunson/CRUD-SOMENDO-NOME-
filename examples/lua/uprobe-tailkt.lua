@@ -39,4 +39,27 @@ if watch_key ~= '*' then klen = #watch_key end
 -- That is going to serve as an attachment point for BPF program
 -- ABI: bool accept(void *this, const char* kbuf, size_t ksiz, Visitor* visitor, bool writable)
 local key_type = string.format('char [%d]', klen)
-local probe = bpf.uprobe('/usr/local/bin/kts
+local probe = bpf.uprobe('/usr/local/bin/ktserver:kyotocabinet::StashDB::accept',
+function (ptregs)
+	-- Watch either get/set or both
+	if writeable ~= 'any' then
+		if ptregs.parm5 ~= writeable then return end
+	end
+	local line = ffi.new(key_type)
+	ffi.copy(line, ffi.cast('char *', ptregs.parm2))
+	-- Check if we're looking for specific key
+	if watch_key ~= '*' then
+		if ptregs.parm3 ~= klen then return false end
+		if line ~= watch_key then return false end
+	end
+	print('%s write:%d\n', line, ptregs.parm5)
+end, false, -1, 0)
+-- User-space part of the program
+local ok, err = pcall(function()
+	local log = bpf.tracelog()
+	print('            TASK-PID   CPU#         TIMESTAMP  FUNCTION')
+	print('               | |      |               |         |')
+	while true do
+		print(log:read())
+	end
+end)
