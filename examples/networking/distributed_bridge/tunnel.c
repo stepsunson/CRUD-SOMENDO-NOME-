@@ -43,4 +43,43 @@ int handle_ingress(struct __sk_buff *skb) {
     }
     bpf_clone_redirect(skb, *ifindex, 1/*ingress*/);
   } else {
-    bpf_trace_printk("ingress invalid tunnel_id=%d\n", tkey
+    bpf_trace_printk("ingress invalid tunnel_id=%d\n", tkey.tunnel_id);
+  }
+
+  return 1;
+}
+
+// Handle packets from the tenant, mux into the encap device
+int handle_egress(struct __sk_buff *skb) {
+  u8 *cursor = 0;
+
+  int one = 1;
+  struct config *cfg = conf.lookup(&one);
+  if (!cfg) return 1;
+
+  struct ethernet_t *ethernet = cursor_advance(cursor, sizeof(*ethernet));
+
+  struct vni_key vk = {ethernet->dst, skb->ifindex, 0};
+  struct host *dst_host = mac2host.lookup(&vk);
+  struct bpf_tunnel_key tkey = {};
+  if (dst_host) {
+    u32 zero = 0;
+    tkey.tunnel_id = dst_host->tunnel_id;
+    tkey.remote_ipv4 = dst_host->remote_ipv4;
+    bpf_skb_set_tunnel_key(skb, &tkey,
+        offsetof(struct bpf_tunnel_key, remote_ipv6[1]), 0);
+    lock_xadd(&dst_host->tx_pkts, 1);
+  } else {
+    struct bpf_tunnel_key tkey = {};
+    vk.mac = 0xFFFFFFFFFFFFull;
+    dst_host = mac2host.lookup(&vk);
+    if (!dst_host)
+      return 1;
+    tkey.tunnel_id = dst_host->tunnel_id;
+    tkey.remote_ipv4 = dst_host->remote_ipv4;
+    bpf_skb_set_tunnel_key(skb, &tkey,
+        offsetof(struct bpf_tunnel_key, remote_ipv6[1]), 0);
+  }
+  bpf_clone_redirect(skb, cfg->tunnel_ifindex, 0/*egress*/);
+  return 1;
+}
