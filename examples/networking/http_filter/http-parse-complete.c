@@ -62,4 +62,75 @@ int http_filter(struct __sk_buff *skb) {
         ip_header_length = ip->hlen << 2;    //SHL 2 -> *4 multiply
 
         //check ip header length against minimum
-       
+        if (ip_header_length < sizeof(*ip)) {
+                goto DROP;
+        }
+
+        //shift cursor forward for dynamic ip header size
+        void *_ = cursor_advance(cursor, (ip_header_length-sizeof(*ip)));
+
+	struct tcp_t *tcp = cursor_advance(cursor, sizeof(*tcp));
+
+	//retrieve ip src/dest and port src/dest of current packet
+	//and save it into struct Key
+	key.dst_ip = ip->dst;
+	key.src_ip = ip->src;
+	key.dst_port = tcp->dst_port;
+	key.src_port = tcp->src_port;
+
+	//calculate tcp header length
+	//value to multiply *4
+	//e.g. tcp->offset = 5 ; TCP Header Length = 5 x 4 byte = 20 byte
+	tcp_header_length = tcp->offset << 2; //SHL 2 -> *4 multiply
+
+	//calculate payload offset and length
+	payload_offset = ETH_HLEN + ip_header_length + tcp_header_length;
+	payload_length = ip->tlen - ip_header_length - tcp_header_length;
+
+	//http://stackoverflow.com/questions/25047905/http-request-minimum-size-in-bytes
+	//minimum length of http request is always geater than 7 bytes
+	//avoid invalid access memory
+	//include empty payload
+	if(payload_length < 7) {
+		goto DROP;
+	}
+
+	//load first 7 byte of payload into p (payload_array)
+	//direct access to skb not allowed
+	unsigned long p[7];
+	int i = 0;
+	for (i = 0; i < 7; i++) {
+		p[i] = load_byte(skb, payload_offset + i);
+	}
+
+	//find a match with an HTTP message
+	//HTTP
+	if ((p[0] == 'H') && (p[1] == 'T') && (p[2] == 'T') && (p[3] == 'P')) {
+		goto HTTP_MATCH;
+	}
+	//GET
+	if ((p[0] == 'G') && (p[1] == 'E') && (p[2] == 'T')) {
+		goto HTTP_MATCH;
+	}
+	//POST
+	if ((p[0] == 'P') && (p[1] == 'O') && (p[2] == 'S') && (p[3] == 'T')) {
+		goto HTTP_MATCH;
+	}
+	//PUT
+	if ((p[0] == 'P') && (p[1] == 'U') && (p[2] == 'T')) {
+		goto HTTP_MATCH;
+	}
+	//DELETE
+	if ((p[0] == 'D') && (p[1] == 'E') && (p[2] == 'L') && (p[3] == 'E') && (p[4] == 'T') && (p[5] == 'E')) {
+		goto HTTP_MATCH;
+	}
+	//HEAD
+	if ((p[0] == 'H') && (p[1] == 'E') && (p[2] == 'A') && (p[3] == 'D')) {
+		goto HTTP_MATCH;
+	}
+
+	//no HTTP match
+	//check if packet belong to an HTTP session
+	struct Leaf * lookup_leaf = sessions.lookup(&key);
+	if(lookup_leaf) {
+		//send packet to userspace
