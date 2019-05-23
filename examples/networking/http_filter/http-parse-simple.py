@@ -43,4 +43,71 @@ def help():
 #arguments
 interface="eth0"
 
-if len(a
+if len(argv) == 2:
+  if str(argv[1]) == '-h':
+    help()
+  else:
+    usage()
+
+if len(argv) == 3:
+  if str(argv[1]) == '-i':
+    interface = argv[2]
+  else:
+    usage()
+
+if len(argv) > 3:
+  usage()
+
+print ("binding socket to '%s'" % interface)
+
+# initialize BPF - load source code from http-parse-simple.c
+bpf = BPF(src_file = "http-parse-simple.c",debug = 0)
+
+#load eBPF program http_filter of type SOCKET_FILTER into the kernel eBPF vm
+#more info about eBPF program types
+#http://man7.org/linux/man-pages/man2/bpf.2.html
+function_http_filter = bpf.load_func("http_filter", BPF.SOCKET_FILTER)
+
+#create raw socket, bind it to interface
+#attach bpf program to socket created
+BPF.attach_raw_socket(function_http_filter, interface)
+
+#get file descriptor of the socket previously created inside BPF.attach_raw_socket
+socket_fd = function_http_filter.sock
+
+#create python socket object, from the file descriptor
+sock = socket.fromfd(socket_fd,socket.PF_PACKET,socket.SOCK_RAW,socket.IPPROTO_IP)
+#set it as blocking socket
+sock.setblocking(True)
+
+while 1:
+  #retrieve raw packet from socket
+  packet_str = os.read(socket_fd,2048)
+
+  #DEBUG - print raw packet in hex format
+  #packet_hex = toHex(packet_str)
+  #print ("%s" % packet_hex)
+
+  #convert packet into bytearray
+  packet_bytearray = bytearray(packet_str)
+
+  #ethernet header length
+  ETH_HLEN = 14
+
+  #IP HEADER
+  #https://tools.ietf.org/html/rfc791
+  # 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+  # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  # |Version|  IHL  |Type of Service|          Total Length         |
+  # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  #
+  #IHL : Internet Header Length is the length of the internet header
+  #value to multiply * 4 byte
+  #e.g. IHL = 5 ; IP Header Length = 5 * 4 byte = 20 byte
+  #
+  #Total length: This 16-bit field defines the entire packet size,
+  #including header and data, in bytes.
+
+  #calculate packet total length
+  total_length = packet_bytearray[ETH_HLEN + 2]               #load MSB
+  total_length = total_length << 8   
