@@ -45,4 +45,13 @@ bytes  bytes   bytes    secs.    10^6bits/sec
  87380  16384  16384    4.30        0.18
 
 $ sudo ip netns exec wan0 netperf -H 172.16.1.150 -l 2
-MIGRATED TC
+MIGRATED TCP STREAM TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET to 172.16.1.150 () port 0 AF_INET : demo
+Recv   Send    Send
+Socket Socket  Message  Elapsed
+Size   Size    Size     Time     Throughput
+bytes  bytes   bytes    secs.    10^6bits/sec
+
+ 87380  16384  16384    4.10        1.01
+
+
+The bandwidth is throttled according to the IP.
