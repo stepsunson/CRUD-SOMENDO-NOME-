@@ -125,4 +125,9 @@ try:
             print(monitor_result)
 
             # time.time() outputs time elapsed since 00:00 hours, 1st, Jan., 1970.
-        pa
+        packet_cnt.clear() # delete map entires after printing output. confiremd it deletes values and keys too 
+        
+except KeyboardInterrupt:
+    sys.stdout.close()
+    pass
+
