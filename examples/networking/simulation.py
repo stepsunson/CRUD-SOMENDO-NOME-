@@ -93,4 +93,34 @@ class Simulation(object):
                    "net.ipv6.conf.%s.disable_ipv6=1" % out_ifc.ifname]
             subprocess.call(cmd1)
         if fn and out_ifc:
-            self.ipdb.nl.tc("add",
+            self.ipdb.nl.tc("add", "ingress", out_ifc["index"], "ffff:")
+            self.ipdb.nl.tc("add-filter", "bpf", out_ifc["index"], ":1",
+                            fd=fn.fd, name=fn.name, parent="ffff:",
+                            action=action, classid=1)
+        if cmd:
+            self.processes.append(NSPopen(ns_ipdb.nl.netns, cmd))
+        return (ns_ipdb, out_ifc, in_ifc)
+
+    # helper function to create a namespace and a veth connecting it
+    def _create_ns(self, name, in_ifc=None, out_ifc=None, ipaddr=None,
+                   macaddr=None, fn=None, cmd=None, action="ok", disable_ipv6=False):
+        (ns_ipdb, out_ifc, in_ifc) = self._ns_add_ifc(name, "eth0", name, in_ifc, out_ifc,
+                                                      ipaddr, macaddr, fn, cmd, action,
+                                                      disable_ipv6)
+        return (ns_ipdb, out_ifc, in_ifc)
+
+    def release(self):
+        if self.released: return
+        self.released = True
+        for p in self.processes:
+            if p.released: continue
+            try:
+                p.kill()
+                p.wait()
+            except:
+                pass
+            finally:
+                p.release()
+        for name, db in self.ipdbs.items(): db.release()
+        for ns in self.namespaces: ns.remove()
+
