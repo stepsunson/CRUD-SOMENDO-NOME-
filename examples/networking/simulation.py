@@ -48,4 +48,49 @@ class Simulation(object):
             in_ifname = in_ifc.ifname
             with in_ifc as v:
                 # move half of veth into namespace
-                v.net_ns_fd = ns_ipdb.nl.
+                v.net_ns_fd = ns_ipdb.nl.netns
+        else:
+            # delete the potentially leaf-over veth interfaces
+            ipr = IPRoute()
+            for i in ipr.link_lookup(ifname='%sa' % ifc_base_name): ipr.link("del", index=i)
+            ipr.close()
+            try:
+                out_ifc = self.ipdb.create(ifname="%sa" % ifc_base_name, kind="veth",
+                                           peer="%sb" % ifc_base_name).commit()
+                in_ifc = self.ipdb.interfaces[out_ifc.peer]
+                in_ifname = in_ifc.ifname
+                with in_ifc as v:
+                    v.net_ns_fd = ns_ipdb.nl.netns
+            except KeyboardInterrupt:
+                # explicitly remove the interface
+                out_ifname = "%sa" % ifc_base_name
+                if out_ifname in self.ipdb.interfaces: self.ipdb.interfaces[out_ifname].remove().commit()
+                raise
+
+        if out_ifc: out_ifc.up().commit()
+        try:
+            # this is a workaround for fc31 and possible other disto's.
+            # when interface 'lo' is already up, do another 'up().commit()'
+            # has issues in fc31.
+            # the workaround may become permanent if we upgrade pyroute2
+            # in all machines.
+            if 'state' in ns_ipdb.interfaces.lo.keys():
+                if ns_ipdb.interfaces.lo['state'] != 'up':
+                    ns_ipdb.interfaces.lo.up().commit()
+            else:
+                ns_ipdb.interfaces.lo.up().commit()
+        except pyroute2.ipdb.exceptions.CommitException:
+            print("Warning, commit for lo failed, operstate may be unknown")
+        ns_ipdb.initdb()
+        in_ifc = ns_ipdb.interfaces[in_ifname]
+        with in_ifc as v:
+            v.ifname = ns_ifc
+            if ipaddr: v.add_ip("%s" % ipaddr)
+            if macaddr: v.address = macaddr
+            v.up()
+        if disable_ipv6:
+            cmd1 = ["sysctl", "-q", "-w",
+                   "net.ipv6.conf.%s.disable_ipv6=1" % out_ifc.ifname]
+            subprocess.call(cmd1)
+        if fn and out_ifc:
+            self.ipdb.nl.tc("add",
