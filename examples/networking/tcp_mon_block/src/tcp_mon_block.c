@@ -177,4 +177,71 @@ TRACEPOINT_PROBE(sock, inet_sock_set_state)
             {
                 verbose_event v = {};
                 make_verbose_event(&v, packet_value->src_ip, packet_value->dst_ip, packet_value->src_port, packet_value->dst_port, packet_value->pid, 3);
-                verbose_events.perf_submit(args, &v, sizeof(
+                verbose_events.perf_submit(args, &v, sizeof(v));
+            }
+
+        }
+    }
+
+    return 0;
+}
+
+
+
+
+int trace_connect_entry(struct pt_regs *ctx, struct sock *sk)
+{
+    key_hash key = {};
+    full_packet packet_value = {};
+    u8 verbose_state = 0;
+
+    u16 family = sk->__sk_common.skc_family;
+    if (family != AF_INET)
+    {
+        return 0;
+    }
+
+    u32 pid = bpf_get_current_pid_tgid() >> 32;
+    u16 dst_port = sk->__sk_common.skc_dport;
+    dst_port = ntohs(dst_port);
+    u16 src_port = sk->__sk_common.skc_num;
+    u32 src_ip = sk->__sk_common.skc_rcv_saddr;
+    u32 dst_ip = sk->__sk_common.skc_daddr;
+
+    u32 *monitored_pid = pid_list.lookup(&pid);
+    if (!monitored_pid)
+    {
+        return 0;
+    }
+
+    u32 *allowed_ip = allow_list.lookup(&dst_ip);
+    if (!allowed_ip)
+    {
+        key.src_ip = src_ip;
+        key.src_port = src_port;
+        key.dst_ip = dst_ip;
+        key.dst_port = dst_port;
+
+        packet_value.src_ip = src_ip;
+        packet_value.src_port = src_port;
+        packet_value.dst_ip = dst_ip;
+        packet_value.dst_port = dst_port;
+        packet_value.pid = pid;
+        bpf_get_current_comm(&packet_value.comm, sizeof(packet_value.comm));
+        verbose_state = 1;
+        monitored_connections.update(&key, &packet_value);
+    }
+    else
+    {
+        verbose_state = 2;
+    }
+
+    if (VERBOSE_OUTPUT)
+    {
+        verbose_event v = {};
+        make_verbose_event(&v, src_ip, dst_ip, src_port, dst_port, pid, verbose_state);
+        verbose_events.perf_submit(ctx, &v, sizeof(v));
+    }
+
+    return 0;
+}
