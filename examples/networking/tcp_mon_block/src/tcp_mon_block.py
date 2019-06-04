@@ -103,4 +103,65 @@ def parse_address(url_or_ip):
         print(f"[-] Failed to resolve {url_or_ip} to Ipv4")
         return False
 
-    return i
+    return ipaddrlist
+
+
+def create_bpf_allow_list(bpf):
+    bpf_allow_list = bpf.get_table("allow_list")
+    bpf_pid_list = bpf.get_table("pid_list")
+    with open("allow_list.json", "r") as f:
+        pids_to_list = json.loads(f.read())
+
+    print("[+] Reading and parsing allow_list.json")
+    for pid_to_list in pids_to_list:
+        try:
+            pid = int(pid_to_list["pid"])
+        except ValueError:
+            print(f"[-] invalid PID: {pid_to_list['pid']}")
+            continue
+
+        print(f"[+] Adding {pid} to monitored processes")
+        bpf_pid_list[bpf_pid_list.Key(pid)] = bpf_pid_list.Leaf(pid)
+
+        for url_or_ip in pid_to_list["allow_list"]:
+            ips = parse_address(url_or_ip)
+            if not ips:
+                continue
+            for ip in ips:
+                print(f"[+] Adding {ip} to allowed IPs")
+                ip = ip_to_network_address(ip)
+                bpf_allow_list[bpf_allow_list.Key(ip)] = bpf_allow_list.Leaf(ip)
+
+
+def create_tc(interface):
+    ip = pyroute2.IPRoute()
+    ipdb = pyroute2.IPDB(nl=ip)
+    try:
+        idx = ipdb.interfaces[interface].index
+    except:
+        print(f"[-] {interface} interface not found")
+        return False, False, False
+
+    try:
+        # deleting if exists from previous run
+        ip.tc("del", "clsact", idx)
+    except:
+        pass
+    ip.tc("add", "clsact", idx)
+    return ip, ipdb, idx
+
+
+def parse_blocked_event(cpu, data, size):
+    event = bpf["blocked_events"].event(data)
+    src_ip = network_address_to_ip(event.src_ip)
+    dst_ip = network_address_to_ip(event.dst_ip)
+    flags = parse_tcp_flags(event.tcp_flags)
+    print(f"{event.pid}: {event.comm.decode()} - {src_ip}:{event.src_port} -> {dst_ip}:{event.dst_port} Flags: {flags} was blocked!")
+
+
+def parse_verbose_event(cpu, data, size):
+    event = bpf["verbose_events"].event(data)
+    src_ip = network_address_to_ip(event.src_ip)
+    dst_ip = network_address_to_ip(event.dst_ip)
+    verbose_message = get_verbose_message(event.state)
+    print(f"{event.pid}: {event.comm.decode()} - {src_ip}:{event.src_port} -> {dst_ip}:{
