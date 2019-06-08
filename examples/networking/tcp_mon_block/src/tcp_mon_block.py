@@ -164,4 +164,64 @@ def parse_verbose_event(cpu, data, size):
     src_ip = network_address_to_ip(event.src_ip)
     dst_ip = network_address_to_ip(event.dst_ip)
     verbose_message = get_verbose_message(event.state)
-    print(f"{event.pid}: {event.comm.decode()} - {src_ip}:{event.src_port} -> {dst_ip}:{
+    print(f"{event.pid}: {event.comm.decode()} - {src_ip}:{event.src_port} -> {dst_ip}:{event.dst_port} - {verbose_message}")
+
+
+
+parser = argparse.ArgumentParser(description="Monitor given PIDs and block outgoing connections to all addresses initiated from them, unless they are listed in allow_list.json")
+parser.add_argument("-i", "--interface", help="Network interface name to monitor traffic on", required=True, type=str)
+parser.add_argument("-v", "--verbose", action="store_true", help="Set verbose output")
+args = parser.parse_args()
+print(f"[+] Monitoring {args.interface} interface")
+
+
+with open("tcp_mon_block.c", "r") as f:
+    bpf_text = f.read()
+
+if args.verbose:
+    print("[+] Verbose output is ON!")
+    bpf_text = bpf_text.replace("static bool VERBOSE_OUTPUT = false", "static bool VERBOSE_OUTPUT = true")
+
+
+ip, ipdb, idx = create_tc(args.interface)
+if not ip:
+    exit(-1)
+
+bpf = BPF(text=bpf_text)
+create_bpf_allow_list(bpf)
+
+# loading kprobe
+bpf.attach_kprobe(event="tcp_connect", fn_name="trace_connect_entry")
+
+# loading TC
+fn = bpf.load_func("handle_egress", BPF.SCHED_CLS)
+
+#default parent handlers:
+#https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/pkt_sched.h?id=1f211a1b929c804100e138c5d3d656992cfd5622
+#define TC_H_MIN_INGRESS	0xFFF2U
+#define TC_H_MIN_EGRESS		0xFFF3U
+
+ip.tc("add-filter", "bpf", idx, ":1", fd=fn.fd, name=fn.name, parent="ffff:fff3", classid=1, direct_action=True)
+bpf["blocked_events"].open_perf_buffer(parse_blocked_event)
+bpf["verbose_events"].open_perf_buffer(parse_verbose_event)
+
+
+print("[+] Monitoring started\n")
+while True:
+    try:
+        bpf.perf_buffer_poll()
+    except KeyboardInterrupt:
+        break
+
+ip.tc("del", "clsact", idx)
+ipdb.release()
+
+
+
+
+
+
+
+
+
+
