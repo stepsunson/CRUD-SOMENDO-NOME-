@@ -59,3 +59,30 @@ class TunnelSimulation(Simulation):
                         c.mtu = 1450
                     br.add_port(host[0].interfaces["c%db" % i])
                     host[0].interfaces["c%db" % i].up().commit()
+
+        # pick one host to start the monitor in
+        host = host_info[0]
+        cmd = ["python", "monitor.py"]
+        p = NSPopen(host[0].nl.netns, cmd)
+        self.processes.append(p)
+
+    def serve_http(self):
+        chdir("chord-transitions")
+        # comment below line to see http server log messages
+        SimpleHTTPRequestHandler.log_message = lambda self, format, *args: None
+        self.srv = HTTPServer(("", 8080), SimpleHTTPRequestHandler)
+        self.t = Thread(target=self.srv.serve_forever)
+        self.t.setDaemon(True)
+        self.t.start()
+        print("HTTPServer listening on 0.0.0.0:8080")
+
+try:
+    sim = TunnelSimulation(ipdb)
+    sim.start()
+    sim.serve_http()
+    input("Press enter to quit:")
+finally:
+    if "br100" in ipdb.interfaces: ipdb.interfaces.br100.remove().commit()
+    sim.release()
+    ipdb.release()
+    null.close()
