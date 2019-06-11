@@ -56,4 +56,25 @@ prev = {}
 
 while True:
     result_total = []
-    result_delt
+    result_delta = []
+    tmp = {}
+    # compute both the total and last-N-seconds statistics
+    for k, v in stats.items():
+        # subtract the previous totals from the current, or 0 if none exists
+        v2 = delta_stats(v, prev.get(key2str(k), stats.Leaf(0, 0, 0, 0)))
+        if v2.tx_pkts != 0 or v2.rx_pkts != 0:
+            result_delta.append(stats2json(k, v2))
+        tmp[key2str(k)] = v
+        result_total.append(stats2json(k, v))
+
+    prev = tmp
+
+    with open("./chord-transitions/data/tunnel.json.new", "w") as f:
+        json.dump(result_total, f)
+    rename("./chord-transitions/data/tunnel.json.new", "./chord-transitions/data/tunnel.json")
+    with open("./chord-transitions/data/tunnel-delta.json.new", "w") as f:
+        json.dump(result_delta, f)
+    rename("./chord-transitions/data/tunnel-delta.json.new", "./chord-transitions/data/tunnel-delta.json")
+    sleep(5)
+ipdb.release()
+
