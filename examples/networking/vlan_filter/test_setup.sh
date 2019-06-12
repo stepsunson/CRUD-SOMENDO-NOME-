@@ -54,4 +54,54 @@ ip netns exec netns4 ip link set bry up
 ip netns exec netns4 ip link set veth14 up
 ip netns exec netns4 ip link set veth24 up
 ip netns exec netns4 brctl addif bry veth14
-ip netns
+ip netns exec netns4 brctl addif bry veth24
+
+# create veth devices to connect the bridges
+ip link add vethx type veth peer name vethx11
+ip link add vethy type veth peer name vethy11
+ip link set vethx netns netns3
+ip link set vethx11 netns netns3
+ip link set vethy netns netns4
+ip link set vethy11 netns netns4
+
+ip netns exec netns3 brctl addif brx vethx
+ip netns exec netns3 ip link set vethx up
+ip netns exec netns3 bridge vlan add vid 100 tagged dev vethx
+ip netns exec netns3 bridge vlan add vid 200 tagged dev vethx
+ip netns exec netns3 bridge vlan del vid 1 dev vethx
+ip netns exec netns3 bridge vlan show
+
+ip netns exec netns4 brctl addif bry vethy
+ip netns exec netns4 ip link set vethy up
+ip netns exec netns4 bridge vlan add vid 100 tagged dev vethy
+ip netns exec netns4 bridge vlan add vid 200 tagged dev vethy
+ip netns exec netns4 bridge vlan del vid 1 dev vethy
+ip netns exec netns4 bridge vlan show
+
+ip netns exec netns3 ip link set dev brx type bridge vlan_filtering 1
+ip netns exec netns4 ip link set dev bry type bridge vlan_filtering 1
+ip netns exec netns3 bridge vlan del vid 1 dev brx self
+ip netns exec netns4 bridge vlan del vid 1 dev bry self
+ip netns exec netns3 bridge vlan show
+ip netns exec netns4 bridge vlan show
+
+ip netns exec netns3 bridge vlan add vid 100 pvid untagged dev veth13
+ip netns exec netns3 bridge vlan add vid 200 pvid untagged dev veth23
+ip netns exec netns4 bridge vlan add vid 100 pvid untagged dev veth14
+ip netns exec netns4 bridge vlan add vid 200 pvid untagged dev veth24
+
+ip netns exec netns3 bridge vlan del vid 1 dev veth13
+ip netns exec netns3 bridge vlan del vid 1 dev veth23
+ip netns exec netns4 bridge vlan del vid 1 dev veth14
+ip netns exec netns4 bridge vlan del vid 1 dev veth24
+
+# set up bridge brvx and its ports 
+ip netns exec netns3 brctl addbr brvx  
+ip netns exec netns3 ip link set brvx up
+ip netns exec netns3 ip link set vethx11 up
+ip netns exec netns3 brctl addif brvx vethx11
+
+# set up bridge brvy and its ports 
+ip netns exec netns4 brctl addbr brvy  
+ip netns exec netns4 ip link set brvy up
+ip netns exec net
