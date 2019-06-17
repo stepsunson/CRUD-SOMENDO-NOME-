@@ -104,4 +104,44 @@ ip netns exec netns3 brctl addif brvx vethx11
 # set up bridge brvy and its ports 
 ip netns exec netns4 brctl addbr brvy  
 ip netns exec netns4 ip link set brvy up
-ip netns exec net
+ip netns exec netns4 ip link set vethy11 up
+ip netns exec netns4 brctl addif brvy vethy11
+
+# create veth devices to connect the vxlan bridges
+ip link add veth3 type veth peer name veth4
+ip link add veth5 type veth peer name veth6
+ip link set veth3 netns netns3
+ip link set veth5 netns netns4
+ip netns exec netns3 ip link set veth3 up
+ip netns exec netns4 ip link set veth5 up
+ip link set veth4 up
+ip link set veth6 up
+ip netns exec netns3 ifconfig veth3 10.1.1.11/24 up
+ip netns exec netns4 ifconfig veth5 10.1.1.12/24 up
+
+# add vxlan ports
+ip netns exec netns3 ip link add vxlan-10 type vxlan id 10 remote 10.1.1.12 dstport 4789 dev veth3
+ip netns exec netns4 ip link add vxlan-10 type vxlan id 10 remote 10.1.1.11 dstport 4789 dev veth5
+ip netns exec netns3 ip link set vxlan-10 up
+ip netns exec netns4 ip link set vxlan-10 up
+ip netns exec netns3 brctl addif brvx vxlan-10
+ip netns exec netns4 brctl addif brvy vxlan-10
+
+# create veth devices to connect the vxlan bridges
+ip link add veth7 type veth peer name veth8
+ip link set veth7 up
+ip link set veth8 up
+
+# set up bridge brjx and its ports 
+brctl addbr brjx  
+ip link set brjx up
+ip link set veth4 up
+brctl addif brjx veth4
+brctl addif brjx veth7
+
+# set up bridge brjy and its ports 
+brctl addbr brjy  
+ip link set brjy up
+ip link set veth6 up
+brctl addif brjy veth6
+brctl addif brjy veth8
