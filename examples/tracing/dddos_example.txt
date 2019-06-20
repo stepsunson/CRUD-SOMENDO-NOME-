@@ -1,0 +1,12 @@
+Demonstrations of dddos.py, the Linux eBPF/bcc version.
+
+This tracks ip_rcv function (using kprobe) and elapsed time
+between received packets to detect potential DDOS attacks.
+
+The following steps illustrates the usage of dddos :
+1 - Start dddos.py :
+# ./dddos.py
+DDOS detector started ... Hit Ctrl-C to end!
+TIME(s)            MESSAGE
+
+2 - Launch hping3 (or any other flooder) in another terminal as shown belo
