@@ -35,3 +35,41 @@ int hello(struct pt_regs *ctx) {
 
     events.perf_submit(ctx, &data, sizeof(data));
 
+    return 0;
+}
+"""
+
+devinfo = os.stat("/proc/self/ns/pid")
+for r in (("DEV", str(devinfo.st_dev)), ("INO", str(devinfo.st_ino))):
+    prog = prog.replace(*r)
+
+# load BPF program
+b = BPF(text=prog)
+b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
+
+# header
+print("%-18s %-16s %-6s %s" % ("TIME(s)", "COMM", "PID", "MESSAGE"))
+
+# process event
+start = 0
+
+
+def print_event(cpu, data, size):
+    global start
+    event = b["events"].event(data)
+    if start == 0:
+        start = event.ts
+    time_s = (float(event.ts - start)) / 1000000000
+    printb(
+        b"%-18.9f %-16s %-6d %s"
+        % (time_s, event.comm, event.pid, b"Hello, perf_output!")
+    )
+
+
+# loop with callback to print_event
+b["events"].open_perf_buffer(print_event)
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
