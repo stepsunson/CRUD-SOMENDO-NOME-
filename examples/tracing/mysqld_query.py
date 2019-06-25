@@ -48,4 +48,18 @@ if debug:
     print(bpf_text)
 
 # initialize BPF
-b = B
+b = BPF(text=bpf_text, usdt_contexts=[u])
+
+# header
+print("%-18s %-16s %-6s %s" % ("TIME(s)", "COMM", "PID", "QUERY"))
+
+# format output
+while 1:
+    try:
+        (task, pid, cpu, flags, ts, msg) = b.trace_fields()
+    except ValueError:
+        print("value error")
+        continue
+    except KeyboardInterrupt:
+        exit()
+    printb(b"%-18.9f %-16s %-6d %s" % (ts, task, pid, msg))
