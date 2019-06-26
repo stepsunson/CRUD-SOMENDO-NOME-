@@ -51,4 +51,55 @@ struct key_t {
 BPF_HASH(counts, struct key_t);
 BPF_STACK_TRACE_BUILDID(stack_traces, 128);
 
-int do_perf_event(struct bpf_perf_event_data *
+int do_perf_event(struct bpf_perf_event_data *ctx) {
+    u32 pid = bpf_get_current_pid_tgid() >> 32;
+
+    // create map key
+    struct key_t key = {.pid = pid};
+    bpf_get_current_comm(&key.name, sizeof(key.name));
+
+    key.user_stack_id = stack_traces.get_stackid(&ctx->regs, BPF_F_USER_STACK);
+
+    if (key.user_stack_id >= 0) {
+      counts.increment(key);
+    }
+    return 0;
+}
+"""
+
+b = BPF(text=bpf_text)
+b.attach_perf_event(ev_type=PerfType.SOFTWARE,
+    ev_config=PerfSWConfig.CPU_CLOCK, fn_name="do_perf_event",
+    sample_period=0, sample_freq=49, cpu=0)
+
+# Add the list of libraries/executables to the build sym cache for sym resolution
+# Change the libc path if it is different on a different machine.
+# libc.so and ping are added here so that any symbols pertaining to
+# libc or ping are resolved. More executables/libraries can be added here.
+b.add_module(Get_libc_path())
+b.add_module("/usr/sbin/sshd")
+b.add_module("/bin/ping")
+counts = b.get_table("counts")
+stack_traces = b.get_table("stack_traces")
+duration = 2
+
+def signal_handler(signal, frame):
+  print()
+
+try:
+    sleep(duration)
+except KeyboardInterrupt:
+    # as cleanup can take some time, trap Ctrl-C:
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+user_stack=[]
+for k,v in sorted(counts.items(), key=lambda counts: counts[1].value):
+  user_stack = [] if k.user_stack_id < 0 else \
+      stack_traces.walk(k.user_stack_id)
+
+  user_stack=list(user_stack)
+  for addr in user_stack:
+    print("    %s" % b.sym(addr, k.pid).decode('utf-8', 'replace'))
+  print("    %-16s %s (%d)" % ("-", k.name.decode('utf-8', 'replace'), k.pid))
+  print("        %d\n" % v.value)
+
