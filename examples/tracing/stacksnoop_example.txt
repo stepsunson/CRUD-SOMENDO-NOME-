@@ -84,4 +84,13 @@ positional arguments:
   function           kernel function name
 
 optional arguments:
-  -h, --help         show thi
+  -h, --help         show this help message and exit
+  -p PID, --pid PID  trace this PID only
+  -s, --offset       show address offsets
+  -v, --verbose      print more fields
+
+examples:
+    ./stacksnoop ext4_sync_fs    # print kernel stack traces for ext4_sync_fs
+    ./stacksnoop -s ext4_sync_fs    # ... also show symbol offsets
+    ./stacksnoop -v ext4_sync_fs    # ... show extra columns
+    ./stacksnoop -p 185 ext4_sync_fs    # ... only when PID 185 is on-CPU
