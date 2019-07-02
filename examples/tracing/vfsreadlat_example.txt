@@ -1,0 +1,5 @@
+Demonstrations of vfsreadlat.py, the Linux eBPF/bcc version.
+
+
+This example traces the latency of vfs_read (time from call to return), printing 
+it as a histogram distribution.

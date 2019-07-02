@@ -13,4 +13,43 @@
 #     dd if=/dev/urandom of=/dev/null bs=1k count=5
 #
 # Copyright 2016 Netflix, Inc.
-# 
+# Licensed under the Apache License, Version 2.0 (the "License")
+
+from __future__ import print_function
+from bcc import BPF
+from bcc.utils import printb
+
+# define BPF program
+bpf_text = """
+#include <uapi/linux/ptrace.h>
+
+struct urandom_read_args {
+    // from /sys/kernel/debug/tracing/events/random/urandom_read/format
+    u64 __unused__;
+    u32 got_bits;
+    u32 pool_left;
+    u32 input_left;
+};
+
+int printarg(struct urandom_read_args *args) {
+    bpf_trace_printk("%d\\n", args->got_bits);
+    return 0;
+}
+"""
+
+# load BPF program
+b = BPF(text=bpf_text)
+b.attach_tracepoint(tp="random:urandom_read", fn_name="printarg")
+
+# header
+print("%-18s %-16s %-6s %s" % ("TIME(s)", "COMM", "PID", "GOTBITS"))
+
+# format output
+while 1:
+    try:
+        (task, pid, cpu, flags, ts, msg) = b.trace_fields()
+    except ValueError:
+        continue
+    except KeyboardInterrupt:
+        exit()
+    printb(b"%-18.9f %-16s %-6d %s" % (ts, task, pid, msg))
