@@ -36,4 +36,25 @@ int do_sys_clone(void *ctx) {
     bpf_trace_printk("perf_output failed: %d\\n", rc);
   int zero = 0;
   u64 *val = counters.lookup(&zero);
-  if (val) lock_xad
+  if (val) lock_xadd(val, 1);
+  return 0;
+}
+"""
+b = BPF(text=prog)
+event_name = b.get_syscall_fnname("clone")
+b.attach_kprobe(event=event_name, fn_name="do_sys_clone")
+b["events"].open_perf_buffer(cb)
+
+@atexit.register
+def print_counter():
+    global counter
+    global b
+    print("counter = %d vs %d" % (counter, b["counters"][ct.c_int(0)].value))
+
+printb(b"Tracing " + event_name + b", try `dd if=/dev/zero of=/dev/null`")
+print("Tracing... Hit Ctrl-C to end.")
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
