@@ -62,4 +62,67 @@ BPF_HASH(lat_hash, struct hash_key_t, struct hash_leaf_t, 512);
 
 /**
  * @brief Reads the operation response arguments, calculates the latency, and stores it in the histogram.
- * @param ctx The BPF con
+ * @param ctx The BPF context.
+ */
+int trace_operation_end(struct pt_regs* ctx)
+{
+    u64 operation_id;
+    bpf_usdt_readarg(1, ctx, &operation_id);
+
+    struct start_data_t* start_data = start_hash.lookup(&operation_id);
+    if (0 == start_data) {
+        return 0;
+    }
+
+    u64 duration = bpf_ktime_get_ns() - start_data->start;
+    struct hash_key_t hash_key = {};
+    __builtin_memcpy(&hash_key.input, start_data->input, sizeof(hash_key.input));
+    start_hash.delete(&operation_id);
+
+    struct hash_leaf_t zero = {};
+    struct hash_leaf_t* hash_leaf = lat_hash.lookup_or_try_init(&hash_key, &zero);
+    if (0 == hash_leaf) {
+        return 0;
+    }
+
+    if (hash_leaf->sample_size < max_sample_size) {
+        ++hash_leaf->sample_size;
+    } else {
+        hash_leaf->total -= hash_leaf->average;
+    }
+
+    hash_leaf->total += duration;
+    hash_leaf->average = hash_leaf->total / hash_leaf->sample_size;
+
+    return 0;
+}
+"""
+
+bpf_text = bpf_text.replace("MAX_SAMPLE_SIZE", str(this_maxsamplesize))
+bpf_text = bpf_text.replace("FILTER_STRING", this_filter)
+if this_filter:
+    bpf_text = bpf_text.replace("FILTER_STATEMENT", "if (!filter(start_data.input)) { return 0; }")
+else:
+    bpf_text = bpf_text.replace("FILTER_STATEMENT", "")
+
+# Create USDT context
+print("lat_avg.py - Attaching probes to pid: %d; filter: %s" % (this_pid, this_filter))
+usdt_ctx = USDT(pid=this_pid)
+
+if args.sdt:
+    usdt_ctx.enable_probe(probe="usdt_sample_lib1_sdt:operation_start_sdt", fn_name="trace_operation_start")
+    usdt_ctx.enable_probe(probe="usdt_sample_lib1_sdt:operation_end_sdt", fn_name="trace_operation_end")
+else:
+    usdt_ctx.enable_probe(probe="usdt_sample_lib1:operation_start", fn_name="trace_operation_start")
+    usdt_ctx.enable_probe(probe="usdt_sample_lib1:operation_end", fn_name="trace_operation_end")
+
+# Create BPF context, load BPF program
+bpf_ctx = BPF(text=bpf_text, usdt_contexts=[usdt_ctx], debug=debugLevel)
+
+print("Tracing... Hit Ctrl-C to end.")
+
+lat_hash = bpf_ctx.get_table("lat_hash")
+print("%-12s %-64s %8s %16s" % ("time", "input", "sample_size", "latency (us)"))
+while (1):
+    try:
+        sleep(this
