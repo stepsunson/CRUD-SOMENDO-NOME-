@@ -88,4 +88,55 @@ Displaying notes found in: .note.stapsdt
   stapsdt              0x0000004f       NT_STAPSDT (SystemTap probe descriptors)
     Provider: usdt_sample_lib1
     Name: operation_start
-    Location: 0x0
+    Location: 0x0000000000011d63, Base: 0x0000000000000000, Semaphore: 0x0000000000000000
+    Arguments: -8@-104(%rbp) -8@%rax
+  stapsdt              0x00000057       NT_STAPSDT (SystemTap probe descriptors)
+    Provider: usdt_sample_lib1
+    Name: operation_start_sdt
+    Location: 0x0000000000011d94, Base: 0x000000000001966f, Semaphore: 0x0000000000020a68
+    Arguments: 8@-104(%rbp) 8@%rax
+```
+
+## Start the usdt sample application
+
+The usdt_sample_app1 executes an operation asynchronously on multiple threads, with random (string) parameters, which can be used to filter on.
+
+```bash
+$ examples/usdt_sample/build/usdt_sample_app1/usdt_sample_app1 "usdt" 1 30 10 1 50
+Applying the following parameters:
+Input prefix: usdt.
+Input range: [1, 30].
+Calls Per Second: 10.
+Latency range: [1, 50] ms.
+You can now run the bcc scripts, see usdt_sample.md for examples.
+pid: 2422725
+Press ctrl-c to exit.
+```
+
+## Use argdist.py on the individual probes
+
+```bash
+# Make sure to replace the pid
+$ sudo python3 tools/argdist.py -p 2422725 -i 5 -C "u:$(pwd)/examples/usdt_sample/build/usdt_sample_lib1/libusdt_sample_lib1.so:operation_start():char*:arg2#input" -z 32
+[HH:mm:ss]
+input
+        COUNT      EVENT
+        1          arg2 = b'usdt_5'
+        1          arg2 = b'usdt_30'
+...
+        3          arg2 = b'usdt_9'
+        3          arg2 = b'usdt_17'
+        3          arg2 = b'usdt_7'
+        5          arg2 = b'usdt_10'
+```
+
+## Use latency.py to trace the operation latencies
+
+```bash
+# Make sure to replace the pid, the filter value is chosen arbitrarily.
+$ sudo python3 examples/usdt_sample/scripts/latency.py -p=2422725 -f="usdt_20"
+Attaching probes to pid 2422725
+Tracing... Hit Ctrl-C to end.
+time(s)            id         input                            output                                 start (ns)         end (ns)    duration (us)
+0.000000000        7754       b'usdt_20'                       b'resp_usdt_20'                   672668584224401  672668625460568            41236
+7.414981834        7828       b'usdt_20'                       b're
