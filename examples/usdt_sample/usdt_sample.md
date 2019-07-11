@@ -139,4 +139,41 @@ Attaching probes to pid 2422725
 Tracing... Hit Ctrl-C to end.
 time(s)            id         input                            output                                 start (ns)         end (ns)    duration (us)
 0.000000000        7754       b'usdt_20'                       b'resp_usdt_20'                   672668584224401  672668625460568            41236
-7.414981834        7828       b'usdt_20'                       b're
+7.414981834        7828       b'usdt_20'                       b'resp_usdt_20'                   672675999206235  672676011402270            12196
+...
+23.948248753       7993       b'usdt_20'                       b'resp_usdt_20'                   672692532473154  672692561680989            29207
+26.352332485       8017       b'usdt_20'                       b'resp_usdt_20'                   672694936556886  672694961690970            25134
+```
+
+## Use lat_dist.py to trace the latency distribution
+
+```bash
+# Make sure to replace the pid, the filter value is chosen arbitrarily.
+$ sudo python3 examples/usdt_sample/scripts/lat_dist.py -p=2422725 -i=30 -f="usdt_20"
+Attaching probes to pid 2422725
+[HH:mm:ss]
+
+Bucket ptr = b'usdt_20'
+     latency (us)        : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 0        |                                        |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 0        |                                        |
+        64 -> 127        : 0        |                                        |
+       128 -> 255        : 0        |                                        |
+       256 -> 511        : 0        |                                        |
+       512 -> 1023       : 0        |                                        |
+      1024 -> 2047       : 1        |*****                                   |
+      2048 -> 4095       : 1        |*****                                   |
+      4096 -> 8191       : 2        |***********                             |
+      8192 -> 16383      : 0        |                                        |
+     16384 -> 32767      : 3        |*****************                       |
+     32768 -> 65535      : 7        |****************************************|
+```
+
+## Use lat_avg.py to trace the moving average of the latencies
+
+```bash
+$ sudo python3 examples/usdt_sample/sc
