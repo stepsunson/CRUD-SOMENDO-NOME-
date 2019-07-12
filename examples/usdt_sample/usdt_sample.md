@@ -176,4 +176,47 @@ Bucket ptr = b'usdt_20'
 ## Use lat_avg.py to trace the moving average of the latencies
 
 ```bash
-$ sudo python3 examples/usdt_sample/sc
+$ sudo python3 examples/usdt_sample/scripts/lat_avg.py -p=2422725 -i=5 -c=10 -f="usdt_20"
+Attaching probes to pid 2422725
+Tracing... Hit Ctrl-C to end.
+time         input                                                            sample_size     latency (us)
+HH:mm:08     b'usdt_20'                                                              3            29497
+HH:mm:13     b'usdt_20'                                                              3            29497
+HH:mm:18     b'usdt_20'                                                              4            27655
+HH:mm:23     b'usdt_20'                                                              5            28799
+HH:mm:28     b'usdt_20'                                                              7            23644
+```
+
+## Attach to the probes, created with SystemTap's dtrace
+
+-s implies using the systemtap probes, created with dtrace.
+
+```bash
+$ sudo python3 examples/usdt_sample/scripts/lat_avg.py -p=2422725 -i=5 -c=10 -f="usdt_20" -s
+Attaching probes to pid 2422725
+Tracing... Hit Ctrl-C to end.
+time         input                                                            sample_size     latency (us)
+HH:mm:08     b'usdt_20'                                                              3            29497
+HH:mm:13     b'usdt_20'                                                              3            29497
+HH:mm:18     b'usdt_20'                                                              4            27655
+HH:mm:23     b'usdt_20'                                                              5            28799
+HH:mm:28     b'usdt_20'                                                              7            23644
+```
+
+# Building and executing the usdt_sample (clang 13.0.1)
+
+Build the sample:
+```bash
+$ clang --version
+Ubuntu clang version 13.0.1-++20211124043029+19b8368225dc-1~exp1~20211124043558.23
+...
+# Make sure you are in the bcc root folder
+$ mkdir -p examples/usdt_sample/build_clang && cd examples/usdt_sample/build_clang
+$ cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+$ make
+```
+
+## Use tplist.py to list the available probes
+
+```bash
+$ python3 tools/tplist.py -l examples/usdt_sample/build_clang/usdt_sample_lib1/li
