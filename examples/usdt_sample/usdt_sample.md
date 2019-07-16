@@ -219,4 +219,44 @@ $ make
 ## Use tplist.py to list the available probes
 
 ```bash
-$ python3 tools/tplist.py -l examples/usdt_sample/build_clang/usdt_sample_lib1/li
+$ python3 tools/tplist.py -l examples/usdt_sample/build_clang/usdt_sample_lib1/libusdt_sample_lib1.so
+examples/usdt_sample/build_clang/usdt_sample_lib1/libusdt_sample_lib1.so usdt_sample_lib1:operation_start
+examples/usdt_sample/build_clang/usdt_sample_lib1/libusdt_sample_lib1.so usdt_sample_lib1:operation_start_sdt
+examples/usdt_sample/build_clang/usdt_sample_lib1/libusdt_sample_lib1.so usdt_sample_lib1:operation_end
+examples/usdt_sample/build_clang/usdt_sample_lib1/libusdt_sample_lib1.so usdt_sample_lib1:operation_end_sdt
+$ readelf -n examples/usdt_sample/build_clang/usdt_sample_lib1/libusdt_sample_lib1.so
+
+Displaying notes found in: .note.gnu.build-id
+  Owner                Data size        Description
+  GNU                  0x00000014       NT_GNU_BUILD_ID (unique build ID bitstring)
+    Build ID: 8814f6c44f9e9df42f29a436af6152d7dcbeb8d9
+
+Displaying notes found in: .note.stapsdt
+  Owner                Data size        Description
+  stapsdt              0x00000055       NT_STAPSDT (SystemTap probe descriptors)
+    Provider: usdt_sample_lib1
+    Name: operation_start
+    Location: 0x000000000000e703, Base: 0x0000000000000000, Semaphore: 0x0000000000000000
+    Arguments: -8@-128(%rbp) -8@-136(%rbp)
+  stapsdt              0x0000005d       NT_STAPSDT (SystemTap probe descriptors)
+    Provider: usdt_sample_lib1
+    Name: operation_start_sdt
+    Location: 0x000000000000e755, Base: 0x0000000000016610, Semaphore: 0x000000000001da48
+    Arguments: 8@-144(%rbp) 8@-152(%rbp)
+  stapsdt              0x00000053       NT_STAPSDT (SystemTap probe descriptors)
+    Provider: usdt_sample_lib1
+    Name: operation_end
+    Location: 0x00000000000101bc, Base: 0x0000000000000000, Semaphore: 0x0000000000000000
+    Arguments: -8@-120(%rbp) -8@-128(%rbp)
+  stapsdt              0x0000005b       NT_STAPSDT (SystemTap probe descriptors)
+    Provider: usdt_sample_lib1
+    Name: operation_end_sdt
+    Location: 0x0000000000010228, Base: 0x0000000000016610, Semaphore: 0x000000000001da4a
+    Arguments: 8@-136(%rbp) 8@-144(%rbp)
+```
+
+## Start the usdt sample application
+
+```bash
+$ examples/usdt_sample/build_clang/usdt_sample_app1/usdt_sample_app1 "usdt" 1 30 10 1 50
+Applying the following paramet
