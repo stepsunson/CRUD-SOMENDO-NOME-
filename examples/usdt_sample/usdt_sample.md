@@ -259,4 +259,49 @@ Displaying notes found in: .note.stapsdt
 
 ```bash
 $ examples/usdt_sample/build_clang/usdt_sample_app1/usdt_sample_app1 "usdt" 1 30 10 1 50
-Applying the following paramet
+Applying the following parameters:
+Input prefix: usdt.
+Input range: [1, 30].
+Calls Per Second: 10.
+Latency range: [1, 50] ms.
+You can now run the bcc scripts, see usdt_sample.md for examples.
+pid: 2439214
+Press ctrl-c to exit.
+```
+
+## Use argdist.py on the individual probes
+
+```bash
+# Make sure to replace the pid
+$ sudo python3 tools/argdist.py -p 2439214 -i 5 -C "u:$(pwd)/examples/usdt_sample/build_clang/usdt_sample_lib1/libusdt_sample_lib1.so:operation_start():char*:arg2#input" -z 32
+[HH:mm:ss]
+input
+        COUNT      EVENT
+        1          arg2 = b'usdt_1'
+        1          arg2 = b'usdt_4'
+...
+        3          arg2 = b'usdt_30'
+        3          arg2 = b'usdt_25'
+        5          arg2 = b'usdt_18'
+```
+
+## Use latency.py to trace the operation latencies
+
+```bash
+# Make sure to replace the pid, the filter value is chosen arbitrarily.
+$ sudo python3 examples/usdt_sample/scripts/latency.py -p=2439214 -f="usdt_20"
+Attaching probes to pid 2439214
+Tracing... Hit Ctrl-C to end.
+time(s)            id         input                            output                                 start (ns)         end (ns)    duration (us)
+0.000000000        1351       b'usdt_20'                       b'resp_usdt_20'                   673481735317057  673481761592425            26275
+0.400606129        1355       b'usdt_20'                       b'resp_usdt_20'                   673482135923186  673482141074674             5151
+0.600929879        1357       b'usdt_20'                       b'resp_usdt_20'                   673482336246936  673482338400064             2153
+5.610441985        1407       b'usdt_20'                       b'resp_usdt_20'                   673487345759042  673487392977806            47218
+7.213278292        1423       b'usdt_20'                       b'resp_usdt_20'                   673488948595349  673488976845453            28250
+9.016681573        1441       b'usdt_20'                       b'resp_usdt_20'                   673490751998630  673490802198717            50200
+```
+
+## Use lat_dist.py to trace the latency distribution
+
+```bash
+# Make sure to replace the pid, the filt
