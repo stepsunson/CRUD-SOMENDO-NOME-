@@ -304,4 +304,38 @@ time(s)            id         input                            output           
 ## Use lat_dist.py to trace the latency distribution
 
 ```bash
-# Make sure to replace the pid, the filt
+# Make sure to replace the pid, the filter value is chosen arbitrarily.
+$ sudo python3 examples/usdt_sample/scripts/lat_dist.py -p=2439214 -i=30 -f="usdt_20"
+Attaching probes to pid 2439214
+[HH:mm:ss]
+
+Bucket ptr = b'usdt_20'
+     latency (us)        : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 0        |                                        |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 0        |                                        |
+        64 -> 127        : 0        |                                        |
+       128 -> 255        : 0        |                                        |
+       256 -> 511        : 0        |                                        |
+       512 -> 1023       : 0        |                                        |
+      1024 -> 2047       : 0        |                                        |
+      2048 -> 4095       : 0        |                                        |
+      4096 -> 8191       : 1        |********************                    |
+      8192 -> 16383      : 2        |****************************************|
+     16384 -> 32767      : 1        |********************                    |
+     32768 -> 65535      : 2        |****************************************|
+```
+
+## Use lat_avg.py to trace the moving average of the latencies
+
+```bash
+$ sudo python3 examples/usdt_sample/scripts/lat_avg.py -p=2439214 -i=5 -s=10 -f="usdt_20"
+Attaching probes to pid 2439214
+Tracing... Hit Ctrl-C to end.
+time         input                                                            sample_size     latency (us)
+HH:mm:59     b'usdt_20'                                                              1            16226
+HH:mm:04     b'usdt_20'                                                              2            20332
+HH:mm:09     b'usdt_20'                          
