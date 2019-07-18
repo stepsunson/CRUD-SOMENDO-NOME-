@@ -338,4 +338,20 @@ Tracing... Hit Ctrl-C to end.
 time         input                                                            sample_size     latency (us)
 HH:mm:59     b'usdt_20'                                                              1            16226
 HH:mm:04     b'usdt_20'                                                              2            20332
-HH:mm:09     b'usdt_20'                          
+HH:mm:09     b'usdt_20'                                                              2            20332
+HH:mm:14     b'usdt_20'                                                              5            29657
+HH:mm:19     b'usdt_20'                                                              5            29657
+HH:mm:24     b'usdt_20'                                                              7            33249
+```
+
+# Troubleshooting
+
+## Display the generated BPF program using -v
+
+```bash
+$ sudo python3 examples/usdt_sample/scripts/latency.py -v -p=2439214 -f="usdt_20"
+Attaching probes to pid 2439214
+Running from kernel directory at: /lib/modules/5.13.0-22-generic/build
+clang -cc1 -triple x86_64-unknown-linux-gnu -emit-llvm-bc -emit-llvm-uselists -disable-free -disable-llvm-verifier -discard-value-names -main-file-name main.c -mrelocation-model static -fno-jump-tables -mframe-pointer=none -fmath-errno -fno-rounding-math -mconstructor-aliases -target-cpu x86-64 -tune-cpu generic -mllvm -treat-scalable-fixed-error-as-warning -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fcoverage-compilation-dir=/usr/src/linux-headers-5.13.0-22-generic -nostdsysteminc -nobuiltininc -resource-dir lib/clang/13.0.1 -isystem /virtual/lib/clang/include -include ./include/linux/kconfig.h -include /virtual/include/bcc/bpf.h -include /virtual/include/bcc/bpf_workaround.h -include /virtual/include/bcc/helpers.h -isystem /virtual/include -I /home/bramv/src/projects/bcc -D __BPF_TRACING__ -I arch/x86/include/ -I arch/x86/include/generated -I include -I arch/x86/include/uapi -I arch/x86/include/generated/uapi -I include/uapi -I include/generated/uapi -D __KERNEL__ -D KBUILD_MODNAME="bcc" -O2 -Wno-deprecated-declarations -Wno-gnu-variable-sized-type-not-at-end -Wno-pragma-once-outside-header -Wno-address-of-packed-member -Wno-unknown-warning-option -Wno-unused-value -Wno-pointer-sign -fdebug-compilation-dir=/usr/src/linux-headers-5.13.0-22-generic -ferror-limit 19 -fgnuc-version=4.2.1 -vectorize-loops -vectorize-slp -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o main.bc -x c /virtual/main.c
+#if defined(BPF_LICENSE)
+#error BPF_LICENSE cannot be sp
