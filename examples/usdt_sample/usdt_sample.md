@@ -354,4 +354,46 @@ Attaching probes to pid 2439214
 Running from kernel directory at: /lib/modules/5.13.0-22-generic/build
 clang -cc1 -triple x86_64-unknown-linux-gnu -emit-llvm-bc -emit-llvm-uselists -disable-free -disable-llvm-verifier -discard-value-names -main-file-name main.c -mrelocation-model static -fno-jump-tables -mframe-pointer=none -fmath-errno -fno-rounding-math -mconstructor-aliases -target-cpu x86-64 -tune-cpu generic -mllvm -treat-scalable-fixed-error-as-warning -debug-info-kind=constructor -dwarf-version=4 -debugger-tuning=gdb -fcoverage-compilation-dir=/usr/src/linux-headers-5.13.0-22-generic -nostdsysteminc -nobuiltininc -resource-dir lib/clang/13.0.1 -isystem /virtual/lib/clang/include -include ./include/linux/kconfig.h -include /virtual/include/bcc/bpf.h -include /virtual/include/bcc/bpf_workaround.h -include /virtual/include/bcc/helpers.h -isystem /virtual/include -I /home/bramv/src/projects/bcc -D __BPF_TRACING__ -I arch/x86/include/ -I arch/x86/include/generated -I include -I arch/x86/include/uapi -I arch/x86/include/generated/uapi -I include/uapi -I include/generated/uapi -D __KERNEL__ -D KBUILD_MODNAME="bcc" -O2 -Wno-deprecated-declarations -Wno-gnu-variable-sized-type-not-at-end -Wno-pragma-once-outside-header -Wno-address-of-packed-member -Wno-unknown-warning-option -Wno-unused-value -Wno-pointer-sign -fdebug-compilation-dir=/usr/src/linux-headers-5.13.0-22-generic -ferror-limit 19 -fgnuc-version=4.2.1 -vectorize-loops -vectorize-slp -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o main.bc -x c /virtual/main.c
 #if defined(BPF_LICENSE)
-#error BPF_LICENSE cannot be sp
+#error BPF_LICENSE cannot be specified through cflags
+#endif
+#if !defined(CONFIG_CC_STACKPROTECTOR)
+#if defined(CONFIG_CC_STACKPROTECTOR_AUTO) \
+    || defined(CONFIG_CC_STACKPROTECTOR_REGULAR) \
+    || defined(CONFIG_CC_STACKPROTECTOR_STRONG)
+#define CONFIG_CC_STACKPROTECTOR
+#endif
+#endif
+#include <uapi/linux/ptrace.h>
+__attribute__((always_inline))
+static __always_inline int _bpf_readarg_trace_operation_start_1(struct pt_regs *ctx, void *dest, size_t len) {
+  if (len != sizeof(int64_t)) return -1;
+  { u64 __addr = ctx->bp + -128; __asm__ __volatile__("": : :"memory"); int64_t __res = 0x0; bpf_probe_read_user(&__res, sizeof(__res), (void *)__addr); *((int64_t *)dest) = __res; }
+  return 0;
+}
+__attribute__((always_inline))
+static __always_inline int _bpf_readarg_trace_operation_start_2(struct pt_regs *ctx, void *dest, size_t len) {
+  if (len != sizeof(int64_t)) return -1;
+  { u64 __addr = ctx->bp + -136; __asm__ __volatile__("": : :"memory"); int64_t __res = 0x0; bpf_probe_read_user(&__res, sizeof(__res), (void *)__addr); *((int64_t *)dest) = __res; }
+  return 0;
+}
+__attribute__((always_inline))
+static __always_inline int _bpf_readarg_trace_operation_end_1(struct pt_regs *ctx, void *dest, size_t len) {
+  if (len != sizeof(int64_t)) return -1;
+  { u64 __addr = ctx->bp + -120; __asm__ __volatile__("": : :"memory"); int64_t __res = 0x0; bpf_probe_read_user(&__res, sizeof(__res), (void *)__addr); *((int64_t *)dest) = __res; }
+  return 0;
+}
+__attribute__((always_inline))
+static __always_inline int _bpf_readarg_trace_operation_end_2(struct pt_regs *ctx, void *dest, size_t len) {
+  if (len != sizeof(int64_t)) return -1;
+  { u64 __addr = ctx->bp + -128; __asm__ __volatile__("": : :"memory"); int64_t __res = 0x0; bpf_probe_read_user(&__res, sizeof(__res), (void *)__addr); *((int64_t *)dest) = __res; }
+  return 0;
+}
+#include <linux/blkdev.h>
+#include <uapi/linux/ptrace.h>
+
+/**
+ * @brief Helper method to filter based on the specified inputString.
+ * @param inputString The operation input string to check against the filter.
+ * @return True if the specified inputString starts with the hard-coded filter string; otherwise, false.
+ */
+__attribute__(
