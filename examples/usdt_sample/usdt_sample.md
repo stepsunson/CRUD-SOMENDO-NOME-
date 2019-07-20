@@ -396,4 +396,70 @@ static __always_inline int _bpf_readarg_trace_operation_end_2(struct pt_regs *ct
  * @param inputString The operation input string to check against the filter.
  * @return True if the specified inputString starts with the hard-coded filter string; otherwise, false.
  */
-__attribute__(
+__attribute__((always_inline))
+static inline bool filter(char const* inputString)
+{
+    static const char* null_ptr = 0x0;
+    static const char null_terminator = '\0';
+
+    static const char filter_string[] = "usdt_20"; ///< The filter string is replaced by python code.
+    if (null_ptr == inputString) {
+        return false;
+    }
+    // bpf_trace_printk("inputString: '%s'", inputString);
+
+    // Compare until (not including) the null-terminator for filter_string
+    for (int i = 0; i < sizeof(filter_string) - 1; ++i) {
+        char c1 = *inputString++;
+        if (null_terminator == c1) {
+            return false;  // If the null-terminator for inputString was reached, it can not be equal to filter_string.
+        }
+
+        char c2 = filter_string[i];
+        if (c1 != c2) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Contains the operation start data to trace.
+ */
+struct start_data_t
+{
+    u64 operation_id; ///< The id of the operation.
+    char input[64];   ///< The input string of the request.
+    u64 start;        ///< Timestamp of the start operation (start timestamp).
+};
+
+/**
+ * @brief Contains the operation start data.
+ * key: the operation id.
+ * value: The operation start latency data.
+ */
+BPF_HASH(start_hash, u64, struct start_data_t);
+
+/**
+ * @brief Reads the operation request arguments and stores the start data in the hash.
+ * @param ctx The BPF context.
+ */
+__attribute__((section(".bpf.fn.trace_operation_start")))
+int trace_operation_start(struct pt_regs* ctx)
+{
+
+    struct start_data_t start_data = {};
+    ({ u64 __addr = 0x0; _bpf_readarg_trace_operation_start_2(ctx, &__addr, sizeof(__addr));bpf_probe_read_user(&start_data.input, sizeof(start_data.input), (void *)__addr);});
+
+    if (!filter(start_data.input)) { return 0; } ///< Replaced by python code.
+
+    _bpf_readarg_trace_operation_start_1(ctx, &start_data.operation_id, sizeof(*(&start_data.operation_id)));
+
+    start_data.start = bpf_ktime_get_ns();
+    bpf_map_update_elem((void *)bpf_pseudo_fd(1, -1), &start_data.operation_id, &start_data, BPF_ANY);
+    return 0;
+}
+
+
+/**
+ * @brief
