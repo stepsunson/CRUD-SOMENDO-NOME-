@@ -462,4 +462,64 @@ int trace_operation_start(struct pt_regs* ctx)
 
 
 /**
- * @brief
+ * @brief Contains the latency data w.r.t. the complete operation from request to response.
+ */
+struct end_data_t
+{
+    u64 operation_id; ///< The id of the operation.
+    char input[64];   ///< The request (input) string.
+    char output[64];  ///< The response (output) string.
+    u64 start;        ///< The start timestamp of the operation.
+    u64 end;          ///< The end timestamp of the operation.
+    u64 duration;     ///< The duration of the operation.
+};
+
+/**
+ * The output buffer, which will be used to push the latency event data to user space.
+ */
+BPF_PERF_OUTPUT(operation_event);
+
+/**
+ * @brief Reads the operation response arguments, calculates the latency event data, and writes it to the user output buffer.
+ * @param ctx The BPF context.
+ */
+__attribute__((section(".bpf.fn.trace_operation_end")))
+int trace_operation_end(struct pt_regs* ctx)
+{
+
+    u64 operation_id;
+    _bpf_readarg_trace_operation_end_1(ctx, &operation_id, sizeof(*(&operation_id)));
+
+    struct start_data_t* start_data = bpf_map_lookup_elem((void *)bpf_pseudo_fd(1, -1), &operation_id);
+    if (0 == start_data) {
+        return 0;
+    }
+
+    struct end_data_t end_data = {};
+    end_data.operation_id = operation_id;
+    ({ u64 __addr = 0x0; _bpf_readarg_trace_operation_end_2(ctx, &__addr, sizeof(__addr));bpf_probe_read_user(&end_data.output, sizeof(end_data.output), (void *)__addr);});
+    end_data.end = bpf_ktime_get_ns();
+    end_data.start = start_data->start;
+    end_data.duration = end_data.end - end_data.start;
+    __builtin_memcpy(&end_data.input, start_data->input, sizeof(end_data.input));
+
+    bpf_map_delete_elem((void *)bpf_pseudo_fd(1, -1), &end_data.operation_id);
+
+    bpf_perf_event_output(ctx, bpf_pseudo_fd(1, -2), CUR_CPU_IDENTIFIER, &end_data, sizeof(end_data));
+    return 0;
+}
+
+#include <bcc/footer.h>
+Tracing... Hit Ctrl-C to end.
+```
+
+## Use bpf_trace_printk
+
+Add bpf trace statements to the C++ code:
+
+```C++
+bpf_trace_printk("inputString: '%s'", inputString);
+```
+
+```bash
+$ sudo tail -f /sys/kernel/d
