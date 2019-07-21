@@ -522,4 +522,10 @@ bpf_trace_printk("inputString: '%s'", inputString);
 ```
 
 ```bash
-$ sudo tail -f /sys/kernel/d
+$ sudo tail -f /sys/kernel/debug/tracing/trace
+...
+ usdt_sample_app-2439214 [001] d... 635079.194883: bpf_trace_printk: inputString: 'usdt_8'
+ usdt_sample_app-2439214 [001] d... 635079.295102: bpf_trace_printk: inputString: 'usdt_17'
+ usdt_sample_app-2439214 [001] d... 635079.395217: bpf_trace_printk: inputString: 'usdt_18'
+...
+```
