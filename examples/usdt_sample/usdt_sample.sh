@@ -88,4 +88,8 @@ sudo pkill -f "\\-p.${pid}"
 sudo python3 examples/usdt_sample/scripts/lat_avg.py -p=${pid} -i=5 -c=10 -f="usdt_20" &
 sleep 30
 sudo pkill -f "\\-p.${pid}"
-sudo python3 examples/usdt_sample/scripts/l
+sudo python3 examples/usdt_sample/scripts/lat_avg.py -p=${pid} -i=5 -c=10 -f="usdt_20" -s &
+sleep 30
+sudo pkill -f "\\-p.${pid}"
+
+sudo pkill -f "examples/usdt_sample/build_.*/usdt_sample_app1/usdt_sample_app1"
