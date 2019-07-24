@@ -43,4 +43,14 @@ add_dependencies(${PROJECT_NAME}_HDR ${PROJECT_NAME}_HDR_CLEAN)
 # Create usdt object file.
 add_custom_target( ${PROJECT_NAME}_CLEAN
    COMMAND rm -rf ${USDT_SAMPLE_LIB1_GENERATED} && mkdir -p ${USDT_SAMPLE_LIB1_GENERATED}
-   COMMENT "Recreate usdt probes
+   COMMENT "Recreate usdt probes generated folder"
+)
+add_custom_target( ${PROJECT_NAME}_OBJ
+   COMMAND dtrace -G -s ${USDT_SAMPLE_SDT_PROBES} -o ${USDT_SAMPLE_SDT_OBJECT}
+   COMMENT "Create usdt probes object file"
+)
+add_dependencies(${PROJECT_NAME}_OBJ ${PROJECT_NAME}_CLEAN)
+
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_HDR ${PROJECT_NAME}_OBJ)
+
+## End
