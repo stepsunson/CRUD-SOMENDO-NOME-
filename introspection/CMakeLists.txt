@@ -23,4 +23,7 @@ if(BPS_LINK_RT)
 list(APPEND bps_libs_to_link rt)
 endif()
 
-add_executab
+add_executable(bps bps.c)
+target_link_libraries(bps ${bps_libs_to_link})
+
+install (TARGETS bps DESTINATION share/bcc/introspection)
