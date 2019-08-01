@@ -118,4 +118,66 @@ static int handle_get_next_errno(int eno)
   }
 }
 
-static void print_prog
+static void print_prog_hdr(void)
+{
+  printf("%9s %-15s %8s %6s %-12s %-15s\n",
+         "BID", "TYPE", "UID", "#MAPS", "LoadTime", "NAME");
+}
+
+static void print_prog_info(const struct bpf_prog_info *prog_info)
+{
+  struct timespec real_time_ts, boot_time_ts;
+  time_t wallclock_load_time = 0;
+  char unknown_prog_type[16];
+  const char *prog_type;
+  char load_time[16];
+  struct tm load_tm;
+
+  if (prog_info->type > LAST_KNOWN_PROG_TYPE) {
+    snprintf(unknown_prog_type, sizeof(unknown_prog_type), "<%u>",
+             prog_info->type);
+    unknown_prog_type[sizeof(unknown_prog_type) - 1] = '\0';
+    prog_type = unknown_prog_type;
+  } else {
+    prog_type = prog_type_strings[prog_info->type];
+  }
+
+  if (!clock_gettime(CLOCK_REALTIME, &real_time_ts) &&
+      !clock_gettime(CLOCK_BOOTTIME, &boot_time_ts) &&
+      real_time_ts.tv_sec >= boot_time_ts.tv_sec)
+    wallclock_load_time =
+      (real_time_ts.tv_sec - boot_time_ts.tv_sec) +
+      prog_info->load_time / 1000000000;
+
+  if (wallclock_load_time && localtime_r(&wallclock_load_time, &load_tm))
+    strftime(load_time, sizeof(load_time), "%b%d/%H:%M", &load_tm);
+  else
+    snprintf(load_time, sizeof(load_time), "<%llu>",
+             prog_info->load_time / 1000000000);
+  load_time[sizeof(load_time) - 1] = '\0';
+
+  if (prog_info->jited_prog_len)
+    printf("%9u %-15s %8u %6u %-12s %-15s\n",
+           prog_info->id, prog_type, prog_info->created_by_uid,
+           prog_info->nr_map_ids, load_time, prog_info->name);
+  else
+    printf("%8u- %-15s %8u %6u %-12s %-15s\n",
+           prog_info->id, prog_type, prog_info->created_by_uid,
+           prog_info->nr_map_ids, load_time, prog_info->name);
+}
+
+static void print_map_hdr(void)
+{
+  printf("%8s %-15s %-10s %8s %8s %8s %-15s\n",
+         "MID", "TYPE", "FLAGS", "KeySz", "ValueSz", "MaxEnts",
+         "NAME");
+}
+
+static void print_map_info(const struct bpf_map_info *map_info)
+{
+  char unknown_map_type[16];
+  const char *map_type;
+
+  if (map_info->type > LAST_KNOWN_MAP_TYPE) {
+    snprintf(unknown_map_type, sizeof(unknown_map_type),
+             "<%u>", map_info->ty
