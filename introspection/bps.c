@@ -55,4 +55,67 @@ static const char * const map_type_strings[] = {
   [BPF_MAP_TYPE_HASH] = "hash",
   [BPF_MAP_TYPE_ARRAY] = "array",
   [BPF_MAP_TYPE_PROG_ARRAY] = "prog array",
-  [BPF_MAP_TYPE_PERF_EVENT_ARRAY] = "perf-ev a
+  [BPF_MAP_TYPE_PERF_EVENT_ARRAY] = "perf-ev array",
+  [BPF_MAP_TYPE_PERCPU_HASH] = "percpu hash",
+  [BPF_MAP_TYPE_PERCPU_ARRAY] = "percpu array",
+  [BPF_MAP_TYPE_STACK_TRACE] = "stack trace",
+  [BPF_MAP_TYPE_CGROUP_ARRAY] = "cgroup array",
+  [BPF_MAP_TYPE_LRU_HASH] = "lru hash",
+  [BPF_MAP_TYPE_LRU_PERCPU_HASH] = "lru percpu hash",
+  [BPF_MAP_TYPE_LPM_TRIE] = "lpm trie",
+  [BPF_MAP_TYPE_ARRAY_OF_MAPS] = "array of maps",
+  [BPF_MAP_TYPE_HASH_OF_MAPS] = "hash of maps",
+  [BPF_MAP_TYPE_DEVMAP] = "devmap",
+  [BPF_MAP_TYPE_SOCKMAP] = "sockmap",
+  [BPF_MAP_TYPE_CPUMAP] = "cpumap",
+  [BPF_MAP_TYPE_SOCKHASH] = "sockhash",
+  [BPF_MAP_TYPE_CGROUP_STORAGE] = "cgroup_storage",
+  [BPF_MAP_TYPE_REUSEPORT_SOCKARRAY] = "reuseport_sockarray",
+  [BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE] = "precpu_cgroup_storage",
+  [BPF_MAP_TYPE_QUEUE] = "queue",
+  [BPF_MAP_TYPE_STACK] = "stack",
+  [BPF_MAP_TYPE_SK_STORAGE] = "sk_storage",
+  [BPF_MAP_TYPE_DEVMAP_HASH] = "devmap_hash",
+  [BPF_MAP_TYPE_STRUCT_OPS] = "struct_ops",
+  [BPF_MAP_TYPE_RINGBUF] = "ringbuf",
+  [BPF_MAP_TYPE_INODE_STORAGE] = "inode_storage",
+  [BPF_MAP_TYPE_TASK_STORAGE] = "task_storage",
+  [BPF_MAP_TYPE_BLOOM_FILTER] = "bloom_filter",
+  [BPF_MAP_TYPE_USER_RINGBUF] = "user_ringbuf",
+  [BPF_MAP_TYPE_CGRP_STORAGE] = "cgrp_storage",
+};
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(*(x)))
+#define LAST_KNOWN_PROG_TYPE (ARRAY_SIZE(prog_type_strings) - 1)
+#define LAST_KNOWN_MAP_TYPE (ARRAY_SIZE(map_type_strings) - 1)
+#define min(x, y) ((x) < (y) ? (x) : (y))
+
+static inline uint64_t ptr_to_u64(const void *ptr)
+{
+  return (uint64_t) (unsigned long) ptr;
+}
+
+static inline void * u64_to_ptr(uint64_t ptr)
+{
+  return (void *) (unsigned long ) ptr;
+}
+
+static int handle_get_next_errno(int eno)
+{
+  switch (eno) {
+    case ENOENT:
+      return 0;
+    case EINVAL:
+      fprintf(stderr, "Kernel does not support BPF introspection\n");
+      return EX_UNAVAILABLE;
+    case EPERM:
+      fprintf(stderr,
+              "Require CAP_SYS_ADMIN capability.  Please retry as root\n");
+      return EX_NOPERM;
+    default:
+      fprintf(stderr, "%s\n", strerror(errno));
+      return 1;
+  }
+}
+
+static void print_prog
