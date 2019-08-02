@@ -1,0 +1,4 @@
+* List all BPF programs *
+# bps
+   BID TYPE                 UID  #MAPS LoadTime     NAME
+    82 kprobe                 0      1 Oct19/2

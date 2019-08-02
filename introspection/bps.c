@@ -255,4 +255,92 @@ static int print_one_prog(uint32_t prog_id)
   print_map_hdr();
   nr_map_ids = min(prog_info.nr_map_ids, nr_map_ids);
   for (i = 0; i < nr_map_ids; i++) {
-    struct bpf_map_info ma
+    struct bpf_map_info map_info = {};
+    info_len = sizeof(map_info);
+    int map_fd;
+
+    map_fd = bpf_map_get_fd_by_id(map_ids[i]);
+    if (map_fd == -1) {
+      if (errno == -ENOENT)
+        continue;
+
+      fprintf(stderr,
+              "Cannot get fd for map:%u. %s(%d)\n",
+              map_ids[i], strerror(errno), errno);
+      ret = map_fd;
+      break;
+    }
+
+    ret = bpf_obj_get_info(map_fd, &map_info, &info_len);
+    close(map_fd);
+    if (ret) {
+      fprintf(stderr, "Cannot get info for map:%u. %s(%d)\n",
+              map_ids[i], strerror(errno), errno);
+      break;
+    }
+
+    print_map_info(&map_info);
+  }
+
+  free(map_ids);
+  return ret;
+}
+
+int print_all_progs(void)
+{
+  uint32_t next_id = 0;
+
+  print_prog_hdr();
+
+  while (!bpf_prog_get_next_id(next_id, &next_id)) {
+    struct bpf_prog_info prog_info = {};
+    uint32_t prog_info_len = sizeof(prog_info);
+    int prog_fd;
+    int ret;
+
+    prog_fd = bpf_prog_get_fd_by_id(next_id);
+    if (prog_fd < 0) {
+      if (errno == ENOENT)
+        continue;
+      fprintf(stderr,
+              "Cannot get fd for BID:%u. %s(%d)\n",
+              next_id, strerror(errno), errno);
+      return 1;
+    }
+
+    ret = bpf_obj_get_info(prog_fd, &prog_info, &prog_info_len);
+    close(prog_fd);
+    if (ret) {
+      fprintf(stderr,
+              "Cannot get bpf_prog_info for BID:%u. %s(%d)\n",
+              next_id, strerror(errno), errno);
+      return ret;
+    }
+
+    print_prog_info(&prog_info);
+  }
+
+  return handle_get_next_errno(errno);
+}
+
+void usage(void)
+{
+  printf("BPF Program Snapshot (bps):\n"
+         "List of all BPF programs loaded into the system.\n\n");
+  printf("Usage: bps [bpf-prog-id]\n");
+  printf("    [bpf-prog-id] If specified, it shows the details info of the bpf-prog\n");
+  printf("\n");
+}
+
+int main(int argc, char **argv)
+{
+  if (argc > 1) {
+    if (!isdigit(*argv[1])) {
+      usage();
+      return EX_USAGE;
+    }
+    return print_one_prog((uint32_t)atoi(argv[1]));
+  }
+
+  return print_all_progs();
+}
