@@ -180,4 +180,79 @@ static void print_map_info(const struct bpf_map_info *map_info)
 
   if (map_info->type > LAST_KNOWN_MAP_TYPE) {
     snprintf(unknown_map_type, sizeof(unknown_map_type),
-             "<%u>", map_info->ty
+             "<%u>", map_info->type);
+    unknown_map_type[sizeof(unknown_map_type) - 1] = '\0';
+    map_type = unknown_map_type;
+  } else {
+    map_type = map_type_strings[map_info->type];
+  }
+
+  printf("%8u %-15s 0x%-8x %8u %8u %8u %-15s\n",
+         map_info->id, map_type, map_info->map_flags, map_info->key_size,
+         map_info->value_size, map_info->max_entries,
+         map_info->name);
+}
+
+static int print_one_prog(uint32_t prog_id)
+{
+  const uint32_t usual_nr_map_ids = 64;
+  uint32_t nr_map_ids = usual_nr_map_ids;
+  struct bpf_prog_info prog_info;
+  uint32_t *map_ids =  NULL;
+  uint32_t info_len;
+  int ret = 0;
+  int prog_fd;
+  uint32_t i;
+
+  prog_fd = bpf_prog_get_fd_by_id(prog_id);
+  if (prog_fd == -1) {
+    if (errno == ENOENT) {
+      fprintf(stderr, "BID:%u not found\n", prog_id);
+      return EX_DATAERR;
+    } else {
+      return handle_get_next_errno(errno);
+    }
+  }
+
+  /* Retry at most one time for larger map_ids array */
+  for (i = 0; i < 2; i++) {
+    bzero(&prog_info, sizeof(prog_info));
+    prog_info.map_ids = ptr_to_u64(realloc(map_ids,
+                                           nr_map_ids * sizeof(*map_ids)));
+    if (!prog_info.map_ids) {
+      fprintf(stderr,
+              "Cannot allocate memory for %u map_ids for BID:%u\n",
+              nr_map_ids, prog_id);
+      close(prog_fd);
+      free(map_ids);
+      return 1;
+    }
+
+    map_ids = u64_to_ptr(prog_info.map_ids);
+    prog_info.nr_map_ids = nr_map_ids;
+    info_len = sizeof(prog_info);
+    ret = bpf_obj_get_info(prog_fd, &prog_info, &info_len);
+    if (ret) {
+      fprintf(stderr, "Cannot get info for BID:%u. %s(%d)\n",
+              prog_id, strerror(errno), errno);
+      close(prog_fd);
+      free(map_ids);
+      return ret;
+    }
+
+    if (prog_info.nr_map_ids <= nr_map_ids)
+      break;
+
+    nr_map_ids = prog_info.nr_map_ids;
+  }
+  close(prog_fd);
+
+  print_prog_hdr();
+  print_prog_info(&prog_info);
+  printf("\n");
+
+  /* Print all map_info used by the prog */
+  print_map_hdr();
+  nr_map_ids = min(prog_info.nr_map_ids, nr_map_ids);
+  for (i = 0; i < nr_map_ids; i++) {
+    struct bpf_map_info ma
