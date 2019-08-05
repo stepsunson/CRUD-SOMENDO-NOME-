@@ -28,4 +28,13 @@ $(OUTPUT)/min_core_btfs/%.btf: $(BTFHUB_ARCHIVE)/%.btf
 	$(Q)mkdir -p "$(@D)"
 	$(Q)$(BPFTOOL) gen min_core_btf $< $@ $(OUTPUT)/*.bpf.o
 
-# Compress reduced 
+# Compress reduced BTF files and create an object file with its content
+$(OUTPUT)/min_core_btf_tar.o: $(MIN_CORE_BTF_FILES)
+	$(call msg,TAR,$@)
+	$(Q)tar c --gz -f $(OUTPUT)/min_core_btfs.tar.gz -C $(OUTPUT)/min_core_btfs/ .
+	$(Q)cd $(OUTPUT) && ld -r -b binary min_core_btfs.tar.gz -o $@
+
+# delete failed targets
+.DELETE_ON_ERROR:
+# keep intermediate (.skel.h, .bpf.o, etc) targets
+.SECONDARY:
