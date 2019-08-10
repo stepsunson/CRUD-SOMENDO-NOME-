@@ -12106,3 +12106,2124 @@ struct nlmsghdr {
 	__u16 nlmsg_flags;
 	__u32 nlmsg_seq;
 	__u32 nlmsg_pid;
+};
+
+struct nlattr {
+	__u16 nla_len;
+	__u16 nla_type;
+};
+
+struct nla_policy;
+
+struct netlink_ext_ack {
+	const char *_msg;
+	const struct nlattr *bad_attr;
+	const struct nla_policy *policy;
+	u8 cookie[20];
+	u8 cookie_len;
+};
+
+struct netlink_range_validation;
+
+struct netlink_range_validation_signed;
+
+struct nla_policy {
+	u8 type;
+	u8 validation_type;
+	u16 len;
+	union {
+		const u32 bitfield32_valid;
+		const u32 mask;
+		const char *reject_message;
+		const struct nla_policy *nested_policy;
+		struct netlink_range_validation *range;
+		struct netlink_range_validation_signed *range_signed;
+		struct {
+			s16 min;
+			s16 max;
+		};
+		int (*validate)(const struct nlattr *, struct netlink_ext_ack *);
+		u16 strict_start_type;
+	};
+};
+
+struct netlink_callback {
+	struct sk_buff *skb;
+	const struct nlmsghdr *nlh;
+	int (*dump)(struct sk_buff *, struct netlink_callback *);
+	int (*done)(struct netlink_callback *);
+	void *data;
+	struct module *module;
+	struct netlink_ext_ack *extack;
+	u16 family;
+	u16 answer_flags;
+	u32 min_dump_alloc;
+	unsigned int prev_seq;
+	unsigned int seq;
+	bool strict_check;
+	union {
+		u8 ctx[48];
+		long int args[6];
+	};
+};
+
+struct ndmsg {
+	__u8 ndm_family;
+	__u8 ndm_pad1;
+	__u16 ndm_pad2;
+	__s32 ndm_ifindex;
+	__u16 ndm_state;
+	__u8 ndm_flags;
+	__u8 ndm_type;
+};
+
+struct rtnl_link_stats64 {
+	__u64 rx_packets;
+	__u64 tx_packets;
+	__u64 rx_bytes;
+	__u64 tx_bytes;
+	__u64 rx_errors;
+	__u64 tx_errors;
+	__u64 rx_dropped;
+	__u64 tx_dropped;
+	__u64 multicast;
+	__u64 collisions;
+	__u64 rx_length_errors;
+	__u64 rx_over_errors;
+	__u64 rx_crc_errors;
+	__u64 rx_frame_errors;
+	__u64 rx_fifo_errors;
+	__u64 rx_missed_errors;
+	__u64 tx_aborted_errors;
+	__u64 tx_carrier_errors;
+	__u64 tx_fifo_errors;
+	__u64 tx_heartbeat_errors;
+	__u64 tx_window_errors;
+	__u64 rx_compressed;
+	__u64 tx_compressed;
+	__u64 rx_nohandler;
+	__u64 rx_otherhost_dropped;
+};
+
+struct rtnl_hw_stats64 {
+	__u64 rx_packets;
+	__u64 tx_packets;
+	__u64 rx_bytes;
+	__u64 tx_bytes;
+	__u64 rx_errors;
+	__u64 tx_errors;
+	__u64 rx_dropped;
+	__u64 tx_dropped;
+	__u64 multicast;
+};
+
+struct ifla_vf_guid {
+	__u32 vf;
+	__u64 guid;
+};
+
+struct ifla_vf_stats {
+	__u64 rx_packets;
+	__u64 tx_packets;
+	__u64 rx_bytes;
+	__u64 tx_bytes;
+	__u64 broadcast;
+	__u64 multicast;
+	__u64 rx_dropped;
+	__u64 tx_dropped;
+};
+
+struct ifla_vf_info {
+	__u32 vf;
+	__u8 mac[32];
+	__u32 vlan;
+	__u32 qos;
+	__u32 spoofchk;
+	__u32 linkstate;
+	__u32 min_tx_rate;
+	__u32 max_tx_rate;
+	__u32 rss_query_en;
+	__u32 trusted;
+	__be16 vlan_proto;
+};
+
+struct tc_stats {
+	__u64 bytes;
+	__u32 packets;
+	__u32 drops;
+	__u32 overlimits;
+	__u32 bps;
+	__u32 pps;
+	__u32 qlen;
+	__u32 backlog;
+};
+
+struct tc_sizespec {
+	unsigned char cell_log;
+	unsigned char size_log;
+	short int cell_align;
+	int overhead;
+	unsigned int linklayer;
+	unsigned int mpu;
+	unsigned int mtu;
+	unsigned int tsize;
+};
+
+enum netdev_tx {
+	__NETDEV_TX_MIN = 2147483648,
+	NETDEV_TX_OK = 0,
+	NETDEV_TX_BUSY = 16,
+};
+
+typedef enum netdev_tx netdev_tx_t;
+
+struct net_device_core_stats {
+	long unsigned int rx_dropped;
+	long unsigned int tx_dropped;
+	long unsigned int rx_nohandler;
+	long unsigned int rx_otherhost_dropped;
+};
+
+struct header_ops {
+	int (*create)(struct sk_buff *, struct net_device *, short unsigned int, const void *, const void *, unsigned int);
+	int (*parse)(const struct sk_buff *, unsigned char *);
+	int (*cache)(const struct neighbour *, struct hh_cache *, __be16);
+	void (*cache_update)(struct hh_cache *, const struct net_device *, const unsigned char *);
+	bool (*validate)(const char *, unsigned int);
+	__be16 (*parse_protocol)(const struct sk_buff *);
+};
+
+struct xsk_buff_pool;
+
+struct netdev_queue {
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	struct Qdisc *qdisc;
+	struct Qdisc *qdisc_sleeping;
+	struct kobject kobj;
+	int numa_node;
+	long unsigned int tx_maxrate;
+	atomic_long_t trans_timeout;
+	struct net_device *sb_dev;
+	struct xsk_buff_pool *pool;
+	spinlock_t _xmit_lock;
+	int xmit_lock_owner;
+	long unsigned int trans_start;
+	long unsigned int state;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct dql dql;
+};
+
+struct net_rate_estimator;
+
+struct qdisc_skb_head {
+	struct sk_buff *head;
+	struct sk_buff *tail;
+	__u32 qlen;
+	spinlock_t lock;
+};
+
+struct gnet_stats_basic_sync {
+	u64_stats_t bytes;
+	u64_stats_t packets;
+	struct u64_stats_sync syncp;
+};
+
+struct gnet_stats_queue {
+	__u32 qlen;
+	__u32 backlog;
+	__u32 drops;
+	__u32 requeues;
+	__u32 overlimits;
+};
+
+struct Qdisc_ops;
+
+struct qdisc_size_table;
+
+struct Qdisc {
+	int (*enqueue)(struct sk_buff *, struct Qdisc *, struct sk_buff **);
+	struct sk_buff * (*dequeue)(struct Qdisc *);
+	unsigned int flags;
+	u32 limit;
+	const struct Qdisc_ops *ops;
+	struct qdisc_size_table *stab;
+	struct hlist_node hash;
+	u32 handle;
+	u32 parent;
+	struct netdev_queue *dev_queue;
+	struct net_rate_estimator *rate_est;
+	struct gnet_stats_basic_sync *cpu_bstats;
+	struct gnet_stats_queue *cpu_qstats;
+	int pad;
+	refcount_t refcnt;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct sk_buff_head gso_skb;
+	struct qdisc_skb_head q;
+	struct gnet_stats_basic_sync bstats;
+	struct gnet_stats_queue qstats;
+	long unsigned int state;
+	long unsigned int state2;
+	struct Qdisc *next_sched;
+	struct sk_buff_head skb_bad_txq;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t busylock;
+	spinlock_t seqlock;
+	struct callback_head rcu;
+	netdevice_tracker dev_tracker;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long int privdata[0];
+};
+
+struct rps_map {
+	unsigned int len;
+	struct callback_head rcu;
+	u16 cpus[0];
+};
+
+struct rps_dev_flow {
+	u16 cpu;
+	u16 filter;
+	unsigned int last_qtail;
+};
+
+struct rps_dev_flow_table {
+	unsigned int mask;
+	struct callback_head rcu;
+	struct rps_dev_flow flows[0];
+};
+
+struct netdev_rx_queue {
+	struct xdp_rxq_info xdp_rxq;
+	struct rps_map *rps_map;
+	struct rps_dev_flow_table *rps_flow_table;
+	struct kobject kobj;
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	struct xsk_buff_pool *pool;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct xps_map {
+	unsigned int len;
+	unsigned int alloc_len;
+	struct callback_head rcu;
+	u16 queues[0];
+};
+
+struct xps_dev_maps {
+	struct callback_head rcu;
+	unsigned int nr_ids;
+	s16 num_tc;
+	struct xps_map *attr_map[0];
+};
+
+struct netdev_fcoe_hbainfo {
+	char manufacturer[64];
+	char serial_number[64];
+	char hardware_version[64];
+	char driver_version[64];
+	char optionrom_version[64];
+	char firmware_version[64];
+	char model[256];
+	char model_description[256];
+};
+
+struct netdev_phys_item_id {
+	unsigned char id[32];
+	unsigned char id_len;
+};
+
+enum net_device_path_type {
+	DEV_PATH_ETHERNET = 0,
+	DEV_PATH_VLAN = 1,
+	DEV_PATH_BRIDGE = 2,
+	DEV_PATH_PPPOE = 3,
+	DEV_PATH_DSA = 4,
+	DEV_PATH_MTK_WDMA = 5,
+};
+
+struct net_device_path {
+	enum net_device_path_type type;
+	const struct net_device *dev;
+	union {
+		struct {
+			u16 id;
+			__be16 proto;
+			u8 h_dest[6];
+		} encap;
+		struct {
+			enum {
+				DEV_PATH_BR_VLAN_KEEP = 0,
+				DEV_PATH_BR_VLAN_TAG = 1,
+				DEV_PATH_BR_VLAN_UNTAG = 2,
+				DEV_PATH_BR_VLAN_UNTAG_HW = 3,
+			} vlan_mode;
+			u16 vlan_id;
+			__be16 vlan_proto;
+		} bridge;
+		struct {
+			int port;
+			u16 proto;
+		} dsa;
+		struct {
+			u8 wdma_idx;
+			u8 queue;
+			u16 wcid;
+			u8 bss;
+		} mtk_wdma;
+	};
+};
+
+struct net_device_path_ctx {
+	const struct net_device *dev;
+	u8 daddr[6];
+	int num_vlans;
+	struct {
+		u16 id;
+		__be16 proto;
+	} vlan[2];
+};
+
+enum tc_setup_type {
+	TC_SETUP_QDISC_MQPRIO = 0,
+	TC_SETUP_CLSU32 = 1,
+	TC_SETUP_CLSFLOWER = 2,
+	TC_SETUP_CLSMATCHALL = 3,
+	TC_SETUP_CLSBPF = 4,
+	TC_SETUP_BLOCK = 5,
+	TC_SETUP_QDISC_CBS = 6,
+	TC_SETUP_QDISC_RED = 7,
+	TC_SETUP_QDISC_PRIO = 8,
+	TC_SETUP_QDISC_MQ = 9,
+	TC_SETUP_QDISC_ETF = 10,
+	TC_SETUP_ROOT_QDISC = 11,
+	TC_SETUP_QDISC_GRED = 12,
+	TC_SETUP_QDISC_TAPRIO = 13,
+	TC_SETUP_FT = 14,
+	TC_SETUP_QDISC_ETS = 15,
+	TC_SETUP_QDISC_TBF = 16,
+	TC_SETUP_QDISC_FIFO = 17,
+	TC_SETUP_QDISC_HTB = 18,
+	TC_SETUP_ACT = 19,
+};
+
+enum bpf_netdev_command {
+	XDP_SETUP_PROG = 0,
+	XDP_SETUP_PROG_HW = 1,
+	BPF_OFFLOAD_MAP_ALLOC = 2,
+	BPF_OFFLOAD_MAP_FREE = 3,
+	XDP_SETUP_XSK_POOL = 4,
+};
+
+struct netdev_bpf {
+	enum bpf_netdev_command command;
+	union {
+		struct {
+			u32 flags;
+			struct bpf_prog *prog;
+			struct netlink_ext_ack *extack;
+		};
+		struct {
+			struct bpf_offloaded_map *offmap;
+		};
+		struct {
+			struct xsk_buff_pool *pool;
+			u16 queue_id;
+		} xsk;
+	};
+};
+
+struct xfrmdev_ops {
+	int (*xdo_dev_state_add)(struct xfrm_state *);
+	void (*xdo_dev_state_delete)(struct xfrm_state *);
+	void (*xdo_dev_state_free)(struct xfrm_state *);
+	bool (*xdo_dev_offload_ok)(struct sk_buff *, struct xfrm_state *);
+	void (*xdo_dev_state_advance_esn)(struct xfrm_state *);
+};
+
+struct dev_ifalias {
+	struct callback_head rcuhead;
+	char ifalias[0];
+};
+
+struct devlink_port;
+
+struct ip_tunnel_parm;
+
+struct net_device_ops {
+	int (*ndo_init)(struct net_device *);
+	void (*ndo_uninit)(struct net_device *);
+	int (*ndo_open)(struct net_device *);
+	int (*ndo_stop)(struct net_device *);
+	netdev_tx_t (*ndo_start_xmit)(struct sk_buff *, struct net_device *);
+	netdev_features_t (*ndo_features_check)(struct sk_buff *, struct net_device *, netdev_features_t);
+	u16 (*ndo_select_queue)(struct net_device *, struct sk_buff *, struct net_device *);
+	void (*ndo_change_rx_flags)(struct net_device *, int);
+	void (*ndo_set_rx_mode)(struct net_device *);
+	int (*ndo_set_mac_address)(struct net_device *, void *);
+	int (*ndo_validate_addr)(struct net_device *);
+	int (*ndo_do_ioctl)(struct net_device *, struct ifreq *, int);
+	int (*ndo_eth_ioctl)(struct net_device *, struct ifreq *, int);
+	int (*ndo_siocbond)(struct net_device *, struct ifreq *, int);
+	int (*ndo_siocwandev)(struct net_device *, struct if_settings *);
+	int (*ndo_siocdevprivate)(struct net_device *, struct ifreq *, void *, int);
+	int (*ndo_set_config)(struct net_device *, struct ifmap *);
+	int (*ndo_change_mtu)(struct net_device *, int);
+	int (*ndo_neigh_setup)(struct net_device *, struct neigh_parms *);
+	void (*ndo_tx_timeout)(struct net_device *, unsigned int);
+	void (*ndo_get_stats64)(struct net_device *, struct rtnl_link_stats64 *);
+	bool (*ndo_has_offload_stats)(const struct net_device *, int);
+	int (*ndo_get_offload_stats)(int, const struct net_device *, void *);
+	struct net_device_stats * (*ndo_get_stats)(struct net_device *);
+	int (*ndo_vlan_rx_add_vid)(struct net_device *, __be16, u16);
+	int (*ndo_vlan_rx_kill_vid)(struct net_device *, __be16, u16);
+	void (*ndo_poll_controller)(struct net_device *);
+	int (*ndo_netpoll_setup)(struct net_device *, struct netpoll_info *);
+	void (*ndo_netpoll_cleanup)(struct net_device *);
+	int (*ndo_set_vf_mac)(struct net_device *, int, u8 *);
+	int (*ndo_set_vf_vlan)(struct net_device *, int, u16, u8, __be16);
+	int (*ndo_set_vf_rate)(struct net_device *, int, int, int);
+	int (*ndo_set_vf_spoofchk)(struct net_device *, int, bool);
+	int (*ndo_set_vf_trust)(struct net_device *, int, bool);
+	int (*ndo_get_vf_config)(struct net_device *, int, struct ifla_vf_info *);
+	int (*ndo_set_vf_link_state)(struct net_device *, int, int);
+	int (*ndo_get_vf_stats)(struct net_device *, int, struct ifla_vf_stats *);
+	int (*ndo_set_vf_port)(struct net_device *, int, struct nlattr **);
+	int (*ndo_get_vf_port)(struct net_device *, int, struct sk_buff *);
+	int (*ndo_get_vf_guid)(struct net_device *, int, struct ifla_vf_guid *, struct ifla_vf_guid *);
+	int (*ndo_set_vf_guid)(struct net_device *, int, u64, int);
+	int (*ndo_set_vf_rss_query_en)(struct net_device *, int, bool);
+	int (*ndo_setup_tc)(struct net_device *, enum tc_setup_type, void *);
+	int (*ndo_fcoe_enable)(struct net_device *);
+	int (*ndo_fcoe_disable)(struct net_device *);
+	int (*ndo_fcoe_ddp_setup)(struct net_device *, u16, struct scatterlist *, unsigned int);
+	int (*ndo_fcoe_ddp_done)(struct net_device *, u16);
+	int (*ndo_fcoe_ddp_target)(struct net_device *, u16, struct scatterlist *, unsigned int);
+	int (*ndo_fcoe_get_hbainfo)(struct net_device *, struct netdev_fcoe_hbainfo *);
+	int (*ndo_fcoe_get_wwn)(struct net_device *, u64 *, int);
+	int (*ndo_rx_flow_steer)(struct net_device *, const struct sk_buff *, u16, u32);
+	int (*ndo_add_slave)(struct net_device *, struct net_device *, struct netlink_ext_ack *);
+	int (*ndo_del_slave)(struct net_device *, struct net_device *);
+	struct net_device * (*ndo_get_xmit_slave)(struct net_device *, struct sk_buff *, bool);
+	struct net_device * (*ndo_sk_get_lower_dev)(struct net_device *, struct sock *);
+	netdev_features_t (*ndo_fix_features)(struct net_device *, netdev_features_t);
+	int (*ndo_set_features)(struct net_device *, netdev_features_t);
+	int (*ndo_neigh_construct)(struct net_device *, struct neighbour *);
+	void (*ndo_neigh_destroy)(struct net_device *, struct neighbour *);
+	int (*ndo_fdb_add)(struct ndmsg *, struct nlattr **, struct net_device *, const unsigned char *, u16, u16, struct netlink_ext_ack *);
+	int (*ndo_fdb_del)(struct ndmsg *, struct nlattr **, struct net_device *, const unsigned char *, u16, struct netlink_ext_ack *);
+	int (*ndo_fdb_del_bulk)(struct ndmsg *, struct nlattr **, struct net_device *, u16, struct netlink_ext_ack *);
+	int (*ndo_fdb_dump)(struct sk_buff *, struct netlink_callback *, struct net_device *, struct net_device *, int *);
+	int (*ndo_fdb_get)(struct sk_buff *, struct nlattr **, struct net_device *, const unsigned char *, u16, u32, u32, struct netlink_ext_ack *);
+	int (*ndo_bridge_setlink)(struct net_device *, struct nlmsghdr *, u16, struct netlink_ext_ack *);
+	int (*ndo_bridge_getlink)(struct sk_buff *, u32, u32, struct net_device *, u32, int);
+	int (*ndo_bridge_dellink)(struct net_device *, struct nlmsghdr *, u16);
+	int (*ndo_change_carrier)(struct net_device *, bool);
+	int (*ndo_get_phys_port_id)(struct net_device *, struct netdev_phys_item_id *);
+	int (*ndo_get_port_parent_id)(struct net_device *, struct netdev_phys_item_id *);
+	int (*ndo_get_phys_port_name)(struct net_device *, char *, size_t);
+	void * (*ndo_dfwd_add_station)(struct net_device *, struct net_device *);
+	void (*ndo_dfwd_del_station)(struct net_device *, void *);
+	int (*ndo_set_tx_maxrate)(struct net_device *, int, u32);
+	int (*ndo_get_iflink)(const struct net_device *);
+	int (*ndo_fill_metadata_dst)(struct net_device *, struct sk_buff *);
+	void (*ndo_set_rx_headroom)(struct net_device *, int);
+	int (*ndo_bpf)(struct net_device *, struct netdev_bpf *);
+	int (*ndo_xdp_xmit)(struct net_device *, int, struct xdp_frame **, u32);
+	struct net_device * (*ndo_xdp_get_xmit_slave)(struct net_device *, struct xdp_buff *);
+	int (*ndo_xsk_wakeup)(struct net_device *, u32, u32);
+	struct devlink_port * (*ndo_get_devlink_port)(struct net_device *);
+	int (*ndo_tunnel_ctl)(struct net_device *, struct ip_tunnel_parm *, int);
+	struct net_device * (*ndo_get_peer_dev)(struct net_device *);
+	int (*ndo_fill_forward_path)(struct net_device_path_ctx *, struct net_device_path *);
+	ktime_t (*ndo_get_tstamp)(struct net_device *, const struct skb_shared_hwtstamps *, bool);
+};
+
+struct pcpu_lstats {
+	u64_stats_t packets;
+	u64_stats_t bytes;
+	struct u64_stats_sync syncp;
+};
+
+struct pcpu_sw_netstats {
+	u64_stats_t rx_packets;
+	u64_stats_t rx_bytes;
+	u64_stats_t tx_packets;
+	u64_stats_t tx_bytes;
+	struct u64_stats_sync syncp;
+};
+
+struct iw_request_info;
+
+union iwreq_data;
+
+typedef int (*iw_handler)(struct net_device *, struct iw_request_info *, union iwreq_data *, char *);
+
+struct iw_priv_args;
+
+struct iw_statistics;
+
+struct iw_handler_def {
+	const iw_handler *standard;
+	__u16 num_standard;
+	__u16 num_private;
+	__u16 num_private_args;
+	const iw_handler *private;
+	const struct iw_priv_args *private_args;
+	struct iw_statistics * (*get_wireless_stats)(struct net_device *);
+};
+
+enum ethtool_phys_id_state {
+	ETHTOOL_ID_INACTIVE = 0,
+	ETHTOOL_ID_ACTIVE = 1,
+	ETHTOOL_ID_ON = 2,
+	ETHTOOL_ID_OFF = 3,
+};
+
+struct ethtool_drvinfo;
+
+struct ethtool_regs;
+
+struct ethtool_wolinfo;
+
+struct ethtool_link_ext_state_info;
+
+struct ethtool_eeprom;
+
+struct ethtool_coalesce;
+
+struct kernel_ethtool_coalesce;
+
+struct ethtool_ringparam;
+
+struct kernel_ethtool_ringparam;
+
+struct ethtool_pause_stats;
+
+struct ethtool_pauseparam;
+
+struct ethtool_test;
+
+struct ethtool_stats;
+
+struct ethtool_rxnfc;
+
+struct ethtool_flash;
+
+struct ethtool_channels;
+
+struct ethtool_dump;
+
+struct ethtool_ts_info;
+
+struct ethtool_modinfo;
+
+struct ethtool_eee;
+
+struct ethtool_tunable;
+
+struct ethtool_link_ksettings;
+
+struct ethtool_fec_stats;
+
+struct ethtool_fecparam;
+
+struct ethtool_module_eeprom;
+
+struct ethtool_eth_phy_stats;
+
+struct ethtool_eth_mac_stats;
+
+struct ethtool_eth_ctrl_stats;
+
+struct ethtool_rmon_stats;
+
+struct ethtool_rmon_hist_range;
+
+struct ethtool_module_power_mode_params;
+
+struct ethtool_ops {
+	u32 cap_link_lanes_supported: 1;
+	u32 supported_coalesce_params;
+	u32 supported_ring_params;
+	void (*get_drvinfo)(struct net_device *, struct ethtool_drvinfo *);
+	int (*get_regs_len)(struct net_device *);
+	void (*get_regs)(struct net_device *, struct ethtool_regs *, void *);
+	void (*get_wol)(struct net_device *, struct ethtool_wolinfo *);
+	int (*set_wol)(struct net_device *, struct ethtool_wolinfo *);
+	u32 (*get_msglevel)(struct net_device *);
+	void (*set_msglevel)(struct net_device *, u32);
+	int (*nway_reset)(struct net_device *);
+	u32 (*get_link)(struct net_device *);
+	int (*get_link_ext_state)(struct net_device *, struct ethtool_link_ext_state_info *);
+	int (*get_eeprom_len)(struct net_device *);
+	int (*get_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);
+	int (*set_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);
+	int (*get_coalesce)(struct net_device *, struct ethtool_coalesce *, struct kernel_ethtool_coalesce *, struct netlink_ext_ack *);
+	int (*set_coalesce)(struct net_device *, struct ethtool_coalesce *, struct kernel_ethtool_coalesce *, struct netlink_ext_ack *);
+	void (*get_ringparam)(struct net_device *, struct ethtool_ringparam *, struct kernel_ethtool_ringparam *, struct netlink_ext_ack *);
+	int (*set_ringparam)(struct net_device *, struct ethtool_ringparam *, struct kernel_ethtool_ringparam *, struct netlink_ext_ack *);
+	void (*get_pause_stats)(struct net_device *, struct ethtool_pause_stats *);
+	void (*get_pauseparam)(struct net_device *, struct ethtool_pauseparam *);
+	int (*set_pauseparam)(struct net_device *, struct ethtool_pauseparam *);
+	void (*self_test)(struct net_device *, struct ethtool_test *, u64 *);
+	void (*get_strings)(struct net_device *, u32, u8 *);
+	int (*set_phys_id)(struct net_device *, enum ethtool_phys_id_state);
+	void (*get_ethtool_stats)(struct net_device *, struct ethtool_stats *, u64 *);
+	int (*begin)(struct net_device *);
+	void (*complete)(struct net_device *);
+	u32 (*get_priv_flags)(struct net_device *);
+	int (*set_priv_flags)(struct net_device *, u32);
+	int (*get_sset_count)(struct net_device *, int);
+	int (*get_rxnfc)(struct net_device *, struct ethtool_rxnfc *, u32 *);
+	int (*set_rxnfc)(struct net_device *, struct ethtool_rxnfc *);
+	int (*flash_device)(struct net_device *, struct ethtool_flash *);
+	int (*reset)(struct net_device *, u32 *);
+	u32 (*get_rxfh_key_size)(struct net_device *);
+	u32 (*get_rxfh_indir_size)(struct net_device *);
+	int (*get_rxfh)(struct net_device *, u32 *, u8 *, u8 *);
+	int (*set_rxfh)(struct net_device *, const u32 *, const u8 *, const u8);
+	int (*get_rxfh_context)(struct net_device *, u32 *, u8 *, u8 *, u32);
+	int (*set_rxfh_context)(struct net_device *, const u32 *, const u8 *, const u8, u32 *, bool);
+	void (*get_channels)(struct net_device *, struct ethtool_channels *);
+	int (*set_channels)(struct net_device *, struct ethtool_channels *);
+	int (*get_dump_flag)(struct net_device *, struct ethtool_dump *);
+	int (*get_dump_data)(struct net_device *, struct ethtool_dump *, void *);
+	int (*set_dump)(struct net_device *, struct ethtool_dump *);
+	int (*get_ts_info)(struct net_device *, struct ethtool_ts_info *);
+	int (*get_module_info)(struct net_device *, struct ethtool_modinfo *);
+	int (*get_module_eeprom)(struct net_device *, struct ethtool_eeprom *, u8 *);
+	int (*get_eee)(struct net_device *, struct ethtool_eee *);
+	int (*set_eee)(struct net_device *, struct ethtool_eee *);
+	int (*get_tunable)(struct net_device *, const struct ethtool_tunable *, void *);
+	int (*set_tunable)(struct net_device *, const struct ethtool_tunable *, const void *);
+	int (*get_per_queue_coalesce)(struct net_device *, u32, struct ethtool_coalesce *);
+	int (*set_per_queue_coalesce)(struct net_device *, u32, struct ethtool_coalesce *);
+	int (*get_link_ksettings)(struct net_device *, struct ethtool_link_ksettings *);
+	int (*set_link_ksettings)(struct net_device *, const struct ethtool_link_ksettings *);
+	void (*get_fec_stats)(struct net_device *, struct ethtool_fec_stats *);
+	int (*get_fecparam)(struct net_device *, struct ethtool_fecparam *);
+	int (*set_fecparam)(struct net_device *, struct ethtool_fecparam *);
+	void (*get_ethtool_phy_stats)(struct net_device *, struct ethtool_stats *, u64 *);
+	int (*get_phy_tunable)(struct net_device *, const struct ethtool_tunable *, void *);
+	int (*set_phy_tunable)(struct net_device *, const struct ethtool_tunable *, const void *);
+	int (*get_module_eeprom_by_page)(struct net_device *, const struct ethtool_module_eeprom *, struct netlink_ext_ack *);
+	void (*get_eth_phy_stats)(struct net_device *, struct ethtool_eth_phy_stats *);
+	void (*get_eth_mac_stats)(struct net_device *, struct ethtool_eth_mac_stats *);
+	void (*get_eth_ctrl_stats)(struct net_device *, struct ethtool_eth_ctrl_stats *);
+	void (*get_rmon_stats)(struct net_device *, struct ethtool_rmon_stats *, const struct ethtool_rmon_hist_range **);
+	int (*get_module_power_mode)(struct net_device *, struct ethtool_module_power_mode_params *, struct netlink_ext_ack *);
+	int (*set_module_power_mode)(struct net_device *, const struct ethtool_module_power_mode_params *, struct netlink_ext_ack *);
+};
+
+struct flowi6;
+
+struct l3mdev_ops {
+	u32 (*l3mdev_fib_table)(const struct net_device *);
+	struct sk_buff * (*l3mdev_l3_rcv)(struct net_device *, struct sk_buff *, u16);
+	struct sk_buff * (*l3mdev_l3_out)(struct net_device *, struct sock *, struct sk_buff *, u16);
+	struct dst_entry * (*l3mdev_link_scope_lookup)(const struct net_device *, struct flowi6 *);
+};
+
+struct nd_opt_hdr;
+
+struct ndisc_options;
+
+struct prefix_info;
+
+struct ndisc_ops {
+	int (*is_useropt)(u8);
+	int (*parse_options)(const struct net_device *, struct nd_opt_hdr *, struct ndisc_options *);
+	void (*update)(const struct net_device *, struct neighbour *, u32, u8, const struct ndisc_options *);
+	int (*opt_addr_space)(const struct net_device *, u8, struct neighbour *, u8 *, u8 **);
+	void (*fill_addr_option)(const struct net_device *, struct sk_buff *, u8, const u8 *);
+	void (*prefix_rcv_add_addr)(struct net *, struct net_device *, const struct prefix_info *, struct inet6_dev *, struct in6_addr *, int, u32, bool, bool, __u32, u32, bool);
+};
+
+enum tls_offload_ctx_dir {
+	TLS_OFFLOAD_CTX_DIR_RX = 0,
+	TLS_OFFLOAD_CTX_DIR_TX = 1,
+};
+
+struct tls_crypto_info;
+
+struct tls_context;
+
+struct tlsdev_ops {
+	int (*tls_dev_add)(struct net_device *, struct sock *, enum tls_offload_ctx_dir, struct tls_crypto_info *, u32);
+	void (*tls_dev_del)(struct net_device *, struct tls_context *, enum tls_offload_ctx_dir);
+	int (*tls_dev_resync)(struct net_device *, struct sock *, u32, u8 *, enum tls_offload_ctx_dir);
+};
+
+struct tcf_proto;
+
+struct tcf_block;
+
+struct mini_Qdisc {
+	struct tcf_proto *filter_list;
+	struct tcf_block *block;
+	struct gnet_stats_basic_sync *cpu_bstats;
+	struct gnet_stats_queue *cpu_qstats;
+	long unsigned int rcu_state;
+};
+
+struct rtnl_link_ops {
+	struct list_head list;
+	const char *kind;
+	size_t priv_size;
+	struct net_device * (*alloc)(struct nlattr **, const char *, unsigned char, unsigned int, unsigned int);
+	void (*setup)(struct net_device *);
+	bool netns_refund;
+	unsigned int maxtype;
+	const struct nla_policy *policy;
+	int (*validate)(struct nlattr **, struct nlattr **, struct netlink_ext_ack *);
+	int (*newlink)(struct net *, struct net_device *, struct nlattr **, struct nlattr **, struct netlink_ext_ack *);
+	int (*changelink)(struct net_device *, struct nlattr **, struct nlattr **, struct netlink_ext_ack *);
+	void (*dellink)(struct net_device *, struct list_head *);
+	size_t (*get_size)(const struct net_device *);
+	int (*fill_info)(struct sk_buff *, const struct net_device *);
+	size_t (*get_xstats_size)(const struct net_device *);
+	int (*fill_xstats)(struct sk_buff *, const struct net_device *);
+	unsigned int (*get_num_tx_queues)();
+	unsigned int (*get_num_rx_queues)();
+	unsigned int slave_maxtype;
+	const struct nla_policy *slave_policy;
+	int (*slave_changelink)(struct net_device *, struct net_device *, struct nlattr **, struct nlattr **, struct netlink_ext_ack *);
+	size_t (*get_slave_size)(const struct net_device *, const struct net_device *);
+	int (*fill_slave_info)(struct sk_buff *, const struct net_device *, const struct net_device *);
+	struct net * (*get_link_net)(const struct net_device *);
+	size_t (*get_linkxstats_size)(const struct net_device *, int);
+	int (*fill_linkxstats)(struct sk_buff *, const struct net_device *, int *, int);
+};
+
+struct udp_tunnel_nic_table_info {
+	unsigned int n_entries;
+	unsigned int tunnel_types;
+};
+
+struct udp_tunnel_info;
+
+struct udp_tunnel_nic_shared;
+
+struct udp_tunnel_nic_info {
+	int (*set_port)(struct net_device *, unsigned int, unsigned int, struct udp_tunnel_info *);
+	int (*unset_port)(struct net_device *, unsigned int, unsigned int, struct udp_tunnel_info *);
+	int (*sync_table)(struct net_device *, unsigned int);
+	struct udp_tunnel_nic_shared *shared;
+	unsigned int flags;
+	struct udp_tunnel_nic_table_info tables[4];
+};
+
+struct tcmsg {
+	unsigned char tcm_family;
+	unsigned char tcm__pad1;
+	short unsigned int tcm__pad2;
+	int tcm_ifindex;
+	__u32 tcm_handle;
+	__u32 tcm_parent;
+	__u32 tcm_info;
+};
+
+struct gnet_dump {
+	spinlock_t *lock;
+	struct sk_buff *skb;
+	struct nlattr *tail;
+	int compat_tc_stats;
+	int compat_xstats;
+	int padattr;
+	void *xstats;
+	int xstats_len;
+	struct tc_stats tc_stats;
+};
+
+struct netlink_range_validation {
+	u64 min;
+	u64 max;
+};
+
+struct netlink_range_validation_signed {
+	s64 min;
+	s64 max;
+};
+
+enum flow_action_hw_stats_bit {
+	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT = 0,
+	FLOW_ACTION_HW_STATS_DELAYED_BIT = 1,
+	FLOW_ACTION_HW_STATS_DISABLED_BIT = 2,
+	FLOW_ACTION_HW_STATS_NUM_BITS = 3,
+};
+
+struct flow_block {
+	struct list_head cb_list;
+};
+
+typedef int flow_setup_cb_t(enum tc_setup_type, void *, void *);
+
+struct qdisc_size_table {
+	struct callback_head rcu;
+	struct list_head list;
+	struct tc_sizespec szopts;
+	int refcnt;
+	u16 data[0];
+};
+
+struct Qdisc_class_ops;
+
+struct Qdisc_ops {
+	struct Qdisc_ops *next;
+	const struct Qdisc_class_ops *cl_ops;
+	char id[16];
+	int priv_size;
+	unsigned int static_flags;
+	int (*enqueue)(struct sk_buff *, struct Qdisc *, struct sk_buff **);
+	struct sk_buff * (*dequeue)(struct Qdisc *);
+	struct sk_buff * (*peek)(struct Qdisc *);
+	int (*init)(struct Qdisc *, struct nlattr *, struct netlink_ext_ack *);
+	void (*reset)(struct Qdisc *);
+	void (*destroy)(struct Qdisc *);
+	int (*change)(struct Qdisc *, struct nlattr *, struct netlink_ext_ack *);
+	void (*attach)(struct Qdisc *);
+	int (*change_tx_queue_len)(struct Qdisc *, unsigned int);
+	void (*change_real_num_tx)(struct Qdisc *, unsigned int);
+	int (*dump)(struct Qdisc *, struct sk_buff *);
+	int (*dump_stats)(struct Qdisc *, struct gnet_dump *);
+	void (*ingress_block_set)(struct Qdisc *, u32);
+	void (*egress_block_set)(struct Qdisc *, u32);
+	u32 (*ingress_block_get)(struct Qdisc *);
+	u32 (*egress_block_get)(struct Qdisc *);
+	struct module *owner;
+};
+
+struct qdisc_walker;
+
+struct Qdisc_class_ops {
+	unsigned int flags;
+	struct netdev_queue * (*select_queue)(struct Qdisc *, struct tcmsg *);
+	int (*graft)(struct Qdisc *, long unsigned int, struct Qdisc *, struct Qdisc **, struct netlink_ext_ack *);
+	struct Qdisc * (*leaf)(struct Qdisc *, long unsigned int);
+	void (*qlen_notify)(struct Qdisc *, long unsigned int);
+	long unsigned int (*find)(struct Qdisc *, u32);
+	int (*change)(struct Qdisc *, u32, u32, struct nlattr **, long unsigned int *, struct netlink_ext_ack *);
+	int (*delete)(struct Qdisc *, long unsigned int, struct netlink_ext_ack *);
+	void (*walk)(struct Qdisc *, struct qdisc_walker *);
+	struct tcf_block * (*tcf_block)(struct Qdisc *, long unsigned int, struct netlink_ext_ack *);
+	long unsigned int (*bind_tcf)(struct Qdisc *, long unsigned int, u32);
+	void (*unbind_tcf)(struct Qdisc *, long unsigned int);
+	int (*dump)(struct Qdisc *, long unsigned int, struct sk_buff *, struct tcmsg *);
+	int (*dump_stats)(struct Qdisc *, long unsigned int, struct gnet_dump *);
+};
+
+struct tcf_chain;
+
+struct tcf_block {
+	struct mutex lock;
+	struct list_head chain_list;
+	u32 index;
+	u32 classid;
+	refcount_t refcnt;
+	struct net *net;
+	struct Qdisc *q;
+	struct rw_semaphore cb_lock;
+	struct flow_block flow_block;
+	struct list_head owner_list;
+	bool keep_dst;
+	atomic_t offloadcnt;
+	unsigned int nooffloaddevcnt;
+	unsigned int lockeddevcnt;
+	struct {
+		struct tcf_chain *chain;
+		struct list_head filter_chain_list;
+	} chain0;
+	struct callback_head rcu;
+	struct hlist_head proto_destroy_ht[128];
+	struct mutex proto_destroy_lock;
+};
+
+struct tcf_result;
+
+struct tcf_proto_ops;
+
+struct tcf_proto {
+	struct tcf_proto *next;
+	void *root;
+	int (*classify)(struct sk_buff *, const struct tcf_proto *, struct tcf_result *);
+	__be16 protocol;
+	u32 prio;
+	void *data;
+	const struct tcf_proto_ops *ops;
+	struct tcf_chain *chain;
+	spinlock_t lock;
+	bool deleting;
+	refcount_t refcnt;
+	struct callback_head rcu;
+	struct hlist_node destroy_ht_node;
+};
+
+struct tcf_result {
+	union {
+		struct {
+			long unsigned int class;
+			u32 classid;
+		};
+		const struct tcf_proto *goto_tp;
+		struct {
+			bool ingress;
+			struct gnet_stats_queue *qstats;
+		};
+	};
+};
+
+struct tcf_walker;
+
+struct tcf_proto_ops {
+	struct list_head head;
+	char kind[16];
+	int (*classify)(struct sk_buff *, const struct tcf_proto *, struct tcf_result *);
+	int (*init)(struct tcf_proto *);
+	void (*destroy)(struct tcf_proto *, bool, struct netlink_ext_ack *);
+	void * (*get)(struct tcf_proto *, u32);
+	void (*put)(struct tcf_proto *, void *);
+	int (*change)(struct net *, struct sk_buff *, struct tcf_proto *, long unsigned int, u32, struct nlattr **, void **, u32, struct netlink_ext_ack *);
+	int (*delete)(struct tcf_proto *, void *, bool *, bool, struct netlink_ext_ack *);
+	bool (*delete_empty)(struct tcf_proto *);
+	void (*walk)(struct tcf_proto *, struct tcf_walker *, bool);
+	int (*reoffload)(struct tcf_proto *, bool, flow_setup_cb_t *, void *, struct netlink_ext_ack *);
+	void (*hw_add)(struct tcf_proto *, void *);
+	void (*hw_del)(struct tcf_proto *, void *);
+	void (*bind_class)(void *, u32, long unsigned int, void *, long unsigned int);
+	void * (*tmplt_create)(struct net *, struct tcf_chain *, struct nlattr **, struct netlink_ext_ack *);
+	void (*tmplt_destroy)(void *);
+	int (*dump)(struct net *, struct tcf_proto *, void *, struct sk_buff *, struct tcmsg *, bool);
+	int (*terse_dump)(struct net *, struct tcf_proto *, void *, struct sk_buff *, struct tcmsg *, bool);
+	int (*tmplt_dump)(struct sk_buff *, struct net *, void *);
+	struct module *owner;
+	int flags;
+};
+
+struct tcf_chain {
+	struct mutex filter_chain_lock;
+	struct tcf_proto *filter_chain;
+	struct list_head list;
+	struct tcf_block *block;
+	u32 index;
+	unsigned int refcnt;
+	unsigned int action_refcnt;
+	bool explicitly_created;
+	bool flushing;
+	const struct tcf_proto_ops *tmplt_ops;
+	void *tmplt_priv;
+	struct callback_head rcu;
+};
+
+struct bpf_binary_header {
+	u32 size;
+	int: 32;
+	u8 image[0];
+};
+
+typedef void (*bpf_jit_fill_hole_t)(void *, unsigned int);
+
+struct jit_ctx {
+	const struct bpf_prog *prog;
+	int idx;
+	int epilogue_offset;
+	int *offset;
+	int exentry_idx;
+	__le32 *image;
+	u32 stack_size;
+	int fpb_offset;
+};
+
+struct bpf_plt {
+	u32 insn_ldr;
+	u32 insn_br;
+	u64 target;
+};
+
+struct arm64_jit_data {
+	struct bpf_binary_header *header;
+	u8 *image;
+	struct jit_ctx ctx;
+};
+
+struct preempt_notifier;
+
+struct preempt_ops {
+	void (*sched_in)(struct preempt_notifier *, int);
+	void (*sched_out)(struct preempt_notifier *, struct task_struct *);
+};
+
+struct preempt_notifier {
+	struct hlist_node link;
+	struct preempt_ops *ops;
+};
+
+typedef unsigned int xa_mark_t;
+
+struct interval_tree_node {
+	struct rb_node rb;
+	long unsigned int start;
+	long unsigned int last;
+	long unsigned int __subtree_last;
+};
+
+enum mmu_notifier_event {
+	MMU_NOTIFY_UNMAP = 0,
+	MMU_NOTIFY_CLEAR = 1,
+	MMU_NOTIFY_PROTECTION_VMA = 2,
+	MMU_NOTIFY_PROTECTION_PAGE = 3,
+	MMU_NOTIFY_SOFT_DIRTY = 4,
+	MMU_NOTIFY_RELEASE = 5,
+	MMU_NOTIFY_MIGRATE = 6,
+	MMU_NOTIFY_EXCLUSIVE = 7,
+};
+
+struct mmu_notifier;
+
+struct mmu_notifier_range;
+
+struct mmu_notifier_ops {
+	void (*release)(struct mmu_notifier *, struct mm_struct *);
+	int (*clear_flush_young)(struct mmu_notifier *, struct mm_struct *, long unsigned int, long unsigned int);
+	int (*clear_young)(struct mmu_notifier *, struct mm_struct *, long unsigned int, long unsigned int);
+	int (*test_young)(struct mmu_notifier *, struct mm_struct *, long unsigned int);
+	void (*change_pte)(struct mmu_notifier *, struct mm_struct *, long unsigned int, pte_t);
+	int (*invalidate_range_start)(struct mmu_notifier *, const struct mmu_notifier_range *);
+	void (*invalidate_range_end)(struct mmu_notifier *, const struct mmu_notifier_range *);
+	void (*invalidate_range)(struct mmu_notifier *, struct mm_struct *, long unsigned int, long unsigned int);
+	struct mmu_notifier * (*alloc_notifier)(struct mm_struct *);
+	void (*free_notifier)(struct mmu_notifier *);
+};
+
+struct mmu_notifier {
+	struct hlist_node hlist;
+	const struct mmu_notifier_ops *ops;
+	struct mm_struct *mm;
+	struct callback_head rcu;
+	unsigned int users;
+};
+
+struct mmu_notifier_range {
+	struct vm_area_struct *vma;
+	struct mm_struct *mm;
+	long unsigned int start;
+	long unsigned int end;
+	unsigned int flags;
+	enum mmu_notifier_event event;
+	void *owner;
+};
+
+struct platform_msi_priv_data;
+
+struct msi_device_data {
+	long unsigned int properties;
+	struct platform_msi_priv_data *platform_data;
+	struct mutex mutex;
+	struct xarray __store;
+	long unsigned int __iter_idx;
+};
+
+struct kvm_guest_debug_arch {
+	__u64 dbg_bcr[16];
+	__u64 dbg_bvr[16];
+	__u64 dbg_wcr[16];
+	__u64 dbg_wvr[16];
+};
+
+struct kvm_debug_exit_arch {
+	__u32 hsr;
+	__u32 hsr_high;
+	__u64 far;
+};
+
+struct kvm_sync_regs {
+	__u64 device_irq_level;
+};
+
+struct kvm_irq_level {
+	union {
+		__u32 irq;
+		__s32 status;
+	};
+	__u32 level;
+};
+
+struct kvm_hyperv_exit {
+	__u32 type;
+	__u32 pad1;
+	union {
+		struct {
+			__u32 msr;
+			__u32 pad2;
+			__u64 control;
+			__u64 evt_page;
+			__u64 msg_page;
+		} synic;
+		struct {
+			__u64 input;
+			__u64 result;
+			__u64 params[2];
+		} hcall;
+		struct {
+			__u32 msr;
+			__u32 pad2;
+			__u64 control;
+			__u64 status;
+			__u64 send_page;
+			__u64 recv_page;
+			__u64 pending_page;
+		} syndbg;
+	} u;
+};
+
+struct kvm_xen_exit {
+	__u32 type;
+	union {
+		struct {
+			__u32 longmode;
+			__u32 cpl;
+			__u64 input;
+			__u64 result;
+			__u64 params[6];
+		} hcall;
+	} u;
+};
+
+struct kvm_run {
+	__u8 request_interrupt_window;
+	__u8 immediate_exit;
+	__u8 padding1[6];
+	__u32 exit_reason;
+	__u8 ready_for_interrupt_injection;
+	__u8 if_flag;
+	__u16 flags;
+	__u64 cr8;
+	__u64 apic_base;
+	union {
+		struct {
+			__u64 hardware_exit_reason;
+		} hw;
+		struct {
+			__u64 hardware_entry_failure_reason;
+			__u32 cpu;
+		} fail_entry;
+		struct {
+			__u32 exception;
+			__u32 error_code;
+		} ex;
+		struct {
+			__u8 direction;
+			__u8 size;
+			__u16 port;
+			__u32 count;
+			__u64 data_offset;
+		} io;
+		struct {
+			struct kvm_debug_exit_arch arch;
+		} debug;
+		struct {
+			__u64 phys_addr;
+			__u8 data[8];
+			__u32 len;
+			__u8 is_write;
+		} mmio;
+		struct {
+			__u64 nr;
+			__u64 args[6];
+			__u64 ret;
+			__u32 longmode;
+			__u32 pad;
+		} hypercall;
+		struct {
+			__u64 rip;
+			__u32 is_write;
+			__u32 pad;
+		} tpr_access;
+		struct {
+			__u8 icptcode;
+			__u16 ipa;
+			__u32 ipb;
+		} s390_sieic;
+		__u64 s390_reset_flags;
+		struct {
+			__u64 trans_exc_code;
+			__u32 pgm_code;
+		} s390_ucontrol;
+		struct {
+			__u32 dcrn;
+			__u32 data;
+			__u8 is_write;
+		} dcr;
+		struct {
+			__u32 suberror;
+			__u32 ndata;
+			__u64 data[16];
+		} internal;
+		struct {
+			__u32 suberror;
+			__u32 ndata;
+			__u64 flags;
+			union {
+				struct {
+					__u8 insn_size;
+					__u8 insn_bytes[15];
+				};
+			};
+		} emulation_failure;
+		struct {
+			__u64 gprs[32];
+		} osi;
+		struct {
+			__u64 nr;
+			__u64 ret;
+			__u64 args[9];
+		} papr_hcall;
+		struct {
+			__u16 subchannel_id;
+			__u16 subchannel_nr;
+			__u32 io_int_parm;
+			__u32 io_int_word;
+			__u32 ipb;
+			__u8 dequeued;
+		} s390_tsch;
+		struct {
+			__u32 epr;
+		} epr;
+		struct {
+			__u32 type;
+			__u32 ndata;
+			union {
+				__u64 data[16];
+			};
+		} system_event;
+		struct {
+			__u64 addr;
+			__u8 ar;
+			__u8 reserved;
+			__u8 fc;
+			__u8 sel1;
+			__u16 sel2;
+		} s390_stsi;
+		struct {
+			__u8 vector;
+		} eoi;
+		struct kvm_hyperv_exit hyperv;
+		struct {
+			__u64 esr_iss;
+			__u64 fault_ipa;
+		} arm_nisv;
+		struct {
+			__u8 error;
+			__u8 pad[7];
+			__u32 reason;
+			__u32 index;
+			__u64 data;
+		} msr;
+		struct kvm_xen_exit xen;
+		struct {
+			long unsigned int extension_id;
+			long unsigned int function_id;
+			long unsigned int args[6];
+			long unsigned int ret[2];
+		} riscv_sbi;
+		struct {
+			long unsigned int csr_num;
+			long unsigned int new_value;
+			long unsigned int write_mask;
+			long unsigned int ret_value;
+		} riscv_csr;
+		struct {
+			__u32 flags;
+		} notify;
+		char padding[256];
+	};
+	__u64 kvm_valid_regs;
+	__u64 kvm_dirty_regs;
+	union {
+		struct kvm_sync_regs regs;
+		char padding[2048];
+	} s;
+};
+
+struct kvm_coalesced_mmio {
+	__u64 phys_addr;
+	__u32 len;
+	union {
+		__u32 pad;
+		__u32 pio;
+	};
+	__u8 data[8];
+};
+
+struct kvm_coalesced_mmio_ring {
+	__u32 first;
+	__u32 last;
+	struct kvm_coalesced_mmio coalesced_mmio[0];
+};
+
+struct kvm_mp_state {
+	__u32 mp_state;
+};
+
+struct kvm_device_attr {
+	__u32 flags;
+	__u32 group;
+	__u64 attr;
+	__u64 addr;
+};
+
+struct kvm_dirty_gfn {
+	__u32 flags;
+	__u32 slot;
+	__u64 offset;
+};
+
+struct kvm_stats_desc {
+	__u32 flags;
+	__s16 exponent;
+	__u16 size;
+	__u32 offset;
+	__u32 bucket_size;
+	char name[0];
+};
+
+typedef u64 gpa_t;
+
+typedef u64 gfn_t;
+
+struct kvm_arch_memory_slot {};
+
+struct kvm_memory_slot {
+	struct hlist_node id_node[2];
+	struct interval_tree_node hva_node[2];
+	struct rb_node gfn_node[2];
+	gfn_t base_gfn;
+	long unsigned int npages;
+	long unsigned int *dirty_bitmap;
+	struct kvm_arch_memory_slot arch;
+	long unsigned int userspace_addr;
+	u32 flags;
+	short int id;
+	u16 as_id;
+};
+
+struct kvm_mmio_fragment {
+	gpa_t gpa;
+	void *data;
+	unsigned int len;
+};
+
+struct kvm_vcpu;
+
+struct kvm_cpu_context {
+	struct user_pt_regs regs;
+	u64 spsr_abt;
+	u64 spsr_und;
+	u64 spsr_irq;
+	u64 spsr_fiq;
+	struct user_fpsimd_state fp_regs;
+	u64 sys_regs[123];
+	struct kvm_vcpu *__hyp_running_vcpu;
+};
+
+struct kvm_vcpu_fault_info {
+	u64 esr_el2;
+	u64 far_el2;
+	u64 hpfar_el2;
+	u64 disr_el1;
+};
+
+struct vgic_v2_cpu_if {
+	u32 vgic_hcr;
+	u32 vgic_vmcr;
+	u32 vgic_apr;
+	u32 vgic_lr[64];
+	unsigned int used_lrs;
+};
+
+struct its_vm;
+
+struct its_vpe {
+	struct page *vpt_page;
+	struct its_vm *its_vm;
+	atomic_t vlpi_count;
+	int irq;
+	irq_hw_number_t vpe_db_lpi;
+	bool resident;
+	bool ready;
+	union {
+		struct {
+			int vpe_proxy_event;
+			bool idai;
+		};
+		struct {
+			struct fwnode_handle *fwnode;
+			struct irq_domain *sgi_domain;
+			struct {
+				u8 priority;
+				bool enabled;
+				bool group;
+			} sgi_config[16];
+			atomic_t vmapp_count;
+		};
+	};
+	raw_spinlock_t vpe_lock;
+	u16 col_idx;
+	u16 vpe_id;
+	bool pending_last;
+};
+
+struct vgic_v3_cpu_if {
+	u32 vgic_hcr;
+	u32 vgic_vmcr;
+	u32 vgic_sre;
+	u32 vgic_ap0r[4];
+	u32 vgic_ap1r[4];
+	u64 vgic_lr[16];
+	struct its_vpe its_vpe;
+	unsigned int used_lrs;
+};
+
+enum vgic_irq_config {
+	VGIC_CONFIG_EDGE = 0,
+	VGIC_CONFIG_LEVEL = 1,
+};
+
+struct irq_ops;
+
+struct vgic_irq {
+	raw_spinlock_t irq_lock;
+	struct list_head lpi_list;
+	struct list_head ap_list;
+	struct kvm_vcpu *vcpu;
+	struct kvm_vcpu *target_vcpu;
+	u32 intid;
+	bool line_level;
+	bool pending_latch;
+	bool active;
+	bool enabled;
+	bool hw;
+	struct kref refcount;
+	u32 hwintid;
+	unsigned int host_irq;
+	union {
+		u8 targets;
+		u32 mpidr;
+	};
+	u8 source;
+	u8 active_source;
+	u8 priority;
+	u8 group;
+	enum vgic_irq_config config;
+	struct irq_ops *ops;
+	void *owner;
+};
+
+enum iodev_type {
+	IODEV_CPUIF = 0,
+	IODEV_DIST = 1,
+	IODEV_REDIST = 2,
+	IODEV_ITS = 3,
+};
+
+struct kvm_io_device_ops;
+
+struct kvm_io_device {
+	const struct kvm_io_device_ops *ops;
+};
+
+struct vgic_its;
+
+struct vgic_register_region;
+
+struct vgic_io_device {
+	gpa_t base_addr;
+	union {
+		struct kvm_vcpu *redist_vcpu;
+		struct vgic_its *its;
+	};
+	const struct vgic_register_region *regions;
+	enum iodev_type iodev_type;
+	int nr_regions;
+	struct kvm_io_device dev;
+};
+
+struct vgic_redist_region;
+
+struct vgic_cpu {
+	union {
+		struct vgic_v2_cpu_if vgic_v2;
+		struct vgic_v3_cpu_if vgic_v3;
+	};
+	struct vgic_irq private_irqs[32];
+	raw_spinlock_t ap_list_lock;
+	struct list_head ap_list_head;
+	struct vgic_io_device rd_iodev;
+	struct vgic_redist_region *rdreg;
+	u32 rdreg_index;
+	atomic_t syncr_busy;
+	u64 pendbaser;
+	atomic_t ctlr;
+	u32 num_pri_bits;
+	u32 num_id_bits;
+};
+
+struct arch_timer_context {
+	struct kvm_vcpu *vcpu;
+	struct kvm_irq_level irq;
+	struct hrtimer hrtimer;
+	bool loaded;
+	u32 host_timer_irq;
+	u32 host_timer_irq_flags;
+};
+
+struct arch_timer_cpu {
+	struct arch_timer_context timers[2];
+	struct hrtimer bg_timer;
+	bool enabled;
+};
+
+struct kvm_pmu_events {
+	u32 events_host;
+	u32 events_guest;
+};
+
+struct kvm_pmc {
+	u8 idx;
+	struct perf_event *perf_event;
+};
+
+struct kvm_pmu {
+	struct irq_work overflow_work;
+	struct kvm_pmu_events events;
+	struct kvm_pmc pmc[32];
+	long unsigned int chained[1];
+	int irq_num;
+	bool created;
+	bool irq_level;
+};
+
+struct kvm_mmu_memory_cache {
+	int nobjs;
+	gfp_t gfp_zero;
+	gfp_t gfp_custom;
+	struct kmem_cache *kmem_cache;
+	int capacity;
+	void **objects;
+};
+
+struct vcpu_reset_state {
+	long unsigned int pc;
+	long unsigned int r0;
+	bool be;
+	bool reset;
+};
+
+struct kvm_s2_mmu;
+
+struct kvm_vcpu_arch {
+	struct kvm_cpu_context ctxt;
+	void *sve_state;
+	unsigned int sve_max_vl;
+	u64 svcr;
+	struct kvm_s2_mmu *hw_mmu;
+	u64 hcr_el2;
+	u64 mdcr_el2;
+	u64 cptr_el2;
+	u64 mdcr_el2_host;
+	struct kvm_vcpu_fault_info fault;
+	enum {
+		FP_STATE_FREE = 0,
+		FP_STATE_HOST_OWNED = 1,
+		FP_STATE_GUEST_OWNED = 2,
+	} fp_state;
+	u8 cflags;
+	u8 iflags;
+	u8 sflags;
+	bool pause;
+	struct kvm_guest_debug_arch *debug_ptr;
+	struct kvm_guest_debug_arch vcpu_debug_state;
+	struct kvm_guest_debug_arch external_debug_state;
+	struct user_fpsimd_state *host_fpsimd_state;
+	struct task_struct *parent_task;
+	struct {
+		struct kvm_guest_debug_arch regs;
+		u64 pmscr_el1;
+		u64 trfcr_el1;
+	} host_debug_state;
+	struct vgic_cpu vgic_cpu;
+	struct arch_timer_cpu timer_cpu;
+	struct kvm_pmu pmu;
+	struct {
+		u32 mdscr_el1;
+	} guest_debug_preserved;
+	struct kvm_mp_state mp_state;
+	struct kvm_mmu_memory_cache mmu_page_cache;
+	int target;
+	long unsigned int features[1];
+	u64 vsesr_el2;
+	struct vcpu_reset_state reset_state;
+	struct {
+		u64 last_steal;
+		gpa_t base;
+	} steal;
+};
+
+struct kvm_vcpu_stat_generic {
+	u64 halt_successful_poll;
+	u64 halt_attempted_poll;
+	u64 halt_poll_invalid;
+	u64 halt_wakeup;
+	u64 halt_poll_success_ns;
+	u64 halt_poll_fail_ns;
+	u64 halt_wait_ns;
+	u64 halt_poll_success_hist[32];
+	u64 halt_poll_fail_hist[32];
+	u64 halt_wait_hist[32];
+	u64 blocking;
+};
+
+struct kvm_vcpu_stat {
+	struct kvm_vcpu_stat_generic generic;
+	u64 hvc_exit_stat;
+	u64 wfe_exit_stat;
+	u64 wfi_exit_stat;
+	u64 mmio_exit_user;
+	u64 mmio_exit_kernel;
+	u64 signal_exits;
+	u64 exits;
+};
+
+struct kvm_dirty_ring {
+	u32 dirty_index;
+	u32 reset_index;
+	u32 size;
+	u32 soft_limit;
+	struct kvm_dirty_gfn *dirty_gfns;
+	int index;
+};
+
+struct kvm;
+
+struct kvm_vcpu {
+	struct kvm *kvm;
+	struct preempt_notifier preempt_notifier;
+	int cpu;
+	int vcpu_id;
+	int vcpu_idx;
+	int ____srcu_idx;
+	int mode;
+	u64 requests;
+	long unsigned int guest_debug;
+	struct mutex mutex;
+	struct kvm_run *run;
+	struct rcuwait wait;
+	struct pid *pid;
+	int sigset_active;
+	sigset_t sigset;
+	unsigned int halt_poll_ns;
+	bool valid_wakeup;
+	int mmio_needed;
+	int mmio_read_completed;
+	int mmio_is_write;
+	int mmio_cur_fragment;
+	int mmio_nr_fragments;
+	struct kvm_mmio_fragment mmio_fragments[2];
+	struct {
+		bool in_spin_loop;
+		bool dy_eligible;
+	} spin_loop;
+	bool preempted;
+	bool ready;
+	long: 32;
+	long: 64;
+	struct kvm_vcpu_arch arch;
+	struct kvm_vcpu_stat stat;
+	char stats_id[48];
+	struct kvm_dirty_ring dirty_ring;
+	struct kvm_memory_slot *last_used_slot;
+	u64 last_used_slot_gen;
+	long: 64;
+};
+
+struct kvm_vm_stat_generic {
+	u64 remote_tlb_flush;
+	u64 remote_tlb_flush_requests;
+};
+
+struct kvm_io_device_ops {
+	int (*read)(struct kvm_vcpu *, struct kvm_io_device *, gpa_t, int, void *);
+	int (*write)(struct kvm_vcpu *, struct kvm_io_device *, gpa_t, int, const void *);
+	void (*destructor)(struct kvm_io_device *);
+};
+
+struct its_vm {
+	struct fwnode_handle *fwnode;
+	struct irq_domain *domain;
+	struct page *vprop_page;
+	struct its_vpe **vpes;
+	int nr_vpes;
+	irq_hw_number_t db_lpi_base;
+	long unsigned int *db_bitmap;
+	int nr_db_lpis;
+	u32 vlpi_count[16];
+};
+
+struct irq_ops {
+	long unsigned int flags;
+	bool (*get_input_level)(int);
+};
+
+struct kvm_device;
+
+struct vgic_its {
+	gpa_t vgic_its_base;
+	bool enabled;
+	struct vgic_io_device iodev;
+	struct kvm_device *dev;
+	u64 baser_device_table;
+	u64 baser_coll_table;
+	struct mutex cmd_lock;
+	u64 cbaser;
+	u32 creadr;
+	u32 cwriter;
+	u32 abi_rev;
+	struct mutex its_lock;
+	struct list_head device_list;
+	struct list_head collection_list;
+};
+
+struct vgic_register_region {
+	unsigned int reg_offset;
+	unsigned int len;
+	unsigned int bits_per_irq;
+	unsigned int access_flags;
+	union {
+		long unsigned int (*read)(struct kvm_vcpu *, gpa_t, unsigned int);
+		long unsigned int (*its_read)(struct kvm *, struct vgic_its *, gpa_t, unsigned int);
+	};
+	union {
+		void (*write)(struct kvm_vcpu *, gpa_t, unsigned int, long unsigned int);
+		void (*its_write)(struct kvm *, struct vgic_its *, gpa_t, unsigned int, long unsigned int);
+	};
+	long unsigned int (*uaccess_read)(struct kvm_vcpu *, gpa_t, unsigned int);
+	union {
+		int (*uaccess_write)(struct kvm_vcpu *, gpa_t, unsigned int, long unsigned int);
+		int (*uaccess_its_write)(struct kvm *, struct vgic_its *, gpa_t, unsigned int, long unsigned int);
+	};
+};
+
+struct kvm_device_ops;
+
+struct kvm_device {
+	const struct kvm_device_ops *ops;
+	struct kvm *kvm;
+	void *private;
+	struct list_head vm_node;
+};
+
+struct vgic_redist_region {
+	u32 index;
+	gpa_t base;
+	u32 count;
+	u32 free_index;
+	struct list_head list;
+};
+
+struct vgic_state_iter;
+
+struct vgic_dist {
+	bool in_kernel;
+	bool ready;
+	bool initialized;
+	u32 vgic_model;
+	u32 implementation_rev;
+	bool v2_groups_user_writable;
+	bool msis_require_devid;
+	int nr_spis;
+	gpa_t vgic_dist_base;
+	union {
+		gpa_t vgic_cpu_base;
+		struct list_head rd_regions;
+	};
+	bool enabled;
+	bool nassgireq;
+	struct vgic_irq *spis;
+	struct vgic_io_device dist_iodev;
+	bool has_its;
+	u64 propbaser;
+	raw_spinlock_t lpi_list_lock;
+	struct list_head lpi_list_head;
+	int lpi_list_count;
+	struct list_head lpi_translation_cache;
+	struct vgic_state_iter *iter;
+	struct its_vm its_vm;
+};
+
+struct kvm_vmid {
+	atomic64_t id;
+};
+
+struct kvm_pgtable;
+
+struct kvm_arch;
+
+struct kvm_s2_mmu {
+	struct kvm_vmid vmid;
+	phys_addr_t pgd_phys;
+	struct kvm_pgtable *pgt;
+	int *last_vcpu_ran;
+	struct kvm_arch *arch;
+};
+
+struct kvm_smccc_features {
+	long unsigned int std_bmap;
+	long unsigned int std_hyp_bmap;
+	long unsigned int vendor_hyp_bmap;
+};
+
+struct arm_pmu;
+
+struct kvm_arch {
+	struct kvm_s2_mmu mmu;
+	u64 vtcr;
+	struct vgic_dist vgic;
+	u32 psci_version;
+	long unsigned int flags;
+	long unsigned int *pmu_filter;
+	struct arm_pmu *arm_pmu;
+	cpumask_var_t supported_cpus;
+	u8 pfr0_csv2;
+	u8 pfr0_csv3;
+	struct kvm_smccc_features smccc_feat;
+};
+
+struct kvm_vm_stat {
+	struct kvm_vm_stat_generic generic;
+};
+
+struct kvm_io_range {
+	gpa_t addr;
+	int len;
+	struct kvm_io_device *dev;
+};
+
+struct kvm_io_bus {
+	int dev_count;
+	int ioeventfd_count;
+	struct kvm_io_range range[0];
+};
+
+struct kvm_memslots {
+	u64 generation;
+	atomic_long_t last_used_slot;
+	struct rb_root_cached hva_tree;
+	struct rb_root gfn_tree;
+	struct hlist_head id_hash[128];
+	int node_idx;
+};
+
+struct kvm_irq_routing_table;
+
+struct kvm_stat_data;
+
+struct kvm {
+	rwlock_t mmu_lock;
+	struct mutex slots_lock;
+	struct mutex slots_arch_lock;
+	struct mm_struct *mm;
+	long unsigned int nr_memslot_pages;
+	struct kvm_memslots __memslots[2];
+	struct kvm_memslots *memslots[1];
+	struct xarray vcpu_array;
+	spinlock_t mn_invalidate_lock;
+	long unsigned int mn_active_invalidate_count;
+	struct rcuwait mn_memslots_update_rcuwait;
+	spinlock_t gpc_lock;
+	struct list_head gpc_list;
+	atomic_t online_vcpus;
+	int max_vcpus;
+	int created_vcpus;
+	int last_boosted_vcpu;
+	struct list_head vm_list;
+	struct mutex lock;
+	struct kvm_io_bus *buses[4];
+	struct {
+		spinlock_t lock;
+		struct list_head items;
+		struct list_head resampler_list;
+		struct mutex resampler_lock;
+	} irqfds;
+	struct list_head ioeventfds;
+	struct kvm_vm_stat stat;
+	struct kvm_arch arch;
+	refcount_t users_count;
+	struct kvm_coalesced_mmio_ring *coalesced_mmio_ring;
+	spinlock_t ring_lock;
+	struct list_head coalesced_zones;
+	struct mutex irq_lock;
+	struct kvm_irq_routing_table *irq_routing;
+	struct hlist_head irq_ack_notifier_list;
+	struct mmu_notifier mmu_notifier;
+	long unsigned int mmu_invalidate_seq;
+	long int mmu_invalidate_in_progress;
+	long unsigned int mmu_invalidate_range_start;
+	long unsigned int mmu_invalidate_range_end;
+	struct list_head devices;
+	u64 manual_dirty_log_protect;
+	struct dentry *debugfs_dentry;
+	struct kvm_stat_data **debugfs_stat_data;
+	struct srcu_struct srcu;
+	struct srcu_struct irq_srcu;
+	pid_t userspace_pid;
+	unsigned int max_halt_poll_ns;
+	u32 dirty_ring_size;
+	bool vm_bugged;
+	bool vm_dead;
+	char stats_id[48];
+};
+
+struct kvm_irq_routing_table {
+	int chip[988];
+	u32 nr_rt_entries;
+	struct hlist_head map[0];
+};
+
+enum kvm_stat_kind {
+	KVM_STAT_VM = 0,
+	KVM_STAT_VCPU = 1,
+};
+
+struct _kvm_stats_desc;
+
+struct kvm_stat_data {
+	struct kvm *kvm;
+	const struct _kvm_stats_desc *desc;
+	enum kvm_stat_kind kind;
+};
+
+struct _kvm_stats_desc {
+	struct kvm_stats_desc desc;
+	char name[48];
+};
+
+struct kvm_device_ops {
+	const char *name;
+	int (*create)(struct kvm_device *, u32);
+	void (*init)(struct kvm_device *);
+	void (*destroy)(struct kvm_device *);
+	void (*release)(struct kvm_device *);
+	int (*set_attr)(struct kvm_device *, struct kvm_device_attr *);
+	int (*get_attr)(struct kvm_device *, struct kvm_device_attr *);
+	int (*has_attr)(struct kvm_device *, struct kvm_device_attr *);
+	long int (*ioctl)(struct kvm_device *, unsigned int, long unsigned int);
+	int (*mmap)(struct kvm_device *, struct vm_area_struct *);
+};
+
+struct arm_smccc_res {
+	long unsigned int a0;
+	long unsigned int a1;
+	long unsigned int a2;
+	long unsigned int a3;
+};
+
+enum __kvm_host_smccc_func {
+	__KVM_HOST_SMCCC_FUNC___kvm_get_mdcr_el2 = 1,
+	__KVM_HOST_SMCCC_FUNC___pkvm_init = 2,
+	__KVM_HOST_SMCCC_FUNC___pkvm_create_private_mapping = 3,
+	__KVM_HOST_SMCCC_FUNC___pkvm_cpu_set_vector = 4,
+	__KVM_HOST_SMCCC_FUNC___kvm_enable_ssbs = 5,
+	__KVM_HOST_SMCCC_FUNC___vgic_v3_init_lrs = 6,
+	__KVM_HOST_SMCCC_FUNC___vgic_v3_get_gic_config = 7,
+	__KVM_HOST_SMCCC_FUNC___pkvm_prot_finalize = 8,
+	__KVM_HOST_SMCCC_FUNC___pkvm_host_share_hyp = 9,
+	__KVM_HOST_SMCCC_FUNC___pkvm_host_unshare_hyp = 10,
+	__KVM_HOST_SMCCC_FUNC___kvm_adjust_pc = 11,
+	__KVM_HOST_SMCCC_FUNC___kvm_vcpu_run = 12,
+	__KVM_HOST_SMCCC_FUNC___kvm_flush_vm_context = 13,
+	__KVM_HOST_SMCCC_FUNC___kvm_tlb_flush_vmid_ipa = 14,
+	__KVM_HOST_SMCCC_FUNC___kvm_tlb_flush_vmid = 15,
+	__KVM_HOST_SMCCC_FUNC___kvm_flush_cpu_context = 16,
+	__KVM_HOST_SMCCC_FUNC___kvm_timer_set_cntvoff = 17,
+	__KVM_HOST_SMCCC_FUNC___vgic_v3_read_vmcr = 18,
+	__KVM_HOST_SMCCC_FUNC___vgic_v3_write_vmcr = 19,
+	__KVM_HOST_SMCCC_FUNC___vgic_v3_save_aprs = 20,
+	__KVM_HOST_SMCCC_FUNC___vgic_v3_restore_aprs = 21,
+	__KVM_HOST_SMCCC_FUNC___pkvm_vcpu_init_traps = 22,
+};
+
+enum kvm_bus {
+	KVM_MMIO_BUS = 0,
+	KVM_PIO_BUS = 1,
+	KVM_VIRTIO_CCW_NOTIFY_BUS = 2,
+	KVM_FAST_MMIO_BUS = 3,
+	KVM_NR_BUSES = 4,
+};
+
+struct cyclecounter {
+	u64 (*read)(const struct cyclecounter *);
+	u64 mask;
+	u32 mult;
+	u32 shift;
+};
+
+struct timecounter {
+	const struct cyclecounter *cc;
+	u64 cycle_last;
+	u64 nsec;
+	u64 mask;
+	u64 frac;
+};
+
+struct arch_timer_kvm_info {
+	struct timecounter timecounter;
+	int virtual_irq;
+	int physical_irq;
+};
+
+enum hrtimer_mode {
+	HRTIMER_MODE_ABS = 0,
+	HRTIMER_MODE_REL = 1,
+	HRTIMER_MODE_PINNED = 2,
+	HRTIMER_MODE_SOFT = 4,
+	HRTIMER_MODE_HARD = 8,
+	HRTIMER_MODE_ABS_PINNED = 2,
+	HRTIMER_MODE_REL_PINNED = 3,
+	HRTIMER_MODE_ABS_SOFT = 4,
+	HRTIMER_MODE_REL_SOFT = 5,
+	HRTIMER_MODE_ABS_PINNED_SOFT = 6,
+	HRTIMER_MODE_REL_PINNED_SOFT = 7,
+	HRTIMER_MODE_ABS_HARD = 8,
+	HRTIMER_MODE_REL_HARD = 9,
+	HRTIMER_MODE_ABS_PINNED_HARD = 10,
+	HRTIMER_MODE_REL_PINNED_HARD = 11,
+};
+
+struct arch_msi_msg_addr_lo {
+	u32 address_lo;
+};
+
+typedef struct arch_msi_msg_addr_lo arch_msi_msg_addr_lo_t;
+
+struct arch_msi_msg_addr_hi {
+	u32 address_hi;
