@@ -16342,3 +16342,2097 @@ struct kthread_worker;
 
 struct kthread_work {
 	struct list_head node;
+	kthread_work_func_t func;
+	struct kthread_worker *worker;
+	int canceling;
+};
+
+struct kthread_worker {
+	unsigned int flags;
+	raw_spinlock_t lock;
+	struct list_head work_list;
+	struct list_head delayed_work_list;
+	struct task_struct *task;
+	struct kthread_work *current_work;
+};
+
+enum {
+	CFTYPE_ONLY_ON_ROOT = 1,
+	CFTYPE_NOT_ON_ROOT = 2,
+	CFTYPE_NS_DELEGATABLE = 4,
+	CFTYPE_NO_PREFIX = 8,
+	CFTYPE_WORLD_WRITABLE = 16,
+	CFTYPE_DEBUG = 32,
+	CFTYPE_PRESSURE = 64,
+	__CFTYPE_ONLY_ON_DFL = 65536,
+	__CFTYPE_NOT_ON_DFL = 131072,
+};
+
+enum hk_type {
+	HK_TYPE_TIMER = 0,
+	HK_TYPE_RCU = 1,
+	HK_TYPE_MISC = 2,
+	HK_TYPE_SCHED = 3,
+	HK_TYPE_TICK = 4,
+	HK_TYPE_DOMAIN = 5,
+	HK_TYPE_WQ = 6,
+	HK_TYPE_MANAGED_IRQ = 7,
+	HK_TYPE_KTHREAD = 8,
+	HK_TYPE_MAX = 9,
+};
+
+struct block_device_operations;
+
+struct timer_rand_state;
+
+struct disk_events;
+
+struct cdrom_device_info;
+
+struct badblocks;
+
+struct blk_independent_access_ranges;
+
+struct gendisk {
+	int major;
+	int first_minor;
+	int minors;
+	char disk_name[32];
+	short unsigned int events;
+	short unsigned int event_flags;
+	struct xarray part_tbl;
+	struct block_device *part0;
+	const struct block_device_operations *fops;
+	struct request_queue *queue;
+	void *private_data;
+	struct bio_set bio_split;
+	int flags;
+	long unsigned int state;
+	struct mutex open_mutex;
+	unsigned int open_partitions;
+	struct backing_dev_info *bdi;
+	struct kobject *slave_dir;
+	struct list_head slave_bdevs;
+	struct timer_rand_state *random;
+	atomic_t sync_io;
+	struct disk_events *ev;
+	struct kobject integrity_kobj;
+	unsigned int nr_zones;
+	unsigned int max_open_zones;
+	unsigned int max_active_zones;
+	long unsigned int *conv_zones_bitmap;
+	long unsigned int *seq_zones_wlock;
+	struct cdrom_device_info *cdi;
+	int node_id;
+	struct badblocks *bb;
+	struct lockdep_map lockdep_map;
+	u64 diskseq;
+	struct blk_independent_access_ranges *ia_ranges;
+};
+
+struct partition_meta_info {
+	char uuid[37];
+	u8 volname[64];
+};
+
+enum req_op {
+	REQ_OP_READ = 0,
+	REQ_OP_WRITE = 1,
+	REQ_OP_FLUSH = 2,
+	REQ_OP_DISCARD = 3,
+	REQ_OP_SECURE_ERASE = 5,
+	REQ_OP_WRITE_ZEROES = 9,
+	REQ_OP_ZONE_OPEN = 10,
+	REQ_OP_ZONE_CLOSE = 11,
+	REQ_OP_ZONE_FINISH = 12,
+	REQ_OP_ZONE_APPEND = 13,
+	REQ_OP_ZONE_RESET = 15,
+	REQ_OP_ZONE_RESET_ALL = 17,
+	REQ_OP_DRV_IN = 34,
+	REQ_OP_DRV_OUT = 35,
+	REQ_OP_LAST = 36,
+};
+
+struct blk_rq_stat {
+	u64 mean;
+	u64 min;
+	u64 max;
+	u32 nr_samples;
+	u64 batch;
+};
+
+struct blk_zone {
+	__u64 start;
+	__u64 len;
+	__u64 wp;
+	__u8 type;
+	__u8 cond;
+	__u8 non_seq;
+	__u8 reset;
+	__u8 resv[4];
+	__u64 capacity;
+	__u8 reserved[24];
+};
+
+struct blk_integrity_iter;
+
+typedef blk_status_t integrity_processing_fn(struct blk_integrity_iter *);
+
+typedef void integrity_prepare_fn(struct request *);
+
+typedef void integrity_complete_fn(struct request *, unsigned int);
+
+struct blk_integrity_profile {
+	integrity_processing_fn *generate_fn;
+	integrity_processing_fn *verify_fn;
+	integrity_prepare_fn *prepare_fn;
+	integrity_complete_fn *complete_fn;
+	const char *name;
+};
+
+typedef int (*report_zones_cb)(struct blk_zone *, unsigned int, void *);
+
+enum blk_unique_id {
+	BLK_UID_T10 = 1,
+	BLK_UID_EUI64 = 2,
+	BLK_UID_NAA = 3,
+};
+
+struct hd_geometry;
+
+struct pr_ops;
+
+struct block_device_operations {
+	void (*submit_bio)(struct bio *);
+	int (*poll_bio)(struct bio *, struct io_comp_batch *, unsigned int);
+	int (*open)(struct block_device *, fmode_t);
+	void (*release)(struct gendisk *, fmode_t);
+	int (*rw_page)(struct block_device *, sector_t, struct page *, enum req_op);
+	int (*ioctl)(struct block_device *, fmode_t, unsigned int, long unsigned int);
+	int (*compat_ioctl)(struct block_device *, fmode_t, unsigned int, long unsigned int);
+	unsigned int (*check_events)(struct gendisk *, unsigned int);
+	void (*unlock_native_capacity)(struct gendisk *);
+	int (*getgeo)(struct block_device *, struct hd_geometry *);
+	int (*set_read_only)(struct block_device *, bool);
+	void (*free_disk)(struct gendisk *);
+	void (*swap_slot_free_notify)(struct block_device *, long unsigned int);
+	int (*report_zones)(struct gendisk *, sector_t, unsigned int, report_zones_cb, void *);
+	char * (*devnode)(struct gendisk *, umode_t *);
+	int (*get_unique_id)(struct gendisk *, u8 *, enum blk_unique_id);
+	struct module *owner;
+	const struct pr_ops *pr_ops;
+	int (*alternative_gpt_sector)(struct gendisk *, sector_t *);
+};
+
+struct blk_independent_access_range {
+	struct kobject kobj;
+	sector_t sector;
+	sector_t nr_sectors;
+};
+
+struct blk_independent_access_ranges {
+	struct kobject kobj;
+	bool sysfs_registered;
+	unsigned int nr_ia_ranges;
+	struct blk_independent_access_range ia_range[0];
+};
+
+enum blk_eh_timer_return {
+	BLK_EH_DONE = 0,
+	BLK_EH_RESET_TIMER = 1,
+};
+
+struct blk_mq_hw_ctx;
+
+struct blk_mq_queue_data;
+
+struct blk_mq_ops {
+	blk_status_t (*queue_rq)(struct blk_mq_hw_ctx *, const struct blk_mq_queue_data *);
+	void (*commit_rqs)(struct blk_mq_hw_ctx *);
+	void (*queue_rqs)(struct request **);
+	int (*get_budget)(struct request_queue *);
+	void (*put_budget)(struct request_queue *, int);
+	void (*set_rq_budget_token)(struct request *, int);
+	int (*get_rq_budget_token)(struct request *);
+	enum blk_eh_timer_return (*timeout)(struct request *);
+	int (*poll)(struct blk_mq_hw_ctx *, struct io_comp_batch *);
+	void (*complete)(struct request *);
+	int (*init_hctx)(struct blk_mq_hw_ctx *, void *, unsigned int);
+	void (*exit_hctx)(struct blk_mq_hw_ctx *, unsigned int);
+	int (*init_request)(struct blk_mq_tag_set *, struct request *, unsigned int, unsigned int);
+	void (*exit_request)(struct blk_mq_tag_set *, struct request *, unsigned int);
+	void (*cleanup_rq)(struct request *);
+	bool (*busy)(struct request_queue *);
+	int (*map_queues)(struct blk_mq_tag_set *);
+	void (*show_rq)(struct seq_file *, struct request *);
+};
+
+enum pr_type {
+	PR_WRITE_EXCLUSIVE = 1,
+	PR_EXCLUSIVE_ACCESS = 2,
+	PR_WRITE_EXCLUSIVE_REG_ONLY = 3,
+	PR_EXCLUSIVE_ACCESS_REG_ONLY = 4,
+	PR_WRITE_EXCLUSIVE_ALL_REGS = 5,
+	PR_EXCLUSIVE_ACCESS_ALL_REGS = 6,
+};
+
+struct pr_ops {
+	int (*pr_register)(struct block_device *, u64, u64, u32);
+	int (*pr_reserve)(struct block_device *, u64, enum pr_type, u32);
+	int (*pr_release)(struct block_device *, u64, enum pr_type);
+	int (*pr_preempt)(struct block_device *, u64, u64, enum pr_type, bool);
+	int (*pr_clear)(struct block_device *, u64);
+};
+
+enum flow_dissector_key_id {
+	FLOW_DISSECTOR_KEY_CONTROL = 0,
+	FLOW_DISSECTOR_KEY_BASIC = 1,
+	FLOW_DISSECTOR_KEY_IPV4_ADDRS = 2,
+	FLOW_DISSECTOR_KEY_IPV6_ADDRS = 3,
+	FLOW_DISSECTOR_KEY_PORTS = 4,
+	FLOW_DISSECTOR_KEY_PORTS_RANGE = 5,
+	FLOW_DISSECTOR_KEY_ICMP = 6,
+	FLOW_DISSECTOR_KEY_ETH_ADDRS = 7,
+	FLOW_DISSECTOR_KEY_TIPC = 8,
+	FLOW_DISSECTOR_KEY_ARP = 9,
+	FLOW_DISSECTOR_KEY_VLAN = 10,
+	FLOW_DISSECTOR_KEY_FLOW_LABEL = 11,
+	FLOW_DISSECTOR_KEY_GRE_KEYID = 12,
+	FLOW_DISSECTOR_KEY_MPLS_ENTROPY = 13,
+	FLOW_DISSECTOR_KEY_ENC_KEYID = 14,
+	FLOW_DISSECTOR_KEY_ENC_IPV4_ADDRS = 15,
+	FLOW_DISSECTOR_KEY_ENC_IPV6_ADDRS = 16,
+	FLOW_DISSECTOR_KEY_ENC_CONTROL = 17,
+	FLOW_DISSECTOR_KEY_ENC_PORTS = 18,
+	FLOW_DISSECTOR_KEY_MPLS = 19,
+	FLOW_DISSECTOR_KEY_TCP = 20,
+	FLOW_DISSECTOR_KEY_IP = 21,
+	FLOW_DISSECTOR_KEY_CVLAN = 22,
+	FLOW_DISSECTOR_KEY_ENC_IP = 23,
+	FLOW_DISSECTOR_KEY_ENC_OPTS = 24,
+	FLOW_DISSECTOR_KEY_META = 25,
+	FLOW_DISSECTOR_KEY_CT = 26,
+	FLOW_DISSECTOR_KEY_HASH = 27,
+	FLOW_DISSECTOR_KEY_NUM_OF_VLANS = 28,
+	FLOW_DISSECTOR_KEY_PPPOE = 29,
+	FLOW_DISSECTOR_KEY_MAX = 30,
+};
+
+enum {
+	IPSTATS_MIB_NUM = 0,
+	IPSTATS_MIB_INPKTS = 1,
+	IPSTATS_MIB_INOCTETS = 2,
+	IPSTATS_MIB_INDELIVERS = 3,
+	IPSTATS_MIB_OUTFORWDATAGRAMS = 4,
+	IPSTATS_MIB_OUTPKTS = 5,
+	IPSTATS_MIB_OUTOCTETS = 6,
+	IPSTATS_MIB_INHDRERRORS = 7,
+	IPSTATS_MIB_INTOOBIGERRORS = 8,
+	IPSTATS_MIB_INNOROUTES = 9,
+	IPSTATS_MIB_INADDRERRORS = 10,
+	IPSTATS_MIB_INUNKNOWNPROTOS = 11,
+	IPSTATS_MIB_INTRUNCATEDPKTS = 12,
+	IPSTATS_MIB_INDISCARDS = 13,
+	IPSTATS_MIB_OUTDISCARDS = 14,
+	IPSTATS_MIB_OUTNOROUTES = 15,
+	IPSTATS_MIB_REASMTIMEOUT = 16,
+	IPSTATS_MIB_REASMREQDS = 17,
+	IPSTATS_MIB_REASMOKS = 18,
+	IPSTATS_MIB_REASMFAILS = 19,
+	IPSTATS_MIB_FRAGOKS = 20,
+	IPSTATS_MIB_FRAGFAILS = 21,
+	IPSTATS_MIB_FRAGCREATES = 22,
+	IPSTATS_MIB_INMCASTPKTS = 23,
+	IPSTATS_MIB_OUTMCASTPKTS = 24,
+	IPSTATS_MIB_INBCASTPKTS = 25,
+	IPSTATS_MIB_OUTBCASTPKTS = 26,
+	IPSTATS_MIB_INMCASTOCTETS = 27,
+	IPSTATS_MIB_OUTMCASTOCTETS = 28,
+	IPSTATS_MIB_INBCASTOCTETS = 29,
+	IPSTATS_MIB_OUTBCASTOCTETS = 30,
+	IPSTATS_MIB_CSUMERRORS = 31,
+	IPSTATS_MIB_NOECTPKTS = 32,
+	IPSTATS_MIB_ECT1PKTS = 33,
+	IPSTATS_MIB_ECT0PKTS = 34,
+	IPSTATS_MIB_CEPKTS = 35,
+	IPSTATS_MIB_REASM_OVERLAPS = 36,
+	__IPSTATS_MIB_MAX = 37,
+};
+
+enum {
+	ICMP_MIB_NUM = 0,
+	ICMP_MIB_INMSGS = 1,
+	ICMP_MIB_INERRORS = 2,
+	ICMP_MIB_INDESTUNREACHS = 3,
+	ICMP_MIB_INTIMEEXCDS = 4,
+	ICMP_MIB_INPARMPROBS = 5,
+	ICMP_MIB_INSRCQUENCHS = 6,
+	ICMP_MIB_INREDIRECTS = 7,
+	ICMP_MIB_INECHOS = 8,
+	ICMP_MIB_INECHOREPS = 9,
+	ICMP_MIB_INTIMESTAMPS = 10,
+	ICMP_MIB_INTIMESTAMPREPS = 11,
+	ICMP_MIB_INADDRMASKS = 12,
+	ICMP_MIB_INADDRMASKREPS = 13,
+	ICMP_MIB_OUTMSGS = 14,
+	ICMP_MIB_OUTERRORS = 15,
+	ICMP_MIB_OUTDESTUNREACHS = 16,
+	ICMP_MIB_OUTTIMEEXCDS = 17,
+	ICMP_MIB_OUTPARMPROBS = 18,
+	ICMP_MIB_OUTSRCQUENCHS = 19,
+	ICMP_MIB_OUTREDIRECTS = 20,
+	ICMP_MIB_OUTECHOS = 21,
+	ICMP_MIB_OUTECHOREPS = 22,
+	ICMP_MIB_OUTTIMESTAMPS = 23,
+	ICMP_MIB_OUTTIMESTAMPREPS = 24,
+	ICMP_MIB_OUTADDRMASKS = 25,
+	ICMP_MIB_OUTADDRMASKREPS = 26,
+	ICMP_MIB_CSUMERRORS = 27,
+	__ICMP_MIB_MAX = 28,
+};
+
+enum {
+	ICMP6_MIB_NUM = 0,
+	ICMP6_MIB_INMSGS = 1,
+	ICMP6_MIB_INERRORS = 2,
+	ICMP6_MIB_OUTMSGS = 3,
+	ICMP6_MIB_OUTERRORS = 4,
+	ICMP6_MIB_CSUMERRORS = 5,
+	__ICMP6_MIB_MAX = 6,
+};
+
+enum {
+	TCP_MIB_NUM = 0,
+	TCP_MIB_RTOALGORITHM = 1,
+	TCP_MIB_RTOMIN = 2,
+	TCP_MIB_RTOMAX = 3,
+	TCP_MIB_MAXCONN = 4,
+	TCP_MIB_ACTIVEOPENS = 5,
+	TCP_MIB_PASSIVEOPENS = 6,
+	TCP_MIB_ATTEMPTFAILS = 7,
+	TCP_MIB_ESTABRESETS = 8,
+	TCP_MIB_CURRESTAB = 9,
+	TCP_MIB_INSEGS = 10,
+	TCP_MIB_OUTSEGS = 11,
+	TCP_MIB_RETRANSSEGS = 12,
+	TCP_MIB_INERRS = 13,
+	TCP_MIB_OUTRSTS = 14,
+	TCP_MIB_CSUMERRORS = 15,
+	__TCP_MIB_MAX = 16,
+};
+
+enum {
+	UDP_MIB_NUM = 0,
+	UDP_MIB_INDATAGRAMS = 1,
+	UDP_MIB_NOPORTS = 2,
+	UDP_MIB_INERRORS = 3,
+	UDP_MIB_OUTDATAGRAMS = 4,
+	UDP_MIB_RCVBUFERRORS = 5,
+	UDP_MIB_SNDBUFERRORS = 6,
+	UDP_MIB_CSUMERRORS = 7,
+	UDP_MIB_IGNOREDMULTI = 8,
+	UDP_MIB_MEMERRORS = 9,
+	__UDP_MIB_MAX = 10,
+};
+
+enum {
+	LINUX_MIB_NUM = 0,
+	LINUX_MIB_SYNCOOKIESSENT = 1,
+	LINUX_MIB_SYNCOOKIESRECV = 2,
+	LINUX_MIB_SYNCOOKIESFAILED = 3,
+	LINUX_MIB_EMBRYONICRSTS = 4,
+	LINUX_MIB_PRUNECALLED = 5,
+	LINUX_MIB_RCVPRUNED = 6,
+	LINUX_MIB_OFOPRUNED = 7,
+	LINUX_MIB_OUTOFWINDOWICMPS = 8,
+	LINUX_MIB_LOCKDROPPEDICMPS = 9,
+	LINUX_MIB_ARPFILTER = 10,
+	LINUX_MIB_TIMEWAITED = 11,
+	LINUX_MIB_TIMEWAITRECYCLED = 12,
+	LINUX_MIB_TIMEWAITKILLED = 13,
+	LINUX_MIB_PAWSACTIVEREJECTED = 14,
+	LINUX_MIB_PAWSESTABREJECTED = 15,
+	LINUX_MIB_DELAYEDACKS = 16,
+	LINUX_MIB_DELAYEDACKLOCKED = 17,
+	LINUX_MIB_DELAYEDACKLOST = 18,
+	LINUX_MIB_LISTENOVERFLOWS = 19,
+	LINUX_MIB_LISTENDROPS = 20,
+	LINUX_MIB_TCPHPHITS = 21,
+	LINUX_MIB_TCPPUREACKS = 22,
+	LINUX_MIB_TCPHPACKS = 23,
+	LINUX_MIB_TCPRENORECOVERY = 24,
+	LINUX_MIB_TCPSACKRECOVERY = 25,
+	LINUX_MIB_TCPSACKRENEGING = 26,
+	LINUX_MIB_TCPSACKREORDER = 27,
+	LINUX_MIB_TCPRENOREORDER = 28,
+	LINUX_MIB_TCPTSREORDER = 29,
+	LINUX_MIB_TCPFULLUNDO = 30,
+	LINUX_MIB_TCPPARTIALUNDO = 31,
+	LINUX_MIB_TCPDSACKUNDO = 32,
+	LINUX_MIB_TCPLOSSUNDO = 33,
+	LINUX_MIB_TCPLOSTRETRANSMIT = 34,
+	LINUX_MIB_TCPRENOFAILURES = 35,
+	LINUX_MIB_TCPSACKFAILURES = 36,
+	LINUX_MIB_TCPLOSSFAILURES = 37,
+	LINUX_MIB_TCPFASTRETRANS = 38,
+	LINUX_MIB_TCPSLOWSTARTRETRANS = 39,
+	LINUX_MIB_TCPTIMEOUTS = 40,
+	LINUX_MIB_TCPLOSSPROBES = 41,
+	LINUX_MIB_TCPLOSSPROBERECOVERY = 42,
+	LINUX_MIB_TCPRENORECOVERYFAIL = 43,
+	LINUX_MIB_TCPSACKRECOVERYFAIL = 44,
+	LINUX_MIB_TCPRCVCOLLAPSED = 45,
+	LINUX_MIB_TCPDSACKOLDSENT = 46,
+	LINUX_MIB_TCPDSACKOFOSENT = 47,
+	LINUX_MIB_TCPDSACKRECV = 48,
+	LINUX_MIB_TCPDSACKOFORECV = 49,
+	LINUX_MIB_TCPABORTONDATA = 50,
+	LINUX_MIB_TCPABORTONCLOSE = 51,
+	LINUX_MIB_TCPABORTONMEMORY = 52,
+	LINUX_MIB_TCPABORTONTIMEOUT = 53,
+	LINUX_MIB_TCPABORTONLINGER = 54,
+	LINUX_MIB_TCPABORTFAILED = 55,
+	LINUX_MIB_TCPMEMORYPRESSURES = 56,
+	LINUX_MIB_TCPMEMORYPRESSURESCHRONO = 57,
+	LINUX_MIB_TCPSACKDISCARD = 58,
+	LINUX_MIB_TCPDSACKIGNOREDOLD = 59,
+	LINUX_MIB_TCPDSACKIGNOREDNOUNDO = 60,
+	LINUX_MIB_TCPSPURIOUSRTOS = 61,
+	LINUX_MIB_TCPMD5NOTFOUND = 62,
+	LINUX_MIB_TCPMD5UNEXPECTED = 63,
+	LINUX_MIB_TCPMD5FAILURE = 64,
+	LINUX_MIB_SACKSHIFTED = 65,
+	LINUX_MIB_SACKMERGED = 66,
+	LINUX_MIB_SACKSHIFTFALLBACK = 67,
+	LINUX_MIB_TCPBACKLOGDROP = 68,
+	LINUX_MIB_PFMEMALLOCDROP = 69,
+	LINUX_MIB_TCPMINTTLDROP = 70,
+	LINUX_MIB_TCPDEFERACCEPTDROP = 71,
+	LINUX_MIB_IPRPFILTER = 72,
+	LINUX_MIB_TCPTIMEWAITOVERFLOW = 73,
+	LINUX_MIB_TCPREQQFULLDOCOOKIES = 74,
+	LINUX_MIB_TCPREQQFULLDROP = 75,
+	LINUX_MIB_TCPRETRANSFAIL = 76,
+	LINUX_MIB_TCPRCVCOALESCE = 77,
+	LINUX_MIB_TCPBACKLOGCOALESCE = 78,
+	LINUX_MIB_TCPOFOQUEUE = 79,
+	LINUX_MIB_TCPOFODROP = 80,
+	LINUX_MIB_TCPOFOMERGE = 81,
+	LINUX_MIB_TCPCHALLENGEACK = 82,
+	LINUX_MIB_TCPSYNCHALLENGE = 83,
+	LINUX_MIB_TCPFASTOPENACTIVE = 84,
+	LINUX_MIB_TCPFASTOPENACTIVEFAIL = 85,
+	LINUX_MIB_TCPFASTOPENPASSIVE = 86,
+	LINUX_MIB_TCPFASTOPENPASSIVEFAIL = 87,
+	LINUX_MIB_TCPFASTOPENLISTENOVERFLOW = 88,
+	LINUX_MIB_TCPFASTOPENCOOKIEREQD = 89,
+	LINUX_MIB_TCPFASTOPENBLACKHOLE = 90,
+	LINUX_MIB_TCPSPURIOUS_RTX_HOSTQUEUES = 91,
+	LINUX_MIB_BUSYPOLLRXPACKETS = 92,
+	LINUX_MIB_TCPAUTOCORKING = 93,
+	LINUX_MIB_TCPFROMZEROWINDOWADV = 94,
+	LINUX_MIB_TCPTOZEROWINDOWADV = 95,
+	LINUX_MIB_TCPWANTZEROWINDOWADV = 96,
+	LINUX_MIB_TCPSYNRETRANS = 97,
+	LINUX_MIB_TCPORIGDATASENT = 98,
+	LINUX_MIB_TCPHYSTARTTRAINDETECT = 99,
+	LINUX_MIB_TCPHYSTARTTRAINCWND = 100,
+	LINUX_MIB_TCPHYSTARTDELAYDETECT = 101,
+	LINUX_MIB_TCPHYSTARTDELAYCWND = 102,
+	LINUX_MIB_TCPACKSKIPPEDSYNRECV = 103,
+	LINUX_MIB_TCPACKSKIPPEDPAWS = 104,
+	LINUX_MIB_TCPACKSKIPPEDSEQ = 105,
+	LINUX_MIB_TCPACKSKIPPEDFINWAIT2 = 106,
+	LINUX_MIB_TCPACKSKIPPEDTIMEWAIT = 107,
+	LINUX_MIB_TCPACKSKIPPEDCHALLENGE = 108,
+	LINUX_MIB_TCPWINPROBE = 109,
+	LINUX_MIB_TCPKEEPALIVE = 110,
+	LINUX_MIB_TCPMTUPFAIL = 111,
+	LINUX_MIB_TCPMTUPSUCCESS = 112,
+	LINUX_MIB_TCPDELIVERED = 113,
+	LINUX_MIB_TCPDELIVEREDCE = 114,
+	LINUX_MIB_TCPACKCOMPRESSED = 115,
+	LINUX_MIB_TCPZEROWINDOWDROP = 116,
+	LINUX_MIB_TCPRCVQDROP = 117,
+	LINUX_MIB_TCPWQUEUETOOBIG = 118,
+	LINUX_MIB_TCPFASTOPENPASSIVEALTKEY = 119,
+	LINUX_MIB_TCPTIMEOUTREHASH = 120,
+	LINUX_MIB_TCPDUPLICATEDATAREHASH = 121,
+	LINUX_MIB_TCPDSACKRECVSEGS = 122,
+	LINUX_MIB_TCPDSACKIGNOREDDUBIOUS = 123,
+	LINUX_MIB_TCPMIGRATEREQSUCCESS = 124,
+	LINUX_MIB_TCPMIGRATEREQFAILURE = 125,
+	__LINUX_MIB_MAX = 126,
+};
+
+enum {
+	LINUX_MIB_XFRMNUM = 0,
+	LINUX_MIB_XFRMINERROR = 1,
+	LINUX_MIB_XFRMINBUFFERERROR = 2,
+	LINUX_MIB_XFRMINHDRERROR = 3,
+	LINUX_MIB_XFRMINNOSTATES = 4,
+	LINUX_MIB_XFRMINSTATEPROTOERROR = 5,
+	LINUX_MIB_XFRMINSTATEMODEERROR = 6,
+	LINUX_MIB_XFRMINSTATESEQERROR = 7,
+	LINUX_MIB_XFRMINSTATEEXPIRED = 8,
+	LINUX_MIB_XFRMINSTATEMISMATCH = 9,
+	LINUX_MIB_XFRMINSTATEINVALID = 10,
+	LINUX_MIB_XFRMINTMPLMISMATCH = 11,
+	LINUX_MIB_XFRMINNOPOLS = 12,
+	LINUX_MIB_XFRMINPOLBLOCK = 13,
+	LINUX_MIB_XFRMINPOLERROR = 14,
+	LINUX_MIB_XFRMOUTERROR = 15,
+	LINUX_MIB_XFRMOUTBUNDLEGENERROR = 16,
+	LINUX_MIB_XFRMOUTBUNDLECHECKERROR = 17,
+	LINUX_MIB_XFRMOUTNOSTATES = 18,
+	LINUX_MIB_XFRMOUTSTATEPROTOERROR = 19,
+	LINUX_MIB_XFRMOUTSTATEMODEERROR = 20,
+	LINUX_MIB_XFRMOUTSTATESEQERROR = 21,
+	LINUX_MIB_XFRMOUTSTATEEXPIRED = 22,
+	LINUX_MIB_XFRMOUTPOLBLOCK = 23,
+	LINUX_MIB_XFRMOUTPOLDEAD = 24,
+	LINUX_MIB_XFRMOUTPOLERROR = 25,
+	LINUX_MIB_XFRMFWDHDRERROR = 26,
+	LINUX_MIB_XFRMOUTSTATEINVALID = 27,
+	LINUX_MIB_XFRMACQUIREERROR = 28,
+	__LINUX_MIB_XFRMMAX = 29,
+};
+
+enum {
+	LINUX_MIB_TLSNUM = 0,
+	LINUX_MIB_TLSCURRTXSW = 1,
+	LINUX_MIB_TLSCURRRXSW = 2,
+	LINUX_MIB_TLSCURRTXDEVICE = 3,
+	LINUX_MIB_TLSCURRRXDEVICE = 4,
+	LINUX_MIB_TLSTXSW = 5,
+	LINUX_MIB_TLSRXSW = 6,
+	LINUX_MIB_TLSTXDEVICE = 7,
+	LINUX_MIB_TLSRXDEVICE = 8,
+	LINUX_MIB_TLSDECRYPTERROR = 9,
+	LINUX_MIB_TLSRXDEVICERESYNC = 10,
+	LINUX_MIB_TLSDECRYPTRETRY = 11,
+	LINUX_MIB_TLSRXNOPADVIOL = 12,
+	__LINUX_MIB_TLSMAX = 13,
+};
+
+enum nf_inet_hooks {
+	NF_INET_PRE_ROUTING = 0,
+	NF_INET_LOCAL_IN = 1,
+	NF_INET_FORWARD = 2,
+	NF_INET_LOCAL_OUT = 3,
+	NF_INET_POST_ROUTING = 4,
+	NF_INET_NUMHOOKS = 5,
+	NF_INET_INGRESS = 5,
+};
+
+enum {
+	NFPROTO_UNSPEC = 0,
+	NFPROTO_INET = 1,
+	NFPROTO_IPV4 = 2,
+	NFPROTO_ARP = 3,
+	NFPROTO_NETDEV = 5,
+	NFPROTO_BRIDGE = 7,
+	NFPROTO_IPV6 = 10,
+	NFPROTO_DECNET = 12,
+	NFPROTO_NUMPROTO = 13,
+};
+
+enum tcp_conntrack {
+	TCP_CONNTRACK_NONE = 0,
+	TCP_CONNTRACK_SYN_SENT = 1,
+	TCP_CONNTRACK_SYN_RECV = 2,
+	TCP_CONNTRACK_ESTABLISHED = 3,
+	TCP_CONNTRACK_FIN_WAIT = 4,
+	TCP_CONNTRACK_CLOSE_WAIT = 5,
+	TCP_CONNTRACK_LAST_ACK = 6,
+	TCP_CONNTRACK_TIME_WAIT = 7,
+	TCP_CONNTRACK_CLOSE = 8,
+	TCP_CONNTRACK_LISTEN = 9,
+	TCP_CONNTRACK_MAX = 10,
+	TCP_CONNTRACK_IGNORE = 11,
+	TCP_CONNTRACK_RETRANS = 12,
+	TCP_CONNTRACK_UNACK = 13,
+	TCP_CONNTRACK_TIMEOUT_MAX = 14,
+};
+
+enum ct_dccp_states {
+	CT_DCCP_NONE = 0,
+	CT_DCCP_REQUEST = 1,
+	CT_DCCP_RESPOND = 2,
+	CT_DCCP_PARTOPEN = 3,
+	CT_DCCP_OPEN = 4,
+	CT_DCCP_CLOSEREQ = 5,
+	CT_DCCP_CLOSING = 6,
+	CT_DCCP_TIMEWAIT = 7,
+	CT_DCCP_IGNORE = 8,
+	CT_DCCP_INVALID = 9,
+	__CT_DCCP_MAX = 10,
+};
+
+enum ip_conntrack_dir {
+	IP_CT_DIR_ORIGINAL = 0,
+	IP_CT_DIR_REPLY = 1,
+	IP_CT_DIR_MAX = 2,
+};
+
+enum sctp_conntrack {
+	SCTP_CONNTRACK_NONE = 0,
+	SCTP_CONNTRACK_CLOSED = 1,
+	SCTP_CONNTRACK_COOKIE_WAIT = 2,
+	SCTP_CONNTRACK_COOKIE_ECHOED = 3,
+	SCTP_CONNTRACK_ESTABLISHED = 4,
+	SCTP_CONNTRACK_SHUTDOWN_SENT = 5,
+	SCTP_CONNTRACK_SHUTDOWN_RECD = 6,
+	SCTP_CONNTRACK_SHUTDOWN_ACK_SENT = 7,
+	SCTP_CONNTRACK_HEARTBEAT_SENT = 8,
+	SCTP_CONNTRACK_HEARTBEAT_ACKED = 9,
+	SCTP_CONNTRACK_MAX = 10,
+};
+
+enum udp_conntrack {
+	UDP_CT_UNREPLIED = 0,
+	UDP_CT_REPLIED = 1,
+	UDP_CT_MAX = 2,
+};
+
+enum gre_conntrack {
+	GRE_CT_UNREPLIED = 0,
+	GRE_CT_REPLIED = 1,
+	GRE_CT_MAX = 2,
+};
+
+enum {
+	XFRM_POLICY_IN = 0,
+	XFRM_POLICY_OUT = 1,
+	XFRM_POLICY_FWD = 2,
+	XFRM_POLICY_MASK = 3,
+	XFRM_POLICY_MAX = 3,
+};
+
+enum netns_bpf_attach_type {
+	NETNS_BPF_INVALID = 4294967295,
+	NETNS_BPF_FLOW_DISSECTOR = 0,
+	NETNS_BPF_SK_LOOKUP = 1,
+	MAX_NETNS_BPF_ATTACH_TYPE = 2,
+};
+
+typedef struct {
+	union {
+		void *kernel;
+		void *user;
+	};
+	bool is_kernel: 1;
+} sockptr_t;
+
+typedef enum {
+	SS_FREE = 0,
+	SS_UNCONNECTED = 1,
+	SS_CONNECTING = 2,
+	SS_CONNECTED = 3,
+	SS_DISCONNECTING = 4,
+} socket_state;
+
+struct socket_wq {
+	wait_queue_head_t wait;
+	struct fasync_struct *fasync_list;
+	long unsigned int flags;
+	struct callback_head rcu;
+	long: 64;
+};
+
+struct proto_ops;
+
+struct socket {
+	socket_state state;
+	short int type;
+	long unsigned int flags;
+	struct file *file;
+	struct sock *sk;
+	const struct proto_ops *ops;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct socket_wq wq;
+};
+
+typedef struct {
+	size_t written;
+	size_t count;
+	union {
+		char *buf;
+		void *data;
+	} arg;
+	int error;
+} read_descriptor_t;
+
+typedef int (*sk_read_actor_t)(read_descriptor_t *, struct sk_buff *, unsigned int, size_t);
+
+typedef int (*skb_read_actor_t)(struct sock *, struct sk_buff *);
+
+struct proto_ops {
+	int family;
+	struct module *owner;
+	int (*release)(struct socket *);
+	int (*bind)(struct socket *, struct sockaddr *, int);
+	int (*connect)(struct socket *, struct sockaddr *, int, int);
+	int (*socketpair)(struct socket *, struct socket *);
+	int (*accept)(struct socket *, struct socket *, int, bool);
+	int (*getname)(struct socket *, struct sockaddr *, int);
+	__poll_t (*poll)(struct file *, struct socket *, struct poll_table_struct *);
+	int (*ioctl)(struct socket *, unsigned int, long unsigned int);
+	int (*compat_ioctl)(struct socket *, unsigned int, long unsigned int);
+	int (*gettstamp)(struct socket *, void *, bool, bool);
+	int (*listen)(struct socket *, int);
+	int (*shutdown)(struct socket *, int);
+	int (*setsockopt)(struct socket *, int, int, sockptr_t, unsigned int);
+	int (*getsockopt)(struct socket *, int, int, char *, int *);
+	void (*show_fdinfo)(struct seq_file *, struct socket *);
+	int (*sendmsg)(struct socket *, struct msghdr *, size_t);
+	int (*recvmsg)(struct socket *, struct msghdr *, size_t, int);
+	int (*mmap)(struct file *, struct socket *, struct vm_area_struct *);
+	ssize_t (*sendpage)(struct socket *, struct page *, int, size_t, int);
+	ssize_t (*splice_read)(struct socket *, loff_t *, struct pipe_inode_info *, size_t, unsigned int);
+	int (*set_peek_off)(struct sock *, int);
+	int (*peek_len)(struct socket *);
+	int (*read_sock)(struct sock *, read_descriptor_t *, sk_read_actor_t);
+	int (*read_skb)(struct sock *, skb_read_actor_t);
+	int (*sendpage_locked)(struct sock *, struct page *, int, size_t, int);
+	int (*sendmsg_locked)(struct sock *, struct msghdr *, size_t);
+	int (*set_rcvlowat)(struct sock *, int);
+};
+
+enum skb_ext_id {
+	SKB_EXT_BRIDGE_NF = 0,
+	SKB_EXT_SEC_PATH = 1,
+	TC_SKB_EXT = 2,
+	SKB_EXT_MPTCP = 3,
+	SKB_EXT_NUM = 4,
+};
+
+struct wake_q_head {
+	struct wake_q_node *first;
+	struct wake_q_node **lastp;
+};
+
+struct sched_param {
+	int sched_priority;
+};
+
+struct sched_attr {
+	__u32 size;
+	__u32 sched_policy;
+	__u64 sched_flags;
+	__s32 sched_nice;
+	__u32 sched_priority;
+	__u64 sched_runtime;
+	__u64 sched_deadline;
+	__u64 sched_period;
+	__u32 sched_util_min;
+	__u32 sched_util_max;
+};
+
+struct trace_event_raw_sched_kthread_stop {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_kthread_stop_ret {
+	struct trace_entry ent;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_kthread_work_queue_work {
+	struct trace_entry ent;
+	void *work;
+	void *function;
+	void *worker;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_kthread_work_execute_start {
+	struct trace_entry ent;
+	void *work;
+	void *function;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_kthread_work_execute_end {
+	struct trace_entry ent;
+	void *work;
+	void *function;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_wakeup_template {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	int prio;
+	int target_cpu;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_switch {
+	struct trace_entry ent;
+	char prev_comm[16];
+	pid_t prev_pid;
+	int prev_prio;
+	long int prev_state;
+	char next_comm[16];
+	pid_t next_pid;
+	int next_prio;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_migrate_task {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	int prio;
+	int orig_cpu;
+	int dest_cpu;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_process_template {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	int prio;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_process_wait {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	int prio;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_process_fork {
+	struct trace_entry ent;
+	char parent_comm[16];
+	pid_t parent_pid;
+	char child_comm[16];
+	pid_t child_pid;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_process_exec {
+	struct trace_entry ent;
+	u32 __data_loc_filename;
+	pid_t pid;
+	pid_t old_pid;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_stat_template {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	u64 delay;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_stat_runtime {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	u64 runtime;
+	u64 vruntime;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_pi_setprio {
+	struct trace_entry ent;
+	char comm[16];
+	pid_t pid;
+	int oldprio;
+	int newprio;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_move_numa {
+	struct trace_entry ent;
+	pid_t pid;
+	pid_t tgid;
+	pid_t ngid;
+	int src_cpu;
+	int src_nid;
+	int dst_cpu;
+	int dst_nid;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_numa_pair_template {
+	struct trace_entry ent;
+	pid_t src_pid;
+	pid_t src_tgid;
+	pid_t src_ngid;
+	int src_cpu;
+	int src_nid;
+	pid_t dst_pid;
+	pid_t dst_tgid;
+	pid_t dst_ngid;
+	int dst_cpu;
+	int dst_nid;
+	char __data[0];
+};
+
+struct trace_event_raw_sched_wake_idle_without_ipi {
+	struct trace_entry ent;
+	int cpu;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_sched_kthread_stop {};
+
+struct trace_event_data_offsets_sched_kthread_stop_ret {};
+
+struct trace_event_data_offsets_sched_kthread_work_queue_work {};
+
+struct trace_event_data_offsets_sched_kthread_work_execute_start {};
+
+struct trace_event_data_offsets_sched_kthread_work_execute_end {};
+
+struct trace_event_data_offsets_sched_wakeup_template {};
+
+struct trace_event_data_offsets_sched_switch {};
+
+struct trace_event_data_offsets_sched_migrate_task {};
+
+struct trace_event_data_offsets_sched_process_template {};
+
+struct trace_event_data_offsets_sched_process_wait {};
+
+struct trace_event_data_offsets_sched_process_fork {};
+
+struct trace_event_data_offsets_sched_process_exec {
+	u32 filename;
+};
+
+struct trace_event_data_offsets_sched_stat_template {};
+
+struct trace_event_data_offsets_sched_stat_runtime {};
+
+struct trace_event_data_offsets_sched_pi_setprio {};
+
+struct trace_event_data_offsets_sched_move_numa {};
+
+struct trace_event_data_offsets_sched_numa_pair_template {};
+
+struct trace_event_data_offsets_sched_wake_idle_without_ipi {};
+
+typedef void (*btf_trace_sched_kthread_stop)(void *, struct task_struct *);
+
+typedef void (*btf_trace_sched_kthread_stop_ret)(void *, int);
+
+typedef void (*btf_trace_sched_kthread_work_queue_work)(void *, struct kthread_worker *, struct kthread_work *);
+
+typedef void (*btf_trace_sched_kthread_work_execute_start)(void *, struct kthread_work *);
+
+typedef void (*btf_trace_sched_kthread_work_execute_end)(void *, struct kthread_work *, kthread_work_func_t);
+
+typedef void (*btf_trace_sched_waking)(void *, struct task_struct *);
+
+typedef void (*btf_trace_sched_wakeup)(void *, struct task_struct *);
+
+typedef void (*btf_trace_sched_wakeup_new)(void *, struct task_struct *);
+
+typedef void (*btf_trace_sched_switch)(void *, bool, struct task_struct *, struct task_struct *, unsigned int);
+
+typedef void (*btf_trace_sched_migrate_task)(void *, struct task_struct *, int);
+
+typedef void (*btf_trace_sched_process_free)(void *, struct task_struct *);
+
+typedef void (*btf_trace_sched_process_exit)(void *, struct task_struct *);
+
+typedef void (*btf_trace_sched_wait_task)(void *, struct task_struct *);
+
+typedef void (*btf_trace_sched_process_wait)(void *, struct pid *);
+
+typedef void (*btf_trace_sched_process_fork)(void *, struct task_struct *, struct task_struct *);
+
+typedef void (*btf_trace_sched_process_exec)(void *, struct task_struct *, pid_t, struct linux_binprm *);
+
+typedef void (*btf_trace_sched_stat_wait)(void *, struct task_struct *, u64);
+
+typedef void (*btf_trace_sched_stat_sleep)(void *, struct task_struct *, u64);
+
+typedef void (*btf_trace_sched_stat_iowait)(void *, struct task_struct *, u64);
+
+typedef void (*btf_trace_sched_stat_blocked)(void *, struct task_struct *, u64);
+
+typedef void (*btf_trace_sched_stat_runtime)(void *, struct task_struct *, u64, u64);
+
+typedef void (*btf_trace_sched_pi_setprio)(void *, struct task_struct *, struct task_struct *);
+
+typedef void (*btf_trace_sched_move_numa)(void *, struct task_struct *, int, int);
+
+typedef void (*btf_trace_sched_stick_numa)(void *, struct task_struct *, int, struct task_struct *, int);
+
+typedef void (*btf_trace_sched_swap_numa)(void *, struct task_struct *, int, struct task_struct *, int);
+
+typedef void (*btf_trace_sched_wake_idle_without_ipi)(void *, int);
+
+typedef void (*btf_trace_pelt_cfs_tp)(void *, struct cfs_rq *);
+
+typedef void (*btf_trace_pelt_rt_tp)(void *, struct rq *);
+
+struct rt_prio_array {
+	long unsigned int bitmap[2];
+	struct list_head queue[100];
+};
+
+struct rt_rq {
+	struct rt_prio_array active;
+	unsigned int rt_nr_running;
+	unsigned int rr_nr_running;
+	struct {
+		int curr;
+		int next;
+	} highest_prio;
+	unsigned int rt_nr_migratory;
+	unsigned int rt_nr_total;
+	int overloaded;
+	struct plist_head pushable_tasks;
+	int rt_queued;
+	int rt_throttled;
+	u64 rt_time;
+	u64 rt_runtime;
+	raw_spinlock_t rt_runtime_lock;
+};
+
+struct dl_rq {
+	struct rb_root_cached root;
+	unsigned int dl_nr_running;
+	struct {
+		u64 curr;
+		u64 next;
+	} earliest_dl;
+	unsigned int dl_nr_migratory;
+	int overloaded;
+	struct rb_root_cached pushable_dl_tasks_root;
+	u64 running_bw;
+	u64 this_bw;
+	u64 extra_bw;
+	u64 bw_ratio;
+};
+
+struct cpu_stop_done;
+
+struct cpu_stop_work {
+	struct list_head list;
+	cpu_stop_fn_t fn;
+	long unsigned int caller;
+	void *arg;
+	struct cpu_stop_done *done;
+};
+
+struct cpuidle_state;
+
+struct rq {
+	raw_spinlock_t __lock;
+	unsigned int nr_running;
+	unsigned int nr_numa_running;
+	unsigned int nr_preferred_running;
+	unsigned int numa_migrate_on;
+	long unsigned int last_blocked_load_update_tick;
+	unsigned int has_blocked_load;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	call_single_data_t nohz_csd;
+	unsigned int nohz_tick_stopped;
+	atomic_t nohz_flags;
+	unsigned int ttwu_pending;
+	u64 nr_switches;
+	long: 64;
+	struct cfs_rq cfs;
+	struct rt_rq rt;
+	struct dl_rq dl;
+	struct list_head leaf_cfs_rq_list;
+	struct list_head *tmp_alone_branch;
+	unsigned int nr_uninterruptible;
+	struct task_struct *curr;
+	struct task_struct *idle;
+	struct task_struct *stop;
+	long unsigned int next_balance;
+	struct mm_struct *prev_mm;
+	unsigned int clock_update_flags;
+	u64 clock;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u64 clock_task;
+	u64 clock_pelt;
+	long unsigned int lost_idle_time;
+	u64 clock_pelt_idle;
+	u64 clock_idle;
+	atomic_t nr_iowait;
+	u64 last_seen_need_resched_ns;
+	int ticks_without_resched;
+	int membarrier_state;
+	struct root_domain *rd;
+	struct sched_domain *sd;
+	long unsigned int cpu_capacity;
+	long unsigned int cpu_capacity_orig;
+	struct callback_head *balance_callback;
+	unsigned char nohz_idle_balance;
+	unsigned char idle_balance;
+	long unsigned int misfit_task_load;
+	int active_balance;
+	int push_cpu;
+	struct cpu_stop_work active_balance_work;
+	int cpu;
+	int online;
+	struct list_head cfs_tasks;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct sched_avg avg_rt;
+	struct sched_avg avg_dl;
+	struct sched_avg avg_irq;
+	struct sched_avg avg_thermal;
+	u64 idle_stamp;
+	u64 avg_idle;
+	long unsigned int wake_stamp;
+	u64 wake_avg_idle;
+	u64 max_idle_balance_cost;
+	struct rcuwait hotplug_wait;
+	u64 prev_irq_time;
+	u64 prev_steal_time;
+	u64 prev_steal_time_rq;
+	long unsigned int calc_load_update;
+	long int calc_load_active;
+	long: 64;
+	call_single_data_t hrtick_csd;
+	struct hrtimer hrtick_timer;
+	ktime_t hrtick_time;
+	struct sched_info rq_sched_info;
+	long long unsigned int rq_cpu_time;
+	unsigned int yld_count;
+	unsigned int sched_count;
+	unsigned int sched_goidle;
+	unsigned int ttwu_count;
+	unsigned int ttwu_local;
+	struct cpuidle_state *idle_state;
+	unsigned int nr_pinned;
+	unsigned int push_busy;
+	struct cpu_stop_work push_work;
+	struct rq *core;
+	struct task_struct *core_pick;
+	unsigned int core_enabled;
+	unsigned int core_sched_seq;
+	struct rb_root core_tree;
+	unsigned int core_task_seq;
+	unsigned int core_pick_seq;
+	long unsigned int core_cookie;
+	unsigned int core_forceidle_count;
+	unsigned int core_forceidle_seq;
+	unsigned int core_forceidle_occupation;
+	u64 core_forceidle_start;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+typedef void (*btf_trace_pelt_dl_tp)(void *, struct rq *);
+
+typedef void (*btf_trace_pelt_thermal_tp)(void *, struct rq *);
+
+typedef void (*btf_trace_pelt_irq_tp)(void *, struct rq *);
+
+typedef void (*btf_trace_pelt_se_tp)(void *, struct sched_entity *);
+
+typedef void (*btf_trace_sched_cpu_capacity_tp)(void *, struct rq *);
+
+typedef void (*btf_trace_sched_overutilized_tp)(void *, struct root_domain *, bool);
+
+typedef void (*btf_trace_sched_util_est_cfs_tp)(void *, struct cfs_rq *);
+
+typedef void (*btf_trace_sched_util_est_se_tp)(void *, struct sched_entity *);
+
+typedef void (*btf_trace_sched_update_nr_running_tp)(void *, struct rq *, int);
+
+struct cpudl_item {
+	u64 dl;
+	int cpu;
+	int idx;
+};
+
+struct rt_bandwidth {
+	raw_spinlock_t rt_runtime_lock;
+	ktime_t rt_period;
+	u64 rt_runtime;
+	struct hrtimer rt_period_timer;
+	unsigned int rt_period_active;
+};
+
+typedef int (*tg_visitor)(struct task_group *, void *);
+
+struct perf_domain {
+	struct em_perf_domain *em_pd;
+	struct perf_domain *next;
+	struct callback_head rcu;
+};
+
+struct rq_flags {
+	long unsigned int flags;
+	struct pin_cookie cookie;
+	unsigned int clock_update_flags;
+};
+
+struct sched_entity_stats {
+	struct sched_entity se;
+	struct sched_statistics stats;
+};
+
+enum {
+	__SCHED_FEAT_GENTLE_FAIR_SLEEPERS = 0,
+	__SCHED_FEAT_START_DEBIT = 1,
+	__SCHED_FEAT_NEXT_BUDDY = 2,
+	__SCHED_FEAT_LAST_BUDDY = 3,
+	__SCHED_FEAT_CACHE_HOT_BUDDY = 4,
+	__SCHED_FEAT_WAKEUP_PREEMPTION = 5,
+	__SCHED_FEAT_HRTICK = 6,
+	__SCHED_FEAT_HRTICK_DL = 7,
+	__SCHED_FEAT_DOUBLE_TICK = 8,
+	__SCHED_FEAT_NONTASK_CAPACITY = 9,
+	__SCHED_FEAT_TTWU_QUEUE = 10,
+	__SCHED_FEAT_SIS_PROP = 11,
+	__SCHED_FEAT_SIS_UTIL = 12,
+	__SCHED_FEAT_WARN_DOUBLE_CLOCK = 13,
+	__SCHED_FEAT_RT_PUSH_IPI = 14,
+	__SCHED_FEAT_RT_RUNTIME_SHARE = 15,
+	__SCHED_FEAT_LB_MIN = 16,
+	__SCHED_FEAT_ATTACH_AGE_LOAD = 17,
+	__SCHED_FEAT_WA_IDLE = 18,
+	__SCHED_FEAT_WA_WEIGHT = 19,
+	__SCHED_FEAT_WA_BIAS = 20,
+	__SCHED_FEAT_UTIL_EST = 21,
+	__SCHED_FEAT_UTIL_EST_FASTUP = 22,
+	__SCHED_FEAT_LATENCY_WARN = 23,
+	__SCHED_FEAT_ALT_PERIOD = 24,
+	__SCHED_FEAT_BASE_SLICE = 25,
+	__SCHED_FEAT_NR = 26,
+};
+
+struct irqtime {
+	u64 total;
+	u64 tick_delta;
+	u64 irq_start_time;
+	struct u64_stats_sync sync;
+};
+
+enum cpu_util_type {
+	FREQUENCY_UTIL = 0,
+	ENERGY_UTIL = 1,
+};
+
+enum task_work_notify_mode {
+	TWA_NONE = 0,
+	TWA_RESUME = 1,
+	TWA_SIGNAL = 2,
+	TWA_SIGNAL_NO_IPI = 3,
+};
+
+struct io_uring_sqe {
+	__u8 opcode;
+	__u8 flags;
+	__u16 ioprio;
+	__s32 fd;
+	union {
+		__u64 off;
+		__u64 addr2;
+		struct {
+			__u32 cmd_op;
+			__u32 __pad1;
+		};
+	};
+	union {
+		__u64 addr;
+		__u64 splice_off_in;
+	};
+	__u32 len;
+	union {
+		__kernel_rwf_t rw_flags;
+		__u32 fsync_flags;
+		__u16 poll_events;
+		__u32 poll32_events;
+		__u32 sync_range_flags;
+		__u32 msg_flags;
+		__u32 timeout_flags;
+		__u32 accept_flags;
+		__u32 cancel_flags;
+		__u32 open_flags;
+		__u32 statx_flags;
+		__u32 fadvise_advice;
+		__u32 splice_flags;
+		__u32 rename_flags;
+		__u32 unlink_flags;
+		__u32 hardlink_flags;
+		__u32 xattr_flags;
+		__u32 msg_ring_flags;
+	};
+	__u64 user_data;
+	union {
+		__u16 buf_index;
+		__u16 buf_group;
+	};
+	__u16 personality;
+	union {
+		__s32 splice_fd_in;
+		__u32 file_index;
+		struct {
+			__u16 addr_len;
+			__u16 __pad3[1];
+		};
+	};
+	union {
+		struct {
+			__u64 addr3;
+			__u64 __pad2[1];
+		};
+		__u8 cmd[0];
+	};
+};
+
+enum {
+	IOSQE_FIXED_FILE_BIT = 0,
+	IOSQE_IO_DRAIN_BIT = 1,
+	IOSQE_IO_LINK_BIT = 2,
+	IOSQE_IO_HARDLINK_BIT = 3,
+	IOSQE_ASYNC_BIT = 4,
+	IOSQE_BUFFER_SELECT_BIT = 5,
+	IOSQE_CQE_SKIP_SUCCESS_BIT = 6,
+};
+
+enum io_uring_op {
+	IORING_OP_NOP = 0,
+	IORING_OP_READV = 1,
+	IORING_OP_WRITEV = 2,
+	IORING_OP_FSYNC = 3,
+	IORING_OP_READ_FIXED = 4,
+	IORING_OP_WRITE_FIXED = 5,
+	IORING_OP_POLL_ADD = 6,
+	IORING_OP_POLL_REMOVE = 7,
+	IORING_OP_SYNC_FILE_RANGE = 8,
+	IORING_OP_SENDMSG = 9,
+	IORING_OP_RECVMSG = 10,
+	IORING_OP_TIMEOUT = 11,
+	IORING_OP_TIMEOUT_REMOVE = 12,
+	IORING_OP_ACCEPT = 13,
+	IORING_OP_ASYNC_CANCEL = 14,
+	IORING_OP_LINK_TIMEOUT = 15,
+	IORING_OP_CONNECT = 16,
+	IORING_OP_FALLOCATE = 17,
+	IORING_OP_OPENAT = 18,
+	IORING_OP_CLOSE = 19,
+	IORING_OP_FILES_UPDATE = 20,
+	IORING_OP_STATX = 21,
+	IORING_OP_READ = 22,
+	IORING_OP_WRITE = 23,
+	IORING_OP_FADVISE = 24,
+	IORING_OP_MADVISE = 25,
+	IORING_OP_SEND = 26,
+	IORING_OP_RECV = 27,
+	IORING_OP_OPENAT2 = 28,
+	IORING_OP_EPOLL_CTL = 29,
+	IORING_OP_SPLICE = 30,
+	IORING_OP_PROVIDE_BUFFERS = 31,
+	IORING_OP_REMOVE_BUFFERS = 32,
+	IORING_OP_TEE = 33,
+	IORING_OP_SHUTDOWN = 34,
+	IORING_OP_RENAMEAT = 35,
+	IORING_OP_UNLINKAT = 36,
+	IORING_OP_MKDIRAT = 37,
+	IORING_OP_SYMLINKAT = 38,
+	IORING_OP_LINKAT = 39,
+	IORING_OP_MSG_RING = 40,
+	IORING_OP_FSETXATTR = 41,
+	IORING_OP_SETXATTR = 42,
+	IORING_OP_FGETXATTR = 43,
+	IORING_OP_GETXATTR = 44,
+	IORING_OP_SOCKET = 45,
+	IORING_OP_URING_CMD = 46,
+	IORING_OP_SEND_ZC = 47,
+	IORING_OP_LAST = 48,
+};
+
+struct io_uring_cqe {
+	__u64 user_data;
+	__s32 res;
+	__u32 flags;
+	__u64 big_cqe[0];
+};
+
+enum {
+	IORING_REGISTER_BUFFERS = 0,
+	IORING_UNREGISTER_BUFFERS = 1,
+	IORING_REGISTER_FILES = 2,
+	IORING_UNREGISTER_FILES = 3,
+	IORING_REGISTER_EVENTFD = 4,
+	IORING_UNREGISTER_EVENTFD = 5,
+	IORING_REGISTER_FILES_UPDATE = 6,
+	IORING_REGISTER_EVENTFD_ASYNC = 7,
+	IORING_REGISTER_PROBE = 8,
+	IORING_REGISTER_PERSONALITY = 9,
+	IORING_UNREGISTER_PERSONALITY = 10,
+	IORING_REGISTER_RESTRICTIONS = 11,
+	IORING_REGISTER_ENABLE_RINGS = 12,
+	IORING_REGISTER_FILES2 = 13,
+	IORING_REGISTER_FILES_UPDATE2 = 14,
+	IORING_REGISTER_BUFFERS2 = 15,
+	IORING_REGISTER_BUFFERS_UPDATE = 16,
+	IORING_REGISTER_IOWQ_AFF = 17,
+	IORING_UNREGISTER_IOWQ_AFF = 18,
+	IORING_REGISTER_IOWQ_MAX_WORKERS = 19,
+	IORING_REGISTER_RING_FDS = 20,
+	IORING_UNREGISTER_RING_FDS = 21,
+	IORING_REGISTER_PBUF_RING = 22,
+	IORING_UNREGISTER_PBUF_RING = 23,
+	IORING_REGISTER_SYNC_CANCEL = 24,
+	IORING_REGISTER_FILE_ALLOC_RANGE = 25,
+	IORING_REGISTER_LAST = 26,
+};
+
+struct io_wq_work_node {
+	struct io_wq_work_node *next;
+};
+
+struct io_wq_work_list {
+	struct io_wq_work_node *first;
+	struct io_wq_work_node *last;
+};
+
+struct io_wq_work {
+	struct io_wq_work_node list;
+	unsigned int flags;
+	int cancel_seq;
+};
+
+struct io_fixed_file {
+	long unsigned int file_ptr;
+};
+
+struct io_file_table {
+	struct io_fixed_file *files;
+	long unsigned int *bitmap;
+	unsigned int alloc_hint;
+};
+
+struct io_hash_bucket {
+	spinlock_t lock;
+	struct hlist_head list;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct io_hash_table {
+	struct io_hash_bucket *hbs;
+	unsigned int hash_bits;
+};
+
+struct io_notif_slot;
+
+struct io_kiocb;
+
+struct io_submit_link {
+	struct io_kiocb *head;
+	struct io_kiocb *last;
+};
+
+struct io_submit_state {
+	struct io_wq_work_node free_list;
+	struct io_wq_work_list compl_reqs;
+	struct io_submit_link link;
+	bool plug_started;
+	bool need_plug;
+	short unsigned int submit_nr;
+	struct blk_plug plug;
+};
+
+struct io_alloc_cache {
+	struct hlist_head list;
+	unsigned int nr_cached;
+};
+
+struct io_restriction {
+	long unsigned int register_op[1];
+	long unsigned int sqe_op[1];
+	u8 sqe_flags_allowed;
+	u8 sqe_flags_required;
+	bool registered;
+};
+
+struct io_rings;
+
+struct io_rsrc_node;
+
+struct io_mapped_ubuf;
+
+struct io_buffer_list;
+
+struct io_sq_data;
+
+struct io_ev_fd;
+
+struct io_rsrc_data;
+
+struct io_wq_hash;
+
+struct io_ring_ctx {
+	struct {
+		struct percpu_ref refs;
+		struct io_rings *rings;
+		unsigned int flags;
+		enum task_work_notify_mode notify_method;
+		unsigned int compat: 1;
+		unsigned int drain_next: 1;
+		unsigned int restricted: 1;
+		unsigned int off_timeout_used: 1;
+		unsigned int drain_active: 1;
+		unsigned int drain_disabled: 1;
+		unsigned int has_evfd: 1;
+		unsigned int syscall_iopoll: 1;
+		long: 56;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct {
+		struct mutex uring_lock;
+		u32 *sq_array;
+		struct io_uring_sqe *sq_sqes;
+		unsigned int cached_sq_head;
+		unsigned int sq_entries;
+		struct io_rsrc_node *rsrc_node;
+		int rsrc_cached_refs;
+		atomic_t cancel_seq;
+		struct io_file_table file_table;
+		unsigned int nr_user_files;
+		unsigned int nr_user_bufs;
+		struct io_mapped_ubuf **user_bufs;
+		struct io_notif_slot *notif_slots;
+		unsigned int nr_notif_slots;
+		struct io_submit_state submit_state;
+		struct io_buffer_list *io_bl;
+		struct xarray io_bl_xa;
+		struct list_head io_buffers_cache;
+		struct io_hash_table cancel_table_locked;
+		struct list_head cq_overflow_list;
+		struct io_alloc_cache apoll_cache;
+		struct io_alloc_cache netmsg_cache;
+	};
+	struct io_wq_work_list locked_free_list;
+	unsigned int locked_free_nr;
+	const struct cred *sq_creds;
+	struct io_sq_data *sq_data;
+	struct wait_queue_head sqo_sq_wait;
+	struct list_head sqd_list;
+	long unsigned int check_cq;
+	unsigned int file_alloc_start;
+	unsigned int file_alloc_end;
+	struct xarray personalities;
+	u32 pers_next;
+	long: 32;
+	long: 64;
+	struct {
+		struct io_uring_cqe *cqe_cached;
+		struct io_uring_cqe *cqe_sentinel;
+		unsigned int cached_cq_tail;
+		unsigned int cq_entries;
+		struct io_ev_fd *io_ev_fd;
+		struct wait_queue_head cq_wait;
+		unsigned int cq_extra;
+	};
+	struct {
+		spinlock_t completion_lock;
+		struct io_wq_work_list iopoll_list;
+		struct io_hash_table cancel_table;
+		bool poll_multi_queue;
+		struct list_head io_buffers_comp;
+	};
+	struct {
+		spinlock_t timeout_lock;
+		atomic_t cq_timeouts;
+		struct list_head timeout_list;
+		struct list_head ltimeout_list;
+		unsigned int cq_last_tm_flush;
+		long: 32;
+		long: 64;
+		long: 64;
+	};
+	struct io_restriction restrictions;
+	struct task_struct *submitter_task;
+	struct io_rsrc_node *rsrc_backup_node;
+	struct io_mapped_ubuf *dummy_ubuf;
+	struct io_rsrc_data *file_data;
+	struct io_rsrc_data *buf_data;
+	struct delayed_work rsrc_put_work;
+	struct llist_head rsrc_put_llist;
+	struct list_head rsrc_ref_list;
+	spinlock_t rsrc_ref_lock;
+	struct list_head io_buffers_pages;
+	struct socket *ring_sock;
+	struct io_wq_hash *hash_map;
+	struct user_struct *user;
+	struct mm_struct *mm_account;
+	struct llist_head fallback_llist;
+	struct delayed_work fallback_work;
+	struct work_struct exit_work;
+	struct list_head tctx_list;
+	struct completion ref_comp;
+	u32 iowq_limits[2];
+	bool iowq_limits_set;
+	struct list_head defer_list;
+	unsigned int sq_thread_idle;
+	unsigned int evfd_last_cq_tail;
+};
+
+struct io_uring {
+	u32 head;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 tail;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct io_rings {
+	struct io_uring sq;
+	struct io_uring cq;
+	u32 sq_ring_mask;
+	u32 cq_ring_mask;
+	u32 sq_ring_entries;
+	u32 cq_ring_entries;
+	u32 sq_dropped;
+	atomic_t sq_flags;
+	u32 cq_flags;
+	u32 cq_overflow;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct io_uring_cqe cqes[0];
+};
+
+struct io_cmd_data {
+	struct file *file;
+	__u8 data[56];
+};
+
+struct io_cqe {
+	__u64 user_data;
+	__s32 res;
+	union {
+		__u32 flags;
+		int fd;
+	};
+};
+
+typedef void (*io_req_tw_func_t)(struct io_kiocb *, bool *);
+
+struct io_task_work {
+	struct llist_node node;
+	io_req_tw_func_t func;
+};
+
+struct io_buffer;
+
+struct async_poll;
+
+struct io_kiocb {
+	union {
+		struct file *file;
+		struct io_cmd_data cmd;
+	};
+	u8 opcode;
+	u8 iopoll_completed;
+	u16 buf_index;
+	unsigned int flags;
+	struct io_cqe cqe;
+	struct io_ring_ctx *ctx;
+	struct task_struct *task;
+	struct io_rsrc_node *rsrc_node;
+	union {
+		struct io_mapped_ubuf *imu;
+		struct io_buffer *kbuf;
+		struct io_buffer_list *buf_list;
+	};
+	union {
+		struct io_wq_work_node comp_list;
+		__poll_t apoll_events;
+	};
+	atomic_t refs;
+	atomic_t poll_refs;
+	struct io_task_work io_task_work;
+	union {
+		struct hlist_node hash_node;
+		struct {
+			u64 extra1;
+			u64 extra2;
+		};
+	};
+	struct async_poll *apoll;
+	void *async_data;
+	struct io_kiocb *link;
+	const struct cred *creds;
+	struct io_wq_work work;
+};
+
+struct io_ev_fd {
+	struct eventfd_ctx *cq_ev_fd;
+	unsigned int eventfd_async: 1;
+	struct callback_head rcu;
+};
+
+struct io_wq_hash {
+	refcount_t refs;
+	long unsigned int map;
+	struct wait_queue_head wait;
+};
+
+enum {
+	REQ_F_FIXED_FILE_BIT = 0,
+	REQ_F_IO_DRAIN_BIT = 1,
+	REQ_F_LINK_BIT = 2,
+	REQ_F_HARDLINK_BIT = 3,
+	REQ_F_FORCE_ASYNC_BIT = 4,
+	REQ_F_BUFFER_SELECT_BIT = 5,
+	REQ_F_CQE_SKIP_BIT = 6,
+	REQ_F_FAIL_BIT = 8,
+	REQ_F_INFLIGHT_BIT = 9,
+	REQ_F_CUR_POS_BIT = 10,
+	REQ_F_NOWAIT_BIT = 11,
+	REQ_F_LINK_TIMEOUT_BIT = 12,
+	REQ_F_NEED_CLEANUP_BIT = 13,
+	REQ_F_POLLED_BIT = 14,
+	REQ_F_BUFFER_SELECTED_BIT = 15,
+	REQ_F_BUFFER_RING_BIT = 16,
+	REQ_F_REISSUE_BIT = 17,
+	REQ_F_CREDS_BIT = 18,
+	REQ_F_REFCOUNT_BIT = 19,
+	REQ_F_ARM_LTIMEOUT_BIT = 20,
+	REQ_F_ASYNC_DATA_BIT = 21,
+	REQ_F_SKIP_LINK_CQES_BIT = 22,
+	REQ_F_SINGLE_POLL_BIT = 23,
+	REQ_F_DOUBLE_POLL_BIT = 24,
+	REQ_F_PARTIAL_IO_BIT = 25,
+	REQ_F_CQE32_INIT_BIT = 26,
+	REQ_F_APOLL_MULTISHOT_BIT = 27,
+	REQ_F_CLEAR_POLLIN_BIT = 28,
+	REQ_F_HASH_LOCKED_BIT = 29,
+	REQ_F_SUPPORT_NOWAIT_BIT = 30,
+	REQ_F_ISREG_BIT = 31,
+	__REQ_F_LAST_BIT = 32,
+};
+
+struct set_affinity_pending;
+
+struct migration_arg {
+	struct task_struct *task;
+	int dest_cpu;
+	struct set_affinity_pending *pending;
+};
+
+struct set_affinity_pending {
+	refcount_t refs;
+	unsigned int stop_pending;
+	struct completion done;
+	struct cpu_stop_work stop_work;
+	struct migration_arg arg;
+};
+
+struct migration_swap_arg {
+	struct task_struct *src_task;
+	struct task_struct *dst_task;
+	int src_cpu;
+	int dst_cpu;
+};
+
+struct tick_work {
+	int cpu;
+	atomic_t state;
+	struct delayed_work work;
+};
+
+enum {
+	preempt_dynamic_undefined = 4294967295,
+	preempt_dynamic_none = 0,
+	preempt_dynamic_voluntary = 1,
+	preempt_dynamic_full = 2,
+};
+
+struct cfs_schedulable_data {
+	struct task_group *tg;
+	u64 period;
+	u64 quota;
+};
+
+enum {
+	cpuset = 0,
+	possible = 1,
+	fail = 2,
+};
+
+enum {
+	IRQ_TYPE_NONE = 0,
+	IRQ_TYPE_EDGE_RISING = 1,
+	IRQ_TYPE_EDGE_FALLING = 2,
+	IRQ_TYPE_EDGE_BOTH = 3,
+	IRQ_TYPE_LEVEL_HIGH = 4,
+	IRQ_TYPE_LEVEL_LOW = 8,
+	IRQ_TYPE_LEVEL_MASK = 12,
+	IRQ_TYPE_SENSE_MASK = 15,
+	IRQ_TYPE_DEFAULT = 15,
+	IRQ_TYPE_PROBE = 16,
+	IRQ_LEVEL = 256,
+	IRQ_PER_CPU = 512,
+	IRQ_NOPROBE = 1024,
+	IRQ_NOREQUEST = 2048,
+	IRQ_NOAUTOEN = 4096,
+	IRQ_NO_BALANCING = 8192,
+	IRQ_MOVE_PCNTXT = 16384,
+	IRQ_NESTED_THREAD = 32768,
+	IRQ_NOTHREAD = 65536,
+	IRQ_PER_CPU_DEVID = 131072,
+	IRQ_IS_POLLED = 262144,
+	IRQ_DISABLE_UNLAZY = 524288,
+	IRQ_HIDDEN = 1048576,
+	IRQ_NO_DEBUG = 2097152,
+};
+
+enum {
+	IRQTF_RUNTHREAD = 0,
+	IRQTF_WARNED = 1,
+	IRQTF_AFFINITY = 2,
+	IRQTF_FORCED_THREAD = 3,
+	IRQTF_READY = 4,
+};
+
+enum {
+	IRQS_AUTODETECT = 1,
+	IRQS_SPURIOUS_DISABLED = 2,
+	IRQS_POLL_INPROGRESS = 8,
+	IRQS_ONESHOT = 32,
+	IRQS_REPLAY = 64,
+	IRQS_WAITING = 128,
+	IRQS_PENDING = 512,
+	IRQS_SUSPENDED = 2048,
+	IRQS_TIMINGS = 4096,
+	IRQS_NMI = 8192,
+};
+
+enum {
+	_IRQ_DEFAULT_INIT_FLAGS = 0,
+	_IRQ_PER_CPU = 512,
+	_IRQ_LEVEL = 256,
+	_IRQ_NOPROBE = 1024,
+	_IRQ_NOREQUEST = 2048,
+	_IRQ_NOTHREAD = 65536,
+	_IRQ_NOAUTOEN = 4096,
+	_IRQ_MOVE_PCNTXT = 16384,
+	_IRQ_NO_BALANCING = 8192,
+	_IRQ_NESTED_THREAD = 32768,
+	_IRQ_PER_CPU_DEVID = 131072,
+	_IRQ_IS_POLLED = 262144,
+	_IRQ_DISABLE_UNLAZY = 524288,
+	_IRQ_HIDDEN = 1048576,
+	_IRQ_NO_DEBUG = 2097152,
+	_IRQF_MODIFY_MASK = 2096911,
+};
+
+struct irq_devres {
+	unsigned int irq;
+	void *dev_id;
+};
+
+struct irq_desc_devres {
+	unsigned int from;
+	unsigned int cnt;
+};
+
+struct irq_generic_chip_devres {
+	struct irq_chip_generic *gc;
+	u32 msk;
+	unsigned int clr;
+	unsigned int set;
+};
+
+typedef void (*swap_func_t)(void *, void *, int);
+
+struct irq_affinity {
+	unsigned int pre_vectors;
+	unsigned int post_vectors;
+	unsigned int nr_sets;
+	unsigned int set_size[4];
+	void (*calc_sets)(struct irq_affinity *, unsigned int);
+	void *priv;
+};
+
+struct node_vectors {
+	unsigned int id;
+	union {
+		unsigned int nvectors;
+		unsigned int ncpus;
+	};
+};
+
+enum {
+	GP_IDLE = 0,
+	GP_ENTER = 1,
+	GP_PASSED = 2,
+	GP_EXIT = 3,
+	GP_REPLAY = 4,
+};
+
+struct rcu_cblist {
+	struct callback_head *head;
+	struct callback_head **tail;
+	long int len;
+};
+
+struct io_tlb_area;
+
+struct io_tlb_slot;
+
+struct io_tlb_mem {
+	phys_addr_t start;
+	phys_addr_t end;
+	void *vaddr;
+	long unsigned int nslabs;
+	long unsigned int used;
+	struct dentry *debugfs;
+	bool late_alloc;
+	bool force_bounce;
+	bool for_alloc;
+	unsigned int nareas;
+	unsigned int area_nslabs;
+	struct io_tlb_area *areas;
+	struct io_tlb_slot *slots;
+};
+
+struct sg_table {
+	struct scatterlist *sgl;
+	unsigned int nents;
+	unsigned int orig_nents;
+};
+
+struct dma_sgt_handle {
+	struct sg_table sgt;
+	struct page **pages;
+};
+
+struct dma_devres {
+	size_t size;
+	void *vaddr;
+	dma_addr_t dma_handle;
+	long unsigned int attrs;
+};
+
+typedef struct {
+	seqcount_t seqcount;
+} seqcount_latch_t;
+
+struct latch_tree_root {
+	seqcount_latch_t seq;
+	struct rb_root tree[2];
+};
+
+struct latch_tree_ops {
+	bool (*less)(struct latch_tree_node *, struct latch_tree_node *);
+	int (*comp)(void *, struct latch_tree_node *);
+};
+
+struct mod_tree_root {
+	struct latch_tree_root root;
+	long unsigned int addr_min;
+	long unsigned int addr_max;
+};
+
+struct __va_list {
+	void *__stack;
+	void *__gr_top;
+	void *__vr_top;
+	int __gr_offs;
+	int __vr_offs;
+};
+
+typedef struct __va_list va_list;
+
+enum clock_event_state {
+	CLOCK_EVT_STATE_DETACHED = 0,
+	CLOCK_EVT_STATE_SHUTDOWN = 1,
+	CLOCK_EVT_STATE_PERIODIC = 2,
+	CLOCK_EVT_STATE_ONESHOT = 3,
+	CLOCK_EVT_STATE_ONESHOT_STOPPED = 4,
+};
+
+struct clock_event_device {
+	void (*event_handler)(struct clock_event_device *);
+	int (*set_next_event)(long unsigned int, struct clock_event_device *);
+	int (*set_next_ktime)(ktime_t, struct clock_event_device *);
+	ktime_t next_event;
+	u64 max_delta_ns;
+	u64 min_delta_ns;
+	u32 mult;
+	u32 shift;
+	enum clock_event_state state_use_accessors;
+	unsigned int features;
+	long unsigned int retries;
+	int (*set_state_periodic)(struct clock_event_device *);
+	int (*set_state_oneshot)(struct clock_event_device *);
+	int (*set_state_oneshot_stopped)(struct clock_event_device *);
+	int (*set_state_shutdown)(struct clock_event_device *);
+	int (*tick_resume)(struct clock_event_device *);
+	void (*broadcast)(const struct cpumask *);
+	void (*suspend)(struct clock_event_device *);
+	void (*resume)(struct clock_event_device *);
+	long unsigned int min_delta_ticks;
+	long unsigned int max_delta_ticks;
+	const char *name;
+	int rating;
+	int irq;
+	int bound_on;
+	const struct cpumask *cpumask;
+	struct list_head list;
+	struct module *owner;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
