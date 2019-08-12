@@ -20564,3 +20564,2091 @@ enum bpf_arg_type {
 	ARG_PTR_TO_CTX = 7,
 	ARG_ANYTHING = 8,
 	ARG_PTR_TO_SPIN_LOCK = 9,
+	ARG_PTR_TO_SOCK_COMMON = 10,
+	ARG_PTR_TO_INT = 11,
+	ARG_PTR_TO_LONG = 12,
+	ARG_PTR_TO_SOCKET = 13,
+	ARG_PTR_TO_BTF_ID = 14,
+	ARG_PTR_TO_ALLOC_MEM = 15,
+	ARG_CONST_ALLOC_SIZE_OR_ZERO = 16,
+	ARG_PTR_TO_BTF_ID_SOCK_COMMON = 17,
+	ARG_PTR_TO_PERCPU_BTF_ID = 18,
+	ARG_PTR_TO_FUNC = 19,
+	ARG_PTR_TO_STACK = 20,
+	ARG_PTR_TO_CONST_STR = 21,
+	ARG_PTR_TO_TIMER = 22,
+	ARG_PTR_TO_KPTR = 23,
+	ARG_PTR_TO_DYNPTR = 24,
+	__BPF_ARG_TYPE_MAX = 25,
+	ARG_PTR_TO_MAP_VALUE_OR_NULL = 259,
+	ARG_PTR_TO_MEM_OR_NULL = 260,
+	ARG_PTR_TO_CTX_OR_NULL = 263,
+	ARG_PTR_TO_SOCKET_OR_NULL = 269,
+	ARG_PTR_TO_ALLOC_MEM_OR_NULL = 271,
+	ARG_PTR_TO_STACK_OR_NULL = 276,
+	ARG_PTR_TO_BTF_ID_OR_NULL = 270,
+	ARG_PTR_TO_UNINIT_MEM = 32772,
+	ARG_PTR_TO_FIXED_SIZE_MEM = 262148,
+	__BPF_ARG_TYPE_LIMIT = 524287,
+};
+
+enum bpf_return_type {
+	RET_INTEGER = 0,
+	RET_VOID = 1,
+	RET_PTR_TO_MAP_VALUE = 2,
+	RET_PTR_TO_SOCKET = 3,
+	RET_PTR_TO_TCP_SOCK = 4,
+	RET_PTR_TO_SOCK_COMMON = 5,
+	RET_PTR_TO_ALLOC_MEM = 6,
+	RET_PTR_TO_MEM_OR_BTF_ID = 7,
+	RET_PTR_TO_BTF_ID = 8,
+	__BPF_RET_TYPE_MAX = 9,
+	RET_PTR_TO_MAP_VALUE_OR_NULL = 258,
+	RET_PTR_TO_SOCKET_OR_NULL = 259,
+	RET_PTR_TO_TCP_SOCK_OR_NULL = 260,
+	RET_PTR_TO_SOCK_COMMON_OR_NULL = 261,
+	RET_PTR_TO_ALLOC_MEM_OR_NULL = 1286,
+	RET_PTR_TO_DYNPTR_MEM_OR_NULL = 262,
+	RET_PTR_TO_BTF_ID_OR_NULL = 264,
+	__BPF_RET_TYPE_LIMIT = 524287,
+};
+
+struct bpf_func_proto {
+	u64 (*func)(u64, u64, u64, u64, u64);
+	bool gpl_only;
+	bool pkt_access;
+	enum bpf_return_type ret_type;
+	union {
+		struct {
+			enum bpf_arg_type arg1_type;
+			enum bpf_arg_type arg2_type;
+			enum bpf_arg_type arg3_type;
+			enum bpf_arg_type arg4_type;
+			enum bpf_arg_type arg5_type;
+		};
+		enum bpf_arg_type arg_type[5];
+	};
+	union {
+		struct {
+			u32 *arg1_btf_id;
+			u32 *arg2_btf_id;
+			u32 *arg3_btf_id;
+			u32 *arg4_btf_id;
+			u32 *arg5_btf_id;
+		};
+		u32 *arg_btf_id[5];
+		struct {
+			size_t arg1_size;
+			size_t arg2_size;
+			size_t arg3_size;
+			size_t arg4_size;
+			size_t arg5_size;
+		};
+		size_t arg_size[5];
+	};
+	int *ret_btf_id;
+	bool (*allowed)(const struct bpf_prog *);
+};
+
+enum bpf_access_type {
+	BPF_READ = 1,
+	BPF_WRITE = 2,
+};
+
+struct bpf_insn_access_aux {
+	enum bpf_reg_type reg_type;
+	union {
+		int ctx_field_size;
+		struct {
+			struct btf *btf;
+			u32 btf_id;
+		};
+	};
+	struct bpf_verifier_log *log;
+};
+
+struct bpf_verifier_ops {
+	const struct bpf_func_proto * (*get_func_proto)(enum bpf_func_id, const struct bpf_prog *);
+	bool (*is_valid_access)(int, int, enum bpf_access_type, const struct bpf_prog *, struct bpf_insn_access_aux *);
+	int (*gen_prologue)(struct bpf_insn *, bool, const struct bpf_prog *);
+	int (*gen_ld_abs)(const struct bpf_insn *, struct bpf_insn *);
+	u32 (*convert_ctx_access)(enum bpf_access_type, const struct bpf_insn *, struct bpf_insn *, struct bpf_prog *, u32 *);
+	int (*btf_struct_access)(struct bpf_verifier_log *, const struct btf *, const struct btf_type *, int, int, enum bpf_access_type, u32 *, enum bpf_type_flag *);
+};
+
+enum bpf_jit_poke_reason {
+	BPF_POKE_REASON_TAIL_CALL = 0,
+};
+
+typedef long unsigned int (*bpf_ctx_copy_t)(void *, const void *, long unsigned int, long unsigned int);
+
+struct bpf_empty_prog_array {
+	struct bpf_prog_array hdr;
+	struct bpf_prog *null_prog;
+};
+
+enum xdp_mem_type {
+	MEM_TYPE_PAGE_SHARED = 0,
+	MEM_TYPE_PAGE_ORDER0 = 1,
+	MEM_TYPE_PAGE_POOL = 2,
+	MEM_TYPE_XSK_BUFF_POOL = 3,
+	MEM_TYPE_MAX = 4,
+};
+
+struct xdp_cpumap_stats {
+	unsigned int redirect;
+	unsigned int pass;
+	unsigned int drop;
+};
+
+struct bpf_stack_state {
+	struct bpf_reg_state spilled_ptr;
+	u8 slot_type[8];
+};
+
+struct bpf_reference_state {
+	int id;
+	int insn_idx;
+	int callback_ref;
+};
+
+struct bpf_idx_pair {
+	u32 prev_idx;
+	u32 idx;
+};
+
+struct bpf_verifier_state {
+	struct bpf_func_state *frame[8];
+	struct bpf_verifier_state *parent;
+	u32 branches;
+	u32 insn_idx;
+	u32 curframe;
+	u32 active_spin_lock;
+	bool speculative;
+	u32 first_insn_idx;
+	u32 last_insn_idx;
+	struct bpf_idx_pair *jmp_history;
+	u32 jmp_history_cnt;
+};
+
+struct bpf_verifier_state_list {
+	struct bpf_verifier_state state;
+	struct bpf_verifier_state_list *next;
+	int miss_cnt;
+	int hit_cnt;
+};
+
+struct bpf_loop_inline_state {
+	unsigned int initialized: 1;
+	unsigned int fit_for_inline: 1;
+	u32 callback_subprogno;
+};
+
+struct bpf_insn_aux_data {
+	union {
+		enum bpf_reg_type ptr_type;
+		long unsigned int map_ptr_state;
+		s32 call_imm;
+		u32 alu_limit;
+		struct {
+			u32 map_index;
+			u32 map_off;
+		};
+		struct {
+			enum bpf_reg_type reg_type;
+			union {
+				struct {
+					struct btf *btf;
+					u32 btf_id;
+				};
+				u32 mem_size;
+			};
+		} btf_var;
+		struct bpf_loop_inline_state loop_inline_state;
+	};
+	u64 map_key_state;
+	int ctx_field_size;
+	u32 seen;
+	bool sanitize_stack_spill;
+	bool zext_dst;
+	u8 alu_state;
+	unsigned int orig_idx;
+	bool prune_point;
+};
+
+struct bpf_prog_pack {
+	struct list_head list;
+	void *ptr;
+	long unsigned int bitmap[0];
+};
+
+struct bpf_prog_dummy {
+	struct bpf_prog prog;
+};
+
+typedef u64 (*btf_bpf_user_rnd_u32)();
+
+typedef u64 (*btf_bpf_get_raw_cpu_id)();
+
+struct _bpf_dtab_netdev {
+	struct net_device *dev;
+};
+
+struct rhash_lock_head {};
+
+struct xdp_mem_allocator {
+	struct xdp_mem_info mem;
+	union {
+		void *allocator;
+		struct page_pool *page_pool;
+	};
+	struct rhash_head node;
+	struct callback_head rcu;
+};
+
+struct trace_event_raw_xdp_exception {
+	struct trace_entry ent;
+	int prog_id;
+	u32 act;
+	int ifindex;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_bulk_tx {
+	struct trace_entry ent;
+	int ifindex;
+	u32 act;
+	int drops;
+	int sent;
+	int err;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_redirect_template {
+	struct trace_entry ent;
+	int prog_id;
+	u32 act;
+	int ifindex;
+	int err;
+	int to_ifindex;
+	u32 map_id;
+	int map_index;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_cpumap_kthread {
+	struct trace_entry ent;
+	int map_id;
+	u32 act;
+	int cpu;
+	unsigned int drops;
+	unsigned int processed;
+	int sched;
+	unsigned int xdp_pass;
+	unsigned int xdp_drop;
+	unsigned int xdp_redirect;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_cpumap_enqueue {
+	struct trace_entry ent;
+	int map_id;
+	u32 act;
+	int cpu;
+	unsigned int drops;
+	unsigned int processed;
+	int to_cpu;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_devmap_xmit {
+	struct trace_entry ent;
+	int from_ifindex;
+	u32 act;
+	int to_ifindex;
+	int drops;
+	int sent;
+	int err;
+	char __data[0];
+};
+
+struct trace_event_raw_mem_disconnect {
+	struct trace_entry ent;
+	const struct xdp_mem_allocator *xa;
+	u32 mem_id;
+	u32 mem_type;
+	const void *allocator;
+	char __data[0];
+};
+
+struct trace_event_raw_mem_connect {
+	struct trace_entry ent;
+	const struct xdp_mem_allocator *xa;
+	u32 mem_id;
+	u32 mem_type;
+	const void *allocator;
+	const struct xdp_rxq_info *rxq;
+	int ifindex;
+	char __data[0];
+};
+
+struct trace_event_raw_mem_return_failed {
+	struct trace_entry ent;
+	const struct page *page;
+	u32 mem_id;
+	u32 mem_type;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_xdp_exception {};
+
+struct trace_event_data_offsets_xdp_bulk_tx {};
+
+struct trace_event_data_offsets_xdp_redirect_template {};
+
+struct trace_event_data_offsets_xdp_cpumap_kthread {};
+
+struct trace_event_data_offsets_xdp_cpumap_enqueue {};
+
+struct trace_event_data_offsets_xdp_devmap_xmit {};
+
+struct trace_event_data_offsets_mem_disconnect {};
+
+struct trace_event_data_offsets_mem_connect {};
+
+struct trace_event_data_offsets_mem_return_failed {};
+
+typedef void (*btf_trace_xdp_exception)(void *, const struct net_device *, const struct bpf_prog *, u32);
+
+typedef void (*btf_trace_xdp_bulk_tx)(void *, const struct net_device *, int, int, int);
+
+typedef void (*btf_trace_xdp_redirect)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_redirect_err)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_redirect_map)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_redirect_map_err)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_cpumap_kthread)(void *, int, unsigned int, unsigned int, int, struct xdp_cpumap_stats *);
+
+typedef void (*btf_trace_xdp_cpumap_enqueue)(void *, int, unsigned int, unsigned int, int);
+
+typedef void (*btf_trace_xdp_devmap_xmit)(void *, const struct net_device *, const struct net_device *, int, int, int);
+
+typedef void (*btf_trace_mem_disconnect)(void *, const struct xdp_mem_allocator *);
+
+typedef void (*btf_trace_mem_connect)(void *, const struct xdp_mem_allocator *, const struct xdp_rxq_info *);
+
+typedef void (*btf_trace_mem_return_failed)(void *, const struct xdp_mem_info *, const struct page *);
+
+union bpf_iter_link_info {
+	struct {
+		__u32 map_fd;
+	} map;
+};
+
+typedef int (*bpf_iter_attach_target_t)(struct bpf_prog *, union bpf_iter_link_info *, struct bpf_iter_aux_info *);
+
+typedef void (*bpf_iter_detach_target_t)(struct bpf_iter_aux_info *);
+
+typedef void (*bpf_iter_show_fdinfo_t)(const struct bpf_iter_aux_info *, struct seq_file *);
+
+typedef int (*bpf_iter_fill_link_info_t)(const struct bpf_iter_aux_info *, struct bpf_link_info *);
+
+typedef const struct bpf_func_proto * (*bpf_iter_get_func_proto_t)(enum bpf_func_id, const struct bpf_prog *);
+
+struct bpf_iter_reg {
+	const char *target;
+	bpf_iter_attach_target_t attach_target;
+	bpf_iter_detach_target_t detach_target;
+	bpf_iter_show_fdinfo_t show_fdinfo;
+	bpf_iter_fill_link_info_t fill_link_info;
+	bpf_iter_get_func_proto_t get_func_proto;
+	u32 ctx_arg_info_size;
+	u32 feature;
+	struct bpf_ctx_arg_aux ctx_arg_info[2];
+	const struct bpf_iter_seq_info *seq_info;
+};
+
+struct bpf_iter_meta {
+	union {
+		struct seq_file *seq;
+	};
+	u64 session_id;
+	u64 seq_num;
+};
+
+struct bpf_iter_seq_prog_info {
+	u32 prog_id;
+};
+
+struct bpf_iter__bpf_prog {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct bpf_prog *prog;
+	};
+};
+
+struct bpf_array_aux {
+	struct list_head poke_progs;
+	struct bpf_map *map;
+	struct mutex poke_mutex;
+	struct work_struct work;
+};
+
+struct bpf_array {
+	struct bpf_map map;
+	u32 elem_size;
+	u32 index_mask;
+	struct bpf_array_aux *aux;
+	union {
+		char value[0];
+		void *ptrs[0];
+		void *pptrs[0];
+	};
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+enum {
+	BPF_MAP_VALUE_OFF_MAX = 8,
+	BPF_MAP_OFF_ARR_MAX = 10,
+};
+
+enum bpf_cgroup_storage_type {
+	BPF_CGROUP_STORAGE_SHARED = 0,
+	BPF_CGROUP_STORAGE_PERCPU = 1,
+	__BPF_CGROUP_STORAGE_MAX = 2,
+};
+
+typedef void (*bpf_insn_print_t)(void *, const char *, ...);
+
+typedef const char * (*bpf_insn_revmap_call_t)(void *, const struct bpf_insn *);
+
+typedef const char * (*bpf_insn_print_imm_t)(void *, const struct bpf_insn *, __u64);
+
+struct bpf_insn_cbs {
+	bpf_insn_print_t cb_print;
+	bpf_insn_revmap_call_t cb_call;
+	bpf_insn_print_imm_t cb_imm;
+	void *private_data;
+};
+
+enum {
+	BTF_KIND_UNKN = 0,
+	BTF_KIND_INT = 1,
+	BTF_KIND_PTR = 2,
+	BTF_KIND_ARRAY = 3,
+	BTF_KIND_STRUCT = 4,
+	BTF_KIND_UNION = 5,
+	BTF_KIND_ENUM = 6,
+	BTF_KIND_FWD = 7,
+	BTF_KIND_TYPEDEF = 8,
+	BTF_KIND_VOLATILE = 9,
+	BTF_KIND_CONST = 10,
+	BTF_KIND_RESTRICT = 11,
+	BTF_KIND_FUNC = 12,
+	BTF_KIND_FUNC_PROTO = 13,
+	BTF_KIND_VAR = 14,
+	BTF_KIND_DATASEC = 15,
+	BTF_KIND_FLOAT = 16,
+	BTF_KIND_DECL_TAG = 17,
+	BTF_KIND_TYPE_TAG = 18,
+	BTF_KIND_ENUM64 = 19,
+	NR_BTF_KINDS = 20,
+	BTF_KIND_MAX = 19,
+};
+
+struct btf_enum {
+	__u32 name_off;
+	__s32 val;
+};
+
+struct btf_array {
+	__u32 type;
+	__u32 index_type;
+	__u32 nelems;
+};
+
+struct btf_member {
+	__u32 name_off;
+	__u32 type;
+	__u32 offset;
+};
+
+struct btf_param {
+	__u32 name_off;
+	__u32 type;
+};
+
+enum {
+	BTF_VAR_STATIC = 0,
+	BTF_VAR_GLOBAL_ALLOCATED = 1,
+	BTF_VAR_GLOBAL_EXTERN = 2,
+};
+
+enum btf_func_linkage {
+	BTF_FUNC_STATIC = 0,
+	BTF_FUNC_GLOBAL = 1,
+	BTF_FUNC_EXTERN = 2,
+};
+
+struct btf_var {
+	__u32 linkage;
+};
+
+struct btf_var_secinfo {
+	__u32 type;
+	__u32 offset;
+	__u32 size;
+};
+
+struct btf_decl_tag {
+	__s32 component_idx;
+};
+
+struct btf_enum64 {
+	__u32 name_off;
+	__u32 val_lo32;
+	__u32 val_hi32;
+};
+
+struct bpf_cgroup_storage_key {
+	__u64 cgroup_inode_id;
+	__u32 attach_type;
+};
+
+struct bpf_flow_keys {
+	__u16 nhoff;
+	__u16 thoff;
+	__u16 addr_proto;
+	__u8 is_frag;
+	__u8 is_first_frag;
+	__u8 is_encap;
+	__u8 ip_proto;
+	__be16 n_proto;
+	__be16 sport;
+	__be16 dport;
+	union {
+		struct {
+			__be32 ipv4_src;
+			__be32 ipv4_dst;
+		};
+		struct {
+			__u32 ipv6_src[4];
+			__u32 ipv6_dst[4];
+		};
+	};
+	__u32 flags;
+	__be32 flow_label;
+};
+
+struct bpf_sock {
+	__u32 bound_dev_if;
+	__u32 family;
+	__u32 type;
+	__u32 protocol;
+	__u32 mark;
+	__u32 priority;
+	__u32 src_ip4;
+	__u32 src_ip6[4];
+	__u32 src_port;
+	__be16 dst_port;
+	__u32 dst_ip4;
+	__u32 dst_ip6[4];
+	__u32 state;
+	__s32 rx_queue_mapping;
+};
+
+struct __sk_buff {
+	__u32 len;
+	__u32 pkt_type;
+	__u32 mark;
+	__u32 queue_mapping;
+	__u32 protocol;
+	__u32 vlan_present;
+	__u32 vlan_tci;
+	__u32 vlan_proto;
+	__u32 priority;
+	__u32 ingress_ifindex;
+	__u32 ifindex;
+	__u32 tc_index;
+	__u32 cb[5];
+	__u32 hash;
+	__u32 tc_classid;
+	__u32 data;
+	__u32 data_end;
+	__u32 napi_id;
+	__u32 family;
+	__u32 remote_ip4;
+	__u32 local_ip4;
+	__u32 remote_ip6[4];
+	__u32 local_ip6[4];
+	__u32 remote_port;
+	__u32 local_port;
+	__u32 data_meta;
+	union {
+		struct bpf_flow_keys *flow_keys;
+	};
+	__u64 tstamp;
+	__u32 wire_len;
+	__u32 gso_segs;
+	union {
+		struct bpf_sock *sk;
+	};
+	__u32 gso_size;
+	__u8 tstamp_type;
+	__u64 hwtstamp;
+};
+
+struct xdp_md {
+	__u32 data;
+	__u32 data_end;
+	__u32 data_meta;
+	__u32 ingress_ifindex;
+	__u32 rx_queue_index;
+	__u32 egress_ifindex;
+};
+
+struct sk_msg_md {
+	union {
+		void *data;
+	};
+	union {
+		void *data_end;
+	};
+	__u32 family;
+	__u32 remote_ip4;
+	__u32 local_ip4;
+	__u32 remote_ip6[4];
+	__u32 local_ip6[4];
+	__u32 remote_port;
+	__u32 local_port;
+	__u32 size;
+	union {
+		struct bpf_sock *sk;
+	};
+};
+
+struct sk_reuseport_md {
+	union {
+		void *data;
+	};
+	union {
+		void *data_end;
+	};
+	__u32 len;
+	__u32 eth_protocol;
+	__u32 ip_protocol;
+	__u32 bind_inany;
+	__u32 hash;
+	union {
+		struct bpf_sock *sk;
+	};
+	union {
+		struct bpf_sock *migrating_sk;
+	};
+};
+
+struct bpf_btf_info {
+	__u64 btf;
+	__u32 btf_size;
+	__u32 id;
+	__u64 name;
+	__u32 name_len;
+	__u32 kernel_btf;
+};
+
+struct bpf_sock_addr {
+	__u32 user_family;
+	__u32 user_ip4;
+	__u32 user_ip6[4];
+	__u32 user_port;
+	__u32 family;
+	__u32 type;
+	__u32 protocol;
+	__u32 msg_src_ip4;
+	__u32 msg_src_ip6[4];
+	union {
+		struct bpf_sock *sk;
+	};
+};
+
+struct bpf_sock_ops {
+	__u32 op;
+	union {
+		__u32 args[4];
+		__u32 reply;
+		__u32 replylong[4];
+	};
+	__u32 family;
+	__u32 remote_ip4;
+	__u32 local_ip4;
+	__u32 remote_ip6[4];
+	__u32 local_ip6[4];
+	__u32 remote_port;
+	__u32 local_port;
+	__u32 is_fullsock;
+	__u32 snd_cwnd;
+	__u32 srtt_us;
+	__u32 bpf_sock_ops_cb_flags;
+	__u32 state;
+	__u32 rtt_min;
+	__u32 snd_ssthresh;
+	__u32 rcv_nxt;
+	__u32 snd_nxt;
+	__u32 snd_una;
+	__u32 mss_cache;
+	__u32 ecn_flags;
+	__u32 rate_delivered;
+	__u32 rate_interval_us;
+	__u32 packets_out;
+	__u32 retrans_out;
+	__u32 total_retrans;
+	__u32 segs_in;
+	__u32 data_segs_in;
+	__u32 segs_out;
+	__u32 data_segs_out;
+	__u32 lost_out;
+	__u32 sacked_out;
+	__u32 sk_txhash;
+	__u64 bytes_received;
+	__u64 bytes_acked;
+	union {
+		struct bpf_sock *sk;
+	};
+	union {
+		void *skb_data;
+	};
+	union {
+		void *skb_data_end;
+	};
+	__u32 skb_len;
+	__u32 skb_tcp_flags;
+};
+
+struct bpf_cgroup_dev_ctx {
+	__u32 access_type;
+	__u32 major;
+	__u32 minor;
+};
+
+struct bpf_raw_tracepoint_args {
+	__u64 args[0];
+};
+
+struct bpf_sysctl {
+	__u32 write;
+	__u32 file_pos;
+};
+
+struct bpf_sockopt {
+	union {
+		struct bpf_sock *sk;
+	};
+	union {
+		void *optval;
+	};
+	union {
+		void *optval_end;
+	};
+	__s32 level;
+	__s32 optname;
+	__s32 optlen;
+	__s32 retval;
+};
+
+struct bpf_sk_lookup {
+	union {
+		union {
+			struct bpf_sock *sk;
+		};
+		__u64 cookie;
+	};
+	__u32 family;
+	__u32 protocol;
+	__u32 remote_ip4;
+	__u32 remote_ip6[4];
+	__be16 remote_port;
+	__u32 local_ip4;
+	__u32 local_ip6[4];
+	__u32 local_port;
+	__u32 ingress_ifindex;
+};
+
+enum {
+	BTF_F_COMPACT = 1,
+	BTF_F_NONAME = 2,
+	BTF_F_PTR_RAW = 4,
+	BTF_F_ZERO = 8,
+};
+
+enum bpf_core_relo_kind {
+	BPF_CORE_FIELD_BYTE_OFFSET = 0,
+	BPF_CORE_FIELD_BYTE_SIZE = 1,
+	BPF_CORE_FIELD_EXISTS = 2,
+	BPF_CORE_FIELD_SIGNED = 3,
+	BPF_CORE_FIELD_LSHIFT_U64 = 4,
+	BPF_CORE_FIELD_RSHIFT_U64 = 5,
+	BPF_CORE_TYPE_ID_LOCAL = 6,
+	BPF_CORE_TYPE_ID_TARGET = 7,
+	BPF_CORE_TYPE_EXISTS = 8,
+	BPF_CORE_TYPE_SIZE = 9,
+	BPF_CORE_ENUMVAL_EXISTS = 10,
+	BPF_CORE_ENUMVAL_VALUE = 11,
+	BPF_CORE_TYPE_MATCHES = 12,
+};
+
+struct bpf_core_relo {
+	__u32 insn_off;
+	__u32 type_id;
+	__u32 access_str_off;
+	enum bpf_core_relo_kind kind;
+};
+
+typedef struct user_pt_regs bpf_user_pt_regs_t;
+
+struct bpf_perf_event_data {
+	bpf_user_pt_regs_t regs;
+	__u64 sample_period;
+	__u64 addr;
+};
+
+typedef struct {} local_lock_t;
+
+struct xa_node {
+	unsigned char shift;
+	unsigned char offset;
+	unsigned char count;
+	unsigned char nr_values;
+	struct xa_node *parent;
+	struct xarray *array;
+	union {
+		struct list_head private_list;
+		struct callback_head callback_head;
+	};
+	void *slots[64];
+	union {
+		long unsigned int tags[3];
+		long unsigned int marks[3];
+	};
+};
+
+struct radix_tree_preload {
+	local_lock_t lock;
+	unsigned int nr;
+	struct xa_node *nodes;
+};
+
+typedef __u64 __addrpair;
+
+typedef __u32 __portpair;
+
+struct hlist_nulls_node {
+	struct hlist_nulls_node *next;
+	struct hlist_nulls_node **pprev;
+};
+
+struct proto;
+
+struct sock_common {
+	union {
+		__addrpair skc_addrpair;
+		struct {
+			__be32 skc_daddr;
+			__be32 skc_rcv_saddr;
+		};
+	};
+	union {
+		unsigned int skc_hash;
+		__u16 skc_u16hashes[2];
+	};
+	union {
+		__portpair skc_portpair;
+		struct {
+			__be16 skc_dport;
+			__u16 skc_num;
+		};
+	};
+	short unsigned int skc_family;
+	volatile unsigned char skc_state;
+	unsigned char skc_reuse: 4;
+	unsigned char skc_reuseport: 1;
+	unsigned char skc_ipv6only: 1;
+	unsigned char skc_net_refcnt: 1;
+	int skc_bound_dev_if;
+	union {
+		struct hlist_node skc_bind_node;
+		struct hlist_node skc_portaddr_node;
+	};
+	struct proto *skc_prot;
+	possible_net_t skc_net;
+	struct in6_addr skc_v6_daddr;
+	struct in6_addr skc_v6_rcv_saddr;
+	atomic64_t skc_cookie;
+	union {
+		long unsigned int skc_flags;
+		struct sock *skc_listener;
+		struct inet_timewait_death_row *skc_tw_dr;
+	};
+	int skc_dontcopy_begin[0];
+	union {
+		struct hlist_node skc_node;
+		struct hlist_nulls_node skc_nulls_node;
+	};
+	short unsigned int skc_tx_queue_mapping;
+	short unsigned int skc_rx_queue_mapping;
+	union {
+		int skc_incoming_cpu;
+		u32 skc_rcv_wnd;
+		u32 skc_tw_rcv_nxt;
+	};
+	refcount_t skc_refcnt;
+	int skc_dontcopy_end[0];
+	union {
+		u32 skc_rxhash;
+		u32 skc_window_clamp;
+		u32 skc_tw_snd_nxt;
+	};
+};
+
+typedef struct {
+	spinlock_t slock;
+	int owned;
+	wait_queue_head_t wq;
+} socket_lock_t;
+
+struct sock_cgroup_data {
+	struct cgroup *cgroup;
+	u32 classid;
+	u16 prioidx;
+};
+
+typedef struct {} netns_tracker;
+
+struct sk_filter;
+
+struct xfrm_policy;
+
+struct sock_reuseport;
+
+struct sock {
+	struct sock_common __sk_common;
+	struct dst_entry *sk_rx_dst;
+	int sk_rx_dst_ifindex;
+	u32 sk_rx_dst_cookie;
+	socket_lock_t sk_lock;
+	atomic_t sk_drops;
+	int sk_rcvlowat;
+	struct sk_buff_head sk_error_queue;
+	struct sk_buff_head sk_receive_queue;
+	struct {
+		atomic_t rmem_alloc;
+		int len;
+		struct sk_buff *head;
+		struct sk_buff *tail;
+	} sk_backlog;
+	int sk_forward_alloc;
+	u32 sk_reserved_mem;
+	unsigned int sk_ll_usec;
+	unsigned int sk_napi_id;
+	int sk_rcvbuf;
+	struct sk_filter *sk_filter;
+	union {
+		struct socket_wq *sk_wq;
+		struct socket_wq *sk_wq_raw;
+	};
+	struct xfrm_policy *sk_policy[2];
+	struct dst_entry *sk_dst_cache;
+	atomic_t sk_omem_alloc;
+	int sk_sndbuf;
+	int sk_wmem_queued;
+	refcount_t sk_wmem_alloc;
+	long unsigned int sk_tsq_flags;
+	union {
+		struct sk_buff *sk_send_head;
+		struct rb_root tcp_rtx_queue;
+	};
+	struct sk_buff_head sk_write_queue;
+	__s32 sk_peek_off;
+	int sk_write_pending;
+	__u32 sk_dst_pending_confirm;
+	u32 sk_pacing_status;
+	long int sk_sndtimeo;
+	struct timer_list sk_timer;
+	__u32 sk_priority;
+	__u32 sk_mark;
+	long unsigned int sk_pacing_rate;
+	long unsigned int sk_max_pacing_rate;
+	struct page_frag sk_frag;
+	netdev_features_t sk_route_caps;
+	int sk_gso_type;
+	unsigned int sk_gso_max_size;
+	gfp_t sk_allocation;
+	__u32 sk_txhash;
+	u8 sk_gso_disabled: 1;
+	u8 sk_kern_sock: 1;
+	u8 sk_no_check_tx: 1;
+	u8 sk_no_check_rx: 1;
+	u8 sk_userlocks: 4;
+	u8 sk_pacing_shift;
+	u16 sk_type;
+	u16 sk_protocol;
+	u16 sk_gso_max_segs;
+	long unsigned int sk_lingertime;
+	struct proto *sk_prot_creator;
+	rwlock_t sk_callback_lock;
+	int sk_err;
+	int sk_err_soft;
+	u32 sk_ack_backlog;
+	u32 sk_max_ack_backlog;
+	kuid_t sk_uid;
+	u8 sk_txrehash;
+	u8 sk_prefer_busy_poll;
+	u16 sk_busy_poll_budget;
+	spinlock_t sk_peer_lock;
+	int sk_bind_phc;
+	struct pid *sk_peer_pid;
+	const struct cred *sk_peer_cred;
+	long int sk_rcvtimeo;
+	ktime_t sk_stamp;
+	u16 sk_tsflags;
+	u8 sk_shutdown;
+	atomic_t sk_tskey;
+	atomic_t sk_zckey;
+	u8 sk_clockid;
+	u8 sk_txtime_deadline_mode: 1;
+	u8 sk_txtime_report_errors: 1;
+	u8 sk_txtime_unused: 6;
+	struct socket *sk_socket;
+	void *sk_user_data;
+	void *sk_security;
+	struct sock_cgroup_data sk_cgrp_data;
+	struct mem_cgroup *sk_memcg;
+	void (*sk_state_change)(struct sock *);
+	void (*sk_data_ready)(struct sock *);
+	void (*sk_write_space)(struct sock *);
+	void (*sk_error_report)(struct sock *);
+	int (*sk_backlog_rcv)(struct sock *, struct sk_buff *);
+	struct sk_buff * (*sk_validate_xmit_skb)(struct sock *, struct net_device *, struct sk_buff *);
+	void (*sk_destruct)(struct sock *);
+	struct sock_reuseport *sk_reuseport_cb;
+	struct bpf_local_storage *sk_bpf_storage;
+	struct callback_head sk_rcu;
+	netns_tracker ns_tracker;
+};
+
+struct btf_id_set8;
+
+struct btf_kfunc_id_set {
+	struct module *owner;
+	struct btf_id_set8 *set;
+};
+
+struct btf_id_set8 {
+	u32 cnt;
+	u32 flags;
+	struct {
+		u32 id;
+		u32 flags;
+	} pairs[0];
+};
+
+struct btf_id_dtor_kfunc {
+	u32 btf_id;
+	u32 kfunc_btf_id;
+};
+
+struct bpf_storage_buffer;
+
+struct bpf_cgroup_storage_map;
+
+struct bpf_cgroup_storage {
+	union {
+		struct bpf_storage_buffer *buf;
+		void *percpu_buf;
+	};
+	struct bpf_cgroup_storage_map *map;
+	struct bpf_cgroup_storage_key key;
+	struct list_head list_map;
+	struct list_head list_cg;
+	struct rb_node node;
+	struct callback_head rcu;
+};
+
+struct bpf_core_ctx {
+	struct bpf_verifier_log *log;
+	const struct btf *btf;
+};
+
+struct sk_reuseport_kern {
+	struct sk_buff *skb;
+	struct sock *sk;
+	struct sock *selected_sk;
+	struct sock *migrating_sk;
+	void *data_end;
+	u32 hash;
+	u32 reuseport_id;
+	bool bind_inany;
+};
+
+struct bpf_flow_dissector {
+	struct bpf_flow_keys *flow_keys;
+	const struct sk_buff *skb;
+	const void *data;
+	const void *data_end;
+};
+
+struct flowi_tunnel {
+	__be64 tun_id;
+};
+
+struct flowi_common {
+	int flowic_oif;
+	int flowic_iif;
+	int flowic_l3mdev;
+	__u32 flowic_mark;
+	__u8 flowic_tos;
+	__u8 flowic_scope;
+	__u8 flowic_proto;
+	__u8 flowic_flags;
+	__u32 flowic_secid;
+	kuid_t flowic_uid;
+	struct flowi_tunnel flowic_tun_key;
+	__u32 flowic_multipath_hash;
+};
+
+union flowi_uli {
+	struct {
+		__be16 dport;
+		__be16 sport;
+	} ports;
+	struct {
+		__u8 type;
+		__u8 code;
+	} icmpt;
+	struct {
+		__le16 dport;
+		__le16 sport;
+	} dnports;
+	__be32 gre_key;
+	struct {
+		__u8 type;
+	} mht;
+};
+
+struct flowi4 {
+	struct flowi_common __fl_common;
+	__be32 saddr;
+	__be32 daddr;
+	union flowi_uli uli;
+};
+
+struct flowi6 {
+	struct flowi_common __fl_common;
+	struct in6_addr daddr;
+	struct in6_addr saddr;
+	__be32 flowlabel;
+	union flowi_uli uli;
+	__u32 mp_hash;
+};
+
+struct flowidn {
+	struct flowi_common __fl_common;
+	__le16 daddr;
+	__le16 saddr;
+	union flowi_uli uli;
+};
+
+struct flowi {
+	union {
+		struct flowi_common __fl_common;
+		struct flowi4 ip4;
+		struct flowi6 ip6;
+		struct flowidn dn;
+	} u;
+};
+
+struct prot_inuse {
+	int all;
+	int val[64];
+};
+
+struct icmpv6_mib_device {
+	atomic_long_t mibs[6];
+};
+
+struct icmpv6msg_mib_device {
+	atomic_long_t mibs[512];
+};
+
+struct inet_ehash_bucket;
+
+struct inet_bind_hashbucket;
+
+struct inet_listen_hashbucket;
+
+struct inet_hashinfo {
+	struct inet_ehash_bucket *ehash;
+	spinlock_t *ehash_locks;
+	unsigned int ehash_mask;
+	unsigned int ehash_locks_mask;
+	struct kmem_cache *bind_bucket_cachep;
+	struct inet_bind_hashbucket *bhash;
+	unsigned int bhash_size;
+	unsigned int lhash2_mask;
+	struct inet_listen_hashbucket *lhash2;
+};
+
+struct ip_ra_chain {
+	struct ip_ra_chain *next;
+	struct sock *sk;
+	union {
+		void (*destructor)(struct sock *);
+		struct sock *saved_sk;
+	};
+	struct callback_head rcu;
+};
+
+struct fib_rule;
+
+struct fib_lookup_arg;
+
+struct fib_rule_hdr;
+
+struct fib_rules_ops {
+	int family;
+	struct list_head list;
+	int rule_size;
+	int addr_size;
+	int unresolved_rules;
+	int nr_goto_rules;
+	unsigned int fib_rules_seq;
+	int (*action)(struct fib_rule *, struct flowi *, int, struct fib_lookup_arg *);
+	bool (*suppress)(struct fib_rule *, int, struct fib_lookup_arg *);
+	int (*match)(struct fib_rule *, struct flowi *, int);
+	int (*configure)(struct fib_rule *, struct sk_buff *, struct fib_rule_hdr *, struct nlattr **, struct netlink_ext_ack *);
+	int (*delete)(struct fib_rule *);
+	int (*compare)(struct fib_rule *, struct fib_rule_hdr *, struct nlattr **);
+	int (*fill)(struct fib_rule *, struct sk_buff *, struct fib_rule_hdr *);
+	size_t (*nlmsg_payload)(struct fib_rule *);
+	void (*flush_cache)(struct fib_rules_ops *);
+	int nlgroup;
+	struct list_head rules_list;
+	struct module *owner;
+	struct net *fro_net;
+	struct callback_head rcu;
+};
+
+struct fib_table {
+	struct hlist_node tb_hlist;
+	u32 tb_id;
+	int tb_num_default;
+	struct callback_head rcu;
+	long unsigned int *tb_data;
+	long unsigned int __data[0];
+};
+
+struct inet_peer_base {
+	struct rb_root rb_root;
+	seqlock_t lock;
+	int total;
+};
+
+struct tcp_fastopen_context {
+	siphash_key_t key[2];
+	int num;
+	struct callback_head rcu;
+};
+
+struct fib_notifier_ops {
+	int family;
+	struct list_head list;
+	unsigned int (*fib_seq_read)(struct net *);
+	int (*fib_dump)(struct net *, struct notifier_block *, struct netlink_ext_ack *);
+	struct module *owner;
+	struct callback_head rcu;
+};
+
+struct ipv6_stable_secret {
+	bool initialized;
+	struct in6_addr secret;
+};
+
+struct ipv6_devconf {
+	__s32 forwarding;
+	__s32 hop_limit;
+	__s32 mtu6;
+	__s32 accept_ra;
+	__s32 accept_redirects;
+	__s32 autoconf;
+	__s32 dad_transmits;
+	__s32 rtr_solicits;
+	__s32 rtr_solicit_interval;
+	__s32 rtr_solicit_max_interval;
+	__s32 rtr_solicit_delay;
+	__s32 force_mld_version;
+	__s32 mldv1_unsolicited_report_interval;
+	__s32 mldv2_unsolicited_report_interval;
+	__s32 use_tempaddr;
+	__s32 temp_valid_lft;
+	__s32 temp_prefered_lft;
+	__s32 regen_max_retry;
+	__s32 max_desync_factor;
+	__s32 max_addresses;
+	__s32 accept_ra_defrtr;
+	__u32 ra_defrtr_metric;
+	__s32 accept_ra_min_hop_limit;
+	__s32 accept_ra_pinfo;
+	__s32 ignore_routes_with_linkdown;
+	__s32 accept_ra_rtr_pref;
+	__s32 rtr_probe_interval;
+	__s32 accept_ra_rt_info_min_plen;
+	__s32 accept_ra_rt_info_max_plen;
+	__s32 proxy_ndp;
+	__s32 accept_source_route;
+	__s32 accept_ra_from_local;
+	__s32 optimistic_dad;
+	__s32 use_optimistic;
+	atomic_t mc_forwarding;
+	__s32 disable_ipv6;
+	__s32 drop_unicast_in_l2_multicast;
+	__s32 accept_dad;
+	__s32 force_tllao;
+	__s32 ndisc_notify;
+	__s32 suppress_frag_ndisc;
+	__s32 accept_ra_mtu;
+	__s32 drop_unsolicited_na;
+	__s32 accept_untracked_na;
+	struct ipv6_stable_secret stable_secret;
+	__s32 use_oif_addrs_only;
+	__s32 keep_addr_on_down;
+	__s32 seg6_enabled;
+	__s32 seg6_require_hmac;
+	__u32 enhanced_dad;
+	__u32 addr_gen_mode;
+	__s32 disable_policy;
+	__s32 ndisc_tclass;
+	__s32 rpl_seg_enabled;
+	__u32 ioam6_id;
+	__u32 ioam6_id_wide;
+	__u8 ioam6_enabled;
+	__u8 ndisc_evict_nocarrier;
+	struct ctl_table_header *sysctl_header;
+};
+
+struct hlist_nulls_head {
+	struct hlist_nulls_node *first;
+};
+
+struct neigh_parms {
+	possible_net_t net;
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	struct list_head list;
+	int (*neigh_setup)(struct neighbour *);
+	struct neigh_table *tbl;
+	void *sysctl_table;
+	int dead;
+	refcount_t refcnt;
+	struct callback_head callback_head;
+	int reachable_time;
+	int qlen;
+	int data[14];
+	long unsigned int data_state[1];
+};
+
+struct ipv6_devstat {
+	struct proc_dir_entry *proc_dir_entry;
+	struct ipstats_mib *ipv6;
+	struct icmpv6_mib_device *icmpv6dev;
+	struct icmpv6msg_mib_device *icmpv6msgdev;
+};
+
+struct ifmcaddr6;
+
+struct ifacaddr6;
+
+struct inet6_dev {
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	struct list_head addr_list;
+	struct ifmcaddr6 *mc_list;
+	struct ifmcaddr6 *mc_tomb;
+	unsigned char mc_qrv;
+	unsigned char mc_gq_running;
+	unsigned char mc_ifc_count;
+	unsigned char mc_dad_count;
+	long unsigned int mc_v1_seen;
+	long unsigned int mc_qi;
+	long unsigned int mc_qri;
+	long unsigned int mc_maxdelay;
+	struct delayed_work mc_gq_work;
+	struct delayed_work mc_ifc_work;
+	struct delayed_work mc_dad_work;
+	struct delayed_work mc_query_work;
+	struct delayed_work mc_report_work;
+	struct sk_buff_head mc_query_queue;
+	struct sk_buff_head mc_report_queue;
+	spinlock_t mc_query_lock;
+	spinlock_t mc_report_lock;
+	struct mutex mc_lock;
+	struct ifacaddr6 *ac_list;
+	rwlock_t lock;
+	refcount_t refcnt;
+	__u32 if_flags;
+	int dead;
+	u32 desync_factor;
+	struct list_head tempaddr_list;
+	struct in6_addr token;
+	struct neigh_parms *nd_parms;
+	struct ipv6_devconf cnf;
+	struct ipv6_devstat stats;
+	struct timer_list rs_timer;
+	__s32 rs_interval;
+	__u8 rs_probes;
+	long unsigned int tstamp;
+	struct callback_head rcu;
+	unsigned int ra_mtu;
+};
+
+struct __una_u32 {
+	u32 x;
+};
+
+enum {
+	RTAX_UNSPEC = 0,
+	RTAX_LOCK = 1,
+	RTAX_MTU = 2,
+	RTAX_WINDOW = 3,
+	RTAX_RTT = 4,
+	RTAX_RTTVAR = 5,
+	RTAX_SSTHRESH = 6,
+	RTAX_CWND = 7,
+	RTAX_ADVMSS = 8,
+	RTAX_REORDERING = 9,
+	RTAX_HOPLIMIT = 10,
+	RTAX_INITCWND = 11,
+	RTAX_FEATURES = 12,
+	RTAX_RTO_MIN = 13,
+	RTAX_INITRWND = 14,
+	RTAX_QUICKACK = 15,
+	RTAX_CC_ALGO = 16,
+	RTAX_FASTOPEN_NO_COOKIE = 17,
+	__RTAX_MAX = 18,
+};
+
+struct sk_filter {
+	refcount_t refcnt;
+	struct callback_head rcu;
+	struct bpf_prog *prog;
+};
+
+struct bpf_sock_addr_kern {
+	struct sock *sk;
+	struct sockaddr *uaddr;
+	u64 tmp_reg;
+	void *t_ctx;
+};
+
+struct bpf_sock_ops_kern {
+	struct sock *sk;
+	union {
+		u32 args[4];
+		u32 reply;
+		u32 replylong[4];
+	};
+	struct sk_buff *syn_skb;
+	struct sk_buff *skb;
+	void *skb_data_end;
+	u8 op;
+	u8 is_fullsock;
+	u8 remaining_opt_len;
+	u64 temp;
+};
+
+struct bpf_sysctl_kern {
+	struct ctl_table_header *head;
+	struct ctl_table *table;
+	void *cur_val;
+	size_t cur_len;
+	void *new_val;
+	size_t new_len;
+	int new_updated;
+	int write;
+	loff_t *ppos;
+	u64 tmp_reg;
+};
+
+struct bpf_sockopt_kern {
+	struct sock *sk;
+	u8 *optval;
+	u8 *optval_end;
+	s32 level;
+	s32 optname;
+	s32 optlen;
+	struct task_struct *current_task;
+	u64 tmp_reg;
+};
+
+struct bpf_sk_lookup_kern {
+	u16 family;
+	u16 protocol;
+	__be16 sport;
+	u16 dport;
+	struct {
+		__be32 saddr;
+		__be32 daddr;
+	} v4;
+	struct {
+		const struct in6_addr *saddr;
+		const struct in6_addr *daddr;
+	} v6;
+	struct sock *selected_sk;
+	u32 ingress_ifindex;
+	bool no_reuseport;
+};
+
+struct btf_id_set {
+	u32 cnt;
+	u32 ids[0];
+};
+
+enum {
+	BTF_SOCK_TYPE_INET = 0,
+	BTF_SOCK_TYPE_INET_CONN = 1,
+	BTF_SOCK_TYPE_INET_REQ = 2,
+	BTF_SOCK_TYPE_INET_TW = 3,
+	BTF_SOCK_TYPE_REQ = 4,
+	BTF_SOCK_TYPE_SOCK = 5,
+	BTF_SOCK_TYPE_SOCK_COMMON = 6,
+	BTF_SOCK_TYPE_TCP = 7,
+	BTF_SOCK_TYPE_TCP_REQ = 8,
+	BTF_SOCK_TYPE_TCP_TW = 9,
+	BTF_SOCK_TYPE_TCP6 = 10,
+	BTF_SOCK_TYPE_UDP = 11,
+	BTF_SOCK_TYPE_UDP6 = 12,
+	BTF_SOCK_TYPE_UNIX = 13,
+	BTF_SOCK_TYPE_MPTCP = 14,
+	BTF_SOCK_TYPE_SOCKET = 15,
+	MAX_BTF_SOCK_TYPE = 16,
+};
+
+enum {
+	NEIGH_VAR_MCAST_PROBES = 0,
+	NEIGH_VAR_UCAST_PROBES = 1,
+	NEIGH_VAR_APP_PROBES = 2,
+	NEIGH_VAR_MCAST_REPROBES = 3,
+	NEIGH_VAR_RETRANS_TIME = 4,
+	NEIGH_VAR_BASE_REACHABLE_TIME = 5,
+	NEIGH_VAR_DELAY_PROBE_TIME = 6,
+	NEIGH_VAR_INTERVAL_PROBE_TIME_MS = 7,
+	NEIGH_VAR_GC_STALETIME = 8,
+	NEIGH_VAR_QUEUE_LEN_BYTES = 9,
+	NEIGH_VAR_PROXY_QLEN = 10,
+	NEIGH_VAR_ANYCAST_DELAY = 11,
+	NEIGH_VAR_PROXY_DELAY = 12,
+	NEIGH_VAR_LOCKTIME = 13,
+	NEIGH_VAR_QUEUE_LEN = 14,
+	NEIGH_VAR_RETRANS_TIME_MS = 15,
+	NEIGH_VAR_BASE_REACHABLE_TIME_MS = 16,
+	NEIGH_VAR_GC_INTERVAL = 17,
+	NEIGH_VAR_GC_THRESH1 = 18,
+	NEIGH_VAR_GC_THRESH2 = 19,
+	NEIGH_VAR_GC_THRESH3 = 20,
+	NEIGH_VAR_MAX = 21,
+};
+
+struct pneigh_entry;
+
+struct neigh_statistics;
+
+struct neigh_hash_table;
+
+struct neigh_table {
+	int family;
+	unsigned int entry_size;
+	unsigned int key_len;
+	__be16 protocol;
+	__u32 (*hash)(const void *, const struct net_device *, __u32 *);
+	bool (*key_eq)(const struct neighbour *, const void *);
+	int (*constructor)(struct neighbour *);
+	int (*pconstructor)(struct pneigh_entry *);
+	void (*pdestructor)(struct pneigh_entry *);
+	void (*proxy_redo)(struct sk_buff *);
+	int (*is_multicast)(const void *);
+	bool (*allow_add)(const struct net_device *, struct netlink_ext_ack *);
+	char *id;
+	struct neigh_parms parms;
+	struct list_head parms_list;
+	int gc_interval;
+	int gc_thresh1;
+	int gc_thresh2;
+	int gc_thresh3;
+	long unsigned int last_flush;
+	struct delayed_work gc_work;
+	struct delayed_work managed_work;
+	struct timer_list proxy_timer;
+	struct sk_buff_head proxy_queue;
+	atomic_t entries;
+	atomic_t gc_entries;
+	struct list_head gc_list;
+	struct list_head managed_list;
+	rwlock_t lock;
+	long unsigned int last_rand;
+	struct neigh_statistics *stats;
+	struct neigh_hash_table *nht;
+	struct pneigh_entry **phash_buckets;
+};
+
+struct neigh_statistics {
+	long unsigned int allocs;
+	long unsigned int destroys;
+	long unsigned int hash_grows;
+	long unsigned int res_failed;
+	long unsigned int lookups;
+	long unsigned int hits;
+	long unsigned int rcv_probes_mcast;
+	long unsigned int rcv_probes_ucast;
+	long unsigned int periodic_gc_runs;
+	long unsigned int forced_gc_runs;
+	long unsigned int unres_discards;
+	long unsigned int table_fulls;
+};
+
+struct neigh_ops {
+	int family;
+	void (*solicit)(struct neighbour *, struct sk_buff *);
+	void (*error_report)(struct neighbour *, struct sk_buff *);
+	int (*output)(struct neighbour *, struct sk_buff *);
+	int (*connected_output)(struct neighbour *, struct sk_buff *);
+};
+
+struct pneigh_entry {
+	struct pneigh_entry *next;
+	possible_net_t net;
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	u32 flags;
+	u8 protocol;
+	u8 key[0];
+};
+
+struct neigh_hash_table {
+	struct neighbour **hash_buckets;
+	unsigned int hash_shift;
+	__u32 hash_rnd[4];
+	struct callback_head rcu;
+};
+
+struct lwtunnel_state {
+	__u16 type;
+	__u16 flags;
+	__u16 headroom;
+	atomic_t refcnt;
+	int (*orig_output)(struct net *, struct sock *, struct sk_buff *);
+	int (*orig_input)(struct sk_buff *);
+	struct callback_head rcu;
+	__u8 data[0];
+};
+
+enum {
+	TCP_ESTABLISHED = 1,
+	TCP_SYN_SENT = 2,
+	TCP_SYN_RECV = 3,
+	TCP_FIN_WAIT1 = 4,
+	TCP_FIN_WAIT2 = 5,
+	TCP_TIME_WAIT = 6,
+	TCP_CLOSE = 7,
+	TCP_CLOSE_WAIT = 8,
+	TCP_LAST_ACK = 9,
+	TCP_LISTEN = 10,
+	TCP_CLOSING = 11,
+	TCP_NEW_SYN_RECV = 12,
+	TCP_MAX_STATES = 13,
+};
+
+struct fib_rule_hdr {
+	__u8 family;
+	__u8 dst_len;
+	__u8 src_len;
+	__u8 tos;
+	__u8 table;
+	__u8 res1;
+	__u8 res2;
+	__u8 action;
+	__u32 flags;
+};
+
+struct fib_rule_port_range {
+	__u16 start;
+	__u16 end;
+};
+
+struct fib_kuid_range {
+	kuid_t start;
+	kuid_t end;
+};
+
+struct fib_rule {
+	struct list_head list;
+	int iifindex;
+	int oifindex;
+	u32 mark;
+	u32 mark_mask;
+	u32 flags;
+	u32 table;
+	u8 action;
+	u8 l3mdev;
+	u8 proto;
+	u8 ip_proto;
+	u32 target;
+	__be64 tun_id;
+	struct fib_rule *ctarget;
+	struct net *fr_net;
+	refcount_t refcnt;
+	u32 pref;
+	int suppress_ifgroup;
+	int suppress_prefixlen;
+	char iifname[16];
+	char oifname[16];
+	struct fib_kuid_range uid_range;
+	struct fib_rule_port_range sport_range;
+	struct fib_rule_port_range dport_range;
+	struct callback_head rcu;
+};
+
+struct fib_lookup_arg {
+	void *lookup_ptr;
+	const void *lookup_data;
+	void *result;
+	struct fib_rule *rule;
+	u32 table;
+	int flags;
+};
+
+struct smc_hashinfo;
+
+struct sk_psock;
+
+struct request_sock_ops;
+
+struct timewait_sock_ops;
+
+struct udp_table;
+
+struct raw_hashinfo;
+
+struct proto {
+	void (*close)(struct sock *, long int);
+	int (*pre_connect)(struct sock *, struct sockaddr *, int);
+	int (*connect)(struct sock *, struct sockaddr *, int);
+	int (*disconnect)(struct sock *, int);
+	struct sock * (*accept)(struct sock *, int, int *, bool);
+	int (*ioctl)(struct sock *, int, long unsigned int);
+	int (*init)(struct sock *);
+	void (*destroy)(struct sock *);
+	void (*shutdown)(struct sock *, int);
+	int (*setsockopt)(struct sock *, int, int, sockptr_t, unsigned int);
+	int (*getsockopt)(struct sock *, int, int, char *, int *);
+	void (*keepalive)(struct sock *, int);
+	int (*compat_ioctl)(struct sock *, unsigned int, long unsigned int);
+	int (*sendmsg)(struct sock *, struct msghdr *, size_t);
+	int (*recvmsg)(struct sock *, struct msghdr *, size_t, int, int *);
+	int (*sendpage)(struct sock *, struct page *, int, size_t, int);
+	int (*bind)(struct sock *, struct sockaddr *, int);
+	int (*bind_add)(struct sock *, struct sockaddr *, int);
+	int (*backlog_rcv)(struct sock *, struct sk_buff *);
+	bool (*bpf_bypass_getsockopt)(int, int);
+	void (*release_cb)(struct sock *);
+	int (*hash)(struct sock *);
+	void (*unhash)(struct sock *);
+	void (*rehash)(struct sock *);
+	int (*get_port)(struct sock *, short unsigned int);
+	void (*put_port)(struct sock *);
+	int (*psock_update_sk_prot)(struct sock *, struct sk_psock *, bool);
+	unsigned int inuse_idx;
+	int (*forward_alloc_get)(const struct sock *);
+	bool (*stream_memory_free)(const struct sock *, int);
+	bool (*sock_is_readable)(struct sock *);
+	void (*enter_memory_pressure)(struct sock *);
+	void (*leave_memory_pressure)(struct sock *);
+	atomic_long_t *memory_allocated;
+	int *per_cpu_fw_alloc;
+	struct percpu_counter *sockets_allocated;
+	long unsigned int *memory_pressure;
+	long int *sysctl_mem;
+	int *sysctl_wmem;
+	int *sysctl_rmem;
+	u32 sysctl_wmem_offset;
+	u32 sysctl_rmem_offset;
+	int max_header;
+	bool no_autobind;
+	struct kmem_cache *slab;
+	unsigned int obj_size;
+	slab_flags_t slab_flags;
+	unsigned int useroffset;
+	unsigned int usersize;
+	unsigned int *orphan_count;
+	struct request_sock_ops *rsk_prot;
+	struct timewait_sock_ops *twsk_prot;
+	union {
+		struct inet_hashinfo *hashinfo;
+		struct udp_table *udp_table;
+		struct raw_hashinfo *raw_hash;
+		struct smc_hashinfo *smc_hash;
+	} h;
+	struct module *owner;
+	char name[32];
+	struct list_head node;
+	int (*diag_destroy)(struct sock *, int);
+};
+
+struct sock_reuseport {
+	struct callback_head rcu;
+	u16 max_socks;
+	u16 num_socks;
+	u16 num_closed_socks;
+	unsigned int synq_overflow_ts;
+	unsigned int reuseport_id;
+	unsigned int bind_inany: 1;
+	unsigned int has_conns: 1;
+	struct bpf_prog *prog;
+	struct sock *socks[0];
+};
+
+struct sk_psock_progs {
+	struct bpf_prog *msg_parser;
+	struct bpf_prog *stream_parser;
+	struct bpf_prog *stream_verdict;
+	struct bpf_prog *skb_verdict;
+};
+
+struct strp_stats {
+	long long unsigned int msgs;
+	long long unsigned int bytes;
+	unsigned int mem_fail;
+	unsigned int need_more_hdr;
+	unsigned int msg_too_big;
+	unsigned int msg_timeouts;
+	unsigned int bad_hdr_len;
+};
+
+struct strparser;
+
+struct strp_callbacks {
+	int (*parse_msg)(struct strparser *, struct sk_buff *);
+	void (*rcv_msg)(struct strparser *, struct sk_buff *);
+	int (*read_sock_done)(struct strparser *, int);
+	void (*abort_parser)(struct strparser *, int);
+	void (*lock)(struct strparser *);
+	void (*unlock)(struct strparser *);
+};
+
+struct strparser {
+	struct sock *sk;
+	u32 stopped: 1;
+	u32 paused: 1;
+	u32 aborted: 1;
+	u32 interrupted: 1;
+	u32 unrecov_intr: 1;
+	struct sk_buff **skb_nextp;
+	struct sk_buff *skb_head;
+	unsigned int need_bytes;
+	struct delayed_work msg_timer_work;
+	struct work_struct work;
+	struct strp_stats stats;
+	struct strp_callbacks cb;
+};
+
+struct sk_psock_work_state {
+	struct sk_buff *skb;
+	u32 len;
+	u32 off;
+};
+
+struct sk_msg;
+
+struct sk_psock {
+	struct sock *sk;
+	struct sock *sk_redir;
+	u32 apply_bytes;
+	u32 cork_bytes;
+	u32 eval;
+	struct sk_msg *cork;
+	struct sk_psock_progs progs;
+	struct strparser strp;
+	struct sk_buff_head ingress_skb;
+	struct list_head ingress_msg;
+	spinlock_t ingress_lock;
+	long unsigned int state;
+	struct list_head link;
+	spinlock_t link_lock;
+	refcount_t refcnt;
+	void (*saved_unhash)(struct sock *);
+	void (*saved_destroy)(struct sock *);
+	void (*saved_close)(struct sock *, long int);
+	void (*saved_write_space)(struct sock *);
+	void (*saved_data_ready)(struct sock *);
+	int (*psock_update_sk_prot)(struct sock *, struct sk_psock *, bool);
+	struct proto *sk_proto;
+	struct mutex work_mutex;
+	struct sk_psock_work_state work_state;
+	struct work_struct work;
+	struct rcu_work rwork;
+};
+
+struct request_sock;
+
+struct request_sock_ops {
+	int family;
+	unsigned int obj_size;
+	struct kmem_cache *slab;
+	char *slab_name;
+	int (*rtx_syn_ack)(const struct sock *, struct request_sock *);
+	void (*send_ack)(const struct sock *, struct sk_buff *, struct request_sock *);
+	void (*send_reset)(const struct sock *, struct sk_buff *);
+	void (*destructor)(struct request_sock *);
+	void (*syn_ack_timeout)(const struct request_sock *);
+};
+
+struct timewait_sock_ops {
+	struct kmem_cache *twsk_slab;
+	char *twsk_slab_name;
+	unsigned int twsk_obj_size;
+	int (*twsk_unique)(struct sock *, struct sock *, void *);
+	void (*twsk_destructor)(struct sock *);
+};
+
+struct saved_syn;
+
+struct request_sock {
+	struct sock_common __req_common;
+	struct request_sock *dl_next;
+	u16 mss;
+	u8 num_retrans;
+	u8 syncookie: 1;
+	u8 num_timeout: 7;
+	u32 ts_recent;
+	struct timer_list rsk_timer;
+	const struct request_sock_ops *rsk_ops;
+	struct sock *sk;
+	struct saved_syn *saved_syn;
+	u32 secid;
+	u32 peer_secid;
+	u32 timeout;
+};
+
+struct saved_syn {
+	u32 mac_hdrlen;
+	u32 network_hdrlen;
+	u32 tcp_hdrlen;
+	u8 data[0];
+};
+
+enum tsq_enum {
+	TSQ_THROTTLED = 0,
+	TSQ_QUEUED = 1,
+	TCP_TSQ_DEFERRED = 2,
+	TCP_WRITE_TIMER_DEFERRED = 3,
+	TCP_DELACK_TIMER_DEFERRED = 4,
+	TCP_MTU_REDUCED_DEFERRED = 5,
+};
+
+struct ip6_sf_list {
+	struct ip6_sf_list *sf_next;
+	struct in6_addr sf_addr;
+	long unsigned int sf_count[2];
+	unsigned char sf_gsresp;
+	unsigned char sf_oldin;
+	unsigned char sf_crcount;
+	struct callback_head rcu;
+};
+
+struct ifmcaddr6 {
+	struct in6_addr mca_addr;
+	struct inet6_dev *idev;
+	struct ifmcaddr6 *next;
+	struct ip6_sf_list *mca_sources;
+	struct ip6_sf_list *mca_tomb;
+	unsigned int mca_sfmode;
+	unsigned char mca_crcount;
+	long unsigned int mca_sfcount[2];
+	struct delayed_work mca_work;
+	unsigned int mca_flags;
+	int mca_users;
+	refcount_t mca_refcnt;
+	long unsigned int mca_cstamp;
+	long unsigned int mca_tstamp;
+	struct callback_head rcu;
+};
+
+struct ifacaddr6 {
+	struct in6_addr aca_addr;
+	struct fib6_info *aca_rt;
+	struct ifacaddr6 *aca_next;
+	struct hlist_node aca_addr_lst;
+	int aca_users;
+	refcount_t aca_refcnt;
+	long unsigned int aca_cstamp;
+	long unsigned int aca_tstamp;
+	struct callback_head rcu;
+};
+
+enum {
+	__ND_OPT_PREFIX_INFO_END = 0,
+	ND_OPT_SOURCE_LL_ADDR = 1,
+	ND_OPT_TARGET_LL_ADDR = 2,
+	ND_OPT_PREFIX_INFO = 3,
+	ND_OPT_REDIRECT_HDR = 4,
+	ND_OPT_MTU = 5,
+	ND_OPT_NONCE = 14,
+	__ND_OPT_ARRAY_MAX = 15,
+	ND_OPT_ROUTE_INFO = 24,
+	ND_OPT_RDNSS = 25,
+	ND_OPT_DNSSL = 31,
+	ND_OPT_6CO = 34,
+	ND_OPT_CAPTIVE_PORTAL = 37,
+	ND_OPT_PREF64 = 38,
+	__ND_OPT_MAX = 39,
+};
+
+struct nd_opt_hdr {
+	__u8 nd_opt_type;
+	__u8 nd_opt_len;
+};
+
+struct ndisc_options {
+	struct nd_opt_hdr *nd_opt_array[15];
+	struct nd_opt_hdr *nd_opts_ri;
+	struct nd_opt_hdr *nd_opts_ri_end;
+	struct nd_opt_hdr *nd_useropts;
+	struct nd_opt_hdr *nd_useropts_end;
+	struct nd_opt_hdr *nd_802154_opt_array[3];
+};
+
+struct prefix_info {
+	__u8 type;
+	__u8 length;
+	__u8 prefix_len;
+	__u8 reserved: 6;
+	__u8 autoconf: 1;
+	__u8 onlink: 1;
+	__be32 valid;
+	__be32 prefered;
+	__be32 reserved2;
+	struct in6_addr prefix;
+};
+
+struct inet_ehash_bucket {
+	struct hlist_nulls_head chain;
+};
+
+struct inet_bind_hashbucket {
