@@ -22652,3 +22652,2153 @@ struct inet_ehash_bucket {
 };
 
 struct inet_bind_hashbucket {
+	spinlock_t lock;
+	struct hlist_head chain;
+};
+
+struct inet_listen_hashbucket {
+	spinlock_t lock;
+	struct hlist_nulls_head nulls_head;
+};
+
+struct bpf_storage_buffer {
+	struct callback_head rcu;
+	char data[0];
+};
+
+struct ack_sample {
+	u32 pkts_acked;
+	s32 rtt_us;
+	u32 in_flight;
+};
+
+struct rate_sample {
+	u64 prior_mstamp;
+	u32 prior_delivered;
+	u32 prior_delivered_ce;
+	s32 delivered;
+	s32 delivered_ce;
+	long int interval_us;
+	u32 snd_interval_us;
+	u32 rcv_interval_us;
+	long int rtt_us;
+	int losses;
+	u32 acked_sacked;
+	u32 prior_in_flight;
+	u32 last_end_seq;
+	bool is_app_limited;
+	bool is_retrans;
+	bool is_ack_delayed;
+};
+
+struct sk_msg_sg {
+	u32 start;
+	u32 curr;
+	u32 end;
+	u32 size;
+	u32 copybreak;
+	long unsigned int copy[1];
+	struct scatterlist data[19];
+};
+
+struct sk_msg {
+	struct sk_msg_sg sg;
+	void *data;
+	void *data_end;
+	u32 apply_bytes;
+	u32 cork_bytes;
+	u32 flags;
+	struct sk_buff *skb;
+	struct sock *sk_redir;
+	struct sock *sk;
+	struct list_head list;
+};
+
+struct bpf_perf_event_data_kern {
+	bpf_user_pt_regs_t *regs;
+	struct perf_sample_data *data;
+	struct perf_event *event;
+};
+
+struct bpf_core_cand {
+	const struct btf *btf;
+	__u32 id;
+};
+
+struct bpf_core_cand_list {
+	struct bpf_core_cand *cands;
+	int len;
+};
+
+struct bpf_core_accessor {
+	__u32 type_id;
+	__u32 idx;
+	const char *name;
+};
+
+struct bpf_core_spec {
+	const struct btf *btf;
+	struct bpf_core_accessor spec[64];
+	__u32 root_type_id;
+	enum bpf_core_relo_kind relo_kind;
+	int len;
+	int raw_spec[64];
+	int raw_len;
+	__u32 bit_offset;
+};
+
+struct bpf_core_relo_res {
+	__u64 orig_val;
+	__u64 new_val;
+	bool poison;
+	bool validate;
+	bool fail_memsz_adjust;
+	__u32 orig_sz;
+	__u32 orig_type_id;
+	__u32 new_sz;
+	__u32 new_type_id;
+};
+
+enum btf_kfunc_hook {
+	BTF_KFUNC_HOOK_XDP = 0,
+	BTF_KFUNC_HOOK_TC = 1,
+	BTF_KFUNC_HOOK_STRUCT_OPS = 2,
+	BTF_KFUNC_HOOK_TRACING = 3,
+	BTF_KFUNC_HOOK_SYSCALL = 4,
+	BTF_KFUNC_HOOK_MAX = 5,
+};
+
+enum {
+	BTF_KFUNC_SET_MAX_CNT = 32,
+	BTF_DTOR_KFUNC_MAX_CNT = 256,
+};
+
+struct btf_kfunc_set_tab {
+	struct btf_id_set8 *sets[5];
+};
+
+struct btf_id_dtor_kfunc_tab {
+	u32 cnt;
+	struct btf_id_dtor_kfunc dtors[0];
+};
+
+enum verifier_phase {
+	CHECK_META = 0,
+	CHECK_TYPE = 1,
+};
+
+struct resolve_vertex {
+	const struct btf_type *t;
+	u32 type_id;
+	u16 next_member;
+};
+
+enum visit_state {
+	NOT_VISITED = 0,
+	VISITED = 1,
+	RESOLVED = 2,
+};
+
+enum resolve_mode {
+	RESOLVE_TBD = 0,
+	RESOLVE_PTR = 1,
+	RESOLVE_STRUCT_OR_ARRAY = 2,
+};
+
+struct btf_sec_info {
+	u32 off;
+	u32 len;
+};
+
+struct btf_verifier_env {
+	struct btf *btf;
+	u8 *visit_states;
+	struct resolve_vertex stack[32];
+	struct bpf_verifier_log log;
+	u32 log_type_id;
+	u32 top_stack;
+	enum verifier_phase phase;
+	enum resolve_mode resolve_mode;
+};
+
+struct btf_show {
+	u64 flags;
+	void *target;
+	void (*showfn)(struct btf_show *, const char *, va_list);
+	const struct btf *btf;
+	struct {
+		u8 depth;
+		u8 depth_to_show;
+		u8 depth_check;
+		u8 array_member: 1;
+		u8 array_terminated: 1;
+		u16 array_encoding;
+		u32 type_id;
+		int status;
+		const struct btf_type *type;
+		const struct btf_member *member;
+		char name[80];
+	} state;
+	struct {
+		u32 size;
+		void *head;
+		void *data;
+		u8 safe[32];
+	} obj;
+};
+
+struct btf_kind_operations {
+	s32 (*check_meta)(struct btf_verifier_env *, const struct btf_type *, u32);
+	int (*resolve)(struct btf_verifier_env *, const struct resolve_vertex *);
+	int (*check_member)(struct btf_verifier_env *, const struct btf_type *, const struct btf_member *, const struct btf_type *);
+	int (*check_kflag_member)(struct btf_verifier_env *, const struct btf_type *, const struct btf_member *, const struct btf_type *);
+	void (*log_details)(struct btf_verifier_env *, const struct btf_type *);
+	void (*show)(const struct btf *, const struct btf_type *, u32, void *, u8, struct btf_show *);
+};
+
+enum btf_field_type {
+	BTF_FIELD_SPIN_LOCK = 0,
+	BTF_FIELD_TIMER = 1,
+	BTF_FIELD_KPTR = 2,
+};
+
+enum {
+	BTF_FIELD_IGNORE = 0,
+	BTF_FIELD_FOUND = 1,
+};
+
+struct btf_field_info {
+	u32 type_id;
+	u32 off;
+	enum bpf_kptr_type type;
+};
+
+struct bpf_ctx_convert {
+	struct __sk_buff BPF_PROG_TYPE_SOCKET_FILTER_prog;
+	struct sk_buff BPF_PROG_TYPE_SOCKET_FILTER_kern;
+	struct __sk_buff BPF_PROG_TYPE_SCHED_CLS_prog;
+	struct sk_buff BPF_PROG_TYPE_SCHED_CLS_kern;
+	struct __sk_buff BPF_PROG_TYPE_SCHED_ACT_prog;
+	struct sk_buff BPF_PROG_TYPE_SCHED_ACT_kern;
+	struct xdp_md BPF_PROG_TYPE_XDP_prog;
+	struct xdp_buff BPF_PROG_TYPE_XDP_kern;
+	struct __sk_buff BPF_PROG_TYPE_CGROUP_SKB_prog;
+	struct sk_buff BPF_PROG_TYPE_CGROUP_SKB_kern;
+	struct bpf_sock BPF_PROG_TYPE_CGROUP_SOCK_prog;
+	struct sock BPF_PROG_TYPE_CGROUP_SOCK_kern;
+	struct bpf_sock_addr BPF_PROG_TYPE_CGROUP_SOCK_ADDR_prog;
+	struct bpf_sock_addr_kern BPF_PROG_TYPE_CGROUP_SOCK_ADDR_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_IN_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_IN_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_OUT_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_OUT_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_XMIT_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_XMIT_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_SEG6LOCAL_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_SEG6LOCAL_kern;
+	struct bpf_sock_ops BPF_PROG_TYPE_SOCK_OPS_prog;
+	struct bpf_sock_ops_kern BPF_PROG_TYPE_SOCK_OPS_kern;
+	struct __sk_buff BPF_PROG_TYPE_SK_SKB_prog;
+	struct sk_buff BPF_PROG_TYPE_SK_SKB_kern;
+	struct sk_msg_md BPF_PROG_TYPE_SK_MSG_prog;
+	struct sk_msg BPF_PROG_TYPE_SK_MSG_kern;
+	struct __sk_buff BPF_PROG_TYPE_FLOW_DISSECTOR_prog;
+	struct bpf_flow_dissector BPF_PROG_TYPE_FLOW_DISSECTOR_kern;
+	bpf_user_pt_regs_t BPF_PROG_TYPE_KPROBE_prog;
+	struct pt_regs BPF_PROG_TYPE_KPROBE_kern;
+	__u64 BPF_PROG_TYPE_TRACEPOINT_prog;
+	u64 BPF_PROG_TYPE_TRACEPOINT_kern;
+	struct bpf_perf_event_data BPF_PROG_TYPE_PERF_EVENT_prog;
+	struct bpf_perf_event_data_kern BPF_PROG_TYPE_PERF_EVENT_kern;
+	struct bpf_raw_tracepoint_args BPF_PROG_TYPE_RAW_TRACEPOINT_prog;
+	u64 BPF_PROG_TYPE_RAW_TRACEPOINT_kern;
+	struct bpf_raw_tracepoint_args BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE_prog;
+	u64 BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE_kern;
+	void *BPF_PROG_TYPE_TRACING_prog;
+	void *BPF_PROG_TYPE_TRACING_kern;
+	struct bpf_cgroup_dev_ctx BPF_PROG_TYPE_CGROUP_DEVICE_prog;
+	struct bpf_cgroup_dev_ctx BPF_PROG_TYPE_CGROUP_DEVICE_kern;
+	struct bpf_sysctl BPF_PROG_TYPE_CGROUP_SYSCTL_prog;
+	struct bpf_sysctl_kern BPF_PROG_TYPE_CGROUP_SYSCTL_kern;
+	struct bpf_sockopt BPF_PROG_TYPE_CGROUP_SOCKOPT_prog;
+	struct bpf_sockopt_kern BPF_PROG_TYPE_CGROUP_SOCKOPT_kern;
+	__u32 BPF_PROG_TYPE_LIRC_MODE2_prog;
+	u32 BPF_PROG_TYPE_LIRC_MODE2_kern;
+	struct sk_reuseport_md BPF_PROG_TYPE_SK_REUSEPORT_prog;
+	struct sk_reuseport_kern BPF_PROG_TYPE_SK_REUSEPORT_kern;
+	struct bpf_sk_lookup BPF_PROG_TYPE_SK_LOOKUP_prog;
+	struct bpf_sk_lookup_kern BPF_PROG_TYPE_SK_LOOKUP_kern;
+	void *BPF_PROG_TYPE_STRUCT_OPS_prog;
+	void *BPF_PROG_TYPE_STRUCT_OPS_kern;
+	void *BPF_PROG_TYPE_EXT_prog;
+	void *BPF_PROG_TYPE_EXT_kern;
+	void *BPF_PROG_TYPE_LSM_prog;
+	void *BPF_PROG_TYPE_LSM_kern;
+	void *BPF_PROG_TYPE_SYSCALL_prog;
+	void *BPF_PROG_TYPE_SYSCALL_kern;
+};
+
+enum {
+	__ctx_convertBPF_PROG_TYPE_SOCKET_FILTER = 0,
+	__ctx_convertBPF_PROG_TYPE_SCHED_CLS = 1,
+	__ctx_convertBPF_PROG_TYPE_SCHED_ACT = 2,
+	__ctx_convertBPF_PROG_TYPE_XDP = 3,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SKB = 4,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SOCK = 5,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SOCK_ADDR = 6,
+	__ctx_convertBPF_PROG_TYPE_LWT_IN = 7,
+	__ctx_convertBPF_PROG_TYPE_LWT_OUT = 8,
+	__ctx_convertBPF_PROG_TYPE_LWT_XMIT = 9,
+	__ctx_convertBPF_PROG_TYPE_LWT_SEG6LOCAL = 10,
+	__ctx_convertBPF_PROG_TYPE_SOCK_OPS = 11,
+	__ctx_convertBPF_PROG_TYPE_SK_SKB = 12,
+	__ctx_convertBPF_PROG_TYPE_SK_MSG = 13,
+	__ctx_convertBPF_PROG_TYPE_FLOW_DISSECTOR = 14,
+	__ctx_convertBPF_PROG_TYPE_KPROBE = 15,
+	__ctx_convertBPF_PROG_TYPE_TRACEPOINT = 16,
+	__ctx_convertBPF_PROG_TYPE_PERF_EVENT = 17,
+	__ctx_convertBPF_PROG_TYPE_RAW_TRACEPOINT = 18,
+	__ctx_convertBPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE = 19,
+	__ctx_convertBPF_PROG_TYPE_TRACING = 20,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_DEVICE = 21,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SYSCTL = 22,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SOCKOPT = 23,
+	__ctx_convertBPF_PROG_TYPE_LIRC_MODE2 = 24,
+	__ctx_convertBPF_PROG_TYPE_SK_REUSEPORT = 25,
+	__ctx_convertBPF_PROG_TYPE_SK_LOOKUP = 26,
+	__ctx_convertBPF_PROG_TYPE_STRUCT_OPS = 27,
+	__ctx_convertBPF_PROG_TYPE_EXT = 28,
+	__ctx_convertBPF_PROG_TYPE_LSM = 29,
+	__ctx_convertBPF_PROG_TYPE_SYSCALL = 30,
+	__ctx_convert_unused = 31,
+};
+
+enum bpf_struct_walk_result {
+	WALK_SCALAR = 0,
+	WALK_PTR = 1,
+	WALK_STRUCT = 2,
+};
+
+struct btf_show_snprintf {
+	struct btf_show show;
+	int len_left;
+	int len;
+};
+
+enum {
+	BTF_MODULE_F_LIVE = 1,
+};
+
+struct btf_module {
+	struct list_head list;
+	struct module *module;
+	struct btf *btf;
+	struct bin_attribute *sysfs_attr;
+	int flags;
+};
+
+typedef u64 (*btf_bpf_btf_find_by_name_kind)(char *, int, u32, int);
+
+struct bpf_cand_cache {
+	const char *name;
+	u32 name_len;
+	u16 kind;
+	u16 cnt;
+	struct {
+		const struct btf *btf;
+		u32 id;
+	} cands[0];
+};
+
+struct perf_event_mmap_page {
+	__u32 version;
+	__u32 compat_version;
+	__u32 lock;
+	__u32 index;
+	__s64 offset;
+	__u64 time_enabled;
+	__u64 time_running;
+	union {
+		__u64 capabilities;
+		struct {
+			__u64 cap_bit0: 1;
+			__u64 cap_bit0_is_deprecated: 1;
+			__u64 cap_user_rdpmc: 1;
+			__u64 cap_user_time: 1;
+			__u64 cap_user_time_zero: 1;
+			__u64 cap_user_time_short: 1;
+			__u64 cap_____res: 58;
+		};
+	};
+	__u16 pmc_width;
+	__u16 time_shift;
+	__u32 time_mult;
+	__u64 time_offset;
+	__u64 time_zero;
+	__u32 size;
+	__u32 __reserved_1;
+	__u64 time_cycles;
+	__u64 time_mask;
+	__u8 __reserved[928];
+	__u64 data_head;
+	__u64 data_tail;
+	__u64 data_offset;
+	__u64 data_size;
+	__u64 aux_head;
+	__u64 aux_tail;
+	__u64 aux_offset;
+	__u64 aux_size;
+};
+
+struct perf_event_header {
+	__u32 type;
+	__u16 misc;
+	__u16 size;
+};
+
+enum perf_event_type {
+	PERF_RECORD_MMAP = 1,
+	PERF_RECORD_LOST = 2,
+	PERF_RECORD_COMM = 3,
+	PERF_RECORD_EXIT = 4,
+	PERF_RECORD_THROTTLE = 5,
+	PERF_RECORD_UNTHROTTLE = 6,
+	PERF_RECORD_FORK = 7,
+	PERF_RECORD_READ = 8,
+	PERF_RECORD_SAMPLE = 9,
+	PERF_RECORD_MMAP2 = 10,
+	PERF_RECORD_AUX = 11,
+	PERF_RECORD_ITRACE_START = 12,
+	PERF_RECORD_LOST_SAMPLES = 13,
+	PERF_RECORD_SWITCH = 14,
+	PERF_RECORD_SWITCH_CPU_WIDE = 15,
+	PERF_RECORD_NAMESPACES = 16,
+	PERF_RECORD_KSYMBOL = 17,
+	PERF_RECORD_BPF_EVENT = 18,
+	PERF_RECORD_CGROUP = 19,
+	PERF_RECORD_TEXT_POKE = 20,
+	PERF_RECORD_AUX_OUTPUT_HW_ID = 21,
+	PERF_RECORD_MAX = 22,
+};
+
+struct perf_buffer {
+	refcount_t refcount;
+	struct callback_head callback_head;
+	int nr_pages;
+	int overwrite;
+	int paused;
+	atomic_t poll;
+	local_t head;
+	unsigned int nest;
+	local_t events;
+	local_t wakeup;
+	local_t lost;
+	long int watermark;
+	long int aux_watermark;
+	spinlock_t event_lock;
+	struct list_head event_list;
+	atomic_t mmap_count;
+	long unsigned int mmap_locked;
+	struct user_struct *mmap_user;
+	long int aux_head;
+	unsigned int aux_nest;
+	long int aux_wakeup;
+	long unsigned int aux_pgoff;
+	int aux_nr_pages;
+	int aux_overwrite;
+	atomic_t aux_mmap_count;
+	long unsigned int aux_mmap_locked;
+	void (*free_aux)(void *);
+	refcount_t aux_refcount;
+	int aux_in_sampling;
+	void **aux_pages;
+	void *aux_priv;
+	struct perf_event_mmap_page *user_page;
+	void *data_pages[0];
+};
+
+struct mem_section_usage {
+	long unsigned int subsection_map[1];
+	long unsigned int pageblock_flags[0];
+};
+
+struct page_ext;
+
+struct mem_section {
+	long unsigned int section_mem_map;
+	struct mem_section_usage *usage;
+	struct page_ext *page_ext;
+	long unsigned int pad;
+};
+
+struct page_ext {
+	long unsigned int flags;
+};
+
+enum {
+	SECTION_MARKED_PRESENT_BIT = 0,
+	SECTION_HAS_MEM_MAP_BIT = 1,
+	SECTION_IS_ONLINE_BIT = 2,
+	SECTION_IS_EARLY_BIT = 3,
+	SECTION_TAINT_ZONE_DEVICE_BIT = 4,
+	SECTION_MAP_LAST_BIT = 5,
+};
+
+enum {
+	MEMREMAP_WB = 1,
+	MEMREMAP_WT = 2,
+	MEMREMAP_WC = 4,
+	MEMREMAP_ENC = 8,
+	MEMREMAP_DEC = 16,
+};
+
+struct __key_reference_with_attributes;
+
+typedef struct __key_reference_with_attributes *key_ref_t;
+
+enum blacklist_hash_type {
+	BLACKLIST_HASH_X509_TBS = 1,
+	BLACKLIST_HASH_BINARY = 2,
+};
+
+struct anon_vma {
+	struct anon_vma *root;
+	struct rw_semaphore rwsem;
+	atomic_t refcount;
+	long unsigned int num_children;
+	long unsigned int num_active_vmas;
+	struct anon_vma *parent;
+	struct rb_root_cached rb_root;
+};
+
+typedef struct pglist_data pg_data_t;
+
+struct compact_control;
+
+struct capture_control {
+	struct compact_control *cc;
+	struct page *page;
+};
+
+struct vm_event_state {
+	long unsigned int event[109];
+};
+
+enum page_memcg_data_flags {
+	MEMCG_DATA_OBJCGS = 1,
+	MEMCG_DATA_KMEM = 2,
+	__NR_MEMCG_DATA_FLAGS = 4,
+};
+
+enum mapping_flags {
+	AS_EIO = 0,
+	AS_ENOSPC = 1,
+	AS_MM_ALL_LOCKS = 2,
+	AS_UNEVICTABLE = 3,
+	AS_EXITING = 4,
+	AS_NO_WRITEBACK_TAGS = 5,
+	AS_LARGE_FOLIO_SUPPORT = 6,
+};
+
+struct pagevec {
+	unsigned char nr;
+	bool percpu_pvec_drained;
+	struct page *pages[15];
+};
+
+struct folio_batch {
+	unsigned char nr;
+	bool percpu_pvec_drained;
+	struct folio *folios[15];
+};
+
+struct compact_control {
+	struct list_head freepages;
+	struct list_head migratepages;
+	unsigned int nr_freepages;
+	unsigned int nr_migratepages;
+	long unsigned int free_pfn;
+	long unsigned int migrate_pfn;
+	long unsigned int fast_start_pfn;
+	struct zone *zone;
+	long unsigned int total_migrate_scanned;
+	long unsigned int total_free_scanned;
+	short unsigned int fast_search_fail;
+	short int search_order;
+	const gfp_t gfp_mask;
+	int order;
+	int migratetype;
+	const unsigned int alloc_flags;
+	const int highest_zoneidx;
+	enum migrate_mode mode;
+	bool ignore_skip_hint;
+	bool no_set_skip_hint;
+	bool ignore_block_suitable;
+	bool direct_compaction;
+	bool proactive_compaction;
+	bool whole_zone;
+	bool contended;
+	bool rescan;
+	bool alloc_contig;
+};
+
+struct trace_event_raw_mm_lru_insertion {
+	struct trace_entry ent;
+	struct folio *folio;
+	long unsigned int pfn;
+	enum lru_list lru;
+	long unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_lru_activate {
+	struct trace_entry ent;
+	struct folio *folio;
+	long unsigned int pfn;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mm_lru_insertion {};
+
+struct trace_event_data_offsets_mm_lru_activate {};
+
+typedef void (*btf_trace_mm_lru_insertion)(void *, struct folio *);
+
+typedef void (*btf_trace_mm_lru_activate)(void *, struct folio *);
+
+struct lru_rotate {
+	local_lock_t lock;
+	struct folio_batch fbatch;
+};
+
+struct cpu_fbatches {
+	local_lock_t lock;
+	struct folio_batch lru_add;
+	struct folio_batch lru_deactivate_file;
+	struct folio_batch lru_deactivate;
+	struct folio_batch lru_lazyfree;
+	struct folio_batch activate;
+};
+
+typedef void (*move_fn_t)(struct lruvec *, struct folio *);
+
+struct reciprocal_value {
+	u32 m;
+	u8 sh1;
+	u8 sh2;
+};
+
+struct kmem_cache_order_objects {
+	unsigned int x;
+};
+
+struct kmem_cache_cpu;
+
+struct kmem_cache_node;
+
+struct kmem_cache {
+	struct kmem_cache_cpu *cpu_slab;
+	slab_flags_t flags;
+	long unsigned int min_partial;
+	unsigned int size;
+	unsigned int object_size;
+	struct reciprocal_value reciprocal_size;
+	unsigned int offset;
+	unsigned int cpu_partial;
+	unsigned int cpu_partial_slabs;
+	struct kmem_cache_order_objects oo;
+	struct kmem_cache_order_objects min;
+	gfp_t allocflags;
+	int refcount;
+	void (*ctor)(void *);
+	unsigned int inuse;
+	unsigned int align;
+	unsigned int red_left_pad;
+	const char *name;
+	struct list_head list;
+	struct kobject kobj;
+	long unsigned int random;
+	unsigned int remote_node_defrag_ratio;
+	unsigned int *random_seq;
+	unsigned int useroffset;
+	unsigned int usersize;
+	struct kmem_cache_node *node[512];
+};
+
+enum {
+	PROC_ENTRY_PERMANENT = 1,
+};
+
+struct proc_ops {
+	unsigned int proc_flags;
+	int (*proc_open)(struct inode *, struct file *);
+	ssize_t (*proc_read)(struct file *, char *, size_t, loff_t *);
+	ssize_t (*proc_read_iter)(struct kiocb *, struct iov_iter *);
+	ssize_t (*proc_write)(struct file *, const char *, size_t, loff_t *);
+	loff_t (*proc_lseek)(struct file *, loff_t, int);
+	int (*proc_release)(struct inode *, struct file *);
+	__poll_t (*proc_poll)(struct file *, struct poll_table_struct *);
+	long int (*proc_ioctl)(struct file *, unsigned int, long unsigned int);
+	long int (*proc_compat_ioctl)(struct file *, unsigned int, long unsigned int);
+	int (*proc_mmap)(struct file *, struct vm_area_struct *);
+	long unsigned int (*proc_get_unmapped_area)(struct file *, long unsigned int, long unsigned int, long unsigned int, long unsigned int);
+};
+
+struct slab {
+	long unsigned int __page_flags;
+	union {
+		struct list_head slab_list;
+		struct callback_head callback_head;
+		struct {
+			struct slab *next;
+			int slabs;
+		};
+	};
+	struct kmem_cache *slab_cache;
+	void *freelist;
+	union {
+		long unsigned int counters;
+		struct {
+			unsigned int inuse: 16;
+			unsigned int objects: 15;
+			unsigned int frozen: 1;
+		};
+	};
+	unsigned int __unused;
+	atomic_t __page_refcount;
+	long unsigned int memcg_data;
+};
+
+struct kmem_cache_cpu {
+	void **freelist;
+	long unsigned int tid;
+	struct slab *slab;
+	struct slab *partial;
+	local_lock_t lock;
+};
+
+struct kmem_cache_node {
+	spinlock_t list_lock;
+	long unsigned int nr_partial;
+	struct list_head partial;
+	atomic_long_t nr_slabs;
+	atomic_long_t total_objects;
+	struct list_head full;
+};
+
+enum slab_state {
+	DOWN = 0,
+	PARTIAL = 1,
+	PARTIAL_NODE = 2,
+	UP = 3,
+	FULL = 4,
+};
+
+struct kmalloc_info_struct {
+	const char *name[4];
+	unsigned int size;
+};
+
+struct slabinfo {
+	long unsigned int active_objs;
+	long unsigned int num_objs;
+	long unsigned int active_slabs;
+	long unsigned int num_slabs;
+	long unsigned int shared_avail;
+	unsigned int limit;
+	unsigned int batchcount;
+	unsigned int shared;
+	unsigned int objects_per_slab;
+	unsigned int cache_order;
+};
+
+struct kmem_obj_info {
+	void *kp_ptr;
+	struct slab *kp_slab;
+	void *kp_objp;
+	long unsigned int kp_data_offset;
+	struct kmem_cache *kp_slab_cache;
+	void *kp_ret;
+	void *kp_stack[16];
+	void *kp_free_stack[16];
+};
+
+enum compact_priority {
+	COMPACT_PRIO_SYNC_FULL = 0,
+	MIN_COMPACT_PRIORITY = 0,
+	COMPACT_PRIO_SYNC_LIGHT = 1,
+	MIN_COMPACT_COSTLY_PRIORITY = 1,
+	DEF_COMPACT_PRIORITY = 1,
+	COMPACT_PRIO_ASYNC = 2,
+	INIT_COMPACT_PRIORITY = 2,
+};
+
+enum compact_result {
+	COMPACT_NOT_SUITABLE_ZONE = 0,
+	COMPACT_SKIPPED = 1,
+	COMPACT_DEFERRED = 2,
+	COMPACT_NO_SUITABLE_PAGE = 3,
+	COMPACT_CONTINUE = 4,
+	COMPACT_COMPLETE = 5,
+	COMPACT_PARTIAL_SKIPPED = 6,
+	COMPACT_CONTENDED = 7,
+	COMPACT_SUCCESS = 8,
+};
+
+struct trace_event_raw_kmem_alloc {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	size_t bytes_req;
+	size_t bytes_alloc;
+	long unsigned int gfp_flags;
+	bool accounted;
+	char __data[0];
+};
+
+struct trace_event_raw_kmem_alloc_node {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	size_t bytes_req;
+	size_t bytes_alloc;
+	long unsigned int gfp_flags;
+	int node;
+	bool accounted;
+	char __data[0];
+};
+
+struct trace_event_raw_kfree {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	char __data[0];
+};
+
+struct trace_event_raw_kmem_cache_free {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_free {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_free_batched {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_alloc {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	long unsigned int gfp_flags;
+	int migratetype;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	int migratetype;
+	int percpu_refill;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_pcpu_drain {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	int migratetype;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_alloc_extfrag {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	int alloc_order;
+	int fallback_order;
+	int alloc_migratetype;
+	int fallback_migratetype;
+	int change_ownership;
+	char __data[0];
+};
+
+struct trace_event_raw_rss_stat {
+	struct trace_entry ent;
+	unsigned int mm_id;
+	unsigned int curr;
+	int member;
+	long int size;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_kmem_alloc {};
+
+struct trace_event_data_offsets_kmem_alloc_node {};
+
+struct trace_event_data_offsets_kfree {};
+
+struct trace_event_data_offsets_kmem_cache_free {
+	u32 name;
+};
+
+struct trace_event_data_offsets_mm_page_free {};
+
+struct trace_event_data_offsets_mm_page_free_batched {};
+
+struct trace_event_data_offsets_mm_page_alloc {};
+
+struct trace_event_data_offsets_mm_page {};
+
+struct trace_event_data_offsets_mm_page_pcpu_drain {};
+
+struct trace_event_data_offsets_mm_page_alloc_extfrag {};
+
+struct trace_event_data_offsets_rss_stat {};
+
+typedef void (*btf_trace_kmalloc)(void *, long unsigned int, const void *, struct kmem_cache *, size_t, size_t, gfp_t);
+
+typedef void (*btf_trace_kmem_cache_alloc)(void *, long unsigned int, const void *, struct kmem_cache *, size_t, size_t, gfp_t);
+
+typedef void (*btf_trace_kmalloc_node)(void *, long unsigned int, const void *, struct kmem_cache *, size_t, size_t, gfp_t, int);
+
+typedef void (*btf_trace_kmem_cache_alloc_node)(void *, long unsigned int, const void *, struct kmem_cache *, size_t, size_t, gfp_t, int);
+
+typedef void (*btf_trace_kfree)(void *, long unsigned int, const void *);
+
+typedef void (*btf_trace_kmem_cache_free)(void *, long unsigned int, const void *, const char *);
+
+typedef void (*btf_trace_mm_page_free)(void *, struct page *, unsigned int);
+
+typedef void (*btf_trace_mm_page_free_batched)(void *, struct page *);
+
+typedef void (*btf_trace_mm_page_alloc)(void *, struct page *, unsigned int, gfp_t, int);
+
+typedef void (*btf_trace_mm_page_alloc_zone_locked)(void *, struct page *, unsigned int, int, int);
+
+typedef void (*btf_trace_mm_page_pcpu_drain)(void *, struct page *, unsigned int, int);
+
+typedef void (*btf_trace_mm_page_alloc_extfrag)(void *, struct page *, int, int, int, int);
+
+typedef void (*btf_trace_rss_stat)(void *, struct mm_struct *, int, long int);
+
+typedef long unsigned int vm_flags_t;
+
+typedef struct {
+	long unsigned int val;
+} swp_entry_t;
+
+enum {
+	__PERCPU_REF_ATOMIC = 1,
+	__PERCPU_REF_DEAD = 2,
+	__PERCPU_REF_ATOMIC_DEAD = 3,
+	__PERCPU_REF_FLAG_BITS = 2,
+};
+
+enum migrate_reason {
+	MR_COMPACTION = 0,
+	MR_MEMORY_FAILURE = 1,
+	MR_MEMORY_HOTPLUG = 2,
+	MR_SYSCALL = 3,
+	MR_MEMPOLICY_MBIND = 4,
+	MR_NUMA_MISPLACED = 5,
+	MR_CONTIG_RANGE = 6,
+	MR_LONGTERM_PIN = 7,
+	MR_DEMOTION = 8,
+	MR_TYPES = 9,
+};
+
+typedef struct {
+	long unsigned int pd;
+} hugepd_t;
+
+typedef struct page *new_page_t(struct page *, long unsigned int);
+
+typedef void free_page_t(struct page *, long unsigned int);
+
+struct migration_target_control {
+	int nid;
+	nodemask_t *nmask;
+	gfp_t gfp_mask;
+};
+
+struct follow_page_context {
+	struct dev_pagemap *pgmap;
+	unsigned int page_mask;
+};
+
+struct page_vma_mapped_walk {
+	long unsigned int pfn;
+	long unsigned int nr_pages;
+	long unsigned int pgoff;
+	struct vm_area_struct *vma;
+	long unsigned int address;
+	pmd_t *pmd;
+	pte_t *pte;
+	spinlock_t *ptl;
+	unsigned int flags;
+};
+
+struct hugepage_subpool {
+	spinlock_t lock;
+	long int count;
+	long int max_hpages;
+	long int used_hpages;
+	struct hstate *hstate;
+	long int min_hpages;
+	long int rsv_hpages;
+};
+
+struct hugetlbfs_sb_info {
+	long int max_inodes;
+	long int free_inodes;
+	spinlock_t stat_lock;
+	struct hstate *hstate;
+	struct hugepage_subpool *spool;
+	kuid_t uid;
+	kgid_t gid;
+	umode_t mode;
+};
+
+enum xa_lock_type {
+	XA_LOCK_IRQ = 1,
+	XA_LOCK_BH = 2,
+};
+
+typedef void (*xa_update_node_t)(struct xa_node *);
+
+struct xa_state {
+	struct xarray *xa;
+	long unsigned int xa_index;
+	unsigned char xa_shift;
+	unsigned char xa_sibs;
+	unsigned char xa_offset;
+	unsigned char xa_pad;
+	struct xa_node *xa_node;
+	struct xa_node *xa_alloc;
+	xa_update_node_t xa_update;
+	struct list_lru *xa_lru;
+};
+
+struct kobj_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct kobject *, struct kobj_attribute *, char *);
+	ssize_t (*store)(struct kobject *, struct kobj_attribute *, const char *, size_t);
+};
+
+struct vma_swap_readahead {
+	short unsigned int win;
+	short unsigned int offset;
+	short unsigned int nr_pte;
+	pte_t *ptes;
+};
+
+struct nodemask_scratch {
+	nodemask_t mask1;
+	nodemask_t mask2;
+};
+
+enum {
+	MPOL_DEFAULT = 0,
+	MPOL_PREFERRED = 1,
+	MPOL_BIND = 2,
+	MPOL_INTERLEAVE = 3,
+	MPOL_LOCAL = 4,
+	MPOL_PREFERRED_MANY = 5,
+	MPOL_MAX = 6,
+};
+
+struct sp_node {
+	struct rb_node nd;
+	long unsigned int start;
+	long unsigned int end;
+	struct mempolicy *policy;
+};
+
+struct shared_policy {
+	struct rb_root root;
+	rwlock_t lock;
+};
+
+struct mm_walk;
+
+struct mm_walk_ops {
+	int (*pgd_entry)(pgd_t *, long unsigned int, long unsigned int, struct mm_walk *);
+	int (*p4d_entry)(p4d_t *, long unsigned int, long unsigned int, struct mm_walk *);
+	int (*pud_entry)(pud_t *, long unsigned int, long unsigned int, struct mm_walk *);
+	int (*pmd_entry)(pmd_t *, long unsigned int, long unsigned int, struct mm_walk *);
+	int (*pte_entry)(pte_t *, long unsigned int, long unsigned int, struct mm_walk *);
+	int (*pte_hole)(long unsigned int, long unsigned int, int, struct mm_walk *);
+	int (*hugetlb_entry)(pte_t *, long unsigned int, long unsigned int, long unsigned int, struct mm_walk *);
+	int (*test_walk)(long unsigned int, long unsigned int, struct mm_walk *);
+	int (*pre_vma)(long unsigned int, long unsigned int, struct mm_walk *);
+	void (*post_vma)(struct mm_walk *);
+};
+
+enum page_walk_action {
+	ACTION_SUBTREE = 0,
+	ACTION_CONTINUE = 1,
+	ACTION_AGAIN = 2,
+};
+
+struct mm_walk {
+	const struct mm_walk_ops *ops;
+	struct mm_struct *mm;
+	pgd_t *pgd;
+	struct vm_area_struct *vma;
+	enum page_walk_action action;
+	bool no_vma;
+	void *private;
+};
+
+struct mmu_table_batch {
+	struct callback_head rcu;
+	unsigned int nr;
+	void *tables[0];
+};
+
+struct mmu_gather_batch {
+	struct mmu_gather_batch *next;
+	unsigned int nr;
+	unsigned int max;
+	struct page *pages[0];
+};
+
+struct mmu_gather {
+	struct mm_struct *mm;
+	struct mmu_table_batch *batch;
+	long unsigned int start;
+	long unsigned int end;
+	unsigned int fullmm: 1;
+	unsigned int need_flush_all: 1;
+	unsigned int freed_tables: 1;
+	unsigned int cleared_ptes: 1;
+	unsigned int cleared_pmds: 1;
+	unsigned int cleared_puds: 1;
+	unsigned int cleared_p4ds: 1;
+	unsigned int vma_exec: 1;
+	unsigned int vma_huge: 1;
+	unsigned int vma_pfn: 1;
+	unsigned int batch_count;
+	struct mmu_gather_batch *active;
+	struct mmu_gather_batch local;
+	struct page *__pages[8];
+};
+
+struct mempolicy_operations {
+	int (*create)(struct mempolicy *, const nodemask_t *);
+	void (*rebind)(struct mempolicy *, const nodemask_t *);
+};
+
+struct queue_pages {
+	struct list_head *pagelist;
+	long unsigned int flags;
+	nodemask_t *nmask;
+	long unsigned int start;
+	long unsigned int end;
+	struct vm_area_struct *first;
+};
+
+typedef struct {
+	u64 val;
+} pfn_t;
+
+enum transparent_hugepage_flag {
+	TRANSPARENT_HUGEPAGE_NEVER_DAX = 0,
+	TRANSPARENT_HUGEPAGE_FLAG = 1,
+	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG = 2,
+	TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG = 3,
+	TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_FLAG = 4,
+	TRANSPARENT_HUGEPAGE_DEFRAG_KSWAPD_OR_MADV_FLAG = 5,
+	TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG = 6,
+	TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG = 7,
+	TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG = 8,
+};
+
+enum ttu_flags {
+	TTU_SPLIT_HUGE_PMD = 4,
+	TTU_IGNORE_MLOCK = 8,
+	TTU_SYNC = 16,
+	TTU_IGNORE_HWPOISON = 32,
+	TTU_BATCH_FLUSH = 64,
+	TTU_RMAP_LOCKED = 128,
+};
+
+typedef int rmap_t;
+
+struct simple_xattrs {
+	struct list_head head;
+	spinlock_t lock;
+};
+
+struct shmem_inode_info {
+	spinlock_t lock;
+	unsigned int seals;
+	long unsigned int flags;
+	long unsigned int alloced;
+	long unsigned int swapped;
+	long unsigned int fallocend;
+	struct list_head shrinklist;
+	struct list_head swaplist;
+	struct shared_policy policy;
+	struct simple_xattrs xattrs;
+	atomic_t stop_eviction;
+	struct timespec64 i_crtime;
+	unsigned int fsflags;
+	struct inode vfs_inode;
+};
+
+struct trace_event_raw_hugepage_set_pmd {
+	struct trace_entry ent;
+	long unsigned int addr;
+	long unsigned int pmd;
+	char __data[0];
+};
+
+struct trace_event_raw_hugepage_update {
+	struct trace_entry ent;
+	long unsigned int addr;
+	long unsigned int pte;
+	long unsigned int clr;
+	long unsigned int set;
+	char __data[0];
+};
+
+struct trace_event_raw_migration_pmd {
+	struct trace_entry ent;
+	long unsigned int addr;
+	long unsigned int pmd;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_hugepage_set_pmd {};
+
+struct trace_event_data_offsets_hugepage_update {};
+
+struct trace_event_data_offsets_migration_pmd {};
+
+typedef void (*btf_trace_hugepage_set_pmd)(void *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_hugepage_update)(void *, long unsigned int, long unsigned int, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_set_migration_pmd)(void *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_remove_migration_pmd)(void *, long unsigned int, long unsigned int);
+
+typedef unsigned int isolate_mode_t;
+
+struct movable_operations {
+	bool (*isolate_page)(struct page *, isolate_mode_t);
+	int (*migrate_page)(struct page *, struct page *, enum migrate_mode);
+	void (*putback_page)(struct page *);
+};
+
+struct balloon_dev_info {
+	long unsigned int isolated_pages;
+	spinlock_t pages_lock;
+	struct list_head pages;
+	int (*migratepage)(struct balloon_dev_info *, struct page *, struct page *, enum migrate_mode);
+};
+
+struct damon_addr_range {
+	long unsigned int start;
+	long unsigned int end;
+};
+
+struct damon_region {
+	struct damon_addr_range ar;
+	long unsigned int sampling_addr;
+	unsigned int nr_accesses;
+	struct list_head list;
+	unsigned int age;
+	unsigned int last_nr_accesses;
+};
+
+struct damon_target {
+	struct pid *pid;
+	unsigned int nr_regions;
+	struct list_head regions_list;
+	struct list_head list;
+};
+
+enum damos_action {
+	DAMOS_WILLNEED = 0,
+	DAMOS_COLD = 1,
+	DAMOS_PAGEOUT = 2,
+	DAMOS_HUGEPAGE = 3,
+	DAMOS_NOHUGEPAGE = 4,
+	DAMOS_LRU_PRIO = 5,
+	DAMOS_LRU_DEPRIO = 6,
+	DAMOS_STAT = 7,
+	NR_DAMOS_ACTIONS = 8,
+};
+
+struct damos_quota {
+	long unsigned int ms;
+	long unsigned int sz;
+	long unsigned int reset_interval;
+	unsigned int weight_sz;
+	unsigned int weight_nr_accesses;
+	unsigned int weight_age;
+	long unsigned int total_charged_sz;
+	long unsigned int total_charged_ns;
+	long unsigned int esz;
+	long unsigned int charged_sz;
+	long unsigned int charged_from;
+	struct damon_target *charge_target_from;
+	long unsigned int charge_addr_from;
+	long unsigned int histogram[100];
+	unsigned int min_score;
+};
+
+enum damos_wmark_metric {
+	DAMOS_WMARK_NONE = 0,
+	DAMOS_WMARK_FREE_MEM_RATE = 1,
+	NR_DAMOS_WMARK_METRICS = 2,
+};
+
+struct damos_watermarks {
+	enum damos_wmark_metric metric;
+	long unsigned int interval;
+	long unsigned int high;
+	long unsigned int mid;
+	long unsigned int low;
+	bool activated;
+};
+
+struct damos_stat {
+	long unsigned int nr_tried;
+	long unsigned int sz_tried;
+	long unsigned int nr_applied;
+	long unsigned int sz_applied;
+	long unsigned int qt_exceeds;
+};
+
+struct damos {
+	long unsigned int min_sz_region;
+	long unsigned int max_sz_region;
+	unsigned int min_nr_accesses;
+	unsigned int max_nr_accesses;
+	unsigned int min_age_region;
+	unsigned int max_age_region;
+	enum damos_action action;
+	struct damos_quota quota;
+	struct damos_watermarks wmarks;
+	struct damos_stat stat;
+	struct list_head list;
+};
+
+enum damon_ops_id {
+	DAMON_OPS_VADDR = 0,
+	DAMON_OPS_FVADDR = 1,
+	DAMON_OPS_PADDR = 2,
+	NR_DAMON_OPS = 3,
+};
+
+struct damon_ctx;
+
+struct damon_operations {
+	enum damon_ops_id id;
+	void (*init)(struct damon_ctx *);
+	void (*update)(struct damon_ctx *);
+	void (*prepare_access_checks)(struct damon_ctx *);
+	unsigned int (*check_accesses)(struct damon_ctx *);
+	void (*reset_aggregated)(struct damon_ctx *);
+	int (*get_scheme_score)(struct damon_ctx *, struct damon_target *, struct damon_region *, struct damos *);
+	long unsigned int (*apply_scheme)(struct damon_ctx *, struct damon_target *, struct damon_region *, struct damos *);
+	bool (*target_valid)(void *);
+	void (*cleanup)(struct damon_ctx *);
+};
+
+struct damon_callback {
+	void *private;
+	int (*before_start)(struct damon_ctx *);
+	int (*after_wmarks_check)(struct damon_ctx *);
+	int (*after_sampling)(struct damon_ctx *);
+	int (*after_aggregation)(struct damon_ctx *);
+	void (*before_terminate)(struct damon_ctx *);
+};
+
+struct damon_ctx {
+	long unsigned int sample_interval;
+	long unsigned int aggr_interval;
+	long unsigned int ops_update_interval;
+	struct timespec64 last_aggregation;
+	struct timespec64 last_ops_update;
+	struct task_struct *kdamond;
+	struct mutex kdamond_lock;
+	struct damon_operations ops;
+	struct damon_callback callback;
+	long unsigned int min_nr_regions;
+	long unsigned int max_nr_regions;
+	struct list_head adaptive_targets;
+	struct list_head schemes;
+};
+
+struct damon_young_walk_private {
+	long unsigned int *page_sz;
+	bool young;
+};
+
+struct page_reporting_dev_info {
+	int (*report)(struct page_reporting_dev_info *, struct scatterlist *, unsigned int);
+	struct delayed_work work;
+	atomic_t state;
+	unsigned int order;
+};
+
+enum {
+	PAGE_REPORTING_IDLE = 0,
+	PAGE_REPORTING_REQUESTED = 1,
+	PAGE_REPORTING_ACTIVE = 2,
+};
+
+typedef short unsigned int __kernel_old_uid_t;
+
+typedef short unsigned int __kernel_old_gid_t;
+
+typedef __kernel_old_uid_t old_uid_t;
+
+typedef __kernel_old_gid_t old_gid_t;
+
+struct stat {
+	long unsigned int st_dev;
+	long unsigned int st_ino;
+	unsigned int st_mode;
+	unsigned int st_nlink;
+	unsigned int st_uid;
+	unsigned int st_gid;
+	long unsigned int st_rdev;
+	long unsigned int __pad1;
+	long int st_size;
+	int st_blksize;
+	int __pad2;
+	long int st_blocks;
+	long int st_atime;
+	long unsigned int st_atime_nsec;
+	long int st_mtime;
+	long unsigned int st_mtime_nsec;
+	long int st_ctime;
+	long unsigned int st_ctime_nsec;
+	unsigned int __unused4;
+	unsigned int __unused5;
+};
+
+typedef u16 compat_mode_t;
+
+typedef u32 compat_ino_t;
+
+typedef s32 compat_off_t;
+
+typedef u16 compat_ushort_t;
+
+typedef u32 compat_uint_t;
+
+typedef s64 compat_s64;
+
+typedef u64 compat_u64;
+
+typedef u32 compat_dev_t;
+
+typedef u16 __compat_uid16_t;
+
+typedef u16 __compat_gid16_t;
+
+struct compat_stat {
+	compat_dev_t st_dev;
+	compat_ino_t st_ino;
+	compat_mode_t st_mode;
+	compat_ushort_t st_nlink;
+	__compat_uid16_t st_uid;
+	__compat_gid16_t st_gid;
+	compat_dev_t st_rdev;
+	compat_off_t st_size;
+	compat_off_t st_blksize;
+	compat_off_t st_blocks;
+	old_time32_t st_atime;
+	compat_ulong_t st_atime_nsec;
+	old_time32_t st_mtime;
+	compat_ulong_t st_mtime_nsec;
+	old_time32_t st_ctime;
+	compat_ulong_t st_ctime_nsec;
+	compat_ulong_t __unused4[2];
+};
+
+struct stat64 {
+	compat_u64 st_dev;
+	unsigned char __pad0[4];
+	compat_ulong_t __st_ino;
+	compat_uint_t st_mode;
+	compat_uint_t st_nlink;
+	compat_ulong_t st_uid;
+	compat_ulong_t st_gid;
+	compat_u64 st_rdev;
+	unsigned char __pad3[4];
+	compat_s64 st_size;
+	compat_ulong_t st_blksize;
+	compat_u64 st_blocks;
+	compat_ulong_t st_atime;
+	compat_ulong_t st_atime_nsec;
+	compat_ulong_t st_mtime;
+	compat_ulong_t st_mtime_nsec;
+	compat_ulong_t st_ctime;
+	compat_ulong_t st_ctime_nsec;
+	compat_u64 st_ino;
+};
+
+struct statx_timestamp {
+	__s64 tv_sec;
+	__u32 tv_nsec;
+	__s32 __reserved;
+};
+
+struct statx {
+	__u32 stx_mask;
+	__u32 stx_blksize;
+	__u64 stx_attributes;
+	__u32 stx_nlink;
+	__u32 stx_uid;
+	__u32 stx_gid;
+	__u16 stx_mode;
+	__u16 __spare0[1];
+	__u64 stx_ino;
+	__u64 stx_size;
+	__u64 stx_blocks;
+	__u64 stx_attributes_mask;
+	struct statx_timestamp stx_atime;
+	struct statx_timestamp stx_btime;
+	struct statx_timestamp stx_ctime;
+	struct statx_timestamp stx_mtime;
+	__u32 stx_rdev_major;
+	__u32 stx_rdev_minor;
+	__u32 stx_dev_major;
+	__u32 stx_dev_minor;
+	__u64 stx_mnt_id;
+	__u64 __spare2;
+	__u64 __spare3[12];
+};
+
+struct mount;
+
+struct mnt_namespace {
+	struct ns_common ns;
+	struct mount *root;
+	struct list_head list;
+	spinlock_t ns_lock;
+	struct user_namespace *user_ns;
+	struct ucounts *ucounts;
+	u64 seq;
+	wait_queue_head_t poll;
+	u64 event;
+	unsigned int mounts;
+	unsigned int pending_mounts;
+};
+
+struct fs_pin {
+	wait_queue_head_t wait;
+	int done;
+	struct hlist_node s_list;
+	struct hlist_node m_list;
+	void (*kill)(struct fs_pin *);
+};
+
+struct mnt_pcp;
+
+struct mountpoint;
+
+struct mount {
+	struct hlist_node mnt_hash;
+	struct mount *mnt_parent;
+	struct dentry *mnt_mountpoint;
+	struct vfsmount mnt;
+	union {
+		struct callback_head mnt_rcu;
+		struct llist_node mnt_llist;
+	};
+	struct mnt_pcp *mnt_pcp;
+	struct list_head mnt_mounts;
+	struct list_head mnt_child;
+	struct list_head mnt_instance;
+	const char *mnt_devname;
+	struct list_head mnt_list;
+	struct list_head mnt_expire;
+	struct list_head mnt_share;
+	struct list_head mnt_slave_list;
+	struct list_head mnt_slave;
+	struct mount *mnt_master;
+	struct mnt_namespace *mnt_ns;
+	struct mountpoint *mnt_mp;
+	union {
+		struct hlist_node mnt_mp_list;
+		struct hlist_node mnt_umount;
+	};
+	struct list_head mnt_umounting;
+	struct fsnotify_mark_connector *mnt_fsnotify_marks;
+	__u32 mnt_fsnotify_mask;
+	int mnt_id;
+	int mnt_group_id;
+	int mnt_expiry_mark;
+	struct hlist_head mnt_pins;
+	struct hlist_head mnt_stuck_children;
+};
+
+struct mnt_pcp {
+	int mnt_count;
+	int mnt_writers;
+};
+
+struct mountpoint {
+	struct hlist_node m_hash;
+	struct dentry *m_dentry;
+	struct hlist_head m_list;
+	int m_count;
+};
+
+enum dentry_d_lock_class {
+	DENTRY_D_LOCK_NORMAL = 0,
+	DENTRY_D_LOCK_NESTED = 1,
+};
+
+struct name_snapshot {
+	struct qstr name;
+	unsigned char inline_name[32];
+};
+
+enum lru_status {
+	LRU_REMOVED = 0,
+	LRU_REMOVED_RETRY = 1,
+	LRU_ROTATE = 2,
+	LRU_SKIP = 3,
+	LRU_RETRY = 4,
+};
+
+typedef enum lru_status (*list_lru_walk_cb)(struct list_head *, struct list_lru_one *, spinlock_t *, void *);
+
+struct fscrypt_policy_v1 {
+	__u8 version;
+	__u8 contents_encryption_mode;
+	__u8 filenames_encryption_mode;
+	__u8 flags;
+	__u8 master_key_descriptor[8];
+};
+
+struct fscrypt_policy_v2 {
+	__u8 version;
+	__u8 contents_encryption_mode;
+	__u8 filenames_encryption_mode;
+	__u8 flags;
+	__u8 __reserved[4];
+	__u8 master_key_identifier[16];
+};
+
+union fscrypt_policy {
+	u8 version;
+	struct fscrypt_policy_v1 v1;
+	struct fscrypt_policy_v2 v2;
+};
+
+enum fsnotify_data_type {
+	FSNOTIFY_EVENT_NONE = 0,
+	FSNOTIFY_EVENT_PATH = 1,
+	FSNOTIFY_EVENT_INODE = 2,
+	FSNOTIFY_EVENT_DENTRY = 3,
+	FSNOTIFY_EVENT_ERROR = 4,
+};
+
+struct dentry_stat_t {
+	long int nr_dentry;
+	long int nr_unused;
+	long int age_limit;
+	long int want_pages;
+	long int nr_negative;
+	long int dummy;
+};
+
+struct external_name {
+	union {
+		atomic_t count;
+		struct callback_head head;
+	} u;
+	unsigned char name[0];
+};
+
+enum d_walk_ret {
+	D_WALK_CONTINUE = 0,
+	D_WALK_QUIT = 1,
+	D_WALK_NORETRY = 2,
+	D_WALK_SKIP = 3,
+};
+
+struct check_mount {
+	struct vfsmount *mnt;
+	unsigned int mounted;
+};
+
+struct select_data {
+	struct dentry *start;
+	union {
+		long int found;
+		struct dentry *victim;
+	};
+	struct list_head dispose;
+};
+
+typedef __kernel_rwf_t rwf_t;
+
+struct splice_desc {
+	size_t total_len;
+	unsigned int len;
+	unsigned int flags;
+	union {
+		void *userptr;
+		struct file *file;
+		void *data;
+	} u;
+	loff_t pos;
+	loff_t *opos;
+	size_t num_spliced;
+	bool need_wakeup;
+};
+
+struct partial_page {
+	unsigned int offset;
+	unsigned int len;
+	long unsigned int private;
+};
+
+struct splice_pipe_desc {
+	struct page **pages;
+	struct partial_page *partial;
+	int nr_pages;
+	unsigned int nr_pages_max;
+	const struct pipe_buf_operations *ops;
+	void (*spd_release)(struct splice_pipe_desc *, unsigned int);
+};
+
+typedef int splice_actor(struct pipe_inode_info *, struct pipe_buffer *, struct splice_desc *);
+
+typedef int splice_direct_actor(struct pipe_inode_info *, struct splice_desc *);
+
+struct va_format {
+	const char *fmt;
+	va_list *va;
+};
+
+struct constant_table {
+	const char *name;
+	int value;
+};
+
+enum legacy_fs_param {
+	LEGACY_FS_UNSET_PARAMS = 0,
+	LEGACY_FS_MONOLITHIC_PARAMS = 1,
+	LEGACY_FS_INDIVIDUAL_PARAMS = 2,
+};
+
+struct legacy_fs_context {
+	char *legacy_data;
+	size_t data_size;
+	enum legacy_fs_param param_type;
+};
+
+enum fsnotify_iter_type {
+	FSNOTIFY_ITER_TYPE_INODE = 0,
+	FSNOTIFY_ITER_TYPE_VFSMOUNT = 1,
+	FSNOTIFY_ITER_TYPE_SB = 2,
+	FSNOTIFY_ITER_TYPE_PARENT = 3,
+	FSNOTIFY_ITER_TYPE_INODE2 = 4,
+	FSNOTIFY_ITER_TYPE_COUNT = 5,
+};
+
+struct sysinfo {
+	__kernel_long_t uptime;
+	__kernel_ulong_t loads[3];
+	__kernel_ulong_t totalram;
+	__kernel_ulong_t freeram;
+	__kernel_ulong_t sharedram;
+	__kernel_ulong_t bufferram;
+	__kernel_ulong_t totalswap;
+	__kernel_ulong_t freeswap;
+	__u16 procs;
+	__u16 pad;
+	__kernel_ulong_t totalhigh;
+	__kernel_ulong_t freehigh;
+	__u32 mem_unit;
+	char _f[0];
+};
+
+struct inotify_event {
+	__s32 wd;
+	__u32 mask;
+	__u32 cookie;
+	__u32 len;
+	char name[0];
+};
+
+typedef struct poll_table_struct poll_table;
+
+struct inotify_event_info {
+	struct fsnotify_event fse;
+	u32 mask;
+	int wd;
+	u32 sync_cookie;
+	int name_len;
+	char name[0];
+};
+
+struct inotify_inode_mark {
+	struct fsnotify_mark fsn_mark;
+	int wd;
+};
+
+enum {
+	XA_CHECK_SCHED = 4096,
+};
+
+typedef long unsigned int dax_entry_t;
+
+enum dax_access_mode {
+	DAX_ACCESS = 0,
+	DAX_RECOVERY_WRITE = 1,
+};
+
+struct dax_device;
+
+struct iomap_page_ops;
+
+struct iomap {
+	u64 addr;
+	loff_t offset;
+	u64 length;
+	u16 type;
+	u16 flags;
+	struct block_device *bdev;
+	struct dax_device *dax_dev;
+	void *inline_data;
+	void *private;
+	const struct iomap_page_ops *page_ops;
+};
+
+struct iomap_page_ops {
+	int (*page_prepare)(struct inode *, loff_t, unsigned int);
+	void (*page_done)(struct inode *, loff_t, unsigned int, struct page *);
+};
+
+struct iomap_ops {
+	int (*iomap_begin)(struct inode *, loff_t, loff_t, unsigned int, struct iomap *, struct iomap *);
+	int (*iomap_end)(struct inode *, loff_t, loff_t, ssize_t, unsigned int, struct iomap *);
+};
+
+struct iomap_iter {
+	struct inode *inode;
+	loff_t pos;
+	u64 len;
+	s64 processed;
+	unsigned int flags;
+	struct iomap iomap;
+	struct iomap srcmap;
+	void *private;
+};
+
+struct trace_event_raw_dax_pmd_fault_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_start;
+	long unsigned int vm_end;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	long unsigned int pgoff;
+	long unsigned int max_pgoff;
+	dev_t dev;
+	unsigned int flags;
+	int result;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_pmd_load_hole_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	struct page *zero_page;
+	void *radix_entry;
+	dev_t dev;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_pmd_insert_mapping_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	long int length;
+	u64 pfn_val;
+	void *radix_entry;
+	dev_t dev;
+	int write;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_pte_fault_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	long unsigned int pgoff;
+	dev_t dev;
+	unsigned int flags;
+	int result;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_insert_mapping {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	void *radix_entry;
+	dev_t dev;
+	int write;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_writeback_range_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int start_index;
+	long unsigned int end_index;
+	dev_t dev;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_writeback_one {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int pgoff;
+	long unsigned int pglen;
+	dev_t dev;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_dax_pmd_fault_class {};
+
+struct trace_event_data_offsets_dax_pmd_load_hole_class {};
+
+struct trace_event_data_offsets_dax_pmd_insert_mapping_class {};
+
+struct trace_event_data_offsets_dax_pte_fault_class {};
+
+struct trace_event_data_offsets_dax_insert_mapping {};
+
+struct trace_event_data_offsets_dax_writeback_range_class {};
+
+struct trace_event_data_offsets_dax_writeback_one {};
+
+typedef void (*btf_trace_dax_pmd_fault)(void *, struct inode *, struct vm_fault *, long unsigned int, int);
+
+typedef void (*btf_trace_dax_pmd_fault_done)(void *, struct inode *, struct vm_fault *, long unsigned int, int);
+
+typedef void (*btf_trace_dax_pmd_load_hole)(void *, struct inode *, struct vm_fault *, struct page *, void *);
+
+typedef void (*btf_trace_dax_pmd_load_hole_fallback)(void *, struct inode *, struct vm_fault *, struct page *, void *);
+
+typedef void (*btf_trace_dax_pmd_insert_mapping)(void *, struct inode *, struct vm_fault *, long int, pfn_t, void *);
+
+typedef void (*btf_trace_dax_pte_fault)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_pte_fault_done)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_load_hole)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_insert_pfn_mkwrite_no_entry)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_insert_pfn_mkwrite)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_insert_mapping)(void *, struct inode *, struct vm_fault *, void *);
+
+typedef void (*btf_trace_dax_writeback_range)(void *, struct inode *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_dax_writeback_range_done)(void *, struct inode *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_dax_writeback_one)(void *, struct inode *, long unsigned int, long unsigned int);
+
+struct exceptional_entry_key {
+	struct xarray *xa;
+	long unsigned int entry_start;
+};
+
+struct wait_exceptional_entry_queue {
+	wait_queue_entry_t wait;
+	struct exceptional_entry_key key;
+};
+
+enum dax_wake_mode {
+	WAKE_ALL = 0,
+	WAKE_NEXT = 1,
+};
+
+struct fsverity_hash_alg;
+
+struct merkle_tree_params {
+	struct fsverity_hash_alg *hash_alg;
+	const u8 *hashstate;
+	unsigned int digest_size;
+	unsigned int block_size;
+	unsigned int hashes_per_block;
+	unsigned int log_blocksize;
+	unsigned int log_arity;
+	unsigned int num_levels;
+	u64 tree_size;
+	long unsigned int level0_blocks;
+	u64 level_start[8];
+};
+
+struct fsverity_info {
+	struct merkle_tree_params tree_params;
+	u8 root_hash[64];
+	u8 file_digest[64];
+	const struct inode *inode;
+};
+
+struct crypto_ahash;
+
+struct fsverity_hash_alg {
+	struct crypto_ahash *tfm;
+	const char *name;
+	unsigned int digest_size;
+	unsigned int block_size;
+	mempool_t req_pool;
+};
+
+struct ahash_request;
+
+struct crypto_ahash {
+	int (*init)(struct ahash_request *);
+	int (*update)(struct ahash_request *);
+	int (*final)(struct ahash_request *);
+	int (*finup)(struct ahash_request *);
+	int (*digest)(struct ahash_request *);
+	int (*export)(struct ahash_request *, void *);
+	int (*import)(struct ahash_request *, const void *);
+	int (*setkey)(struct crypto_ahash *, const u8 *, unsigned int);
+	unsigned int reqsize;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct crypto_tfm base;
+};
+
+struct crypto_async_request;
+
+typedef void (*crypto_completion_t)(struct crypto_async_request *, int);
+
+struct crypto_async_request {
+	struct list_head list;
+	crypto_completion_t complete;
+	void *data;
+	struct crypto_tfm *tfm;
+	u32 flags;
+};
+
+struct crypto_wait {
+	struct completion completion;
+	int err;
+};
+
+struct hash_alg_common {
+	unsigned int digestsize;
+	unsigned int statesize;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct crypto_alg base;
+};
+
+struct ahash_request {
+	struct crypto_async_request base;
+	unsigned int nbytes;
+	struct scatterlist *src;
+	u8 *result;
+	void *priv;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	void *__ctx[0];
+};
+
+struct fdtable {
+	unsigned int max_fds;
+	struct file **fd;
+	long unsigned int *close_on_exec;
+	long unsigned int *open_fds;
+	long unsigned int *full_fds_bits;
+	struct callback_head rcu;
+};
+
+struct files_struct {
+	atomic_t count;
+	bool resize_in_progress;
+	wait_queue_head_t resize_wait;
+	struct fdtable *fdt;
+	struct fdtable fdtab;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t file_lock;
+	unsigned int next_fd;
+	long unsigned int close_on_exec_init[1];
+	long unsigned int open_fds_init[1];
+	long unsigned int full_fds_bits_init[1];
+	struct file *fd_array[64];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct srcu_notifier_head {
+	struct mutex mutex;
+	struct srcu_struct srcu;
+	struct notifier_block *head;
+};
+
+struct flock {
+	short int l_type;
+	short int l_whence;
+	__kernel_off_t l_start;
+	__kernel_off_t l_len;
+	__kernel_pid_t l_pid;
+};
+
+struct flock64 {
