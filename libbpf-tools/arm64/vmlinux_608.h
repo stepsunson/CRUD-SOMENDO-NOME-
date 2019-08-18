@@ -26992,3 +26992,2138 @@ struct btrfs_fs_info {
 	struct workqueue_struct *compressed_write_workers;
 	struct btrfs_workqueue *endio_write_workers;
 	struct btrfs_workqueue *endio_freespace_worker;
+	struct btrfs_workqueue *caching_workers;
+	struct btrfs_workqueue *fixup_workers;
+	struct btrfs_workqueue *delayed_workers;
+	struct task_struct *transaction_kthread;
+	struct task_struct *cleaner_kthread;
+	u32 thread_pool_size;
+	struct kobject *space_info_kobj;
+	struct kobject *qgroups_kobj;
+	struct percpu_counter dirty_metadata_bytes;
+	struct percpu_counter delalloc_bytes;
+	struct percpu_counter ordered_bytes;
+	s32 dirty_metadata_batch;
+	s32 delalloc_batch;
+	struct list_head dirty_cowonly_roots;
+	struct btrfs_fs_devices *fs_devices;
+	struct list_head space_info;
+	struct btrfs_space_info *data_sinfo;
+	struct reloc_control *reloc_ctl;
+	struct btrfs_free_cluster data_alloc_cluster;
+	struct btrfs_free_cluster meta_alloc_cluster;
+	spinlock_t defrag_inodes_lock;
+	struct rb_root defrag_inodes;
+	atomic_t defrag_running;
+	seqlock_t profiles_lock;
+	u64 avail_data_alloc_bits;
+	u64 avail_metadata_alloc_bits;
+	u64 avail_system_alloc_bits;
+	spinlock_t balance_lock;
+	struct mutex balance_mutex;
+	atomic_t balance_pause_req;
+	atomic_t balance_cancel_req;
+	struct btrfs_balance_control *balance_ctl;
+	wait_queue_head_t balance_wait_q;
+	atomic_t reloc_cancel_req;
+	u32 data_chunk_allocations;
+	u32 metadata_ratio;
+	void *bdev_holder;
+	struct mutex scrub_lock;
+	atomic_t scrubs_running;
+	atomic_t scrub_pause_req;
+	atomic_t scrubs_paused;
+	atomic_t scrub_cancel_req;
+	wait_queue_head_t scrub_pause_wait;
+	refcount_t scrub_workers_refcnt;
+	struct workqueue_struct *scrub_workers;
+	struct workqueue_struct *scrub_wr_completion_workers;
+	struct workqueue_struct *scrub_parity_workers;
+	struct btrfs_subpage_info *subpage_info;
+	struct btrfs_discard_ctl discard_ctl;
+	u64 qgroup_flags;
+	struct rb_root qgroup_tree;
+	spinlock_t qgroup_lock;
+	struct ulist *qgroup_ulist;
+	struct mutex qgroup_ioctl_lock;
+	struct list_head dirty_qgroups;
+	u64 qgroup_seq;
+	struct mutex qgroup_rescan_lock;
+	struct btrfs_key qgroup_rescan_progress;
+	struct btrfs_workqueue *qgroup_rescan_workers;
+	struct completion qgroup_rescan_completion;
+	struct btrfs_work qgroup_rescan_work;
+	bool qgroup_rescan_running;
+	long unsigned int fs_state;
+	struct btrfs_delayed_root *delayed_root;
+	spinlock_t buffer_lock;
+	struct xarray buffer_radix;
+	int backup_root_index;
+	struct btrfs_dev_replace dev_replace;
+	struct semaphore uuid_tree_rescan_sem;
+	struct work_struct async_reclaim_work;
+	struct work_struct async_data_reclaim_work;
+	struct work_struct preempt_reclaim_work;
+	struct work_struct reclaim_bgs_work;
+	struct list_head reclaim_bgs;
+	int bg_reclaim_threshold;
+	spinlock_t unused_bgs_lock;
+	struct list_head unused_bgs;
+	struct mutex unused_bg_unpin_mutex;
+	struct mutex reclaim_bgs_lock;
+	u32 nodesize;
+	u32 sectorsize;
+	u32 sectorsize_bits;
+	u32 csum_size;
+	u32 csums_per_leaf;
+	u32 stripesize;
+	u64 max_extent_size;
+	spinlock_t swapfile_pins_lock;
+	struct rb_root swapfile_pins;
+	struct crypto_shash *csum_shash;
+	enum btrfs_exclusive_operation exclusive_operation;
+	u64 zone_size;
+	u64 max_zone_append_size;
+	struct mutex zoned_meta_io_lock;
+	spinlock_t treelog_bg_lock;
+	u64 treelog_bg;
+	spinlock_t relocation_bg_lock;
+	u64 data_reloc_bg;
+	struct mutex zoned_data_reloc_io_lock;
+	u64 nr_global_roots;
+	spinlock_t zone_active_bgs_lock;
+	struct list_head zone_active_bgs;
+	struct btrfs_commit_stats commit_stats;
+};
+
+struct ulist {
+	long unsigned int nnodes;
+	struct list_head nodes;
+	struct rb_root root;
+};
+
+enum {
+	EXTENT_BUFFER_UPTODATE = 0,
+	EXTENT_BUFFER_DIRTY = 1,
+	EXTENT_BUFFER_CORRUPT = 2,
+	EXTENT_BUFFER_READAHEAD = 3,
+	EXTENT_BUFFER_TREE_REF = 4,
+	EXTENT_BUFFER_STALE = 5,
+	EXTENT_BUFFER_WRITEBACK = 6,
+	EXTENT_BUFFER_READ_ERR = 7,
+	EXTENT_BUFFER_UNMAPPED = 8,
+	EXTENT_BUFFER_IN_TREE = 9,
+	EXTENT_BUFFER_WRITE_ERR = 10,
+	EXTENT_BUFFER_NO_CHECK = 11,
+};
+
+struct extent_buffer {
+	u64 start;
+	long unsigned int len;
+	long unsigned int bflags;
+	struct btrfs_fs_info *fs_info;
+	spinlock_t refs_lock;
+	atomic_t refs;
+	atomic_t io_pages;
+	int read_mirror;
+	struct callback_head callback_head;
+	pid_t lock_owner;
+	s8 log_index;
+	struct rw_semaphore lock;
+	struct page *pages[16];
+	struct list_head release_list;
+};
+
+enum btrfs_lock_nesting {
+	BTRFS_NESTING_NORMAL = 0,
+	BTRFS_NESTING_COW = 1,
+	BTRFS_NESTING_LEFT = 2,
+	BTRFS_NESTING_RIGHT = 3,
+	BTRFS_NESTING_LEFT_COW = 4,
+	BTRFS_NESTING_RIGHT_COW = 5,
+	BTRFS_NESTING_SPLIT = 6,
+	BTRFS_NESTING_NEW_ROOT = 7,
+	BTRFS_NESTING_MAX = 8,
+};
+
+struct btrfs_drew_lock {
+	atomic_t readers;
+	struct percpu_counter writers;
+	wait_queue_head_t pending_writers;
+	wait_queue_head_t pending_readers;
+};
+
+struct btrfs_header {
+	u8 csum[32];
+	u8 fsid[16];
+	__le64 bytenr;
+	__le64 flags;
+	u8 chunk_tree_uuid[16];
+	__le64 generation;
+	__le64 owner;
+	__le32 nritems;
+	u8 level;
+} __attribute__((packed));
+
+struct btrfs_root_backup {
+	__le64 tree_root;
+	__le64 tree_root_gen;
+	__le64 chunk_root;
+	__le64 chunk_root_gen;
+	__le64 extent_root;
+	__le64 extent_root_gen;
+	__le64 fs_root;
+	__le64 fs_root_gen;
+	__le64 dev_root;
+	__le64 dev_root_gen;
+	__le64 csum_root;
+	__le64 csum_root_gen;
+	__le64 total_bytes;
+	__le64 bytes_used;
+	__le64 num_devices;
+	__le64 unused_64[4];
+	u8 tree_root_level;
+	u8 chunk_root_level;
+	u8 extent_root_level;
+	u8 fs_root_level;
+	u8 dev_root_level;
+	u8 csum_root_level;
+	u8 unused_8[10];
+};
+
+struct btrfs_super_block {
+	u8 csum[32];
+	u8 fsid[16];
+	__le64 bytenr;
+	__le64 flags;
+	__le64 magic;
+	__le64 generation;
+	__le64 root;
+	__le64 chunk_root;
+	__le64 log_root;
+	__le64 __unused_log_root_transid;
+	__le64 total_bytes;
+	__le64 bytes_used;
+	__le64 root_dir_objectid;
+	__le64 num_devices;
+	__le32 sectorsize;
+	__le32 nodesize;
+	__le32 __unused_leafsize;
+	__le32 stripesize;
+	__le32 sys_chunk_array_size;
+	__le64 chunk_root_generation;
+	__le64 compat_flags;
+	__le64 compat_ro_flags;
+	__le64 incompat_flags;
+	__le16 csum_type;
+	u8 root_level;
+	u8 chunk_root_level;
+	u8 log_root_level;
+	struct btrfs_dev_item dev_item;
+	char label[256];
+	__le64 cache_generation;
+	__le64 uuid_tree_generation;
+	u8 metadata_uuid[16];
+	__le64 block_group_root;
+	__le64 block_group_root_generation;
+	u8 block_group_root_level;
+	u8 reserved8[7];
+	__le64 reserved[25];
+	u8 sys_chunk_array[2048];
+	struct btrfs_root_backup super_roots[4];
+	u8 padding[565];
+} __attribute__((packed));
+
+struct btrfs_item {
+	struct btrfs_disk_key key;
+	__le32 offset;
+	__le32 size;
+} __attribute__((packed));
+
+struct btrfs_key_ptr {
+	struct btrfs_disk_key key;
+	__le64 blockptr;
+	__le64 generation;
+} __attribute__((packed));
+
+struct btrfs_qgroup_swapped_blocks {
+	spinlock_t lock;
+	bool swapped;
+	struct rb_root blocks[8];
+};
+
+struct btrfs_root {
+	struct rb_node rb_node;
+	struct extent_buffer *node;
+	struct extent_buffer *commit_root;
+	struct btrfs_root *log_root;
+	struct btrfs_root *reloc_root;
+	long unsigned int state;
+	struct btrfs_root_item root_item;
+	struct btrfs_key root_key;
+	struct btrfs_fs_info *fs_info;
+	struct extent_io_tree dirty_log_pages;
+	struct mutex objectid_mutex;
+	spinlock_t accounting_lock;
+	int: 32;
+	struct btrfs_block_rsv *block_rsv;
+	struct mutex log_mutex;
+	wait_queue_head_t log_writer_wait;
+	wait_queue_head_t log_commit_wait[2];
+	struct list_head log_ctxs[2];
+	atomic_t log_writers;
+	atomic_t log_commit[2];
+	atomic_t log_batch;
+	int log_transid;
+	int log_transid_committed;
+	int last_log_commit;
+	pid_t log_start_pid;
+	u64 last_trans;
+	u32 type;
+	int: 32;
+	u64 free_objectid;
+	struct btrfs_key defrag_progress;
+	struct btrfs_key defrag_max;
+	long: 48;
+	struct list_head dirty_list;
+	struct list_head root_list;
+	spinlock_t log_extents_lock[2];
+	struct list_head logged_list[2];
+	spinlock_t inode_lock;
+	int: 32;
+	struct rb_root inode_tree;
+	struct xarray delayed_nodes_tree;
+	dev_t anon_dev;
+	spinlock_t root_item_lock;
+	refcount_t refs;
+	int: 32;
+	struct mutex delalloc_mutex;
+	spinlock_t delalloc_lock;
+	int: 32;
+	struct list_head delalloc_inodes;
+	struct list_head delalloc_root;
+	u64 nr_delalloc_inodes;
+	struct mutex ordered_extent_mutex;
+	spinlock_t ordered_extent_lock;
+	int: 32;
+	struct list_head ordered_extents;
+	struct list_head ordered_root;
+	u64 nr_ordered_extents;
+	struct list_head reloc_dirty_list;
+	int send_in_progress;
+	int dedupe_in_progress;
+	struct btrfs_drew_lock snapshot_lock;
+	atomic_t snapshot_force_cow;
+	spinlock_t qgroup_meta_rsv_lock;
+	u64 qgroup_meta_rsv_pertrans;
+	u64 qgroup_meta_rsv_prealloc;
+	wait_queue_head_t qgroup_flush_wait;
+	atomic_t nr_swapfiles;
+	int: 32;
+	struct btrfs_qgroup_swapped_blocks swapped_blocks;
+	struct extent_io_tree log_csum_range;
+} __attribute__((packed));
+
+struct root_name_map {
+	u64 id;
+	char name[16];
+};
+
+enum {
+	WQ_UNBOUND = 2,
+	WQ_FREEZABLE = 4,
+	WQ_MEM_RECLAIM = 8,
+	WQ_HIGHPRI = 16,
+	WQ_CPU_INTENSIVE = 32,
+	WQ_SYSFS = 64,
+	WQ_POWER_EFFICIENT = 128,
+	__WQ_DRAINING = 65536,
+	__WQ_ORDERED = 131072,
+	__WQ_LEGACY = 262144,
+	__WQ_ORDERED_EXPLICIT = 524288,
+	WQ_MAX_ACTIVE = 512,
+	WQ_MAX_UNBOUND_PER_CPU = 4,
+	WQ_DFL_ACTIVE = 256,
+};
+
+struct bvec_iter_all {
+	struct bio_vec bv;
+	int idx;
+	unsigned int done;
+};
+
+enum {
+	BIO_NO_PAGE_REF = 0,
+	BIO_CLONED = 1,
+	BIO_BOUNCED = 2,
+	BIO_WORKINGSET = 3,
+	BIO_QUIET = 4,
+	BIO_CHAIN = 5,
+	BIO_REFFED = 6,
+	BIO_BPS_THROTTLED = 7,
+	BIO_TRACE_COMPLETION = 8,
+	BIO_CGROUP_ACCT = 9,
+	BIO_QOS_THROTTLED = 10,
+	BIO_QOS_MERGED = 11,
+	BIO_REMAPPED = 12,
+	BIO_ZONE_WRITE_LOCKED = 13,
+	BIO_FLAG_LAST = 14,
+};
+
+enum req_flag_bits {
+	__REQ_FAILFAST_DEV = 8,
+	__REQ_FAILFAST_TRANSPORT = 9,
+	__REQ_FAILFAST_DRIVER = 10,
+	__REQ_SYNC = 11,
+	__REQ_META = 12,
+	__REQ_PRIO = 13,
+	__REQ_NOMERGE = 14,
+	__REQ_IDLE = 15,
+	__REQ_INTEGRITY = 16,
+	__REQ_FUA = 17,
+	__REQ_PREFLUSH = 18,
+	__REQ_RAHEAD = 19,
+	__REQ_BACKGROUND = 20,
+	__REQ_NOWAIT = 21,
+	__REQ_CGROUP_PUNT = 22,
+	__REQ_POLLED = 23,
+	__REQ_ALLOC_CACHE = 24,
+	__REQ_SWAP = 25,
+	__REQ_DRV = 26,
+	__REQ_NOUNMAP = 27,
+	__REQ_NR_BITS = 28,
+};
+
+struct btrfs_qgroup_limit {
+	__u64 flags;
+	__u64 max_rfer;
+	__u64 max_excl;
+	__u64 rsv_rfer;
+	__u64 rsv_excl;
+};
+
+struct btrfs_qgroup_inherit {
+	__u64 flags;
+	__u64 num_qgroups;
+	__u64 num_ref_copies;
+	__u64 num_excl_copies;
+	struct btrfs_qgroup_limit lim;
+	__u64 qgroups[0];
+};
+
+struct btrfs_balance_args {
+	__u64 profiles;
+	union {
+		__u64 usage;
+		struct {
+			__u32 usage_min;
+			__u32 usage_max;
+		};
+	};
+	__u64 devid;
+	__u64 pstart;
+	__u64 pend;
+	__u64 vstart;
+	__u64 vend;
+	__u64 target;
+	__u64 flags;
+	union {
+		__u64 limit;
+		struct {
+			__u32 limit_min;
+			__u32 limit_max;
+		};
+	};
+	__u32 stripes_min;
+	__u32 stripes_max;
+	__u64 unused[6];
+};
+
+struct btrfs_balance_progress {
+	__u64 expected;
+	__u64 considered;
+	__u64 completed;
+};
+
+enum btrfs_dev_stat_values {
+	BTRFS_DEV_STAT_WRITE_ERRS = 0,
+	BTRFS_DEV_STAT_READ_ERRS = 1,
+	BTRFS_DEV_STAT_FLUSH_ERRS = 2,
+	BTRFS_DEV_STAT_CORRUPTION_ERRS = 3,
+	BTRFS_DEV_STAT_GENERATION_ERRS = 4,
+	BTRFS_DEV_STAT_VALUES_MAX = 5,
+};
+
+enum btrfs_csum_type {
+	BTRFS_CSUM_TYPE_CRC32 = 0,
+	BTRFS_CSUM_TYPE_XXHASH = 1,
+	BTRFS_CSUM_TYPE_SHA256 = 2,
+	BTRFS_CSUM_TYPE_BLAKE2 = 3,
+};
+
+enum {
+	IO_TREE_FS_PINNED_EXTENTS = 0,
+	IO_TREE_FS_EXCLUDED_EXTENTS = 1,
+	IO_TREE_BTREE_INODE_IO = 2,
+	IO_TREE_INODE_IO = 3,
+	IO_TREE_INODE_IO_FAILURE = 4,
+	IO_TREE_RELOC_BLOCKS = 5,
+	IO_TREE_TRANS_DIRTY_PAGES = 6,
+	IO_TREE_ROOT_DIRTY_LOG_PAGES = 7,
+	IO_TREE_INODE_FILE_EXTENT = 8,
+	IO_TREE_LOG_CSUM_RANGE = 9,
+	IO_TREE_SELFTEST = 10,
+	IO_TREE_DEVICE_ALLOC_STATE = 11,
+};
+
+struct io_failure_record;
+
+struct extent_state {
+	u64 start;
+	u64 end;
+	struct rb_node rb_node;
+	wait_queue_head_t wq;
+	refcount_t refs;
+	u32 state;
+	struct io_failure_record *failrec;
+};
+
+struct io_failure_record {
+	struct page *page;
+	u64 start;
+	u64 len;
+	u64 logical;
+	int this_mirror;
+	int failed_mirror;
+	int num_copies;
+};
+
+enum btrfs_compression_type {
+	BTRFS_COMPRESS_NONE = 0,
+	BTRFS_COMPRESS_ZLIB = 1,
+	BTRFS_COMPRESS_LZO = 2,
+	BTRFS_COMPRESS_ZSTD = 3,
+	BTRFS_NR_COMPRESS_TYPES = 4,
+};
+
+typedef blk_status_t extent_submit_bio_start_t(struct inode *, struct bio *, u64);
+
+struct extent_changeset {
+	u64 bytes_changed;
+	struct ulist range_changed;
+};
+
+struct btrfs_io_context;
+
+struct btrfs_io_stripe {
+	struct btrfs_device *dev;
+	union {
+		u64 physical;
+		struct btrfs_io_context *bioc;
+	};
+};
+
+struct map_lookup {
+	u64 type;
+	int io_align;
+	int io_width;
+	u32 stripe_len;
+	int num_stripes;
+	int sub_stripes;
+	int verified_stripes;
+	struct btrfs_io_stripe stripes[0];
+};
+
+struct btrfs_space_info {
+	spinlock_t lock;
+	u64 total_bytes;
+	u64 bytes_used;
+	u64 bytes_pinned;
+	u64 bytes_reserved;
+	u64 bytes_may_use;
+	u64 bytes_readonly;
+	u64 active_total_bytes;
+	u64 bytes_zone_unusable;
+	u64 max_extent_size;
+	u64 chunk_size;
+	int bg_reclaim_threshold;
+	int clamp;
+	unsigned int full: 1;
+	unsigned int chunk_alloc: 1;
+	unsigned int flush: 1;
+	unsigned int force_alloc;
+	u64 disk_used;
+	u64 disk_total;
+	u64 flags;
+	struct list_head list;
+	struct list_head ro_bgs;
+	struct list_head priority_tickets;
+	struct list_head tickets;
+	u64 reclaim_size;
+	u64 tickets_id;
+	struct rw_semaphore groups_sem;
+	struct list_head block_groups[9];
+	struct kobject kobj;
+	struct kobject *block_group_kobjs[9];
+};
+
+enum {
+	BTRFS_FS_STATE_ERROR = 0,
+	BTRFS_FS_STATE_REMOUNTING = 1,
+	BTRFS_FS_STATE_RO = 2,
+	BTRFS_FS_STATE_TRANS_ABORTED = 3,
+	BTRFS_FS_STATE_DEV_REPLACING = 4,
+	BTRFS_FS_STATE_DUMMY_FS_INFO = 5,
+	BTRFS_FS_STATE_NO_CSUMS = 6,
+	BTRFS_FS_STATE_LOG_CLEANUP_ERROR = 7,
+	BTRFS_FS_STATE_COUNT = 8,
+};
+
+struct btrfs_path {
+	struct extent_buffer *nodes[8];
+	int slots[8];
+	u8 locks[8];
+	u8 reada;
+	u8 lowest_level;
+	unsigned int search_for_split: 1;
+	unsigned int keep_locks: 1;
+	unsigned int skip_locking: 1;
+	unsigned int search_commit_root: 1;
+	unsigned int need_commit_sem: 1;
+	unsigned int skip_release_on_error: 1;
+	unsigned int search_for_extension: 1;
+};
+
+struct rcu_string;
+
+struct btrfs_zoned_device_info;
+
+struct scrub_ctx;
+
+struct btrfs_device {
+	struct list_head dev_list;
+	struct list_head dev_alloc_list;
+	struct list_head post_commit_list;
+	struct btrfs_fs_devices *fs_devices;
+	struct btrfs_fs_info *fs_info;
+	struct rcu_string *name;
+	u64 generation;
+	struct block_device *bdev;
+	struct btrfs_zoned_device_info *zone_info;
+	fmode_t mode;
+	dev_t devt;
+	long unsigned int dev_state;
+	blk_status_t last_flush_error;
+	u64 devid;
+	u64 total_bytes;
+	u64 disk_total_bytes;
+	u64 bytes_used;
+	u32 io_align;
+	u32 io_width;
+	u64 type;
+	u32 sector_size;
+	u8 uuid[16];
+	u64 commit_total_bytes;
+	u64 commit_bytes_used;
+	struct bio flush_bio;
+	struct completion flush_wait;
+	struct scrub_ctx *scrub_ctx;
+	int dev_stats_valid;
+	atomic_t dev_stats_ccnt;
+	atomic_t dev_stat_values[5];
+	struct extent_io_tree alloc_state;
+	struct completion kobj_unregister;
+	struct kobject devid_kobj;
+	u64 scrub_speed_max;
+};
+
+enum btrfs_discard_state {
+	BTRFS_DISCARD_EXTENTS = 0,
+	BTRFS_DISCARD_BITMAPS = 1,
+	BTRFS_DISCARD_RESET_CURSOR = 2,
+};
+
+struct btrfs_io_ctl {
+	void *cur;
+	void *orig;
+	struct page *page;
+	struct page **pages;
+	struct btrfs_fs_info *fs_info;
+	struct inode *inode;
+	long unsigned int size;
+	int index;
+	int num_pages;
+	int entries;
+	int bitmaps;
+};
+
+struct btrfs_full_stripe_locks_tree {
+	struct rb_root root;
+	struct mutex lock;
+};
+
+struct btrfs_caching_control;
+
+struct btrfs_free_space_ctl;
+
+struct btrfs_block_group {
+	struct btrfs_fs_info *fs_info;
+	struct inode *inode;
+	spinlock_t lock;
+	u64 start;
+	u64 length;
+	u64 pinned;
+	u64 reserved;
+	u64 used;
+	u64 delalloc_bytes;
+	u64 bytes_super;
+	u64 flags;
+	u64 cache_generation;
+	u64 global_root_id;
+	u32 bitmap_high_thresh;
+	u32 bitmap_low_thresh;
+	struct rw_semaphore data_rwsem;
+	long unsigned int full_stripe_len;
+	unsigned int ro;
+	unsigned int iref: 1;
+	unsigned int has_caching_ctl: 1;
+	unsigned int removed: 1;
+	unsigned int to_copy: 1;
+	unsigned int relocating_repair: 1;
+	unsigned int chunk_item_inserted: 1;
+	unsigned int zone_is_active: 1;
+	unsigned int zoned_data_reloc_ongoing: 1;
+	int disk_cache_state;
+	int cached;
+	struct btrfs_caching_control *caching_ctl;
+	u64 last_byte_to_unpin;
+	struct btrfs_space_info *space_info;
+	struct btrfs_free_space_ctl *free_space_ctl;
+	struct rb_node cache_node;
+	struct list_head list;
+	refcount_t refs;
+	struct list_head cluster_list;
+	struct list_head bg_list;
+	struct list_head ro_list;
+	atomic_t frozen;
+	struct list_head discard_list;
+	int discard_index;
+	u64 discard_eligible_time;
+	u64 discard_cursor;
+	enum btrfs_discard_state discard_state;
+	struct list_head dirty_list;
+	struct list_head io_list;
+	struct btrfs_io_ctl io_ctl;
+	atomic_t reservations;
+	atomic_t nocow_writers;
+	struct mutex free_space_lock;
+	int needs_free_space;
+	bool seq_zone;
+	int swap_extents;
+	struct btrfs_full_stripe_locks_tree full_stripe_locks_root;
+	u64 alloc_offset;
+	u64 zone_unusable;
+	u64 zone_capacity;
+	u64 meta_write_pointer;
+	struct map_lookup *physical_map;
+	struct list_head active_bg_list;
+	struct work_struct zone_finish_work;
+	struct extent_buffer *last_eb;
+};
+
+enum {
+	BTRFS_FS_CLOSING_START = 0,
+	BTRFS_FS_CLOSING_DONE = 1,
+	BTRFS_FS_LOG_RECOVERING = 2,
+	BTRFS_FS_OPEN = 3,
+	BTRFS_FS_QUOTA_ENABLED = 4,
+	BTRFS_FS_UPDATE_UUID_TREE_GEN = 5,
+	BTRFS_FS_CREATING_FREE_SPACE_TREE = 6,
+	BTRFS_FS_BTREE_ERR = 7,
+	BTRFS_FS_LOG1_ERR = 8,
+	BTRFS_FS_LOG2_ERR = 9,
+	BTRFS_FS_QUOTA_OVERRIDE = 10,
+	BTRFS_FS_FROZEN = 11,
+	BTRFS_FS_BALANCE_RUNNING = 12,
+	BTRFS_FS_RELOC_RUNNING = 13,
+	BTRFS_FS_CLEANER_RUNNING = 14,
+	BTRFS_FS_CSUM_IMPL_FAST = 15,
+	BTRFS_FS_DISCARD_RUNNING = 16,
+	BTRFS_FS_CLEANUP_SPACE_CACHE_V1 = 17,
+	BTRFS_FS_FREE_SPACE_TREE_UNTRUSTED = 18,
+	BTRFS_FS_TREE_MOD_LOG_USERS = 19,
+	BTRFS_FS_COMMIT_TRANS = 20,
+	BTRFS_FS_UNFINISHED_DROPS = 21,
+	BTRFS_FS_NEED_ZONE_FINISH = 22,
+};
+
+enum btrfs_trans_state {
+	TRANS_STATE_RUNNING = 0,
+	TRANS_STATE_COMMIT_START = 1,
+	TRANS_STATE_COMMIT_DOING = 2,
+	TRANS_STATE_UNBLOCKED = 3,
+	TRANS_STATE_SUPER_COMMITTED = 4,
+	TRANS_STATE_COMPLETED = 5,
+	TRANS_STATE_MAX = 6,
+};
+
+struct btrfs_delayed_ref_root {
+	struct rb_root_cached href_root;
+	struct rb_root dirty_extent_root;
+	spinlock_t lock;
+	atomic_t num_entries;
+	long unsigned int num_heads;
+	long unsigned int num_heads_ready;
+	u64 pending_csums;
+	long unsigned int flags;
+	u64 run_delayed_start;
+	u64 qgroup_to_skip;
+};
+
+struct btrfs_transaction {
+	u64 transid;
+	atomic_t num_extwriters;
+	atomic_t num_writers;
+	refcount_t use_count;
+	long unsigned int flags;
+	enum btrfs_trans_state state;
+	int aborted;
+	struct list_head list;
+	struct extent_io_tree dirty_pages;
+	time64_t start_time;
+	wait_queue_head_t writer_wait;
+	wait_queue_head_t commit_wait;
+	struct list_head pending_snapshots;
+	struct list_head dev_update_list;
+	struct list_head switch_commits;
+	struct list_head dirty_bgs;
+	struct list_head io_bgs;
+	struct list_head dropped_roots;
+	struct extent_io_tree pinned_extents;
+	struct mutex cache_write_mutex;
+	spinlock_t dirty_bgs_lock;
+	struct list_head deleted_bgs;
+	spinlock_t dropped_roots_lock;
+	struct btrfs_delayed_ref_root delayed_refs;
+	struct btrfs_fs_info *fs_info;
+	atomic_t pending_ordered;
+	wait_queue_head_t pending_wait;
+	spinlock_t releasing_ebs_lock;
+	struct list_head releasing_ebs;
+};
+
+enum btrfs_chunk_allocation_policy {
+	BTRFS_CHUNK_ALLOC_REGULAR = 0,
+	BTRFS_CHUNK_ALLOC_ZONED = 1,
+};
+
+enum btrfs_read_policy {
+	BTRFS_READ_POLICY_PID = 0,
+	BTRFS_NR_READ_POLICY = 1,
+};
+
+struct btrfs_fs_devices {
+	u8 fsid[16];
+	u8 metadata_uuid[16];
+	bool fsid_change;
+	struct list_head fs_list;
+	u64 num_devices;
+	u64 open_devices;
+	u64 rw_devices;
+	u64 missing_devices;
+	u64 total_rw_bytes;
+	u64 total_devices;
+	u64 latest_generation;
+	struct btrfs_device *latest_dev;
+	struct mutex device_list_mutex;
+	struct list_head devices;
+	struct list_head alloc_list;
+	struct list_head seed_list;
+	bool seeding;
+	int opened;
+	bool rotating;
+	struct btrfs_fs_info *fs_info;
+	struct kobject fsid_kobj;
+	struct kobject *devices_kobj;
+	struct kobject *devinfo_kobj;
+	struct completion kobj_unregister;
+	enum btrfs_chunk_allocation_policy chunk_alloc_policy;
+	enum btrfs_read_policy read_policy;
+};
+
+struct btrfs_balance_control {
+	struct btrfs_balance_args data;
+	struct btrfs_balance_args meta;
+	struct btrfs_balance_args sys;
+	u64 flags;
+	struct btrfs_balance_progress stat;
+};
+
+struct btrfs_subpage_info {
+	unsigned int bitmap_nr_bits;
+	unsigned int total_nr_bits;
+	unsigned int uptodate_offset;
+	unsigned int error_offset;
+	unsigned int dirty_offset;
+	unsigned int writeback_offset;
+	unsigned int ordered_offset;
+	unsigned int checked_offset;
+};
+
+struct btrfs_delayed_root {
+	spinlock_t lock;
+	struct list_head node_list;
+	struct list_head prepare_list;
+	atomic_t items;
+	atomic_t items_seq;
+	int nodes;
+	wait_queue_head_t wait;
+};
+
+enum {
+	BTRFS_ROOT_IN_TRANS_SETUP = 0,
+	BTRFS_ROOT_SHAREABLE = 1,
+	BTRFS_ROOT_TRACK_DIRTY = 2,
+	BTRFS_ROOT_IN_RADIX = 3,
+	BTRFS_ROOT_ORPHAN_ITEM_INSERTED = 4,
+	BTRFS_ROOT_DEFRAG_RUNNING = 5,
+	BTRFS_ROOT_FORCE_COW = 6,
+	BTRFS_ROOT_MULTI_LOG_TASKS = 7,
+	BTRFS_ROOT_DIRTY = 8,
+	BTRFS_ROOT_DELETING = 9,
+	BTRFS_ROOT_DEAD_RELOC_TREE = 10,
+	BTRFS_ROOT_DEAD_TREE = 11,
+	BTRFS_ROOT_HAS_LOG_TREE = 12,
+	BTRFS_ROOT_QGROUP_FLUSHING = 13,
+	BTRFS_ROOT_ORPHAN_CLEANUP = 14,
+	BTRFS_ROOT_UNFINISHED_DROP = 15,
+	BTRFS_ROOT_RESET_LOCKDEP_CLASS = 16,
+};
+
+enum {
+	BTRFS_MOUNT_NODATASUM = 1,
+	BTRFS_MOUNT_NODATACOW = 2,
+	BTRFS_MOUNT_NOBARRIER = 4,
+	BTRFS_MOUNT_SSD = 8,
+	BTRFS_MOUNT_DEGRADED = 16,
+	BTRFS_MOUNT_COMPRESS = 32,
+	BTRFS_MOUNT_NOTREELOG = 64,
+	BTRFS_MOUNT_FLUSHONCOMMIT = 128,
+	BTRFS_MOUNT_SSD_SPREAD = 256,
+	BTRFS_MOUNT_NOSSD = 512,
+	BTRFS_MOUNT_DISCARD_SYNC = 1024,
+	BTRFS_MOUNT_FORCE_COMPRESS = 2048,
+	BTRFS_MOUNT_SPACE_CACHE = 4096,
+	BTRFS_MOUNT_CLEAR_CACHE = 8192,
+	BTRFS_MOUNT_USER_SUBVOL_RM_ALLOWED = 16384,
+	BTRFS_MOUNT_ENOSPC_DEBUG = 32768,
+	BTRFS_MOUNT_AUTO_DEFRAG = 65536,
+	BTRFS_MOUNT_USEBACKUPROOT = 131072,
+	BTRFS_MOUNT_SKIP_BALANCE = 262144,
+	BTRFS_MOUNT_CHECK_INTEGRITY = 524288,
+	BTRFS_MOUNT_CHECK_INTEGRITY_DATA = 1048576,
+	BTRFS_MOUNT_PANIC_ON_FATAL_ERROR = 2097152,
+	BTRFS_MOUNT_RESCAN_UUID_TREE = 4194304,
+	BTRFS_MOUNT_FRAGMENT_DATA = 8388608,
+	BTRFS_MOUNT_FRAGMENT_METADATA = 16777216,
+	BTRFS_MOUNT_FREE_SPACE_TREE = 33554432,
+	BTRFS_MOUNT_NOLOGREPLAY = 67108864,
+	BTRFS_MOUNT_REF_VERIFY = 134217728,
+	BTRFS_MOUNT_DISCARD_ASYNC = 268435456,
+	BTRFS_MOUNT_IGNOREBADROOTS = 536870912,
+	BTRFS_MOUNT_IGNOREDATACSUMS = 1073741824,
+};
+
+struct btrfs_ordered_inode_tree {
+	spinlock_t lock;
+	struct rb_root tree;
+	struct rb_node *last;
+};
+
+enum {
+	BTRFS_ORDERED_REGULAR = 0,
+	BTRFS_ORDERED_NOCOW = 1,
+	BTRFS_ORDERED_PREALLOC = 2,
+	BTRFS_ORDERED_COMPRESSED = 3,
+	BTRFS_ORDERED_DIRECT = 4,
+	BTRFS_ORDERED_IO_DONE = 5,
+	BTRFS_ORDERED_COMPLETE = 6,
+	BTRFS_ORDERED_IOERR = 7,
+	BTRFS_ORDERED_TRUNCATED = 8,
+	BTRFS_ORDERED_LOGGED = 9,
+	BTRFS_ORDERED_LOGGED_CSUM = 10,
+	BTRFS_ORDERED_PENDING = 11,
+	BTRFS_ORDERED_ENCODED = 12,
+};
+
+struct btrfs_ordered_extent {
+	u64 file_offset;
+	u64 num_bytes;
+	u64 ram_bytes;
+	u64 disk_bytenr;
+	u64 disk_num_bytes;
+	u64 offset;
+	u64 bytes_left;
+	u64 outstanding_isize;
+	u64 truncated_len;
+	long unsigned int flags;
+	int compress_type;
+	int qgroup_rsv;
+	refcount_t refs;
+	struct inode *inode;
+	struct list_head list;
+	struct list_head log_list;
+	wait_queue_head_t wait;
+	struct rb_node rb_node;
+	struct list_head root_extent_list;
+	struct btrfs_work work;
+	struct completion completion;
+	struct btrfs_work flush_work;
+	struct list_head work_list;
+	u64 physical;
+	struct block_device *bdev;
+};
+
+struct btrfs_delayed_node {
+	u64 inode_id;
+	u64 bytes_reserved;
+	struct btrfs_root *root;
+	struct list_head n_list;
+	struct list_head p_list;
+	struct rb_root_cached ins_root;
+	struct rb_root_cached del_root;
+	struct mutex mutex;
+	struct btrfs_inode_item inode_item;
+	refcount_t refs;
+	u64 index_cnt;
+	long unsigned int flags;
+	int count;
+	u32 curr_index_batch_size;
+	u32 index_item_leaves;
+};
+
+enum {
+	BTRFS_INODE_FLUSH_ON_CLOSE = 0,
+	BTRFS_INODE_DUMMY = 1,
+	BTRFS_INODE_IN_DEFRAG = 2,
+	BTRFS_INODE_HAS_ASYNC_EXTENT = 3,
+	BTRFS_INODE_NEEDS_FULL_SYNC = 4,
+	BTRFS_INODE_COPY_EVERYTHING = 5,
+	BTRFS_INODE_IN_DELALLOC_LIST = 6,
+	BTRFS_INODE_HAS_PROPS = 7,
+	BTRFS_INODE_SNAPSHOT_FLUSH = 8,
+	BTRFS_INODE_NO_XATTRS = 9,
+	BTRFS_INODE_NO_DELALLOC_FLUSH = 10,
+	BTRFS_INODE_VERITY_IN_PROGRESS = 11,
+};
+
+struct btrfs_inode {
+	struct btrfs_root *root;
+	struct btrfs_key location;
+	spinlock_t lock;
+	struct extent_map_tree extent_tree;
+	struct extent_io_tree io_tree;
+	struct extent_io_tree io_failure_tree;
+	struct extent_io_tree file_extent_tree;
+	struct mutex log_mutex;
+	struct btrfs_ordered_inode_tree ordered_tree;
+	struct list_head delalloc_inodes;
+	struct rb_node rb_node;
+	long unsigned int runtime_flags;
+	atomic_t sync_writers;
+	u64 generation;
+	u64 last_trans;
+	u64 logged_trans;
+	int last_sub_trans;
+	int last_log_commit;
+	u64 delalloc_bytes;
+	union {
+		u64 new_delalloc_bytes;
+		u64 last_dir_index_offset;
+	};
+	u64 defrag_bytes;
+	u64 disk_i_size;
+	u64 index_cnt;
+	u64 dir_index;
+	u64 last_unlink_trans;
+	u64 last_reflink_trans;
+	u64 csum_bytes;
+	u32 flags;
+	u32 ro_flags;
+	unsigned int outstanding_extents;
+	struct btrfs_block_rsv block_rsv;
+	unsigned int prop_compress;
+	unsigned int defrag_compress;
+	struct btrfs_delayed_node *delayed_node;
+	struct timespec64 i_otime;
+	struct list_head delayed_iput;
+	struct rw_semaphore i_mmap_lock;
+	struct inode vfs_inode;
+};
+
+struct btrfs_delayed_ref_node {
+	struct rb_node ref_node;
+	struct list_head add_list;
+	u64 bytenr;
+	u64 num_bytes;
+	u64 seq;
+	refcount_t refs;
+	int ref_mod;
+	unsigned int action: 8;
+	unsigned int type: 8;
+	unsigned int is_head: 1;
+	unsigned int in_tree: 1;
+};
+
+struct btrfs_delayed_extent_op {
+	struct btrfs_disk_key key;
+	u8 level;
+	bool update_key;
+	bool update_flags;
+	u64 flags_to_set;
+};
+
+struct btrfs_delayed_ref_head {
+	u64 bytenr;
+	u64 num_bytes;
+	refcount_t refs;
+	struct mutex mutex;
+	spinlock_t lock;
+	struct rb_root_cached ref_tree;
+	struct list_head ref_add_list;
+	struct rb_node href_node;
+	struct btrfs_delayed_extent_op *extent_op;
+	int total_ref_mod;
+	int ref_mod;
+	unsigned int must_insert_reserved: 1;
+	unsigned int is_data: 1;
+	unsigned int is_system: 1;
+	unsigned int processing: 1;
+};
+
+struct btrfs_pending_snapshot;
+
+struct btrfs_trans_handle {
+	u64 transid;
+	u64 bytes_reserved;
+	u64 chunk_bytes_reserved;
+	long unsigned int delayed_ref_updates;
+	struct btrfs_transaction *transaction;
+	struct btrfs_block_rsv *block_rsv;
+	struct btrfs_block_rsv *orig_rsv;
+	struct btrfs_pending_snapshot *pending_snapshot;
+	refcount_t use_count;
+	unsigned int type;
+	short int aborted;
+	bool adding_csums;
+	bool allocating_chunk;
+	bool removing_chunk;
+	bool reloc_reserved;
+	bool in_fsync;
+	struct btrfs_fs_info *fs_info;
+	struct list_head new_bgs;
+};
+
+struct btrfs_pending_snapshot {
+	struct dentry *dentry;
+	struct inode *dir;
+	struct btrfs_root *root;
+	struct btrfs_root_item *root_item;
+	struct btrfs_root *snap;
+	struct btrfs_qgroup_inherit *inherit;
+	struct btrfs_path *path;
+	struct btrfs_block_rsv block_rsv;
+	int error;
+	dev_t anon_dev;
+	bool readonly;
+	struct list_head list;
+};
+
+enum btrfs_raid_types {
+	BTRFS_RAID_SINGLE = 0,
+	BTRFS_RAID_RAID0 = 1,
+	BTRFS_RAID_RAID1 = 2,
+	BTRFS_RAID_DUP = 3,
+	BTRFS_RAID_RAID10 = 4,
+	BTRFS_RAID_RAID5 = 5,
+	BTRFS_RAID_RAID6 = 6,
+	BTRFS_RAID_RAID1C3 = 7,
+	BTRFS_RAID_RAID1C4 = 8,
+	BTRFS_NR_RAID_TYPES = 9,
+};
+
+struct rcu_string {
+	struct callback_head rcu;
+	char str[0];
+};
+
+struct btrfs_zoned_device_info {
+	u64 zone_size;
+	u8 zone_size_shift;
+	u64 max_zone_append_size;
+	u32 nr_zones;
+	unsigned int max_active_zones;
+	atomic_t active_zones_left;
+	long unsigned int *seq_zones;
+	long unsigned int *empty_zones;
+	long unsigned int *active_zones;
+	struct blk_zone *zone_cache;
+	struct blk_zone sb_zones[6];
+};
+
+struct btrfs_bio {
+	unsigned int mirror_num;
+	u64 file_offset;
+	struct btrfs_device *device;
+	u8 *csum;
+	u8 csum_inline[64];
+	struct bvec_iter iter;
+	struct work_struct end_io_work;
+	struct bio bio;
+};
+
+struct btrfs_io_context {
+	refcount_t refs;
+	atomic_t stripes_pending;
+	struct btrfs_fs_info *fs_info;
+	u64 map_type;
+	bio_end_io_t *end_io;
+	struct bio *orig_bio;
+	void *private;
+	atomic_t error;
+	int max_errors;
+	int num_stripes;
+	int mirror_num;
+	int num_tgtdevs;
+	int *tgtdev_map;
+	u64 *raid_map;
+	struct btrfs_io_stripe stripes[0];
+};
+
+struct btrfs_raid_attr {
+	u8 sub_stripes;
+	u8 dev_stripes;
+	u8 devs_max;
+	u8 devs_min;
+	u8 tolerated_failures;
+	u8 devs_increment;
+	u8 ncopies;
+	u8 nparity;
+	u8 mindev_error;
+	const char raid_name[8];
+	u64 bg_flag;
+};
+
+enum btrfs_map_op {
+	BTRFS_MAP_READ = 0,
+	BTRFS_MAP_WRITE = 1,
+	BTRFS_MAP_DISCARD = 2,
+	BTRFS_MAP_GET_READ_MIRRORS = 3,
+};
+
+enum btrfs_trim_state {
+	BTRFS_TRIM_STATE_UNTRIMMED = 0,
+	BTRFS_TRIM_STATE_TRIMMED = 1,
+	BTRFS_TRIM_STATE_TRIMMING = 2,
+};
+
+struct btrfs_free_space {
+	struct rb_node offset_index;
+	struct rb_node bytes_index;
+	u64 offset;
+	u64 bytes;
+	u64 max_extent_size;
+	long unsigned int *bitmap;
+	struct list_head list;
+	enum btrfs_trim_state trim_state;
+	s32 bitmap_extents;
+};
+
+struct btrfs_free_space_op;
+
+struct btrfs_free_space_ctl {
+	spinlock_t tree_lock;
+	struct rb_root free_space_offset;
+	struct rb_root_cached free_space_bytes;
+	u64 free_space;
+	int extents_thresh;
+	int free_extents;
+	int total_bitmaps;
+	int unit;
+	u64 start;
+	s32 discardable_extents[2];
+	s64 discardable_bytes[2];
+	const struct btrfs_free_space_op *op;
+	struct btrfs_block_group *block_group;
+	struct mutex cache_writeout_mutex;
+	struct list_head trimming_ranges;
+};
+
+struct btrfs_free_space_op {
+	bool (*use_bitmap)(struct btrfs_free_space_ctl *, struct btrfs_free_space *);
+};
+
+enum btrfs_qgroup_rsv_type {
+	BTRFS_QGROUP_RSV_DATA = 0,
+	BTRFS_QGROUP_RSV_META_PERTRANS = 1,
+	BTRFS_QGROUP_RSV_META_PREALLOC = 2,
+	BTRFS_QGROUP_RSV_LAST = 3,
+};
+
+enum btrfs_disk_cache_state {
+	BTRFS_DC_WRITTEN = 0,
+	BTRFS_DC_ERROR = 1,
+	BTRFS_DC_CLEAR = 2,
+	BTRFS_DC_SETUP = 3,
+};
+
+struct btrfs_caching_control {
+	struct list_head list;
+	struct mutex mutex;
+	wait_queue_head_t wait;
+	struct btrfs_work work;
+	struct btrfs_block_group *block_group;
+	u64 progress;
+	refcount_t count;
+};
+
+struct async_submit_bio {
+	struct inode *inode;
+	struct bio *bio;
+	extent_submit_bio_start_t *submit_bio_start;
+	int mirror_num;
+	u64 dio_file_offset;
+	struct btrfs_work work;
+	blk_status_t status;
+};
+
+struct btrfs_workqueue {
+	struct workqueue_struct *normal_wq;
+	struct btrfs_fs_info *fs_info;
+	struct list_head ordered_list;
+	spinlock_t list_lock;
+	atomic_t pending;
+	int limit_active;
+	int current_active;
+	int thresh;
+	unsigned int count;
+	spinlock_t thres_lock;
+};
+
+enum {
+	WORK_DONE_BIT = 0,
+	WORK_ORDER_DONE_BIT = 1,
+};
+
+typedef int (*list_cmp_func_t)(void *, const struct list_head *, const struct list_head *);
+
+struct btrfs_inode_ref {
+	__le64 index;
+	__le16 name_len;
+} __attribute__((packed));
+
+struct btrfs_inode_extref {
+	__le64 parent_objectid;
+	__le64 index;
+	__le16 name_len;
+	__u8 name[0];
+} __attribute__((packed));
+
+struct btrfs_dir_log_item {
+	__le64 end;
+};
+
+enum {
+	EXTENT_FLAG_PINNED = 0,
+	EXTENT_FLAG_COMPRESSED = 1,
+	EXTENT_FLAG_PREALLOC = 2,
+	EXTENT_FLAG_LOGGING = 3,
+	EXTENT_FLAG_FILLING = 4,
+	EXTENT_FLAG_FS_MAPPING = 5,
+	EXTENT_FLAG_MERGED = 6,
+};
+
+struct extent_map {
+	struct rb_node rb_node;
+	u64 start;
+	u64 len;
+	u64 mod_start;
+	u64 mod_len;
+	u64 orig_start;
+	u64 orig_block_len;
+	u64 ram_bytes;
+	u64 block_start;
+	u64 block_len;
+	u64 generation;
+	long unsigned int flags;
+	struct map_lookup *map_lookup;
+	refcount_t refs;
+	unsigned int compress_type;
+	struct list_head list;
+};
+
+struct btrfs_drop_extents_args {
+	struct btrfs_path *path;
+	u64 start;
+	u64 end;
+	bool drop_cache;
+	bool replace_extent;
+	u32 extent_item_size;
+	u64 drop_end;
+	u64 bytes_found;
+	bool extent_inserted;
+};
+
+struct btrfs_map_token {
+	struct extent_buffer *eb;
+	char *kaddr;
+	long unsigned int offset;
+};
+
+struct btrfs_item_batch {
+	const struct btrfs_key *keys;
+	const u32 *data_sizes;
+	u32 total_data_size;
+	int nr;
+};
+
+struct btrfs_ordered_sum {
+	u64 bytenr;
+	int len;
+	struct list_head list;
+	u8 sums[0];
+};
+
+enum btrfs_ref_type {
+	BTRFS_REF_NOT_SET = 0,
+	BTRFS_REF_DATA = 1,
+	BTRFS_REF_METADATA = 2,
+	BTRFS_REF_LAST = 3,
+};
+
+struct btrfs_data_ref {
+	u64 owning_root;
+	u64 ino;
+	u64 offset;
+};
+
+struct btrfs_tree_ref {
+	int level;
+	u64 owning_root;
+};
+
+struct btrfs_ref {
+	enum btrfs_ref_type type;
+	int action;
+	bool skip_qgroup;
+	u64 bytenr;
+	u64 len;
+	u64 parent;
+	union {
+		struct btrfs_data_ref data_ref;
+		struct btrfs_tree_ref tree_ref;
+	};
+};
+
+struct btrfs_log_ctx {
+	int log_ret;
+	int log_transid;
+	bool log_new_dentries;
+	bool logging_new_name;
+	bool logged_before;
+	u64 last_dir_item_offset;
+	struct inode *inode;
+	struct list_head list;
+	struct list_head ordered_extents;
+};
+
+struct btrfs_truncate_control {
+	struct btrfs_inode *inode;
+	u64 new_size;
+	u64 extents_found;
+	u64 last_size;
+	u64 sub_bytes;
+	u64 ino;
+	u32 min_type;
+	bool skip_ref_updates;
+	bool clear_extent_range;
+};
+
+enum {
+	LOG_INODE_ALL = 0,
+	LOG_INODE_EXISTS = 1,
+	LOG_OTHER_INODE = 2,
+	LOG_OTHER_INODE_ALL = 3,
+};
+
+enum {
+	LOG_WALK_PIN_ONLY = 0,
+	LOG_WALK_REPLAY_INODES = 1,
+	LOG_WALK_REPLAY_DIR_INDEX = 2,
+	LOG_WALK_REPLAY_ALL = 3,
+};
+
+struct walk_control {
+	int free;
+	int pin;
+	int stage;
+	bool ignore_cur_inode;
+	struct btrfs_root *replay_dest;
+	struct btrfs_trans_handle *trans;
+	int (*process_func)(struct btrfs_root *, struct extent_buffer *, struct walk_control *, u64, int);
+};
+
+struct btrfs_ino_list {
+	u64 ino;
+	u64 parent;
+	struct list_head list;
+};
+
+struct btrfs_dir_list {
+	u64 ino;
+	struct list_head list;
+};
+
+struct posix_acl_xattr_header {
+	__le32 a_version;
+};
+
+struct btrfs_stream_header {
+	char magic[13];
+	__le32 version;
+} __attribute__((packed));
+
+struct btrfs_cmd_header {
+	__le32 len;
+	__le16 cmd;
+	__le32 crc;
+} __attribute__((packed));
+
+struct btrfs_tlv_header {
+	__le16 tlv_type;
+	__le16 tlv_len;
+};
+
+enum btrfs_send_cmd {
+	BTRFS_SEND_C_UNSPEC = 0,
+	BTRFS_SEND_C_SUBVOL = 1,
+	BTRFS_SEND_C_SNAPSHOT = 2,
+	BTRFS_SEND_C_MKFILE = 3,
+	BTRFS_SEND_C_MKDIR = 4,
+	BTRFS_SEND_C_MKNOD = 5,
+	BTRFS_SEND_C_MKFIFO = 6,
+	BTRFS_SEND_C_MKSOCK = 7,
+	BTRFS_SEND_C_SYMLINK = 8,
+	BTRFS_SEND_C_RENAME = 9,
+	BTRFS_SEND_C_LINK = 10,
+	BTRFS_SEND_C_UNLINK = 11,
+	BTRFS_SEND_C_RMDIR = 12,
+	BTRFS_SEND_C_SET_XATTR = 13,
+	BTRFS_SEND_C_REMOVE_XATTR = 14,
+	BTRFS_SEND_C_WRITE = 15,
+	BTRFS_SEND_C_CLONE = 16,
+	BTRFS_SEND_C_TRUNCATE = 17,
+	BTRFS_SEND_C_CHMOD = 18,
+	BTRFS_SEND_C_CHOWN = 19,
+	BTRFS_SEND_C_UTIMES = 20,
+	BTRFS_SEND_C_END = 21,
+	BTRFS_SEND_C_UPDATE_EXTENT = 22,
+	BTRFS_SEND_C_MAX_V1 = 22,
+	BTRFS_SEND_C_FALLOCATE = 23,
+	BTRFS_SEND_C_FILEATTR = 24,
+	BTRFS_SEND_C_ENCODED_WRITE = 25,
+	BTRFS_SEND_C_MAX_V2 = 25,
+	BTRFS_SEND_C_MAX = 25,
+};
+
+enum {
+	BTRFS_SEND_A_UNSPEC = 0,
+	BTRFS_SEND_A_UUID = 1,
+	BTRFS_SEND_A_CTRANSID = 2,
+	BTRFS_SEND_A_INO = 3,
+	BTRFS_SEND_A_SIZE = 4,
+	BTRFS_SEND_A_MODE = 5,
+	BTRFS_SEND_A_UID = 6,
+	BTRFS_SEND_A_GID = 7,
+	BTRFS_SEND_A_RDEV = 8,
+	BTRFS_SEND_A_CTIME = 9,
+	BTRFS_SEND_A_MTIME = 10,
+	BTRFS_SEND_A_ATIME = 11,
+	BTRFS_SEND_A_OTIME = 12,
+	BTRFS_SEND_A_XATTR_NAME = 13,
+	BTRFS_SEND_A_XATTR_DATA = 14,
+	BTRFS_SEND_A_PATH = 15,
+	BTRFS_SEND_A_PATH_TO = 16,
+	BTRFS_SEND_A_PATH_LINK = 17,
+	BTRFS_SEND_A_FILE_OFFSET = 18,
+	BTRFS_SEND_A_DATA = 19,
+	BTRFS_SEND_A_CLONE_UUID = 20,
+	BTRFS_SEND_A_CLONE_CTRANSID = 21,
+	BTRFS_SEND_A_CLONE_PATH = 22,
+	BTRFS_SEND_A_CLONE_OFFSET = 23,
+	BTRFS_SEND_A_CLONE_LEN = 24,
+	BTRFS_SEND_A_MAX_V1 = 24,
+	BTRFS_SEND_A_FALLOCATE_MODE = 25,
+	BTRFS_SEND_A_FILEATTR = 26,
+	BTRFS_SEND_A_UNENCODED_FILE_LEN = 27,
+	BTRFS_SEND_A_UNENCODED_LEN = 28,
+	BTRFS_SEND_A_UNENCODED_OFFSET = 29,
+	BTRFS_SEND_A_COMPRESSION = 30,
+	BTRFS_SEND_A_ENCRYPTION = 31,
+	BTRFS_SEND_A_MAX_V2 = 31,
+	BTRFS_SEND_A_MAX = 31,
+};
+
+struct btrfs_ioctl_send_args {
+	__s64 send_fd;
+	__u64 clone_sources_count;
+	__u64 *clone_sources;
+	__u64 parent_root;
+	__u64 flags;
+	__u32 version;
+	__u8 reserved[28];
+};
+
+struct btrfs_root_ref {
+	__le64 dirid;
+	__le64 sequence;
+	__le16 name_len;
+} __attribute__((packed));
+
+enum {
+	READA_NONE = 0,
+	READA_BACK = 1,
+	READA_FORWARD = 2,
+	READA_FORWARD_ALWAYS = 3,
+};
+
+typedef int iterate_extent_inodes_t(u64, u64, u64, void *);
+
+struct fs_path {
+	union {
+		struct {
+			char *start;
+			char *end;
+			char *buf;
+			short unsigned int buf_len: 15;
+			short unsigned int reversed: 1;
+			char inline_buf[0];
+		};
+		char pad[256];
+	};
+};
+
+struct clone_root {
+	struct btrfs_root *root;
+	u64 ino;
+	u64 offset;
+	u64 found_refs;
+};
+
+struct send_ctx {
+	struct file *send_filp;
+	loff_t send_off;
+	char *send_buf;
+	u32 send_size;
+	u32 send_max_size;
+	bool put_data;
+	struct page **send_buf_pages;
+	u64 flags;
+	u32 proto;
+	struct btrfs_root *send_root;
+	struct btrfs_root *parent_root;
+	struct clone_root *clone_roots;
+	int clone_roots_cnt;
+	struct btrfs_path *left_path;
+	struct btrfs_path *right_path;
+	struct btrfs_key *cmp_key;
+	u64 last_reloc_trans;
+	u64 cur_ino;
+	u64 cur_inode_gen;
+	u64 cur_inode_size;
+	u64 cur_inode_mode;
+	u64 cur_inode_rdev;
+	u64 cur_inode_last_extent;
+	u64 cur_inode_next_write_offset;
+	bool cur_inode_new;
+	bool cur_inode_new_gen;
+	bool cur_inode_deleted;
+	bool ignore_cur_inode;
+	u64 send_progress;
+	struct list_head new_refs;
+	struct list_head deleted_refs;
+	struct xarray name_cache;
+	struct list_head name_cache_list;
+	int name_cache_size;
+	struct inode *cur_inode;
+	struct file_ra_state ra;
+	u64 page_cache_clear_start;
+	bool clean_page_cache;
+	struct rb_root pending_dir_moves;
+	struct rb_root waiting_dir_moves;
+	struct rb_root orphan_dirs;
+	struct rb_root rbtree_new_refs;
+	struct rb_root rbtree_deleted_refs;
+};
+
+struct pending_dir_move {
+	struct rb_node node;
+	struct list_head list;
+	u64 parent_ino;
+	u64 ino;
+	u64 gen;
+	struct list_head update_refs;
+};
+
+struct waiting_dir_move {
+	struct rb_node node;
+	u64 ino;
+	u64 rmdir_ino;
+	u64 rmdir_gen;
+	bool orphanized;
+};
+
+struct orphan_dir_info {
+	struct rb_node node;
+	u64 ino;
+	u64 gen;
+	u64 last_dir_index_offset;
+};
+
+struct name_cache_entry {
+	struct list_head list;
+	struct list_head radix_list;
+	u64 ino;
+	u64 gen;
+	u64 parent_ino;
+	u64 parent_gen;
+	int ret;
+	int need_later_update;
+	int name_len;
+	char name[0];
+};
+
+enum btrfs_compare_tree_result {
+	BTRFS_COMPARE_TREE_NEW = 0,
+	BTRFS_COMPARE_TREE_DELETED = 1,
+	BTRFS_COMPARE_TREE_CHANGED = 2,
+	BTRFS_COMPARE_TREE_SAME = 3,
+};
+
+typedef int (*iterate_inode_ref_t)(int, u64, int, struct fs_path *, void *);
+
+typedef int (*iterate_dir_item_t)(int, struct btrfs_key *, const char *, int, const char *, int, void *);
+
+struct backref_ctx {
+	struct send_ctx *sctx;
+	u64 found;
+	u64 cur_objectid;
+	u64 cur_offset;
+	u64 extent_len;
+	int found_itself;
+};
+
+enum inode_state {
+	inode_state_no_change = 0,
+	inode_state_will_create = 1,
+	inode_state_did_create = 2,
+	inode_state_will_delete = 3,
+	inode_state_did_delete = 4,
+};
+
+struct recorded_ref {
+	struct list_head list;
+	char *name;
+	struct fs_path *full_path;
+	u64 dir;
+	u64 dir_gen;
+	int name_len;
+	struct rb_node node;
+	struct rb_root *root;
+};
+
+struct find_xattr_ctx {
+	const char *name;
+	int name_len;
+	int found_idx;
+	char *found_data;
+	int found_data_len;
+};
+
+struct parent_paths_ctx {
+	struct list_head *refs;
+	struct send_ctx *sctx;
+};
+
+enum btrfs_caching_type {
+	BTRFS_CACHE_NO = 0,
+	BTRFS_CACHE_STARTED = 1,
+	BTRFS_CACHE_FINISHED = 2,
+	BTRFS_CACHE_ERROR = 3,
+};
+
+enum btrfs_reserve_flush_enum {
+	BTRFS_RESERVE_NO_FLUSH = 0,
+	BTRFS_RESERVE_FLUSH_LIMIT = 1,
+	BTRFS_RESERVE_FLUSH_EVICT = 2,
+	BTRFS_RESERVE_FLUSH_DATA = 3,
+	BTRFS_RESERVE_FLUSH_FREE_SPACE_INODE = 4,
+	BTRFS_RESERVE_FLUSH_ALL = 5,
+	BTRFS_RESERVE_FLUSH_ALL_STEAL = 6,
+};
+
+enum btrfs_chunk_alloc_enum {
+	CHUNK_ALLOC_NO_FORCE = 0,
+	CHUNK_ALLOC_LIMITED = 1,
+	CHUNK_ALLOC_FORCE = 2,
+	CHUNK_ALLOC_FORCE_FOR_EXTENT = 3,
+};
+
+struct efi_generic_dev_path {
+	u8 type;
+	u8 sub_type;
+	u16 length;
+};
+
+typedef u16 ucs2_char_t;
+
+struct efi_variable {
+	efi_char16_t VariableName[512];
+	efi_guid_t VendorGuid;
+	long unsigned int DataSize;
+	__u8 Data[1024];
+	efi_status_t Status;
+	__u32 Attributes;
+} __attribute__((packed));
+
+struct efivar_entry {
+	struct efi_variable var;
+	struct list_head list;
+	struct kobject kobj;
+};
+
+struct variable_validate {
+	efi_guid_t vendor;
+	char *name;
+	bool (*validate)(efi_char16_t *, int, u8 *, long unsigned int);
+};
+
+struct sigevent {
+	sigval_t sigev_value;
+	int sigev_signo;
+	int sigev_notify;
+	union {
+		int _pad[12];
+		int _tid;
+		struct {
+			void (*_function)(sigval_t);
+			void *_attribute;
+		} _sigev_thread;
+	} _sigev_un;
+};
+
+enum inode_i_mutex_lock_class {
+	I_MUTEX_NORMAL = 0,
+	I_MUTEX_PARENT = 1,
+	I_MUTEX_CHILD = 2,
+	I_MUTEX_XATTR = 3,
+	I_MUTEX_NONDIR2 = 4,
+	I_MUTEX_PARENT2 = 5,
+};
+
+struct ipc_ids {
+	int in_use;
+	short unsigned int seq;
+	struct rw_semaphore rwsem;
+	struct idr ipcs_idr;
+	int max_idx;
+	int last_idx;
+	int next_id;
+	struct rhashtable key_ht;
+};
+
+struct ipc_namespace {
+	struct ipc_ids ids[3];
+	int sem_ctls[4];
+	int used_sems;
+	unsigned int msg_ctlmax;
+	unsigned int msg_ctlmnb;
+	unsigned int msg_ctlmni;
+	atomic_t msg_bytes;
+	atomic_t msg_hdrs;
+	size_t shm_ctlmax;
+	size_t shm_ctlall;
+	long unsigned int shm_tot;
+	int shm_ctlmni;
+	int shm_rmid_forced;
+	struct notifier_block ipcns_nb;
+	struct vfsmount *mq_mnt;
+	unsigned int mq_queues_count;
+	unsigned int mq_queues_max;
+	unsigned int mq_msg_max;
+	unsigned int mq_msgsize_max;
+	unsigned int mq_msg_default;
+	unsigned int mq_msgsize_default;
+	struct ctl_table_set mq_set;
+	struct ctl_table_header *mq_sysctls;
+	struct ctl_table_set ipc_set;
+	struct ctl_table_header *ipc_sysctls;
+	struct user_namespace *user_ns;
+	struct ucounts *ucounts;
+	struct llist_node mnt_llist;
+	struct ns_common ns;
+};
+
+struct compat_sigevent {
+	compat_sigval_t sigev_value;
+	compat_int_t sigev_signo;
+	compat_int_t sigev_notify;
+	union {
+		compat_int_t _pad[13];
+		compat_int_t _tid;
+		struct {
+			compat_uptr_t _function;
+			compat_uptr_t _attribute;
+		} _sigev_thread;
+	} _sigev_un;
+};
+
+struct msg_msgseg;
+
+struct msg_msg {
+	struct list_head m_list;
+	long int m_type;
+	size_t m_ts;
+	struct msg_msgseg *next;
+	void *security;
+};
+
+struct mqueue_fs_context {
+	struct ipc_namespace *ipc_ns;
+	bool newns;
+};
+
+struct posix_msg_tree_node {
+	struct rb_node rb_node;
+	struct list_head msg_list;
+	int priority;
+};
+
+struct ext_wait_queue {
+	struct task_struct *task;
+	struct list_head list;
+	struct msg_msg *msg;
+	int state;
+};
+
+struct mqueue_inode_info {
+	spinlock_t lock;
+	struct inode vfs_inode;
+	wait_queue_head_t wait_q;
+	struct rb_root msg_tree;
+	struct rb_node *msg_tree_rightmost;
+	struct posix_msg_tree_node *node_cache;
+	struct mq_attr attr;
+	struct sigevent notify;
+	struct pid *notify_owner;
+	u32 notify_self_exec_id;
+	struct user_namespace *notify_user_ns;
+	struct ucounts *ucounts;
+	struct sock *notify_sock;
+	struct sk_buff *notify_cookie;
+	struct ext_wait_queue e_wait_q[2];
+	long unsigned int qsize;
+};
+
+struct compat_mq_attr {
+	compat_long_t mq_flags;
+	compat_long_t mq_maxmsg;
+	compat_long_t mq_msgsize;
+	compat_long_t mq_curmsgs;
+	compat_long_t __reserved[4];
+};
+
+enum tpm_duration {
+	TPM_SHORT = 0,
+	TPM_MEDIUM = 1,
+	TPM_LONG = 2,
+	TPM_LONG_LONG = 3,
+	TPM_UNDEFINED = 4,
+	TPM_NUM_DURATIONS = 4,
+};
+
+struct trusted_key_payload {
+	struct callback_head rcu;
+	unsigned int key_len;
+	unsigned int blob_len;
+	unsigned char migratable;
+	unsigned char old_format;
+	unsigned char key[129];
+	unsigned char blob[512];
+};
+
+struct trusted_key_ops {
+	unsigned char migratable;
+	int (*init)();
+	int (*seal)(struct trusted_key_payload *, char *);
+	int (*unseal)(struct trusted_key_payload *, char *);
+	int (*get_random)(unsigned char *, size_t);
+	void (*exit)();
+};
+
+struct trusted_key_source {
+	char *name;
+	struct trusted_key_ops *ops;
+};
+
+struct match_token {
+	int token;
+	const char *pattern;
+};
+
+enum {
+	MAX_OPT_ARGS = 3,
+};
+
+typedef struct {
+	char *from;
+	char *to;
+} substring_t;
+
+enum {
+	Opt_err = 0,
+	Opt_new = 1,
+	Opt_load = 2,
+	Opt_update = 3,
+};
+
+struct ethhdr {
+	unsigned char h_dest[6];
+	unsigned char h_source[6];
+	__be16 h_proto;
+};
+
+struct ethtool_drvinfo {
+	__u32 cmd;
+	char driver[32];
+	char version[32];
+	char fw_version[32];
+	char bus_info[32];
+	char erom_version[32];
+	char reserved2[12];
+	__u32 n_priv_flags;
+	__u32 n_stats;
+	__u32 testinfo_len;
+	__u32 eedump_len;
+	__u32 regdump_len;
+};
+
+struct ethtool_wolinfo {
+	__u32 cmd;
+	__u32 supported;
+	__u32 wolopts;
+	__u8 sopass[6];
+};
+
+struct ethtool_tunable {
+	__u32 cmd;
+	__u32 id;
+	__u32 type_id;
+	__u32 len;
+	void *data[0];
+};
+
+struct ethtool_regs {
+	__u32 cmd;
+	__u32 version;
+	__u32 len;
+	__u8 data[0];
+};
+
+struct ethtool_eeprom {
+	__u32 cmd;
+	__u32 magic;
+	__u32 offset;
+	__u32 len;
+	__u8 data[0];
+};
+
+struct ethtool_eee {
+	__u32 cmd;
+	__u32 supported;
+	__u32 advertised;
+	__u32 lp_advertised;
+	__u32 eee_active;
+	__u32 eee_enabled;
+	__u32 tx_lpi_enabled;
+	__u32 tx_lpi_timer;
+	__u32 reserved[2];
+};
+
+struct ethtool_modinfo {
+	__u32 cmd;
+	__u32 type;
+	__u32 eeprom_len;
+	__u32 reserved[8];
+};
+
+struct ethtool_coalesce {
+	__u32 cmd;
+	__u32 rx_coalesce_usecs;
+	__u32 rx_max_coalesced_frames;
+	__u32 rx_coalesce_usecs_irq;
+	__u32 rx_max_coalesced_frames_irq;
+	__u32 tx_coalesce_usecs;
+	__u32 tx_max_coalesced_frames;
+	__u32 tx_coalesce_usecs_irq;
+	__u32 tx_max_coalesced_frames_irq;
+	__u32 stats_block_coalesce_usecs;
+	__u32 use_adaptive_rx_coalesce;
+	__u32 use_adaptive_tx_coalesce;
+	__u32 pkt_rate_low;
+	__u32 rx_coalesce_usecs_low;
+	__u32 rx_max_coalesced_frames_low;
+	__u32 tx_coalesce_usecs_low;
+	__u32 tx_max_coalesced_frames_low;
+	__u32 pkt_rate_high;
+	__u32 rx_coalesce_usecs_high;
+	__u32 rx_max_coalesced_frames_high;
+	__u32 tx_coalesce_usecs_high;
+	__u32 tx_max_coalesced_frames_high;
+	__u32 rate_sample_interval;
+};
+
+struct ethtool_ringparam {
+	__u32 cmd;
+	__u32 rx_max_pending;
+	__u32 rx_mini_max_pending;
+	__u32 rx_jumbo_max_pending;
+	__u32 tx_max_pending;
+	__u32 rx_pending;
+	__u32 rx_mini_pending;
+	__u32 rx_jumbo_pending;
+	__u32 tx_pending;
+};
+
+struct ethtool_channels {
+	__u32 cmd;
+	__u32 max_rx;
+	__u32 max_tx;
+	__u32 max_other;
+	__u32 max_combined;
+	__u32 rx_count;
+	__u32 tx_count;
+	__u32 other_count;
+	__u32 combined_count;
+};
+
+struct ethtool_pauseparam {
+	__u32 cmd;
+	__u32 autoneg;
+	__u32 rx_pause;
+	__u32 tx_pause;
+};
+
+enum ethtool_link_ext_state {
+	ETHTOOL_LINK_EXT_STATE_AUTONEG = 0,
+	ETHTOOL_LINK_EXT_STATE_LINK_TRAINING_FAILURE = 1,
