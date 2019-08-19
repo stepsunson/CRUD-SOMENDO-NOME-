@@ -29127,3 +29127,2105 @@ struct ethtool_pauseparam {
 enum ethtool_link_ext_state {
 	ETHTOOL_LINK_EXT_STATE_AUTONEG = 0,
 	ETHTOOL_LINK_EXT_STATE_LINK_TRAINING_FAILURE = 1,
+	ETHTOOL_LINK_EXT_STATE_LINK_LOGICAL_MISMATCH = 2,
+	ETHTOOL_LINK_EXT_STATE_BAD_SIGNAL_INTEGRITY = 3,
+	ETHTOOL_LINK_EXT_STATE_NO_CABLE = 4,
+	ETHTOOL_LINK_EXT_STATE_CABLE_ISSUE = 5,
+	ETHTOOL_LINK_EXT_STATE_EEPROM_ISSUE = 6,
+	ETHTOOL_LINK_EXT_STATE_CALIBRATION_FAILURE = 7,
+	ETHTOOL_LINK_EXT_STATE_POWER_BUDGET_EXCEEDED = 8,
+	ETHTOOL_LINK_EXT_STATE_OVERHEAT = 9,
+	ETHTOOL_LINK_EXT_STATE_MODULE = 10,
+};
+
+enum ethtool_link_ext_substate_autoneg {
+	ETHTOOL_LINK_EXT_SUBSTATE_AN_NO_PARTNER_DETECTED = 1,
+	ETHTOOL_LINK_EXT_SUBSTATE_AN_ACK_NOT_RECEIVED = 2,
+	ETHTOOL_LINK_EXT_SUBSTATE_AN_NEXT_PAGE_EXCHANGE_FAILED = 3,
+	ETHTOOL_LINK_EXT_SUBSTATE_AN_NO_PARTNER_DETECTED_FORCE_MODE = 4,
+	ETHTOOL_LINK_EXT_SUBSTATE_AN_FEC_MISMATCH_DURING_OVERRIDE = 5,
+	ETHTOOL_LINK_EXT_SUBSTATE_AN_NO_HCD = 6,
+};
+
+enum ethtool_link_ext_substate_link_training {
+	ETHTOOL_LINK_EXT_SUBSTATE_LT_KR_FRAME_LOCK_NOT_ACQUIRED = 1,
+	ETHTOOL_LINK_EXT_SUBSTATE_LT_KR_LINK_INHIBIT_TIMEOUT = 2,
+	ETHTOOL_LINK_EXT_SUBSTATE_LT_KR_LINK_PARTNER_DID_NOT_SET_RECEIVER_READY = 3,
+	ETHTOOL_LINK_EXT_SUBSTATE_LT_REMOTE_FAULT = 4,
+};
+
+enum ethtool_link_ext_substate_link_logical_mismatch {
+	ETHTOOL_LINK_EXT_SUBSTATE_LLM_PCS_DID_NOT_ACQUIRE_BLOCK_LOCK = 1,
+	ETHTOOL_LINK_EXT_SUBSTATE_LLM_PCS_DID_NOT_ACQUIRE_AM_LOCK = 2,
+	ETHTOOL_LINK_EXT_SUBSTATE_LLM_PCS_DID_NOT_GET_ALIGN_STATUS = 3,
+	ETHTOOL_LINK_EXT_SUBSTATE_LLM_FC_FEC_IS_NOT_LOCKED = 4,
+	ETHTOOL_LINK_EXT_SUBSTATE_LLM_RS_FEC_IS_NOT_LOCKED = 5,
+};
+
+enum ethtool_link_ext_substate_bad_signal_integrity {
+	ETHTOOL_LINK_EXT_SUBSTATE_BSI_LARGE_NUMBER_OF_PHYSICAL_ERRORS = 1,
+	ETHTOOL_LINK_EXT_SUBSTATE_BSI_UNSUPPORTED_RATE = 2,
+	ETHTOOL_LINK_EXT_SUBSTATE_BSI_SERDES_REFERENCE_CLOCK_LOST = 3,
+	ETHTOOL_LINK_EXT_SUBSTATE_BSI_SERDES_ALOS = 4,
+};
+
+enum ethtool_link_ext_substate_cable_issue {
+	ETHTOOL_LINK_EXT_SUBSTATE_CI_UNSUPPORTED_CABLE = 1,
+	ETHTOOL_LINK_EXT_SUBSTATE_CI_CABLE_TEST_FAILURE = 2,
+};
+
+enum ethtool_link_ext_substate_module {
+	ETHTOOL_LINK_EXT_SUBSTATE_MODULE_CMIS_NOT_READY = 1,
+};
+
+enum ethtool_module_power_mode_policy {
+	ETHTOOL_MODULE_POWER_MODE_POLICY_HIGH = 1,
+	ETHTOOL_MODULE_POWER_MODE_POLICY_AUTO = 2,
+};
+
+enum ethtool_module_power_mode {
+	ETHTOOL_MODULE_POWER_MODE_LOW = 1,
+	ETHTOOL_MODULE_POWER_MODE_HIGH = 2,
+};
+
+struct ethtool_test {
+	__u32 cmd;
+	__u32 flags;
+	__u32 reserved;
+	__u32 len;
+	__u64 data[0];
+};
+
+struct ethtool_stats {
+	__u32 cmd;
+	__u32 n_stats;
+	__u64 data[0];
+};
+
+struct ethtool_tcpip4_spec {
+	__be32 ip4src;
+	__be32 ip4dst;
+	__be16 psrc;
+	__be16 pdst;
+	__u8 tos;
+};
+
+struct ethtool_ah_espip4_spec {
+	__be32 ip4src;
+	__be32 ip4dst;
+	__be32 spi;
+	__u8 tos;
+};
+
+struct ethtool_usrip4_spec {
+	__be32 ip4src;
+	__be32 ip4dst;
+	__be32 l4_4_bytes;
+	__u8 tos;
+	__u8 ip_ver;
+	__u8 proto;
+};
+
+struct ethtool_tcpip6_spec {
+	__be32 ip6src[4];
+	__be32 ip6dst[4];
+	__be16 psrc;
+	__be16 pdst;
+	__u8 tclass;
+};
+
+struct ethtool_ah_espip6_spec {
+	__be32 ip6src[4];
+	__be32 ip6dst[4];
+	__be32 spi;
+	__u8 tclass;
+};
+
+struct ethtool_usrip6_spec {
+	__be32 ip6src[4];
+	__be32 ip6dst[4];
+	__be32 l4_4_bytes;
+	__u8 tclass;
+	__u8 l4_proto;
+};
+
+union ethtool_flow_union {
+	struct ethtool_tcpip4_spec tcp_ip4_spec;
+	struct ethtool_tcpip4_spec udp_ip4_spec;
+	struct ethtool_tcpip4_spec sctp_ip4_spec;
+	struct ethtool_ah_espip4_spec ah_ip4_spec;
+	struct ethtool_ah_espip4_spec esp_ip4_spec;
+	struct ethtool_usrip4_spec usr_ip4_spec;
+	struct ethtool_tcpip6_spec tcp_ip6_spec;
+	struct ethtool_tcpip6_spec udp_ip6_spec;
+	struct ethtool_tcpip6_spec sctp_ip6_spec;
+	struct ethtool_ah_espip6_spec ah_ip6_spec;
+	struct ethtool_ah_espip6_spec esp_ip6_spec;
+	struct ethtool_usrip6_spec usr_ip6_spec;
+	struct ethhdr ether_spec;
+	__u8 hdata[52];
+};
+
+struct ethtool_flow_ext {
+	__u8 padding[2];
+	unsigned char h_dest[6];
+	__be16 vlan_etype;
+	__be16 vlan_tci;
+	__be32 data[2];
+};
+
+struct ethtool_rx_flow_spec {
+	__u32 flow_type;
+	union ethtool_flow_union h_u;
+	struct ethtool_flow_ext h_ext;
+	union ethtool_flow_union m_u;
+	struct ethtool_flow_ext m_ext;
+	__u64 ring_cookie;
+	__u32 location;
+};
+
+struct ethtool_rxnfc {
+	__u32 cmd;
+	__u32 flow_type;
+	__u64 data;
+	struct ethtool_rx_flow_spec fs;
+	union {
+		__u32 rule_cnt;
+		__u32 rss_context;
+	};
+	__u32 rule_locs[0];
+};
+
+struct ethtool_flash {
+	__u32 cmd;
+	__u32 region;
+	char data[128];
+};
+
+struct ethtool_dump {
+	__u32 cmd;
+	__u32 version;
+	__u32 flag;
+	__u32 len;
+	__u8 data[0];
+};
+
+struct ethtool_ts_info {
+	__u32 cmd;
+	__u32 so_timestamping;
+	__s32 phc_index;
+	__u32 tx_types;
+	__u32 tx_reserved[3];
+	__u32 rx_filters;
+	__u32 rx_reserved[3];
+};
+
+struct ethtool_fecparam {
+	__u32 cmd;
+	__u32 active_fec;
+	__u32 fec;
+	__u32 reserved;
+};
+
+enum ethtool_link_mode_bit_indices {
+	ETHTOOL_LINK_MODE_10baseT_Half_BIT = 0,
+	ETHTOOL_LINK_MODE_10baseT_Full_BIT = 1,
+	ETHTOOL_LINK_MODE_100baseT_Half_BIT = 2,
+	ETHTOOL_LINK_MODE_100baseT_Full_BIT = 3,
+	ETHTOOL_LINK_MODE_1000baseT_Half_BIT = 4,
+	ETHTOOL_LINK_MODE_1000baseT_Full_BIT = 5,
+	ETHTOOL_LINK_MODE_Autoneg_BIT = 6,
+	ETHTOOL_LINK_MODE_TP_BIT = 7,
+	ETHTOOL_LINK_MODE_AUI_BIT = 8,
+	ETHTOOL_LINK_MODE_MII_BIT = 9,
+	ETHTOOL_LINK_MODE_FIBRE_BIT = 10,
+	ETHTOOL_LINK_MODE_BNC_BIT = 11,
+	ETHTOOL_LINK_MODE_10000baseT_Full_BIT = 12,
+	ETHTOOL_LINK_MODE_Pause_BIT = 13,
+	ETHTOOL_LINK_MODE_Asym_Pause_BIT = 14,
+	ETHTOOL_LINK_MODE_2500baseX_Full_BIT = 15,
+	ETHTOOL_LINK_MODE_Backplane_BIT = 16,
+	ETHTOOL_LINK_MODE_1000baseKX_Full_BIT = 17,
+	ETHTOOL_LINK_MODE_10000baseKX4_Full_BIT = 18,
+	ETHTOOL_LINK_MODE_10000baseKR_Full_BIT = 19,
+	ETHTOOL_LINK_MODE_10000baseR_FEC_BIT = 20,
+	ETHTOOL_LINK_MODE_20000baseMLD2_Full_BIT = 21,
+	ETHTOOL_LINK_MODE_20000baseKR2_Full_BIT = 22,
+	ETHTOOL_LINK_MODE_40000baseKR4_Full_BIT = 23,
+	ETHTOOL_LINK_MODE_40000baseCR4_Full_BIT = 24,
+	ETHTOOL_LINK_MODE_40000baseSR4_Full_BIT = 25,
+	ETHTOOL_LINK_MODE_40000baseLR4_Full_BIT = 26,
+	ETHTOOL_LINK_MODE_56000baseKR4_Full_BIT = 27,
+	ETHTOOL_LINK_MODE_56000baseCR4_Full_BIT = 28,
+	ETHTOOL_LINK_MODE_56000baseSR4_Full_BIT = 29,
+	ETHTOOL_LINK_MODE_56000baseLR4_Full_BIT = 30,
+	ETHTOOL_LINK_MODE_25000baseCR_Full_BIT = 31,
+	ETHTOOL_LINK_MODE_25000baseKR_Full_BIT = 32,
+	ETHTOOL_LINK_MODE_25000baseSR_Full_BIT = 33,
+	ETHTOOL_LINK_MODE_50000baseCR2_Full_BIT = 34,
+	ETHTOOL_LINK_MODE_50000baseKR2_Full_BIT = 35,
+	ETHTOOL_LINK_MODE_100000baseKR4_Full_BIT = 36,
+	ETHTOOL_LINK_MODE_100000baseSR4_Full_BIT = 37,
+	ETHTOOL_LINK_MODE_100000baseCR4_Full_BIT = 38,
+	ETHTOOL_LINK_MODE_100000baseLR4_ER4_Full_BIT = 39,
+	ETHTOOL_LINK_MODE_50000baseSR2_Full_BIT = 40,
+	ETHTOOL_LINK_MODE_1000baseX_Full_BIT = 41,
+	ETHTOOL_LINK_MODE_10000baseCR_Full_BIT = 42,
+	ETHTOOL_LINK_MODE_10000baseSR_Full_BIT = 43,
+	ETHTOOL_LINK_MODE_10000baseLR_Full_BIT = 44,
+	ETHTOOL_LINK_MODE_10000baseLRM_Full_BIT = 45,
+	ETHTOOL_LINK_MODE_10000baseER_Full_BIT = 46,
+	ETHTOOL_LINK_MODE_2500baseT_Full_BIT = 47,
+	ETHTOOL_LINK_MODE_5000baseT_Full_BIT = 48,
+	ETHTOOL_LINK_MODE_FEC_NONE_BIT = 49,
+	ETHTOOL_LINK_MODE_FEC_RS_BIT = 50,
+	ETHTOOL_LINK_MODE_FEC_BASER_BIT = 51,
+	ETHTOOL_LINK_MODE_50000baseKR_Full_BIT = 52,
+	ETHTOOL_LINK_MODE_50000baseSR_Full_BIT = 53,
+	ETHTOOL_LINK_MODE_50000baseCR_Full_BIT = 54,
+	ETHTOOL_LINK_MODE_50000baseLR_ER_FR_Full_BIT = 55,
+	ETHTOOL_LINK_MODE_50000baseDR_Full_BIT = 56,
+	ETHTOOL_LINK_MODE_100000baseKR2_Full_BIT = 57,
+	ETHTOOL_LINK_MODE_100000baseSR2_Full_BIT = 58,
+	ETHTOOL_LINK_MODE_100000baseCR2_Full_BIT = 59,
+	ETHTOOL_LINK_MODE_100000baseLR2_ER2_FR2_Full_BIT = 60,
+	ETHTOOL_LINK_MODE_100000baseDR2_Full_BIT = 61,
+	ETHTOOL_LINK_MODE_200000baseKR4_Full_BIT = 62,
+	ETHTOOL_LINK_MODE_200000baseSR4_Full_BIT = 63,
+	ETHTOOL_LINK_MODE_200000baseLR4_ER4_FR4_Full_BIT = 64,
+	ETHTOOL_LINK_MODE_200000baseDR4_Full_BIT = 65,
+	ETHTOOL_LINK_MODE_200000baseCR4_Full_BIT = 66,
+	ETHTOOL_LINK_MODE_100baseT1_Full_BIT = 67,
+	ETHTOOL_LINK_MODE_1000baseT1_Full_BIT = 68,
+	ETHTOOL_LINK_MODE_400000baseKR8_Full_BIT = 69,
+	ETHTOOL_LINK_MODE_400000baseSR8_Full_BIT = 70,
+	ETHTOOL_LINK_MODE_400000baseLR8_ER8_FR8_Full_BIT = 71,
+	ETHTOOL_LINK_MODE_400000baseDR8_Full_BIT = 72,
+	ETHTOOL_LINK_MODE_400000baseCR8_Full_BIT = 73,
+	ETHTOOL_LINK_MODE_FEC_LLRS_BIT = 74,
+	ETHTOOL_LINK_MODE_100000baseKR_Full_BIT = 75,
+	ETHTOOL_LINK_MODE_100000baseSR_Full_BIT = 76,
+	ETHTOOL_LINK_MODE_100000baseLR_ER_FR_Full_BIT = 77,
+	ETHTOOL_LINK_MODE_100000baseCR_Full_BIT = 78,
+	ETHTOOL_LINK_MODE_100000baseDR_Full_BIT = 79,
+	ETHTOOL_LINK_MODE_200000baseKR2_Full_BIT = 80,
+	ETHTOOL_LINK_MODE_200000baseSR2_Full_BIT = 81,
+	ETHTOOL_LINK_MODE_200000baseLR2_ER2_FR2_Full_BIT = 82,
+	ETHTOOL_LINK_MODE_200000baseDR2_Full_BIT = 83,
+	ETHTOOL_LINK_MODE_200000baseCR2_Full_BIT = 84,
+	ETHTOOL_LINK_MODE_400000baseKR4_Full_BIT = 85,
+	ETHTOOL_LINK_MODE_400000baseSR4_Full_BIT = 86,
+	ETHTOOL_LINK_MODE_400000baseLR4_ER4_FR4_Full_BIT = 87,
+	ETHTOOL_LINK_MODE_400000baseDR4_Full_BIT = 88,
+	ETHTOOL_LINK_MODE_400000baseCR4_Full_BIT = 89,
+	ETHTOOL_LINK_MODE_100baseFX_Half_BIT = 90,
+	ETHTOOL_LINK_MODE_100baseFX_Full_BIT = 91,
+	ETHTOOL_LINK_MODE_10baseT1L_Full_BIT = 92,
+	__ETHTOOL_LINK_MODE_MASK_NBITS = 93,
+};
+
+struct ethtool_link_settings {
+	__u32 cmd;
+	__u32 speed;
+	__u8 duplex;
+	__u8 port;
+	__u8 phy_address;
+	__u8 autoneg;
+	__u8 mdio_support;
+	__u8 eth_tp_mdix;
+	__u8 eth_tp_mdix_ctrl;
+	__s8 link_mode_masks_nwords;
+	__u8 transceiver;
+	__u8 master_slave_cfg;
+	__u8 master_slave_state;
+	__u8 reserved1[1];
+	__u32 reserved[7];
+	__u32 link_mode_masks[0];
+};
+
+struct kernel_ethtool_ringparam {
+	u32 rx_buf_len;
+	u8 tcp_data_split;
+	u8 tx_push;
+	u32 cqe_size;
+};
+
+struct ethtool_link_ext_state_info {
+	enum ethtool_link_ext_state link_ext_state;
+	union {
+		enum ethtool_link_ext_substate_autoneg autoneg;
+		enum ethtool_link_ext_substate_link_training link_training;
+		enum ethtool_link_ext_substate_link_logical_mismatch link_logical_mismatch;
+		enum ethtool_link_ext_substate_bad_signal_integrity bad_signal_integrity;
+		enum ethtool_link_ext_substate_cable_issue cable_issue;
+		enum ethtool_link_ext_substate_module module;
+		u32 __link_ext_substate;
+	};
+};
+
+struct ethtool_link_ksettings {
+	struct ethtool_link_settings base;
+	struct {
+		long unsigned int supported[2];
+		long unsigned int advertising[2];
+		long unsigned int lp_advertising[2];
+	} link_modes;
+	u32 lanes;
+};
+
+struct kernel_ethtool_coalesce {
+	u8 use_cqe_mode_tx;
+	u8 use_cqe_mode_rx;
+};
+
+struct ethtool_eth_mac_stats {
+	u64 FramesTransmittedOK;
+	u64 SingleCollisionFrames;
+	u64 MultipleCollisionFrames;
+	u64 FramesReceivedOK;
+	u64 FrameCheckSequenceErrors;
+	u64 AlignmentErrors;
+	u64 OctetsTransmittedOK;
+	u64 FramesWithDeferredXmissions;
+	u64 LateCollisions;
+	u64 FramesAbortedDueToXSColls;
+	u64 FramesLostDueToIntMACXmitError;
+	u64 CarrierSenseErrors;
+	u64 OctetsReceivedOK;
+	u64 FramesLostDueToIntMACRcvError;
+	u64 MulticastFramesXmittedOK;
+	u64 BroadcastFramesXmittedOK;
+	u64 FramesWithExcessiveDeferral;
+	u64 MulticastFramesReceivedOK;
+	u64 BroadcastFramesReceivedOK;
+	u64 InRangeLengthErrors;
+	u64 OutOfRangeLengthField;
+	u64 FrameTooLongErrors;
+};
+
+struct ethtool_eth_phy_stats {
+	u64 SymbolErrorDuringCarrier;
+};
+
+struct ethtool_eth_ctrl_stats {
+	u64 MACControlFramesTransmitted;
+	u64 MACControlFramesReceived;
+	u64 UnsupportedOpcodesReceived;
+};
+
+struct ethtool_pause_stats {
+	u64 tx_pause_frames;
+	u64 rx_pause_frames;
+};
+
+struct ethtool_fec_stat {
+	u64 total;
+	u64 lanes[8];
+};
+
+struct ethtool_fec_stats {
+	struct ethtool_fec_stat corrected_blocks;
+	struct ethtool_fec_stat uncorrectable_blocks;
+	struct ethtool_fec_stat corrected_bits;
+};
+
+struct ethtool_rmon_hist_range {
+	u16 low;
+	u16 high;
+};
+
+struct ethtool_rmon_stats {
+	u64 undersize_pkts;
+	u64 oversize_pkts;
+	u64 fragments;
+	u64 jabbers;
+	u64 hist[10];
+	u64 hist_tx[10];
+};
+
+struct ethtool_module_eeprom {
+	u32 offset;
+	u32 length;
+	u8 page;
+	u8 bank;
+	u8 i2c_address;
+	u8 *data;
+};
+
+struct ethtool_module_power_mode_params {
+	enum ethtool_module_power_mode_policy policy;
+	enum ethtool_module_power_mode mode;
+};
+
+enum ib_uverbs_write_cmds {
+	IB_USER_VERBS_CMD_GET_CONTEXT = 0,
+	IB_USER_VERBS_CMD_QUERY_DEVICE = 1,
+	IB_USER_VERBS_CMD_QUERY_PORT = 2,
+	IB_USER_VERBS_CMD_ALLOC_PD = 3,
+	IB_USER_VERBS_CMD_DEALLOC_PD = 4,
+	IB_USER_VERBS_CMD_CREATE_AH = 5,
+	IB_USER_VERBS_CMD_MODIFY_AH = 6,
+	IB_USER_VERBS_CMD_QUERY_AH = 7,
+	IB_USER_VERBS_CMD_DESTROY_AH = 8,
+	IB_USER_VERBS_CMD_REG_MR = 9,
+	IB_USER_VERBS_CMD_REG_SMR = 10,
+	IB_USER_VERBS_CMD_REREG_MR = 11,
+	IB_USER_VERBS_CMD_QUERY_MR = 12,
+	IB_USER_VERBS_CMD_DEREG_MR = 13,
+	IB_USER_VERBS_CMD_ALLOC_MW = 14,
+	IB_USER_VERBS_CMD_BIND_MW = 15,
+	IB_USER_VERBS_CMD_DEALLOC_MW = 16,
+	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL = 17,
+	IB_USER_VERBS_CMD_CREATE_CQ = 18,
+	IB_USER_VERBS_CMD_RESIZE_CQ = 19,
+	IB_USER_VERBS_CMD_DESTROY_CQ = 20,
+	IB_USER_VERBS_CMD_POLL_CQ = 21,
+	IB_USER_VERBS_CMD_PEEK_CQ = 22,
+	IB_USER_VERBS_CMD_REQ_NOTIFY_CQ = 23,
+	IB_USER_VERBS_CMD_CREATE_QP = 24,
+	IB_USER_VERBS_CMD_QUERY_QP = 25,
+	IB_USER_VERBS_CMD_MODIFY_QP = 26,
+	IB_USER_VERBS_CMD_DESTROY_QP = 27,
+	IB_USER_VERBS_CMD_POST_SEND = 28,
+	IB_USER_VERBS_CMD_POST_RECV = 29,
+	IB_USER_VERBS_CMD_ATTACH_MCAST = 30,
+	IB_USER_VERBS_CMD_DETACH_MCAST = 31,
+	IB_USER_VERBS_CMD_CREATE_SRQ = 32,
+	IB_USER_VERBS_CMD_MODIFY_SRQ = 33,
+	IB_USER_VERBS_CMD_QUERY_SRQ = 34,
+	IB_USER_VERBS_CMD_DESTROY_SRQ = 35,
+	IB_USER_VERBS_CMD_POST_SRQ_RECV = 36,
+	IB_USER_VERBS_CMD_OPEN_XRCD = 37,
+	IB_USER_VERBS_CMD_CLOSE_XRCD = 38,
+	IB_USER_VERBS_CMD_CREATE_XSRQ = 39,
+	IB_USER_VERBS_CMD_OPEN_QP = 40,
+};
+
+enum ib_uverbs_wc_opcode {
+	IB_UVERBS_WC_SEND = 0,
+	IB_UVERBS_WC_RDMA_WRITE = 1,
+	IB_UVERBS_WC_RDMA_READ = 2,
+	IB_UVERBS_WC_COMP_SWAP = 3,
+	IB_UVERBS_WC_FETCH_ADD = 4,
+	IB_UVERBS_WC_BIND_MW = 5,
+	IB_UVERBS_WC_LOCAL_INV = 6,
+	IB_UVERBS_WC_TSO = 7,
+};
+
+enum ib_uverbs_create_qp_mask {
+	IB_UVERBS_CREATE_QP_MASK_IND_TABLE = 1,
+};
+
+enum ib_uverbs_wr_opcode {
+	IB_UVERBS_WR_RDMA_WRITE = 0,
+	IB_UVERBS_WR_RDMA_WRITE_WITH_IMM = 1,
+	IB_UVERBS_WR_SEND = 2,
+	IB_UVERBS_WR_SEND_WITH_IMM = 3,
+	IB_UVERBS_WR_RDMA_READ = 4,
+	IB_UVERBS_WR_ATOMIC_CMP_AND_SWP = 5,
+	IB_UVERBS_WR_ATOMIC_FETCH_AND_ADD = 6,
+	IB_UVERBS_WR_LOCAL_INV = 7,
+	IB_UVERBS_WR_BIND_MW = 8,
+	IB_UVERBS_WR_SEND_WITH_INV = 9,
+	IB_UVERBS_WR_TSO = 10,
+	IB_UVERBS_WR_RDMA_READ_WITH_INV = 11,
+	IB_UVERBS_WR_MASKED_ATOMIC_CMP_AND_SWP = 12,
+	IB_UVERBS_WR_MASKED_ATOMIC_FETCH_AND_ADD = 13,
+};
+
+enum ib_uverbs_device_cap_flags {
+	IB_UVERBS_DEVICE_RESIZE_MAX_WR = 1,
+	IB_UVERBS_DEVICE_BAD_PKEY_CNTR = 2,
+	IB_UVERBS_DEVICE_BAD_QKEY_CNTR = 4,
+	IB_UVERBS_DEVICE_RAW_MULTI = 8,
+	IB_UVERBS_DEVICE_AUTO_PATH_MIG = 16,
+	IB_UVERBS_DEVICE_CHANGE_PHY_PORT = 32,
+	IB_UVERBS_DEVICE_UD_AV_PORT_ENFORCE = 64,
+	IB_UVERBS_DEVICE_CURR_QP_STATE_MOD = 128,
+	IB_UVERBS_DEVICE_SHUTDOWN_PORT = 256,
+	IB_UVERBS_DEVICE_PORT_ACTIVE_EVENT = 1024,
+	IB_UVERBS_DEVICE_SYS_IMAGE_GUID = 2048,
+	IB_UVERBS_DEVICE_RC_RNR_NAK_GEN = 4096,
+	IB_UVERBS_DEVICE_SRQ_RESIZE = 8192,
+	IB_UVERBS_DEVICE_N_NOTIFY_CQ = 16384,
+	IB_UVERBS_DEVICE_MEM_WINDOW = 131072,
+	IB_UVERBS_DEVICE_UD_IP_CSUM = 262144,
+	IB_UVERBS_DEVICE_XRC = 1048576,
+	IB_UVERBS_DEVICE_MEM_MGT_EXTENSIONS = 2097152,
+	IB_UVERBS_DEVICE_MEM_WINDOW_TYPE_2A = 8388608,
+	IB_UVERBS_DEVICE_MEM_WINDOW_TYPE_2B = 16777216,
+	IB_UVERBS_DEVICE_RC_IP_CSUM = 33554432,
+	IB_UVERBS_DEVICE_RAW_IP_CSUM = 67108864,
+	IB_UVERBS_DEVICE_MANAGED_FLOW_STEERING = 536870912,
+	IB_UVERBS_DEVICE_RAW_SCATTER_FCS = 0,
+	IB_UVERBS_DEVICE_PCI_WRITE_END_PADDING = 0,
+};
+
+enum ib_uverbs_raw_packet_caps {
+	IB_UVERBS_RAW_PACKET_CAP_CVLAN_STRIPPING = 1,
+	IB_UVERBS_RAW_PACKET_CAP_SCATTER_FCS = 2,
+	IB_UVERBS_RAW_PACKET_CAP_IP_CSUM = 4,
+	IB_UVERBS_RAW_PACKET_CAP_DELAY_DROP = 8,
+};
+
+enum ib_uverbs_access_flags {
+	IB_UVERBS_ACCESS_LOCAL_WRITE = 1,
+	IB_UVERBS_ACCESS_REMOTE_WRITE = 2,
+	IB_UVERBS_ACCESS_REMOTE_READ = 4,
+	IB_UVERBS_ACCESS_REMOTE_ATOMIC = 8,
+	IB_UVERBS_ACCESS_MW_BIND = 16,
+	IB_UVERBS_ACCESS_ZERO_BASED = 32,
+	IB_UVERBS_ACCESS_ON_DEMAND = 64,
+	IB_UVERBS_ACCESS_HUGETLB = 128,
+	IB_UVERBS_ACCESS_RELAXED_ORDERING = 1048576,
+	IB_UVERBS_ACCESS_OPTIONAL_RANGE = 1072693248,
+};
+
+enum ib_uverbs_srq_type {
+	IB_UVERBS_SRQT_BASIC = 0,
+	IB_UVERBS_SRQT_XRC = 1,
+	IB_UVERBS_SRQT_TM = 2,
+};
+
+enum ib_uverbs_wq_type {
+	IB_UVERBS_WQT_RQ = 0,
+};
+
+enum ib_uverbs_wq_flags {
+	IB_UVERBS_WQ_FLAGS_CVLAN_STRIPPING = 1,
+	IB_UVERBS_WQ_FLAGS_SCATTER_FCS = 2,
+	IB_UVERBS_WQ_FLAGS_DELAY_DROP = 4,
+	IB_UVERBS_WQ_FLAGS_PCI_WRITE_END_PADDING = 8,
+};
+
+enum ib_uverbs_qp_type {
+	IB_UVERBS_QPT_RC = 2,
+	IB_UVERBS_QPT_UC = 3,
+	IB_UVERBS_QPT_UD = 4,
+	IB_UVERBS_QPT_RAW_PACKET = 8,
+	IB_UVERBS_QPT_XRC_INI = 9,
+	IB_UVERBS_QPT_XRC_TGT = 10,
+	IB_UVERBS_QPT_DRIVER = 255,
+};
+
+enum ib_uverbs_qp_create_flags {
+	IB_UVERBS_QP_CREATE_BLOCK_MULTICAST_LOOPBACK = 2,
+	IB_UVERBS_QP_CREATE_SCATTER_FCS = 256,
+	IB_UVERBS_QP_CREATE_CVLAN_STRIPPING = 512,
+	IB_UVERBS_QP_CREATE_PCI_WRITE_END_PADDING = 2048,
+	IB_UVERBS_QP_CREATE_SQ_SIG_ALL = 4096,
+};
+
+enum ib_uverbs_gid_type {
+	IB_UVERBS_GID_TYPE_IB = 0,
+	IB_UVERBS_GID_TYPE_ROCE_V1 = 1,
+	IB_UVERBS_GID_TYPE_ROCE_V2 = 2,
+};
+
+enum ib_poll_context {
+	IB_POLL_SOFTIRQ = 0,
+	IB_POLL_WORKQUEUE = 1,
+	IB_POLL_UNBOUND_WORKQUEUE = 2,
+	IB_POLL_LAST_POOL_TYPE = 2,
+	IB_POLL_DIRECT = 3,
+};
+
+struct lsm_network_audit {
+	int netif;
+	const struct sock *sk;
+	u16 family;
+	__be16 dport;
+	__be16 sport;
+	union {
+		struct {
+			__be32 daddr;
+			__be32 saddr;
+		} v4;
+		struct {
+			struct in6_addr daddr;
+			struct in6_addr saddr;
+		} v6;
+	} fam;
+};
+
+struct lsm_ioctlop_audit {
+	struct path path;
+	u16 cmd;
+};
+
+struct lsm_ibpkey_audit {
+	u64 subnet_prefix;
+	u16 pkey;
+};
+
+struct lsm_ibendport_audit {
+	const char *dev_name;
+	u8 port;
+};
+
+struct selinux_state;
+
+struct selinux_audit_data {
+	u32 ssid;
+	u32 tsid;
+	u16 tclass;
+	u32 requested;
+	u32 audited;
+	u32 denied;
+	int result;
+	struct selinux_state *state;
+};
+
+struct common_audit_data {
+	char type;
+	union {
+		struct path path;
+		struct dentry *dentry;
+		struct inode *inode;
+		struct lsm_network_audit *net;
+		int cap;
+		int ipc_id;
+		struct task_struct *tsk;
+		struct {
+			key_serial_t key;
+			char *key_desc;
+		} key_struct;
+		char *kmod_name;
+		struct lsm_ioctlop_audit *op;
+		struct file *file;
+		struct lsm_ibpkey_audit *ibpkey;
+		struct lsm_ibendport_audit *ibendport;
+		int reason;
+		const char *anonclass;
+	} u;
+	union {
+		struct selinux_audit_data *selinux_audit_data;
+	};
+};
+
+enum {
+	POLICYDB_CAP_NETPEER = 0,
+	POLICYDB_CAP_OPENPERM = 1,
+	POLICYDB_CAP_EXTSOCKCLASS = 2,
+	POLICYDB_CAP_ALWAYSNETWORK = 3,
+	POLICYDB_CAP_CGROUPSECLABEL = 4,
+	POLICYDB_CAP_NNP_NOSUID_TRANSITION = 5,
+	POLICYDB_CAP_GENFS_SECLABEL_SYMLINKS = 6,
+	POLICYDB_CAP_IOCTL_SKIP_CLOEXEC = 7,
+	__POLICYDB_CAP_MAX = 8,
+};
+
+struct selinux_avc;
+
+struct selinux_policy;
+
+struct selinux_state {
+	bool enforcing;
+	bool checkreqprot;
+	bool initialized;
+	bool policycap[8];
+	struct page *status_page;
+	struct mutex status_lock;
+	struct selinux_avc *avc;
+	struct selinux_policy *policy;
+	struct mutex policy_mutex;
+};
+
+struct avc_cache {
+	struct hlist_head slots[512];
+	spinlock_t slots_lock[512];
+	atomic_t lru_hint;
+	atomic_t active_nodes;
+	u32 latest_notif;
+};
+
+struct selinux_avc {
+	unsigned int avc_cache_threshold;
+	struct avc_cache avc_cache;
+};
+
+struct av_decision {
+	u32 allowed;
+	u32 auditallow;
+	u32 auditdeny;
+	u32 seqno;
+	u32 flags;
+};
+
+struct extended_perms_data {
+	u32 p[8];
+};
+
+struct extended_perms_decision {
+	u8 used;
+	u8 driver;
+	struct extended_perms_data *allowed;
+	struct extended_perms_data *auditallow;
+	struct extended_perms_data *dontaudit;
+};
+
+struct extended_perms {
+	u16 len;
+	struct extended_perms_data drivers;
+};
+
+struct avc_cache_stats {
+	unsigned int lookups;
+	unsigned int misses;
+	unsigned int allocations;
+	unsigned int reclaims;
+	unsigned int frees;
+};
+
+struct security_class_mapping {
+	const char *name;
+	const char *perms[33];
+};
+
+struct trace_event_raw_selinux_audited {
+	struct trace_entry ent;
+	u32 requested;
+	u32 denied;
+	u32 audited;
+	int result;
+	u32 __data_loc_scontext;
+	u32 __data_loc_tcontext;
+	u32 __data_loc_tclass;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_selinux_audited {
+	u32 scontext;
+	u32 tcontext;
+	u32 tclass;
+};
+
+typedef void (*btf_trace_selinux_audited)(void *, struct selinux_audit_data *, char *, char *, const char *);
+
+struct avc_xperms_node;
+
+struct avc_entry {
+	u32 ssid;
+	u32 tsid;
+	u16 tclass;
+	struct av_decision avd;
+	struct avc_xperms_node *xp_node;
+};
+
+struct avc_xperms_node {
+	struct extended_perms xp;
+	struct list_head xpd_head;
+};
+
+struct avc_node {
+	struct avc_entry ae;
+	struct hlist_node list;
+	struct callback_head rhead;
+};
+
+struct avc_xperms_decision_node {
+	struct extended_perms_decision xpd;
+	struct list_head xpd_list;
+};
+
+struct avc_callback_node {
+	int (*callback)(u32);
+	u32 events;
+	struct avc_callback_node *next;
+};
+
+struct hashtab_key_params {
+	u32 (*hash)(const void *);
+	int (*cmp)(const void *, const void *);
+};
+
+struct hashtab_node {
+	void *key;
+	void *datum;
+	struct hashtab_node *next;
+};
+
+struct hashtab {
+	struct hashtab_node **htable;
+	u32 size;
+	u32 nel;
+};
+
+struct symtab {
+	struct hashtab table;
+	u32 nprim;
+};
+
+struct avtab_key {
+	u16 source_type;
+	u16 target_type;
+	u16 target_class;
+	u16 specified;
+};
+
+struct avtab_extended_perms {
+	u8 specified;
+	u8 driver;
+	struct extended_perms_data perms;
+};
+
+struct avtab_datum {
+	union {
+		u32 data;
+		struct avtab_extended_perms *xperms;
+	} u;
+};
+
+struct avtab_node {
+	struct avtab_key key;
+	struct avtab_datum datum;
+	struct avtab_node *next;
+};
+
+struct avtab {
+	struct avtab_node **htable;
+	u32 nel;
+	u32 nslot;
+	u32 mask;
+};
+
+struct ebitmap_node {
+	struct ebitmap_node *next;
+	long unsigned int maps[6];
+	u32 startbit;
+};
+
+struct ebitmap {
+	struct ebitmap_node *node;
+	u32 highbit;
+};
+
+struct mls_level {
+	u32 sens;
+	struct ebitmap cat;
+};
+
+struct mls_range {
+	struct mls_level level[2];
+};
+
+struct context {
+	u32 user;
+	u32 role;
+	u32 type;
+	u32 len;
+	struct mls_range range;
+	char *str;
+};
+
+struct sidtab_str_cache;
+
+struct sidtab_entry {
+	u32 sid;
+	u32 hash;
+	struct context context;
+	struct sidtab_str_cache *cache;
+	struct hlist_node list;
+};
+
+struct sidtab_node_inner;
+
+struct sidtab_node_leaf;
+
+union sidtab_entry_inner {
+	struct sidtab_node_inner *ptr_inner;
+	struct sidtab_node_leaf *ptr_leaf;
+};
+
+struct sidtab_node_inner {
+	union sidtab_entry_inner entries[512];
+};
+
+struct sidtab_node_leaf {
+	struct sidtab_entry entries[39];
+};
+
+struct sidtab_isid_entry {
+	int set;
+	struct sidtab_entry entry;
+};
+
+struct sidtab;
+
+struct sidtab_convert_params {
+	int (*func)(struct context *, struct context *, void *, gfp_t);
+	void *args;
+	struct sidtab *target;
+};
+
+struct sidtab {
+	union sidtab_entry_inner roots[4];
+	u32 count;
+	struct sidtab_convert_params *convert;
+	bool frozen;
+	spinlock_t lock;
+	u32 cache_free_slots;
+	struct list_head cache_lru_list;
+	spinlock_t cache_lock;
+	struct sidtab_isid_entry isids[27];
+	struct hlist_head context_to_sid[512];
+};
+
+struct type_set;
+
+struct constraint_expr {
+	u32 expr_type;
+	u32 attr;
+	u32 op;
+	struct ebitmap names;
+	struct type_set *type_names;
+	struct constraint_expr *next;
+};
+
+struct type_set {
+	struct ebitmap types;
+	struct ebitmap negset;
+	u32 flags;
+};
+
+struct constraint_node {
+	u32 permissions;
+	struct constraint_expr *expr;
+	struct constraint_node *next;
+};
+
+struct perm_datum {
+	u32 value;
+};
+
+struct common_datum {
+	u32 value;
+	struct symtab permissions;
+};
+
+struct class_datum {
+	u32 value;
+	char *comkey;
+	struct common_datum *comdatum;
+	struct symtab permissions;
+	struct constraint_node *constraints;
+	struct constraint_node *validatetrans;
+	char default_user;
+	char default_role;
+	char default_type;
+	char default_range;
+};
+
+struct role_datum {
+	u32 value;
+	u32 bounds;
+	struct ebitmap dominates;
+	struct ebitmap types;
+};
+
+struct role_trans_key {
+	u32 role;
+	u32 type;
+	u32 tclass;
+};
+
+struct role_trans_datum {
+	u32 new_role;
+};
+
+struct filename_trans_key {
+	u32 ttype;
+	u16 tclass;
+	const char *name;
+};
+
+struct filename_trans_datum {
+	struct ebitmap stypes;
+	u32 otype;
+	struct filename_trans_datum *next;
+};
+
+struct role_allow {
+	u32 role;
+	u32 new_role;
+	struct role_allow *next;
+};
+
+struct type_datum {
+	u32 value;
+	u32 bounds;
+	unsigned char primary;
+	unsigned char attribute;
+};
+
+struct user_datum {
+	u32 value;
+	u32 bounds;
+	struct ebitmap roles;
+	struct mls_range range;
+	struct mls_level dfltlevel;
+};
+
+struct level_datum {
+	struct mls_level *level;
+	unsigned char isalias;
+};
+
+struct cat_datum {
+	u32 value;
+	unsigned char isalias;
+};
+
+struct range_trans {
+	u32 source_type;
+	u32 target_type;
+	u32 target_class;
+};
+
+struct cond_bool_datum {
+	__u32 value;
+	int state;
+};
+
+struct ocontext {
+	union {
+		char *name;
+		struct {
+			u8 protocol;
+			u16 low_port;
+			u16 high_port;
+		} port;
+		struct {
+			u32 addr;
+			u32 mask;
+		} node;
+		struct {
+			u32 addr[4];
+			u32 mask[4];
+		} node6;
+		struct {
+			u64 subnet_prefix;
+			u16 low_pkey;
+			u16 high_pkey;
+		} ibpkey;
+		struct {
+			char *dev_name;
+			u8 port;
+		} ibendport;
+	} u;
+	union {
+		u32 sclass;
+		u32 behavior;
+	} v;
+	struct context context[2];
+	u32 sid[2];
+	struct ocontext *next;
+};
+
+struct genfs {
+	char *fstype;
+	struct ocontext *head;
+	struct genfs *next;
+};
+
+struct cond_node;
+
+struct policydb {
+	int mls_enabled;
+	struct symtab symtab[8];
+	char **sym_val_to_name[8];
+	struct class_datum **class_val_to_struct;
+	struct role_datum **role_val_to_struct;
+	struct user_datum **user_val_to_struct;
+	struct type_datum **type_val_to_struct;
+	struct avtab te_avtab;
+	struct hashtab role_tr;
+	struct ebitmap filename_trans_ttypes;
+	struct hashtab filename_trans;
+	u32 compat_filename_trans_count;
+	struct cond_bool_datum **bool_val_to_struct;
+	struct avtab te_cond_avtab;
+	struct cond_node *cond_list;
+	u32 cond_list_len;
+	struct role_allow *role_allow;
+	struct ocontext *ocontexts[9];
+	struct genfs *genfs;
+	struct hashtab range_tr;
+	struct ebitmap *type_attr_map_array;
+	struct ebitmap policycaps;
+	struct ebitmap permissive_map;
+	size_t len;
+	unsigned int policyvers;
+	unsigned int reject_unknown: 1;
+	unsigned int allow_unknown: 1;
+	u16 process_class;
+	u32 process_trans_perms;
+};
+
+struct cond_expr_node;
+
+struct cond_expr {
+	struct cond_expr_node *nodes;
+	u32 len;
+};
+
+struct cond_av_list {
+	struct avtab_node **nodes;
+	u32 len;
+};
+
+struct cond_node {
+	int cur_state;
+	struct cond_expr expr;
+	struct cond_av_list true_list;
+	struct cond_av_list false_list;
+};
+
+struct policy_file {
+	char *data;
+	size_t len;
+};
+
+struct policy_data {
+	struct policydb *p;
+	void *fp;
+};
+
+struct cond_expr_node {
+	u32 expr_type;
+	u32 bool;
+};
+
+struct policydb_compat_info {
+	int version;
+	int sym_num;
+	int ocon_num;
+};
+
+typedef int __kernel_key_t;
+
+typedef __kernel_key_t key_t;
+
+struct timezone {
+	int tz_minuteswest;
+	int tz_dsttime;
+};
+
+enum key_need_perm {
+	KEY_NEED_UNSPECIFIED = 0,
+	KEY_NEED_VIEW = 1,
+	KEY_NEED_READ = 2,
+	KEY_NEED_WRITE = 3,
+	KEY_NEED_SEARCH = 4,
+	KEY_NEED_LINK = 5,
+	KEY_NEED_SETATTR = 6,
+	KEY_NEED_UNLINK = 7,
+	KEY_SYSADMIN_OVERRIDE = 8,
+	KEY_AUTHTOKEN_OVERRIDE = 9,
+	KEY_DEFER_PERM_CHECK = 10,
+};
+
+struct kern_ipc_perm {
+	spinlock_t lock;
+	bool deleted;
+	int id;
+	key_t key;
+	kuid_t uid;
+	kgid_t gid;
+	kuid_t cuid;
+	kgid_t cgid;
+	umode_t mode;
+	long unsigned int seq;
+	void *security;
+	struct rhash_head khtnode;
+	struct callback_head rcu;
+	refcount_t refcount;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct sembuf {
+	short unsigned int sem_num;
+	short int sem_op;
+	short int sem_flg;
+};
+
+enum kernel_load_data_id {
+	LOADING_UNKNOWN = 0,
+	LOADING_FIRMWARE = 1,
+	LOADING_MODULE = 2,
+	LOADING_KEXEC_IMAGE = 3,
+	LOADING_KEXEC_INITRAMFS = 4,
+	LOADING_POLICY = 5,
+	LOADING_X509_CERTIFICATE = 6,
+	LOADING_MAX_ID = 7,
+};
+
+struct watch_notification;
+
+struct sctp_association;
+
+struct xfrm_sec_ctx;
+
+struct xfrm_user_sec_ctx;
+
+union security_list_options {
+	int (*binder_set_context_mgr)(const struct cred *);
+	int (*binder_transaction)(const struct cred *, const struct cred *);
+	int (*binder_transfer_binder)(const struct cred *, const struct cred *);
+	int (*binder_transfer_file)(const struct cred *, const struct cred *, struct file *);
+	int (*ptrace_access_check)(struct task_struct *, unsigned int);
+	int (*ptrace_traceme)(struct task_struct *);
+	int (*capget)(struct task_struct *, kernel_cap_t *, kernel_cap_t *, kernel_cap_t *);
+	int (*capset)(struct cred *, const struct cred *, const kernel_cap_t *, const kernel_cap_t *, const kernel_cap_t *);
+	int (*capable)(const struct cred *, struct user_namespace *, int, unsigned int);
+	int (*quotactl)(int, int, int, struct super_block *);
+	int (*quota_on)(struct dentry *);
+	int (*syslog)(int);
+	int (*settime)(const struct timespec64 *, const struct timezone *);
+	int (*vm_enough_memory)(struct mm_struct *, long int);
+	int (*bprm_creds_for_exec)(struct linux_binprm *);
+	int (*bprm_creds_from_file)(struct linux_binprm *, struct file *);
+	int (*bprm_check_security)(struct linux_binprm *);
+	void (*bprm_committing_creds)(struct linux_binprm *);
+	void (*bprm_committed_creds)(struct linux_binprm *);
+	int (*fs_context_dup)(struct fs_context *, struct fs_context *);
+	int (*fs_context_parse_param)(struct fs_context *, struct fs_parameter *);
+	int (*sb_alloc_security)(struct super_block *);
+	void (*sb_delete)(struct super_block *);
+	void (*sb_free_security)(struct super_block *);
+	void (*sb_free_mnt_opts)(void *);
+	int (*sb_eat_lsm_opts)(char *, void **);
+	int (*sb_mnt_opts_compat)(struct super_block *, void *);
+	int (*sb_remount)(struct super_block *, void *);
+	int (*sb_kern_mount)(struct super_block *);
+	int (*sb_show_options)(struct seq_file *, struct super_block *);
+	int (*sb_statfs)(struct dentry *);
+	int (*sb_mount)(const char *, const struct path *, const char *, long unsigned int, void *);
+	int (*sb_umount)(struct vfsmount *, int);
+	int (*sb_pivotroot)(const struct path *, const struct path *);
+	int (*sb_set_mnt_opts)(struct super_block *, void *, long unsigned int, long unsigned int *);
+	int (*sb_clone_mnt_opts)(const struct super_block *, struct super_block *, long unsigned int, long unsigned int *);
+	int (*move_mount)(const struct path *, const struct path *);
+	int (*dentry_init_security)(struct dentry *, int, const struct qstr *, const char **, void **, u32 *);
+	int (*dentry_create_files_as)(struct dentry *, int, struct qstr *, const struct cred *, struct cred *);
+	int (*path_unlink)(const struct path *, struct dentry *);
+	int (*path_mkdir)(const struct path *, struct dentry *, umode_t);
+	int (*path_rmdir)(const struct path *, struct dentry *);
+	int (*path_mknod)(const struct path *, struct dentry *, umode_t, unsigned int);
+	int (*path_truncate)(const struct path *);
+	int (*path_symlink)(const struct path *, struct dentry *, const char *);
+	int (*path_link)(struct dentry *, const struct path *, struct dentry *);
+	int (*path_rename)(const struct path *, struct dentry *, const struct path *, struct dentry *, unsigned int);
+	int (*path_chmod)(const struct path *, umode_t);
+	int (*path_chown)(const struct path *, kuid_t, kgid_t);
+	int (*path_chroot)(const struct path *);
+	int (*path_notify)(const struct path *, u64, unsigned int);
+	int (*inode_alloc_security)(struct inode *);
+	void (*inode_free_security)(struct inode *);
+	int (*inode_init_security)(struct inode *, struct inode *, const struct qstr *, const char **, void **, size_t *);
+	int (*inode_init_security_anon)(struct inode *, const struct qstr *, const struct inode *);
+	int (*inode_create)(struct inode *, struct dentry *, umode_t);
+	int (*inode_link)(struct dentry *, struct inode *, struct dentry *);
+	int (*inode_unlink)(struct inode *, struct dentry *);
+	int (*inode_symlink)(struct inode *, struct dentry *, const char *);
+	int (*inode_mkdir)(struct inode *, struct dentry *, umode_t);
+	int (*inode_rmdir)(struct inode *, struct dentry *);
+	int (*inode_mknod)(struct inode *, struct dentry *, umode_t, dev_t);
+	int (*inode_rename)(struct inode *, struct dentry *, struct inode *, struct dentry *);
+	int (*inode_readlink)(struct dentry *);
+	int (*inode_follow_link)(struct dentry *, struct inode *, bool);
+	int (*inode_permission)(struct inode *, int);
+	int (*inode_setattr)(struct dentry *, struct iattr *);
+	int (*inode_getattr)(const struct path *);
+	int (*inode_setxattr)(struct user_namespace *, struct dentry *, const char *, const void *, size_t, int);
+	void (*inode_post_setxattr)(struct dentry *, const char *, const void *, size_t, int);
+	int (*inode_getxattr)(struct dentry *, const char *);
+	int (*inode_listxattr)(struct dentry *);
+	int (*inode_removexattr)(struct user_namespace *, struct dentry *, const char *);
+	int (*inode_need_killpriv)(struct dentry *);
+	int (*inode_killpriv)(struct user_namespace *, struct dentry *);
+	int (*inode_getsecurity)(struct user_namespace *, struct inode *, const char *, void **, bool);
+	int (*inode_setsecurity)(struct inode *, const char *, const void *, size_t, int);
+	int (*inode_listsecurity)(struct inode *, char *, size_t);
+	void (*inode_getsecid)(struct inode *, u32 *);
+	int (*inode_copy_up)(struct dentry *, struct cred **);
+	int (*inode_copy_up_xattr)(const char *);
+	int (*kernfs_init_security)(struct kernfs_node *, struct kernfs_node *);
+	int (*file_permission)(struct file *, int);
+	int (*file_alloc_security)(struct file *);
+	void (*file_free_security)(struct file *);
+	int (*file_ioctl)(struct file *, unsigned int, long unsigned int);
+	int (*mmap_addr)(long unsigned int);
+	int (*mmap_file)(struct file *, long unsigned int, long unsigned int, long unsigned int);
+	int (*file_mprotect)(struct vm_area_struct *, long unsigned int, long unsigned int);
+	int (*file_lock)(struct file *, unsigned int);
+	int (*file_fcntl)(struct file *, unsigned int, long unsigned int);
+	void (*file_set_fowner)(struct file *);
+	int (*file_send_sigiotask)(struct task_struct *, struct fown_struct *, int);
+	int (*file_receive)(struct file *);
+	int (*file_open)(struct file *);
+	int (*task_alloc)(struct task_struct *, long unsigned int);
+	void (*task_free)(struct task_struct *);
+	int (*cred_alloc_blank)(struct cred *, gfp_t);
+	void (*cred_free)(struct cred *);
+	int (*cred_prepare)(struct cred *, const struct cred *, gfp_t);
+	void (*cred_transfer)(struct cred *, const struct cred *);
+	void (*cred_getsecid)(const struct cred *, u32 *);
+	int (*kernel_act_as)(struct cred *, u32);
+	int (*kernel_create_files_as)(struct cred *, struct inode *);
+	int (*kernel_module_request)(char *);
+	int (*kernel_load_data)(enum kernel_load_data_id, bool);
+	int (*kernel_post_load_data)(char *, loff_t, enum kernel_load_data_id, char *);
+	int (*kernel_read_file)(struct file *, enum kernel_read_file_id, bool);
+	int (*kernel_post_read_file)(struct file *, char *, loff_t, enum kernel_read_file_id);
+	int (*task_fix_setuid)(struct cred *, const struct cred *, int);
+	int (*task_fix_setgid)(struct cred *, const struct cred *, int);
+	int (*task_fix_setgroups)(struct cred *, const struct cred *);
+	int (*task_setpgid)(struct task_struct *, pid_t);
+	int (*task_getpgid)(struct task_struct *);
+	int (*task_getsid)(struct task_struct *);
+	void (*current_getsecid_subj)(u32 *);
+	void (*task_getsecid_obj)(struct task_struct *, u32 *);
+	int (*task_setnice)(struct task_struct *, int);
+	int (*task_setioprio)(struct task_struct *, int);
+	int (*task_getioprio)(struct task_struct *);
+	int (*task_prlimit)(const struct cred *, const struct cred *, unsigned int);
+	int (*task_setrlimit)(struct task_struct *, unsigned int, struct rlimit *);
+	int (*task_setscheduler)(struct task_struct *);
+	int (*task_getscheduler)(struct task_struct *);
+	int (*task_movememory)(struct task_struct *);
+	int (*task_kill)(struct task_struct *, struct kernel_siginfo *, int, const struct cred *);
+	int (*task_prctl)(int, long unsigned int, long unsigned int, long unsigned int, long unsigned int);
+	void (*task_to_inode)(struct task_struct *, struct inode *);
+	int (*ipc_permission)(struct kern_ipc_perm *, short int);
+	void (*ipc_getsecid)(struct kern_ipc_perm *, u32 *);
+	int (*msg_msg_alloc_security)(struct msg_msg *);
+	void (*msg_msg_free_security)(struct msg_msg *);
+	int (*msg_queue_alloc_security)(struct kern_ipc_perm *);
+	void (*msg_queue_free_security)(struct kern_ipc_perm *);
+	int (*msg_queue_associate)(struct kern_ipc_perm *, int);
+	int (*msg_queue_msgctl)(struct kern_ipc_perm *, int);
+	int (*msg_queue_msgsnd)(struct kern_ipc_perm *, struct msg_msg *, int);
+	int (*msg_queue_msgrcv)(struct kern_ipc_perm *, struct msg_msg *, struct task_struct *, long int, int);
+	int (*shm_alloc_security)(struct kern_ipc_perm *);
+	void (*shm_free_security)(struct kern_ipc_perm *);
+	int (*shm_associate)(struct kern_ipc_perm *, int);
+	int (*shm_shmctl)(struct kern_ipc_perm *, int);
+	int (*shm_shmat)(struct kern_ipc_perm *, char *, int);
+	int (*sem_alloc_security)(struct kern_ipc_perm *);
+	void (*sem_free_security)(struct kern_ipc_perm *);
+	int (*sem_associate)(struct kern_ipc_perm *, int);
+	int (*sem_semctl)(struct kern_ipc_perm *, int);
+	int (*sem_semop)(struct kern_ipc_perm *, struct sembuf *, unsigned int, int);
+	int (*netlink_send)(struct sock *, struct sk_buff *);
+	void (*d_instantiate)(struct dentry *, struct inode *);
+	int (*getprocattr)(struct task_struct *, char *, char **);
+	int (*setprocattr)(const char *, void *, size_t);
+	int (*ismaclabel)(const char *);
+	int (*secid_to_secctx)(u32, char **, u32 *);
+	int (*secctx_to_secid)(const char *, u32, u32 *);
+	void (*release_secctx)(char *, u32);
+	void (*inode_invalidate_secctx)(struct inode *);
+	int (*inode_notifysecctx)(struct inode *, void *, u32);
+	int (*inode_setsecctx)(struct dentry *, void *, u32);
+	int (*inode_getsecctx)(struct inode *, void **, u32 *);
+	int (*post_notification)(const struct cred *, const struct cred *, struct watch_notification *);
+	int (*watch_key)(struct key *);
+	int (*unix_stream_connect)(struct sock *, struct sock *, struct sock *);
+	int (*unix_may_send)(struct socket *, struct socket *);
+	int (*socket_create)(int, int, int, int);
+	int (*socket_post_create)(struct socket *, int, int, int, int);
+	int (*socket_socketpair)(struct socket *, struct socket *);
+	int (*socket_bind)(struct socket *, struct sockaddr *, int);
+	int (*socket_connect)(struct socket *, struct sockaddr *, int);
+	int (*socket_listen)(struct socket *, int);
+	int (*socket_accept)(struct socket *, struct socket *);
+	int (*socket_sendmsg)(struct socket *, struct msghdr *, int);
+	int (*socket_recvmsg)(struct socket *, struct msghdr *, int, int);
+	int (*socket_getsockname)(struct socket *);
+	int (*socket_getpeername)(struct socket *);
+	int (*socket_getsockopt)(struct socket *, int, int);
+	int (*socket_setsockopt)(struct socket *, int, int);
+	int (*socket_shutdown)(struct socket *, int);
+	int (*socket_sock_rcv_skb)(struct sock *, struct sk_buff *);
+	int (*socket_getpeersec_stream)(struct socket *, char *, int *, unsigned int);
+	int (*socket_getpeersec_dgram)(struct socket *, struct sk_buff *, u32 *);
+	int (*sk_alloc_security)(struct sock *, int, gfp_t);
+	void (*sk_free_security)(struct sock *);
+	void (*sk_clone_security)(const struct sock *, struct sock *);
+	void (*sk_getsecid)(struct sock *, u32 *);
+	void (*sock_graft)(struct sock *, struct socket *);
+	int (*inet_conn_request)(const struct sock *, struct sk_buff *, struct request_sock *);
+	void (*inet_csk_clone)(struct sock *, const struct request_sock *);
+	void (*inet_conn_established)(struct sock *, struct sk_buff *);
+	int (*secmark_relabel_packet)(u32);
+	void (*secmark_refcount_inc)();
+	void (*secmark_refcount_dec)();
+	void (*req_classify_flow)(const struct request_sock *, struct flowi_common *);
+	int (*tun_dev_alloc_security)(void **);
+	void (*tun_dev_free_security)(void *);
+	int (*tun_dev_create)();
+	int (*tun_dev_attach_queue)(void *);
+	int (*tun_dev_attach)(struct sock *, void *);
+	int (*tun_dev_open)(void *);
+	int (*sctp_assoc_request)(struct sctp_association *, struct sk_buff *);
+	int (*sctp_bind_connect)(struct sock *, int, struct sockaddr *, int);
+	void (*sctp_sk_clone)(struct sctp_association *, struct sock *, struct sock *);
+	int (*sctp_assoc_established)(struct sctp_association *, struct sk_buff *);
+	int (*ib_pkey_access)(void *, u64, u16);
+	int (*ib_endport_manage_subnet)(void *, const char *, u8);
+	int (*ib_alloc_security)(void **);
+	void (*ib_free_security)(void *);
+	int (*xfrm_policy_alloc_security)(struct xfrm_sec_ctx **, struct xfrm_user_sec_ctx *, gfp_t);
+	int (*xfrm_policy_clone_security)(struct xfrm_sec_ctx *, struct xfrm_sec_ctx **);
+	void (*xfrm_policy_free_security)(struct xfrm_sec_ctx *);
+	int (*xfrm_policy_delete_security)(struct xfrm_sec_ctx *);
+	int (*xfrm_state_alloc)(struct xfrm_state *, struct xfrm_user_sec_ctx *);
+	int (*xfrm_state_alloc_acquire)(struct xfrm_state *, struct xfrm_sec_ctx *, u32);
+	void (*xfrm_state_free_security)(struct xfrm_state *);
+	int (*xfrm_state_delete_security)(struct xfrm_state *);
+	int (*xfrm_policy_lookup)(struct xfrm_sec_ctx *, u32);
+	int (*xfrm_state_pol_flow_match)(struct xfrm_state *, struct xfrm_policy *, const struct flowi_common *);
+	int (*xfrm_decode_session)(struct sk_buff *, u32 *, int);
+	int (*key_alloc)(struct key *, const struct cred *, long unsigned int);
+	void (*key_free)(struct key *);
+	int (*key_permission)(key_ref_t, const struct cred *, enum key_need_perm);
+	int (*key_getsecurity)(struct key *, char **);
+	int (*audit_rule_init)(u32, u32, char *, void **);
+	int (*audit_rule_known)(struct audit_krule *);
+	int (*audit_rule_match)(u32, u32, u32, void *);
+	void (*audit_rule_free)(void *);
+	int (*bpf)(int, union bpf_attr *, unsigned int);
+	int (*bpf_map)(struct bpf_map *, fmode_t);
+	int (*bpf_prog)(struct bpf_prog *);
+	int (*bpf_map_alloc_security)(struct bpf_map *);
+	void (*bpf_map_free_security)(struct bpf_map *);
+	int (*bpf_prog_alloc_security)(struct bpf_prog_aux *);
+	void (*bpf_prog_free_security)(struct bpf_prog_aux *);
+	int (*locked_down)(enum lockdown_reason);
+	int (*lock_kernel_down)(const char *, enum lockdown_reason);
+	int (*perf_event_open)(struct perf_event_attr *, int);
+	int (*perf_event_alloc)(struct perf_event *);
+	void (*perf_event_free)(struct perf_event *);
+	int (*perf_event_read)(struct perf_event *);
+	int (*perf_event_write)(struct perf_event *);
+	int (*uring_override_creds)(const struct cred *);
+	int (*uring_sqpoll)();
+	int (*uring_cmd)(struct io_uring_cmd *);
+};
+
+struct security_hook_heads {
+	struct hlist_head binder_set_context_mgr;
+	struct hlist_head binder_transaction;
+	struct hlist_head binder_transfer_binder;
+	struct hlist_head binder_transfer_file;
+	struct hlist_head ptrace_access_check;
+	struct hlist_head ptrace_traceme;
+	struct hlist_head capget;
+	struct hlist_head capset;
+	struct hlist_head capable;
+	struct hlist_head quotactl;
+	struct hlist_head quota_on;
+	struct hlist_head syslog;
+	struct hlist_head settime;
+	struct hlist_head vm_enough_memory;
+	struct hlist_head bprm_creds_for_exec;
+	struct hlist_head bprm_creds_from_file;
+	struct hlist_head bprm_check_security;
+	struct hlist_head bprm_committing_creds;
+	struct hlist_head bprm_committed_creds;
+	struct hlist_head fs_context_dup;
+	struct hlist_head fs_context_parse_param;
+	struct hlist_head sb_alloc_security;
+	struct hlist_head sb_delete;
+	struct hlist_head sb_free_security;
+	struct hlist_head sb_free_mnt_opts;
+	struct hlist_head sb_eat_lsm_opts;
+	struct hlist_head sb_mnt_opts_compat;
+	struct hlist_head sb_remount;
+	struct hlist_head sb_kern_mount;
+	struct hlist_head sb_show_options;
+	struct hlist_head sb_statfs;
+	struct hlist_head sb_mount;
+	struct hlist_head sb_umount;
+	struct hlist_head sb_pivotroot;
+	struct hlist_head sb_set_mnt_opts;
+	struct hlist_head sb_clone_mnt_opts;
+	struct hlist_head move_mount;
+	struct hlist_head dentry_init_security;
+	struct hlist_head dentry_create_files_as;
+	struct hlist_head path_unlink;
+	struct hlist_head path_mkdir;
+	struct hlist_head path_rmdir;
+	struct hlist_head path_mknod;
+	struct hlist_head path_truncate;
+	struct hlist_head path_symlink;
+	struct hlist_head path_link;
+	struct hlist_head path_rename;
+	struct hlist_head path_chmod;
+	struct hlist_head path_chown;
+	struct hlist_head path_chroot;
+	struct hlist_head path_notify;
+	struct hlist_head inode_alloc_security;
+	struct hlist_head inode_free_security;
+	struct hlist_head inode_init_security;
+	struct hlist_head inode_init_security_anon;
+	struct hlist_head inode_create;
+	struct hlist_head inode_link;
+	struct hlist_head inode_unlink;
+	struct hlist_head inode_symlink;
+	struct hlist_head inode_mkdir;
+	struct hlist_head inode_rmdir;
+	struct hlist_head inode_mknod;
+	struct hlist_head inode_rename;
+	struct hlist_head inode_readlink;
+	struct hlist_head inode_follow_link;
+	struct hlist_head inode_permission;
+	struct hlist_head inode_setattr;
+	struct hlist_head inode_getattr;
+	struct hlist_head inode_setxattr;
+	struct hlist_head inode_post_setxattr;
+	struct hlist_head inode_getxattr;
+	struct hlist_head inode_listxattr;
+	struct hlist_head inode_removexattr;
+	struct hlist_head inode_need_killpriv;
+	struct hlist_head inode_killpriv;
+	struct hlist_head inode_getsecurity;
+	struct hlist_head inode_setsecurity;
+	struct hlist_head inode_listsecurity;
+	struct hlist_head inode_getsecid;
+	struct hlist_head inode_copy_up;
+	struct hlist_head inode_copy_up_xattr;
+	struct hlist_head kernfs_init_security;
+	struct hlist_head file_permission;
+	struct hlist_head file_alloc_security;
+	struct hlist_head file_free_security;
+	struct hlist_head file_ioctl;
+	struct hlist_head mmap_addr;
+	struct hlist_head mmap_file;
+	struct hlist_head file_mprotect;
+	struct hlist_head file_lock;
+	struct hlist_head file_fcntl;
+	struct hlist_head file_set_fowner;
+	struct hlist_head file_send_sigiotask;
+	struct hlist_head file_receive;
+	struct hlist_head file_open;
+	struct hlist_head task_alloc;
+	struct hlist_head task_free;
+	struct hlist_head cred_alloc_blank;
+	struct hlist_head cred_free;
+	struct hlist_head cred_prepare;
+	struct hlist_head cred_transfer;
+	struct hlist_head cred_getsecid;
+	struct hlist_head kernel_act_as;
+	struct hlist_head kernel_create_files_as;
+	struct hlist_head kernel_module_request;
+	struct hlist_head kernel_load_data;
+	struct hlist_head kernel_post_load_data;
+	struct hlist_head kernel_read_file;
+	struct hlist_head kernel_post_read_file;
+	struct hlist_head task_fix_setuid;
+	struct hlist_head task_fix_setgid;
+	struct hlist_head task_fix_setgroups;
+	struct hlist_head task_setpgid;
+	struct hlist_head task_getpgid;
+	struct hlist_head task_getsid;
+	struct hlist_head current_getsecid_subj;
+	struct hlist_head task_getsecid_obj;
+	struct hlist_head task_setnice;
+	struct hlist_head task_setioprio;
+	struct hlist_head task_getioprio;
+	struct hlist_head task_prlimit;
+	struct hlist_head task_setrlimit;
+	struct hlist_head task_setscheduler;
+	struct hlist_head task_getscheduler;
+	struct hlist_head task_movememory;
+	struct hlist_head task_kill;
+	struct hlist_head task_prctl;
+	struct hlist_head task_to_inode;
+	struct hlist_head ipc_permission;
+	struct hlist_head ipc_getsecid;
+	struct hlist_head msg_msg_alloc_security;
+	struct hlist_head msg_msg_free_security;
+	struct hlist_head msg_queue_alloc_security;
+	struct hlist_head msg_queue_free_security;
+	struct hlist_head msg_queue_associate;
+	struct hlist_head msg_queue_msgctl;
+	struct hlist_head msg_queue_msgsnd;
+	struct hlist_head msg_queue_msgrcv;
+	struct hlist_head shm_alloc_security;
+	struct hlist_head shm_free_security;
+	struct hlist_head shm_associate;
+	struct hlist_head shm_shmctl;
+	struct hlist_head shm_shmat;
+	struct hlist_head sem_alloc_security;
+	struct hlist_head sem_free_security;
+	struct hlist_head sem_associate;
+	struct hlist_head sem_semctl;
+	struct hlist_head sem_semop;
+	struct hlist_head netlink_send;
+	struct hlist_head d_instantiate;
+	struct hlist_head getprocattr;
+	struct hlist_head setprocattr;
+	struct hlist_head ismaclabel;
+	struct hlist_head secid_to_secctx;
+	struct hlist_head secctx_to_secid;
+	struct hlist_head release_secctx;
+	struct hlist_head inode_invalidate_secctx;
+	struct hlist_head inode_notifysecctx;
+	struct hlist_head inode_setsecctx;
+	struct hlist_head inode_getsecctx;
+	struct hlist_head post_notification;
+	struct hlist_head watch_key;
+	struct hlist_head unix_stream_connect;
+	struct hlist_head unix_may_send;
+	struct hlist_head socket_create;
+	struct hlist_head socket_post_create;
+	struct hlist_head socket_socketpair;
+	struct hlist_head socket_bind;
+	struct hlist_head socket_connect;
+	struct hlist_head socket_listen;
+	struct hlist_head socket_accept;
+	struct hlist_head socket_sendmsg;
+	struct hlist_head socket_recvmsg;
+	struct hlist_head socket_getsockname;
+	struct hlist_head socket_getpeername;
+	struct hlist_head socket_getsockopt;
+	struct hlist_head socket_setsockopt;
+	struct hlist_head socket_shutdown;
+	struct hlist_head socket_sock_rcv_skb;
+	struct hlist_head socket_getpeersec_stream;
+	struct hlist_head socket_getpeersec_dgram;
+	struct hlist_head sk_alloc_security;
+	struct hlist_head sk_free_security;
+	struct hlist_head sk_clone_security;
+	struct hlist_head sk_getsecid;
+	struct hlist_head sock_graft;
+	struct hlist_head inet_conn_request;
+	struct hlist_head inet_csk_clone;
+	struct hlist_head inet_conn_established;
+	struct hlist_head secmark_relabel_packet;
+	struct hlist_head secmark_refcount_inc;
+	struct hlist_head secmark_refcount_dec;
+	struct hlist_head req_classify_flow;
+	struct hlist_head tun_dev_alloc_security;
+	struct hlist_head tun_dev_free_security;
+	struct hlist_head tun_dev_create;
+	struct hlist_head tun_dev_attach_queue;
+	struct hlist_head tun_dev_attach;
+	struct hlist_head tun_dev_open;
+	struct hlist_head sctp_assoc_request;
+	struct hlist_head sctp_bind_connect;
+	struct hlist_head sctp_sk_clone;
+	struct hlist_head sctp_assoc_established;
+	struct hlist_head ib_pkey_access;
+	struct hlist_head ib_endport_manage_subnet;
+	struct hlist_head ib_alloc_security;
+	struct hlist_head ib_free_security;
+	struct hlist_head xfrm_policy_alloc_security;
+	struct hlist_head xfrm_policy_clone_security;
+	struct hlist_head xfrm_policy_free_security;
+	struct hlist_head xfrm_policy_delete_security;
+	struct hlist_head xfrm_state_alloc;
+	struct hlist_head xfrm_state_alloc_acquire;
+	struct hlist_head xfrm_state_free_security;
+	struct hlist_head xfrm_state_delete_security;
+	struct hlist_head xfrm_policy_lookup;
+	struct hlist_head xfrm_state_pol_flow_match;
+	struct hlist_head xfrm_decode_session;
+	struct hlist_head key_alloc;
+	struct hlist_head key_free;
+	struct hlist_head key_permission;
+	struct hlist_head key_getsecurity;
+	struct hlist_head audit_rule_init;
+	struct hlist_head audit_rule_known;
+	struct hlist_head audit_rule_match;
+	struct hlist_head audit_rule_free;
+	struct hlist_head bpf;
+	struct hlist_head bpf_map;
+	struct hlist_head bpf_prog;
+	struct hlist_head bpf_map_alloc_security;
+	struct hlist_head bpf_map_free_security;
+	struct hlist_head bpf_prog_alloc_security;
+	struct hlist_head bpf_prog_free_security;
+	struct hlist_head locked_down;
+	struct hlist_head lock_kernel_down;
+	struct hlist_head perf_event_open;
+	struct hlist_head perf_event_alloc;
+	struct hlist_head perf_event_free;
+	struct hlist_head perf_event_read;
+	struct hlist_head perf_event_write;
+	struct hlist_head uring_override_creds;
+	struct hlist_head uring_sqpoll;
+	struct hlist_head uring_cmd;
+};
+
+struct security_hook_list {
+	struct hlist_node list;
+	struct hlist_head *head;
+	union security_list_options hook;
+	const char *lsm;
+};
+
+struct lsm_blob_sizes {
+	int lbs_cred;
+	int lbs_file;
+	int lbs_inode;
+	int lbs_superblock;
+	int lbs_ipc;
+	int lbs_msg_msg;
+	int lbs_task;
+};
+
+enum lsm_order {
+	LSM_ORDER_FIRST = 4294967295,
+	LSM_ORDER_MUTABLE = 0,
+};
+
+struct lsm_info {
+	const char *name;
+	enum lsm_order order;
+	long unsigned int flags;
+	int *enabled;
+	int (*init)();
+	struct lsm_blob_sizes *blobs;
+};
+
+struct modsig;
+
+enum integrity_status {
+	INTEGRITY_PASS = 0,
+	INTEGRITY_PASS_IMMUTABLE = 1,
+	INTEGRITY_FAIL = 2,
+	INTEGRITY_FAIL_IMMUTABLE = 3,
+	INTEGRITY_NOLABEL = 4,
+	INTEGRITY_NOXATTRS = 5,
+	INTEGRITY_UNKNOWN = 6,
+};
+
+struct hwrng {
+	const char *name;
+	int (*init)(struct hwrng *);
+	void (*cleanup)(struct hwrng *);
+	int (*data_present)(struct hwrng *, int);
+	int (*data_read)(struct hwrng *, u32 *);
+	int (*read)(struct hwrng *, void *, size_t, bool);
+	long unsigned int priv;
+	short unsigned int quality;
+	struct list_head list;
+	struct kref ref;
+	struct completion cleanup_done;
+	struct completion dying;
+};
+
+typedef void *acpi_handle;
+
+struct tpm_digest {
+	u16 alg_id;
+	u8 digest[64];
+};
+
+struct tpm_bank_info {
+	u16 alg_id;
+	u16 digest_size;
+	u16 crypto_id;
+};
+
+struct tpm_chip;
+
+struct tpm_class_ops {
+	unsigned int flags;
+	const u8 req_complete_mask;
+	const u8 req_complete_val;
+	bool (*req_canceled)(struct tpm_chip *, u8);
+	int (*recv)(struct tpm_chip *, u8 *, size_t);
+	int (*send)(struct tpm_chip *, u8 *, size_t);
+	void (*cancel)(struct tpm_chip *);
+	u8 (*status)(struct tpm_chip *);
+	void (*update_timeouts)(struct tpm_chip *, long unsigned int *);
+	void (*update_durations)(struct tpm_chip *, long unsigned int *);
+	int (*go_idle)(struct tpm_chip *);
+	int (*cmd_ready)(struct tpm_chip *);
+	int (*request_locality)(struct tpm_chip *, int);
+	int (*relinquish_locality)(struct tpm_chip *, int);
+	void (*clk_enable)(struct tpm_chip *, bool);
+};
+
+struct tpm_bios_log {
+	void *bios_event_log;
+	void *bios_event_log_end;
+};
+
+struct tpm_chip_seqops {
+	struct tpm_chip *chip;
+	const struct seq_operations *seqops;
+};
+
+struct tpm_space {
+	u32 context_tbl[3];
+	u8 *context_buf;
+	u32 session_tbl[3];
+	u8 *session_buf;
+	u32 buf_size;
+};
+
+struct tpm_chip {
+	struct device dev;
+	struct device devs;
+	struct cdev cdev;
+	struct cdev cdevs;
+	struct rw_semaphore ops_sem;
+	const struct tpm_class_ops *ops;
+	struct tpm_bios_log log;
+	struct tpm_chip_seqops bin_log_seqops;
+	struct tpm_chip_seqops ascii_log_seqops;
+	unsigned int flags;
+	int dev_num;
+	long unsigned int is_open;
+	char hwrng_name[64];
+	struct hwrng hwrng;
+	struct mutex tpm_mutex;
+	long unsigned int timeout_a;
+	long unsigned int timeout_b;
+	long unsigned int timeout_c;
+	long unsigned int timeout_d;
+	bool timeout_adjusted;
+	long unsigned int duration[4];
+	bool duration_adjusted;
+	struct dentry *bios_dir[3];
+	const struct attribute_group *groups[8];
+	unsigned int groups_cnt;
+	u32 nr_allocated_banks;
+	struct tpm_bank_info *allocated_banks;
+	acpi_handle acpi_dev_handle;
+	char ppi_version[4];
+	struct tpm_space work_space;
+	u32 last_cc;
+	u32 nr_commands;
+	u32 *cc_attrs_tbl;
+	int locality;
+};
+
+struct evm_ima_xattr_data {
+	u8 type;
+	u8 data[0];
+};
+
+struct ima_digest_data {
+	u8 algo;
+	u8 length;
+	union {
+		struct {
+			u8 unused;
+			u8 type;
+		} sha1;
+		struct {
+			u8 type;
+			u8 algo;
+		} ng;
+		u8 data[2];
+	} xattr;
+	u8 digest[0];
+};
+
+struct ima_max_digest_data {
+	struct ima_digest_data hdr;
+	u8 digest[64];
+};
+
+struct integrity_iint_cache {
+	struct rb_node rb_node;
+	struct mutex mutex;
+	struct inode *inode;
+	u64 version;
+	long unsigned int flags;
+	long unsigned int measured_pcrs;
+	long unsigned int atomic_flags;
+	enum integrity_status ima_file_status: 4;
+	enum integrity_status ima_mmap_status: 4;
+	enum integrity_status ima_bprm_status: 4;
+	enum integrity_status ima_read_status: 4;
+	enum integrity_status ima_creds_status: 4;
+	enum integrity_status evm_status: 4;
+	struct ima_digest_data *ima_hash;
+};
+
+enum ima_show_type {
+	IMA_SHOW_BINARY = 0,
+	IMA_SHOW_BINARY_NO_FIELD_LEN = 1,
+	IMA_SHOW_BINARY_OLD_STRING_FMT = 2,
+	IMA_SHOW_ASCII = 3,
+};
+
+struct ima_event_data {
+	struct integrity_iint_cache *iint;
+	struct file *file;
+	const unsigned char *filename;
+	struct evm_ima_xattr_data *xattr_value;
+	int xattr_len;
+	const struct modsig *modsig;
+	const char *violation;
+	const void *buf;
+	int buf_len;
+};
+
+struct ima_field_data {
+	u8 *data;
+	u32 len;
+};
+
+struct ima_template_field {
+	const char field_id[16];
+	int (*field_init)(struct ima_event_data *, struct ima_field_data *);
+	void (*field_show)(struct seq_file *, enum ima_show_type, struct ima_field_data *);
+};
+
+struct ima_template_desc {
+	struct list_head list;
+	char *name;
+	char *fmt;
+	int num_fields;
+	const struct ima_template_field **fields;
+};
+
+struct ima_template_entry {
+	int pcr;
+	struct tpm_digest *digests;
+	struct ima_template_desc *template_desc;
+	u32 template_data_len;
+	struct ima_field_data template_data[0];
+};
+
+struct ima_h_table {
+	atomic_long_t len;
+	atomic_long_t violations;
+	struct hlist_head queue[1024];
+};
+
+enum ima_hooks {
+	NONE = 0,
+	FILE_CHECK = 1,
+	MMAP_CHECK = 2,
+	BPRM_CHECK = 3,
+	CREDS_CHECK = 4,
+	POST_SETATTR = 5,
+	MODULE_CHECK = 6,
+	FIRMWARE_CHECK = 7,
+	KEXEC_KERNEL_CHECK = 8,
+	KEXEC_INITRAMFS_CHECK = 9,
+	POLICY_CHECK = 10,
+	KEXEC_CMDLINE = 11,
+	KEY_CHECK = 12,
+	CRITICAL_DATA = 13,
+	SETXATTR_CHECK = 14,
+	MAX_CHECK = 15,
+};
+
+struct ima_queue_entry {
+	struct hlist_node hnext;
+	struct list_head later;
+	struct ima_template_entry *entry;
+};
+
+struct ima_kexec_hdr {
+	u16 version;
+	u16 _reserved0;
+	u32 _reserved1;
+	u64 buffer_size;
+	u64 count;
+};
+
+struct crypto_cipher {
+	struct crypto_tfm base;
+};
+
+struct aead_request {
+	struct crypto_async_request base;
+	unsigned int assoclen;
+	unsigned int cryptlen;
+	u8 *iv;
+	struct scatterlist *src;
+	struct scatterlist *dst;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	void *__ctx[0];
+};
+
+struct crypto_aead;
+
+struct aead_alg {
+	int (*setkey)(struct crypto_aead *, const u8 *, unsigned int);
+	int (*setauthsize)(struct crypto_aead *, unsigned int);
+	int (*encrypt)(struct aead_request *);
+	int (*decrypt)(struct aead_request *);
+	int (*init)(struct crypto_aead *);
+	void (*exit)(struct crypto_aead *);
+	unsigned int ivsize;
+	unsigned int maxauthsize;
+	unsigned int chunksize;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct crypto_alg base;
+};
+
+struct crypto_aead {
+	unsigned int authsize;
+	unsigned int reqsize;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct crypto_tfm base;
+};
+
+struct rtattr {
+	short unsigned int rta_len;
+	short unsigned int rta_type;
+};
+
+struct scatter_walk {
+	struct scatterlist *sg;
+	unsigned int offset;
+};
+
+struct crypto_cipher_spawn {
+	struct crypto_spawn base;
+};
+
+struct skcipher_request {
+	unsigned int cryptlen;
+	u8 *iv;
+	struct scatterlist *src;
+	struct scatterlist *dst;
+	struct crypto_async_request base;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
