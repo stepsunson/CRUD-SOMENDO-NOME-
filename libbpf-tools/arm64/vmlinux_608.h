@@ -33288,3 +33288,2044 @@ struct opal_session_info {
 
 struct opal_user_lr_setup {
 	__u64 range_start;
+	__u64 range_length;
+	__u32 RLE;
+	__u32 WLE;
+	struct opal_session_info session;
+};
+
+struct opal_lock_unlock {
+	struct opal_session_info session;
+	__u32 l_state;
+	__u8 __align[4];
+};
+
+struct opal_new_pw {
+	struct opal_session_info session;
+	struct opal_session_info new_user_pw;
+};
+
+struct opal_mbr_data {
+	struct opal_key key;
+	__u8 enable_disable;
+	__u8 __align[7];
+};
+
+struct opal_mbr_done {
+	struct opal_key key;
+	__u8 done_flag;
+	__u8 __align[7];
+};
+
+struct opal_shadow_mbr {
+	struct opal_key key;
+	const __u64 data;
+	__u64 offset;
+	__u64 size;
+};
+
+enum opal_table_ops {
+	OPAL_READ_TABLE = 0,
+	OPAL_WRITE_TABLE = 1,
+};
+
+struct opal_read_write_table {
+	struct opal_key key;
+	const __u64 data;
+	const __u8 table_uid[8];
+	__u64 offset;
+	__u64 size;
+	__u64 flags;
+	__u64 priv;
+};
+
+typedef int sec_send_recv(void *, u16, u8, void *, size_t, bool);
+
+enum {
+	TCG_SECP_00 = 0,
+	TCG_SECP_01 = 1,
+};
+
+enum opal_response_token {
+	OPAL_DTA_TOKENID_BYTESTRING = 224,
+	OPAL_DTA_TOKENID_SINT = 225,
+	OPAL_DTA_TOKENID_UINT = 226,
+	OPAL_DTA_TOKENID_TOKEN = 227,
+	OPAL_DTA_TOKENID_INVALID = 0,
+};
+
+enum opal_uid {
+	OPAL_SMUID_UID = 0,
+	OPAL_THISSP_UID = 1,
+	OPAL_ADMINSP_UID = 2,
+	OPAL_LOCKINGSP_UID = 3,
+	OPAL_ENTERPRISE_LOCKINGSP_UID = 4,
+	OPAL_ANYBODY_UID = 5,
+	OPAL_SID_UID = 6,
+	OPAL_ADMIN1_UID = 7,
+	OPAL_USER1_UID = 8,
+	OPAL_USER2_UID = 9,
+	OPAL_PSID_UID = 10,
+	OPAL_ENTERPRISE_BANDMASTER0_UID = 11,
+	OPAL_ENTERPRISE_ERASEMASTER_UID = 12,
+	OPAL_TABLE_TABLE = 13,
+	OPAL_LOCKINGRANGE_GLOBAL = 14,
+	OPAL_LOCKINGRANGE_ACE_RDLOCKED = 15,
+	OPAL_LOCKINGRANGE_ACE_WRLOCKED = 16,
+	OPAL_MBRCONTROL = 17,
+	OPAL_MBR = 18,
+	OPAL_AUTHORITY_TABLE = 19,
+	OPAL_C_PIN_TABLE = 20,
+	OPAL_LOCKING_INFO_TABLE = 21,
+	OPAL_ENTERPRISE_LOCKING_INFO_TABLE = 22,
+	OPAL_DATASTORE = 23,
+	OPAL_C_PIN_MSID = 24,
+	OPAL_C_PIN_SID = 25,
+	OPAL_C_PIN_ADMIN1 = 26,
+	OPAL_HALF_UID_AUTHORITY_OBJ_REF = 27,
+	OPAL_HALF_UID_BOOLEAN_ACE = 28,
+	OPAL_UID_HEXFF = 29,
+};
+
+enum opal_method {
+	OPAL_PROPERTIES = 0,
+	OPAL_STARTSESSION = 1,
+	OPAL_REVERT = 2,
+	OPAL_ACTIVATE = 3,
+	OPAL_EGET = 4,
+	OPAL_ESET = 5,
+	OPAL_NEXT = 6,
+	OPAL_EAUTHENTICATE = 7,
+	OPAL_GETACL = 8,
+	OPAL_GENKEY = 9,
+	OPAL_REVERTSP = 10,
+	OPAL_GET = 11,
+	OPAL_SET = 12,
+	OPAL_AUTHENTICATE = 13,
+	OPAL_RANDOM = 14,
+	OPAL_ERASE = 15,
+};
+
+enum opal_token {
+	OPAL_TRUE = 1,
+	OPAL_FALSE = 0,
+	OPAL_BOOLEAN_EXPR = 3,
+	OPAL_TABLE = 0,
+	OPAL_STARTROW = 1,
+	OPAL_ENDROW = 2,
+	OPAL_STARTCOLUMN = 3,
+	OPAL_ENDCOLUMN = 4,
+	OPAL_VALUES = 1,
+	OPAL_TABLE_UID = 0,
+	OPAL_TABLE_NAME = 1,
+	OPAL_TABLE_COMMON = 2,
+	OPAL_TABLE_TEMPLATE = 3,
+	OPAL_TABLE_KIND = 4,
+	OPAL_TABLE_COLUMN = 5,
+	OPAL_TABLE_COLUMNS = 6,
+	OPAL_TABLE_ROWS = 7,
+	OPAL_TABLE_ROWS_FREE = 8,
+	OPAL_TABLE_ROW_BYTES = 9,
+	OPAL_TABLE_LASTID = 10,
+	OPAL_TABLE_MIN = 11,
+	OPAL_TABLE_MAX = 12,
+	OPAL_PIN = 3,
+	OPAL_RANGESTART = 3,
+	OPAL_RANGELENGTH = 4,
+	OPAL_READLOCKENABLED = 5,
+	OPAL_WRITELOCKENABLED = 6,
+	OPAL_READLOCKED = 7,
+	OPAL_WRITELOCKED = 8,
+	OPAL_ACTIVEKEY = 10,
+	OPAL_LIFECYCLE = 6,
+	OPAL_MAXRANGES = 4,
+	OPAL_MBRENABLE = 1,
+	OPAL_MBRDONE = 2,
+	OPAL_HOSTPROPERTIES = 0,
+	OPAL_STARTLIST = 240,
+	OPAL_ENDLIST = 241,
+	OPAL_STARTNAME = 242,
+	OPAL_ENDNAME = 243,
+	OPAL_CALL = 248,
+	OPAL_ENDOFDATA = 249,
+	OPAL_ENDOFSESSION = 250,
+	OPAL_STARTTRANSACTON = 251,
+	OPAL_ENDTRANSACTON = 252,
+	OPAL_EMPTYATOM = 255,
+	OPAL_WHERE = 0,
+};
+
+enum opal_parameter {
+	OPAL_SUM_SET_LIST = 393216,
+};
+
+struct opal_compacket {
+	__be32 reserved0;
+	u8 extendedComID[4];
+	__be32 outstandingData;
+	__be32 minTransfer;
+	__be32 length;
+};
+
+struct opal_packet {
+	__be32 tsn;
+	__be32 hsn;
+	__be32 seq_number;
+	__be16 reserved0;
+	__be16 ack_type;
+	__be32 acknowledgment;
+	__be32 length;
+};
+
+struct opal_data_subpacket {
+	u8 reserved0[6];
+	__be16 kind;
+	__be32 length;
+};
+
+struct opal_header {
+	struct opal_compacket cp;
+	struct opal_packet pkt;
+	struct opal_data_subpacket subpkt;
+};
+
+struct d0_header {
+	__be32 length;
+	__be32 revision;
+	__be32 reserved01;
+	__be32 reserved02;
+	u8 ignored[32];
+};
+
+struct d0_tper_features {
+	u8 supported_features;
+	u8 reserved01[3];
+	__be32 reserved02;
+	__be32 reserved03;
+};
+
+struct d0_locking_features {
+	u8 supported_features;
+	u8 reserved01[3];
+	__be32 reserved02;
+	__be32 reserved03;
+};
+
+struct d0_geometry_features {
+	u8 header[4];
+	u8 reserved01;
+	u8 reserved02[7];
+	__be32 logical_block_size;
+	__be64 alignment_granularity;
+	__be64 lowest_aligned_lba;
+};
+
+struct d0_opal_v100 {
+	__be16 baseComID;
+	__be16 numComIDs;
+};
+
+struct d0_single_user_mode {
+	__be32 num_locking_objects;
+	u8 reserved01;
+	u8 reserved02;
+	__be16 reserved03;
+	__be32 reserved04;
+};
+
+struct d0_opal_v200 {
+	__be16 baseComID;
+	__be16 numComIDs;
+	u8 range_crossing;
+	u8 num_locking_admin_auth[2];
+	u8 num_locking_user_auth[2];
+	u8 initialPIN;
+	u8 revertedPIN;
+	u8 reserved01;
+	__be32 reserved02;
+};
+
+struct d0_features {
+	__be16 code;
+	u8 r_version;
+	u8 length;
+	u8 features[0];
+};
+
+struct opal_dev;
+
+struct opal_step {
+	int (*fn)(struct opal_dev *, void *);
+	void *data;
+};
+
+enum opal_atom_width {
+	OPAL_WIDTH_TINY = 0,
+	OPAL_WIDTH_SHORT = 1,
+	OPAL_WIDTH_MEDIUM = 2,
+	OPAL_WIDTH_LONG = 3,
+	OPAL_WIDTH_TOKEN = 4,
+};
+
+struct opal_resp_tok {
+	const u8 *pos;
+	size_t len;
+	enum opal_response_token type;
+	enum opal_atom_width width;
+	union {
+		u64 u;
+		s64 s;
+	} stored;
+};
+
+struct parsed_resp {
+	int num;
+	struct opal_resp_tok toks[64];
+};
+
+struct opal_dev {
+	bool supported;
+	bool mbr_enabled;
+	void *data;
+	sec_send_recv *send_recv;
+	struct mutex dev_lock;
+	u16 comid;
+	u32 hsn;
+	u32 tsn;
+	u64 align;
+	u64 lowest_lba;
+	size_t pos;
+	u8 cmd[2048];
+	u8 resp[2048];
+	struct parsed_resp parsed;
+	size_t prev_d_len;
+	void *prev_data;
+	struct list_head unlk_lst;
+};
+
+typedef int cont_fn(struct opal_dev *);
+
+struct opal_suspend_data {
+	struct opal_lock_unlock unlk;
+	u8 lr;
+	struct list_head node;
+};
+
+struct io_uring_cmd {
+	struct file *file;
+	const void *cmd;
+	void (*task_work_cb)(struct io_uring_cmd *);
+	u32 cmd_op;
+	u32 pad;
+	u8 pdu[32];
+};
+
+enum {
+	IOU_OK = 0,
+	IOU_ISSUE_SKIP_COMPLETE = 4294966767,
+	IOU_STOP_MULTISHOT = 4294967171,
+};
+
+enum io_uring_cmd_flags {
+	IO_URING_F_COMPLETE_DEFER = 1,
+	IO_URING_F_UNLOCKED = 2,
+	IO_URING_F_NONBLOCK = 2147483648,
+	IO_URING_F_SQE128 = 4,
+	IO_URING_F_CQE32 = 8,
+	IO_URING_F_IOPOLL = 16,
+};
+
+struct open_flags {
+	int open_flag;
+	umode_t mode;
+	int acc_mode;
+	int intent;
+	int lookup_flags;
+};
+
+struct io_rsrc_node {
+	struct percpu_ref refs;
+	struct list_head node;
+	struct list_head rsrc_list;
+	struct io_rsrc_data *rsrc_data;
+	struct llist_node llist;
+	bool done;
+};
+
+struct io_mapped_ubuf {
+	u64 ubuf;
+	u64 ubuf_end;
+	unsigned int nr_bvecs;
+	long unsigned int acct_pages;
+	struct bio_vec bvec[0];
+};
+
+struct io_rsrc_put;
+
+typedef void rsrc_put_fn(struct io_ring_ctx *, struct io_rsrc_put *);
+
+struct io_rsrc_data {
+	struct io_ring_ctx *ctx;
+	u64 **tags;
+	unsigned int nr;
+	rsrc_put_fn *do_put;
+	atomic_t refs;
+	struct completion done;
+	bool quiesce;
+};
+
+enum {
+	REQ_F_FIXED_FILE = 1,
+	REQ_F_IO_DRAIN = 2,
+	REQ_F_LINK = 4,
+	REQ_F_HARDLINK = 8,
+	REQ_F_FORCE_ASYNC = 16,
+	REQ_F_BUFFER_SELECT = 32,
+	REQ_F_CQE_SKIP = 64,
+	REQ_F_FAIL = 256,
+	REQ_F_INFLIGHT = 512,
+	REQ_F_CUR_POS = 1024,
+	REQ_F_NOWAIT = 2048,
+	REQ_F_LINK_TIMEOUT = 4096,
+	REQ_F_NEED_CLEANUP = 8192,
+	REQ_F_POLLED = 16384,
+	REQ_F_BUFFER_SELECTED = 32768,
+	REQ_F_BUFFER_RING = 65536,
+	REQ_F_REISSUE = 131072,
+	REQ_F_SUPPORT_NOWAIT = 1073741824,
+	REQ_F_ISREG = 2147483648,
+	REQ_F_CREDS = 262144,
+	REQ_F_REFCOUNT = 524288,
+	REQ_F_ARM_LTIMEOUT = 1048576,
+	REQ_F_ASYNC_DATA = 2097152,
+	REQ_F_SKIP_LINK_CQES = 4194304,
+	REQ_F_SINGLE_POLL = 8388608,
+	REQ_F_DOUBLE_POLL = 16777216,
+	REQ_F_PARTIAL_IO = 33554432,
+	REQ_F_APOLL_MULTISHOT = 134217728,
+	REQ_F_CQE32_INIT = 67108864,
+	REQ_F_CLEAR_POLLIN = 268435456,
+	REQ_F_HASH_LOCKED = 536870912,
+};
+
+struct io_rsrc_put {
+	struct list_head list;
+	u64 tag;
+	union {
+		void *rsrc;
+		struct file *file;
+		struct io_mapped_ubuf *buf;
+	};
+};
+
+struct io_open {
+	struct file *file;
+	int dfd;
+	u32 file_slot;
+	struct filename *filename;
+	struct open_how how;
+	long unsigned int nofile;
+};
+
+struct io_close {
+	struct file *file;
+	int fd;
+	u32 file_slot;
+};
+
+struct io_uring_buf {
+	__u64 addr;
+	__u32 len;
+	__u16 bid;
+	__u16 resv;
+};
+
+struct io_uring_buf_ring {
+	union {
+		struct {
+			__u64 resv1;
+			__u32 resv2;
+			__u16 resv3;
+			__u16 tail;
+		};
+		struct io_uring_buf bufs[0];
+	};
+};
+
+struct io_buffer_list {
+	union {
+		struct list_head buf_list;
+		struct {
+			struct page **buf_pages;
+			struct io_uring_buf_ring *buf_ring;
+		};
+	};
+	__u16 bgid;
+	__u16 buf_nr_pages;
+	__u16 nr_entries;
+	__u16 head;
+	__u16 mask;
+};
+
+struct io_buffer {
+	struct list_head list;
+	__u64 addr;
+	__u32 len;
+	__u16 bid;
+	__u16 bgid;
+};
+
+struct io_poll {
+	struct file *file;
+	struct wait_queue_head *head;
+	__poll_t events;
+	struct wait_queue_entry wait;
+};
+
+struct io_cache_entry {
+	struct hlist_node node;
+};
+
+struct async_poll {
+	union {
+		struct io_poll poll;
+		struct io_cache_entry cache;
+	};
+	struct io_poll *double_poll;
+};
+
+struct io_op_def {
+	unsigned int needs_file: 1;
+	unsigned int plug: 1;
+	unsigned int hash_reg_file: 1;
+	unsigned int unbound_nonreg_file: 1;
+	unsigned int pollin: 1;
+	unsigned int pollout: 1;
+	unsigned int poll_exclusive: 1;
+	unsigned int buffer_select: 1;
+	unsigned int not_supported: 1;
+	unsigned int audit_skip: 1;
+	unsigned int ioprio: 1;
+	unsigned int iopoll: 1;
+	unsigned int manual_alloc: 1;
+	short unsigned int async_size;
+	const char *name;
+	int (*prep)(struct io_kiocb *, const struct io_uring_sqe *);
+	int (*issue)(struct io_kiocb *, unsigned int);
+	int (*prep_async)(struct io_kiocb *);
+	void (*cleanup)(struct io_kiocb *);
+	void (*fail)(struct io_kiocb *);
+};
+
+enum {
+	IO_APOLL_OK = 0,
+	IO_APOLL_ABORTED = 1,
+	IO_APOLL_READY = 2,
+};
+
+struct io_cancel_data {
+	struct io_ring_ctx *ctx;
+	union {
+		u64 data;
+		struct file *file;
+	};
+	u32 flags;
+	int seq;
+};
+
+struct io_poll_update {
+	struct file *file;
+	u64 old_user_data;
+	u64 new_user_data;
+	__poll_t events;
+	bool update_events;
+	bool update_user_data;
+};
+
+struct io_poll_table {
+	struct poll_table_struct pt;
+	struct io_kiocb *req;
+	int nr_entries;
+	int error;
+	bool owning;
+	__poll_t result_mask;
+};
+
+enum {
+	IOU_POLL_DONE = 0,
+	IOU_POLL_NO_ACTION = 1,
+	IOU_POLL_REMOVE_POLL_USE_RES = 2,
+};
+
+typedef void (*task_work_func_t)(struct callback_head *);
+
+enum {
+	IO_WQ_BOUND = 0,
+	IO_WQ_UNBOUND = 1,
+};
+
+typedef struct io_wq_work *free_work_fn(struct io_wq_work *);
+
+typedef void io_wq_work_fn(struct io_wq_work *);
+
+struct io_wqe;
+
+struct io_wq {
+	long unsigned int state;
+	free_work_fn *free_work;
+	io_wq_work_fn *do_work;
+	struct io_wq_hash *hash;
+	atomic_t worker_refs;
+	struct completion worker_done;
+	struct hlist_node cpuhp_node;
+	struct task_struct *task;
+	struct io_wqe *wqes[0];
+};
+
+enum {
+	IO_WQ_WORK_CANCEL = 1,
+	IO_WQ_WORK_HASHED = 2,
+	IO_WQ_WORK_UNBOUND = 4,
+	IO_WQ_WORK_CONCURRENT = 16,
+	IO_WQ_HASH_SHIFT = 24,
+};
+
+enum io_wq_cancel {
+	IO_WQ_CANCEL_OK = 0,
+	IO_WQ_CANCEL_RUNNING = 1,
+	IO_WQ_CANCEL_NOTFOUND = 2,
+};
+
+struct io_wq_data {
+	struct io_wq_hash *hash;
+	struct task_struct *task;
+	io_wq_work_fn *do_work;
+	free_work_fn *free_work;
+};
+
+typedef bool work_cancel_fn(struct io_wq_work *, void *);
+
+enum {
+	IO_WORKER_F_UP = 1,
+	IO_WORKER_F_RUNNING = 2,
+	IO_WORKER_F_FREE = 4,
+	IO_WORKER_F_BOUND = 8,
+};
+
+enum {
+	IO_WQ_BIT_EXIT = 0,
+};
+
+enum {
+	IO_ACCT_STALLED_BIT = 0,
+};
+
+struct io_worker {
+	refcount_t ref;
+	unsigned int flags;
+	struct hlist_nulls_node nulls_node;
+	struct list_head all_list;
+	struct task_struct *task;
+	struct io_wqe *wqe;
+	struct io_wq_work *cur_work;
+	struct io_wq_work *next_work;
+	raw_spinlock_t lock;
+	struct completion ref_done;
+	long unsigned int create_state;
+	struct callback_head create_work;
+	int create_index;
+	union {
+		struct callback_head rcu;
+		struct work_struct work;
+	};
+};
+
+struct io_wqe_acct {
+	unsigned int nr_workers;
+	unsigned int max_workers;
+	int index;
+	atomic_t nr_running;
+	raw_spinlock_t lock;
+	struct io_wq_work_list work_list;
+	long unsigned int flags;
+};
+
+struct io_wqe {
+	raw_spinlock_t lock;
+	struct io_wqe_acct acct[2];
+	int node;
+	struct hlist_nulls_head free_list;
+	struct list_head all_list;
+	struct wait_queue_entry wait;
+	struct io_wq *wq;
+	struct io_wq_work *hash_tail[64];
+	cpumask_var_t cpu_mask;
+};
+
+enum {
+	IO_WQ_ACCT_BOUND = 0,
+	IO_WQ_ACCT_UNBOUND = 1,
+	IO_WQ_ACCT_NR = 2,
+};
+
+struct io_cb_cancel_data {
+	work_cancel_fn *fn;
+	void *data;
+	int nr_running;
+	int nr_pending;
+	bool cancel_all;
+};
+
+struct online_data {
+	unsigned int cpu;
+	bool online;
+};
+
+struct once_work {
+	struct work_struct work;
+	struct static_key_true *key;
+	struct module *module;
+};
+
+struct rb_augment_callbacks {
+	void (*propagate)(struct rb_node *, struct rb_node *);
+	void (*copy)(struct rb_node *, struct rb_node *);
+	void (*rotate)(struct rb_node *, struct rb_node *);
+};
+
+struct assoc_array_ops {
+	long unsigned int (*get_key_chunk)(const void *, int);
+	long unsigned int (*get_object_key_chunk)(const void *, int);
+	bool (*compare_object)(const void *, const void *);
+	int (*diff_objects)(const void *, const void *);
+	void (*free_object)(void *);
+};
+
+struct assoc_array_node {
+	struct assoc_array_ptr *back_pointer;
+	u8 parent_slot;
+	struct assoc_array_ptr *slots[16];
+	long unsigned int nr_leaves_on_branch;
+};
+
+struct assoc_array_shortcut {
+	struct assoc_array_ptr *back_pointer;
+	int parent_slot;
+	int skip_to_level;
+	struct assoc_array_ptr *next_node;
+	long unsigned int index_key[0];
+};
+
+struct assoc_array_edit {
+	struct callback_head rcu;
+	struct assoc_array *array;
+	const struct assoc_array_ops *ops;
+	const struct assoc_array_ops *ops_for_excised_subtree;
+	struct assoc_array_ptr *leaf;
+	struct assoc_array_ptr **leaf_p;
+	struct assoc_array_ptr *dead_leaf;
+	struct assoc_array_ptr *new_meta[3];
+	struct assoc_array_ptr *excised_meta[1];
+	struct assoc_array_ptr *excised_subtree;
+	struct assoc_array_ptr **set_backpointers[16];
+	struct assoc_array_ptr *set_backpointers_to;
+	struct assoc_array_node *adjust_count_on;
+	long int adjust_count_by;
+	struct {
+		struct assoc_array_ptr **ptr;
+		struct assoc_array_ptr *to;
+	} set[2];
+	struct {
+		u8 *p;
+		u8 to;
+	} set_parent_slot[1];
+	u8 segment_cache[17];
+};
+
+enum assoc_array_walk_status {
+	assoc_array_walk_tree_empty = 0,
+	assoc_array_walk_found_terminal_node = 1,
+	assoc_array_walk_found_wrong_shortcut = 2,
+};
+
+struct assoc_array_walk_result {
+	struct {
+		struct assoc_array_node *node;
+		int level;
+		int slot;
+	} terminal_node;
+	struct {
+		struct assoc_array_shortcut *shortcut;
+		int level;
+		int sc_level;
+		long unsigned int sc_segments;
+		long unsigned int dissimilarity;
+	} wrong_shortcut;
+};
+
+struct assoc_array_delete_collapse_context {
+	struct assoc_array_node *node;
+	const void *skip_leaf;
+	int slot;
+};
+
+enum {
+	CRYPTO_MSG_ALG_REQUEST = 0,
+	CRYPTO_MSG_ALG_REGISTER = 1,
+	CRYPTO_MSG_ALG_LOADED = 2,
+};
+
+typedef unsigned int uInt;
+
+typedef struct {
+	unsigned char op;
+	unsigned char bits;
+	short unsigned int val;
+} code;
+
+typedef enum {
+	CODES = 0,
+	LENS = 1,
+	DISTS = 2,
+} codetype;
+
+typedef enum {
+	HEAD = 0,
+	FLAGS = 1,
+	TIME = 2,
+	OS = 3,
+	EXLEN = 4,
+	EXTRA = 5,
+	NAME = 6,
+	COMMENT = 7,
+	HCRC = 8,
+	DICTID = 9,
+	DICT = 10,
+	TYPE = 11,
+	TYPEDO = 12,
+	STORED = 13,
+	COPY = 14,
+	TABLE = 15,
+	LENLENS = 16,
+	CODELENS = 17,
+	LEN = 18,
+	LENEXT = 19,
+	DIST = 20,
+	DISTEXT = 21,
+	MATCH = 22,
+	LIT = 23,
+	CHECK = 24,
+	LENGTH = 25,
+	DONE = 26,
+	BAD = 27,
+	MEM = 28,
+	SYNC = 29,
+} inflate_mode;
+
+struct inflate_state {
+	inflate_mode mode;
+	int last;
+	int wrap;
+	int havedict;
+	int flags;
+	unsigned int dmax;
+	long unsigned int check;
+	long unsigned int total;
+	unsigned int wbits;
+	unsigned int wsize;
+	unsigned int whave;
+	unsigned int write;
+	unsigned char *window;
+	long unsigned int hold;
+	unsigned int bits;
+	unsigned int length;
+	unsigned int offset;
+	unsigned int extra;
+	const code *lencode;
+	const code *distcode;
+	unsigned int lenbits;
+	unsigned int distbits;
+	unsigned int ncode;
+	unsigned int nlen;
+	unsigned int ndist;
+	unsigned int have;
+	code *next;
+	short unsigned int lens[320];
+	short unsigned int work[288];
+	code codes[2048];
+};
+
+struct inflate_workspace {
+	struct inflate_state inflate_state;
+	unsigned char working_window[32768];
+};
+
+typedef u8 uint8_t;
+
+typedef uint8_t BYTE;
+
+typedef uint32_t U32;
+
+typedef enum {
+	ZSTD_error_no_error = 0,
+	ZSTD_error_GENERIC = 1,
+	ZSTD_error_prefix_unknown = 10,
+	ZSTD_error_version_unsupported = 12,
+	ZSTD_error_frameParameter_unsupported = 14,
+	ZSTD_error_frameParameter_windowTooLarge = 16,
+	ZSTD_error_corruption_detected = 20,
+	ZSTD_error_checksum_wrong = 22,
+	ZSTD_error_dictionary_corrupted = 30,
+	ZSTD_error_dictionary_wrong = 32,
+	ZSTD_error_dictionaryCreation_failed = 34,
+	ZSTD_error_parameter_unsupported = 40,
+	ZSTD_error_parameter_outOfBound = 42,
+	ZSTD_error_tableLog_tooLarge = 44,
+	ZSTD_error_maxSymbolValue_tooLarge = 46,
+	ZSTD_error_maxSymbolValue_tooSmall = 48,
+	ZSTD_error_stage_wrong = 60,
+	ZSTD_error_init_missing = 62,
+	ZSTD_error_memory_allocation = 64,
+	ZSTD_error_workSpace_tooSmall = 66,
+	ZSTD_error_dstSize_tooSmall = 70,
+	ZSTD_error_srcSize_wrong = 72,
+	ZSTD_error_dstBuffer_null = 74,
+	ZSTD_error_frameIndex_tooLarge = 100,
+	ZSTD_error_seekableIO = 102,
+	ZSTD_error_dstBuffer_wrong = 104,
+	ZSTD_error_srcBuffer_wrong = 105,
+	ZSTD_error_maxCode = 120,
+} ZSTD_ErrorCode;
+
+typedef ZSTD_ErrorCode ERR_enum;
+
+typedef enum {
+	trustInput = 0,
+	checkMaxSymbolValue = 1,
+} HIST_checkInput_e;
+
+typedef __kernel_long_t __kernel_ptrdiff_t;
+
+typedef __kernel_ptrdiff_t ptrdiff_t;
+
+typedef s16 int16_t;
+
+typedef u16 uint16_t;
+
+typedef uint16_t U16;
+
+typedef int16_t S16;
+
+typedef uint64_t U64;
+
+typedef struct {
+	U32 f1c;
+	U32 f1d;
+	U32 f7b;
+	U32 f7c;
+} ZSTD_cpuid_t;
+
+typedef unsigned int FSE_CTable;
+
+typedef enum {
+	FSE_repeat_none = 0,
+	FSE_repeat_check = 1,
+	FSE_repeat_valid = 2,
+} FSE_repeat;
+
+struct HUF_CElt_s {
+	U16 val;
+	BYTE nbBits;
+};
+
+typedef struct HUF_CElt_s HUF_CElt;
+
+typedef enum {
+	HUF_repeat_none = 0,
+	HUF_repeat_check = 1,
+	HUF_repeat_valid = 2,
+} HUF_repeat;
+
+typedef enum {
+	ZSTDcs_created = 0,
+	ZSTDcs_init = 1,
+	ZSTDcs_ongoing = 2,
+	ZSTDcs_ending = 3,
+} ZSTD_compressionStage_e;
+
+typedef enum {
+	ZSTD_f_zstd1 = 0,
+	ZSTD_f_zstd1_magicless = 1,
+} ZSTD_format_e;
+
+typedef enum {
+	ZSTD_fast = 1,
+	ZSTD_dfast = 2,
+	ZSTD_greedy = 3,
+	ZSTD_lazy = 4,
+	ZSTD_lazy2 = 5,
+	ZSTD_btlazy2 = 6,
+	ZSTD_btopt = 7,
+	ZSTD_btultra = 8,
+	ZSTD_btultra2 = 9,
+} ZSTD_strategy;
+
+typedef struct {
+	unsigned int windowLog;
+	unsigned int chainLog;
+	unsigned int hashLog;
+	unsigned int searchLog;
+	unsigned int minMatch;
+	unsigned int targetLength;
+	ZSTD_strategy strategy;
+} ZSTD_compressionParameters;
+
+typedef struct {
+	int contentSizeFlag;
+	int checksumFlag;
+	int noDictIDFlag;
+} ZSTD_frameParameters;
+
+typedef enum {
+	ZSTD_dictDefaultAttach = 0,
+	ZSTD_dictForceAttach = 1,
+	ZSTD_dictForceCopy = 2,
+	ZSTD_dictForceLoad = 3,
+} ZSTD_dictAttachPref_e;
+
+typedef enum {
+	ZSTD_lcm_auto = 0,
+	ZSTD_lcm_huffman = 1,
+	ZSTD_lcm_uncompressed = 2,
+} ZSTD_literalCompressionMode_e;
+
+typedef struct {
+	U32 enableLdm;
+	U32 hashLog;
+	U32 bucketSizeLog;
+	U32 minMatchLength;
+	U32 hashRateLog;
+	U32 windowLog;
+} ldmParams_t;
+
+typedef enum {
+	ZSTD_bm_buffered = 0,
+	ZSTD_bm_stable = 1,
+} ZSTD_bufferMode_e;
+
+typedef enum {
+	ZSTD_sf_noBlockDelimiters = 0,
+	ZSTD_sf_explicitBlockDelimiters = 1,
+} ZSTD_sequenceFormat_e;
+
+typedef void * (*ZSTD_allocFunction)(void *, size_t);
+
+typedef void (*ZSTD_freeFunction)(void *, void *);
+
+typedef struct {
+	ZSTD_allocFunction customAlloc;
+	ZSTD_freeFunction customFree;
+	void *opaque;
+} ZSTD_customMem;
+
+struct ZSTD_CCtx_params_s {
+	ZSTD_format_e format;
+	ZSTD_compressionParameters cParams;
+	ZSTD_frameParameters fParams;
+	int compressionLevel;
+	int forceWindow;
+	size_t targetCBlockSize;
+	int srcSizeHint;
+	ZSTD_dictAttachPref_e attachDictPref;
+	ZSTD_literalCompressionMode_e literalCompressionMode;
+	int nbWorkers;
+	size_t jobSize;
+	int overlapLog;
+	int rsyncable;
+	ldmParams_t ldmParams;
+	int enableDedicatedDictSearch;
+	ZSTD_bufferMode_e inBufferMode;
+	ZSTD_bufferMode_e outBufferMode;
+	ZSTD_sequenceFormat_e blockDelimiters;
+	int validateSequences;
+	ZSTD_customMem customMem;
+};
+
+typedef struct ZSTD_CCtx_params_s ZSTD_CCtx_params;
+
+typedef enum {
+	ZSTD_cwksp_alloc_objects = 0,
+	ZSTD_cwksp_alloc_buffers = 1,
+	ZSTD_cwksp_alloc_aligned = 2,
+} ZSTD_cwksp_alloc_phase_e;
+
+typedef enum {
+	ZSTD_cwksp_dynamic_alloc = 0,
+	ZSTD_cwksp_static_alloc = 1,
+} ZSTD_cwksp_static_alloc_e;
+
+typedef struct {
+	void *workspace;
+	void *workspaceEnd;
+	void *objectEnd;
+	void *tableEnd;
+	void *tableValidEnd;
+	void *allocStart;
+	BYTE allocFailed;
+	int workspaceOversizedDuration;
+	ZSTD_cwksp_alloc_phase_e phase;
+	ZSTD_cwksp_static_alloc_e isStatic;
+} ZSTD_cwksp;
+
+struct xxh64_state {
+	uint64_t total_len;
+	uint64_t v1;
+	uint64_t v2;
+	uint64_t v3;
+	uint64_t v4;
+	uint64_t mem64[4];
+	uint32_t memsize;
+};
+
+struct POOL_ctx_s;
+
+typedef struct POOL_ctx_s ZSTD_threadPool;
+
+typedef struct {
+	unsigned int offset;
+	unsigned int litLength;
+	unsigned int matchLength;
+	unsigned int rep;
+} ZSTD_Sequence;
+
+typedef struct {
+	int collectSequences;
+	ZSTD_Sequence *seqStart;
+	size_t seqIndex;
+	size_t maxSequences;
+} SeqCollector;
+
+struct seqDef_s;
+
+typedef struct seqDef_s seqDef;
+
+typedef struct {
+	seqDef *sequencesStart;
+	seqDef *sequences;
+	BYTE *litStart;
+	BYTE *lit;
+	BYTE *llCode;
+	BYTE *mlCode;
+	BYTE *ofCode;
+	size_t maxNbSeq;
+	size_t maxNbLit;
+	U32 longLengthID;
+	U32 longLengthPos;
+} seqStore_t;
+
+typedef struct {
+	const BYTE *nextSrc;
+	const BYTE *base;
+	const BYTE *dictBase;
+	U32 dictLimit;
+	U32 lowLimit;
+} ZSTD_window_t;
+
+typedef struct {
+	U32 offset;
+	U32 checksum;
+} ldmEntry_t;
+
+typedef struct {
+	const BYTE *split;
+	U32 hash;
+	U32 checksum;
+	ldmEntry_t *bucket;
+} ldmMatchCandidate_t;
+
+typedef struct {
+	ZSTD_window_t window;
+	ldmEntry_t *hashTable;
+	U32 loadedDictEnd;
+	BYTE *bucketOffsets;
+	size_t splitIndices[64];
+	ldmMatchCandidate_t matchCandidates[64];
+} ldmState_t;
+
+typedef struct {
+	U32 offset;
+	U32 litLength;
+	U32 matchLength;
+} rawSeq;
+
+typedef struct {
+	rawSeq *seq;
+	size_t pos;
+	size_t posInSequence;
+	size_t size;
+	size_t capacity;
+} rawSeqStore_t;
+
+typedef struct {
+	HUF_CElt CTable[256];
+	HUF_repeat repeatMode;
+} ZSTD_hufCTables_t;
+
+typedef struct {
+	FSE_CTable offcodeCTable[193];
+	FSE_CTable matchlengthCTable[363];
+	FSE_CTable litlengthCTable[329];
+	FSE_repeat offcode_repeatMode;
+	FSE_repeat matchlength_repeatMode;
+	FSE_repeat litlength_repeatMode;
+} ZSTD_fseCTables_t;
+
+typedef struct {
+	ZSTD_hufCTables_t huf;
+	ZSTD_fseCTables_t fse;
+} ZSTD_entropyCTables_t;
+
+typedef struct {
+	ZSTD_entropyCTables_t entropy;
+	U32 rep[3];
+} ZSTD_compressedBlockState_t;
+
+typedef struct {
+	U32 off;
+	U32 len;
+} ZSTD_match_t;
+
+typedef struct {
+	int price;
+	U32 off;
+	U32 mlen;
+	U32 litlen;
+	U32 rep[3];
+} ZSTD_optimal_t;
+
+typedef enum {
+	zop_dynamic = 0,
+	zop_predef = 1,
+} ZSTD_OptPrice_e;
+
+typedef struct {
+	unsigned int *litFreq;
+	unsigned int *litLengthFreq;
+	unsigned int *matchLengthFreq;
+	unsigned int *offCodeFreq;
+	ZSTD_match_t *matchTable;
+	ZSTD_optimal_t *priceTable;
+	U32 litSum;
+	U32 litLengthSum;
+	U32 matchLengthSum;
+	U32 offCodeSum;
+	U32 litSumBasePrice;
+	U32 litLengthSumBasePrice;
+	U32 matchLengthSumBasePrice;
+	U32 offCodeSumBasePrice;
+	ZSTD_OptPrice_e priceType;
+	const ZSTD_entropyCTables_t *symbolCosts;
+	ZSTD_literalCompressionMode_e literalCompressionMode;
+} optState_t;
+
+struct ZSTD_matchState_t;
+
+typedef struct ZSTD_matchState_t ZSTD_matchState_t;
+
+struct ZSTD_matchState_t {
+	ZSTD_window_t window;
+	U32 loadedDictEnd;
+	U32 nextToUpdate;
+	U32 hashLog3;
+	U32 *hashTable;
+	U32 *hashTable3;
+	U32 *chainTable;
+	int dedicatedDictSearch;
+	optState_t opt;
+	const ZSTD_matchState_t *dictMatchState;
+	ZSTD_compressionParameters cParams;
+	const rawSeqStore_t *ldmSeqStore;
+};
+
+typedef struct {
+	ZSTD_compressedBlockState_t *prevCBlock;
+	ZSTD_compressedBlockState_t *nextCBlock;
+	ZSTD_matchState_t matchState;
+} ZSTD_blockState_t;
+
+typedef enum {
+	ZSTDb_not_buffered = 0,
+	ZSTDb_buffered = 1,
+} ZSTD_buffered_policy_e;
+
+typedef enum {
+	zcss_init = 0,
+	zcss_load = 1,
+	zcss_flush = 2,
+} ZSTD_cStreamStage;
+
+struct ZSTD_inBuffer_s {
+	const void *src;
+	size_t size;
+	size_t pos;
+};
+
+typedef struct ZSTD_inBuffer_s ZSTD_inBuffer;
+
+typedef enum {
+	ZSTD_dct_auto = 0,
+	ZSTD_dct_rawContent = 1,
+	ZSTD_dct_fullDict = 2,
+} ZSTD_dictContentType_e;
+
+struct ZSTD_CDict_s;
+
+typedef struct ZSTD_CDict_s ZSTD_CDict;
+
+typedef struct {
+	void *dictBuffer;
+	const void *dict;
+	size_t dictSize;
+	ZSTD_dictContentType_e dictContentType;
+	ZSTD_CDict *cdict;
+} ZSTD_localDict;
+
+struct ZSTD_prefixDict_s {
+	const void *dict;
+	size_t dictSize;
+	ZSTD_dictContentType_e dictContentType;
+};
+
+typedef struct ZSTD_prefixDict_s ZSTD_prefixDict;
+
+struct ZSTD_CCtx_s {
+	ZSTD_compressionStage_e stage;
+	int cParamsChanged;
+	int bmi2;
+	ZSTD_CCtx_params requestedParams;
+	ZSTD_CCtx_params appliedParams;
+	U32 dictID;
+	size_t dictContentSize;
+	ZSTD_cwksp workspace;
+	size_t blockSize;
+	long long unsigned int pledgedSrcSizePlusOne;
+	long long unsigned int consumedSrcSize;
+	long long unsigned int producedCSize;
+	struct xxh64_state xxhState;
+	ZSTD_customMem customMem;
+	ZSTD_threadPool *pool;
+	size_t staticSize;
+	SeqCollector seqCollector;
+	int isFirstBlock;
+	int initialized;
+	seqStore_t seqStore;
+	ldmState_t ldmState;
+	rawSeq *ldmSequences;
+	size_t maxNbLdmSequences;
+	rawSeqStore_t externSeqStore;
+	ZSTD_blockState_t blockState;
+	U32 *entropyWorkspace;
+	ZSTD_buffered_policy_e bufferedPolicy;
+	char *inBuff;
+	size_t inBuffSize;
+	size_t inToCompress;
+	size_t inBuffPos;
+	size_t inBuffTarget;
+	char *outBuff;
+	size_t outBuffSize;
+	size_t outBuffContentSize;
+	size_t outBuffFlushedSize;
+	ZSTD_cStreamStage streamStage;
+	U32 frameEnded;
+	ZSTD_inBuffer expectedInBuffer;
+	size_t expectedOutBufferSize;
+	ZSTD_localDict localDict;
+	const ZSTD_CDict *cdict;
+	ZSTD_prefixDict prefixDict;
+};
+
+typedef struct ZSTD_CCtx_s ZSTD_CCtx;
+
+typedef enum {
+	ZSTD_c_compressionLevel = 100,
+	ZSTD_c_windowLog = 101,
+	ZSTD_c_hashLog = 102,
+	ZSTD_c_chainLog = 103,
+	ZSTD_c_searchLog = 104,
+	ZSTD_c_minMatch = 105,
+	ZSTD_c_targetLength = 106,
+	ZSTD_c_strategy = 107,
+	ZSTD_c_enableLongDistanceMatching = 160,
+	ZSTD_c_ldmHashLog = 161,
+	ZSTD_c_ldmMinMatch = 162,
+	ZSTD_c_ldmBucketSizeLog = 163,
+	ZSTD_c_ldmHashRateLog = 164,
+	ZSTD_c_contentSizeFlag = 200,
+	ZSTD_c_checksumFlag = 201,
+	ZSTD_c_dictIDFlag = 202,
+	ZSTD_c_nbWorkers = 400,
+	ZSTD_c_jobSize = 401,
+	ZSTD_c_overlapLog = 402,
+	ZSTD_c_experimentalParam1 = 500,
+	ZSTD_c_experimentalParam2 = 10,
+	ZSTD_c_experimentalParam3 = 1000,
+	ZSTD_c_experimentalParam4 = 1001,
+	ZSTD_c_experimentalParam5 = 1002,
+	ZSTD_c_experimentalParam6 = 1003,
+	ZSTD_c_experimentalParam7 = 1004,
+	ZSTD_c_experimentalParam8 = 1005,
+	ZSTD_c_experimentalParam9 = 1006,
+	ZSTD_c_experimentalParam10 = 1007,
+	ZSTD_c_experimentalParam11 = 1008,
+	ZSTD_c_experimentalParam12 = 1009,
+} ZSTD_cParameter;
+
+typedef struct {
+	size_t error;
+	int lowerBound;
+	int upperBound;
+} ZSTD_bounds;
+
+typedef enum {
+	ZSTD_reset_session_only = 1,
+	ZSTD_reset_parameters = 2,
+	ZSTD_reset_session_and_parameters = 3,
+} ZSTD_ResetDirective;
+
+struct ZSTD_outBuffer_s {
+	void *dst;
+	size_t size;
+	size_t pos;
+};
+
+typedef struct ZSTD_outBuffer_s ZSTD_outBuffer;
+
+typedef ZSTD_CCtx ZSTD_CStream;
+
+typedef enum {
+	ZSTD_e_continue = 0,
+	ZSTD_e_flush = 1,
+	ZSTD_e_end = 2,
+} ZSTD_EndDirective;
+
+struct ZSTD_CDict_s {
+	const void *dictContent;
+	size_t dictContentSize;
+	ZSTD_dictContentType_e dictContentType;
+	U32 *entropyWorkspace;
+	ZSTD_cwksp workspace;
+	ZSTD_matchState_t matchState;
+	ZSTD_compressedBlockState_t cBlockState;
+	ZSTD_customMem customMem;
+	U32 dictID;
+	int compressionLevel;
+};
+
+typedef struct {
+	ZSTD_compressionParameters cParams;
+	ZSTD_frameParameters fParams;
+} ZSTD_parameters;
+
+typedef enum {
+	ZSTD_dlm_byCopy = 0,
+	ZSTD_dlm_byRef = 1,
+} ZSTD_dictLoadMethod_e;
+
+typedef struct {
+	long long unsigned int ingested;
+	long long unsigned int consumed;
+	long long unsigned int produced;
+	long long unsigned int flushed;
+	unsigned int currentJobID;
+	unsigned int nbActiveWorkers;
+} ZSTD_frameProgression;
+
+typedef enum {
+	set_basic = 0,
+	set_rle = 1,
+	set_compressed = 2,
+	set_repeat = 3,
+} symbolEncodingType_e;
+
+typedef enum {
+	ZSTD_no_overlap = 0,
+	ZSTD_overlap_src_before_dst = 1,
+} ZSTD_overlap_e;
+
+struct seqDef_s {
+	U32 offset;
+	U16 litLength;
+	U16 matchLength;
+};
+
+typedef enum {
+	ZSTD_dtlm_fast = 0,
+	ZSTD_dtlm_full = 1,
+} ZSTD_dictTableLoadMethod_e;
+
+typedef enum {
+	ZSTD_noDict = 0,
+	ZSTD_extDict = 1,
+	ZSTD_dictMatchState = 2,
+	ZSTD_dedicatedDictSearch = 3,
+} ZSTD_dictMode_e;
+
+typedef enum {
+	ZSTD_cpm_noAttachDict = 0,
+	ZSTD_cpm_attachDict = 1,
+	ZSTD_cpm_createCDict = 2,
+	ZSTD_cpm_unknown = 3,
+} ZSTD_cParamMode_e;
+
+typedef size_t (*ZSTD_blockCompressor)(ZSTD_matchState_t *, seqStore_t *, U32 *, const void *, size_t);
+
+struct repcodes_s {
+	U32 rep[3];
+};
+
+typedef struct repcodes_s repcodes_t;
+
+typedef enum {
+	ZSTD_defaultDisallowed = 0,
+	ZSTD_defaultAllowed = 1,
+} ZSTD_defaultPolicy_e;
+
+typedef enum {
+	ZSTDcrp_makeClean = 0,
+	ZSTDcrp_leaveDirty = 1,
+} ZSTD_compResetPolicy_e;
+
+typedef enum {
+	ZSTDirp_continue = 0,
+	ZSTDirp_reset = 1,
+} ZSTD_indexResetPolicy_e;
+
+typedef enum {
+	ZSTD_resetTarget_CDict = 0,
+	ZSTD_resetTarget_CCtx = 1,
+} ZSTD_resetTarget_e;
+
+enum {
+	ZSTDbss_compress = 0,
+	ZSTDbss_noCompress = 1,
+};
+
+typedef struct {
+	U32 idx;
+	U32 posInSequence;
+	size_t posInSrc;
+} ZSTD_sequencePosition;
+
+typedef size_t (*ZSTD_sequenceCopier)(ZSTD_CCtx *, ZSTD_sequencePosition *, const ZSTD_Sequence * const, size_t, const void *, size_t);
+
+enum xz_mode {
+	XZ_SINGLE = 0,
+	XZ_PREALLOC = 1,
+	XZ_DYNALLOC = 2,
+};
+
+enum xz_ret {
+	XZ_OK = 0,
+	XZ_STREAM_END = 1,
+	XZ_UNSUPPORTED_CHECK = 2,
+	XZ_MEM_ERROR = 3,
+	XZ_MEMLIMIT_ERROR = 4,
+	XZ_FORMAT_ERROR = 5,
+	XZ_OPTIONS_ERROR = 6,
+	XZ_DATA_ERROR = 7,
+	XZ_BUF_ERROR = 8,
+};
+
+struct xz_buf {
+	const uint8_t *in;
+	size_t in_pos;
+	size_t in_size;
+	uint8_t *out;
+	size_t out_pos;
+	size_t out_size;
+};
+
+struct xz_dec_microlzma;
+
+struct xz_dec;
+
+typedef __u16 __sum16;
+
+struct sg_splitter {
+	struct scatterlist *in_sg0;
+	int nents;
+	off_t skip_sg0;
+	unsigned int length_last_sg;
+	struct scatterlist *out_sg;
+};
+
+struct ida {
+	struct xarray xa;
+};
+
+typedef u32 depot_stack_handle_t;
+
+union handle_parts {
+	depot_stack_handle_t handle;
+	struct {
+		u32 slabindex: 21;
+		u32 offset: 10;
+		u32 valid: 1;
+	};
+};
+
+struct stack_record {
+	struct stack_record *next;
+	u32 hash;
+	u32 size;
+	union handle_parts handle;
+	long unsigned int entries[0];
+};
+
+struct group_data {
+	int limit[21];
+	int base[20];
+	int permute[258];
+	int minLen;
+	int maxLen;
+};
+
+struct bunzip_data {
+	int writeCopies;
+	int writePos;
+	int writeRunCountdown;
+	int writeCount;
+	int writeCurrent;
+	long int (*fill)(void *, long unsigned int);
+	long int inbufCount;
+	long int inbufPos;
+	unsigned char *inbuf;
+	unsigned int inbufBitCount;
+	unsigned int inbufBits;
+	unsigned int crc32Table[256];
+	unsigned int headerCRC;
+	unsigned int totalCRC;
+	unsigned int writeCRC;
+	unsigned int *dbuf;
+	unsigned int dbufSize;
+	unsigned char selectors[32768];
+	struct group_data groups[6];
+	int io_error;
+	int byteCount[256];
+	unsigned char symToByte[256];
+	unsigned char mtfSymbol[256];
+};
+
+struct rc {
+	long int (*fill)(void *, long unsigned int);
+	uint8_t *ptr;
+	uint8_t *buffer;
+	uint8_t *buffer_end;
+	long int buffer_size;
+	uint32_t code;
+	uint32_t range;
+	uint32_t bound;
+	void (*error)(char *);
+};
+
+struct lzma_header {
+	uint8_t pos;
+	uint32_t dict_size;
+	uint64_t dst_size;
+} __attribute__((packed));
+
+struct writer {
+	uint8_t *buffer;
+	uint8_t previous_byte;
+	size_t buffer_pos;
+	int bufsize;
+	size_t global_pos;
+	long int (*flush)(void *, long unsigned int);
+	struct lzma_header *header;
+};
+
+struct cstate {
+	int state;
+	uint32_t rep0;
+	uint32_t rep1;
+	uint32_t rep2;
+	uint32_t rep3;
+};
+
+struct word_at_a_time {
+	const long unsigned int one_bits;
+	const long unsigned int high_bits;
+};
+
+struct minmax_sample {
+	u32 t;
+	u32 v;
+};
+
+struct minmax {
+	struct minmax_sample s[3];
+};
+
+struct xa_limit {
+	u32 max;
+	u32 min;
+};
+
+typedef int (*of_init_fn_2)(struct device_node *, struct device_node *);
+
+typedef int (*of_irq_init_cb_t)(struct device_node *, struct device_node *);
+
+struct armctrl_ic {
+	void *base;
+	void *pending[3];
+	void *enable[3];
+	void *disable[3];
+	struct irq_domain *domain;
+};
+
+struct gic_quirk {
+	const char *desc;
+	const char *compatible;
+	bool (*init)(void *);
+	u32 iidr;
+	u32 mask;
+};
+
+struct iommu_fault_param;
+
+struct iopf_device_param;
+
+struct iommu_fwspec;
+
+struct dev_iommu {
+	struct mutex lock;
+	struct iommu_fault_param *fault_param;
+	struct iopf_device_param *iopf_param;
+	struct iommu_fwspec *fwspec;
+	struct iommu_device *iommu_dev;
+	void *priv;
+};
+
+struct of_phandle_args {
+	struct device_node *np;
+	int args_count;
+	uint32_t args[16];
+};
+
+struct iommu_fault_unrecoverable {
+	__u32 reason;
+	__u32 flags;
+	__u32 pasid;
+	__u32 perm;
+	__u64 addr;
+	__u64 fetch_addr;
+};
+
+struct iommu_fault_page_request {
+	__u32 flags;
+	__u32 pasid;
+	__u32 grpid;
+	__u32 perm;
+	__u64 addr;
+	__u64 private_data[2];
+};
+
+struct iommu_fault {
+	__u32 type;
+	__u32 padding;
+	union {
+		struct iommu_fault_unrecoverable event;
+		struct iommu_fault_page_request prm;
+		__u8 padding2[56];
+	};
+};
+
+struct iommu_page_response {
+	__u32 argsz;
+	__u32 version;
+	__u32 flags;
+	__u32 pasid;
+	__u32 grpid;
+	__u32 code;
+};
+
+typedef int (*iommu_fault_handler_t)(struct iommu_domain *, struct device *, long unsigned int, int, void *);
+
+struct iommu_domain_geometry {
+	dma_addr_t aperture_start;
+	dma_addr_t aperture_end;
+	bool force_aperture;
+};
+
+struct iommu_dma_cookie;
+
+struct iommu_domain {
+	unsigned int type;
+	const struct iommu_domain_ops *ops;
+	long unsigned int pgsize_bitmap;
+	iommu_fault_handler_t handler;
+	void *handler_token;
+	struct iommu_domain_geometry geometry;
+	struct iommu_dma_cookie *iova_cookie;
+};
+
+typedef int (*iommu_dev_fault_handler_t)(struct iommu_fault *, void *);
+
+struct iommu_iotlb_gather;
+
+struct iommu_domain_ops {
+	int (*attach_dev)(struct iommu_domain *, struct device *);
+	void (*detach_dev)(struct iommu_domain *, struct device *);
+	int (*map)(struct iommu_domain *, long unsigned int, phys_addr_t, size_t, int, gfp_t);
+	int (*map_pages)(struct iommu_domain *, long unsigned int, phys_addr_t, size_t, size_t, int, gfp_t, size_t *);
+	size_t (*unmap)(struct iommu_domain *, long unsigned int, size_t, struct iommu_iotlb_gather *);
+	size_t (*unmap_pages)(struct iommu_domain *, long unsigned int, size_t, size_t, struct iommu_iotlb_gather *);
+	void (*flush_iotlb_all)(struct iommu_domain *);
+	void (*iotlb_sync_map)(struct iommu_domain *, long unsigned int, size_t);
+	void (*iotlb_sync)(struct iommu_domain *, struct iommu_iotlb_gather *);
+	phys_addr_t (*iova_to_phys)(struct iommu_domain *, dma_addr_t);
+	bool (*enforce_cache_coherency)(struct iommu_domain *);
+	int (*enable_nesting)(struct iommu_domain *);
+	int (*set_pgtable_quirks)(struct iommu_domain *, long unsigned int);
+	void (*free)(struct iommu_domain *);
+};
+
+struct iommu_iotlb_gather {
+	long unsigned int start;
+	long unsigned int end;
+	size_t pgsize;
+	struct list_head freelist;
+	bool queued;
+};
+
+struct iommu_device {
+	struct list_head list;
+	const struct iommu_ops *ops;
+	struct fwnode_handle *fwnode;
+	struct device *dev;
+};
+
+struct iommu_sva {
+	struct device *dev;
+};
+
+struct iommu_fault_event {
+	struct iommu_fault fault;
+	struct list_head list;
+};
+
+struct iommu_fault_param {
+	iommu_dev_fault_handler_t handler;
+	void *data;
+	struct list_head faults;
+	struct mutex lock;
+};
+
+struct iommu_fwspec {
+	const struct iommu_ops *ops;
+	struct fwnode_handle *iommu_fwnode;
+	u32 flags;
+	unsigned int num_ids;
+	u32 ids[0];
+};
+
+struct msi_alloc_info {
+	struct msi_desc *desc;
+	irq_hw_number_t hwirq;
+	long unsigned int flags;
+	union {
+		long unsigned int ul;
+		void *ptr;
+	} scratchpad[2];
+};
+
+typedef struct msi_alloc_info msi_alloc_info_t;
+
+struct msi_domain_info;
+
+struct msi_domain_ops {
+	irq_hw_number_t (*get_hwirq)(struct msi_domain_info *, msi_alloc_info_t *);
+	int (*msi_init)(struct irq_domain *, struct msi_domain_info *, unsigned int, irq_hw_number_t, msi_alloc_info_t *);
+	void (*msi_free)(struct irq_domain *, struct msi_domain_info *, unsigned int);
+	int (*msi_check)(struct irq_domain *, struct msi_domain_info *, struct device *);
+	int (*msi_prepare)(struct irq_domain *, struct device *, int, msi_alloc_info_t *);
+	void (*set_desc)(msi_alloc_info_t *, struct msi_desc *);
+	int (*domain_alloc_irqs)(struct irq_domain *, struct device *, int);
+	void (*domain_free_irqs)(struct irq_domain *, struct device *);
+};
+
+struct msi_domain_info {
+	u32 flags;
+	struct msi_domain_ops *ops;
+	struct irq_chip *chip;
+	void *chip_data;
+	irq_flow_handler_t handler;
+	void *handler_data;
+	const char *handler_name;
+	void *data;
+};
+
+enum {
+	MSI_FLAG_USE_DEF_DOM_OPS = 1,
+	MSI_FLAG_USE_DEF_CHIP_OPS = 2,
+	MSI_FLAG_MULTI_PCI_MSI = 4,
+	MSI_FLAG_PCI_MSIX = 8,
+	MSI_FLAG_ACTIVATE_EARLY = 16,
+	MSI_FLAG_MUST_REACTIVATE = 32,
+	MSI_FLAG_LEVEL_CAPABLE = 64,
+	MSI_FLAG_DEV_SYSFS = 128,
+	MSI_FLAG_MSIX_CONTIGUOUS = 256,
+	MSI_FLAG_ALLOC_SIMPLE_MSI_DESCS = 512,
+	MSI_FLAG_FREE_MSI_DESCS = 1024,
+};
+
+enum {
+	IRQCHIP_SET_TYPE_MASKED = 1,
+	IRQCHIP_EOI_IF_HANDLED = 2,
+	IRQCHIP_MASK_ON_SUSPEND = 4,
+	IRQCHIP_ONOFFLINE_ENABLED = 8,
+	IRQCHIP_SKIP_SET_WAKE = 16,
+	IRQCHIP_ONESHOT_SAFE = 32,
+	IRQCHIP_EOI_THREADED = 64,
+	IRQCHIP_SUPPORTS_LEVEL_MSI = 128,
+	IRQCHIP_SUPPORTS_NMI = 256,
+	IRQCHIP_ENABLE_WAKEUP_ON_SUSPEND = 512,
+	IRQCHIP_AFFINITY_PRE_STARTUP = 1024,
+	IRQCHIP_IMMUTABLE = 2048,
+};
+
+struct mbi_range {
+	u32 spi_start;
+	u32 nr_spis;
+	long unsigned int *bm;
+};
+
+struct partition_affinity {
+	cpumask_t mask;
+	void *partition_id;
+};
+
+struct partition_desc {
+	int nr_parts;
+	struct partition_affinity *parts;
+	struct irq_domain *domain;
+	struct irq_desc *chained_desc;
+	long unsigned int *bitmap;
+	struct irq_domain_ops ops;
+};
+
+struct odmi_data {
+	struct resource res;
+	void *base;
+	unsigned int spi_base;
+};
+
+struct platform_device_id {
+	char name[20];
+	kernel_ulong_t driver_data;
+};
+
+struct pdev_archdata {};
+
+struct mfd_cell;
+
+struct platform_device {
+	const char *name;
+	int id;
+	bool id_auto;
+	struct device dev;
+	u64 platform_dma_mask;
+	struct device_dma_parameters dma_parms;
+	u32 num_resources;
+	struct resource *resource;
+	const struct platform_device_id *id_entry;
+	const char *driver_override;
+	struct mfd_cell *mfd_cell;
+	struct pdev_archdata archdata;
+};
+
+struct platform_driver {
+	int (*probe)(struct platform_device *);
+	int (*remove)(struct platform_device *);
+	void (*shutdown)(struct platform_device *);
+	int (*suspend)(struct platform_device *, pm_message_t);
+	int (*resume)(struct platform_device *);
+	struct device_driver driver;
+	const struct platform_device_id *id_table;
+	bool prevent_deferred_probe;
+	bool driver_managed_dma;
+};
+
+struct meson_gpio_irq_controller;
+
+struct irq_ctl_ops {
+	void (*gpio_irq_sel_pin)(struct meson_gpio_irq_controller *, unsigned int, long unsigned int);
+	void (*gpio_irq_init)(struct meson_gpio_irq_controller *);
+	int (*gpio_irq_set_type)(struct meson_gpio_irq_controller *, unsigned int, u32 *);
+};
+
+struct meson_gpio_irq_params;
+
+struct meson_gpio_irq_controller {
+	const struct meson_gpio_irq_params *params;
+	void *base;
+	u32 channel_irqs[64];
+	long unsigned int channel_map[1];
+	spinlock_t lock;
+};
+
+struct meson_gpio_irq_params {
+	unsigned int nr_hwirq;
+	unsigned int nr_channels;
+	bool support_edge_both;
+	unsigned int edge_both_offset;
+	unsigned int edge_single_offset;
+	unsigned int pol_low_offset;
+	unsigned int pin_sel_mask;
+	struct irq_ctl_ops ops;
+};
+
+typedef u64 acpi_io_address;
+
+typedef u32 acpi_object_type;
+
+union acpi_object {
+	acpi_object_type type;
+	struct {
+		acpi_object_type type;
+		u64 value;
+	} integer;
+	struct {
+		acpi_object_type type;
+		u32 length;
+		char *pointer;
+	} string;
+	struct {
+		acpi_object_type type;
+		u32 length;
+		u8 *pointer;
+	} buffer;
+	struct {
+		acpi_object_type type;
+		u32 count;
+		union acpi_object *elements;
+	} package;
+	struct {
+		acpi_object_type type;
+		acpi_object_type actual_type;
+		acpi_handle handle;
+	} reference;
+	struct {
+		acpi_object_type type;
+		u32 proc_id;
+		acpi_io_address pblk_address;
+		u32 pblk_length;
+	} processor;
+	struct {
+		acpi_object_type type;
+		u32 system_level;
+		u32 resource_order;
+	} power_resource;
+};
+
+struct acpi_resource_irq {
