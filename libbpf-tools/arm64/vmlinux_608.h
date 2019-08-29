@@ -45923,3 +45923,2138 @@ enum hdmi_active_aspect {
 
 enum hdmi_extended_colorimetry {
 	HDMI_EXTENDED_COLORIMETRY_XV_YCC_601 = 0,
+	HDMI_EXTENDED_COLORIMETRY_XV_YCC_709 = 1,
+	HDMI_EXTENDED_COLORIMETRY_S_YCC_601 = 2,
+	HDMI_EXTENDED_COLORIMETRY_OPYCC_601 = 3,
+	HDMI_EXTENDED_COLORIMETRY_OPRGB = 4,
+	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM = 5,
+	HDMI_EXTENDED_COLORIMETRY_BT2020 = 6,
+	HDMI_EXTENDED_COLORIMETRY_RESERVED = 7,
+};
+
+enum hdmi_quantization_range {
+	HDMI_QUANTIZATION_RANGE_DEFAULT = 0,
+	HDMI_QUANTIZATION_RANGE_LIMITED = 1,
+	HDMI_QUANTIZATION_RANGE_FULL = 2,
+	HDMI_QUANTIZATION_RANGE_RESERVED = 3,
+};
+
+enum hdmi_nups {
+	HDMI_NUPS_UNKNOWN = 0,
+	HDMI_NUPS_HORIZONTAL = 1,
+	HDMI_NUPS_VERTICAL = 2,
+	HDMI_NUPS_BOTH = 3,
+};
+
+enum hdmi_ycc_quantization_range {
+	HDMI_YCC_QUANTIZATION_RANGE_LIMITED = 0,
+	HDMI_YCC_QUANTIZATION_RANGE_FULL = 1,
+};
+
+enum hdmi_content_type {
+	HDMI_CONTENT_TYPE_GRAPHICS = 0,
+	HDMI_CONTENT_TYPE_PHOTO = 1,
+	HDMI_CONTENT_TYPE_CINEMA = 2,
+	HDMI_CONTENT_TYPE_GAME = 3,
+};
+
+enum hdmi_metadata_type {
+	HDMI_STATIC_METADATA_TYPE1 = 0,
+};
+
+enum hdmi_eotf {
+	HDMI_EOTF_TRADITIONAL_GAMMA_SDR = 0,
+	HDMI_EOTF_TRADITIONAL_GAMMA_HDR = 1,
+	HDMI_EOTF_SMPTE_ST2084 = 2,
+	HDMI_EOTF_BT_2100_HLG = 3,
+};
+
+struct hdmi_avi_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	enum hdmi_colorspace colorspace;
+	enum hdmi_scan_mode scan_mode;
+	enum hdmi_colorimetry colorimetry;
+	enum hdmi_picture_aspect picture_aspect;
+	enum hdmi_active_aspect active_aspect;
+	bool itc;
+	enum hdmi_extended_colorimetry extended_colorimetry;
+	enum hdmi_quantization_range quantization_range;
+	enum hdmi_nups nups;
+	unsigned char video_code;
+	enum hdmi_ycc_quantization_range ycc_quantization_range;
+	enum hdmi_content_type content_type;
+	unsigned char pixel_repeat;
+	short unsigned int top_bar;
+	short unsigned int bottom_bar;
+	short unsigned int left_bar;
+	short unsigned int right_bar;
+};
+
+enum hdmi_3d_structure {
+	HDMI_3D_STRUCTURE_INVALID = 4294967295,
+	HDMI_3D_STRUCTURE_FRAME_PACKING = 0,
+	HDMI_3D_STRUCTURE_FIELD_ALTERNATIVE = 1,
+	HDMI_3D_STRUCTURE_LINE_ALTERNATIVE = 2,
+	HDMI_3D_STRUCTURE_SIDE_BY_SIDE_FULL = 3,
+	HDMI_3D_STRUCTURE_L_DEPTH = 4,
+	HDMI_3D_STRUCTURE_L_DEPTH_GFX_GFX_DEPTH = 5,
+	HDMI_3D_STRUCTURE_TOP_AND_BOTTOM = 6,
+	HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF = 8,
+};
+
+struct hdmi_vendor_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	unsigned int oui;
+	u8 vic;
+	enum hdmi_3d_structure s3d_struct;
+	unsigned int s3d_ext_data;
+};
+
+struct hdr_static_metadata {
+	__u8 eotf;
+	__u8 metadata_type;
+	__u16 max_cll;
+	__u16 max_fall;
+	__u16 min_cll;
+};
+
+struct hdr_sink_metadata {
+	__u32 metadata_type;
+	union {
+		struct hdr_static_metadata hdmi_type1;
+	};
+};
+
+struct displayid_block {
+	u8 tag;
+	u8 rev;
+	u8 num_bytes;
+};
+
+struct displayid_tiled_block {
+	struct displayid_block base;
+	u8 tile_cap;
+	u8 topo[3];
+	u8 tile_size[4];
+	u8 tile_pixel_bezel[5];
+	u8 topology_id[8];
+};
+
+struct displayid_detailed_timings_1 {
+	u8 pixel_clock[3];
+	u8 flags;
+	u8 hactive[2];
+	u8 hblank[2];
+	u8 hsync[2];
+	u8 hsw[2];
+	u8 vactive[2];
+	u8 vblank[2];
+	u8 vsync[2];
+	u8 vsw[2];
+};
+
+struct displayid_detailed_timing_block {
+	struct displayid_block base;
+	struct displayid_detailed_timings_1 timings[0];
+};
+
+struct displayid_vesa_vendor_specific_block {
+	struct displayid_block base;
+	u8 oui[3];
+	u8 data_structure_type;
+	u8 mso;
+};
+
+struct drm_edid;
+
+struct displayid_iter {
+	const struct drm_edid *drm_edid;
+	const u8 *section;
+	int length;
+	int idx;
+	int ext_index;
+};
+
+struct edid;
+
+struct drm_edid {
+	size_t size;
+	const struct edid *edid;
+};
+
+enum drm_mode_subconnector {
+	DRM_MODE_SUBCONNECTOR_Automatic = 0,
+	DRM_MODE_SUBCONNECTOR_Unknown = 0,
+	DRM_MODE_SUBCONNECTOR_VGA = 1,
+	DRM_MODE_SUBCONNECTOR_DVID = 3,
+	DRM_MODE_SUBCONNECTOR_DVIA = 4,
+	DRM_MODE_SUBCONNECTOR_Composite = 5,
+	DRM_MODE_SUBCONNECTOR_SVIDEO = 6,
+	DRM_MODE_SUBCONNECTOR_Component = 8,
+	DRM_MODE_SUBCONNECTOR_SCART = 9,
+	DRM_MODE_SUBCONNECTOR_DisplayPort = 10,
+	DRM_MODE_SUBCONNECTOR_HDMIA = 11,
+	DRM_MODE_SUBCONNECTOR_Native = 15,
+	DRM_MODE_SUBCONNECTOR_Wireless = 18,
+};
+
+struct drm_object_properties;
+
+struct drm_mode_object {
+	uint32_t id;
+	uint32_t type;
+	struct drm_object_properties *properties;
+	struct kref refcount;
+	void (*free_cb)(struct kref *);
+};
+
+struct drm_property {
+	struct list_head head;
+	struct drm_mode_object base;
+	uint32_t flags;
+	char name[32];
+	uint32_t num_values;
+	uint64_t *values;
+	struct drm_device *dev;
+	struct list_head enum_list;
+};
+
+struct est_timings {
+	u8 t1;
+	u8 t2;
+	u8 mfg_rsvd;
+};
+
+struct std_timing {
+	u8 hsize;
+	u8 vfreq_aspect;
+};
+
+struct detailed_pixel_timing {
+	u8 hactive_lo;
+	u8 hblank_lo;
+	u8 hactive_hblank_hi;
+	u8 vactive_lo;
+	u8 vblank_lo;
+	u8 vactive_vblank_hi;
+	u8 hsync_offset_lo;
+	u8 hsync_pulse_width_lo;
+	u8 vsync_offset_pulse_width_lo;
+	u8 hsync_vsync_offset_pulse_width_hi;
+	u8 width_mm_lo;
+	u8 height_mm_lo;
+	u8 width_height_mm_hi;
+	u8 hborder;
+	u8 vborder;
+	u8 misc;
+};
+
+struct detailed_data_string {
+	u8 str[13];
+};
+
+struct detailed_data_monitor_range {
+	u8 min_vfreq;
+	u8 max_vfreq;
+	u8 min_hfreq_khz;
+	u8 max_hfreq_khz;
+	u8 pixel_clock_mhz;
+	u8 flags;
+	union {
+		struct {
+			u8 reserved;
+			u8 hfreq_start_khz;
+			u8 c;
+			__le16 m;
+			u8 k;
+			u8 j;
+		} __attribute__((packed)) gtf2;
+		struct {
+			u8 version;
+			u8 data1;
+			u8 data2;
+			u8 supported_aspects;
+			u8 flags;
+			u8 supported_scalings;
+			u8 preferred_refresh;
+		} cvt;
+	} formula;
+} __attribute__((packed));
+
+struct detailed_data_wpindex {
+	u8 white_yx_lo;
+	u8 white_x_hi;
+	u8 white_y_hi;
+	u8 gamma;
+};
+
+struct cvt_timing {
+	u8 code[3];
+};
+
+struct detailed_non_pixel {
+	u8 pad1;
+	u8 type;
+	u8 pad2;
+	union {
+		struct detailed_data_string str;
+		struct detailed_data_monitor_range range;
+		struct detailed_data_wpindex color;
+		struct std_timing timings[6];
+		struct cvt_timing cvt[4];
+	} data;
+} __attribute__((packed));
+
+struct detailed_timing {
+	__le16 pixel_clock;
+	union {
+		struct detailed_pixel_timing pixel_data;
+		struct detailed_non_pixel other_data;
+	} data;
+};
+
+struct edid {
+	u8 header[8];
+	u8 mfg_id[2];
+	u8 prod_code[2];
+	u32 serial;
+	u8 mfg_week;
+	u8 mfg_year;
+	u8 version;
+	u8 revision;
+	u8 input;
+	u8 width_cm;
+	u8 height_cm;
+	u8 gamma;
+	u8 features;
+	u8 red_green_lo;
+	u8 blue_white_lo;
+	u8 red_x;
+	u8 red_y;
+	u8 green_x;
+	u8 green_y;
+	u8 blue_x;
+	u8 blue_y;
+	u8 white_x;
+	u8 white_y;
+	struct est_timings established_timings;
+	struct std_timing standard_timings[8];
+	struct detailed_timing detailed_timings[4];
+	u8 extensions;
+	u8 checksum;
+};
+
+struct cea_sad {
+	u8 format;
+	u8 channels;
+	u8 freq;
+	u8 byte2;
+};
+
+struct drm_object_properties {
+	int count;
+	struct drm_property *properties[24];
+	uint64_t values[24];
+};
+
+enum drm_connector_force {
+	DRM_FORCE_UNSPECIFIED = 0,
+	DRM_FORCE_OFF = 1,
+	DRM_FORCE_ON = 2,
+	DRM_FORCE_ON_DIGITAL = 3,
+};
+
+enum drm_connector_status {
+	connector_status_connected = 1,
+	connector_status_disconnected = 2,
+	connector_status_unknown = 3,
+};
+
+enum drm_connector_registration_state {
+	DRM_CONNECTOR_INITIALIZING = 0,
+	DRM_CONNECTOR_REGISTERED = 1,
+	DRM_CONNECTOR_UNREGISTERED = 2,
+};
+
+enum subpixel_order {
+	SubPixelUnknown = 0,
+	SubPixelHorizontalRGB = 1,
+	SubPixelHorizontalBGR = 2,
+	SubPixelVerticalRGB = 3,
+	SubPixelVerticalBGR = 4,
+	SubPixelNone = 5,
+};
+
+struct drm_scrambling {
+	bool supported;
+	bool low_rates;
+};
+
+struct drm_scdc {
+	bool supported;
+	bool read_request;
+	struct drm_scrambling scrambling;
+};
+
+struct drm_hdmi_dsc_cap {
+	bool v_1p2;
+	bool native_420;
+	bool all_bpp;
+	u8 bpc_supported;
+	u8 max_slices;
+	int clk_per_slice;
+	u8 max_lanes;
+	u8 max_frl_rate_per_lane;
+	u8 total_chunk_kbytes;
+};
+
+struct drm_hdmi_info {
+	struct drm_scdc scdc;
+	long unsigned int y420_vdb_modes[4];
+	long unsigned int y420_cmdb_modes[4];
+	u64 y420_cmdb_map;
+	u8 y420_dc_modes;
+	u8 max_frl_rate_per_lane;
+	u8 max_lanes;
+	struct drm_hdmi_dsc_cap dsc_cap;
+};
+
+enum drm_link_status {
+	DRM_LINK_STATUS_GOOD = 0,
+	DRM_LINK_STATUS_BAD = 1,
+};
+
+enum drm_panel_orientation {
+	DRM_MODE_PANEL_ORIENTATION_UNKNOWN = 4294967295,
+	DRM_MODE_PANEL_ORIENTATION_NORMAL = 0,
+	DRM_MODE_PANEL_ORIENTATION_BOTTOM_UP = 1,
+	DRM_MODE_PANEL_ORIENTATION_LEFT_UP = 2,
+	DRM_MODE_PANEL_ORIENTATION_RIGHT_UP = 3,
+};
+
+struct drm_monitor_range_info {
+	u16 min_vfreq;
+	u16 max_vfreq;
+};
+
+enum drm_privacy_screen_status {
+	PRIVACY_SCREEN_DISABLED = 0,
+	PRIVACY_SCREEN_ENABLED = 1,
+	PRIVACY_SCREEN_DISABLED_LOCKED = 2,
+	PRIVACY_SCREEN_ENABLED_LOCKED = 3,
+};
+
+struct drm_display_info {
+	unsigned int width_mm;
+	unsigned int height_mm;
+	unsigned int bpc;
+	enum subpixel_order subpixel_order;
+	int panel_orientation;
+	u32 color_formats;
+	const u32 *bus_formats;
+	unsigned int num_bus_formats;
+	u32 bus_flags;
+	int max_tmds_clock;
+	bool dvi_dual;
+	bool is_hdmi;
+	bool has_hdmi_infoframe;
+	bool rgb_quant_range_selectable;
+	u8 edid_hdmi_rgb444_dc_modes;
+	u8 edid_hdmi_ycbcr444_dc_modes;
+	u8 cea_rev;
+	struct drm_hdmi_info hdmi;
+	bool non_desktop;
+	struct drm_monitor_range_info monitor_range;
+	u8 mso_stream_count;
+	u8 mso_pixel_overlap;
+};
+
+struct drm_connector_tv_margins {
+	unsigned int bottom;
+	unsigned int left;
+	unsigned int right;
+	unsigned int top;
+};
+
+struct drm_tv_connector_state {
+	enum drm_mode_subconnector subconnector;
+	struct drm_connector_tv_margins margins;
+	unsigned int mode;
+	unsigned int brightness;
+	unsigned int contrast;
+	unsigned int flicker_reduction;
+	unsigned int overscan;
+	unsigned int saturation;
+	unsigned int hue;
+};
+
+struct drm_connector;
+
+struct drm_crtc;
+
+struct drm_encoder;
+
+struct drm_crtc_commit;
+
+struct drm_writeback_job;
+
+struct drm_property_blob;
+
+struct drm_connector_state {
+	struct drm_connector *connector;
+	struct drm_crtc *crtc;
+	struct drm_encoder *best_encoder;
+	enum drm_link_status link_status;
+	struct drm_atomic_state *state;
+	struct drm_crtc_commit *commit;
+	struct drm_tv_connector_state tv;
+	bool self_refresh_aware;
+	enum hdmi_picture_aspect picture_aspect_ratio;
+	unsigned int content_type;
+	unsigned int hdcp_content_type;
+	unsigned int scaling_mode;
+	unsigned int content_protection;
+	u32 colorspace;
+	struct drm_writeback_job *writeback_job;
+	u8 max_requested_bpc;
+	u8 max_bpc;
+	enum drm_privacy_screen_status privacy_screen_sw_state;
+	struct drm_property_blob *hdr_output_metadata;
+};
+
+struct drm_privacy_screen;
+
+struct drm_cmdline_mode {
+	char name[32];
+	bool specified;
+	bool refresh_specified;
+	bool bpp_specified;
+	int xres;
+	int yres;
+	int bpp;
+	int refresh;
+	bool rb;
+	bool interlace;
+	bool cvt;
+	bool margins;
+	enum drm_connector_force force;
+	unsigned int rotation_reflection;
+	enum drm_panel_orientation panel_orientation;
+	struct drm_connector_tv_margins tv_margins;
+};
+
+struct drm_connector_funcs;
+
+struct drm_connector_helper_funcs;
+
+struct drm_tile_group;
+
+struct drm_connector {
+	struct drm_device *dev;
+	struct device *kdev;
+	struct device_attribute *attr;
+	struct fwnode_handle *fwnode;
+	struct list_head head;
+	struct list_head global_connector_list_entry;
+	struct drm_mode_object base;
+	char *name;
+	struct mutex mutex;
+	unsigned int index;
+	int connector_type;
+	int connector_type_id;
+	bool interlace_allowed;
+	bool doublescan_allowed;
+	bool stereo_allowed;
+	bool ycbcr_420_allowed;
+	enum drm_connector_registration_state registration_state;
+	struct list_head modes;
+	enum drm_connector_status status;
+	struct list_head probed_modes;
+	struct drm_display_info display_info;
+	const struct drm_connector_funcs *funcs;
+	struct drm_property_blob *edid_blob_ptr;
+	struct drm_object_properties properties;
+	struct drm_property *scaling_mode_property;
+	struct drm_property *vrr_capable_property;
+	struct drm_property *colorspace_property;
+	struct drm_property_blob *path_blob_ptr;
+	struct drm_property *max_bpc_property;
+	struct drm_privacy_screen *privacy_screen;
+	struct notifier_block privacy_screen_notifier;
+	struct drm_property *privacy_screen_sw_state_property;
+	struct drm_property *privacy_screen_hw_state_property;
+	uint8_t polled;
+	int dpms;
+	const struct drm_connector_helper_funcs *helper_private;
+	struct drm_cmdline_mode cmdline_mode;
+	enum drm_connector_force force;
+	bool override_edid;
+	u64 epoch_counter;
+	u32 possible_encoders;
+	struct drm_encoder *encoder;
+	uint8_t eld[128];
+	bool latency_present[2];
+	int video_latency[2];
+	int audio_latency[2];
+	struct i2c_adapter *ddc;
+	int null_edid_counter;
+	unsigned int bad_edid_counter;
+	bool edid_corrupt;
+	u8 real_edid_checksum;
+	struct dentry *debugfs_entry;
+	struct drm_connector_state *state;
+	struct drm_property_blob *tile_blob_ptr;
+	bool has_tile;
+	struct drm_tile_group *tile_group;
+	bool tile_is_single_monitor;
+	uint8_t num_h_tile;
+	uint8_t num_v_tile;
+	uint8_t tile_h_loc;
+	uint8_t tile_v_loc;
+	uint16_t tile_h_size;
+	uint16_t tile_v_size;
+	struct llist_node free_node;
+	struct hdr_sink_metadata hdr_sink_metadata;
+};
+
+struct drm_crtc_crc_entry;
+
+struct drm_crtc_crc {
+	spinlock_t lock;
+	const char *source;
+	bool opened;
+	bool overflow;
+	struct drm_crtc_crc_entry *entries;
+	int head;
+	int tail;
+	size_t values_cnt;
+	wait_queue_head_t wq;
+};
+
+struct drm_plane;
+
+struct drm_crtc_funcs;
+
+struct drm_crtc_helper_funcs;
+
+struct drm_crtc_state;
+
+struct drm_self_refresh_data;
+
+struct drm_crtc {
+	struct drm_device *dev;
+	struct device_node *port;
+	struct list_head head;
+	char *name;
+	struct drm_modeset_lock mutex;
+	struct drm_mode_object base;
+	struct drm_plane *primary;
+	struct drm_plane *cursor;
+	unsigned int index;
+	int cursor_x;
+	int cursor_y;
+	bool enabled;
+	struct drm_display_mode mode;
+	struct drm_display_mode hwmode;
+	int x;
+	int y;
+	const struct drm_crtc_funcs *funcs;
+	uint32_t gamma_size;
+	uint16_t *gamma_store;
+	const struct drm_crtc_helper_funcs *helper_private;
+	struct drm_object_properties properties;
+	struct drm_property *scaling_filter_property;
+	struct drm_crtc_state *state;
+	struct list_head commit_list;
+	spinlock_t commit_lock;
+	struct dentry *debugfs_entry;
+	struct drm_crtc_crc crc;
+	unsigned int fence_context;
+	spinlock_t fence_lock;
+	long unsigned int fence_seqno;
+	char timeline_name[32];
+	struct drm_self_refresh_data *self_refresh_data;
+};
+
+struct drm_encoder_funcs;
+
+struct drm_encoder_helper_funcs;
+
+struct drm_encoder {
+	struct drm_device *dev;
+	struct list_head head;
+	struct drm_mode_object base;
+	char *name;
+	int encoder_type;
+	unsigned int index;
+	uint32_t possible_crtcs;
+	uint32_t possible_clones;
+	struct drm_crtc *crtc;
+	struct list_head bridge_chain;
+	const struct drm_encoder_funcs *funcs;
+	const struct drm_encoder_helper_funcs *helper_private;
+};
+
+struct drm_property_blob {
+	struct drm_mode_object base;
+	struct drm_device *dev;
+	struct list_head head_global;
+	struct list_head head_file;
+	size_t length;
+	void *data;
+};
+
+struct drm_printer;
+
+struct drm_connector_funcs {
+	int (*dpms)(struct drm_connector *, int);
+	void (*reset)(struct drm_connector *);
+	enum drm_connector_status (*detect)(struct drm_connector *, bool);
+	void (*force)(struct drm_connector *);
+	int (*fill_modes)(struct drm_connector *, uint32_t, uint32_t);
+	int (*set_property)(struct drm_connector *, struct drm_property *, uint64_t);
+	int (*late_register)(struct drm_connector *);
+	void (*early_unregister)(struct drm_connector *);
+	void (*destroy)(struct drm_connector *);
+	struct drm_connector_state * (*atomic_duplicate_state)(struct drm_connector *);
+	void (*atomic_destroy_state)(struct drm_connector *, struct drm_connector_state *);
+	int (*atomic_set_property)(struct drm_connector *, struct drm_connector_state *, struct drm_property *, uint64_t);
+	int (*atomic_get_property)(struct drm_connector *, const struct drm_connector_state *, struct drm_property *, uint64_t *);
+	void (*atomic_print_state)(struct drm_printer *, const struct drm_connector_state *);
+	void (*oob_hotplug_event)(struct drm_connector *);
+	void (*debugfs_init)(struct drm_connector *, struct dentry *);
+};
+
+struct drm_printer {
+	void (*printfn)(struct drm_printer *, struct va_format *);
+	void (*puts)(struct drm_printer *, const char *);
+	void *arg;
+	const char *prefix;
+};
+
+struct drm_writeback_connector;
+
+struct drm_connector_helper_funcs {
+	int (*get_modes)(struct drm_connector *);
+	int (*detect_ctx)(struct drm_connector *, struct drm_modeset_acquire_ctx *, bool);
+	enum drm_mode_status (*mode_valid)(struct drm_connector *, struct drm_display_mode *);
+	int (*mode_valid_ctx)(struct drm_connector *, struct drm_display_mode *, struct drm_modeset_acquire_ctx *, enum drm_mode_status *);
+	struct drm_encoder * (*best_encoder)(struct drm_connector *);
+	struct drm_encoder * (*atomic_best_encoder)(struct drm_connector *, struct drm_atomic_state *);
+	int (*atomic_check)(struct drm_connector *, struct drm_atomic_state *);
+	void (*atomic_commit)(struct drm_connector *, struct drm_atomic_state *);
+	int (*prepare_writeback_job)(struct drm_writeback_connector *, struct drm_writeback_job *);
+	void (*cleanup_writeback_job)(struct drm_writeback_connector *, struct drm_writeback_job *);
+};
+
+struct drm_tile_group {
+	struct kref refcount;
+	struct drm_device *dev;
+	int id;
+	u8 group_data[8];
+};
+
+enum drm_color_encoding {
+	DRM_COLOR_YCBCR_BT601 = 0,
+	DRM_COLOR_YCBCR_BT709 = 1,
+	DRM_COLOR_YCBCR_BT2020 = 2,
+	DRM_COLOR_ENCODING_MAX = 3,
+};
+
+enum drm_color_range {
+	DRM_COLOR_YCBCR_LIMITED_RANGE = 0,
+	DRM_COLOR_YCBCR_FULL_RANGE = 1,
+	DRM_COLOR_RANGE_MAX = 2,
+};
+
+struct drm_rect {
+	int x1;
+	int y1;
+	int x2;
+	int y2;
+};
+
+enum drm_scaling_filter {
+	DRM_SCALING_FILTER_DEFAULT = 0,
+	DRM_SCALING_FILTER_NEAREST_NEIGHBOR = 1,
+};
+
+struct dma_fence;
+
+struct drm_plane_state {
+	struct drm_plane *plane;
+	struct drm_crtc *crtc;
+	struct drm_framebuffer *fb;
+	struct dma_fence *fence;
+	int32_t crtc_x;
+	int32_t crtc_y;
+	uint32_t crtc_w;
+	uint32_t crtc_h;
+	uint32_t src_x;
+	uint32_t src_y;
+	uint32_t src_h;
+	uint32_t src_w;
+	u16 alpha;
+	uint16_t pixel_blend_mode;
+	unsigned int rotation;
+	unsigned int zpos;
+	unsigned int normalized_zpos;
+	enum drm_color_encoding color_encoding;
+	enum drm_color_range color_range;
+	struct drm_property_blob *fb_damage_clips;
+	struct drm_rect src;
+	struct drm_rect dst;
+	bool visible;
+	enum drm_scaling_filter scaling_filter;
+	struct drm_crtc_commit *commit;
+	struct drm_atomic_state *state;
+};
+
+enum drm_plane_type {
+	DRM_PLANE_TYPE_OVERLAY = 0,
+	DRM_PLANE_TYPE_PRIMARY = 1,
+	DRM_PLANE_TYPE_CURSOR = 2,
+};
+
+struct drm_plane_funcs;
+
+struct drm_plane_helper_funcs;
+
+struct drm_plane {
+	struct drm_device *dev;
+	struct list_head head;
+	char *name;
+	struct drm_modeset_lock mutex;
+	struct drm_mode_object base;
+	uint32_t possible_crtcs;
+	uint32_t *format_types;
+	unsigned int format_count;
+	bool format_default;
+	uint64_t *modifiers;
+	unsigned int modifier_count;
+	struct drm_crtc *crtc;
+	struct drm_framebuffer *fb;
+	struct drm_framebuffer *old_fb;
+	const struct drm_plane_funcs *funcs;
+	struct drm_object_properties properties;
+	enum drm_plane_type type;
+	unsigned int index;
+	const struct drm_plane_helper_funcs *helper_private;
+	struct drm_plane_state *state;
+	struct drm_property *alpha_property;
+	struct drm_property *zpos_property;
+	struct drm_property *rotation_property;
+	struct drm_property *blend_mode_property;
+	struct drm_property *color_encoding_property;
+	struct drm_property *color_range_property;
+	struct drm_property *scaling_filter_property;
+};
+
+struct drm_plane_funcs {
+	int (*update_plane)(struct drm_plane *, struct drm_crtc *, struct drm_framebuffer *, int, int, unsigned int, unsigned int, uint32_t, uint32_t, uint32_t, uint32_t, struct drm_modeset_acquire_ctx *);
+	int (*disable_plane)(struct drm_plane *, struct drm_modeset_acquire_ctx *);
+	void (*destroy)(struct drm_plane *);
+	void (*reset)(struct drm_plane *);
+	int (*set_property)(struct drm_plane *, struct drm_property *, uint64_t);
+	struct drm_plane_state * (*atomic_duplicate_state)(struct drm_plane *);
+	void (*atomic_destroy_state)(struct drm_plane *, struct drm_plane_state *);
+	int (*atomic_set_property)(struct drm_plane *, struct drm_plane_state *, struct drm_property *, uint64_t);
+	int (*atomic_get_property)(struct drm_plane *, const struct drm_plane_state *, struct drm_property *, uint64_t *);
+	int (*late_register)(struct drm_plane *);
+	void (*early_unregister)(struct drm_plane *);
+	void (*atomic_print_state)(struct drm_printer *, const struct drm_plane_state *);
+	bool (*format_mod_supported)(struct drm_plane *, uint32_t, uint64_t);
+};
+
+struct drm_plane_helper_funcs {
+	int (*prepare_fb)(struct drm_plane *, struct drm_plane_state *);
+	void (*cleanup_fb)(struct drm_plane *, struct drm_plane_state *);
+	int (*atomic_check)(struct drm_plane *, struct drm_atomic_state *);
+	void (*atomic_update)(struct drm_plane *, struct drm_atomic_state *);
+	void (*atomic_disable)(struct drm_plane *, struct drm_atomic_state *);
+	int (*atomic_async_check)(struct drm_plane *, struct drm_atomic_state *);
+	void (*atomic_async_update)(struct drm_plane *, struct drm_atomic_state *);
+};
+
+struct drm_crtc_crc_entry {
+	bool has_frame_counter;
+	uint32_t frame;
+	uint32_t crcs[10];
+};
+
+struct drm_pending_vblank_event;
+
+struct drm_crtc_state {
+	struct drm_crtc *crtc;
+	bool enable;
+	bool active;
+	bool planes_changed: 1;
+	bool mode_changed: 1;
+	bool active_changed: 1;
+	bool connectors_changed: 1;
+	bool zpos_changed: 1;
+	bool color_mgmt_changed: 1;
+	bool no_vblank: 1;
+	u32 plane_mask;
+	u32 connector_mask;
+	u32 encoder_mask;
+	struct drm_display_mode adjusted_mode;
+	struct drm_display_mode mode;
+	struct drm_property_blob *mode_blob;
+	struct drm_property_blob *degamma_lut;
+	struct drm_property_blob *ctm;
+	struct drm_property_blob *gamma_lut;
+	u32 target_vblank;
+	bool async_flip;
+	bool vrr_enabled;
+	bool self_refresh_active;
+	enum drm_scaling_filter scaling_filter;
+	struct drm_pending_vblank_event *event;
+	struct drm_crtc_commit *commit;
+	struct drm_atomic_state *state;
+};
+
+struct drm_mode_set;
+
+struct drm_crtc_funcs {
+	void (*reset)(struct drm_crtc *);
+	int (*cursor_set)(struct drm_crtc *, struct drm_file *, uint32_t, uint32_t, uint32_t);
+	int (*cursor_set2)(struct drm_crtc *, struct drm_file *, uint32_t, uint32_t, uint32_t, int32_t, int32_t);
+	int (*cursor_move)(struct drm_crtc *, int, int);
+	int (*gamma_set)(struct drm_crtc *, u16 *, u16 *, u16 *, uint32_t, struct drm_modeset_acquire_ctx *);
+	void (*destroy)(struct drm_crtc *);
+	int (*set_config)(struct drm_mode_set *, struct drm_modeset_acquire_ctx *);
+	int (*page_flip)(struct drm_crtc *, struct drm_framebuffer *, struct drm_pending_vblank_event *, uint32_t, struct drm_modeset_acquire_ctx *);
+	int (*page_flip_target)(struct drm_crtc *, struct drm_framebuffer *, struct drm_pending_vblank_event *, uint32_t, uint32_t, struct drm_modeset_acquire_ctx *);
+	int (*set_property)(struct drm_crtc *, struct drm_property *, uint64_t);
+	struct drm_crtc_state * (*atomic_duplicate_state)(struct drm_crtc *);
+	void (*atomic_destroy_state)(struct drm_crtc *, struct drm_crtc_state *);
+	int (*atomic_set_property)(struct drm_crtc *, struct drm_crtc_state *, struct drm_property *, uint64_t);
+	int (*atomic_get_property)(struct drm_crtc *, const struct drm_crtc_state *, struct drm_property *, uint64_t *);
+	int (*late_register)(struct drm_crtc *);
+	void (*early_unregister)(struct drm_crtc *);
+	int (*set_crc_source)(struct drm_crtc *, const char *);
+	int (*verify_crc_source)(struct drm_crtc *, const char *, size_t *);
+	const char * const * (*get_crc_sources)(struct drm_crtc *, size_t *);
+	void (*atomic_print_state)(struct drm_printer *, const struct drm_crtc_state *);
+	u32 (*get_vblank_counter)(struct drm_crtc *);
+	int (*enable_vblank)(struct drm_crtc *);
+	void (*disable_vblank)(struct drm_crtc *);
+	bool (*get_vblank_timestamp)(struct drm_crtc *, int *, ktime_t *, bool);
+};
+
+struct drm_mode_set {
+	struct drm_framebuffer *fb;
+	struct drm_crtc *crtc;
+	struct drm_display_mode *mode;
+	uint32_t x;
+	uint32_t y;
+	struct drm_connector **connectors;
+	size_t num_connectors;
+};
+
+enum mode_set_atomic {
+	LEAVE_ATOMIC_MODE_SET = 0,
+	ENTER_ATOMIC_MODE_SET = 1,
+};
+
+struct drm_crtc_helper_funcs {
+	void (*dpms)(struct drm_crtc *, int);
+	void (*prepare)(struct drm_crtc *);
+	void (*commit)(struct drm_crtc *);
+	enum drm_mode_status (*mode_valid)(struct drm_crtc *, const struct drm_display_mode *);
+	bool (*mode_fixup)(struct drm_crtc *, const struct drm_display_mode *, struct drm_display_mode *);
+	int (*mode_set)(struct drm_crtc *, struct drm_display_mode *, struct drm_display_mode *, int, int, struct drm_framebuffer *);
+	void (*mode_set_nofb)(struct drm_crtc *);
+	int (*mode_set_base)(struct drm_crtc *, int, int, struct drm_framebuffer *);
+	int (*mode_set_base_atomic)(struct drm_crtc *, struct drm_framebuffer *, int, int, enum mode_set_atomic);
+	void (*disable)(struct drm_crtc *);
+	int (*atomic_check)(struct drm_crtc *, struct drm_atomic_state *);
+	void (*atomic_begin)(struct drm_crtc *, struct drm_atomic_state *);
+	void (*atomic_flush)(struct drm_crtc *, struct drm_atomic_state *);
+	void (*atomic_enable)(struct drm_crtc *, struct drm_atomic_state *);
+	void (*atomic_disable)(struct drm_crtc *, struct drm_atomic_state *);
+	bool (*get_scanout_position)(struct drm_crtc *, bool, int *, int *, ktime_t *, ktime_t *, const struct drm_display_mode *);
+};
+
+struct drm_encoder_funcs {
+	void (*reset)(struct drm_encoder *);
+	void (*destroy)(struct drm_encoder *);
+	int (*late_register)(struct drm_encoder *);
+	void (*early_unregister)(struct drm_encoder *);
+};
+
+struct drm_encoder_helper_funcs {
+	void (*dpms)(struct drm_encoder *, int);
+	enum drm_mode_status (*mode_valid)(struct drm_encoder *, const struct drm_display_mode *);
+	bool (*mode_fixup)(struct drm_encoder *, const struct drm_display_mode *, struct drm_display_mode *);
+	void (*prepare)(struct drm_encoder *);
+	void (*commit)(struct drm_encoder *);
+	void (*mode_set)(struct drm_encoder *, struct drm_display_mode *, struct drm_display_mode *);
+	void (*atomic_mode_set)(struct drm_encoder *, struct drm_crtc_state *, struct drm_connector_state *);
+	enum drm_connector_status (*detect)(struct drm_encoder *, struct drm_connector *);
+	void (*atomic_disable)(struct drm_encoder *, struct drm_atomic_state *);
+	void (*atomic_enable)(struct drm_encoder *, struct drm_atomic_state *);
+	void (*disable)(struct drm_encoder *);
+	void (*enable)(struct drm_encoder *);
+	int (*atomic_check)(struct drm_encoder *, struct drm_crtc_state *, struct drm_connector_state *);
+};
+
+struct detailed_mode_closure {
+	struct drm_connector *connector;
+	const struct drm_edid *drm_edid;
+	bool preferred;
+	u32 quirks;
+	int modes;
+};
+
+struct edid_quirk {
+	u32 panel_id;
+	u32 quirks;
+};
+
+struct minimode {
+	short int w;
+	short int h;
+	short int r;
+	short int rb;
+};
+
+struct drm_edid_iter {
+	const struct drm_edid *drm_edid;
+	int index;
+};
+
+enum edid_block_status {
+	EDID_BLOCK_OK = 0,
+	EDID_BLOCK_READ_FAIL = 1,
+	EDID_BLOCK_NULL = 2,
+	EDID_BLOCK_ZERO = 3,
+	EDID_BLOCK_HEADER_CORRUPT = 4,
+	EDID_BLOCK_HEADER_REPAIR = 5,
+	EDID_BLOCK_HEADER_FIXED = 6,
+	EDID_BLOCK_CHECKSUM = 7,
+	EDID_BLOCK_VERSION = 8,
+};
+
+typedef int read_block_fn(void *, u8 *, unsigned int, size_t);
+
+typedef void detailed_cb(const struct detailed_timing *, void *);
+
+struct stereo_mandatory_mode {
+	int width;
+	int height;
+	int vrefresh;
+	unsigned int flags;
+};
+
+struct cea_db_iter {
+	struct drm_edid_iter edid_iter;
+	struct displayid_iter displayid_iter;
+	const u8 *collection;
+	int index;
+	int end;
+};
+
+struct cea_db {
+	u8 tag_length;
+	u8 data[0];
+};
+
+struct drm_clip_rect {
+	short unsigned int x1;
+	short unsigned int y1;
+	short unsigned int x2;
+	short unsigned int y2;
+};
+
+struct drm_event {
+	__u32 type;
+	__u32 length;
+};
+
+struct drm_event_vblank {
+	struct drm_event base;
+	__u64 user_data;
+	__u32 tv_sec;
+	__u32 tv_usec;
+	__u32 sequence;
+	__u32 crtc_id;
+};
+
+struct drm_event_crtc_sequence {
+	struct drm_event base;
+	__u64 user_data;
+	__s64 time_ns;
+	__u64 sequence;
+};
+
+struct drm_mode_set_plane {
+	__u32 plane_id;
+	__u32 crtc_id;
+	__u32 fb_id;
+	__u32 flags;
+	__s32 crtc_x;
+	__s32 crtc_y;
+	__u32 crtc_w;
+	__u32 crtc_h;
+	__u32 src_x;
+	__u32 src_y;
+	__u32 src_h;
+	__u32 src_w;
+};
+
+struct drm_mode_get_plane {
+	__u32 plane_id;
+	__u32 crtc_id;
+	__u32 fb_id;
+	__u32 possible_crtcs;
+	__u32 gamma_size;
+	__u32 count_format_types;
+	__u64 format_type_ptr;
+};
+
+struct drm_mode_get_plane_res {
+	__u64 plane_id_ptr;
+	__u32 count_planes;
+};
+
+struct drm_mode_cursor {
+	__u32 flags;
+	__u32 crtc_id;
+	__s32 x;
+	__s32 y;
+	__u32 width;
+	__u32 height;
+	__u32 handle;
+};
+
+struct drm_mode_cursor2 {
+	__u32 flags;
+	__u32 crtc_id;
+	__s32 x;
+	__s32 y;
+	__u32 width;
+	__u32 height;
+	__u32 handle;
+	__s32 hot_x;
+	__s32 hot_y;
+};
+
+struct drm_mode_crtc_page_flip_target {
+	__u32 crtc_id;
+	__u32 fb_id;
+	__u32 flags;
+	__u32 sequence;
+	__u64 user_data;
+};
+
+struct drm_format_modifier_blob {
+	__u32 version;
+	__u32 flags;
+	__u32 count_formats;
+	__u32 formats_offset;
+	__u32 count_modifiers;
+	__u32 modifiers_offset;
+};
+
+struct drm_format_modifier {
+	__u64 formats;
+	__u32 offset;
+	__u32 pad;
+	__u64 modifier;
+};
+
+struct drm_mode_rect {
+	__s32 x1;
+	__s32 y1;
+	__s32 x2;
+	__s32 y2;
+};
+
+struct drm_prop_enum_list {
+	int type;
+	const char *name;
+};
+
+struct drm_framebuffer_funcs;
+
+struct drm_framebuffer {
+	struct drm_device *dev;
+	struct list_head head;
+	struct drm_mode_object base;
+	char comm[16];
+	const struct drm_format_info *format;
+	const struct drm_framebuffer_funcs *funcs;
+	unsigned int pitches[4];
+	unsigned int offsets[4];
+	uint64_t modifier;
+	unsigned int width;
+	unsigned int height;
+	int flags;
+	int hot_x;
+	int hot_y;
+	struct list_head filp_head;
+	struct drm_gem_object *obj[4];
+};
+
+struct drm_framebuffer_funcs {
+	void (*destroy)(struct drm_framebuffer *);
+	int (*create_handle)(struct drm_framebuffer *, struct drm_file *, unsigned int *);
+	int (*dirty)(struct drm_framebuffer *, struct drm_file *, unsigned int, unsigned int, struct drm_clip_rect *, unsigned int);
+};
+
+struct drm_pending_event {
+	struct completion *completion;
+	void (*completion_release)(struct completion *);
+	struct drm_event *event;
+	struct dma_fence *fence;
+	struct drm_file *file_priv;
+	struct list_head link;
+	struct list_head pending_link;
+};
+
+struct drm_pending_vblank_event {
+	struct drm_pending_event base;
+	unsigned int pipe;
+	u64 sequence;
+	union {
+		struct drm_event base;
+		struct drm_event_vblank vbl;
+		struct drm_event_crtc_sequence seq;
+	} event;
+};
+
+typedef void (*drmres_release_t)(struct drm_device *, void *);
+
+struct __drm_planes_state;
+
+struct __drm_crtcs_state;
+
+struct __drm_connnectors_state;
+
+struct __drm_private_objs_state;
+
+struct drm_atomic_state {
+	struct kref ref;
+	struct drm_device *dev;
+	bool allow_modeset: 1;
+	bool legacy_cursor_update: 1;
+	bool async_update: 1;
+	bool duplicated: 1;
+	struct __drm_planes_state *planes;
+	struct __drm_crtcs_state *crtcs;
+	int num_connector;
+	struct __drm_connnectors_state *connectors;
+	int num_private_objs;
+	struct __drm_private_objs_state *private_objs;
+	struct drm_modeset_acquire_ctx *acquire_ctx;
+	struct drm_crtc_commit *fake_commit;
+	struct work_struct commit_work;
+};
+
+struct drm_crtc_commit {
+	struct drm_crtc *crtc;
+	struct kref ref;
+	struct completion flip_done;
+	struct completion hw_done;
+	struct completion cleanup_done;
+	struct list_head commit_entry;
+	struct drm_pending_vblank_event *event;
+	bool abort_completion;
+};
+
+struct drm_connector_list_iter {
+	struct drm_device *dev;
+	struct drm_connector *conn;
+};
+
+struct __drm_planes_state {
+	struct drm_plane *ptr;
+	struct drm_plane_state *state;
+	struct drm_plane_state *old_state;
+	struct drm_plane_state *new_state;
+};
+
+struct __drm_crtcs_state {
+	struct drm_crtc *ptr;
+	struct drm_crtc_state *state;
+	struct drm_crtc_state *old_state;
+	struct drm_crtc_state *new_state;
+	struct drm_crtc_commit *commit;
+	s32 *out_fence_ptr;
+	u64 last_vblank_count;
+};
+
+struct __drm_connnectors_state {
+	struct drm_connector *ptr;
+	struct drm_connector_state *state;
+	struct drm_connector_state *old_state;
+	struct drm_connector_state *new_state;
+	s32 *out_fence_ptr;
+};
+
+struct drm_private_state;
+
+struct drm_private_obj;
+
+struct drm_private_state_funcs {
+	struct drm_private_state * (*atomic_duplicate_state)(struct drm_private_obj *);
+	void (*atomic_destroy_state)(struct drm_private_obj *, struct drm_private_state *);
+	void (*atomic_print_state)(struct drm_printer *, const struct drm_private_state *);
+};
+
+struct drm_private_state {
+	struct drm_atomic_state *state;
+	struct drm_private_obj *obj;
+};
+
+struct drm_private_obj {
+	struct list_head head;
+	struct drm_modeset_lock lock;
+	struct drm_private_state *state;
+	const struct drm_private_state_funcs *funcs;
+};
+
+struct __drm_private_objs_state {
+	struct drm_private_obj *ptr;
+	struct drm_private_state *state;
+	struct drm_private_state *old_state;
+	struct drm_private_state *new_state;
+};
+
+struct drm_client_dev;
+
+struct drm_client_funcs {
+	struct module *owner;
+	void (*unregister)(struct drm_client_dev *);
+	int (*restore)(struct drm_client_dev *);
+	int (*hotplug)(struct drm_client_dev *);
+};
+
+struct drm_client_dev {
+	struct drm_device *dev;
+	const char *name;
+	struct list_head list;
+	const struct drm_client_funcs *funcs;
+	struct drm_file *file;
+	struct mutex modeset_mutex;
+	struct drm_mode_set *modesets;
+};
+
+struct drm_client_offset {
+	int x;
+	int y;
+};
+
+struct component_master_ops {
+	int (*bind)(struct device *);
+	void (*unbind)(struct device *);
+};
+
+struct of_endpoint {
+	unsigned int port;
+	unsigned int id;
+	const struct device_node *local_node;
+};
+
+struct drm_bus_cfg {
+	u32 format;
+	u32 flags;
+};
+
+struct drm_bridge;
+
+struct drm_bridge_state {
+	struct drm_private_state base;
+	struct drm_bridge *bridge;
+	struct drm_bus_cfg input_bus_cfg;
+	struct drm_bus_cfg output_bus_cfg;
+};
+
+enum drm_bridge_ops {
+	DRM_BRIDGE_OP_DETECT = 1,
+	DRM_BRIDGE_OP_EDID = 2,
+	DRM_BRIDGE_OP_HPD = 4,
+	DRM_BRIDGE_OP_MODES = 8,
+};
+
+struct drm_bridge_timings;
+
+struct drm_bridge_funcs;
+
+struct drm_bridge {
+	struct drm_private_obj base;
+	struct drm_device *dev;
+	struct drm_encoder *encoder;
+	struct list_head chain_node;
+	struct device_node *of_node;
+	struct list_head list;
+	const struct drm_bridge_timings *timings;
+	const struct drm_bridge_funcs *funcs;
+	void *driver_private;
+	enum drm_bridge_ops ops;
+	int type;
+	bool interlace_allowed;
+	struct i2c_adapter *ddc;
+	struct mutex hpd_mutex;
+	void (*hpd_cb)(void *, enum drm_connector_status);
+	void *hpd_data;
+};
+
+enum drm_bridge_attach_flags {
+	DRM_BRIDGE_ATTACH_NO_CONNECTOR = 1,
+};
+
+struct drm_bridge_funcs {
+	int (*attach)(struct drm_bridge *, enum drm_bridge_attach_flags);
+	void (*detach)(struct drm_bridge *);
+	enum drm_mode_status (*mode_valid)(struct drm_bridge *, const struct drm_display_info *, const struct drm_display_mode *);
+	bool (*mode_fixup)(struct drm_bridge *, const struct drm_display_mode *, struct drm_display_mode *);
+	void (*disable)(struct drm_bridge *);
+	void (*post_disable)(struct drm_bridge *);
+	void (*mode_set)(struct drm_bridge *, const struct drm_display_mode *, const struct drm_display_mode *);
+	void (*pre_enable)(struct drm_bridge *);
+	void (*enable)(struct drm_bridge *);
+	void (*atomic_pre_enable)(struct drm_bridge *, struct drm_bridge_state *);
+	void (*atomic_enable)(struct drm_bridge *, struct drm_bridge_state *);
+	void (*atomic_disable)(struct drm_bridge *, struct drm_bridge_state *);
+	void (*atomic_post_disable)(struct drm_bridge *, struct drm_bridge_state *);
+	struct drm_bridge_state * (*atomic_duplicate_state)(struct drm_bridge *);
+	void (*atomic_destroy_state)(struct drm_bridge *, struct drm_bridge_state *);
+	u32 * (*atomic_get_output_bus_fmts)(struct drm_bridge *, struct drm_bridge_state *, struct drm_crtc_state *, struct drm_connector_state *, unsigned int *);
+	u32 * (*atomic_get_input_bus_fmts)(struct drm_bridge *, struct drm_bridge_state *, struct drm_crtc_state *, struct drm_connector_state *, u32, unsigned int *);
+	int (*atomic_check)(struct drm_bridge *, struct drm_bridge_state *, struct drm_crtc_state *, struct drm_connector_state *);
+	struct drm_bridge_state * (*atomic_reset)(struct drm_bridge *);
+	enum drm_connector_status (*detect)(struct drm_bridge *);
+	int (*get_modes)(struct drm_bridge *, struct drm_connector *);
+	struct edid * (*get_edid)(struct drm_bridge *, struct drm_connector *);
+	void (*hpd_notify)(struct drm_bridge *, enum drm_connector_status);
+	void (*hpd_enable)(struct drm_bridge *);
+	void (*hpd_disable)(struct drm_bridge *);
+	void (*debugfs_init)(struct drm_bridge *, struct dentry *);
+};
+
+struct drm_bridge_timings {
+	u32 input_bus_flags;
+	u32 setup_time_ps;
+	u32 hold_time_ps;
+	bool dual_link;
+};
+
+enum drm_lvds_dual_link_pixels {
+	DRM_LVDS_DUAL_LINK_EVEN_ODD_PIXELS = 0,
+	DRM_LVDS_DUAL_LINK_ODD_EVEN_PIXELS = 1,
+};
+
+struct display_timing;
+
+struct drm_panel;
+
+struct drm_panel_funcs {
+	int (*prepare)(struct drm_panel *);
+	int (*enable)(struct drm_panel *);
+	int (*disable)(struct drm_panel *);
+	int (*unprepare)(struct drm_panel *);
+	int (*get_modes)(struct drm_panel *, struct drm_connector *);
+	enum drm_panel_orientation (*get_orientation)(struct drm_panel *);
+	int (*get_timings)(struct drm_panel *, unsigned int, struct display_timing *);
+	void (*debugfs_init)(struct drm_panel *, struct dentry *);
+};
+
+struct drm_dsc_config;
+
+struct drm_panel {
+	struct device *dev;
+	struct backlight_device *backlight;
+	const struct drm_panel_funcs *funcs;
+	int connector_type;
+	struct list_head list;
+	struct drm_dsc_config *dsc;
+};
+
+enum drm_of_lvds_pixels {
+	DRM_OF_LVDS_EVEN = 1,
+	DRM_OF_LVDS_ODD = 2,
+};
+
+struct component_match;
+
+struct drm_bridge_connector {
+	struct drm_connector base;
+	struct drm_encoder *encoder;
+	struct drm_bridge *bridge_edid;
+	struct drm_bridge *bridge_hpd;
+	struct drm_bridge *bridge_detect;
+	struct drm_bridge *bridge_modes;
+};
+
+struct drm_simple_display_pipe;
+
+struct drm_simple_display_pipe_funcs {
+	enum drm_mode_status (*mode_valid)(struct drm_simple_display_pipe *, const struct drm_display_mode *);
+	void (*enable)(struct drm_simple_display_pipe *, struct drm_crtc_state *, struct drm_plane_state *);
+	void (*disable)(struct drm_simple_display_pipe *);
+	int (*check)(struct drm_simple_display_pipe *, struct drm_plane_state *, struct drm_crtc_state *);
+	void (*update)(struct drm_simple_display_pipe *, struct drm_plane_state *);
+	int (*prepare_fb)(struct drm_simple_display_pipe *, struct drm_plane_state *);
+	void (*cleanup_fb)(struct drm_simple_display_pipe *, struct drm_plane_state *);
+	int (*enable_vblank)(struct drm_simple_display_pipe *);
+	void (*disable_vblank)(struct drm_simple_display_pipe *);
+	void (*reset_crtc)(struct drm_simple_display_pipe *);
+	struct drm_crtc_state * (*duplicate_crtc_state)(struct drm_simple_display_pipe *);
+	void (*destroy_crtc_state)(struct drm_simple_display_pipe *, struct drm_crtc_state *);
+	void (*reset_plane)(struct drm_simple_display_pipe *);
+	struct drm_plane_state * (*duplicate_plane_state)(struct drm_simple_display_pipe *);
+	void (*destroy_plane_state)(struct drm_simple_display_pipe *, struct drm_plane_state *);
+};
+
+struct drm_simple_display_pipe {
+	struct drm_crtc crtc;
+	struct drm_plane plane;
+	struct drm_encoder encoder;
+	struct drm_connector *connector;
+	const struct drm_simple_display_pipe_funcs *funcs;
+};
+
+enum skb_drop_reason {
+	SKB_NOT_DROPPED_YET = 0,
+	SKB_DROP_REASON_NOT_SPECIFIED = 1,
+	SKB_DROP_REASON_NO_SOCKET = 2,
+	SKB_DROP_REASON_PKT_TOO_SMALL = 3,
+	SKB_DROP_REASON_TCP_CSUM = 4,
+	SKB_DROP_REASON_SOCKET_FILTER = 5,
+	SKB_DROP_REASON_UDP_CSUM = 6,
+	SKB_DROP_REASON_NETFILTER_DROP = 7,
+	SKB_DROP_REASON_OTHERHOST = 8,
+	SKB_DROP_REASON_IP_CSUM = 9,
+	SKB_DROP_REASON_IP_INHDR = 10,
+	SKB_DROP_REASON_IP_RPFILTER = 11,
+	SKB_DROP_REASON_UNICAST_IN_L2_MULTICAST = 12,
+	SKB_DROP_REASON_XFRM_POLICY = 13,
+	SKB_DROP_REASON_IP_NOPROTO = 14,
+	SKB_DROP_REASON_SOCKET_RCVBUFF = 15,
+	SKB_DROP_REASON_PROTO_MEM = 16,
+	SKB_DROP_REASON_TCP_MD5NOTFOUND = 17,
+	SKB_DROP_REASON_TCP_MD5UNEXPECTED = 18,
+	SKB_DROP_REASON_TCP_MD5FAILURE = 19,
+	SKB_DROP_REASON_SOCKET_BACKLOG = 20,
+	SKB_DROP_REASON_TCP_FLAGS = 21,
+	SKB_DROP_REASON_TCP_ZEROWINDOW = 22,
+	SKB_DROP_REASON_TCP_OLD_DATA = 23,
+	SKB_DROP_REASON_TCP_OVERWINDOW = 24,
+	SKB_DROP_REASON_TCP_OFOMERGE = 25,
+	SKB_DROP_REASON_TCP_RFC7323_PAWS = 26,
+	SKB_DROP_REASON_TCP_INVALID_SEQUENCE = 27,
+	SKB_DROP_REASON_TCP_RESET = 28,
+	SKB_DROP_REASON_TCP_INVALID_SYN = 29,
+	SKB_DROP_REASON_TCP_CLOSE = 30,
+	SKB_DROP_REASON_TCP_FASTOPEN = 31,
+	SKB_DROP_REASON_TCP_OLD_ACK = 32,
+	SKB_DROP_REASON_TCP_TOO_OLD_ACK = 33,
+	SKB_DROP_REASON_TCP_ACK_UNSENT_DATA = 34,
+	SKB_DROP_REASON_TCP_OFO_QUEUE_PRUNE = 35,
+	SKB_DROP_REASON_TCP_OFO_DROP = 36,
+	SKB_DROP_REASON_IP_OUTNOROUTES = 37,
+	SKB_DROP_REASON_BPF_CGROUP_EGRESS = 38,
+	SKB_DROP_REASON_IPV6DISABLED = 39,
+	SKB_DROP_REASON_NEIGH_CREATEFAIL = 40,
+	SKB_DROP_REASON_NEIGH_FAILED = 41,
+	SKB_DROP_REASON_NEIGH_QUEUEFULL = 42,
+	SKB_DROP_REASON_NEIGH_DEAD = 43,
+	SKB_DROP_REASON_TC_EGRESS = 44,
+	SKB_DROP_REASON_QDISC_DROP = 45,
+	SKB_DROP_REASON_CPU_BACKLOG = 46,
+	SKB_DROP_REASON_XDP = 47,
+	SKB_DROP_REASON_TC_INGRESS = 48,
+	SKB_DROP_REASON_UNHANDLED_PROTO = 49,
+	SKB_DROP_REASON_SKB_CSUM = 50,
+	SKB_DROP_REASON_SKB_GSO_SEG = 51,
+	SKB_DROP_REASON_SKB_UCOPY_FAULT = 52,
+	SKB_DROP_REASON_DEV_HDR = 53,
+	SKB_DROP_REASON_DEV_READY = 54,
+	SKB_DROP_REASON_FULL_RING = 55,
+	SKB_DROP_REASON_NOMEM = 56,
+	SKB_DROP_REASON_HDR_TRUNC = 57,
+	SKB_DROP_REASON_TAP_FILTER = 58,
+	SKB_DROP_REASON_TAP_TXFILTER = 59,
+	SKB_DROP_REASON_ICMP_CSUM = 60,
+	SKB_DROP_REASON_INVALID_PROTO = 61,
+	SKB_DROP_REASON_IP_INADDRERRORS = 62,
+	SKB_DROP_REASON_IP_INNOROUTES = 63,
+	SKB_DROP_REASON_PKT_TOO_BIG = 64,
+	SKB_DROP_REASON_MAX = 65,
+};
+
+struct scm_creds {
+	u32 pid;
+	kuid_t uid;
+	kgid_t gid;
+};
+
+struct netlink_skb_parms {
+	struct scm_creds creds;
+	__u32 portid;
+	__u32 dst_group;
+	__u32 flags;
+	struct sock *sk;
+	bool nsid_is_set;
+	int nsid;
+};
+
+struct netlink_kernel_cfg {
+	unsigned int groups;
+	unsigned int flags;
+	void (*input)(struct sk_buff *);
+	struct mutex *cb_mutex;
+	int (*bind)(struct net *, int);
+	void (*unbind)(struct net *, int);
+	bool (*compare)(struct net *, struct sock *);
+};
+
+struct cb_id {
+	__u32 idx;
+	__u32 val;
+};
+
+struct cn_msg {
+	struct cb_id id;
+	__u32 seq;
+	__u32 ack;
+	__u16 len;
+	__u16 flags;
+	__u8 data[0];
+};
+
+struct cn_queue_dev {
+	atomic_t refcnt;
+	unsigned char name[32];
+	struct list_head queue_list;
+	spinlock_t queue_lock;
+	struct sock *nls;
+};
+
+struct cn_callback_id {
+	unsigned char name[32];
+	struct cb_id id;
+};
+
+struct cn_callback_entry {
+	struct list_head callback_entry;
+	refcount_t refcnt;
+	struct cn_queue_dev *pdev;
+	struct cn_callback_id id;
+	void (*callback)(struct cn_msg *, struct netlink_skb_parms *);
+	u32 seq;
+	u32 group;
+};
+
+struct cn_dev {
+	struct cb_id id;
+	u32 seq;
+	u32 groups;
+	struct sock *nls;
+	struct cn_queue_dev *cbdev;
+};
+
+struct klist_node;
+
+struct klist {
+	spinlock_t k_lock;
+	struct list_head k_list;
+	void (*get)(struct klist_node *);
+	void (*put)(struct klist_node *);
+};
+
+struct klist_node {
+	void *n_klist;
+	struct list_head n_node;
+	struct kref n_ref;
+};
+
+struct subsys_private {
+	struct kset subsys;
+	struct kset *devices_kset;
+	struct list_head interfaces;
+	struct mutex mutex;
+	struct kset *drivers_kset;
+	struct klist klist_devices;
+	struct klist klist_drivers;
+	struct blocking_notifier_head bus_notifier;
+	unsigned int drivers_autoprobe: 1;
+	struct bus_type *bus;
+	struct kset glue_dirs;
+	struct class *class;
+};
+
+struct driver_private {
+	struct kobject kobj;
+	struct klist klist_devices;
+	struct klist_node knode_bus;
+	struct module_kobject *mkobj;
+	struct device_driver *driver;
+};
+
+struct device_private {
+	struct klist klist_children;
+	struct klist_node knode_parent;
+	struct klist_node knode_driver;
+	struct klist_node knode_bus;
+	struct klist_node knode_class;
+	struct list_head deferred_probe;
+	struct device_driver *async_driver;
+	char *deferred_probe_reason;
+	struct device *device;
+	u8 dead: 1;
+};
+
+struct cpu_attr {
+	struct device_attribute attr;
+	const struct cpumask * const map;
+};
+
+struct wake_irq {
+	struct device *dev;
+	unsigned int status;
+	int irq;
+	const char *name;
+};
+
+struct of_phandle_iterator {
+	const char *cells_name;
+	int cell_count;
+	const struct device_node *parent;
+	const __be32 *list_end;
+	const __be32 *phandle_end;
+	const __be32 *cur;
+	uint32_t cur_count;
+	phandle phandle;
+	struct device_node *node;
+};
+
+enum genpd_notication {
+	GENPD_NOTIFY_PRE_OFF = 0,
+	GENPD_NOTIFY_OFF = 1,
+	GENPD_NOTIFY_PRE_ON = 2,
+	GENPD_NOTIFY_ON = 3,
+};
+
+struct gpd_link {
+	struct generic_pm_domain *parent;
+	struct list_head parent_node;
+	struct generic_pm_domain *child;
+	struct list_head child_node;
+	unsigned int performance_state;
+	unsigned int prev_performance_state;
+};
+
+struct gpd_timing_data {
+	s64 suspend_latency_ns;
+	s64 resume_latency_ns;
+	s64 effective_constraint_ns;
+	ktime_t next_wakeup;
+	bool constraint_changed;
+	bool cached_suspend_ok;
+};
+
+struct generic_pm_domain_data {
+	struct pm_domain_data base;
+	struct gpd_timing_data *td;
+	struct notifier_block nb;
+	struct notifier_block *power_nb;
+	int cpu;
+	unsigned int performance_state;
+	unsigned int default_pstate;
+	unsigned int rpm_pstate;
+	void *data;
+};
+
+struct of_genpd_provider {
+	struct list_head link;
+	struct device_node *node;
+	genpd_xlate_t xlate;
+	void *data;
+};
+
+typedef int (*regmap_hw_write)(void *, const void *, size_t);
+
+typedef int (*regmap_hw_gather_write)(void *, const void *, size_t, const void *, size_t);
+
+struct regmap_async;
+
+typedef int (*regmap_hw_async_write)(void *, const void *, size_t, const void *, size_t, struct regmap_async *);
+
+struct regmap;
+
+struct regmap_async {
+	struct list_head list;
+	struct regmap *map;
+	void *work_buf;
+};
+
+typedef int (*regmap_hw_read)(void *, const void *, size_t, void *, size_t);
+
+typedef int (*regmap_hw_reg_read)(void *, unsigned int, unsigned int *);
+
+typedef int (*regmap_hw_reg_write)(void *, unsigned int, unsigned int);
+
+typedef int (*regmap_hw_reg_update_bits)(void *, unsigned int, unsigned int, unsigned int);
+
+typedef struct regmap_async * (*regmap_hw_async_alloc)();
+
+typedef void (*regmap_hw_free_context)(void *);
+
+struct regmap_bus {
+	bool fast_io;
+	regmap_hw_write write;
+	regmap_hw_gather_write gather_write;
+	regmap_hw_async_write async_write;
+	regmap_hw_reg_write reg_write;
+	regmap_hw_reg_update_bits reg_update_bits;
+	regmap_hw_read read;
+	regmap_hw_reg_read reg_read;
+	regmap_hw_free_context free_context;
+	regmap_hw_async_alloc async_alloc;
+	u8 read_flag_mask;
+	enum regmap_endian reg_format_endian_default;
+	enum regmap_endian val_format_endian_default;
+	size_t max_raw_read;
+	size_t max_raw_write;
+	bool free_on_exit;
+};
+
+struct regmap_format {
+	size_t buf_size;
+	size_t reg_bytes;
+	size_t pad_bytes;
+	size_t reg_downshift;
+	size_t val_bytes;
+	void (*format_write)(struct regmap *, unsigned int, unsigned int);
+	void (*format_reg)(void *, unsigned int, unsigned int);
+	void (*format_val)(void *, unsigned int, unsigned int);
+	unsigned int (*parse_val)(const void *);
+	void (*parse_inplace)(void *);
+};
+
+struct hwspinlock;
+
+struct regcache_ops;
+
+struct regmap {
+	union {
+		struct mutex mutex;
+		struct {
+			spinlock_t spinlock;
+			long unsigned int spinlock_flags;
+		};
+		struct {
+			raw_spinlock_t raw_spinlock;
+			long unsigned int raw_spinlock_flags;
+		};
+	};
+	regmap_lock lock;
+	regmap_unlock unlock;
+	void *lock_arg;
+	gfp_t alloc_flags;
+	unsigned int reg_base;
+	struct device *dev;
+	void *work_buf;
+	struct regmap_format format;
+	const struct regmap_bus *bus;
+	void *bus_context;
+	const char *name;
+	bool async;
+	spinlock_t async_lock;
+	wait_queue_head_t async_waitq;
+	struct list_head async_list;
+	struct list_head async_free;
+	int async_ret;
+	bool debugfs_disable;
+	struct dentry *debugfs;
+	const char *debugfs_name;
+	unsigned int debugfs_reg_len;
+	unsigned int debugfs_val_len;
+	unsigned int debugfs_tot_len;
+	struct list_head debugfs_off_cache;
+	struct mutex cache_lock;
+	unsigned int max_register;
+	bool (*writeable_reg)(struct device *, unsigned int);
+	bool (*readable_reg)(struct device *, unsigned int);
+	bool (*volatile_reg)(struct device *, unsigned int);
+	bool (*precious_reg)(struct device *, unsigned int);
+	bool (*writeable_noinc_reg)(struct device *, unsigned int);
+	bool (*readable_noinc_reg)(struct device *, unsigned int);
+	const struct regmap_access_table *wr_table;
+	const struct regmap_access_table *rd_table;
+	const struct regmap_access_table *volatile_table;
+	const struct regmap_access_table *precious_table;
+	const struct regmap_access_table *wr_noinc_table;
+	const struct regmap_access_table *rd_noinc_table;
+	int (*reg_read)(void *, unsigned int, unsigned int *);
+	int (*reg_write)(void *, unsigned int, unsigned int);
+	int (*reg_update_bits)(void *, unsigned int, unsigned int, unsigned int);
+	int (*read)(void *, const void *, size_t, void *, size_t);
+	int (*write)(void *, const void *, size_t);
+	bool defer_caching;
+	long unsigned int read_flag_mask;
+	long unsigned int write_flag_mask;
+	int reg_shift;
+	int reg_stride;
+	int reg_stride_order;
+	const struct regcache_ops *cache_ops;
+	enum regcache_type cache_type;
+	unsigned int cache_size_raw;
+	unsigned int cache_word_size;
+	unsigned int num_reg_defaults;
+	unsigned int num_reg_defaults_raw;
+	bool cache_only;
+	bool cache_bypass;
+	bool cache_free;
+	struct reg_default *reg_defaults;
+	const void *reg_defaults_raw;
+	void *cache;
+	bool cache_dirty;
+	bool no_sync_defaults;
+	struct reg_sequence *patch;
+	int patch_regs;
+	bool use_single_read;
+	bool use_single_write;
+	bool can_multi_write;
+	size_t max_raw_read;
+	size_t max_raw_write;
+	struct rb_root range_tree;
+	void *selector_work_buf;
+	struct hwspinlock *hwlock;
+	bool can_sleep;
+};
+
+struct regcache_ops {
+	const char *name;
+	enum regcache_type type;
+	int (*init)(struct regmap *);
+	int (*exit)(struct regmap *);
+	void (*debugfs_init)(struct regmap *);
+	int (*read)(struct regmap *, unsigned int, unsigned int *);
+	int (*write)(struct regmap *, unsigned int, unsigned int);
+	int (*sync)(struct regmap *, unsigned int, unsigned int);
+	int (*drop)(struct regmap *, unsigned int, unsigned int);
+};
+
+struct regcache_rbtree_node {
+	void *block;
+	long int *cache_present;
+	unsigned int base_reg;
+	unsigned int blklen;
+	struct rb_node node;
+};
+
+struct regcache_rbtree_ctx {
+	struct rb_root root;
+	struct regcache_rbtree_node *cached_rbnode;
+};
+
+struct soc_device {
+	struct device dev;
+	struct soc_device_attribute *attr;
+	int soc_dev_num;
+};
+
+struct acpi_pld_info {
+	u8 revision;
+	u8 ignore_color;
+	u8 red;
+	u8 green;
+	u8 blue;
+	u16 width;
+	u16 height;
+	u8 user_visible;
+	u8 dock;
+	u8 lid;
+	u8 panel;
+	u8 vertical_position;
+	u8 horizontal_position;
+	u8 shape;
+	u8 group_orientation;
+	u8 group_token;
+	u8 group_position;
+	u8 bay;
+	u8 ejectable;
+	u8 ospm_eject_required;
+	u8 cabinet_number;
+	u8 card_cage_number;
+	u8 reference;
+	u8 rotation;
+	u8 order;
+	u8 reserved;
+	u16 vertical_offset;
+	u16 horizontal_offset;
+};
+
+struct mfd_cell_acpi_match;
+
+struct mfd_cell {
+	const char *name;
+	int id;
+	int level;
+	int (*enable)(struct platform_device *);
+	int (*disable)(struct platform_device *);
+	int (*suspend)(struct platform_device *);
+	int (*resume)(struct platform_device *);
+	void *platform_data;
+	size_t pdata_size;
+	const struct software_node *swnode;
+	const char *of_compatible;
+	const u64 of_reg;
+	bool use_of_reg;
+	const struct mfd_cell_acpi_match *acpi_match;
+	int num_resources;
+	const struct resource *resources;
+	bool ignore_resource_conflicts;
+	bool pm_runtime_no_callbacks;
+	const char * const *parent_supplies;
+	int num_parent_supplies;
+};
+
+struct mfd_cell_acpi_match {
+	const char *pnpid;
+	const long long unsigned int adr;
+};
+
+enum {
+	MAX77620_IRQ_TOP_GLBL = 0,
+	MAX77620_IRQ_TOP_SD = 1,
+	MAX77620_IRQ_TOP_LDO = 2,
+	MAX77620_IRQ_TOP_GPIO = 3,
+	MAX77620_IRQ_TOP_RTC = 4,
+	MAX77620_IRQ_TOP_32K = 5,
+	MAX77620_IRQ_TOP_ONOFF = 6,
+	MAX77620_IRQ_LBT_MBATLOW = 7,
+	MAX77620_IRQ_LBT_TJALRM1 = 8,
+	MAX77620_IRQ_LBT_TJALRM2 = 9,
+};
+
+enum max77620_chip_id {
+	MAX77620 = 0,
+	MAX20024 = 1,
+	MAX77663 = 2,
+};
+
+struct regmap_irq_chip_data;
+
+struct max77620_chip {
+	struct device *dev;
+	struct regmap *rmap;
+	int chip_irq;
+	enum max77620_chip_id chip_id;
+	bool sleep_enable;
+	bool enable_global_lpm;
+	int shutdown_fps_period[3];
+	int suspend_fps_period[3];
+	struct regmap_irq_chip_data *top_irq_data;
+	struct regmap_irq_chip_data *gpio_irq_data;
+};
+
+struct regmap_irq_type {
+	unsigned int type_reg_offset;
+	unsigned int type_reg_mask;
+	unsigned int type_rising_val;
+	unsigned int type_falling_val;
+	unsigned int type_level_low_val;
+	unsigned int type_level_high_val;
+	unsigned int types_supported;
+};
+
+struct regmap_irq {
+	unsigned int reg_offset;
+	unsigned int mask;
+	struct regmap_irq_type type;
+};
+
+struct regmap_irq_sub_irq_map {
+	unsigned int num_regs;
+	unsigned int *offset;
+};
+
+struct regmap_irq_chip {
+	const char *name;
+	unsigned int main_status;
+	unsigned int num_main_status_bits;
+	struct regmap_irq_sub_irq_map *sub_reg_offsets;
+	int num_main_regs;
+	unsigned int status_base;
+	unsigned int mask_base;
+	unsigned int unmask_base;
+	unsigned int ack_base;
+	unsigned int wake_base;
+	unsigned int type_base;
+	unsigned int *virt_reg_base;
+	const unsigned int *config_base;
+	unsigned int irq_reg_stride;
+	unsigned int init_ack_masked: 1;
+	unsigned int mask_invert: 1;
+	unsigned int mask_unmask_non_inverted: 1;
+	unsigned int use_ack: 1;
+	unsigned int ack_invert: 1;
+	unsigned int clear_ack: 1;
+	unsigned int wake_invert: 1;
+	unsigned int runtime_pm: 1;
+	unsigned int type_invert: 1;
+	unsigned int type_in_mask: 1;
+	unsigned int clear_on_unmask: 1;
+	unsigned int not_fixed_stride: 1;
+	unsigned int status_invert: 1;
+	int num_regs;
+	const struct regmap_irq *irqs;
+	int num_irqs;
+	int num_type_reg;
+	int num_virt_regs;
+	int num_config_bases;
+	int num_config_regs;
+	int (*handle_pre_irq)(void *);
+	int (*handle_post_irq)(void *);
+	int (*set_type_virt)(unsigned int **, unsigned int, long unsigned int, int);
+	int (*set_type_config)(unsigned int **, unsigned int, const struct regmap_irq *, int);
+	unsigned int (*get_irq_reg)(struct regmap_irq_chip_data *, unsigned int, int);
+	void *irq_drv_data;
+};
+
+struct driver_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct device_driver *, char *);
+	ssize_t (*store)(struct device_driver *, const char *, size_t);
+};
+
+struct dax_operations {
+	long int (*direct_access)(struct dax_device *, long unsigned int, long int, enum dax_access_mode, void **, pfn_t *);
+	bool (*dax_supported)(struct dax_device *, struct block_device *, int, sector_t, sector_t);
+	int (*zero_page_range)(struct dax_device *, long unsigned int, size_t);
+	size_t (*recovery_write)(struct dax_device *, long unsigned int, void *, size_t, struct iov_iter *);
+};
+
+struct dax_region {
+	int id;
+	int target_node;
+	struct kref kref;
+	struct device *dev;
+	unsigned int align;
+	struct ida ida;
+	struct resource res;
+	struct device *seed;
+	struct device *youngest;
+};
+
+struct dax_mapping {
+	struct device dev;
+	int range_id;
+	int id;
+};
+
+struct dev_dax_range {
+	long unsigned int pgoff;
+	struct range range;
+	struct dax_mapping *mapping;
+};
