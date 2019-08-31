@@ -48058,3 +48058,2136 @@ struct dev_dax_range {
 	struct range range;
 	struct dax_mapping *mapping;
 };
+
+struct dev_dax {
+	struct dax_region *region;
+	struct dax_device *dax_dev;
+	unsigned int align;
+	int target_node;
+	int id;
+	struct ida ida;
+	struct device dev;
+	struct dev_pagemap *pgmap;
+	int nr_range;
+	struct dev_dax_range *ranges;
+};
+
+struct dev_dax_data {
+	struct dax_region *dax_region;
+	struct dev_pagemap *pgmap;
+	resource_size_t size;
+	int id;
+};
+
+struct dax_device_driver {
+	struct device_driver drv;
+	struct list_head ids;
+	int match_always;
+	int (*probe)(struct dev_dax *);
+	void (*remove)(struct dev_dax *);
+};
+
+struct dax_id {
+	struct list_head list;
+	char dev_name[30];
+};
+
+enum id_action {
+	ID_REMOVE = 0,
+	ID_ADD = 1,
+};
+
+struct iosys_map {
+	union {
+		void *vaddr_iomem;
+		void *vaddr;
+	};
+	bool is_iomem;
+};
+
+struct sg_page_iter {
+	struct scatterlist *sg;
+	unsigned int sg_pgoffset;
+	unsigned int __nents;
+	int __pg_advance;
+};
+
+struct dma_fence_ops;
+
+struct dma_fence {
+	spinlock_t *lock;
+	const struct dma_fence_ops *ops;
+	union {
+		struct list_head cb_list;
+		ktime_t timestamp;
+		struct callback_head rcu;
+	};
+	u64 context;
+	u64 seqno;
+	long unsigned int flags;
+	struct kref refcount;
+	int error;
+};
+
+struct dma_fence_ops {
+	bool use_64bit_seqno;
+	const char * (*get_driver_name)(struct dma_fence *);
+	const char * (*get_timeline_name)(struct dma_fence *);
+	bool (*enable_signaling)(struct dma_fence *);
+	bool (*signaled)(struct dma_fence *);
+	long int (*wait)(struct dma_fence *, bool, long int);
+	void (*release)(struct dma_fence *);
+	void (*fence_value_str)(struct dma_fence *, char *, int);
+	void (*timeline_value_str)(struct dma_fence *, char *, int);
+};
+
+struct dma_fence_cb;
+
+typedef void (*dma_fence_func_t)(struct dma_fence *, struct dma_fence_cb *);
+
+struct dma_fence_cb {
+	struct list_head node;
+	dma_fence_func_t func;
+};
+
+struct dma_buf_ops {
+	bool cache_sgt_mapping;
+	int (*attach)(struct dma_buf *, struct dma_buf_attachment *);
+	void (*detach)(struct dma_buf *, struct dma_buf_attachment *);
+	int (*pin)(struct dma_buf_attachment *);
+	void (*unpin)(struct dma_buf_attachment *);
+	struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *, enum dma_data_direction);
+	void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *, enum dma_data_direction);
+	void (*release)(struct dma_buf *);
+	int (*begin_cpu_access)(struct dma_buf *, enum dma_data_direction);
+	int (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
+	int (*mmap)(struct dma_buf *, struct vm_area_struct *);
+	int (*vmap)(struct dma_buf *, struct iosys_map *);
+	void (*vunmap)(struct dma_buf *, struct iosys_map *);
+};
+
+struct dma_buf_poll_cb_t {
+	struct dma_fence_cb cb;
+	wait_queue_head_t *poll;
+	__poll_t active;
+};
+
+struct dma_resv;
+
+struct dma_buf_sysfs_entry;
+
+struct dma_buf {
+	size_t size;
+	struct file *file;
+	struct list_head attachments;
+	const struct dma_buf_ops *ops;
+	struct mutex lock;
+	unsigned int vmapping_counter;
+	struct iosys_map vmap_ptr;
+	const char *exp_name;
+	const char *name;
+	spinlock_t name_lock;
+	struct module *owner;
+	struct list_head list_node;
+	void *priv;
+	struct dma_resv *resv;
+	wait_queue_head_t poll;
+	struct dma_buf_poll_cb_t cb_in;
+	struct dma_buf_poll_cb_t cb_out;
+	struct dma_buf_sysfs_entry *sysfs_entry;
+};
+
+struct dma_buf_attach_ops;
+
+struct dma_buf_attachment {
+	struct dma_buf *dmabuf;
+	struct device *dev;
+	struct list_head node;
+	struct sg_table *sgt;
+	enum dma_data_direction dir;
+	bool peer2peer;
+	const struct dma_buf_attach_ops *importer_ops;
+	void *importer_priv;
+	void *priv;
+};
+
+struct dma_buf_sysfs_entry {
+	struct kobject kobj;
+	struct dma_buf *dmabuf;
+};
+
+struct dma_buf_attach_ops {
+	bool allow_peer2peer;
+	void (*move_notify)(struct dma_buf_attachment *);
+};
+
+struct dma_buf_export_info {
+	const char *exp_name;
+	struct module *owner;
+	const struct dma_buf_ops *ops;
+	size_t size;
+	int flags;
+	struct dma_resv *resv;
+	void *priv;
+};
+
+struct dma_heap;
+
+struct dma_heap_ops {
+	struct dma_buf * (*allocate)(struct dma_heap *, long unsigned int, long unsigned int, long unsigned int);
+};
+
+struct dma_heap_export_info {
+	const char *name;
+	const struct dma_heap_ops *ops;
+	void *priv;
+};
+
+struct system_heap_buffer {
+	struct dma_heap *heap;
+	struct list_head attachments;
+	struct mutex lock;
+	long unsigned int len;
+	struct sg_table sg_table;
+	int vmap_cnt;
+	void *vaddr;
+};
+
+struct dma_heap_attachment {
+	struct device *dev;
+	struct sg_table *table;
+	struct list_head list;
+	bool mapped;
+};
+
+enum {
+	CXL_MEM_COMMAND_ID_INVALID = 0,
+	CXL_MEM_COMMAND_ID_IDENTIFY = 1,
+	CXL_MEM_COMMAND_ID_RAW = 2,
+	CXL_MEM_COMMAND_ID_GET_SUPPORTED_LOGS = 3,
+	CXL_MEM_COMMAND_ID_GET_FW_INFO = 4,
+	CXL_MEM_COMMAND_ID_GET_PARTITION_INFO = 5,
+	CXL_MEM_COMMAND_ID_GET_LSA = 6,
+	CXL_MEM_COMMAND_ID_GET_HEALTH_INFO = 7,
+	CXL_MEM_COMMAND_ID_GET_LOG = 8,
+	CXL_MEM_COMMAND_ID_SET_PARTITION_INFO = 9,
+	CXL_MEM_COMMAND_ID_SET_LSA = 10,
+	CXL_MEM_COMMAND_ID_GET_ALERT_CONFIG = 11,
+	CXL_MEM_COMMAND_ID_SET_ALERT_CONFIG = 12,
+	CXL_MEM_COMMAND_ID_GET_SHUTDOWN_STATE = 13,
+	CXL_MEM_COMMAND_ID_SET_SHUTDOWN_STATE = 14,
+	CXL_MEM_COMMAND_ID_GET_POISON = 15,
+	CXL_MEM_COMMAND_ID_INJECT_POISON = 16,
+	CXL_MEM_COMMAND_ID_CLEAR_POISON = 17,
+	CXL_MEM_COMMAND_ID_GET_SCAN_MEDIA_CAPS = 18,
+	CXL_MEM_COMMAND_ID_SCAN_MEDIA = 19,
+	CXL_MEM_COMMAND_ID_GET_SCAN_MEDIA = 20,
+	CXL_MEM_COMMAND_ID_MAX = 21,
+};
+
+struct cxl_command_info {
+	__u32 id;
+	__u32 flags;
+	__u32 size_in;
+	__u32 size_out;
+};
+
+struct cxl_mem_query_commands {
+	__u32 n_commands;
+	__u32 rsvd;
+	struct cxl_command_info commands[0];
+};
+
+struct cxl_send_command {
+	__u32 id;
+	__u32 flags;
+	union {
+		struct {
+			__u16 opcode;
+			__u16 rsvd;
+		} raw;
+		__u32 rsvd;
+	};
+	__u32 retval;
+	struct {
+		__u32 size;
+		__u32 rsvd;
+		__u64 payload;
+	} in;
+	struct {
+		__u32 size;
+		__u32 rsvd;
+		__u64 payload;
+	} out;
+};
+
+struct cxl_component_regs {
+	void *hdm_decoder;
+};
+
+struct cxl_device_regs {
+	void *status;
+	void *mbox;
+	void *memdev;
+};
+
+struct cxl_regs {
+	union {
+		struct {
+			void *hdm_decoder;
+		};
+		struct cxl_component_regs component;
+	};
+	union {
+		struct {
+			void *status;
+			void *mbox;
+			void *memdev;
+		};
+		struct cxl_device_regs device_regs;
+	};
+};
+
+struct cxl_dev_state;
+
+struct cxl_memdev {
+	struct device dev;
+	struct cdev cdev;
+	struct cxl_dev_state *cxlds;
+	struct work_struct detach_work;
+	int id;
+};
+
+struct cxl_mbox_cmd;
+
+struct cxl_dev_state {
+	struct device *dev;
+	struct cxl_regs regs;
+	int cxl_dvsec;
+	size_t payload_size;
+	size_t lsa_size;
+	struct mutex mbox_mutex;
+	char firmware_version[16];
+	long unsigned int enabled_cmds[1];
+	long unsigned int exclusive_cmds[1];
+	struct resource dpa_res;
+	struct resource pmem_res;
+	struct resource ram_res;
+	u64 total_bytes;
+	u64 volatile_only_bytes;
+	u64 persistent_only_bytes;
+	u64 partition_align_bytes;
+	u64 active_volatile_bytes;
+	u64 active_persistent_bytes;
+	u64 next_volatile_bytes;
+	u64 next_persistent_bytes;
+	resource_size_t component_reg_phys;
+	u64 serial;
+	struct xarray doe_mbs;
+	int (*mbox_send)(struct cxl_dev_state *, struct cxl_mbox_cmd *);
+};
+
+struct cxl_mbox_cmd {
+	u16 opcode;
+	void *payload_in;
+	void *payload_out;
+	size_t size_in;
+	size_t size_out;
+	u16 return_code;
+};
+
+struct cxl_mbox_cmd_rc {
+	int err;
+	const char *desc;
+};
+
+struct execute_work {
+	struct work_struct work;
+};
+
+enum sam_status {
+	SAM_STAT_GOOD = 0,
+	SAM_STAT_CHECK_CONDITION = 2,
+	SAM_STAT_CONDITION_MET = 4,
+	SAM_STAT_BUSY = 8,
+	SAM_STAT_INTERMEDIATE = 16,
+	SAM_STAT_INTERMEDIATE_CONDITION_MET = 20,
+	SAM_STAT_RESERVATION_CONFLICT = 24,
+	SAM_STAT_COMMAND_TERMINATED = 34,
+	SAM_STAT_TASK_SET_FULL = 40,
+	SAM_STAT_ACA_ACTIVE = 48,
+	SAM_STAT_TASK_ABORTED = 64,
+};
+
+struct scsi_sense_hdr {
+	u8 response_code;
+	u8 sense_key;
+	u8 asc;
+	u8 ascq;
+	u8 byte4;
+	u8 byte5;
+	u8 byte6;
+	u8 additional_length;
+};
+
+enum scsi_host_status {
+	DID_OK = 0,
+	DID_NO_CONNECT = 1,
+	DID_BUS_BUSY = 2,
+	DID_TIME_OUT = 3,
+	DID_BAD_TARGET = 4,
+	DID_ABORT = 5,
+	DID_PARITY = 6,
+	DID_ERROR = 7,
+	DID_RESET = 8,
+	DID_BAD_INTR = 9,
+	DID_PASSTHROUGH = 10,
+	DID_SOFT_ERROR = 11,
+	DID_IMM_RETRY = 12,
+	DID_REQUEUE = 13,
+	DID_TRANSPORT_DISRUPTED = 14,
+	DID_TRANSPORT_FAILFAST = 15,
+	DID_TARGET_FAILURE = 16,
+	DID_NEXUS_FAILURE = 17,
+	DID_ALLOC_FAILURE = 18,
+	DID_MEDIUM_ERROR = 19,
+	DID_TRANSPORT_MARGINAL = 20,
+};
+
+enum scsi_disposition {
+	NEEDS_RETRY = 8193,
+	SUCCESS = 8194,
+	FAILED = 8195,
+	QUEUED = 8196,
+	SOFT_ERROR = 8197,
+	ADD_TO_MLQUEUE = 8198,
+	TIMEOUT_ERROR = 8199,
+	SCSI_RETURN_NOT_HANDLED = 8200,
+	FAST_IO_FAIL = 8201,
+};
+
+typedef __u64 blist_flags_t;
+
+enum scsi_device_state {
+	SDEV_CREATED = 1,
+	SDEV_RUNNING = 2,
+	SDEV_CANCEL = 3,
+	SDEV_DEL = 4,
+	SDEV_QUIESCE = 5,
+	SDEV_OFFLINE = 6,
+	SDEV_TRANSPORT_OFFLINE = 7,
+	SDEV_BLOCK = 8,
+	SDEV_CREATED_BLOCK = 9,
+};
+
+enum scsi_device_event {
+	SDEV_EVT_MEDIA_CHANGE = 1,
+	SDEV_EVT_INQUIRY_CHANGE_REPORTED = 2,
+	SDEV_EVT_CAPACITY_CHANGE_REPORTED = 3,
+	SDEV_EVT_SOFT_THRESHOLD_REACHED_REPORTED = 4,
+	SDEV_EVT_MODE_PARAMETER_CHANGE_REPORTED = 5,
+	SDEV_EVT_LUN_CHANGE_REPORTED = 6,
+	SDEV_EVT_ALUA_STATE_CHANGE_REPORTED = 7,
+	SDEV_EVT_POWER_ON_RESET_OCCURRED = 8,
+	SDEV_EVT_FIRST = 1,
+	SDEV_EVT_LAST = 8,
+	SDEV_EVT_MAXBITS = 9,
+};
+
+struct scsi_vpd {
+	struct callback_head rcu;
+	int len;
+	unsigned char data[0];
+};
+
+enum scsi_vpd_parameters {
+	SCSI_VPD_HEADER_SIZE = 4,
+};
+
+struct bsg_device;
+
+struct Scsi_Host;
+
+struct scsi_target;
+
+struct scsi_device_handler;
+
+struct scsi_device {
+	struct Scsi_Host *host;
+	struct request_queue *request_queue;
+	struct list_head siblings;
+	struct list_head same_target_siblings;
+	struct sbitmap budget_map;
+	atomic_t device_blocked;
+	atomic_t restarts;
+	spinlock_t list_lock;
+	struct list_head starved_entry;
+	short unsigned int queue_depth;
+	short unsigned int max_queue_depth;
+	short unsigned int last_queue_full_depth;
+	short unsigned int last_queue_full_count;
+	long unsigned int last_queue_full_time;
+	long unsigned int queue_ramp_up_period;
+	long unsigned int last_queue_ramp_up;
+	unsigned int id;
+	unsigned int channel;
+	u64 lun;
+	unsigned int manufacturer;
+	unsigned int sector_size;
+	void *hostdata;
+	unsigned char type;
+	char scsi_level;
+	char inq_periph_qual;
+	struct mutex inquiry_mutex;
+	unsigned char inquiry_len;
+	unsigned char *inquiry;
+	const char *vendor;
+	const char *model;
+	const char *rev;
+	struct scsi_vpd *vpd_pg0;
+	struct scsi_vpd *vpd_pg83;
+	struct scsi_vpd *vpd_pg80;
+	struct scsi_vpd *vpd_pg89;
+	struct scsi_vpd *vpd_pgb0;
+	struct scsi_vpd *vpd_pgb1;
+	struct scsi_vpd *vpd_pgb2;
+	struct scsi_target *sdev_target;
+	blist_flags_t sdev_bflags;
+	unsigned int eh_timeout;
+	unsigned int removable: 1;
+	unsigned int changed: 1;
+	unsigned int busy: 1;
+	unsigned int lockable: 1;
+	unsigned int locked: 1;
+	unsigned int borken: 1;
+	unsigned int disconnect: 1;
+	unsigned int soft_reset: 1;
+	unsigned int sdtr: 1;
+	unsigned int wdtr: 1;
+	unsigned int ppr: 1;
+	unsigned int tagged_supported: 1;
+	unsigned int simple_tags: 1;
+	unsigned int was_reset: 1;
+	unsigned int expecting_cc_ua: 1;
+	unsigned int use_10_for_rw: 1;
+	unsigned int use_10_for_ms: 1;
+	unsigned int set_dbd_for_ms: 1;
+	unsigned int no_report_opcodes: 1;
+	unsigned int no_write_same: 1;
+	unsigned int use_16_for_rw: 1;
+	unsigned int skip_ms_page_8: 1;
+	unsigned int skip_ms_page_3f: 1;
+	unsigned int skip_vpd_pages: 1;
+	unsigned int try_vpd_pages: 1;
+	unsigned int use_192_bytes_for_3f: 1;
+	unsigned int no_start_on_add: 1;
+	unsigned int allow_restart: 1;
+	unsigned int manage_start_stop: 1;
+	unsigned int start_stop_pwr_cond: 1;
+	unsigned int no_uld_attach: 1;
+	unsigned int select_no_atn: 1;
+	unsigned int fix_capacity: 1;
+	unsigned int guess_capacity: 1;
+	unsigned int retry_hwerror: 1;
+	unsigned int last_sector_bug: 1;
+	unsigned int no_read_disc_info: 1;
+	unsigned int no_read_capacity_16: 1;
+	unsigned int try_rc_10_first: 1;
+	unsigned int security_supported: 1;
+	unsigned int is_visible: 1;
+	unsigned int wce_default_on: 1;
+	unsigned int no_dif: 1;
+	unsigned int broken_fua: 1;
+	unsigned int lun_in_cdb: 1;
+	unsigned int unmap_limit_for_ws: 1;
+	unsigned int rpm_autosuspend: 1;
+	unsigned int ignore_media_change: 1;
+	unsigned int silence_suspend: 1;
+	unsigned int queue_stopped;
+	bool offline_already;
+	atomic_t disk_events_disable_depth;
+	long unsigned int supported_events[1];
+	long unsigned int pending_events[1];
+	struct list_head event_list;
+	struct work_struct event_work;
+	unsigned int max_device_blocked;
+	atomic_t iorequest_cnt;
+	atomic_t iodone_cnt;
+	atomic_t ioerr_cnt;
+	struct device sdev_gendev;
+	struct device sdev_dev;
+	struct execute_work ew;
+	struct work_struct requeue_work;
+	struct scsi_device_handler *handler;
+	void *handler_data;
+	size_t dma_drain_len;
+	void *dma_drain_buf;
+	unsigned int sg_timeout;
+	unsigned int sg_reserved_size;
+	struct bsg_device *bsg_dev;
+	unsigned char access_state;
+	struct mutex state_mutex;
+	enum scsi_device_state sdev_state;
+	struct task_struct *quiesced_by;
+	long unsigned int sdev_data[0];
+};
+
+enum scsi_host_state {
+	SHOST_CREATED = 1,
+	SHOST_RUNNING = 2,
+	SHOST_CANCEL = 3,
+	SHOST_DEL = 4,
+	SHOST_RECOVERY = 5,
+	SHOST_CANCEL_RECOVERY = 6,
+	SHOST_DEL_RECOVERY = 7,
+};
+
+struct scsi_host_template;
+
+struct scsi_transport_template;
+
+struct Scsi_Host {
+	struct list_head __devices;
+	struct list_head __targets;
+	struct list_head starved_list;
+	spinlock_t default_lock;
+	spinlock_t *host_lock;
+	struct mutex scan_mutex;
+	struct list_head eh_abort_list;
+	struct list_head eh_cmd_q;
+	struct task_struct *ehandler;
+	struct completion *eh_action;
+	wait_queue_head_t host_wait;
+	struct scsi_host_template *hostt;
+	struct scsi_transport_template *transportt;
+	struct kref tagset_refcnt;
+	struct completion tagset_freed;
+	struct blk_mq_tag_set tag_set;
+	atomic_t host_blocked;
+	unsigned int host_failed;
+	unsigned int host_eh_scheduled;
+	unsigned int host_no;
+	int eh_deadline;
+	long unsigned int last_reset;
+	unsigned int max_channel;
+	unsigned int max_id;
+	u64 max_lun;
+	unsigned int unique_id;
+	short unsigned int max_cmd_len;
+	int this_id;
+	int can_queue;
+	short int cmd_per_lun;
+	short unsigned int sg_tablesize;
+	short unsigned int sg_prot_tablesize;
+	unsigned int max_sectors;
+	unsigned int opt_sectors;
+	unsigned int max_segment_size;
+	long unsigned int dma_boundary;
+	long unsigned int virt_boundary_mask;
+	unsigned int nr_hw_queues;
+	unsigned int nr_maps;
+	unsigned int active_mode: 2;
+	unsigned int host_self_blocked: 1;
+	unsigned int reverse_ordering: 1;
+	unsigned int tmf_in_progress: 1;
+	unsigned int async_scan: 1;
+	unsigned int eh_noresume: 1;
+	unsigned int no_write_same: 1;
+	unsigned int host_tagset: 1;
+	unsigned int short_inquiry: 1;
+	unsigned int no_scsi2_lun_in_cdb: 1;
+	char work_q_name[20];
+	struct workqueue_struct *work_q;
+	struct workqueue_struct *tmf_work_q;
+	unsigned int max_host_blocked;
+	unsigned int prot_capabilities;
+	unsigned char prot_guard_type;
+	long unsigned int base;
+	long unsigned int io_port;
+	unsigned char n_io_port;
+	unsigned char dma_channel;
+	unsigned int irq;
+	enum scsi_host_state shost_state;
+	struct device shost_gendev;
+	struct device shost_dev;
+	void *shost_data;
+	struct device *dma_dev;
+	long unsigned int hostdata[0];
+};
+
+enum scsi_target_state {
+	STARGET_CREATED = 1,
+	STARGET_RUNNING = 2,
+	STARGET_REMOVE = 3,
+	STARGET_CREATED_REMOVE = 4,
+	STARGET_DEL = 5,
+};
+
+struct scsi_target {
+	struct scsi_device *starget_sdev_user;
+	struct list_head siblings;
+	struct list_head devices;
+	struct device dev;
+	struct kref reap_ref;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int create: 1;
+	unsigned int single_lun: 1;
+	unsigned int pdt_1f_for_no_lun: 1;
+	unsigned int no_report_luns: 1;
+	unsigned int expecting_lun_change: 1;
+	atomic_t target_busy;
+	atomic_t target_blocked;
+	unsigned int can_queue;
+	unsigned int max_target_blocked;
+	char scsi_level;
+	enum scsi_target_state state;
+	void *hostdata;
+	long unsigned int starget_data[0];
+};
+
+struct scsi_data_buffer {
+	struct sg_table table;
+	unsigned int length;
+};
+
+enum scsi_cmnd_submitter {
+	SUBMITTED_BY_BLOCK_LAYER = 0,
+	SUBMITTED_BY_SCSI_ERROR_HANDLER = 1,
+	SUBMITTED_BY_SCSI_RESET_IOCTL = 2,
+};
+
+struct scsi_cmnd {
+	struct scsi_device *device;
+	struct list_head eh_entry;
+	struct delayed_work abort_work;
+	struct callback_head rcu;
+	int eh_eflags;
+	int budget_token;
+	long unsigned int jiffies_at_alloc;
+	int retries;
+	int allowed;
+	unsigned char prot_op;
+	unsigned char prot_type;
+	unsigned char prot_flags;
+	enum scsi_cmnd_submitter submitter;
+	short unsigned int cmd_len;
+	enum dma_data_direction sc_data_direction;
+	unsigned char cmnd[32];
+	struct scsi_data_buffer sdb;
+	struct scsi_data_buffer *prot_sdb;
+	unsigned int underflow;
+	unsigned int transfersize;
+	unsigned int resid_len;
+	unsigned int sense_len;
+	unsigned char *sense_buffer;
+	int flags;
+	long unsigned int state;
+	unsigned int extra_len;
+	unsigned char *host_scribble;
+	int result;
+};
+
+enum scsi_prot_operations {
+	SCSI_PROT_NORMAL = 0,
+	SCSI_PROT_READ_INSERT = 1,
+	SCSI_PROT_WRITE_STRIP = 2,
+	SCSI_PROT_READ_STRIP = 3,
+	SCSI_PROT_WRITE_INSERT = 4,
+	SCSI_PROT_READ_PASS = 5,
+	SCSI_PROT_WRITE_PASS = 6,
+};
+
+struct scsi_driver {
+	struct device_driver gendrv;
+	void (*rescan)(struct device *);
+	blk_status_t (*init_command)(struct scsi_cmnd *);
+	void (*uninit_command)(struct scsi_cmnd *);
+	int (*done)(struct scsi_cmnd *);
+	int (*eh_action)(struct scsi_cmnd *, int);
+	void (*eh_reset)(struct scsi_cmnd *);
+};
+
+struct scsi_host_template {
+	unsigned int cmd_size;
+	int (*queuecommand)(struct Scsi_Host *, struct scsi_cmnd *);
+	void (*commit_rqs)(struct Scsi_Host *, u16);
+	struct module *module;
+	const char *name;
+	const char * (*info)(struct Scsi_Host *);
+	int (*ioctl)(struct scsi_device *, unsigned int, void *);
+	int (*compat_ioctl)(struct scsi_device *, unsigned int, void *);
+	int (*init_cmd_priv)(struct Scsi_Host *, struct scsi_cmnd *);
+	int (*exit_cmd_priv)(struct Scsi_Host *, struct scsi_cmnd *);
+	int (*eh_abort_handler)(struct scsi_cmnd *);
+	int (*eh_device_reset_handler)(struct scsi_cmnd *);
+	int (*eh_target_reset_handler)(struct scsi_cmnd *);
+	int (*eh_bus_reset_handler)(struct scsi_cmnd *);
+	int (*eh_host_reset_handler)(struct scsi_cmnd *);
+	int (*slave_alloc)(struct scsi_device *);
+	int (*slave_configure)(struct scsi_device *);
+	void (*slave_destroy)(struct scsi_device *);
+	int (*target_alloc)(struct scsi_target *);
+	void (*target_destroy)(struct scsi_target *);
+	int (*scan_finished)(struct Scsi_Host *, long unsigned int);
+	void (*scan_start)(struct Scsi_Host *);
+	int (*change_queue_depth)(struct scsi_device *, int);
+	int (*map_queues)(struct Scsi_Host *);
+	int (*mq_poll)(struct Scsi_Host *, unsigned int);
+	bool (*dma_need_drain)(struct request *);
+	int (*bios_param)(struct scsi_device *, struct block_device *, sector_t, int *);
+	void (*unlock_native_capacity)(struct scsi_device *);
+	int (*show_info)(struct seq_file *, struct Scsi_Host *);
+	int (*write_info)(struct Scsi_Host *, char *, int);
+	enum blk_eh_timer_return (*eh_timed_out)(struct scsi_cmnd *);
+	bool (*eh_should_retry_cmd)(struct scsi_cmnd *);
+	int (*host_reset)(struct Scsi_Host *, int);
+	const char *proc_name;
+	struct proc_dir_entry *proc_dir;
+	int can_queue;
+	int this_id;
+	short unsigned int sg_tablesize;
+	short unsigned int sg_prot_tablesize;
+	unsigned int max_sectors;
+	unsigned int max_segment_size;
+	long unsigned int dma_boundary;
+	long unsigned int virt_boundary_mask;
+	short int cmd_per_lun;
+	unsigned char present;
+	int tag_alloc_policy;
+	unsigned int track_queue_depth: 1;
+	unsigned int supported_mode: 2;
+	unsigned int emulated: 1;
+	unsigned int skip_settle_delay: 1;
+	unsigned int no_write_same: 1;
+	unsigned int host_tagset: 1;
+	unsigned int max_host_blocked;
+	const struct attribute_group **shost_groups;
+	const struct attribute_group **sdev_groups;
+	u64 vendor_id;
+	int rpm_autosuspend_delay;
+};
+
+struct trace_event_raw_scsi_dispatch_cmd_start {
+	struct trace_entry ent;
+	unsigned int host_no;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int lun;
+	unsigned int opcode;
+	unsigned int cmd_len;
+	int driver_tag;
+	int scheduler_tag;
+	unsigned int data_sglen;
+	unsigned int prot_sglen;
+	unsigned char prot_op;
+	u32 __data_loc_cmnd;
+	char __data[0];
+};
+
+struct trace_event_raw_scsi_dispatch_cmd_error {
+	struct trace_entry ent;
+	unsigned int host_no;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int lun;
+	int rtn;
+	unsigned int opcode;
+	unsigned int cmd_len;
+	int driver_tag;
+	int scheduler_tag;
+	unsigned int data_sglen;
+	unsigned int prot_sglen;
+	unsigned char prot_op;
+	u32 __data_loc_cmnd;
+	char __data[0];
+};
+
+struct trace_event_raw_scsi_cmd_done_timeout_template {
+	struct trace_entry ent;
+	unsigned int host_no;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int lun;
+	int result;
+	unsigned int opcode;
+	unsigned int cmd_len;
+	int driver_tag;
+	int scheduler_tag;
+	unsigned int data_sglen;
+	unsigned int prot_sglen;
+	unsigned char prot_op;
+	u32 __data_loc_cmnd;
+	char __data[0];
+};
+
+struct trace_event_raw_scsi_eh_wakeup {
+	struct trace_entry ent;
+	unsigned int host_no;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_scsi_dispatch_cmd_start {
+	u32 cmnd;
+};
+
+struct trace_event_data_offsets_scsi_dispatch_cmd_error {
+	u32 cmnd;
+};
+
+struct trace_event_data_offsets_scsi_cmd_done_timeout_template {
+	u32 cmnd;
+};
+
+struct trace_event_data_offsets_scsi_eh_wakeup {};
+
+typedef void (*btf_trace_scsi_dispatch_cmd_start)(void *, struct scsi_cmnd *);
+
+typedef void (*btf_trace_scsi_dispatch_cmd_error)(void *, struct scsi_cmnd *, int);
+
+typedef void (*btf_trace_scsi_dispatch_cmd_done)(void *, struct scsi_cmnd *);
+
+typedef void (*btf_trace_scsi_dispatch_cmd_timeout)(void *, struct scsi_cmnd *);
+
+typedef void (*btf_trace_scsi_eh_wakeup)(void *, struct Scsi_Host *);
+
+struct scsi_nl_hdr {
+	__u8 version;
+	__u8 transport;
+	__u16 magic;
+	__u16 msgtype;
+	__u16 msglen;
+};
+
+struct cdrom_device_ops;
+
+struct cdrom_device_info {
+	const struct cdrom_device_ops *ops;
+	struct list_head list;
+	struct gendisk *disk;
+	void *handle;
+	int mask;
+	int speed;
+	int capacity;
+	unsigned int options: 30;
+	unsigned int mc_flags: 2;
+	unsigned int vfs_events;
+	unsigned int ioctl_events;
+	int use_count;
+	char name[20];
+	__u8 sanyo_slot: 2;
+	__u8 keeplocked: 1;
+	__u8 reserved: 5;
+	int cdda_method;
+	__u8 last_sense;
+	__u8 media_written;
+	short unsigned int mmc3_profile;
+	int for_data;
+	int (*exit)(struct cdrom_device_info *);
+	int mrw_mode_page;
+	__s64 last_media_change_ms;
+};
+
+struct cdrom_msf0 {
+	__u8 minute;
+	__u8 second;
+	__u8 frame;
+};
+
+union cdrom_addr {
+	struct cdrom_msf0 msf;
+	int lba;
+};
+
+struct cdrom_ti {
+	__u8 cdti_trk0;
+	__u8 cdti_ind0;
+	__u8 cdti_trk1;
+	__u8 cdti_ind1;
+};
+
+struct cdrom_tochdr {
+	__u8 cdth_trk0;
+	__u8 cdth_trk1;
+};
+
+struct cdrom_tocentry {
+	__u8 cdte_track;
+	__u8 cdte_adr: 4;
+	__u8 cdte_ctrl: 4;
+	__u8 cdte_format;
+	union cdrom_addr cdte_addr;
+	__u8 cdte_datamode;
+};
+
+struct cdrom_multisession {
+	union cdrom_addr addr;
+	__u8 xa_flag;
+	__u8 addr_format;
+};
+
+struct cdrom_mcn {
+	__u8 medium_catalog_number[14];
+};
+
+struct packet_command {
+	unsigned char cmd[12];
+	unsigned char *buffer;
+	unsigned int buflen;
+	int stat;
+	struct scsi_sense_hdr *sshdr;
+	unsigned char data_direction;
+	int quiet;
+	int timeout;
+	void *reserved[1];
+};
+
+struct cdrom_device_ops {
+	int (*open)(struct cdrom_device_info *, int);
+	void (*release)(struct cdrom_device_info *);
+	int (*drive_status)(struct cdrom_device_info *, int);
+	unsigned int (*check_events)(struct cdrom_device_info *, unsigned int, int);
+	int (*tray_move)(struct cdrom_device_info *, int);
+	int (*lock_door)(struct cdrom_device_info *, int);
+	int (*select_speed)(struct cdrom_device_info *, int);
+	int (*get_last_session)(struct cdrom_device_info *, struct cdrom_multisession *);
+	int (*get_mcn)(struct cdrom_device_info *, struct cdrom_mcn *);
+	int (*reset)(struct cdrom_device_info *);
+	int (*audio_ioctl)(struct cdrom_device_info *, unsigned int, void *);
+	int (*generic_packet)(struct cdrom_device_info *, struct packet_command *);
+	int (*read_cdda_bpc)(struct cdrom_device_info *, void *, u32, u32, u8 *);
+	const int capability;
+};
+
+struct media_event_desc {
+	__u8 media_event_code: 4;
+	__u8 reserved1: 4;
+	__u8 door_open: 1;
+	__u8 media_present: 1;
+	__u8 reserved2: 6;
+	__u8 start_slot;
+	__u8 end_slot;
+};
+
+struct scsi_cd {
+	unsigned int capacity;
+	struct scsi_device *device;
+	unsigned int vendor;
+	long unsigned int ms_offset;
+	unsigned int writeable: 1;
+	unsigned int use: 1;
+	unsigned int xa_flag: 1;
+	unsigned int readcd_known: 1;
+	unsigned int readcd_cdda: 1;
+	unsigned int media_present: 1;
+	int tur_mismatch;
+	bool tur_changed: 1;
+	bool get_event_changed: 1;
+	bool ignore_get_event: 1;
+	struct cdrom_device_info cdi;
+	struct mutex lock;
+	struct gendisk *disk;
+};
+
+typedef struct scsi_cd Scsi_CD;
+
+enum {
+	ATA_MAX_DEVICES = 2,
+	ATA_MAX_PRD = 256,
+	ATA_SECT_SIZE = 512,
+	ATA_MAX_SECTORS_128 = 128,
+	ATA_MAX_SECTORS = 256,
+	ATA_MAX_SECTORS_1024 = 1024,
+	ATA_MAX_SECTORS_LBA48 = 65535,
+	ATA_MAX_SECTORS_TAPE = 65535,
+	ATA_MAX_TRIM_RNUM = 64,
+	ATA_ID_WORDS = 256,
+	ATA_ID_CONFIG = 0,
+	ATA_ID_CYLS = 1,
+	ATA_ID_HEADS = 3,
+	ATA_ID_SECTORS = 6,
+	ATA_ID_SERNO = 10,
+	ATA_ID_BUF_SIZE = 21,
+	ATA_ID_FW_REV = 23,
+	ATA_ID_PROD = 27,
+	ATA_ID_MAX_MULTSECT = 47,
+	ATA_ID_DWORD_IO = 48,
+	ATA_ID_TRUSTED = 48,
+	ATA_ID_CAPABILITY = 49,
+	ATA_ID_OLD_PIO_MODES = 51,
+	ATA_ID_OLD_DMA_MODES = 52,
+	ATA_ID_FIELD_VALID = 53,
+	ATA_ID_CUR_CYLS = 54,
+	ATA_ID_CUR_HEADS = 55,
+	ATA_ID_CUR_SECTORS = 56,
+	ATA_ID_MULTSECT = 59,
+	ATA_ID_LBA_CAPACITY = 60,
+	ATA_ID_SWDMA_MODES = 62,
+	ATA_ID_MWDMA_MODES = 63,
+	ATA_ID_PIO_MODES = 64,
+	ATA_ID_EIDE_DMA_MIN = 65,
+	ATA_ID_EIDE_DMA_TIME = 66,
+	ATA_ID_EIDE_PIO = 67,
+	ATA_ID_EIDE_PIO_IORDY = 68,
+	ATA_ID_ADDITIONAL_SUPP = 69,
+	ATA_ID_QUEUE_DEPTH = 75,
+	ATA_ID_SATA_CAPABILITY = 76,
+	ATA_ID_SATA_CAPABILITY_2 = 77,
+	ATA_ID_FEATURE_SUPP = 78,
+	ATA_ID_MAJOR_VER = 80,
+	ATA_ID_COMMAND_SET_1 = 82,
+	ATA_ID_COMMAND_SET_2 = 83,
+	ATA_ID_CFSSE = 84,
+	ATA_ID_CFS_ENABLE_1 = 85,
+	ATA_ID_CFS_ENABLE_2 = 86,
+	ATA_ID_CSF_DEFAULT = 87,
+	ATA_ID_UDMA_MODES = 88,
+	ATA_ID_HW_CONFIG = 93,
+	ATA_ID_SPG = 98,
+	ATA_ID_LBA_CAPACITY_2 = 100,
+	ATA_ID_SECTOR_SIZE = 106,
+	ATA_ID_WWN = 108,
+	ATA_ID_LOGICAL_SECTOR_SIZE = 117,
+	ATA_ID_COMMAND_SET_3 = 119,
+	ATA_ID_COMMAND_SET_4 = 120,
+	ATA_ID_LAST_LUN = 126,
+	ATA_ID_DLF = 128,
+	ATA_ID_CSFO = 129,
+	ATA_ID_CFA_POWER = 160,
+	ATA_ID_CFA_KEY_MGMT = 162,
+	ATA_ID_CFA_MODES = 163,
+	ATA_ID_DATA_SET_MGMT = 169,
+	ATA_ID_SCT_CMD_XPORT = 206,
+	ATA_ID_ROT_SPEED = 217,
+	ATA_ID_PIO4 = 2,
+	ATA_ID_SERNO_LEN = 20,
+	ATA_ID_FW_REV_LEN = 8,
+	ATA_ID_PROD_LEN = 40,
+	ATA_ID_WWN_LEN = 8,
+	ATA_PCI_CTL_OFS = 2,
+	ATA_PIO0 = 1,
+	ATA_PIO1 = 3,
+	ATA_PIO2 = 7,
+	ATA_PIO3 = 15,
+	ATA_PIO4 = 31,
+	ATA_PIO5 = 63,
+	ATA_PIO6 = 127,
+	ATA_PIO4_ONLY = 16,
+	ATA_SWDMA0 = 1,
+	ATA_SWDMA1 = 3,
+	ATA_SWDMA2 = 7,
+	ATA_SWDMA2_ONLY = 4,
+	ATA_MWDMA0 = 1,
+	ATA_MWDMA1 = 3,
+	ATA_MWDMA2 = 7,
+	ATA_MWDMA3 = 15,
+	ATA_MWDMA4 = 31,
+	ATA_MWDMA12_ONLY = 6,
+	ATA_MWDMA2_ONLY = 4,
+	ATA_UDMA0 = 1,
+	ATA_UDMA1 = 3,
+	ATA_UDMA2 = 7,
+	ATA_UDMA3 = 15,
+	ATA_UDMA4 = 31,
+	ATA_UDMA5 = 63,
+	ATA_UDMA6 = 127,
+	ATA_UDMA7 = 255,
+	ATA_UDMA24_ONLY = 20,
+	ATA_UDMA_MASK_40C = 7,
+	ATA_PRD_SZ = 8,
+	ATA_PRD_TBL_SZ = 2048,
+	ATA_PRD_EOT = 2147483648,
+	ATA_DMA_TABLE_OFS = 4,
+	ATA_DMA_STATUS = 2,
+	ATA_DMA_CMD = 0,
+	ATA_DMA_WR = 8,
+	ATA_DMA_START = 1,
+	ATA_DMA_INTR = 4,
+	ATA_DMA_ERR = 2,
+	ATA_DMA_ACTIVE = 1,
+	ATA_HOB = 128,
+	ATA_NIEN = 2,
+	ATA_LBA = 64,
+	ATA_DEV1 = 16,
+	ATA_DEVICE_OBS = 160,
+	ATA_DEVCTL_OBS = 8,
+	ATA_BUSY = 128,
+	ATA_DRDY = 64,
+	ATA_DF = 32,
+	ATA_DSC = 16,
+	ATA_DRQ = 8,
+	ATA_CORR = 4,
+	ATA_SENSE = 2,
+	ATA_ERR = 1,
+	ATA_SRST = 4,
+	ATA_ICRC = 128,
+	ATA_BBK = 128,
+	ATA_UNC = 64,
+	ATA_MC = 32,
+	ATA_IDNF = 16,
+	ATA_MCR = 8,
+	ATA_ABORTED = 4,
+	ATA_TRK0NF = 2,
+	ATA_AMNF = 1,
+	ATAPI_LFS = 240,
+	ATAPI_EOM = 2,
+	ATAPI_ILI = 1,
+	ATAPI_IO = 2,
+	ATAPI_COD = 1,
+	ATA_REG_DATA = 0,
+	ATA_REG_ERR = 1,
+	ATA_REG_NSECT = 2,
+	ATA_REG_LBAL = 3,
+	ATA_REG_LBAM = 4,
+	ATA_REG_LBAH = 5,
+	ATA_REG_DEVICE = 6,
+	ATA_REG_STATUS = 7,
+	ATA_REG_FEATURE = 1,
+	ATA_REG_CMD = 7,
+	ATA_REG_BYTEL = 4,
+	ATA_REG_BYTEH = 5,
+	ATA_REG_DEVSEL = 6,
+	ATA_REG_IRQ = 2,
+	ATA_CMD_DEV_RESET = 8,
+	ATA_CMD_CHK_POWER = 229,
+	ATA_CMD_STANDBY = 226,
+	ATA_CMD_IDLE = 227,
+	ATA_CMD_EDD = 144,
+	ATA_CMD_DOWNLOAD_MICRO = 146,
+	ATA_CMD_DOWNLOAD_MICRO_DMA = 147,
+	ATA_CMD_NOP = 0,
+	ATA_CMD_FLUSH = 231,
+	ATA_CMD_FLUSH_EXT = 234,
+	ATA_CMD_ID_ATA = 236,
+	ATA_CMD_ID_ATAPI = 161,
+	ATA_CMD_SERVICE = 162,
+	ATA_CMD_READ = 200,
+	ATA_CMD_READ_EXT = 37,
+	ATA_CMD_READ_QUEUED = 38,
+	ATA_CMD_READ_STREAM_EXT = 43,
+	ATA_CMD_READ_STREAM_DMA_EXT = 42,
+	ATA_CMD_WRITE = 202,
+	ATA_CMD_WRITE_EXT = 53,
+	ATA_CMD_WRITE_QUEUED = 54,
+	ATA_CMD_WRITE_STREAM_EXT = 59,
+	ATA_CMD_WRITE_STREAM_DMA_EXT = 58,
+	ATA_CMD_WRITE_FUA_EXT = 61,
+	ATA_CMD_WRITE_QUEUED_FUA_EXT = 62,
+	ATA_CMD_FPDMA_READ = 96,
+	ATA_CMD_FPDMA_WRITE = 97,
+	ATA_CMD_NCQ_NON_DATA = 99,
+	ATA_CMD_FPDMA_SEND = 100,
+	ATA_CMD_FPDMA_RECV = 101,
+	ATA_CMD_PIO_READ = 32,
+	ATA_CMD_PIO_READ_EXT = 36,
+	ATA_CMD_PIO_WRITE = 48,
+	ATA_CMD_PIO_WRITE_EXT = 52,
+	ATA_CMD_READ_MULTI = 196,
+	ATA_CMD_READ_MULTI_EXT = 41,
+	ATA_CMD_WRITE_MULTI = 197,
+	ATA_CMD_WRITE_MULTI_EXT = 57,
+	ATA_CMD_WRITE_MULTI_FUA_EXT = 206,
+	ATA_CMD_SET_FEATURES = 239,
+	ATA_CMD_SET_MULTI = 198,
+	ATA_CMD_PACKET = 160,
+	ATA_CMD_VERIFY = 64,
+	ATA_CMD_VERIFY_EXT = 66,
+	ATA_CMD_WRITE_UNCORR_EXT = 69,
+	ATA_CMD_STANDBYNOW1 = 224,
+	ATA_CMD_IDLEIMMEDIATE = 225,
+	ATA_CMD_SLEEP = 230,
+	ATA_CMD_INIT_DEV_PARAMS = 145,
+	ATA_CMD_READ_NATIVE_MAX = 248,
+	ATA_CMD_READ_NATIVE_MAX_EXT = 39,
+	ATA_CMD_SET_MAX = 249,
+	ATA_CMD_SET_MAX_EXT = 55,
+	ATA_CMD_READ_LOG_EXT = 47,
+	ATA_CMD_WRITE_LOG_EXT = 63,
+	ATA_CMD_READ_LOG_DMA_EXT = 71,
+	ATA_CMD_WRITE_LOG_DMA_EXT = 87,
+	ATA_CMD_TRUSTED_NONDATA = 91,
+	ATA_CMD_TRUSTED_RCV = 92,
+	ATA_CMD_TRUSTED_RCV_DMA = 93,
+	ATA_CMD_TRUSTED_SND = 94,
+	ATA_CMD_TRUSTED_SND_DMA = 95,
+	ATA_CMD_PMP_READ = 228,
+	ATA_CMD_PMP_READ_DMA = 233,
+	ATA_CMD_PMP_WRITE = 232,
+	ATA_CMD_PMP_WRITE_DMA = 235,
+	ATA_CMD_CONF_OVERLAY = 177,
+	ATA_CMD_SEC_SET_PASS = 241,
+	ATA_CMD_SEC_UNLOCK = 242,
+	ATA_CMD_SEC_ERASE_PREP = 243,
+	ATA_CMD_SEC_ERASE_UNIT = 244,
+	ATA_CMD_SEC_FREEZE_LOCK = 245,
+	ATA_CMD_SEC_DISABLE_PASS = 246,
+	ATA_CMD_CONFIG_STREAM = 81,
+	ATA_CMD_SMART = 176,
+	ATA_CMD_MEDIA_LOCK = 222,
+	ATA_CMD_MEDIA_UNLOCK = 223,
+	ATA_CMD_DSM = 6,
+	ATA_CMD_CHK_MED_CRD_TYP = 209,
+	ATA_CMD_CFA_REQ_EXT_ERR = 3,
+	ATA_CMD_CFA_WRITE_NE = 56,
+	ATA_CMD_CFA_TRANS_SECT = 135,
+	ATA_CMD_CFA_ERASE = 192,
+	ATA_CMD_CFA_WRITE_MULT_NE = 205,
+	ATA_CMD_REQ_SENSE_DATA = 11,
+	ATA_CMD_SANITIZE_DEVICE = 180,
+	ATA_CMD_ZAC_MGMT_IN = 74,
+	ATA_CMD_ZAC_MGMT_OUT = 159,
+	ATA_CMD_RESTORE = 16,
+	ATA_SUBCMD_FPDMA_RECV_RD_LOG_DMA_EXT = 1,
+	ATA_SUBCMD_FPDMA_RECV_ZAC_MGMT_IN = 2,
+	ATA_SUBCMD_FPDMA_SEND_DSM = 0,
+	ATA_SUBCMD_FPDMA_SEND_WR_LOG_DMA_EXT = 2,
+	ATA_SUBCMD_NCQ_NON_DATA_ABORT_QUEUE = 0,
+	ATA_SUBCMD_NCQ_NON_DATA_SET_FEATURES = 5,
+	ATA_SUBCMD_NCQ_NON_DATA_ZERO_EXT = 6,
+	ATA_SUBCMD_NCQ_NON_DATA_ZAC_MGMT_OUT = 7,
+	ATA_SUBCMD_ZAC_MGMT_IN_REPORT_ZONES = 0,
+	ATA_SUBCMD_ZAC_MGMT_OUT_CLOSE_ZONE = 1,
+	ATA_SUBCMD_ZAC_MGMT_OUT_FINISH_ZONE = 2,
+	ATA_SUBCMD_ZAC_MGMT_OUT_OPEN_ZONE = 3,
+	ATA_SUBCMD_ZAC_MGMT_OUT_RESET_WRITE_POINTER = 4,
+	ATA_LOG_DIRECTORY = 0,
+	ATA_LOG_SATA_NCQ = 16,
+	ATA_LOG_NCQ_NON_DATA = 18,
+	ATA_LOG_NCQ_SEND_RECV = 19,
+	ATA_LOG_IDENTIFY_DEVICE = 48,
+	ATA_LOG_CONCURRENT_POSITIONING_RANGES = 71,
+	ATA_LOG_SECURITY = 6,
+	ATA_LOG_SATA_SETTINGS = 8,
+	ATA_LOG_ZONED_INFORMATION = 9,
+	ATA_LOG_DEVSLP_OFFSET = 48,
+	ATA_LOG_DEVSLP_SIZE = 8,
+	ATA_LOG_DEVSLP_MDAT = 0,
+	ATA_LOG_DEVSLP_MDAT_MASK = 31,
+	ATA_LOG_DEVSLP_DETO = 1,
+	ATA_LOG_DEVSLP_VALID = 7,
+	ATA_LOG_DEVSLP_VALID_MASK = 128,
+	ATA_LOG_NCQ_PRIO_OFFSET = 9,
+	ATA_LOG_NCQ_SEND_RECV_SUBCMDS_OFFSET = 0,
+	ATA_LOG_NCQ_SEND_RECV_SUBCMDS_DSM = 1,
+	ATA_LOG_NCQ_SEND_RECV_DSM_OFFSET = 4,
+	ATA_LOG_NCQ_SEND_RECV_DSM_TRIM = 1,
+	ATA_LOG_NCQ_SEND_RECV_RD_LOG_OFFSET = 8,
+	ATA_LOG_NCQ_SEND_RECV_RD_LOG_SUPPORTED = 1,
+	ATA_LOG_NCQ_SEND_RECV_WR_LOG_OFFSET = 12,
+	ATA_LOG_NCQ_SEND_RECV_WR_LOG_SUPPORTED = 1,
+	ATA_LOG_NCQ_SEND_RECV_ZAC_MGMT_OFFSET = 16,
+	ATA_LOG_NCQ_SEND_RECV_ZAC_MGMT_OUT_SUPPORTED = 1,
+	ATA_LOG_NCQ_SEND_RECV_ZAC_MGMT_IN_SUPPORTED = 2,
+	ATA_LOG_NCQ_SEND_RECV_SIZE = 20,
+	ATA_LOG_NCQ_NON_DATA_SUBCMDS_OFFSET = 0,
+	ATA_LOG_NCQ_NON_DATA_ABORT_OFFSET = 0,
+	ATA_LOG_NCQ_NON_DATA_ABORT_NCQ = 1,
+	ATA_LOG_NCQ_NON_DATA_ABORT_ALL = 2,
+	ATA_LOG_NCQ_NON_DATA_ABORT_STREAMING = 4,
+	ATA_LOG_NCQ_NON_DATA_ABORT_NON_STREAMING = 8,
+	ATA_LOG_NCQ_NON_DATA_ABORT_SELECTED = 16,
+	ATA_LOG_NCQ_NON_DATA_ZAC_MGMT_OFFSET = 28,
+	ATA_LOG_NCQ_NON_DATA_ZAC_MGMT_OUT = 1,
+	ATA_LOG_NCQ_NON_DATA_SIZE = 64,
+	ATA_CMD_READ_LONG = 34,
+	ATA_CMD_READ_LONG_ONCE = 35,
+	ATA_CMD_WRITE_LONG = 50,
+	ATA_CMD_WRITE_LONG_ONCE = 51,
+	SETFEATURES_XFER = 3,
+	XFER_UDMA_7 = 71,
+	XFER_UDMA_6 = 70,
+	XFER_UDMA_5 = 69,
+	XFER_UDMA_4 = 68,
+	XFER_UDMA_3 = 67,
+	XFER_UDMA_2 = 66,
+	XFER_UDMA_1 = 65,
+	XFER_UDMA_0 = 64,
+	XFER_MW_DMA_4 = 36,
+	XFER_MW_DMA_3 = 35,
+	XFER_MW_DMA_2 = 34,
+	XFER_MW_DMA_1 = 33,
+	XFER_MW_DMA_0 = 32,
+	XFER_SW_DMA_2 = 18,
+	XFER_SW_DMA_1 = 17,
+	XFER_SW_DMA_0 = 16,
+	XFER_PIO_6 = 14,
+	XFER_PIO_5 = 13,
+	XFER_PIO_4 = 12,
+	XFER_PIO_3 = 11,
+	XFER_PIO_2 = 10,
+	XFER_PIO_1 = 9,
+	XFER_PIO_0 = 8,
+	XFER_PIO_SLOW = 0,
+	SETFEATURES_WC_ON = 2,
+	SETFEATURES_WC_OFF = 130,
+	SETFEATURES_RA_ON = 170,
+	SETFEATURES_RA_OFF = 85,
+	SETFEATURES_AAM_ON = 66,
+	SETFEATURES_AAM_OFF = 194,
+	SETFEATURES_SPINUP = 7,
+	SETFEATURES_SPINUP_TIMEOUT = 30000,
+	SETFEATURES_SATA_ENABLE = 16,
+	SETFEATURES_SATA_DISABLE = 144,
+	SATA_FPDMA_OFFSET = 1,
+	SATA_FPDMA_AA = 2,
+	SATA_DIPM = 3,
+	SATA_FPDMA_IN_ORDER = 4,
+	SATA_AN = 5,
+	SATA_SSP = 6,
+	SATA_DEVSLP = 9,
+	SETFEATURE_SENSE_DATA = 195,
+	ATA_SET_MAX_ADDR = 0,
+	ATA_SET_MAX_PASSWD = 1,
+	ATA_SET_MAX_LOCK = 2,
+	ATA_SET_MAX_UNLOCK = 3,
+	ATA_SET_MAX_FREEZE_LOCK = 4,
+	ATA_SET_MAX_PASSWD_DMA = 5,
+	ATA_SET_MAX_UNLOCK_DMA = 6,
+	ATA_DCO_RESTORE = 192,
+	ATA_DCO_FREEZE_LOCK = 193,
+	ATA_DCO_IDENTIFY = 194,
+	ATA_DCO_SET = 195,
+	ATA_SMART_ENABLE = 216,
+	ATA_SMART_READ_VALUES = 208,
+	ATA_SMART_READ_THRESHOLDS = 209,
+	ATA_DSM_TRIM = 1,
+	ATA_SMART_LBAM_PASS = 79,
+	ATA_SMART_LBAH_PASS = 194,
+	ATAPI_PKT_DMA = 1,
+	ATAPI_DMADIR = 4,
+	ATAPI_CDB_LEN = 16,
+	SATA_PMP_MAX_PORTS = 15,
+	SATA_PMP_CTRL_PORT = 15,
+	SATA_PMP_GSCR_DWORDS = 128,
+	SATA_PMP_GSCR_PROD_ID = 0,
+	SATA_PMP_GSCR_REV = 1,
+	SATA_PMP_GSCR_PORT_INFO = 2,
+	SATA_PMP_GSCR_ERROR = 32,
+	SATA_PMP_GSCR_ERROR_EN = 33,
+	SATA_PMP_GSCR_FEAT = 64,
+	SATA_PMP_GSCR_FEAT_EN = 96,
+	SATA_PMP_PSCR_STATUS = 0,
+	SATA_PMP_PSCR_ERROR = 1,
+	SATA_PMP_PSCR_CONTROL = 2,
+	SATA_PMP_FEAT_BIST = 1,
+	SATA_PMP_FEAT_PMREQ = 2,
+	SATA_PMP_FEAT_DYNSSC = 4,
+	SATA_PMP_FEAT_NOTIFY = 8,
+	ATA_CBL_NONE = 0,
+	ATA_CBL_PATA40 = 1,
+	ATA_CBL_PATA80 = 2,
+	ATA_CBL_PATA40_SHORT = 3,
+	ATA_CBL_PATA_UNK = 4,
+	ATA_CBL_PATA_IGN = 5,
+	ATA_CBL_SATA = 6,
+	SCR_STATUS = 0,
+	SCR_ERROR = 1,
+	SCR_CONTROL = 2,
+	SCR_ACTIVE = 3,
+	SCR_NOTIFICATION = 4,
+	SERR_DATA_RECOVERED = 1,
+	SERR_COMM_RECOVERED = 2,
+	SERR_DATA = 256,
+	SERR_PERSISTENT = 512,
+	SERR_PROTOCOL = 1024,
+	SERR_INTERNAL = 2048,
+	SERR_PHYRDY_CHG = 65536,
+	SERR_PHY_INT_ERR = 131072,
+	SERR_COMM_WAKE = 262144,
+	SERR_10B_8B_ERR = 524288,
+	SERR_DISPARITY = 1048576,
+	SERR_CRC = 2097152,
+	SERR_HANDSHAKE = 4194304,
+	SERR_LINK_SEQ_ERR = 8388608,
+	SERR_TRANS_ST_ERROR = 16777216,
+	SERR_UNRECOG_FIS = 33554432,
+	SERR_DEV_XCHG = 67108864,
+};
+
+enum ata_prot_flags {
+	ATA_PROT_FLAG_PIO = 1,
+	ATA_PROT_FLAG_DMA = 2,
+	ATA_PROT_FLAG_NCQ = 4,
+	ATA_PROT_FLAG_ATAPI = 8,
+	ATA_PROT_UNKNOWN = 255,
+	ATA_PROT_NODATA = 0,
+	ATA_PROT_PIO = 1,
+	ATA_PROT_DMA = 2,
+	ATA_PROT_NCQ_NODATA = 4,
+	ATA_PROT_NCQ = 6,
+	ATAPI_PROT_NODATA = 8,
+	ATAPI_PROT_PIO = 9,
+	ATAPI_PROT_DMA = 10,
+};
+
+struct ata_bmdma_prd {
+	__le32 addr;
+	__le32 flags_len;
+};
+
+typedef u64 async_cookie_t;
+
+enum {
+	LIBATA_MAX_PRD = 128,
+	LIBATA_DUMB_MAX_PRD = 64,
+	ATA_DEF_QUEUE = 1,
+	ATA_MAX_QUEUE = 32,
+	ATA_TAG_INTERNAL = 32,
+	ATA_SHORT_PAUSE = 16,
+	ATAPI_MAX_DRAIN = 16384,
+	ATA_ALL_DEVICES = 3,
+	ATA_SHT_EMULATED = 1,
+	ATA_SHT_THIS_ID = 4294967295,
+	ATA_TFLAG_LBA48 = 1,
+	ATA_TFLAG_ISADDR = 2,
+	ATA_TFLAG_DEVICE = 4,
+	ATA_TFLAG_WRITE = 8,
+	ATA_TFLAG_LBA = 16,
+	ATA_TFLAG_FUA = 32,
+	ATA_TFLAG_POLLING = 64,
+	ATA_DFLAG_LBA = 1,
+	ATA_DFLAG_LBA48 = 2,
+	ATA_DFLAG_CDB_INTR = 4,
+	ATA_DFLAG_NCQ = 8,
+	ATA_DFLAG_FLUSH_EXT = 16,
+	ATA_DFLAG_ACPI_PENDING = 32,
+	ATA_DFLAG_ACPI_FAILED = 64,
+	ATA_DFLAG_AN = 128,
+	ATA_DFLAG_TRUSTED = 256,
+	ATA_DFLAG_DMADIR = 1024,
+	ATA_DFLAG_CFG_MASK = 4095,
+	ATA_DFLAG_PIO = 4096,
+	ATA_DFLAG_NCQ_OFF = 8192,
+	ATA_DFLAG_SLEEPING = 32768,
+	ATA_DFLAG_DUBIOUS_XFER = 65536,
+	ATA_DFLAG_NO_UNLOAD = 131072,
+	ATA_DFLAG_UNLOCK_HPA = 262144,
+	ATA_DFLAG_NCQ_SEND_RECV = 524288,
+	ATA_DFLAG_NCQ_PRIO = 1048576,
+	ATA_DFLAG_NCQ_PRIO_ENABLE = 2097152,
+	ATA_DFLAG_INIT_MASK = 16777215,
+	ATA_DFLAG_DETACH = 16777216,
+	ATA_DFLAG_DETACHED = 33554432,
+	ATA_DFLAG_DA = 67108864,
+	ATA_DFLAG_DEVSLP = 134217728,
+	ATA_DFLAG_ACPI_DISABLED = 268435456,
+	ATA_DFLAG_D_SENSE = 536870912,
+	ATA_DFLAG_ZAC = 1073741824,
+	ATA_DFLAG_FEATURES_MASK = 202899712,
+	ATA_DEV_UNKNOWN = 0,
+	ATA_DEV_ATA = 1,
+	ATA_DEV_ATA_UNSUP = 2,
+	ATA_DEV_ATAPI = 3,
+	ATA_DEV_ATAPI_UNSUP = 4,
+	ATA_DEV_PMP = 5,
+	ATA_DEV_PMP_UNSUP = 6,
+	ATA_DEV_SEMB = 7,
+	ATA_DEV_SEMB_UNSUP = 8,
+	ATA_DEV_ZAC = 9,
+	ATA_DEV_ZAC_UNSUP = 10,
+	ATA_DEV_NONE = 11,
+	ATA_LFLAG_NO_HRST = 2,
+	ATA_LFLAG_NO_SRST = 4,
+	ATA_LFLAG_ASSUME_ATA = 8,
+	ATA_LFLAG_ASSUME_SEMB = 16,
+	ATA_LFLAG_ASSUME_CLASS = 24,
+	ATA_LFLAG_NO_RETRY = 32,
+	ATA_LFLAG_DISABLED = 64,
+	ATA_LFLAG_SW_ACTIVITY = 128,
+	ATA_LFLAG_NO_LPM = 256,
+	ATA_LFLAG_RST_ONCE = 512,
+	ATA_LFLAG_CHANGED = 1024,
+	ATA_LFLAG_NO_DEBOUNCE_DELAY = 2048,
+	ATA_FLAG_SLAVE_POSS = 1,
+	ATA_FLAG_SATA = 2,
+	ATA_FLAG_NO_LPM = 4,
+	ATA_FLAG_NO_LOG_PAGE = 32,
+	ATA_FLAG_NO_ATAPI = 64,
+	ATA_FLAG_PIO_DMA = 128,
+	ATA_FLAG_PIO_LBA48 = 256,
+	ATA_FLAG_PIO_POLLING = 512,
+	ATA_FLAG_NCQ = 1024,
+	ATA_FLAG_NO_POWEROFF_SPINDOWN = 2048,
+	ATA_FLAG_NO_HIBERNATE_SPINDOWN = 4096,
+	ATA_FLAG_DEBUGMSG = 8192,
+	ATA_FLAG_FPDMA_AA = 16384,
+	ATA_FLAG_IGN_SIMPLEX = 32768,
+	ATA_FLAG_NO_IORDY = 65536,
+	ATA_FLAG_ACPI_SATA = 131072,
+	ATA_FLAG_AN = 262144,
+	ATA_FLAG_PMP = 524288,
+	ATA_FLAG_FPDMA_AUX = 1048576,
+	ATA_FLAG_EM = 2097152,
+	ATA_FLAG_SW_ACTIVITY = 4194304,
+	ATA_FLAG_NO_DIPM = 8388608,
+	ATA_FLAG_SAS_HOST = 16777216,
+	ATA_PFLAG_EH_PENDING = 1,
+	ATA_PFLAG_EH_IN_PROGRESS = 2,
+	ATA_PFLAG_FROZEN = 4,
+	ATA_PFLAG_RECOVERED = 8,
+	ATA_PFLAG_LOADING = 16,
+	ATA_PFLAG_SCSI_HOTPLUG = 64,
+	ATA_PFLAG_INITIALIZING = 128,
+	ATA_PFLAG_RESETTING = 256,
+	ATA_PFLAG_UNLOADING = 512,
+	ATA_PFLAG_UNLOADED = 1024,
+	ATA_PFLAG_SUSPENDED = 131072,
+	ATA_PFLAG_PM_PENDING = 262144,
+	ATA_PFLAG_INIT_GTM_VALID = 524288,
+	ATA_PFLAG_PIO32 = 1048576,
+	ATA_PFLAG_PIO32CHANGE = 2097152,
+	ATA_PFLAG_EXTERNAL = 4194304,
+	ATA_QCFLAG_ACTIVE = 1,
+	ATA_QCFLAG_DMAMAP = 2,
+	ATA_QCFLAG_IO = 8,
+	ATA_QCFLAG_RESULT_TF = 16,
+	ATA_QCFLAG_CLEAR_EXCL = 32,
+	ATA_QCFLAG_QUIET = 64,
+	ATA_QCFLAG_RETRY = 128,
+	ATA_QCFLAG_FAILED = 65536,
+	ATA_QCFLAG_SENSE_VALID = 131072,
+	ATA_QCFLAG_EH_SCHEDULED = 262144,
+	ATA_HOST_SIMPLEX = 1,
+	ATA_HOST_STARTED = 2,
+	ATA_HOST_PARALLEL_SCAN = 4,
+	ATA_HOST_IGNORE_ATA = 8,
+	ATA_TMOUT_BOOT = 30000,
+	ATA_TMOUT_BOOT_QUICK = 7000,
+	ATA_TMOUT_INTERNAL_QUICK = 5000,
+	ATA_TMOUT_MAX_PARK = 30000,
+	ATA_TMOUT_FF_WAIT_LONG = 2000,
+	ATA_TMOUT_FF_WAIT = 800,
+	ATA_WAIT_AFTER_RESET = 150,
+	ATA_TMOUT_PMP_SRST_WAIT = 5000,
+	ATA_TMOUT_SPURIOUS_PHY = 10000,
+	BUS_UNKNOWN = 0,
+	BUS_DMA = 1,
+	BUS_IDLE = 2,
+	BUS_NOINTR = 3,
+	BUS_NODATA = 4,
+	BUS_TIMER = 5,
+	BUS_PIO = 6,
+	BUS_EDD = 7,
+	BUS_IDENTIFY = 8,
+	BUS_PACKET = 9,
+	PORT_UNKNOWN = 0,
+	PORT_ENABLED = 1,
+	PORT_DISABLED = 2,
+	ATA_NR_PIO_MODES = 7,
+	ATA_NR_MWDMA_MODES = 5,
+	ATA_NR_UDMA_MODES = 8,
+	ATA_SHIFT_PIO = 0,
+	ATA_SHIFT_MWDMA = 7,
+	ATA_SHIFT_UDMA = 12,
+	ATA_SHIFT_PRIO = 6,
+	ATA_PRIO_HIGH = 2,
+	ATA_DMA_PAD_SZ = 4,
+	ATA_ERING_SIZE = 32,
+	ATA_DEFER_LINK = 1,
+	ATA_DEFER_PORT = 2,
+	ATA_EH_DESC_LEN = 80,
+	ATA_EH_REVALIDATE = 1,
+	ATA_EH_SOFTRESET = 2,
+	ATA_EH_HARDRESET = 4,
+	ATA_EH_RESET = 6,
+	ATA_EH_ENABLE_LINK = 8,
+	ATA_EH_PARK = 32,
+	ATA_EH_PERDEV_MASK = 33,
+	ATA_EH_ALL_ACTIONS = 15,
+	ATA_EHI_HOTPLUGGED = 1,
+	ATA_EHI_NO_AUTOPSY = 4,
+	ATA_EHI_QUIET = 8,
+	ATA_EHI_NO_RECOVERY = 16,
+	ATA_EHI_DID_SOFTRESET = 65536,
+	ATA_EHI_DID_HARDRESET = 131072,
+	ATA_EHI_PRINTINFO = 262144,
+	ATA_EHI_SETMODE = 524288,
+	ATA_EHI_POST_SETMODE = 1048576,
+	ATA_EHI_DID_RESET = 196608,
+	ATA_EHI_TO_SLAVE_MASK = 12,
+	ATA_EH_MAX_TRIES = 5,
+	ATA_LINK_RESUME_TRIES = 5,
+	ATA_PROBE_MAX_TRIES = 3,
+	ATA_EH_DEV_TRIES = 3,
+	ATA_EH_PMP_TRIES = 5,
+	ATA_EH_PMP_LINK_TRIES = 3,
+	SATA_PMP_RW_TIMEOUT = 3000,
+	ATA_EH_CMD_TIMEOUT_TABLE_SIZE = 7,
+	ATA_HORKAGE_DIAGNOSTIC = 1,
+	ATA_HORKAGE_NODMA = 2,
+	ATA_HORKAGE_NONCQ = 4,
+	ATA_HORKAGE_MAX_SEC_128 = 8,
+	ATA_HORKAGE_BROKEN_HPA = 16,
+	ATA_HORKAGE_DISABLE = 32,
+	ATA_HORKAGE_HPA_SIZE = 64,
+	ATA_HORKAGE_IVB = 256,
+	ATA_HORKAGE_STUCK_ERR = 512,
+	ATA_HORKAGE_BRIDGE_OK = 1024,
+	ATA_HORKAGE_ATAPI_MOD16_DMA = 2048,
+	ATA_HORKAGE_FIRMWARE_WARN = 4096,
+	ATA_HORKAGE_1_5_GBPS = 8192,
+	ATA_HORKAGE_NOSETXFER = 16384,
+	ATA_HORKAGE_BROKEN_FPDMA_AA = 32768,
+	ATA_HORKAGE_DUMP_ID = 65536,
+	ATA_HORKAGE_MAX_SEC_LBA48 = 131072,
+	ATA_HORKAGE_ATAPI_DMADIR = 262144,
+	ATA_HORKAGE_NO_NCQ_TRIM = 524288,
+	ATA_HORKAGE_NOLPM = 1048576,
+	ATA_HORKAGE_WD_BROKEN_LPM = 2097152,
+	ATA_HORKAGE_ZERO_AFTER_TRIM = 4194304,
+	ATA_HORKAGE_NO_DMA_LOG = 8388608,
+	ATA_HORKAGE_NOTRIM = 16777216,
+	ATA_HORKAGE_MAX_SEC_1024 = 33554432,
+	ATA_HORKAGE_MAX_TRIM_128M = 67108864,
+	ATA_HORKAGE_NO_NCQ_ON_ATI = 134217728,
+	ATA_HORKAGE_NO_ID_DEV_LOG = 268435456,
+	ATA_HORKAGE_NO_LOG_DIR = 536870912,
+	ATA_DMA_MASK_ATA = 1,
+	ATA_DMA_MASK_ATAPI = 2,
+	ATA_DMA_MASK_CFA = 4,
+	ATAPI_READ = 0,
+	ATAPI_WRITE = 1,
+	ATAPI_READ_CD = 2,
+	ATAPI_PASS_THRU = 3,
+	ATAPI_MISC = 4,
+	ATA_TIMING_SETUP = 1,
+	ATA_TIMING_ACT8B = 2,
+	ATA_TIMING_REC8B = 4,
+	ATA_TIMING_CYC8B = 8,
+	ATA_TIMING_8BIT = 14,
+	ATA_TIMING_ACTIVE = 16,
+	ATA_TIMING_RECOVER = 32,
+	ATA_TIMING_DMACK_HOLD = 64,
+	ATA_TIMING_CYCLE = 128,
+	ATA_TIMING_UDMA = 256,
+	ATA_TIMING_ALL = 511,
+	ATA_ACPI_FILTER_SETXFER = 1,
+	ATA_ACPI_FILTER_LOCK = 2,
+	ATA_ACPI_FILTER_DIPM = 4,
+	ATA_ACPI_FILTER_FPDMA_OFFSET = 8,
+	ATA_ACPI_FILTER_FPDMA_AA = 16,
+	ATA_ACPI_FILTER_DEFAULT = 7,
+};
+
+enum hsm_task_states {
+	HSM_ST_IDLE = 0,
+	HSM_ST_FIRST = 1,
+	HSM_ST = 2,
+	HSM_ST_LAST = 3,
+	HSM_ST_ERR = 4,
+};
+
+enum ata_completion_errors {
+	AC_ERR_OK = 0,
+	AC_ERR_DEV = 1,
+	AC_ERR_HSM = 2,
+	AC_ERR_TIMEOUT = 4,
+	AC_ERR_MEDIA = 8,
+	AC_ERR_ATA_BUS = 16,
+	AC_ERR_HOST_BUS = 32,
+	AC_ERR_SYSTEM = 64,
+	AC_ERR_INVALID = 128,
+	AC_ERR_OTHER = 256,
+	AC_ERR_NODEV_HINT = 512,
+	AC_ERR_NCQ = 1024,
+};
+
+enum ata_lpm_policy {
+	ATA_LPM_UNKNOWN = 0,
+	ATA_LPM_MAX_POWER = 1,
+	ATA_LPM_MED_POWER = 2,
+	ATA_LPM_MED_POWER_WITH_DIPM = 3,
+	ATA_LPM_MIN_POWER_WITH_PARTIAL = 4,
+	ATA_LPM_MIN_POWER = 5,
+};
+
+struct ata_queued_cmd;
+
+typedef void (*ata_qc_cb_t)(struct ata_queued_cmd *);
+
+struct ata_taskfile {
+	long unsigned int flags;
+	u8 protocol;
+	u8 ctl;
+	u8 hob_feature;
+	u8 hob_nsect;
+	u8 hob_lbal;
+	u8 hob_lbam;
+	u8 hob_lbah;
+	union {
+		u8 error;
+		u8 feature;
+	};
+	u8 nsect;
+	u8 lbal;
+	u8 lbam;
+	u8 lbah;
+	u8 device;
+	union {
+		u8 status;
+		u8 command;
+	};
+	u32 auxiliary;
+};
+
+struct ata_port;
+
+struct ata_device;
+
+struct ata_queued_cmd {
+	struct ata_port *ap;
+	struct ata_device *dev;
+	struct scsi_cmnd *scsicmd;
+	void (*scsidone)(struct scsi_cmnd *);
+	struct ata_taskfile tf;
+	u8 cdb[16];
+	long unsigned int flags;
+	unsigned int tag;
+	unsigned int hw_tag;
+	unsigned int n_elem;
+	unsigned int orig_n_elem;
+	int dma_dir;
+	unsigned int sect_size;
+	unsigned int nbytes;
+	unsigned int extrabytes;
+	unsigned int curbytes;
+	struct scatterlist sgent;
+	struct scatterlist *sg;
+	struct scatterlist *cursg;
+	unsigned int cursg_ofs;
+	unsigned int err_mask;
+	struct ata_taskfile result_tf;
+	ata_qc_cb_t complete_fn;
+	void *private_data;
+	void *lldd_task;
+};
+
+struct ata_link;
+
+typedef int (*ata_prereset_fn_t)(struct ata_link *, long unsigned int);
+
+struct ata_eh_info {
+	struct ata_device *dev;
+	u32 serror;
+	unsigned int err_mask;
+	unsigned int action;
+	unsigned int dev_action[2];
+	unsigned int flags;
+	unsigned int probe_mask;
+	char desc[80];
+	int desc_len;
+};
+
+struct ata_eh_context {
+	struct ata_eh_info i;
+	int tries[2];
+	int cmd_timeout_idx[14];
+	unsigned int classes[2];
+	unsigned int did_probe_mask;
+	unsigned int unloaded_mask;
+	unsigned int saved_ncq_enabled;
+	u8 saved_xfer_mode[2];
+	long unsigned int last_reset;
+};
+
+struct ata_ering_entry {
+	unsigned int eflags;
+	unsigned int err_mask;
+	u64 timestamp;
+};
+
+struct ata_ering {
+	int cursor;
+	struct ata_ering_entry ring[32];
+};
+
+struct ata_cpr_log;
+
+struct ata_device {
+	struct ata_link *link;
+	unsigned int devno;
+	unsigned int horkage;
+	long unsigned int flags;
+	struct scsi_device *sdev;
+	void *private_data;
+	union acpi_object *gtf_cache;
+	unsigned int gtf_filter;
+	struct device tdev;
+	u64 n_sectors;
+	u64 n_native_sectors;
+	unsigned int class;
+	long unsigned int unpark_deadline;
+	u8 pio_mode;
+	u8 dma_mode;
+	u8 xfer_mode;
+	unsigned int xfer_shift;
+	unsigned int multi_count;
+	unsigned int max_sectors;
+	unsigned int cdb_len;
+	unsigned int pio_mask;
+	unsigned int mwdma_mask;
+	unsigned int udma_mask;
+	u16 cylinders;
+	u16 heads;
+	u16 sectors;
+	long: 16;
+	long: 64;
+	union {
+		u16 id[256];
+		u32 gscr[128];
+	};
+	u8 devslp_timing[8];
+	u8 ncq_send_recv_cmds[20];
+	u8 ncq_non_data_cmds[64];
+	u32 zac_zoned_cap;
+	u32 zac_zones_optimal_open;
+	u32 zac_zones_optimal_nonseq;
+	u32 zac_zones_max_open;
+	struct ata_cpr_log *cpr_log;
+	int spdn_cnt;
+	struct ata_ering ering;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct ata_link {
+	struct ata_port *ap;
+	int pmp;
+	struct device tdev;
+	unsigned int active_tag;
+	u32 sactive;
+	unsigned int flags;
+	u32 saved_scontrol;
+	unsigned int hw_sata_spd_limit;
+	unsigned int sata_spd_limit;
+	unsigned int sata_spd;
+	enum ata_lpm_policy lpm_policy;
+	struct ata_eh_info eh_info;
+	struct ata_eh_context eh_context;
+	long: 64;
+	struct ata_device device[2];
+	long unsigned int last_lpm_change;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+typedef int (*ata_reset_fn_t)(struct ata_link *, unsigned int *, long unsigned int);
+
+typedef void (*ata_postreset_fn_t)(struct ata_link *, unsigned int *);
+
+enum sw_activity {
+	OFF = 0,
+	BLINK_ON = 1,
+	BLINK_OFF = 2,
+};
+
+struct ata_ioports {
+	void *cmd_addr;
+	void *data_addr;
+	void *error_addr;
+	void *feature_addr;
+	void *nsect_addr;
+	void *lbal_addr;
+	void *lbam_addr;
+	void *lbah_addr;
+	void *device_addr;
+	void *status_addr;
+	void *command_addr;
+	void *altstatus_addr;
+	void *ctl_addr;
+	void *bmdma_addr;
+	void *scr_addr;
+};
+
+struct ata_port_operations;
+
+struct ata_host {
+	spinlock_t lock;
+	struct device *dev;
+	void * const *iomap;
+	unsigned int n_ports;
+	unsigned int n_tags;
+	void *private_data;
+	struct ata_port_operations *ops;
+	long unsigned int flags;
+	struct kref kref;
+	struct mutex eh_mutex;
+	struct task_struct *eh_owner;
+	struct ata_port *simplex_claimed;
+	struct ata_port *ports[0];
+};
+
+struct ata_port_operations {
+	int (*qc_defer)(struct ata_queued_cmd *);
+	int (*check_atapi_dma)(struct ata_queued_cmd *);
+	enum ata_completion_errors (*qc_prep)(struct ata_queued_cmd *);
+	unsigned int (*qc_issue)(struct ata_queued_cmd *);
+	bool (*qc_fill_rtf)(struct ata_queued_cmd *);
+	int (*cable_detect)(struct ata_port *);
+	unsigned int (*mode_filter)(struct ata_device *, unsigned int);
+	void (*set_piomode)(struct ata_port *, struct ata_device *);
+	void (*set_dmamode)(struct ata_port *, struct ata_device *);
+	int (*set_mode)(struct ata_link *, struct ata_device **);
+	unsigned int (*read_id)(struct ata_device *, struct ata_taskfile *, __le16 *);
+	void (*dev_config)(struct ata_device *);
+	void (*freeze)(struct ata_port *);
+	void (*thaw)(struct ata_port *);
+	ata_prereset_fn_t prereset;
+	ata_reset_fn_t softreset;
+	ata_reset_fn_t hardreset;
+	ata_postreset_fn_t postreset;
+	ata_prereset_fn_t pmp_prereset;
+	ata_reset_fn_t pmp_softreset;
+	ata_reset_fn_t pmp_hardreset;
+	ata_postreset_fn_t pmp_postreset;
+	void (*error_handler)(struct ata_port *);
+	void (*lost_interrupt)(struct ata_port *);
+	void (*post_internal_cmd)(struct ata_queued_cmd *);
+	void (*sched_eh)(struct ata_port *);
+	void (*end_eh)(struct ata_port *);
+	int (*scr_read)(struct ata_link *, unsigned int, u32 *);
+	int (*scr_write)(struct ata_link *, unsigned int, u32);
+	void (*pmp_attach)(struct ata_port *);
+	void (*pmp_detach)(struct ata_port *);
+	int (*set_lpm)(struct ata_link *, enum ata_lpm_policy, unsigned int);
+	int (*port_suspend)(struct ata_port *, pm_message_t);
+	int (*port_resume)(struct ata_port *);
+	int (*port_start)(struct ata_port *);
+	void (*port_stop)(struct ata_port *);
+	void (*host_stop)(struct ata_host *);
+	void (*sff_dev_select)(struct ata_port *, unsigned int);
+	void (*sff_set_devctl)(struct ata_port *, u8);
+	u8 (*sff_check_status)(struct ata_port *);
+	u8 (*sff_check_altstatus)(struct ata_port *);
+	void (*sff_tf_load)(struct ata_port *, const struct ata_taskfile *);
+	void (*sff_tf_read)(struct ata_port *, struct ata_taskfile *);
+	void (*sff_exec_command)(struct ata_port *, const struct ata_taskfile *);
+	unsigned int (*sff_data_xfer)(struct ata_queued_cmd *, unsigned char *, unsigned int, int);
+	void (*sff_irq_on)(struct ata_port *);
+	bool (*sff_irq_check)(struct ata_port *);
+	void (*sff_irq_clear)(struct ata_port *);
+	void (*sff_drain_fifo)(struct ata_queued_cmd *);
+	void (*bmdma_setup)(struct ata_queued_cmd *);
+	void (*bmdma_start)(struct ata_queued_cmd *);
+	void (*bmdma_stop)(struct ata_queued_cmd *);
+	u8 (*bmdma_status)(struct ata_port *);
+	ssize_t (*em_show)(struct ata_port *, char *);
+	ssize_t (*em_store)(struct ata_port *, const char *, size_t);
+	ssize_t (*sw_activity_show)(struct ata_device *, char *);
+	ssize_t (*sw_activity_store)(struct ata_device *, enum sw_activity);
+	ssize_t (*transmit_led_message)(struct ata_port *, u32, ssize_t);
+	void (*phy_reset)(struct ata_port *);
+	void (*eng_timeout)(struct ata_port *);
+	const struct ata_port_operations *inherits;
+};
+
+struct ata_port_stats {
+	long unsigned int unhandled_irq;
+	long unsigned int idle_irq;
+	long unsigned int rw_reqbuf;
+};
+
+struct ata_acpi_drive {
+	u32 pio;
+	u32 dma;
+};
+
+struct ata_acpi_gtm {
+	struct ata_acpi_drive drive[2];
+	u32 flags;
+};
+
+struct ata_port {
+	struct Scsi_Host *scsi_host;
+	struct ata_port_operations *ops;
+	spinlock_t *lock;
+	long unsigned int flags;
+	unsigned int pflags;
+	unsigned int print_id;
+	unsigned int local_port_no;
+	unsigned int port_no;
+	struct ata_ioports ioaddr;
+	u8 ctl;
+	u8 last_ctl;
+	struct ata_link *sff_pio_task_link;
+	struct delayed_work sff_pio_task;
+	struct ata_bmdma_prd *bmdma_prd;
+	dma_addr_t bmdma_prd_dma;
+	unsigned int pio_mask;
+	unsigned int mwdma_mask;
+	unsigned int udma_mask;
+	unsigned int cbl;
+	struct ata_queued_cmd qcmd[33];
+	u64 qc_active;
+	int nr_active_links;
+	long: 32;
+	long: 64;
+	long: 64;
+	struct ata_link link;
+	struct ata_link *slave_link;
+	int nr_pmp_links;
+	struct ata_link *pmp_link;
+	struct ata_link *excl_link;
+	struct ata_port_stats stats;
+	struct ata_host *host;
+	struct device *dev;
+	struct device tdev;
+	struct mutex scsi_scan_mutex;
+	struct delayed_work hotplug_task;
+	struct work_struct scsi_rescan_task;
+	unsigned int hsm_task_state;
+	struct list_head eh_done_q;
+	wait_queue_head_t eh_wait_q;
+	int eh_tries;
+	struct completion park_req_pending;
+	pm_message_t pm_mesg;
+	enum ata_lpm_policy target_lpm_policy;
+	struct timer_list fastdrain_timer;
+	unsigned int fastdrain_cnt;
+	async_cookie_t cookie;
+	int em_message_type;
+	void *private_data;
+	struct ata_acpi_gtm __acpi_init_gtm;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u8 sector_buf[512];
+};
+
+struct ata_cpr {
+	u8 num;
+	u8 num_storage_elements;
+	u64 start_lba;
+	u64 num_lbas;
+};
+
+struct ata_cpr_log {
+	u8 nr_cpr;
+	struct ata_cpr cpr[0];
+};
+
+struct ata_port_info {
+	long unsigned int flags;
+	long unsigned int link_flags;
+	unsigned int pio_mask;
+	unsigned int mwdma_mask;
+	unsigned int udma_mask;
+	struct ata_port_operations *port_ops;
+	void *private_data;
+};
+
+struct pci_bits {
+	unsigned int reg;
