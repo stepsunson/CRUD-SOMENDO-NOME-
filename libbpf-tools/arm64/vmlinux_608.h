@@ -54286,3 +54286,2080 @@ struct mdata_req {
 	struct dm_io_region *where;
 	struct dm_io_request *io_req;
 	struct work_struct work;
+	int result;
+};
+
+struct dm_bufio_client;
+
+struct dm_buffer;
+
+enum dev_type {
+	DEV_UNKNOWN = 0,
+	DEV_X1 = 1,
+	DEV_X2 = 2,
+	DEV_X4 = 3,
+	DEV_X8 = 4,
+	DEV_X16 = 5,
+	DEV_X32 = 6,
+	DEV_X64 = 7,
+};
+
+enum hw_event_mc_err_type {
+	HW_EVENT_ERR_CORRECTED = 0,
+	HW_EVENT_ERR_UNCORRECTED = 1,
+	HW_EVENT_ERR_DEFERRED = 2,
+	HW_EVENT_ERR_FATAL = 3,
+	HW_EVENT_ERR_INFO = 4,
+};
+
+enum mem_type {
+	MEM_EMPTY = 0,
+	MEM_RESERVED = 1,
+	MEM_UNKNOWN = 2,
+	MEM_FPM = 3,
+	MEM_EDO = 4,
+	MEM_BEDO = 5,
+	MEM_SDR = 6,
+	MEM_RDR = 7,
+	MEM_DDR = 8,
+	MEM_RDDR = 9,
+	MEM_RMBS = 10,
+	MEM_DDR2 = 11,
+	MEM_FB_DDR2 = 12,
+	MEM_RDDR2 = 13,
+	MEM_XDR = 14,
+	MEM_DDR3 = 15,
+	MEM_RDDR3 = 16,
+	MEM_LRDDR3 = 17,
+	MEM_LPDDR3 = 18,
+	MEM_DDR4 = 19,
+	MEM_RDDR4 = 20,
+	MEM_LRDDR4 = 21,
+	MEM_LPDDR4 = 22,
+	MEM_DDR5 = 23,
+	MEM_RDDR5 = 24,
+	MEM_LRDDR5 = 25,
+	MEM_NVDIMM = 26,
+	MEM_WIO2 = 27,
+	MEM_HBM2 = 28,
+};
+
+enum edac_type {
+	EDAC_UNKNOWN = 0,
+	EDAC_NONE = 1,
+	EDAC_RESERVED = 2,
+	EDAC_PARITY = 3,
+	EDAC_EC = 4,
+	EDAC_SECDED = 5,
+	EDAC_S2ECD2ED = 6,
+	EDAC_S4ECD4ED = 7,
+	EDAC_S8ECD8ED = 8,
+	EDAC_S16ECD16ED = 9,
+};
+
+enum scrub_type {
+	SCRUB_UNKNOWN = 0,
+	SCRUB_NONE = 1,
+	SCRUB_SW_PROG = 2,
+	SCRUB_SW_SRC = 3,
+	SCRUB_SW_PROG_SRC = 4,
+	SCRUB_SW_TUNABLE = 5,
+	SCRUB_HW_PROG = 6,
+	SCRUB_HW_SRC = 7,
+	SCRUB_HW_PROG_SRC = 8,
+	SCRUB_HW_TUNABLE = 9,
+};
+
+enum edac_mc_layer_type {
+	EDAC_MC_LAYER_BRANCH = 0,
+	EDAC_MC_LAYER_CHANNEL = 1,
+	EDAC_MC_LAYER_SLOT = 2,
+	EDAC_MC_LAYER_CHIP_SELECT = 3,
+	EDAC_MC_LAYER_ALL_MEM = 4,
+};
+
+struct edac_mc_layer {
+	enum edac_mc_layer_type type;
+	unsigned int size;
+	bool is_virt_csrow;
+};
+
+struct mem_ctl_info;
+
+struct dimm_info {
+	struct device dev;
+	char label[32];
+	unsigned int location[3];
+	struct mem_ctl_info *mci;
+	unsigned int idx;
+	u32 grain;
+	enum dev_type dtype;
+	enum mem_type mtype;
+	enum edac_type edac_mode;
+	u32 nr_pages;
+	unsigned int csrow;
+	unsigned int cschannel;
+	u16 smbios_handle;
+	u32 ce_count;
+	u32 ue_count;
+};
+
+struct mcidev_sysfs_attribute;
+
+struct edac_raw_error_desc {
+	char location[256];
+	char label[296];
+	long int grain;
+	u16 error_count;
+	enum hw_event_mc_err_type type;
+	int top_layer;
+	int mid_layer;
+	int low_layer;
+	long unsigned int page_frame_number;
+	long unsigned int offset_in_page;
+	long unsigned int syndrome;
+	const char *msg;
+	const char *other_detail;
+};
+
+struct csrow_info;
+
+struct mem_ctl_info {
+	struct device dev;
+	struct bus_type *bus;
+	struct list_head link;
+	struct module *owner;
+	long unsigned int mtype_cap;
+	long unsigned int edac_ctl_cap;
+	long unsigned int edac_cap;
+	long unsigned int scrub_cap;
+	enum scrub_type scrub_mode;
+	int (*set_sdram_scrub_rate)(struct mem_ctl_info *, u32);
+	int (*get_sdram_scrub_rate)(struct mem_ctl_info *);
+	void (*edac_check)(struct mem_ctl_info *);
+	long unsigned int (*ctl_page_to_phys)(struct mem_ctl_info *, long unsigned int);
+	int mc_idx;
+	struct csrow_info **csrows;
+	unsigned int nr_csrows;
+	unsigned int num_cschannel;
+	unsigned int n_layers;
+	struct edac_mc_layer *layers;
+	bool csbased;
+	unsigned int tot_dimms;
+	struct dimm_info **dimms;
+	struct device *pdev;
+	const char *mod_name;
+	const char *ctl_name;
+	const char *dev_name;
+	void *pvt_info;
+	long unsigned int start_time;
+	u32 ce_noinfo_count;
+	u32 ue_noinfo_count;
+	u32 ue_mc;
+	u32 ce_mc;
+	struct completion complete;
+	const struct mcidev_sysfs_attribute *mc_driver_sysfs_attributes;
+	struct delayed_work work;
+	struct edac_raw_error_desc error_desc;
+	int op_state;
+	struct dentry *debugfs;
+	u8 fake_inject_layer[3];
+	bool fake_inject_ue;
+	u16 fake_inject_count;
+};
+
+struct rank_info {
+	int chan_idx;
+	struct csrow_info *csrow;
+	struct dimm_info *dimm;
+	u32 ce_count;
+};
+
+struct csrow_info {
+	struct device dev;
+	long unsigned int first_page;
+	long unsigned int last_page;
+	long unsigned int page_mask;
+	int csrow_idx;
+	u32 ue_count;
+	u32 ce_count;
+	struct mem_ctl_info *mci;
+	u32 nr_channels;
+	struct rank_info **channels;
+};
+
+struct edac_pci_counter {
+	atomic_t pe_count;
+	atomic_t npe_count;
+};
+
+struct edac_pci_ctl_info {
+	struct list_head link;
+	int pci_idx;
+	struct bus_type *edac_subsys;
+	int op_state;
+	struct delayed_work work;
+	void (*edac_check)(struct edac_pci_ctl_info *);
+	struct device *dev;
+	const char *mod_name;
+	const char *ctl_name;
+	const char *dev_name;
+	void *pvt_info;
+	long unsigned int start_time;
+	struct completion complete;
+	char name[32];
+	struct edac_pci_counter counters;
+	struct kobject kobj;
+};
+
+struct edac_pci_gen_data {
+	int edac_idx;
+};
+
+struct icc_path;
+
+struct dev_pm_opp_supply {
+	long unsigned int u_volt;
+	long unsigned int u_volt_min;
+	long unsigned int u_volt_max;
+	long unsigned int u_amp;
+	long unsigned int u_watt;
+};
+
+struct dev_pm_opp_icc_bw {
+	u32 avg;
+	u32 peak;
+};
+
+typedef int (*config_regulators_t)(struct device *, struct dev_pm_opp *, struct dev_pm_opp *, struct regulator **, unsigned int);
+
+struct dev_pm_opp {
+	struct list_head node;
+	struct kref kref;
+	bool available;
+	bool dynamic;
+	bool turbo;
+	bool suspend;
+	bool removed;
+	unsigned int pstate;
+	long unsigned int *rates;
+	unsigned int level;
+	struct dev_pm_opp_supply *supplies;
+	struct dev_pm_opp_icc_bw *bandwidth;
+	long unsigned int clock_latency_ns;
+	struct dev_pm_opp **required_opps;
+	struct opp_table *opp_table;
+	struct device_node *np;
+	struct dentry *dentry;
+	const char *of_name;
+};
+
+typedef int (*config_clks_t)(struct device *, struct opp_table *, struct dev_pm_opp *, void *, bool);
+
+enum opp_table_access {
+	OPP_TABLE_ACCESS_UNKNOWN = 0,
+	OPP_TABLE_ACCESS_EXCLUSIVE = 1,
+	OPP_TABLE_ACCESS_SHARED = 2,
+};
+
+struct opp_table {
+	struct list_head node;
+	struct list_head lazy;
+	struct blocking_notifier_head head;
+	struct list_head dev_list;
+	struct list_head opp_list;
+	struct kref kref;
+	struct mutex lock;
+	struct device_node *np;
+	long unsigned int clock_latency_ns_max;
+	unsigned int voltage_tolerance_v1;
+	unsigned int parsed_static_opps;
+	enum opp_table_access shared_opp;
+	long unsigned int rate_clk_single;
+	struct dev_pm_opp *current_opp;
+	struct dev_pm_opp *suspend_opp;
+	struct mutex genpd_virt_dev_lock;
+	struct device **genpd_virt_devs;
+	struct opp_table **required_opp_tables;
+	unsigned int required_opp_count;
+	unsigned int *supported_hw;
+	unsigned int supported_hw_count;
+	const char *prop_name;
+	config_clks_t config_clks;
+	struct clk **clks;
+	struct clk *clk;
+	int clk_count;
+	config_regulators_t config_regulators;
+	struct regulator **regulators;
+	int regulator_count;
+	struct icc_path **paths;
+	unsigned int path_count;
+	bool enabled;
+	bool genpd_performance_state;
+	bool is_genpd;
+	struct dentry *dentry;
+	char dentry_name[255];
+};
+
+struct opp_device {
+	struct list_head node;
+	const struct device *dev;
+	struct dentry *dentry;
+};
+
+struct gov_attr_set {
+	struct kobject kobj;
+	struct list_head policy_list;
+	struct mutex update_lock;
+	int usage_count;
+};
+
+struct governor_attr {
+	struct attribute attr;
+	ssize_t (*show)(struct gov_attr_set *, char *);
+	ssize_t (*store)(struct gov_attr_set *, const char *, size_t);
+};
+
+struct cpuidle_state_usage {
+	long long unsigned int disable;
+	long long unsigned int usage;
+	u64 time_ns;
+	long long unsigned int above;
+	long long unsigned int below;
+	long long unsigned int rejected;
+	long long unsigned int s2idle_usage;
+	long long unsigned int s2idle_time;
+};
+
+struct cpuidle_device;
+
+struct cpuidle_driver;
+
+struct cpuidle_state {
+	char name[16];
+	char desc[32];
+	s64 exit_latency_ns;
+	s64 target_residency_ns;
+	unsigned int flags;
+	unsigned int exit_latency;
+	int power_usage;
+	unsigned int target_residency;
+	int (*enter)(struct cpuidle_device *, struct cpuidle_driver *, int);
+	int (*enter_dead)(struct cpuidle_device *, int);
+	int (*enter_s2idle)(struct cpuidle_device *, struct cpuidle_driver *, int);
+};
+
+struct cpuidle_state_kobj;
+
+struct cpuidle_driver_kobj;
+
+struct cpuidle_device_kobj;
+
+struct cpuidle_device {
+	unsigned int registered: 1;
+	unsigned int enabled: 1;
+	unsigned int poll_time_limit: 1;
+	unsigned int cpu;
+	ktime_t next_hrtimer;
+	int last_state_idx;
+	u64 last_residency_ns;
+	u64 poll_limit_ns;
+	u64 forced_idle_latency_limit_ns;
+	struct cpuidle_state_usage states_usage[10];
+	struct cpuidle_state_kobj *kobjs[10];
+	struct cpuidle_driver_kobj *kobj_driver;
+	struct cpuidle_device_kobj *kobj_dev;
+	struct list_head device_list;
+};
+
+struct cpuidle_driver {
+	const char *name;
+	struct module *owner;
+	unsigned int bctimer: 1;
+	struct cpuidle_state states[10];
+	int state_count;
+	int safe_state_index;
+	struct cpumask *cpumask;
+	const char *governor;
+};
+
+struct cpuidle_governor {
+	char name[16];
+	struct list_head governor_list;
+	unsigned int rating;
+	int (*enable)(struct cpuidle_driver *, struct cpuidle_device *);
+	void (*disable)(struct cpuidle_driver *, struct cpuidle_device *);
+	int (*select)(struct cpuidle_driver *, struct cpuidle_device *, bool *);
+	void (*reflect)(struct cpuidle_device *, int);
+};
+
+struct psci_pd_provider {
+	struct list_head link;
+	struct device_node *node;
+};
+
+struct mmc_data;
+
+struct mmc_request;
+
+struct mmc_command {
+	u32 opcode;
+	u32 arg;
+	u32 resp[4];
+	unsigned int flags;
+	unsigned int retries;
+	int error;
+	unsigned int busy_timeout;
+	struct mmc_data *data;
+	struct mmc_request *mrq;
+};
+
+struct mmc_data {
+	unsigned int timeout_ns;
+	unsigned int timeout_clks;
+	unsigned int blksz;
+	unsigned int blocks;
+	unsigned int blk_addr;
+	int error;
+	unsigned int flags;
+	unsigned int bytes_xfered;
+	struct mmc_command *stop;
+	struct mmc_request *mrq;
+	unsigned int sg_len;
+	int sg_count;
+	struct scatterlist *sg;
+	s32 host_cookie;
+};
+
+struct mmc_host;
+
+struct mmc_request {
+	struct mmc_command *sbc;
+	struct mmc_command *cmd;
+	struct mmc_data *data;
+	struct mmc_command *stop;
+	struct completion completion;
+	struct completion cmd_completion;
+	void (*done)(struct mmc_request *);
+	void (*recovery_notifier)(struct mmc_request *);
+	struct mmc_host *host;
+	bool cap_cmd_during_tfr;
+	int tag;
+};
+
+typedef unsigned int mmc_pm_flag_t;
+
+struct mmc_ios {
+	unsigned int clock;
+	short unsigned int vdd;
+	unsigned int power_delay_ms;
+	unsigned char bus_mode;
+	unsigned char chip_select;
+	unsigned char power_mode;
+	unsigned char bus_width;
+	unsigned char timing;
+	unsigned char signal_voltage;
+	unsigned char drv_type;
+	bool enhanced_strobe;
+};
+
+struct mmc_ctx {
+	struct task_struct *task;
+};
+
+struct mmc_slot {
+	int cd_irq;
+	bool cd_wake_enabled;
+	void *handler_priv;
+};
+
+struct mmc_supply {
+	struct regulator *vmmc;
+	struct regulator *vqmmc;
+};
+
+struct mmc_host_ops;
+
+struct mmc_pwrseq;
+
+struct mmc_card;
+
+struct mmc_bus_ops;
+
+struct mmc_cqe_ops;
+
+struct mmc_host {
+	struct device *parent;
+	struct device class_dev;
+	int index;
+	const struct mmc_host_ops *ops;
+	struct mmc_pwrseq *pwrseq;
+	unsigned int f_min;
+	unsigned int f_max;
+	unsigned int f_init;
+	u32 ocr_avail;
+	u32 ocr_avail_sdio;
+	u32 ocr_avail_sd;
+	u32 ocr_avail_mmc;
+	struct wakeup_source *ws;
+	u32 max_current_330;
+	u32 max_current_300;
+	u32 max_current_180;
+	u32 caps;
+	u32 caps2;
+	int fixed_drv_type;
+	mmc_pm_flag_t pm_caps;
+	unsigned int max_seg_size;
+	short unsigned int max_segs;
+	short unsigned int unused;
+	unsigned int max_req_size;
+	unsigned int max_blk_size;
+	unsigned int max_blk_count;
+	unsigned int max_busy_timeout;
+	spinlock_t lock;
+	struct mmc_ios ios;
+	unsigned int use_spi_crc: 1;
+	unsigned int claimed: 1;
+	unsigned int doing_init_tune: 1;
+	unsigned int can_retune: 1;
+	unsigned int doing_retune: 1;
+	unsigned int retune_now: 1;
+	unsigned int retune_paused: 1;
+	unsigned int retune_crc_disable: 1;
+	unsigned int can_dma_map_merge: 1;
+	int rescan_disable;
+	int rescan_entered;
+	int need_retune;
+	int hold_retune;
+	unsigned int retune_period;
+	struct timer_list retune_timer;
+	bool trigger_card_event;
+	struct mmc_card *card;
+	wait_queue_head_t wq;
+	struct mmc_ctx *claimer;
+	int claim_cnt;
+	struct mmc_ctx default_ctx;
+	struct delayed_work detect;
+	int detect_change;
+	struct mmc_slot slot;
+	const struct mmc_bus_ops *bus_ops;
+	unsigned int sdio_irqs;
+	struct task_struct *sdio_irq_thread;
+	struct delayed_work sdio_irq_work;
+	bool sdio_irq_pending;
+	atomic_t sdio_irq_thread_abort;
+	mmc_pm_flag_t pm_flags;
+	struct led_trigger *led;
+	bool regulator_enabled;
+	struct mmc_supply supply;
+	struct dentry *debugfs_root;
+	struct mmc_request *ongoing_mrq;
+	unsigned int actual_clock;
+	unsigned int slotno;
+	int dsr_req;
+	u32 dsr;
+	const struct mmc_cqe_ops *cqe_ops;
+	void *cqe_private;
+	int cqe_qdepth;
+	bool cqe_enabled;
+	bool cqe_on;
+	bool hsq_enabled;
+	u32 err_stats[15];
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long unsigned int private[0];
+};
+
+struct mmc_cid {
+	unsigned int manfid;
+	char prod_name[8];
+	unsigned char prv;
+	unsigned int serial;
+	short unsigned int oemid;
+	short unsigned int year;
+	unsigned char hwrev;
+	unsigned char fwrev;
+	unsigned char month;
+};
+
+struct mmc_csd {
+	unsigned char structure;
+	unsigned char mmca_vsn;
+	short unsigned int cmdclass;
+	short unsigned int taac_clks;
+	unsigned int taac_ns;
+	unsigned int c_size;
+	unsigned int r2w_factor;
+	unsigned int max_dtr;
+	unsigned int erase_size;
+	unsigned int read_blkbits;
+	unsigned int write_blkbits;
+	unsigned int capacity;
+	unsigned int read_partial: 1;
+	unsigned int read_misalign: 1;
+	unsigned int write_partial: 1;
+	unsigned int write_misalign: 1;
+	unsigned int dsr_imp: 1;
+};
+
+struct mmc_ext_csd {
+	u8 rev;
+	u8 erase_group_def;
+	u8 sec_feature_support;
+	u8 rel_sectors;
+	u8 rel_param;
+	bool enhanced_rpmb_supported;
+	u8 part_config;
+	u8 cache_ctrl;
+	u8 rst_n_function;
+	u8 max_packed_writes;
+	u8 max_packed_reads;
+	u8 packed_event_en;
+	unsigned int part_time;
+	unsigned int sa_timeout;
+	unsigned int generic_cmd6_time;
+	unsigned int power_off_longtime;
+	u8 power_off_notification;
+	unsigned int hs_max_dtr;
+	unsigned int hs200_max_dtr;
+	unsigned int sectors;
+	unsigned int hc_erase_size;
+	unsigned int hc_erase_timeout;
+	unsigned int sec_trim_mult;
+	unsigned int sec_erase_mult;
+	unsigned int trim_timeout;
+	bool partition_setting_completed;
+	long long unsigned int enhanced_area_offset;
+	unsigned int enhanced_area_size;
+	unsigned int cache_size;
+	bool hpi_en;
+	bool hpi;
+	unsigned int hpi_cmd;
+	bool bkops;
+	bool man_bkops_en;
+	bool auto_bkops_en;
+	unsigned int data_sector_size;
+	unsigned int data_tag_unit_size;
+	unsigned int boot_ro_lock;
+	bool boot_ro_lockable;
+	bool ffu_capable;
+	bool cmdq_en;
+	bool cmdq_support;
+	unsigned int cmdq_depth;
+	u8 fwrev[8];
+	u8 raw_exception_status;
+	u8 raw_partition_support;
+	u8 raw_rpmb_size_mult;
+	u8 raw_erased_mem_count;
+	u8 strobe_support;
+	u8 raw_ext_csd_structure;
+	u8 raw_card_type;
+	u8 raw_driver_strength;
+	u8 out_of_int_time;
+	u8 raw_pwr_cl_52_195;
+	u8 raw_pwr_cl_26_195;
+	u8 raw_pwr_cl_52_360;
+	u8 raw_pwr_cl_26_360;
+	u8 raw_s_a_timeout;
+	u8 raw_hc_erase_gap_size;
+	u8 raw_erase_timeout_mult;
+	u8 raw_hc_erase_grp_size;
+	u8 raw_boot_mult;
+	u8 raw_sec_trim_mult;
+	u8 raw_sec_erase_mult;
+	u8 raw_sec_feature_support;
+	u8 raw_trim_mult;
+	u8 raw_pwr_cl_200_195;
+	u8 raw_pwr_cl_200_360;
+	u8 raw_pwr_cl_ddr_52_195;
+	u8 raw_pwr_cl_ddr_52_360;
+	u8 raw_pwr_cl_ddr_200_360;
+	u8 raw_bkops_status;
+	u8 raw_sectors[4];
+	u8 pre_eol_info;
+	u8 device_life_time_est_typ_a;
+	u8 device_life_time_est_typ_b;
+	unsigned int feature_support;
+};
+
+struct sd_scr {
+	unsigned char sda_vsn;
+	unsigned char sda_spec3;
+	unsigned char sda_spec4;
+	unsigned char sda_specx;
+	unsigned char bus_widths;
+	unsigned char cmds;
+};
+
+struct sd_ssr {
+	unsigned int au;
+	unsigned int erase_timeout;
+	unsigned int erase_offset;
+};
+
+struct sd_switch_caps {
+	unsigned int hs_max_dtr;
+	unsigned int uhs_max_dtr;
+	unsigned int sd3_bus_mode;
+	unsigned int sd3_drv_type;
+	unsigned int sd3_curr_limit;
+};
+
+struct sd_ext_reg {
+	u8 fno;
+	u8 page;
+	u16 offset;
+	u8 rev;
+	u8 feature_enabled;
+	u8 feature_support;
+};
+
+struct sdio_cccr {
+	unsigned int sdio_vsn;
+	unsigned int sd_vsn;
+	unsigned int multi_block: 1;
+	unsigned int low_speed: 1;
+	unsigned int wide_bus: 1;
+	unsigned int high_power: 1;
+	unsigned int high_speed: 1;
+	unsigned int disable_cd: 1;
+	unsigned int enable_async_irq: 1;
+};
+
+struct sdio_cis {
+	short unsigned int vendor;
+	short unsigned int device;
+	short unsigned int blksize;
+	unsigned int max_dtr;
+};
+
+struct mmc_part {
+	u64 size;
+	unsigned int part_cfg;
+	char name[20];
+	bool force_ro;
+	unsigned int area_type;
+};
+
+struct sdio_func;
+
+struct sdio_func_tuple;
+
+struct mmc_card {
+	struct mmc_host *host;
+	struct device dev;
+	u32 ocr;
+	unsigned int rca;
+	unsigned int type;
+	unsigned int state;
+	unsigned int quirks;
+	unsigned int quirk_max_rate;
+	bool reenable_cmdq;
+	unsigned int erase_size;
+	unsigned int erase_shift;
+	unsigned int pref_erase;
+	unsigned int eg_boundary;
+	unsigned int erase_arg;
+	u8 erased_byte;
+	u32 raw_cid[4];
+	u32 raw_csd[4];
+	u32 raw_scr[2];
+	u32 raw_ssr[16];
+	struct mmc_cid cid;
+	struct mmc_csd csd;
+	struct mmc_ext_csd ext_csd;
+	struct sd_scr scr;
+	struct sd_ssr ssr;
+	struct sd_switch_caps sw_caps;
+	struct sd_ext_reg ext_power;
+	struct sd_ext_reg ext_perf;
+	unsigned int sdio_funcs;
+	atomic_t sdio_funcs_probed;
+	struct sdio_cccr cccr;
+	struct sdio_cis cis;
+	struct sdio_func *sdio_func[7];
+	struct sdio_func *sdio_single_irq;
+	u8 major_rev;
+	u8 minor_rev;
+	unsigned int num_info;
+	const char **info;
+	struct sdio_func_tuple *tuples;
+	unsigned int sd_bus_speed;
+	unsigned int mmc_avail_type;
+	unsigned int drive_strength;
+	struct dentry *debugfs_root;
+	struct mmc_part part[7];
+	unsigned int nr_parts;
+	struct workqueue_struct *complete_wq;
+};
+
+enum mmc_err_stat {
+	MMC_ERR_CMD_TIMEOUT = 0,
+	MMC_ERR_CMD_CRC = 1,
+	MMC_ERR_DAT_TIMEOUT = 2,
+	MMC_ERR_DAT_CRC = 3,
+	MMC_ERR_AUTO_CMD = 4,
+	MMC_ERR_ADMA = 5,
+	MMC_ERR_TUNING = 6,
+	MMC_ERR_CMDQ_RED = 7,
+	MMC_ERR_CMDQ_GCE = 8,
+	MMC_ERR_CMDQ_ICCE = 9,
+	MMC_ERR_REQ_TIMEOUT = 10,
+	MMC_ERR_CMDQ_REQ_TIMEOUT = 11,
+	MMC_ERR_ICE_CFG = 12,
+	MMC_ERR_CTRL_TIMEOUT = 13,
+	MMC_ERR_UNEXPECTED_IRQ = 14,
+	MMC_ERR_MAX = 15,
+};
+
+struct mmc_host_ops {
+	void (*post_req)(struct mmc_host *, struct mmc_request *, int);
+	void (*pre_req)(struct mmc_host *, struct mmc_request *);
+	void (*request)(struct mmc_host *, struct mmc_request *);
+	int (*request_atomic)(struct mmc_host *, struct mmc_request *);
+	void (*set_ios)(struct mmc_host *, struct mmc_ios *);
+	int (*get_ro)(struct mmc_host *);
+	int (*get_cd)(struct mmc_host *);
+	void (*enable_sdio_irq)(struct mmc_host *, int);
+	void (*ack_sdio_irq)(struct mmc_host *);
+	void (*init_card)(struct mmc_host *, struct mmc_card *);
+	int (*start_signal_voltage_switch)(struct mmc_host *, struct mmc_ios *);
+	int (*card_busy)(struct mmc_host *);
+	int (*execute_tuning)(struct mmc_host *, u32);
+	int (*prepare_hs400_tuning)(struct mmc_host *, struct mmc_ios *);
+	int (*execute_hs400_tuning)(struct mmc_host *, struct mmc_card *);
+	int (*hs400_prepare_ddr)(struct mmc_host *);
+	void (*hs400_downgrade)(struct mmc_host *);
+	void (*hs400_complete)(struct mmc_host *);
+	void (*hs400_enhanced_strobe)(struct mmc_host *, struct mmc_ios *);
+	int (*select_drive_strength)(struct mmc_card *, unsigned int, int, int, int *);
+	void (*card_hw_reset)(struct mmc_host *);
+	void (*card_event)(struct mmc_host *);
+	int (*multi_io_quirk)(struct mmc_card *, unsigned int, int);
+	int (*init_sd_express)(struct mmc_host *, struct mmc_ios *);
+};
+
+struct mmc_cqe_ops {
+	int (*cqe_enable)(struct mmc_host *, struct mmc_card *);
+	void (*cqe_disable)(struct mmc_host *);
+	int (*cqe_request)(struct mmc_host *, struct mmc_request *);
+	void (*cqe_post_req)(struct mmc_host *, struct mmc_request *);
+	void (*cqe_off)(struct mmc_host *);
+	int (*cqe_wait_for_idle)(struct mmc_host *);
+	bool (*cqe_timeout)(struct mmc_host *, struct mmc_request *, bool *);
+	void (*cqe_recovery_start)(struct mmc_host *);
+	void (*cqe_recovery_finish)(struct mmc_host *);
+};
+
+struct mmc_bus_ops {
+	void (*remove)(struct mmc_host *);
+	void (*detect)(struct mmc_host *);
+	int (*pre_suspend)(struct mmc_host *);
+	int (*suspend)(struct mmc_host *);
+	int (*resume)(struct mmc_host *);
+	int (*runtime_suspend)(struct mmc_host *);
+	int (*runtime_resume)(struct mmc_host *);
+	int (*alive)(struct mmc_host *);
+	int (*shutdown)(struct mmc_host *);
+	int (*hw_reset)(struct mmc_host *);
+	int (*sw_reset)(struct mmc_host *);
+	bool (*cache_enabled)(struct mmc_host *);
+	int (*flush_cache)(struct mmc_host *);
+};
+
+enum mmc_busy_cmd {
+	MMC_BUSY_CMD6 = 0,
+	MMC_BUSY_ERASE = 1,
+	MMC_BUSY_HPI = 2,
+	MMC_BUSY_EXTR_SINGLE = 3,
+	MMC_BUSY_IO = 4,
+};
+
+struct sd_busy_data {
+	struct mmc_card *card;
+	u8 *reg_buf;
+};
+
+typedef void sdio_irq_handler_t(struct sdio_func *);
+
+struct sdio_func {
+	struct mmc_card *card;
+	struct device dev;
+	sdio_irq_handler_t *irq_handler;
+	unsigned int num;
+	unsigned char class;
+	short unsigned int vendor;
+	short unsigned int device;
+	unsigned int max_blksize;
+	unsigned int cur_blksize;
+	unsigned int enable_timeout;
+	unsigned int state;
+	u8 *tmpbuf;
+	u8 major_rev;
+	u8 minor_rev;
+	unsigned int num_info;
+	const char **info;
+	struct sdio_func_tuple *tuples;
+};
+
+struct sdio_func_tuple {
+	struct sdio_func_tuple *next;
+	unsigned char code;
+	unsigned char size;
+	unsigned char data[0];
+};
+
+enum dmi_entry_type {
+	DMI_ENTRY_BIOS = 0,
+	DMI_ENTRY_SYSTEM = 1,
+	DMI_ENTRY_BASEBOARD = 2,
+	DMI_ENTRY_CHASSIS = 3,
+	DMI_ENTRY_PROCESSOR = 4,
+	DMI_ENTRY_MEM_CONTROLLER = 5,
+	DMI_ENTRY_MEM_MODULE = 6,
+	DMI_ENTRY_CACHE = 7,
+	DMI_ENTRY_PORT_CONNECTOR = 8,
+	DMI_ENTRY_SYSTEM_SLOT = 9,
+	DMI_ENTRY_ONBOARD_DEVICE = 10,
+	DMI_ENTRY_OEMSTRINGS = 11,
+	DMI_ENTRY_SYSCONF = 12,
+	DMI_ENTRY_BIOS_LANG = 13,
+	DMI_ENTRY_GROUP_ASSOC = 14,
+	DMI_ENTRY_SYSTEM_EVENT_LOG = 15,
+	DMI_ENTRY_PHYS_MEM_ARRAY = 16,
+	DMI_ENTRY_MEM_DEVICE = 17,
+	DMI_ENTRY_32_MEM_ERROR = 18,
+	DMI_ENTRY_MEM_ARRAY_MAPPED_ADDR = 19,
+	DMI_ENTRY_MEM_DEV_MAPPED_ADDR = 20,
+	DMI_ENTRY_BUILTIN_POINTING_DEV = 21,
+	DMI_ENTRY_PORTABLE_BATTERY = 22,
+	DMI_ENTRY_SYSTEM_RESET = 23,
+	DMI_ENTRY_HW_SECURITY = 24,
+	DMI_ENTRY_SYSTEM_POWER_CONTROLS = 25,
+	DMI_ENTRY_VOLTAGE_PROBE = 26,
+	DMI_ENTRY_COOLING_DEV = 27,
+	DMI_ENTRY_TEMP_PROBE = 28,
+	DMI_ENTRY_ELECTRICAL_CURRENT_PROBE = 29,
+	DMI_ENTRY_OOB_REMOTE_ACCESS = 30,
+	DMI_ENTRY_BIS_ENTRY = 31,
+	DMI_ENTRY_SYSTEM_BOOT = 32,
+	DMI_ENTRY_MGMT_DEV = 33,
+	DMI_ENTRY_MGMT_DEV_COMPONENT = 34,
+	DMI_ENTRY_MGMT_DEV_THRES = 35,
+	DMI_ENTRY_MEM_CHANNEL = 36,
+	DMI_ENTRY_IPMI_DEV = 37,
+	DMI_ENTRY_SYS_POWER_SUPPLY = 38,
+	DMI_ENTRY_ADDITIONAL = 39,
+	DMI_ENTRY_ONBOARD_DEV_EXT = 40,
+	DMI_ENTRY_MGMT_CONTROLLER_HOST = 41,
+	DMI_ENTRY_INACTIVE = 126,
+	DMI_ENTRY_END_OF_TABLE = 127,
+};
+
+struct dmi_sysfs_entry {
+	struct dmi_header dh;
+	struct kobject kobj;
+	int instance;
+	int position;
+	struct list_head list;
+	struct kobject *child;
+};
+
+struct dmi_sysfs_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct dmi_sysfs_entry *, char *);
+};
+
+struct dmi_sysfs_mapped_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct dmi_sysfs_entry *, const struct dmi_header *, char *);
+};
+
+typedef ssize_t (*dmi_callback)(struct dmi_sysfs_entry *, const struct dmi_header *, void *);
+
+struct find_dmi_data {
+	struct dmi_sysfs_entry *entry;
+	dmi_callback callback;
+	void *private;
+	int instance_countdown;
+	ssize_t ret;
+};
+
+struct dmi_read_state {
+	char *buf;
+	loff_t pos;
+	size_t count;
+};
+
+struct dmi_entry_attr_show_data {
+	struct attribute *attr;
+	char *buf;
+};
+
+struct dmi_system_event_log {
+	struct dmi_header header;
+	u16 area_length;
+	u16 header_start_offset;
+	u16 data_start_offset;
+	u8 access_method;
+	u8 status;
+	u32 change_token;
+	union {
+		struct {
+			u16 index_addr;
+			u16 data_addr;
+		} io;
+		u32 phys_addr32;
+		u16 gpnv_handle;
+		u32 access_method_address;
+	};
+	u8 header_format;
+	u8 type_descriptors_supported_count;
+	u8 per_log_type_descriptor_length;
+	u8 supported_log_type_descriptos[0];
+} __attribute__((packed));
+
+typedef u8 (*sel_io_reader)(const struct dmi_system_event_log *, loff_t);
+
+struct qcom_scm_desc {
+	u32 svc;
+	u32 cmd;
+	u32 arginfo;
+	u64 args[10];
+	u32 owner;
+};
+
+struct qcom_scm_res {
+	u64 result[3];
+};
+
+struct arm_smccc_args {
+	long unsigned int args[8];
+};
+
+struct scm_legacy_command {
+	__le32 len;
+	__le32 buf_offset;
+	__le32 resp_hdr_offset;
+	__le32 id;
+	__le32 buf[0];
+};
+
+struct scm_legacy_response {
+	__le32 len;
+	__le32 buf_offset;
+	__le32 is_complete;
+};
+
+struct scmi_revision_info {
+	u16 major_ver;
+	u16 minor_ver;
+	u8 num_protocols;
+	u8 num_agents;
+	u32 impl_ver;
+	char vendor_id[16];
+	char sub_vendor_id[16];
+};
+
+struct scmi_xfer_ops;
+
+struct scmi_proto_helpers_ops;
+
+struct scmi_protocol_handle {
+	struct device *dev;
+	const struct scmi_xfer_ops *xops;
+	const struct scmi_proto_helpers_ops *hops;
+	int (*set_priv)(const struct scmi_protocol_handle *, void *);
+	void * (*get_priv)(const struct scmi_protocol_handle *);
+};
+
+enum scmi_std_protocol {
+	SCMI_PROTOCOL_BASE = 16,
+	SCMI_PROTOCOL_POWER = 17,
+	SCMI_PROTOCOL_SYSTEM = 18,
+	SCMI_PROTOCOL_PERF = 19,
+	SCMI_PROTOCOL_CLOCK = 20,
+	SCMI_PROTOCOL_SENSOR = 21,
+	SCMI_PROTOCOL_RESET = 22,
+	SCMI_PROTOCOL_VOLTAGE = 23,
+	SCMI_PROTOCOL_POWERCAP = 24,
+};
+
+enum scmi_notification_events {
+	SCMI_EVENT_POWER_STATE_CHANGED = 0,
+	SCMI_EVENT_CLOCK_RATE_CHANGED = 0,
+	SCMI_EVENT_CLOCK_RATE_CHANGE_REQUESTED = 1,
+	SCMI_EVENT_PERFORMANCE_LIMITS_CHANGED = 0,
+	SCMI_EVENT_PERFORMANCE_LEVEL_CHANGED = 1,
+	SCMI_EVENT_SENSOR_TRIP_POINT_EVENT = 0,
+	SCMI_EVENT_SENSOR_UPDATE = 1,
+	SCMI_EVENT_RESET_ISSUED = 0,
+	SCMI_EVENT_BASE_ERROR_EVENT = 0,
+	SCMI_EVENT_SYSTEM_POWER_STATE_NOTIFIER = 0,
+	SCMI_EVENT_POWERCAP_CAP_CHANGED = 0,
+	SCMI_EVENT_POWERCAP_MEASUREMENTS_CHANGED = 1,
+};
+
+struct scmi_base_error_report {
+	ktime_t timestamp;
+	unsigned int agent_id;
+	bool fatal;
+	unsigned int cmd_count;
+	long long unsigned int reports[0];
+};
+
+enum scmi_common_cmd {
+	PROTOCOL_VERSION = 0,
+	PROTOCOL_ATTRIBUTES = 1,
+	PROTOCOL_MESSAGE_ATTRIBUTES = 2,
+};
+
+struct scmi_msg {
+	void *buf;
+	size_t len;
+};
+
+struct scmi_msg_hdr {
+	u8 id;
+	u8 protocol_id;
+	u8 type;
+	u16 seq;
+	u32 status;
+	bool poll_completion;
+};
+
+struct scmi_xfer {
+	int transfer_id;
+	struct scmi_msg_hdr hdr;
+	struct scmi_msg tx;
+	struct scmi_msg rx;
+	struct completion done;
+	struct completion *async_done;
+	bool pending;
+	struct hlist_node node;
+	refcount_t users;
+	atomic_t busy;
+	int state;
+	spinlock_t lock;
+	void *priv;
+};
+
+struct scmi_xfer_ops {
+	int (*version_get)(const struct scmi_protocol_handle *, u32 *);
+	int (*xfer_get_init)(const struct scmi_protocol_handle *, u8, size_t, size_t, struct scmi_xfer **);
+	void (*reset_rx_to_maxsz)(const struct scmi_protocol_handle *, struct scmi_xfer *);
+	int (*do_xfer)(const struct scmi_protocol_handle *, struct scmi_xfer *);
+	int (*do_xfer_with_response)(const struct scmi_protocol_handle *, struct scmi_xfer *);
+	void (*xfer_put)(const struct scmi_protocol_handle *, struct scmi_xfer *);
+};
+
+struct scmi_iterator_ops;
+
+struct scmi_fc_db_info;
+
+struct scmi_proto_helpers_ops {
+	int (*extended_name_get)(const struct scmi_protocol_handle *, u8, u32, char *, size_t);
+	void * (*iter_response_init)(const struct scmi_protocol_handle *, struct scmi_iterator_ops *, unsigned int, u8, size_t, void *);
+	int (*iter_response_run)(void *);
+	void (*fastchannel_init)(const struct scmi_protocol_handle *, u8, u32, u32, u32, void **, struct scmi_fc_db_info **);
+	void (*fastchannel_db_ring)(struct scmi_fc_db_info *);
+};
+
+struct scmi_iterator_state {
+	unsigned int desc_index;
+	unsigned int num_returned;
+	unsigned int num_remaining;
+	unsigned int max_resources;
+	unsigned int loop_idx;
+	size_t rx_len;
+	void *priv;
+};
+
+struct scmi_iterator_ops {
+	void (*prepare_message)(void *, unsigned int, const void *);
+	int (*update_state)(struct scmi_iterator_state *, const void *, void *);
+	int (*process_response)(const struct scmi_protocol_handle *, const void *, struct scmi_iterator_state *, void *);
+};
+
+struct scmi_fc_db_info {
+	int width;
+	u64 set;
+	u64 mask;
+	void *addr;
+};
+
+typedef int (*scmi_prot_init_ph_fn_t)(const struct scmi_protocol_handle *);
+
+struct scmi_protocol_events;
+
+struct scmi_protocol {
+	const u8 id;
+	struct module *owner;
+	const scmi_prot_init_ph_fn_t instance_init;
+	const scmi_prot_init_ph_fn_t instance_deinit;
+	const void *ops;
+	const struct scmi_protocol_events *events;
+};
+
+struct scmi_event_ops;
+
+struct scmi_event;
+
+struct scmi_protocol_events {
+	size_t queue_sz;
+	const struct scmi_event_ops *ops;
+	const struct scmi_event *evts;
+	unsigned int num_events;
+	unsigned int num_sources;
+};
+
+struct scmi_event {
+	u8 id;
+	size_t max_payld_sz;
+	size_t max_report_sz;
+};
+
+struct scmi_event_ops {
+	int (*get_num_sources)(const struct scmi_protocol_handle *);
+	int (*set_notify_enabled)(const struct scmi_protocol_handle *, u8, u32, bool);
+	void * (*fill_custom_report)(const struct scmi_protocol_handle *, u8, ktime_t, const void *, size_t, void *, u32 *);
+};
+
+enum scmi_base_protocol_cmd {
+	BASE_DISCOVER_VENDOR = 3,
+	BASE_DISCOVER_SUB_VENDOR = 4,
+	BASE_DISCOVER_IMPLEMENT_VERSION = 5,
+	BASE_DISCOVER_LIST_PROTOCOLS = 6,
+	BASE_DISCOVER_AGENT = 7,
+	BASE_NOTIFY_ERRORS = 8,
+	BASE_SET_DEVICE_PERMISSIONS = 9,
+	BASE_SET_PROTOCOL_PERMISSIONS = 10,
+	BASE_RESET_AGENT_CONFIGURATION = 11,
+};
+
+struct scmi_msg_resp_base_attributes {
+	u8 num_protocols;
+	u8 num_agents;
+	__le16 reserved;
+};
+
+struct scmi_msg_resp_base_discover_agent {
+	__le32 agent_id;
+	u8 name[16];
+};
+
+struct scmi_msg_base_error_notify {
+	__le32 event_control;
+};
+
+struct scmi_base_error_notify_payld {
+	__le32 agent_id;
+	__le32 error_status;
+	__le64 msg_reports[1024];
+};
+
+struct scmi_reset_proto_ops {
+	int (*num_domains_get)(const struct scmi_protocol_handle *);
+	const char * (*name_get)(const struct scmi_protocol_handle *, u32);
+	int (*latency_get)(const struct scmi_protocol_handle *, u32);
+	int (*reset)(const struct scmi_protocol_handle *, u32);
+	int (*assert)(const struct scmi_protocol_handle *, u32);
+	int (*deassert)(const struct scmi_protocol_handle *, u32);
+};
+
+struct scmi_reset_issued_report {
+	ktime_t timestamp;
+	unsigned int agent_id;
+	unsigned int domain_id;
+	unsigned int reset_state;
+};
+
+enum scmi_reset_protocol_cmd {
+	RESET_DOMAIN_ATTRIBUTES = 3,
+	RESET = 4,
+	RESET_NOTIFY = 5,
+	RESET_DOMAIN_NAME_GET = 6,
+};
+
+struct scmi_msg_resp_reset_domain_attributes {
+	__le32 attributes;
+	__le32 latency;
+	u8 name[16];
+};
+
+struct scmi_msg_reset_domain_reset {
+	__le32 domain_id;
+	__le32 flags;
+	__le32 reset_state;
+};
+
+struct scmi_msg_reset_notify {
+	__le32 id;
+	__le32 event_control;
+};
+
+struct scmi_reset_issued_notify_payld {
+	__le32 agent_id;
+	__le32 domain_id;
+	__le32 reset_state;
+};
+
+struct reset_dom_info {
+	bool async_reset;
+	bool reset_notify;
+	u32 latency_us;
+	char name[64];
+};
+
+struct scmi_reset_info {
+	u32 version;
+	int num_domains;
+	struct reset_dom_info *dom_info;
+};
+
+struct mbox_client {
+	struct device *dev;
+	bool tx_block;
+	long unsigned int tx_tout;
+	bool knows_txdone;
+	void (*rx_callback)(struct mbox_client *, void *);
+	void (*tx_prepare)(struct mbox_client *, void *);
+	void (*tx_done)(struct mbox_client *, void *, int);
+};
+
+struct scmi_device;
+
+struct scmi_handle;
+
+struct scmi_notify_ops {
+	int (*devm_event_notifier_register)(struct scmi_device *, u8, u8, const u32 *, struct notifier_block *);
+	int (*devm_event_notifier_unregister)(struct scmi_device *, u8, u8, const u32 *, struct notifier_block *);
+	int (*event_notifier_register)(const struct scmi_handle *, u8, u8, const u32 *, struct notifier_block *);
+	int (*event_notifier_unregister)(const struct scmi_handle *, u8, u8, const u32 *, struct notifier_block *);
+};
+
+struct scmi_device {
+	u32 id;
+	u8 protocol_id;
+	const char *name;
+	struct device dev;
+	struct scmi_handle *handle;
+};
+
+struct scmi_handle {
+	struct device *dev;
+	struct scmi_revision_info *version;
+	int (*devm_protocol_acquire)(struct scmi_device *, u8);
+	const void * (*devm_protocol_get)(struct scmi_device *, u8, struct scmi_protocol_handle **);
+	void (*devm_protocol_put)(struct scmi_device *, u8);
+	bool (*is_transport_atomic)(const struct scmi_handle *, unsigned int *);
+	const struct scmi_notify_ops *notify_ops;
+};
+
+struct scmi_chan_info {
+	struct device *dev;
+	struct scmi_handle *handle;
+	bool no_completion_irq;
+	void *transport_info;
+};
+
+struct scmi_transport_ops {
+	int (*link_supplier)(struct device *);
+	bool (*chan_available)(struct device *, int);
+	int (*chan_setup)(struct scmi_chan_info *, struct device *, bool);
+	int (*chan_free)(int, void *, void *);
+	unsigned int (*get_max_msg)(struct scmi_chan_info *);
+	int (*send_message)(struct scmi_chan_info *, struct scmi_xfer *);
+	void (*mark_txdone)(struct scmi_chan_info *, int, struct scmi_xfer *);
+	void (*fetch_response)(struct scmi_chan_info *, struct scmi_xfer *);
+	void (*fetch_notification)(struct scmi_chan_info *, size_t, struct scmi_xfer *);
+	void (*clear_channel)(struct scmi_chan_info *);
+	bool (*poll_done)(struct scmi_chan_info *, struct scmi_xfer *);
+};
+
+struct scmi_desc {
+	int (*transport_init)();
+	void (*transport_exit)();
+	const struct scmi_transport_ops *ops;
+	int max_rx_timeout_ms;
+	int max_msg;
+	int max_msg_size;
+	const bool force_polling;
+	const bool sync_cmds_completed_on_ret;
+	const bool atomic_enabled;
+};
+
+struct scmi_shared_mem;
+
+struct mbox_chan;
+
+struct scmi_mailbox {
+	struct mbox_client cl;
+	struct mbox_chan *chan;
+	struct scmi_chan_info *cinfo;
+	struct scmi_shared_mem *shmem;
+};
+
+enum sys_off_mode {
+	SYS_OFF_MODE_POWER_OFF_PREPARE = 0,
+	SYS_OFF_MODE_POWER_OFF = 1,
+	SYS_OFF_MODE_RESTART = 2,
+};
+
+struct sys_off_data {
+	int mode;
+	void *cb_data;
+	const char *cmd;
+};
+
+struct sys_off_handler;
+
+struct linux_efi_tpm_eventlog {
+	u32 size;
+	u32 final_events_preboot_size;
+	u8 version;
+	u8 log[0];
+};
+
+struct efi_tcg2_final_events_table {
+	u64 version;
+	u64 nr_events;
+	u8 events[0];
+};
+
+enum tcpa_event_types {
+	PREBOOT = 0,
+	POST_CODE = 1,
+	UNUSED = 2,
+	NO_ACTION = 3,
+	SEPARATOR = 4,
+	ACTION = 5,
+	EVENT_TAG = 6,
+	SCRTM_CONTENTS = 7,
+	SCRTM_VERSION = 8,
+	CPU_MICROCODE = 9,
+	PLATFORM_CONFIG_FLAGS = 10,
+	TABLE_OF_DEVICES = 11,
+	COMPACT_HASH = 12,
+	IPL = 13,
+	IPL_PARTITION_DATA = 14,
+	NONHOST_CODE = 15,
+	NONHOST_CONFIG = 16,
+	NONHOST_INFO = 17,
+};
+
+struct tcg_efi_specid_event_algs {
+	u16 alg_id;
+	u16 digest_size;
+};
+
+struct tcg_efi_specid_event_head {
+	u8 signature[16];
+	u32 platform_class;
+	u8 spec_version_minor;
+	u8 spec_version_major;
+	u8 spec_errata;
+	u8 uintnsize;
+	u32 num_algs;
+	struct tcg_efi_specid_event_algs digest_sizes[0];
+};
+
+struct tcg_pcr_event {
+	u32 pcr_idx;
+	u32 event_type;
+	u8 digest[20];
+	u32 event_size;
+	u8 event[0];
+};
+
+struct tcg_event_field {
+	u32 event_size;
+	u8 event[0];
+};
+
+struct tcg_pcr_event2_head {
+	u32 pcr_idx;
+	u32 event_type;
+	u32 count;
+	struct tpm_digest digests[0];
+};
+
+struct efi_system_resource_entry_v1 {
+	efi_guid_t fw_class;
+	u32 fw_type;
+	u32 fw_version;
+	u32 lowest_supported_fw_version;
+	u32 capsule_flags;
+	u32 last_attempt_version;
+	u32 last_attempt_status;
+};
+
+struct efi_system_resource_table {
+	u32 fw_resource_count;
+	u32 fw_resource_count_max;
+	u64 fw_resource_version;
+	u8 entries[0];
+};
+
+struct esre_entry {
+	union {
+		struct efi_system_resource_entry_v1 *esre1;
+	} esre;
+	struct kobject kobj;
+	struct list_head list;
+};
+
+struct esre_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct esre_entry *, char *);
+	ssize_t (*store)(struct esre_entry *, const char *, size_t);
+};
+
+struct cper_sec_proc_arm {
+	u32 validation_bits;
+	u16 err_info_num;
+	u16 context_info_num;
+	u32 section_length;
+	u8 affinity_level;
+	u8 reserved[3];
+	u64 mpidr;
+	u64 midr;
+	u32 running_state;
+	u32 psci_state;
+};
+
+struct cper_arm_err_info {
+	u8 version;
+	u8 length;
+	u16 validation_bits;
+	u8 type;
+	u16 multiple_error;
+	u8 flags;
+	u64 error_info;
+	u64 virt_fault_addr;
+	u64 physical_fault_addr;
+} __attribute__((packed));
+
+struct cper_arm_ctx_info {
+	u16 version;
+	u16 type;
+	u32 size;
+};
+
+enum imx_sc_rpc_svc {
+	IMX_SC_RPC_SVC_UNKNOWN = 0,
+	IMX_SC_RPC_SVC_RETURN = 1,
+	IMX_SC_RPC_SVC_PM = 2,
+	IMX_SC_RPC_SVC_RM = 3,
+	IMX_SC_RPC_SVC_TIMER = 5,
+	IMX_SC_RPC_SVC_PAD = 6,
+	IMX_SC_RPC_SVC_MISC = 7,
+	IMX_SC_RPC_SVC_IRQ = 8,
+};
+
+struct imx_sc_rpc_msg {
+	uint8_t ver;
+	uint8_t size;
+	uint8_t svc;
+	uint8_t func;
+};
+
+enum imx_misc_func {
+	IMX_SC_MISC_FUNC_UNKNOWN = 0,
+	IMX_SC_MISC_FUNC_SET_CONTROL = 1,
+	IMX_SC_MISC_FUNC_GET_CONTROL = 2,
+	IMX_SC_MISC_FUNC_SET_MAX_DMA_GROUP = 4,
+	IMX_SC_MISC_FUNC_SET_DMA_GROUP = 5,
+	IMX_SC_MISC_FUNC_SECO_IMAGE_LOAD = 8,
+	IMX_SC_MISC_FUNC_SECO_AUTHENTICATE = 9,
+	IMX_SC_MISC_FUNC_DEBUG_OUT = 10,
+	IMX_SC_MISC_FUNC_WAVEFORM_CAPTURE = 6,
+	IMX_SC_MISC_FUNC_BUILD_INFO = 15,
+	IMX_SC_MISC_FUNC_UNIQUE_ID = 19,
+	IMX_SC_MISC_FUNC_SET_ARI = 3,
+	IMX_SC_MISC_FUNC_BOOT_STATUS = 7,
+	IMX_SC_MISC_FUNC_BOOT_DONE = 14,
+	IMX_SC_MISC_FUNC_OTP_FUSE_READ = 11,
+	IMX_SC_MISC_FUNC_OTP_FUSE_WRITE = 17,
+	IMX_SC_MISC_FUNC_SET_TEMP = 12,
+	IMX_SC_MISC_FUNC_GET_TEMP = 13,
+	IMX_SC_MISC_FUNC_GET_BOOT_DEV = 16,
+	IMX_SC_MISC_FUNC_GET_BUTTON_STATUS = 18,
+};
+
+struct imx_sc_ipc;
+
+struct imx_sc_chan {
+	struct imx_sc_ipc *sc_ipc;
+	struct mbox_client cl;
+	struct mbox_chan *ch;
+	int idx;
+	struct completion tx_done;
+};
+
+struct imx_sc_ipc {
+	struct imx_sc_chan chans[8];
+	struct device *dev;
+	struct mutex lock;
+	struct completion done;
+	bool fast_ipc;
+	u32 *msg;
+	u8 rx_size;
+	u8 count;
+};
+
+enum imx_sc_error_codes {
+	IMX_SC_ERR_NONE = 0,
+	IMX_SC_ERR_VERSION = 1,
+	IMX_SC_ERR_CONFIG = 2,
+	IMX_SC_ERR_PARM = 3,
+	IMX_SC_ERR_NOACCESS = 4,
+	IMX_SC_ERR_LOCKED = 5,
+	IMX_SC_ERR_UNAVAILABLE = 6,
+	IMX_SC_ERR_NOTFOUND = 7,
+	IMX_SC_ERR_NOPOWER = 8,
+	IMX_SC_ERR_IPC = 9,
+	IMX_SC_ERR_BUSY = 10,
+	IMX_SC_ERR_FAIL = 11,
+	IMX_SC_ERR_LAST = 12,
+};
+
+enum imx_sc_pm_func {
+	IMX_SC_PM_FUNC_UNKNOWN = 0,
+	IMX_SC_PM_FUNC_SET_SYS_POWER_MODE = 19,
+	IMX_SC_PM_FUNC_SET_PARTITION_POWER_MODE = 1,
+	IMX_SC_PM_FUNC_GET_SYS_POWER_MODE = 2,
+	IMX_SC_PM_FUNC_SET_RESOURCE_POWER_MODE = 3,
+	IMX_SC_PM_FUNC_GET_RESOURCE_POWER_MODE = 4,
+	IMX_SC_PM_FUNC_REQ_LOW_POWER_MODE = 16,
+	IMX_SC_PM_FUNC_SET_CPU_RESUME_ADDR = 17,
+	IMX_SC_PM_FUNC_REQ_SYS_IF_POWER_MODE = 18,
+	IMX_SC_PM_FUNC_SET_CLOCK_RATE = 5,
+	IMX_SC_PM_FUNC_GET_CLOCK_RATE = 6,
+	IMX_SC_PM_FUNC_CLOCK_ENABLE = 7,
+	IMX_SC_PM_FUNC_SET_CLOCK_PARENT = 14,
+	IMX_SC_PM_FUNC_GET_CLOCK_PARENT = 15,
+	IMX_SC_PM_FUNC_RESET = 13,
+	IMX_SC_PM_FUNC_RESET_REASON = 10,
+	IMX_SC_PM_FUNC_BOOT = 8,
+	IMX_SC_PM_FUNC_REBOOT = 9,
+	IMX_SC_PM_FUNC_REBOOT_PARTITION = 12,
+	IMX_SC_PM_FUNC_CPU_START = 11,
+};
+
+struct imx_sc_msg_req_set_resource_power_mode {
+	struct imx_sc_rpc_msg hdr;
+	u16 resource;
+	u8 mode;
+};
+
+struct imx_sc_pm_domain {
+	struct generic_pm_domain pd;
+	char name[20];
+	u32 rsrc;
+};
+
+struct imx_sc_pd_range {
+	char *name;
+	u32 rsrc;
+	u8 num;
+	bool postfix;
+	u8 start_from;
+};
+
+struct imx_sc_pd_soc {
+	const struct imx_sc_pd_range *pd_ranges;
+	u8 num_ranges;
+};
+
+struct imx_sc_ipc;
+
+enum mrq_debugfs_commands {
+	CMD_DEBUGFS_READ = 1,
+	CMD_DEBUGFS_WRITE = 2,
+	CMD_DEBUGFS_DUMPDIR = 3,
+	CMD_DEBUGFS_MAX = 4,
+};
+
+struct cmd_debugfs_fileop_request {
+	uint32_t fnameaddr;
+	uint32_t fnamelen;
+	uint32_t dataaddr;
+	uint32_t datalen;
+};
+
+struct cmd_debugfs_dumpdir_request {
+	uint32_t dataaddr;
+	uint32_t datalen;
+};
+
+struct cmd_debugfs_fileop_response {
+	uint32_t reserved;
+	uint32_t nbytes;
+};
+
+struct cmd_debugfs_dumpdir_response {
+	uint32_t reserved;
+	uint32_t nbytes;
+};
+
+struct mrq_debugfs_request {
+	uint32_t cmd;
+	union {
+		struct cmd_debugfs_fileop_request fop;
+		struct cmd_debugfs_dumpdir_request dumpdir;
+	};
+};
+
+struct mrq_debugfs_response {
+	int32_t reserved;
+	union {
+		struct cmd_debugfs_fileop_response fop;
+		struct cmd_debugfs_dumpdir_response dumpdir;
+	};
+};
+
+enum mrq_debug_commands {
+	CMD_DEBUG_OPEN_RO = 0,
+	CMD_DEBUG_OPEN_WO = 1,
+	CMD_DEBUG_READ = 2,
+	CMD_DEBUG_WRITE = 3,
+	CMD_DEBUG_CLOSE = 4,
+	CMD_DEBUG_MAX = 5,
+};
+
+struct cmd_debug_fopen_request {
+	char name[116];
+};
+
+struct cmd_debug_fopen_response {
+	uint32_t fd;
+	uint32_t datalen;
+};
+
+struct cmd_debug_fread_request {
+	uint32_t fd;
+};
+
+struct cmd_debug_fread_response {
+	uint32_t readlen;
+	char data[116];
+};
+
+struct cmd_debug_fwrite_request {
+	uint32_t fd;
+	uint32_t datalen;
+	char data[108];
+};
+
+struct cmd_debug_fclose_request {
+	uint32_t fd;
+};
+
+struct mrq_debug_request {
+	uint32_t cmd;
+	union {
+		struct cmd_debug_fopen_request fop;
+		struct cmd_debug_fread_request frd;
+		struct cmd_debug_fwrite_request fwr;
+		struct cmd_debug_fclose_request fcl;
+	};
+};
+
+struct mrq_debug_response {
+	union {
+		struct cmd_debug_fopen_response fop;
+		struct cmd_debug_fread_response frd;
+	};
+};
+
+struct tegra_bpmp_ops;
+
+struct tegra_bpmp_soc {
+	struct {
+		struct {
+			unsigned int offset;
+			unsigned int count;
+			unsigned int timeout;
+		} cpu_tx;
+		struct {
+			unsigned int offset;
+			unsigned int count;
+			unsigned int timeout;
+		} thread;
+		struct {
+			unsigned int offset;
+			unsigned int count;
+			unsigned int timeout;
+		} cpu_rx;
+	} channels;
+	const struct tegra_bpmp_ops *ops;
+	unsigned int num_resets;
+};
+
+struct tegra_bpmp;
+
+struct tegra_bpmp_channel;
+
+struct tegra_bpmp_ops {
+	int (*init)(struct tegra_bpmp *);
+	void (*deinit)(struct tegra_bpmp *);
+	bool (*is_response_ready)(struct tegra_bpmp_channel *);
+	bool (*is_request_ready)(struct tegra_bpmp_channel *);
+	int (*ack_response)(struct tegra_bpmp_channel *);
+	int (*ack_request)(struct tegra_bpmp_channel *);
+	bool (*is_response_channel_free)(struct tegra_bpmp_channel *);
+	bool (*is_request_channel_free)(struct tegra_bpmp_channel *);
+	int (*post_response)(struct tegra_bpmp_channel *);
+	int (*post_request)(struct tegra_bpmp_channel *);
+	int (*ring_doorbell)(struct tegra_bpmp *);
+	int (*resume)(struct tegra_bpmp *);
+};
+
+struct tegra_bpmp_mb_data {
+	u32 code;
+	u32 flags;
+	u8 data[120];
+};
+
+struct tegra_ivc;
+
+struct tegra_bpmp_channel {
+	struct tegra_bpmp *bpmp;
+	struct tegra_bpmp_mb_data *ib;
+	struct tegra_bpmp_mb_data *ob;
+	struct completion completion;
+	struct tegra_ivc *ivc;
+	unsigned int index;
+};
+
+struct tegra_bpmp_clk;
+
+struct tegra_bpmp {
+	const struct tegra_bpmp_soc *soc;
+	struct device *dev;
+	void *priv;
+	struct {
+		struct mbox_client client;
+		struct mbox_chan *channel;
+	} mbox;
+	spinlock_t atomic_tx_lock;
+	struct tegra_bpmp_channel *tx_channel;
+	struct tegra_bpmp_channel *rx_channel;
+	struct tegra_bpmp_channel *threaded_channels;
+	struct {
+		long unsigned int *allocated;
+		long unsigned int *busy;
+		unsigned int count;
+		struct semaphore lock;
+	} threaded;
+	struct list_head mrqs;
+	spinlock_t lock;
+	struct tegra_bpmp_clk **clocks;
+	unsigned int num_clocks;
+	struct reset_controller_dev rstc;
+	struct genpd_onecell_data genpd;
+	struct dentry *debugfs_mirror;
+};
+
+struct tegra_bpmp_message {
+	unsigned int mrq;
+	struct {
+		const void *data;
+		size_t size;
+	} tx;
+	struct {
+		void *data;
+		size_t size;
+		int ret;
+	} rx;
+};
+
+struct seqbuf {
+	char *buf;
+	size_t pos;
+	size_t size;
+};
+
+enum clocksource_ids {
+	CSID_GENERIC = 0,
+	CSID_ARM_ARCH_COUNTER = 1,
+	CSID_MAX = 2,
+};
+
+enum vdso_clock_mode {
+	VDSO_CLOCKMODE_NONE = 0,
+	VDSO_CLOCKMODE_ARCHTIMER = 1,
+	VDSO_CLOCKMODE_ARCHTIMER_NOCOMPAT = 2,
+	VDSO_CLOCKMODE_MAX = 3,
+	VDSO_CLOCKMODE_TIMENS = 2147483647,
+};
+
+struct clocksource {
+	u64 (*read)(struct clocksource *);
+	u64 mask;
+	u32 mult;
+	u32 shift;
+	u64 max_idle_ns;
+	u32 maxadj;
+	u32 uncertainty_margin;
+	u64 max_cycles;
+	const char *name;
+	struct list_head list;
+	int rating;
+	enum clocksource_ids id;
+	enum vdso_clock_mode vdso_clock_mode;
+	long unsigned int flags;
+	int (*enable)(struct clocksource *);
+	void (*disable)(struct clocksource *);
+	void (*suspend)(struct clocksource *);
+	void (*resume)(struct clocksource *);
+	void (*mark_unstable)(struct clocksource *);
+	void (*tick_stable)(struct clocksource *);
+	struct module *owner;
+};
+
+struct clocksource_mmio {
+	void *reg;
+	struct clocksource clksrc;
+};
+
+enum arm_smccc_conduit {
+	SMCCC_CONDUIT_NONE = 0,
+	SMCCC_CONDUIT_SMC = 1,
+	SMCCC_CONDUIT_HVC = 2,
+};
+
+enum arch_timer_reg {
+	ARCH_TIMER_REG_CTRL = 0,
+	ARCH_TIMER_REG_CVAL = 1,
+};
+
+enum arch_timer_spi_nr {
+	ARCH_TIMER_PHYS_SPI = 0,
+	ARCH_TIMER_VIRT_SPI = 1,
+	ARCH_TIMER_MAX_TIMER_SPI = 2,
+};
+
+enum arch_timer_erratum_match_type {
+	ate_match_dt = 0,
+	ate_match_local_cap_id = 1,
+	ate_match_acpi_oem_info = 2,
+};
+
+struct arch_timer_erratum_workaround {
+	enum arch_timer_erratum_match_type match_type;
+	const void *id;
+	const char *desc;
+	u64 (*read_cntpct_el0)();
+	u64 (*read_cntvct_el0)();
+	int (*set_next_event_phys)(long unsigned int, struct clock_event_device *);
+	int (*set_next_event_virt)(long unsigned int, struct clock_event_device *);
+	bool disable_compat_vdso;
+};
+
+typedef int (*of_init_fn_1_ret)(struct device_node *);
+
+typedef int (*acpi_tbl_table_handler)(struct acpi_table_header *);
+
+struct acpi_probe_entry;
+
+typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *, struct acpi_probe_entry *);
+
+struct acpi_probe_entry {
+	__u8 id[5];
+	__u8 type;
+	acpi_probe_entry_validate_subtbl subtable_valid;
+	union {
+		acpi_tbl_table_handler probe_table;
+		acpi_tbl_entry_handler probe_subtbl;
+	};
+	kernel_ulong_t driver_data;
+};
+
+struct arch_timer {
+	void *base;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct clock_event_device evt;
+};
+
+struct ate_acpi_oem_info {
+	char oem_id[7];
+	char oem_table_id[9];
+	u32 oem_revision;
+};
+
+typedef bool (*ate_match_fn_t)(const struct arch_timer_erratum_workaround *, const void *);
+
+struct hid_device_id {
+	__u16 bus;
+	__u16 group;
+	__u32 vendor;
+	__u32 product;
+	kernel_ulong_t driver_data;
+};
+
+struct hid_collection {
+	int parent_idx;
+	unsigned int type;
+	unsigned int usage;
+	unsigned int level;
+};
+
+struct hid_usage {
+	unsigned int hid;
+	unsigned int collection_index;
+	unsigned int usage_index;
+	__s8 resolution_multiplier;
+	__s8 wheel_factor;
+	__u16 code;
+	__u8 type;
+	__s8 hat_min;
+	__s8 hat_max;
+	__s8 hat_dir;
+	__s16 wheel_accumulated;
+};
+
+struct hid_report;
+
+struct hid_input;
+
+struct hid_field {
+	unsigned int physical;
+	unsigned int logical;
+	unsigned int application;
+	struct hid_usage *usage;
+	unsigned int maxusage;
+	unsigned int flags;
+	unsigned int report_offset;
+	unsigned int report_size;
+	unsigned int report_count;
+	unsigned int report_type;
+	__s32 *value;
+	__s32 *new_value;
+	__s32 *usages_priorities;
+	__s32 logical_minimum;
+	__s32 logical_maximum;
+	__s32 physical_minimum;
+	__s32 physical_maximum;
+	__s32 unit_exponent;
+	unsigned int unit;
+	bool ignored;
+	struct hid_report *report;
+	unsigned int index;
+	struct hid_input *hidinput;
+	__u16 dpad;
+	unsigned int slot_idx;
+};
+
+struct hid_field_entry;
