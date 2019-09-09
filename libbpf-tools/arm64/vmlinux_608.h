@@ -71139,3 +71139,2087 @@ struct btrfs_ioctl_dev_replace_status_params {
 struct btrfs_ioctl_dev_replace_args {
 	__u64 cmd;
 	__u64 result;
+	union {
+		struct btrfs_ioctl_dev_replace_start_params start;
+		struct btrfs_ioctl_dev_replace_status_params status;
+	};
+	__u64 spare[64];
+};
+
+struct btrfs_ioctl_dev_info_args {
+	__u64 devid;
+	__u8 uuid[16];
+	__u64 bytes_used;
+	__u64 total_bytes;
+	__u64 unused[379];
+	__u8 path[1024];
+};
+
+struct btrfs_ioctl_fs_info_args {
+	__u64 max_id;
+	__u64 num_devices;
+	__u8 fsid[16];
+	__u32 nodesize;
+	__u32 sectorsize;
+	__u32 clone_alignment;
+	__u16 csum_type;
+	__u16 csum_size;
+	__u64 flags;
+	__u64 generation;
+	__u8 metadata_uuid[16];
+	__u8 reserved[944];
+};
+
+struct btrfs_ioctl_feature_flags {
+	__u64 compat_flags;
+	__u64 compat_ro_flags;
+	__u64 incompat_flags;
+};
+
+struct btrfs_ioctl_balance_args {
+	__u64 flags;
+	__u64 state;
+	struct btrfs_balance_args data;
+	struct btrfs_balance_args meta;
+	struct btrfs_balance_args sys;
+	struct btrfs_balance_progress stat;
+	__u64 unused[72];
+};
+
+struct btrfs_ioctl_ino_lookup_args {
+	__u64 treeid;
+	__u64 objectid;
+	char name[4080];
+};
+
+struct btrfs_ioctl_ino_lookup_user_args {
+	__u64 dirid;
+	__u64 treeid;
+	char name[256];
+	char path[3824];
+};
+
+struct btrfs_ioctl_search_key {
+	__u64 tree_id;
+	__u64 min_objectid;
+	__u64 max_objectid;
+	__u64 min_offset;
+	__u64 max_offset;
+	__u64 min_transid;
+	__u64 max_transid;
+	__u32 min_type;
+	__u32 max_type;
+	__u32 nr_items;
+	__u32 unused;
+	__u64 unused1;
+	__u64 unused2;
+	__u64 unused3;
+	__u64 unused4;
+};
+
+struct btrfs_ioctl_search_header {
+	__u64 transid;
+	__u64 objectid;
+	__u64 offset;
+	__u32 type;
+	__u32 len;
+};
+
+struct btrfs_ioctl_search_args {
+	struct btrfs_ioctl_search_key key;
+	char buf[3992];
+};
+
+struct btrfs_ioctl_search_args_v2 {
+	struct btrfs_ioctl_search_key key;
+	__u64 buf_size;
+	__u64 buf[0];
+};
+
+struct btrfs_ioctl_defrag_range_args {
+	__u64 start;
+	__u64 len;
+	__u64 flags;
+	__u32 extent_thresh;
+	__u32 compress_type;
+	__u32 unused[4];
+};
+
+struct btrfs_ioctl_space_info {
+	__u64 flags;
+	__u64 total_bytes;
+	__u64 used_bytes;
+};
+
+struct btrfs_ioctl_space_args {
+	__u64 space_slots;
+	__u64 total_spaces;
+	struct btrfs_ioctl_space_info spaces[0];
+};
+
+struct btrfs_data_container {
+	__u32 bytes_left;
+	__u32 bytes_missing;
+	__u32 elem_cnt;
+	__u32 elem_missed;
+	__u64 val[0];
+};
+
+struct btrfs_ioctl_ino_path_args {
+	__u64 inum;
+	__u64 size;
+	__u64 reserved[4];
+	__u64 fspath;
+};
+
+struct btrfs_ioctl_logical_ino_args {
+	__u64 logical;
+	__u64 size;
+	__u64 reserved[3];
+	__u64 flags;
+	__u64 inodes;
+};
+
+struct btrfs_ioctl_get_dev_stats {
+	__u64 devid;
+	__u64 nr_items;
+	__u64 flags;
+	__u64 values[5];
+	__u64 unused[121];
+};
+
+struct btrfs_ioctl_quota_ctl_args {
+	__u64 cmd;
+	__u64 status;
+};
+
+struct btrfs_ioctl_quota_rescan_args {
+	__u64 flags;
+	__u64 progress;
+	__u64 reserved[6];
+};
+
+struct btrfs_ioctl_qgroup_assign_args {
+	__u64 assign;
+	__u64 src;
+	__u64 dst;
+};
+
+struct btrfs_ioctl_qgroup_create_args {
+	__u64 create;
+	__u64 qgroupid;
+};
+
+struct btrfs_ioctl_timespec {
+	__u64 sec;
+	__u32 nsec;
+};
+
+struct btrfs_ioctl_received_subvol_args {
+	char uuid[16];
+	__u64 stransid;
+	__u64 rtransid;
+	struct btrfs_ioctl_timespec stime;
+	struct btrfs_ioctl_timespec rtime;
+	__u64 flags;
+	__u64 reserved[16];
+};
+
+struct btrfs_ioctl_get_subvol_info_args {
+	__u64 treeid;
+	char name[256];
+	__u64 parent_id;
+	__u64 dirid;
+	__u64 generation;
+	__u64 flags;
+	__u8 uuid[16];
+	__u8 parent_uuid[16];
+	__u8 received_uuid[16];
+	__u64 ctransid;
+	__u64 otransid;
+	__u64 stransid;
+	__u64 rtransid;
+	struct btrfs_ioctl_timespec ctime;
+	struct btrfs_ioctl_timespec otime;
+	struct btrfs_ioctl_timespec stime;
+	struct btrfs_ioctl_timespec rtime;
+	__u64 reserved[8];
+};
+
+struct btrfs_ioctl_get_subvol_rootref_args {
+	__u64 min_treeid;
+	struct {
+		__u64 treeid;
+		__u64 dirid;
+	} rootref[255];
+	__u8 num_items;
+	__u8 align[7];
+};
+
+struct btrfs_ioctl_encoded_io_args {
+	const struct iovec *iov;
+	long unsigned int iovcnt;
+	__s64 offset;
+	__u64 flags;
+	__u64 len;
+	__u64 unencoded_len;
+	__u64 unencoded_offset;
+	__u32 compression;
+	__u32 encryption;
+	__u8 reserved[64];
+};
+
+enum btrfs_err_code {
+	BTRFS_ERROR_DEV_RAID1_MIN_NOT_MET = 1,
+	BTRFS_ERROR_DEV_RAID10_MIN_NOT_MET = 2,
+	BTRFS_ERROR_DEV_RAID5_MIN_NOT_MET = 3,
+	BTRFS_ERROR_DEV_RAID6_MIN_NOT_MET = 4,
+	BTRFS_ERROR_DEV_TGT_REPLACE = 5,
+	BTRFS_ERROR_DEV_MISSING_NOT_FOUND = 6,
+	BTRFS_ERROR_DEV_ONLY_WRITABLE = 7,
+	BTRFS_ERROR_DEV_EXCL_RUN_IN_PROGRESS = 8,
+	BTRFS_ERROR_DEV_RAID1C3_MIN_NOT_MET = 9,
+	BTRFS_ERROR_DEV_RAID1C4_MIN_NOT_MET = 10,
+};
+
+struct btrfs_new_inode_args {
+	struct inode *dir;
+	struct dentry *dentry;
+	struct inode *inode;
+	bool orphan;
+	bool subvol;
+	struct posix_acl *default_acl;
+	struct posix_acl *acl;
+};
+
+struct btrfs_dev_lookup_args {
+	u64 devid;
+	u8 *uuid;
+	u8 *fsid;
+	bool missing;
+};
+
+struct inode_fs_paths {
+	struct btrfs_path *btrfs_path;
+	struct btrfs_root *fs_root;
+	struct btrfs_data_container *fspath;
+};
+
+struct btrfs_ioctl_timespec_32 {
+	__u64 sec;
+	__u32 nsec;
+} __attribute__((packed));
+
+struct btrfs_ioctl_received_subvol_args_32 {
+	char uuid[16];
+	__u64 stransid;
+	__u64 rtransid;
+	struct btrfs_ioctl_timespec_32 stime;
+	struct btrfs_ioctl_timespec_32 rtime;
+	__u64 flags;
+	__u64 reserved[16];
+} __attribute__((packed));
+
+struct btrfs_ioctl_send_args_32 {
+	__s64 send_fd;
+	__u64 clone_sources_count;
+	compat_uptr_t clone_sources;
+	__u64 parent_root;
+	__u64 flags;
+	__u32 version;
+	__u8 reserved[28];
+} __attribute__((packed));
+
+struct btrfs_ioctl_encoded_io_args_32 {
+	compat_uptr_t iov;
+	compat_ulong_t iovcnt;
+	__s64 offset;
+	__u64 flags;
+	__u64 len;
+	__u64 unencoded_len;
+	__u64 unencoded_offset;
+	__u32 compression;
+	__u32 encryption;
+	__u8 reserved[64];
+};
+
+struct defrag_target_range {
+	struct list_head list;
+	u64 start;
+	u64 len;
+};
+
+struct btrfs_delayed_item {
+	struct rb_node rb_node;
+	struct btrfs_key key;
+	struct list_head tree_list;
+	struct list_head readdir_list;
+	u64 bytes_reserved;
+	struct btrfs_delayed_node *delayed_node;
+	refcount_t refs;
+	int ins_or_del;
+	u32 data_len;
+	char data[0];
+};
+
+struct btrfs_async_delayed_work {
+	struct btrfs_delayed_root *delayed_root;
+	int nr;
+	struct btrfs_work work;
+};
+
+struct prop_handler {
+	struct hlist_node node;
+	const char *xattr_name;
+	int (*validate)(const struct btrfs_inode *, const char *, size_t);
+	int (*apply)(struct inode *, const char *, size_t);
+	const char * (*extract)(struct inode *);
+	bool (*ignore)(const struct btrfs_inode *);
+	int inheritable;
+};
+
+struct btrfs_replace_extent_info {
+	u64 disk_offset;
+	u64 disk_len;
+	u64 data_offset;
+	u64 data_len;
+	u64 file_offset;
+	char *extent_buf;
+	bool is_new_extent;
+	bool update_times;
+	int qgroup_reserved;
+	int insertions;
+};
+
+typedef unsigned int __kernel_mode_t;
+
+typedef unsigned int __kernel_uid_t;
+
+typedef unsigned int __kernel_gid_t;
+
+typedef __kernel_long_t __kernel_old_time_t;
+
+typedef short unsigned int ushort;
+
+typedef u16 __compat_uid_t;
+
+typedef u16 __compat_gid_t;
+
+typedef s32 compat_key_t;
+
+typedef u32 __compat_gid32_t;
+
+struct compat_ipc64_perm {
+	compat_key_t key;
+	__compat_uid32_t uid;
+	__compat_gid32_t gid;
+	__compat_uid32_t cuid;
+	__compat_gid32_t cgid;
+	compat_mode_t mode;
+	unsigned char __pad1[2];
+	compat_ushort_t seq;
+	compat_ushort_t __pad2;
+	compat_ulong_t unused1;
+	compat_ulong_t unused2;
+};
+
+struct compat_semid64_ds {
+	struct compat_ipc64_perm sem_perm;
+	compat_ulong_t sem_otime;
+	compat_ulong_t sem_otime_high;
+	compat_ulong_t sem_ctime;
+	compat_ulong_t sem_ctime_high;
+	compat_ulong_t sem_nsems;
+	compat_ulong_t __unused3;
+	compat_ulong_t __unused4;
+};
+
+struct ipc_perm {
+	__kernel_key_t key;
+	__kernel_uid_t uid;
+	__kernel_gid_t gid;
+	__kernel_uid_t cuid;
+	__kernel_gid_t cgid;
+	__kernel_mode_t mode;
+	short unsigned int seq;
+};
+
+struct ipc64_perm {
+	__kernel_key_t key;
+	__kernel_uid32_t uid;
+	__kernel_gid32_t gid;
+	__kernel_uid32_t cuid;
+	__kernel_gid32_t cgid;
+	__kernel_mode_t mode;
+	unsigned char __pad1[0];
+	short unsigned int seq;
+	short unsigned int __pad2;
+	__kernel_ulong_t __unused1;
+	__kernel_ulong_t __unused2;
+};
+
+struct sem;
+
+struct sem_queue;
+
+struct sem_undo;
+
+struct semid_ds {
+	struct ipc_perm sem_perm;
+	__kernel_old_time_t sem_otime;
+	__kernel_old_time_t sem_ctime;
+	struct sem *sem_base;
+	struct sem_queue *sem_pending;
+	struct sem_queue **sem_pending_last;
+	struct sem_undo *undo;
+	short unsigned int sem_nsems;
+};
+
+struct sem {
+	int semval;
+	struct pid *sempid;
+	spinlock_t lock;
+	struct list_head pending_alter;
+	struct list_head pending_const;
+	time64_t sem_otime;
+};
+
+struct sem_queue {
+	struct list_head list;
+	struct task_struct *sleeper;
+	struct sem_undo *undo;
+	struct pid *pid;
+	int status;
+	struct sembuf *sops;
+	struct sembuf *blocking;
+	int nsops;
+	bool alter;
+	bool dupsop;
+};
+
+struct sem_undo {
+	struct list_head list_proc;
+	struct callback_head rcu;
+	struct sem_undo_list *ulp;
+	struct list_head list_id;
+	int semid;
+	short int *semadj;
+};
+
+struct semid64_ds {
+	struct ipc64_perm sem_perm;
+	long int sem_otime;
+	long int sem_ctime;
+	long unsigned int sem_nsems;
+	long unsigned int __unused3;
+	long unsigned int __unused4;
+};
+
+struct seminfo {
+	int semmap;
+	int semmni;
+	int semmns;
+	int semmnu;
+	int semmsl;
+	int semopm;
+	int semume;
+	int semusz;
+	int semvmx;
+	int semaem;
+};
+
+struct sem_undo_list {
+	refcount_t refcnt;
+	spinlock_t lock;
+	struct list_head list_proc;
+};
+
+struct ipc_params {
+	key_t key;
+	int flg;
+	union {
+		size_t size;
+		int nsems;
+	} u;
+};
+
+struct ipc_ops {
+	int (*getnew)(struct ipc_namespace *, struct ipc_params *);
+	int (*associate)(struct kern_ipc_perm *, int);
+	int (*more_checks)(struct kern_ipc_perm *, struct ipc_params *);
+};
+
+struct compat_ipc_perm {
+	key_t key;
+	__compat_uid_t uid;
+	__compat_gid_t gid;
+	__compat_uid_t cuid;
+	__compat_gid_t cgid;
+	compat_mode_t mode;
+	short unsigned int seq;
+};
+
+struct sem_array {
+	struct kern_ipc_perm sem_perm;
+	time64_t sem_ctime;
+	struct list_head pending_alter;
+	struct list_head pending_const;
+	struct list_head list_id;
+	int sem_nsems;
+	int complex_count;
+	unsigned int use_global_lock;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct sem sems[0];
+};
+
+struct compat_semid_ds {
+	struct compat_ipc_perm sem_perm;
+	old_time32_t sem_otime;
+	old_time32_t sem_ctime;
+	compat_uptr_t sem_base;
+	compat_uptr_t sem_pending;
+	compat_uptr_t sem_pending_last;
+	compat_uptr_t undo;
+	short unsigned int sem_nsems;
+};
+
+enum key_state {
+	KEY_IS_UNINSTANTIATED = 0,
+	KEY_IS_POSITIVE = 1,
+};
+
+struct watch;
+
+struct watch_list {
+	struct callback_head rcu;
+	struct hlist_head watchers;
+	void (*release_watch)(struct watch *);
+	spinlock_t lock;
+};
+
+struct key_user {
+	struct rb_node node;
+	struct mutex cons_lock;
+	spinlock_t lock;
+	refcount_t usage;
+	atomic_t nkeys;
+	atomic_t nikeys;
+	kuid_t uid;
+	int qnkeys;
+	int qnbytes;
+};
+
+enum watch_notification_type {
+	WATCH_TYPE_META = 0,
+	WATCH_TYPE_KEY_NOTIFY = 1,
+	WATCH_TYPE__NR = 2,
+};
+
+struct watch_type_filter {
+	enum watch_notification_type type;
+	__u32 subtype_filter[1];
+	__u32 info_filter;
+	__u32 info_mask;
+};
+
+struct watch_filter {
+	union {
+		struct callback_head rcu;
+		long unsigned int type_filter[1];
+	};
+	u32 nr_filters;
+	struct watch_type_filter filters[0];
+};
+
+struct watch_queue {
+	struct callback_head rcu;
+	struct watch_filter *filter;
+	struct pipe_inode_info *pipe;
+	struct hlist_head watches;
+	struct page **notes;
+	long unsigned int *notes_bitmap;
+	struct kref usage;
+	spinlock_t lock;
+	unsigned int nr_notes;
+	unsigned int nr_pages;
+	bool defunct;
+};
+
+struct watch {
+	union {
+		struct callback_head rcu;
+		u32 info_id;
+	};
+	struct watch_queue *queue;
+	struct hlist_node queue_node;
+	struct watch_list *watch_list;
+	struct hlist_node list_node;
+	const struct cred *cred;
+	void *private;
+	u64 id;
+	struct kref usage;
+};
+
+struct keyctl_pkey_query {
+	__u32 supported_ops;
+	__u32 key_size;
+	__u16 max_data_size;
+	__u16 max_sig_size;
+	__u16 max_enc_size;
+	__u16 max_dec_size;
+	__u32 __spare[10];
+};
+
+struct keyctl_pkey_params {
+	__s32 key_id;
+	__u32 in_len;
+	union {
+		__u32 out_len;
+		__u32 in2_len;
+	};
+	__u32 __spare[7];
+};
+
+enum {
+	Opt_err___2 = 0,
+	Opt_enc = 1,
+	Opt_hash = 2,
+};
+
+struct tree_descr {
+	const char *name;
+	const struct file_operations *ops;
+	int mode;
+};
+
+struct netif_security_struct {
+	struct net *ns;
+	int ifindex;
+	u32 sid;
+};
+
+struct sel_netif {
+	struct list_head list;
+	struct netif_security_struct nsec;
+	struct callback_head callback_head;
+};
+
+struct netlbl_lsm_cache {
+	refcount_t refcount;
+	void (*free)(const void *);
+	void *data;
+};
+
+struct netlbl_lsm_catmap {
+	u32 startbit;
+	u64 bitmap[4];
+	struct netlbl_lsm_catmap *next;
+};
+
+struct netlbl_lsm_secattr {
+	u32 flags;
+	u32 type;
+	char *domain;
+	struct netlbl_lsm_cache *cache;
+	struct {
+		struct {
+			struct netlbl_lsm_catmap *cat;
+			u32 lvl;
+		} mls;
+		u32 secid;
+	} attr;
+};
+
+enum sctp_endpoint_type {
+	SCTP_EP_TYPE_SOCKET = 0,
+	SCTP_EP_TYPE_ASSOCIATION = 1,
+};
+
+struct sctp_chunk;
+
+struct sctp_inq {
+	struct list_head in_chunk_list;
+	struct sctp_chunk *in_progress;
+	struct work_struct immediate;
+};
+
+struct sctp_bind_addr {
+	__u16 port;
+	struct list_head address_list;
+};
+
+struct sctp_ep_common {
+	enum sctp_endpoint_type type;
+	refcount_t refcnt;
+	bool dead;
+	struct sock *sk;
+	struct net *net;
+	struct sctp_inq inqueue;
+	struct sctp_bind_addr bind_addr;
+};
+
+typedef __s32 sctp_assoc_t;
+
+union sctp_addr {
+	struct sockaddr_in v4;
+	struct sockaddr_in6 v6;
+	struct sockaddr sa;
+};
+
+struct sctp_chunkhdr {
+	__u8 type;
+	__u8 flags;
+	__be16 length;
+};
+
+struct sctp_inithdr {
+	__be32 init_tag;
+	__be32 a_rwnd;
+	__be16 num_outbound_streams;
+	__be16 num_inbound_streams;
+	__be32 initial_tsn;
+	__u8 params[0];
+};
+
+struct sctp_init_chunk {
+	struct sctp_chunkhdr chunk_hdr;
+	struct sctp_inithdr init_hdr;
+};
+
+struct sctp_cookie {
+	__u32 my_vtag;
+	__u32 peer_vtag;
+	__u32 my_ttag;
+	__u32 peer_ttag;
+	ktime_t expiration;
+	__u16 sinit_num_ostreams;
+	__u16 sinit_max_instreams;
+	__u32 initial_tsn;
+	union sctp_addr peer_addr;
+	__u16 my_port;
+	__u8 prsctp_capable;
+	__u8 padding;
+	__u32 adaptation_ind;
+	__u8 auth_random[36];
+	__u8 auth_hmacs[10];
+	__u8 auth_chunks[20];
+	__u32 raw_addr_list_len;
+	struct sctp_init_chunk peer_init[0];
+};
+
+struct sctp_tsnmap {
+	long unsigned int *tsn_map;
+	__u32 base_tsn;
+	__u32 cumulative_tsn_ack_point;
+	__u32 max_tsn_seen;
+	__u16 len;
+	__u16 pending_data;
+	__u16 num_dup_tsns;
+	__be32 dup_tsns[16];
+};
+
+struct sctp_inithdr_host {
+	__u32 init_tag;
+	__u32 a_rwnd;
+	__u16 num_outbound_streams;
+	__u16 num_inbound_streams;
+	__u32 initial_tsn;
+};
+
+enum sctp_state {
+	SCTP_STATE_CLOSED = 0,
+	SCTP_STATE_COOKIE_WAIT = 1,
+	SCTP_STATE_COOKIE_ECHOED = 2,
+	SCTP_STATE_ESTABLISHED = 3,
+	SCTP_STATE_SHUTDOWN_PENDING = 4,
+	SCTP_STATE_SHUTDOWN_SENT = 5,
+	SCTP_STATE_SHUTDOWN_RECEIVED = 6,
+	SCTP_STATE_SHUTDOWN_ACK_SENT = 7,
+};
+
+struct genradix_root;
+
+struct __genradix {
+	struct genradix_root *root;
+};
+
+struct sctp_stream_out_ext;
+
+struct sctp_stream_out {
+	union {
+		__u32 mid;
+		__u16 ssn;
+	};
+	__u32 mid_uo;
+	struct sctp_stream_out_ext *ext;
+	__u8 state;
+};
+
+struct sctp_stream_in {
+	union {
+		__u32 mid;
+		__u16 ssn;
+	};
+	__u32 mid_uo;
+	__u32 fsn;
+	__u32 fsn_uo;
+	char pd_mode;
+	char pd_mode_uo;
+};
+
+struct sctp_stream_interleave;
+
+struct sctp_stream {
+	struct {
+		struct __genradix tree;
+		struct sctp_stream_out type[0];
+	} out;
+	struct {
+		struct __genradix tree;
+		struct sctp_stream_in type[0];
+	} in;
+	__u16 outcnt;
+	__u16 incnt;
+	struct sctp_stream_out *out_curr;
+	union {
+		struct {
+			struct list_head prio_list;
+		};
+		struct {
+			struct list_head rr_list;
+			struct sctp_stream_out_ext *rr_next;
+		};
+	};
+	struct sctp_stream_interleave *si;
+};
+
+struct sctp_sched_ops;
+
+struct sctp_outq {
+	struct sctp_association *asoc;
+	struct list_head out_chunk_list;
+	struct sctp_sched_ops *sched;
+	unsigned int out_qlen;
+	unsigned int error;
+	struct list_head control_chunk_list;
+	struct list_head sacked;
+	struct list_head retransmit;
+	struct list_head abandoned;
+	__u32 outstanding_bytes;
+	char fast_rtx;
+	char cork;
+};
+
+struct sctp_ulpq {
+	char pd_mode;
+	struct sctp_association *asoc;
+	struct sk_buff_head reasm;
+	struct sk_buff_head reasm_uo;
+	struct sk_buff_head lobby;
+};
+
+struct sctp_priv_assoc_stats {
+	struct __kernel_sockaddr_storage obs_rto_ipaddr;
+	__u64 max_obs_rto;
+	__u64 isacks;
+	__u64 osacks;
+	__u64 opackets;
+	__u64 ipackets;
+	__u64 rtxchunks;
+	__u64 outofseqtsns;
+	__u64 idupchunks;
+	__u64 gapcnt;
+	__u64 ouodchunks;
+	__u64 iuodchunks;
+	__u64 oodchunks;
+	__u64 iodchunks;
+	__u64 octrlchunks;
+	__u64 ictrlchunks;
+};
+
+struct sctp_endpoint;
+
+struct sctp_transport;
+
+struct sctp_random_param;
+
+struct sctp_chunks_param;
+
+struct sctp_hmac_algo_param;
+
+struct sctp_auth_bytes;
+
+struct sctp_shared_key;
+
+struct sctp_association {
+	struct sctp_ep_common base;
+	struct list_head asocs;
+	sctp_assoc_t assoc_id;
+	struct sctp_endpoint *ep;
+	struct sctp_cookie c;
+	struct {
+		struct list_head transport_addr_list;
+		__u32 rwnd;
+		__u16 transport_count;
+		__u16 port;
+		struct sctp_transport *primary_path;
+		union sctp_addr primary_addr;
+		struct sctp_transport *active_path;
+		struct sctp_transport *retran_path;
+		struct sctp_transport *last_sent_to;
+		struct sctp_transport *last_data_from;
+		struct sctp_tsnmap tsn_map;
+		__be16 addip_disabled_mask;
+		__u16 ecn_capable: 1;
+		__u16 ipv4_address: 1;
+		__u16 ipv6_address: 1;
+		__u16 hostname_address: 1;
+		__u16 asconf_capable: 1;
+		__u16 prsctp_capable: 1;
+		__u16 reconf_capable: 1;
+		__u16 intl_capable: 1;
+		__u16 auth_capable: 1;
+		__u16 sack_needed: 1;
+		__u16 sack_generation: 1;
+		__u16 zero_window_announced: 1;
+		__u32 sack_cnt;
+		__u32 adaptation_ind;
+		struct sctp_inithdr_host i;
+		void *cookie;
+		int cookie_len;
+		__u32 addip_serial;
+		struct sctp_random_param *peer_random;
+		struct sctp_chunks_param *peer_chunks;
+		struct sctp_hmac_algo_param *peer_hmacs;
+	} peer;
+	enum sctp_state state;
+	int overall_error_count;
+	ktime_t cookie_life;
+	long unsigned int rto_initial;
+	long unsigned int rto_max;
+	long unsigned int rto_min;
+	int max_burst;
+	int max_retrans;
+	__u16 pf_retrans;
+	__u16 ps_retrans;
+	__u16 max_init_attempts;
+	__u16 init_retries;
+	long unsigned int max_init_timeo;
+	long unsigned int hbinterval;
+	long unsigned int probe_interval;
+	__be16 encap_port;
+	__u16 pathmaxrxt;
+	__u32 flowlabel;
+	__u8 dscp;
+	__u8 pmtu_pending;
+	__u32 pathmtu;
+	__u32 param_flags;
+	__u32 sackfreq;
+	long unsigned int sackdelay;
+	long unsigned int timeouts[12];
+	struct timer_list timers[12];
+	struct sctp_transport *shutdown_last_sent_to;
+	struct sctp_transport *init_last_sent_to;
+	int shutdown_retries;
+	__u32 next_tsn;
+	__u32 ctsn_ack_point;
+	__u32 adv_peer_ack_point;
+	__u32 highest_sacked;
+	__u32 fast_recovery_exit;
+	__u8 fast_recovery;
+	__u16 unack_data;
+	__u32 rtx_data_chunks;
+	__u32 rwnd;
+	__u32 a_rwnd;
+	__u32 rwnd_over;
+	__u32 rwnd_press;
+	int sndbuf_used;
+	atomic_t rmem_alloc;
+	wait_queue_head_t wait;
+	__u32 frag_point;
+	__u32 user_frag;
+	int init_err_counter;
+	int init_cycle;
+	__u16 default_stream;
+	__u16 default_flags;
+	__u32 default_ppid;
+	__u32 default_context;
+	__u32 default_timetolive;
+	__u32 default_rcv_context;
+	struct sctp_stream stream;
+	struct sctp_outq outqueue;
+	struct sctp_ulpq ulpq;
+	__u32 last_ecne_tsn;
+	__u32 last_cwr_tsn;
+	int numduptsns;
+	struct sctp_chunk *addip_last_asconf;
+	struct list_head asconf_ack_list;
+	struct list_head addip_chunk_list;
+	__u32 addip_serial;
+	int src_out_of_asoc_ok;
+	union sctp_addr *asconf_addr_del_pending;
+	struct sctp_transport *new_transport;
+	struct list_head endpoint_shared_keys;
+	struct sctp_auth_bytes *asoc_shared_key;
+	struct sctp_shared_key *shkey;
+	__u16 default_hmac_id;
+	__u16 active_key_id;
+	__u8 need_ecne: 1;
+	__u8 temp: 1;
+	__u8 pf_expose: 2;
+	__u8 force_delay: 1;
+	__u8 strreset_enable;
+	__u8 strreset_outstanding;
+	__u32 strreset_outseq;
+	__u32 strreset_inseq;
+	__u32 strreset_result[2];
+	struct sctp_chunk *strreset_chunk;
+	struct sctp_priv_assoc_stats stats;
+	int sent_cnt_removable;
+	__u16 subscribe;
+	__u64 abandoned_unsent[3];
+	__u64 abandoned_sent[3];
+	u32 secid;
+	u32 peer_secid;
+	struct callback_head rcu;
+};
+
+struct sk_security_struct {
+	enum {
+		NLBL_UNSET = 0,
+		NLBL_REQUIRE = 1,
+		NLBL_LABELED = 2,
+		NLBL_REQSKB = 3,
+		NLBL_CONNLABELED = 4,
+	} nlbl_state;
+	struct netlbl_lsm_secattr *nlbl_secattr;
+	u32 sid;
+	u32 peer_sid;
+	u16 sclass;
+	enum {
+		SCTP_ASSOC_UNSET = 0,
+		SCTP_ASSOC_SET = 1,
+	} sctp_assoc_state;
+};
+
+struct sctp_initmsg {
+	__u16 sinit_num_ostreams;
+	__u16 sinit_max_instreams;
+	__u16 sinit_max_attempts;
+	__u16 sinit_max_init_timeo;
+};
+
+struct sctp_sndrcvinfo {
+	__u16 sinfo_stream;
+	__u16 sinfo_ssn;
+	__u16 sinfo_flags;
+	__u32 sinfo_ppid;
+	__u32 sinfo_context;
+	__u32 sinfo_timetolive;
+	__u32 sinfo_tsn;
+	__u32 sinfo_cumtsn;
+	sctp_assoc_t sinfo_assoc_id;
+};
+
+struct sctp_rtoinfo {
+	sctp_assoc_t srto_assoc_id;
+	__u32 srto_initial;
+	__u32 srto_max;
+	__u32 srto_min;
+};
+
+struct sctp_assocparams {
+	sctp_assoc_t sasoc_assoc_id;
+	__u16 sasoc_asocmaxrxt;
+	__u16 sasoc_number_peer_destinations;
+	__u32 sasoc_peer_rwnd;
+	__u32 sasoc_local_rwnd;
+	__u32 sasoc_cookie_life;
+};
+
+struct sctp_paddrparams {
+	sctp_assoc_t spp_assoc_id;
+	struct __kernel_sockaddr_storage spp_address;
+	__u32 spp_hbinterval;
+	__u16 spp_pathmaxrxt;
+	__u32 spp_pathmtu;
+	__u32 spp_sackdelay;
+	__u32 spp_flags;
+	__u32 spp_ipv6_flowlabel;
+	__u8 spp_dscp;
+	char: 8;
+} __attribute__((packed));
+
+struct sctphdr {
+	__be16 source;
+	__be16 dest;
+	__be32 vtag;
+	__le32 checksum;
+};
+
+struct sctp_paramhdr {
+	__be16 type;
+	__be16 length;
+};
+
+struct sctp_datahdr {
+	__be32 tsn;
+	__be16 stream;
+	__be16 ssn;
+	__u32 ppid;
+	__u8 payload[0];
+};
+
+struct sctp_idatahdr {
+	__be32 tsn;
+	__be16 stream;
+	__be16 reserved;
+	__be32 mid;
+	union {
+		__u32 ppid;
+		__be32 fsn;
+	};
+	__u8 payload[0];
+};
+
+struct sctp_ipv4addr_param {
+	struct sctp_paramhdr param_hdr;
+	struct in_addr addr;
+};
+
+struct sctp_ipv6addr_param {
+	struct sctp_paramhdr param_hdr;
+	struct in6_addr addr;
+};
+
+struct sctp_cookie_preserve_param {
+	struct sctp_paramhdr param_hdr;
+	__be32 lifespan_increment;
+};
+
+struct sctp_hostname_param {
+	struct sctp_paramhdr param_hdr;
+	uint8_t hostname[0];
+};
+
+struct sctp_supported_addrs_param {
+	struct sctp_paramhdr param_hdr;
+	__be16 types[0];
+};
+
+struct sctp_adaptation_ind_param {
+	struct sctp_paramhdr param_hdr;
+	__be32 adaptation_ind;
+};
+
+struct sctp_supported_ext_param {
+	struct sctp_paramhdr param_hdr;
+	__u8 chunks[0];
+};
+
+struct sctp_random_param {
+	struct sctp_paramhdr param_hdr;
+	__u8 random_val[0];
+};
+
+struct sctp_chunks_param {
+	struct sctp_paramhdr param_hdr;
+	__u8 chunks[0];
+};
+
+struct sctp_hmac_algo_param {
+	struct sctp_paramhdr param_hdr;
+	__be16 hmac_ids[0];
+};
+
+struct sctp_cookie_param {
+	struct sctp_paramhdr p;
+	__u8 body[0];
+};
+
+struct sctp_gap_ack_block {
+	__be16 start;
+	__be16 end;
+};
+
+union sctp_sack_variable {
+	struct sctp_gap_ack_block gab;
+	__be32 dup;
+};
+
+struct sctp_sackhdr {
+	__be32 cum_tsn_ack;
+	__be32 a_rwnd;
+	__be16 num_gap_ack_blocks;
+	__be16 num_dup_tsns;
+	union sctp_sack_variable variable[0];
+};
+
+struct sctp_heartbeathdr {
+	struct sctp_paramhdr info;
+};
+
+struct sctp_shutdownhdr {
+	__be32 cum_tsn_ack;
+};
+
+struct sctp_errhdr {
+	__be16 cause;
+	__be16 length;
+	__u8 variable[0];
+};
+
+struct sctp_ecnehdr {
+	__be32 lowest_tsn;
+};
+
+struct sctp_cwrhdr {
+	__be32 lowest_tsn;
+};
+
+struct sctp_fwdtsn_skip {
+	__be16 stream;
+	__be16 ssn;
+};
+
+struct sctp_fwdtsn_hdr {
+	__be32 new_cum_tsn;
+	struct sctp_fwdtsn_skip skip[0];
+};
+
+struct sctp_ifwdtsn_skip {
+	__be16 stream;
+	__u8 reserved;
+	__u8 flags;
+	__be32 mid;
+};
+
+struct sctp_ifwdtsn_hdr {
+	__be32 new_cum_tsn;
+	struct sctp_ifwdtsn_skip skip[0];
+};
+
+struct sctp_addip_param {
+	struct sctp_paramhdr param_hdr;
+	__be32 crr_id;
+};
+
+struct sctp_addiphdr {
+	__be32 serial;
+	__u8 params[0];
+};
+
+struct sctp_authhdr {
+	__be16 shkey_id;
+	__be16 hmac_id;
+	__u8 hmac[0];
+};
+
+struct sctp_auth_bytes {
+	refcount_t refcnt;
+	__u32 len;
+	__u8 data[0];
+};
+
+struct sctp_shared_key {
+	struct list_head key_list;
+	struct sctp_auth_bytes *key;
+	refcount_t refcnt;
+	__u16 key_id;
+	__u8 deactivated;
+};
+
+enum sctp_scope {
+	SCTP_SCOPE_GLOBAL = 0,
+	SCTP_SCOPE_PRIVATE = 1,
+	SCTP_SCOPE_LINK = 2,
+	SCTP_SCOPE_LOOPBACK = 3,
+	SCTP_SCOPE_UNUSABLE = 4,
+};
+
+struct sctp_ulpevent {
+	struct sctp_association *asoc;
+	struct sctp_chunk *chunk;
+	unsigned int rmem_len;
+	union {
+		__u32 mid;
+		__u16 ssn;
+	};
+	union {
+		__u32 ppid;
+		__u32 fsn;
+	};
+	__u32 tsn;
+	__u32 cumtsn;
+	__u16 stream;
+	__u16 flags;
+	__u16 msg_flags;
+} __attribute__((packed));
+
+union sctp_addr_param;
+
+union sctp_params {
+	void *v;
+	struct sctp_paramhdr *p;
+	struct sctp_cookie_preserve_param *life;
+	struct sctp_hostname_param *dns;
+	struct sctp_cookie_param *cookie;
+	struct sctp_supported_addrs_param *sat;
+	struct sctp_ipv4addr_param *v4;
+	struct sctp_ipv6addr_param *v6;
+	union sctp_addr_param *addr;
+	struct sctp_adaptation_ind_param *aind;
+	struct sctp_supported_ext_param *ext;
+	struct sctp_random_param *random;
+	struct sctp_chunks_param *chunks;
+	struct sctp_hmac_algo_param *hmac_algo;
+	struct sctp_addip_param *addip;
+};
+
+struct sctp_sender_hb_info;
+
+struct sctp_signed_cookie;
+
+struct sctp_datamsg;
+
+struct sctp_chunk {
+	struct list_head list;
+	refcount_t refcnt;
+	int sent_count;
+	union {
+		struct list_head transmitted_list;
+		struct list_head stream_list;
+	};
+	struct list_head frag_list;
+	struct sk_buff *skb;
+	union {
+		struct sk_buff *head_skb;
+		struct sctp_shared_key *shkey;
+	};
+	union sctp_params param_hdr;
+	union {
+		__u8 *v;
+		struct sctp_datahdr *data_hdr;
+		struct sctp_inithdr *init_hdr;
+		struct sctp_sackhdr *sack_hdr;
+		struct sctp_heartbeathdr *hb_hdr;
+		struct sctp_sender_hb_info *hbs_hdr;
+		struct sctp_shutdownhdr *shutdown_hdr;
+		struct sctp_signed_cookie *cookie_hdr;
+		struct sctp_ecnehdr *ecne_hdr;
+		struct sctp_cwrhdr *ecn_cwr_hdr;
+		struct sctp_errhdr *err_hdr;
+		struct sctp_addiphdr *addip_hdr;
+		struct sctp_fwdtsn_hdr *fwdtsn_hdr;
+		struct sctp_authhdr *auth_hdr;
+		struct sctp_idatahdr *idata_hdr;
+		struct sctp_ifwdtsn_hdr *ifwdtsn_hdr;
+	} subh;
+	__u8 *chunk_end;
+	struct sctp_chunkhdr *chunk_hdr;
+	struct sctphdr *sctp_hdr;
+	struct sctp_sndrcvinfo sinfo;
+	struct sctp_association *asoc;
+	struct sctp_ep_common *rcvr;
+	long unsigned int sent_at;
+	union sctp_addr source;
+	union sctp_addr dest;
+	struct sctp_datamsg *msg;
+	struct sctp_transport *transport;
+	struct sk_buff *auth_chunk;
+	__u16 rtt_in_progress: 1;
+	__u16 has_tsn: 1;
+	__u16 has_ssn: 1;
+	__u16 singleton: 1;
+	__u16 end_of_packet: 1;
+	__u16 ecn_ce_done: 1;
+	__u16 pdiscard: 1;
+	__u16 tsn_gap_acked: 1;
+	__u16 data_accepted: 1;
+	__u16 auth: 1;
+	__u16 has_asconf: 1;
+	__u16 pmtu_probe: 1;
+	__u16 tsn_missing_report: 2;
+	__u16 fast_retransmit: 2;
+};
+
+struct sctp_stream_interleave {
+	__u16 data_chunk_len;
+	__u16 ftsn_chunk_len;
+	struct sctp_chunk * (*make_datafrag)(const struct sctp_association *, const struct sctp_sndrcvinfo *, int, __u8, gfp_t);
+	void (*assign_number)(struct sctp_chunk *);
+	bool (*validate_data)(struct sctp_chunk *);
+	int (*ulpevent_data)(struct sctp_ulpq *, struct sctp_chunk *, gfp_t);
+	int (*enqueue_event)(struct sctp_ulpq *, struct sctp_ulpevent *);
+	void (*renege_events)(struct sctp_ulpq *, struct sctp_chunk *, gfp_t);
+	void (*start_pd)(struct sctp_ulpq *, gfp_t);
+	void (*abort_pd)(struct sctp_ulpq *, gfp_t);
+	void (*generate_ftsn)(struct sctp_outq *, __u32);
+	bool (*validate_ftsn)(struct sctp_chunk *);
+	void (*report_ftsn)(struct sctp_ulpq *, __u32);
+	void (*handle_ftsn)(struct sctp_ulpq *, struct sctp_chunk *);
+};
+
+struct sctp_bind_bucket {
+	short unsigned int port;
+	signed char fastreuse;
+	signed char fastreuseport;
+	kuid_t fastuid;
+	struct hlist_node node;
+	struct hlist_head owner;
+	struct net *net;
+};
+
+enum sctp_socket_type {
+	SCTP_SOCKET_UDP = 0,
+	SCTP_SOCKET_UDP_HIGH_BANDWIDTH = 1,
+	SCTP_SOCKET_TCP = 2,
+};
+
+struct sctp_pf;
+
+struct sctp_sock {
+	struct inet_sock inet;
+	enum sctp_socket_type type;
+	int: 32;
+	struct sctp_pf *pf;
+	struct crypto_shash *hmac;
+	char *sctp_hmac_alg;
+	struct sctp_endpoint *ep;
+	struct sctp_bind_bucket *bind_hash;
+	__u16 default_stream;
+	short: 16;
+	__u32 default_ppid;
+	__u16 default_flags;
+	short: 16;
+	__u32 default_context;
+	__u32 default_timetolive;
+	__u32 default_rcv_context;
+	int max_burst;
+	__u32 hbinterval;
+	__u32 probe_interval;
+	__be16 udp_port;
+	__be16 encap_port;
+	__u16 pathmaxrxt;
+	short: 16;
+	__u32 flowlabel;
+	__u8 dscp;
+	char: 8;
+	__u16 pf_retrans;
+	__u16 ps_retrans;
+	short: 16;
+	__u32 pathmtu;
+	__u32 sackdelay;
+	__u32 sackfreq;
+	__u32 param_flags;
+	__u32 default_ss;
+	struct sctp_rtoinfo rtoinfo;
+	struct sctp_paddrparams paddrparam;
+	struct sctp_assocparams assocparams;
+	__u16 subscribe;
+	struct sctp_initmsg initmsg;
+	short: 16;
+	int user_frag;
+	__u32 autoclose;
+	__u32 adaptation_ind;
+	__u32 pd_point;
+	__u16 nodelay: 1;
+	__u16 pf_expose: 2;
+	__u16 reuse: 1;
+	__u16 disable_fragments: 1;
+	__u16 v4mapped: 1;
+	__u16 frag_interleave: 1;
+	__u16 recvrcvinfo: 1;
+	__u16 recvnxtinfo: 1;
+	__u16 data_ready_signalled: 1;
+	int: 22;
+	atomic_t pd_mode;
+	struct sk_buff_head pd_lobby;
+	struct list_head auto_asconf_list;
+	int do_auto_asconf;
+	int: 32;
+} __attribute__((packed));
+
+struct sctp_af;
+
+struct sctp_pf {
+	void (*event_msgname)(struct sctp_ulpevent *, char *, int *);
+	void (*skb_msgname)(struct sk_buff *, char *, int *);
+	int (*af_supported)(sa_family_t, struct sctp_sock *);
+	int (*cmp_addr)(const union sctp_addr *, const union sctp_addr *, struct sctp_sock *);
+	int (*bind_verify)(struct sctp_sock *, union sctp_addr *);
+	int (*send_verify)(struct sctp_sock *, union sctp_addr *);
+	int (*supported_addrs)(const struct sctp_sock *, __be16 *);
+	struct sock * (*create_accept_sk)(struct sock *, struct sctp_association *, bool);
+	int (*addr_to_user)(struct sctp_sock *, union sctp_addr *);
+	void (*to_sk_saddr)(union sctp_addr *, struct sock *);
+	void (*to_sk_daddr)(union sctp_addr *, struct sock *);
+	void (*copy_ip_options)(struct sock *, struct sock *);
+	struct sctp_af *af;
+};
+
+struct sctp_endpoint {
+	struct sctp_ep_common base;
+	struct hlist_node node;
+	int hashent;
+	struct list_head asocs;
+	__u8 secret_key[32];
+	__u8 *digest;
+	__u32 sndbuf_policy;
+	__u32 rcvbuf_policy;
+	struct crypto_shash **auth_hmacs;
+	struct sctp_hmac_algo_param *auth_hmacs_list;
+	struct sctp_chunks_param *auth_chunk_list;
+	struct list_head endpoint_shared_keys;
+	__u16 active_key_id;
+	__u8 ecn_enable: 1;
+	__u8 auth_enable: 1;
+	__u8 intl_enable: 1;
+	__u8 prsctp_enable: 1;
+	__u8 asconf_enable: 1;
+	__u8 reconf_enable: 1;
+	__u8 strreset_enable;
+	struct callback_head rcu;
+};
+
+struct sctp_signed_cookie {
+	__u8 signature[32];
+	__u32 __pad;
+	struct sctp_cookie c;
+} __attribute__((packed));
+
+union sctp_addr_param {
+	struct sctp_paramhdr p;
+	struct sctp_ipv4addr_param v4;
+	struct sctp_ipv6addr_param v6;
+};
+
+struct sctp_sender_hb_info {
+	struct sctp_paramhdr param_hdr;
+	union sctp_addr daddr;
+	long unsigned int sent_at;
+	__u64 hb_nonce;
+	__u32 probe_size;
+};
+
+struct sctp_af {
+	int (*sctp_xmit)(struct sk_buff *, struct sctp_transport *);
+	int (*setsockopt)(struct sock *, int, int, sockptr_t, unsigned int);
+	int (*getsockopt)(struct sock *, int, int, char *, int *);
+	void (*get_dst)(struct sctp_transport *, union sctp_addr *, struct flowi *, struct sock *);
+	void (*get_saddr)(struct sctp_sock *, struct sctp_transport *, struct flowi *);
+	void (*copy_addrlist)(struct list_head *, struct net_device *);
+	int (*cmp_addr)(const union sctp_addr *, const union sctp_addr *);
+	void (*addr_copy)(union sctp_addr *, union sctp_addr *);
+	void (*from_skb)(union sctp_addr *, struct sk_buff *, int);
+	void (*from_sk)(union sctp_addr *, struct sock *);
+	bool (*from_addr_param)(union sctp_addr *, union sctp_addr_param *, __be16, int);
+	int (*to_addr_param)(const union sctp_addr *, union sctp_addr_param *);
+	int (*addr_valid)(union sctp_addr *, struct sctp_sock *, const struct sk_buff *);
+	enum sctp_scope (*scope)(union sctp_addr *);
+	void (*inaddr_any)(union sctp_addr *, __be16);
+	int (*is_any)(const union sctp_addr *);
+	int (*available)(union sctp_addr *, struct sctp_sock *);
+	int (*skb_iif)(const struct sk_buff *);
+	int (*is_ce)(const struct sk_buff *);
+	void (*seq_dump_addr)(struct seq_file *, union sctp_addr *);
+	void (*ecn_capable)(struct sock *);
+	__u16 net_header_len;
+	int sockaddr_len;
+	int (*ip_options_len)(struct sock *);
+	sa_family_t sa_family;
+	struct list_head list;
+};
+
+struct sctp_packet {
+	__u16 source_port;
+	__u16 destination_port;
+	__u32 vtag;
+	struct list_head chunk_list;
+	size_t overhead;
+	size_t size;
+	size_t max_size;
+	struct sctp_transport *transport;
+	struct sctp_chunk *auth;
+	u8 has_cookie_echo: 1;
+	u8 has_sack: 1;
+	u8 has_auth: 1;
+	u8 has_data: 1;
+	u8 ipfragok: 1;
+};
+
+struct sctp_transport {
+	struct list_head transports;
+	struct rhlist_head node;
+	refcount_t refcnt;
+	__u32 rto_pending: 1;
+	__u32 hb_sent: 1;
+	__u32 pmtu_pending: 1;
+	__u32 dst_pending_confirm: 1;
+	__u32 sack_generation: 1;
+	u32 dst_cookie;
+	struct flowi fl;
+	union sctp_addr ipaddr;
+	struct sctp_af *af_specific;
+	struct sctp_association *asoc;
+	long unsigned int rto;
+	__u32 rtt;
+	__u32 rttvar;
+	__u32 srtt;
+	__u32 cwnd;
+	__u32 ssthresh;
+	__u32 partial_bytes_acked;
+	__u32 flight_size;
+	__u32 burst_limited;
+	struct dst_entry *dst;
+	union sctp_addr saddr;
+	long unsigned int hbinterval;
+	long unsigned int probe_interval;
+	long unsigned int sackdelay;
+	__u32 sackfreq;
+	atomic_t mtu_info;
+	ktime_t last_time_heard;
+	long unsigned int last_time_sent;
+	long unsigned int last_time_ecne_reduced;
+	__be16 encap_port;
+	__u16 pathmaxrxt;
+	__u32 flowlabel;
+	__u8 dscp;
+	__u16 pf_retrans;
+	__u16 ps_retrans;
+	__u32 pathmtu;
+	__u32 param_flags;
+	int init_sent_count;
+	int state;
+	short unsigned int error_count;
+	struct timer_list T3_rtx_timer;
+	struct timer_list hb_timer;
+	struct timer_list proto_unreach_timer;
+	struct timer_list reconf_timer;
+	struct timer_list probe_timer;
+	struct list_head transmitted;
+	struct sctp_packet packet;
+	struct list_head send_ready;
+	struct {
+		__u32 next_tsn_at_change;
+		char changeover_active;
+		char cycling_changeover;
+		char cacc_saw_newack;
+	} cacc;
+	struct {
+		__u16 pmtu;
+		__u16 probe_size;
+		__u16 probe_high;
+		__u8 probe_count;
+		__u8 state;
+	} pl;
+	__u64 hb_nonce;
+	struct callback_head rcu;
+};
+
+struct sctp_datamsg {
+	struct list_head chunks;
+	refcount_t refcnt;
+	long unsigned int expires_at;
+	int send_error;
+	u8 send_failed: 1;
+	u8 can_delay: 1;
+	u8 abandoned: 1;
+};
+
+struct sctp_stream_priorities {
+	struct list_head prio_sched;
+	struct list_head active;
+	struct sctp_stream_out_ext *next;
+	__u16 prio;
+};
+
+struct sctp_stream_out_ext {
+	__u64 abandoned_unsent[3];
+	__u64 abandoned_sent[3];
+	struct list_head outq;
+	union {
+		struct {
+			struct list_head prio_list;
+			struct sctp_stream_priorities *prio_head;
+		};
+		struct {
+			struct list_head rr_list;
+		};
+	};
+};
+
+typedef u16 access_mask_t;
+
+struct landlock_hierarchy {
+	struct landlock_hierarchy *parent;
+	refcount_t usage;
+};
+
+struct landlock_ruleset {
+	struct rb_root root;
+	struct landlock_hierarchy *hierarchy;
+	union {
+		struct work_struct work_free;
+		struct {
+			struct mutex lock;
+			refcount_t usage;
+			u32 num_rules;
+			u32 num_layers;
+			access_mask_t fs_access_masks[0];
+		};
+	};
+};
+
+struct landlock_cred_security {
+	struct landlock_ruleset *domain;
+};
+
+enum tpm_algorithms {
+	TPM_ALG_ERROR = 0,
+	TPM_ALG_SHA1 = 4,
+	TPM_ALG_KEYEDHASH = 8,
+	TPM_ALG_SHA256 = 11,
+	TPM_ALG_SHA384 = 12,
+	TPM_ALG_SHA512 = 13,
+	TPM_ALG_NULL = 16,
+	TPM_ALG_SM3_256 = 18,
+};
+
+enum tpm_pcrs {
+	TPM_PCR0 = 0,
+	TPM_PCR8 = 8,
+	TPM_PCR10 = 10,
+};
+
+struct ima_algo_desc {
+	struct crypto_shash *tfm;
+	enum hash_algo algo;
+};
+
+enum efi_secureboot_mode {
+	efi_secureboot_mode_unset = 0,
+	efi_secureboot_mode_unknown = 1,
+	efi_secureboot_mode_disabled = 2,
+	efi_secureboot_mode_enabled = 3,
+};
+
+struct encrypted_key_payload {
+	struct callback_head rcu;
+	char *format;
+	char *master_desc;
+	char *datalen;
+	u8 *iv;
+	u8 *encrypted_data;
+	short unsigned int datablob_len;
+	short unsigned int decrypted_datalen;
+	short unsigned int payload_datalen;
+	short unsigned int encrypted_key_format;
+	u8 *decrypted_data;
+	u8 payload_data[0];
+};
+
+enum evm_ima_xattr_type {
+	IMA_XATTR_DIGEST = 1,
+	EVM_XATTR_HMAC = 2,
+	EVM_IMA_XATTR_DIGSIG = 3,
+	IMA_XATTR_DIGEST_NG = 4,
+	EVM_XATTR_PORTABLE_DIGSIG = 5,
+	IMA_VERITY_DIGSIG = 6,
+	IMA_XATTR_LAST = 7,
+};
+
+struct xattr_list {
+	struct list_head list;
+	char *name;
+	bool enabled;
+};
+
+struct evm_digest {
+	struct ima_digest_data hdr;
+	char digest[64];
+};
+
+struct h_misc {
+	long unsigned int ino;
+	__u32 generation;
+	uid_t uid;
+	gid_t gid;
+	umode_t mode;
+};
+
+struct crypto_report_akcipher {
+	char type[64];
+};
+
+struct akcipher_instance {
+	void (*free)(struct akcipher_instance *);
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	union {
+		struct {
+			char head[128];
+			struct crypto_instance base;
+		} s;
+		struct akcipher_alg alg;
+	};
+};
+
+struct crypto_akcipher_spawn {
+	struct crypto_spawn base;
+};
+
+enum asn1_class {
+	ASN1_UNIV = 0,
+	ASN1_APPL = 1,
+	ASN1_CONT = 2,
+	ASN1_PRIV = 3,
+};
+
+enum asn1_method {
+	ASN1_PRIM = 0,
+	ASN1_CONS = 1,
+};
+
+enum asn1_tag {
+	ASN1_EOC = 0,
+	ASN1_BOOL = 1,
+	ASN1_INT = 2,
+	ASN1_BTS = 3,
+	ASN1_OTS = 4,
+	ASN1_NULL = 5,
+	ASN1_OID = 6,
+	ASN1_ODE = 7,
+	ASN1_EXT = 8,
+	ASN1_REAL = 9,
+	ASN1_ENUM = 10,
+	ASN1_EPDV = 11,
+	ASN1_UTF8STR = 12,
+	ASN1_RELOID = 13,
+	ASN1_SEQ = 16,
+	ASN1_SET = 17,
+	ASN1_NUMSTR = 18,
+	ASN1_PRNSTR = 19,
+	ASN1_TEXSTR = 20,
+	ASN1_VIDSTR = 21,
+	ASN1_IA5STR = 22,
+	ASN1_UNITIM = 23,
+	ASN1_GENTIM = 24,
+	ASN1_GRASTR = 25,
+	ASN1_VISSTR = 26,
+	ASN1_GENSTR = 27,
+	ASN1_UNISTR = 28,
+	ASN1_CHRSTR = 29,
+	ASN1_BMPSTR = 30,
+	ASN1_LONG_TAG = 31,
+};
+
+typedef int (*asn1_action_t)(void *, size_t, unsigned char, const void *, size_t);
+
+struct asn1_decoder {
+	const unsigned char *machine;
+	size_t machlen;
+	const asn1_action_t *actions;
+};
+
+enum asn1_opcode {
+	ASN1_OP_MATCH = 0,
+	ASN1_OP_MATCH_OR_SKIP = 1,
+	ASN1_OP_MATCH_ACT = 2,
+	ASN1_OP_MATCH_ACT_OR_SKIP = 3,
+	ASN1_OP_MATCH_JUMP = 4,
+	ASN1_OP_MATCH_JUMP_OR_SKIP = 5,
+	ASN1_OP_MATCH_ANY = 8,
+	ASN1_OP_MATCH_ANY_OR_SKIP = 9,
+	ASN1_OP_MATCH_ANY_ACT = 10,
+	ASN1_OP_MATCH_ANY_ACT_OR_SKIP = 11,
+	ASN1_OP_COND_MATCH_OR_SKIP = 17,
+	ASN1_OP_COND_MATCH_ACT_OR_SKIP = 19,
+	ASN1_OP_COND_MATCH_JUMP_OR_SKIP = 21,
+	ASN1_OP_COND_MATCH_ANY = 24,
+	ASN1_OP_COND_MATCH_ANY_OR_SKIP = 25,
+	ASN1_OP_COND_MATCH_ANY_ACT = 26,
+	ASN1_OP_COND_MATCH_ANY_ACT_OR_SKIP = 27,
+	ASN1_OP_COND_FAIL = 28,
+	ASN1_OP_COMPLETE = 29,
+	ASN1_OP_ACT = 30,
+	ASN1_OP_MAYBE_ACT = 31,
+	ASN1_OP_END_SEQ = 32,
+	ASN1_OP_END_SET = 33,
+	ASN1_OP_END_SEQ_OF = 34,
+	ASN1_OP_END_SET_OF = 35,
+	ASN1_OP_END_SEQ_ACT = 36,
+	ASN1_OP_END_SET_ACT = 37,
+	ASN1_OP_END_SEQ_OF_ACT = 38,
+	ASN1_OP_END_SET_OF_ACT = 39,
+	ASN1_OP_RETURN = 40,
+	ASN1_OP__NR = 41,
+};
+
+enum rsapubkey_actions {
+	ACT_rsa_get_e = 0,
+	ACT_rsa_get_n = 1,
+	NR__rsapubkey_actions = 2,
+};
+
+enum rsaprivkey_actions {
+	ACT_rsa_get_d = 0,
+	ACT_rsa_get_dp = 1,
+	ACT_rsa_get_dq = 2,
+	ACT_rsa_get_e___2 = 3,
+	ACT_rsa_get_n___2 = 4,
+	ACT_rsa_get_p = 5,
+	ACT_rsa_get_q = 6,
+	ACT_rsa_get_qinv = 7,
+	NR__rsaprivkey_actions = 8,
+};
+
+struct ecc_point {
+	u64 *x;
+	u64 *y;
+	u8 ndigits;
+};
+
+struct ecc_curve {
+	char *name;
+	struct ecc_point g;
+	u64 *p;
+	u64 *n;
+	u64 *a;
+	u64 *b;
+};
+
+struct asn1_decoder;
+
+struct ecc_ctx {
+	unsigned int curve_id;
+	const struct ecc_curve *curve;
+	bool pub_key_set;
+	u64 x[8];
+	u64 y[8];
+	struct ecc_point pub_key;
+};
+
+struct ecdsa_signature_ctx {
+	const struct ecc_curve *curve;
+	u64 r[8];
+	u64 s[8];
+};
+
+struct sha1_state {
+	u32 state[5];
+	u64 count;
+	u8 buffer[64];
+};
+
+typedef void sha1_block_fn(struct sha1_state *, const u8 *, int);
+
+struct crypto_cts_ctx {
+	struct crypto_skcipher *child;
+};
+
+struct crypto_cts_reqctx {
+	struct scatterlist sg[2];
+	unsigned int offset;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct skcipher_request subreq;
+};
+
+struct chksum_ctx {
+	u32 key;
+};
+
+struct chksum_desc_ctx {
+	u32 crc;
+};
+
+struct lzorle_ctx {
+	void *lzorle_comp_mem;
+};
+
+typedef struct {
+	__be64 a;
+	__be64 b;
+} be128;
+
+struct gf128mul_4k {
+	be128 t[256];
+};
+
+struct ghash_ctx {
+	struct gf128mul_4k *gf128;
+};
+
+struct ghash_desc_ctx {
+	u8 buffer[16];
+	u32 bytes;
+};
+
+typedef struct {
+	u64 m_low;
+	u64 m_high;
+} uint128_t;
+
+enum asymmetric_payload_bits {
+	asym_crypto = 0,
+	asym_subtype = 1,
+	asym_key_ids = 2,
+	asym_auth = 3,
+};
+
+struct asymmetric_key_ids {
+	void *id[3];
+};
+
+struct asymmetric_key_subtype {
+	struct module *owner;
+	const char *name;
+	short unsigned int name_len;
+	void (*describe)(const struct key *, struct seq_file *);
+	void (*destroy)(void *, void *);
+	int (*query)(const struct kernel_pkey_params *, struct kernel_pkey_query *);
+	int (*eds_op)(struct kernel_pkey_params *, const void *, void *);
+	int (*verify_signature)(const struct key *, const struct public_key_signature *);
+};
+
+struct pkcs7_parse_context {
+	struct pkcs7_message *msg;
+	struct pkcs7_signed_info *sinfo;
+	struct pkcs7_signed_info **ppsinfo;
+	struct x509_certificate *certs;
+	struct x509_certificate **ppcerts;
+	long unsigned int data;
+	enum OID last_oid;
+	unsigned int x509_index;
+	unsigned int sinfo_index;
+	const void *raw_serial;
+	unsigned int raw_serial_size;
+	unsigned int raw_issuer_size;
+	const void *raw_issuer;
