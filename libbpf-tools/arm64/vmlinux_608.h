@@ -73223,3 +73223,2114 @@ struct pkcs7_parse_context {
 	unsigned int raw_serial_size;
 	unsigned int raw_issuer_size;
 	const void *raw_issuer;
+	const void *raw_skid;
+	unsigned int raw_skid_size;
+	bool expect_skid;
+};
+
+enum {
+	BIOSET_NEED_BVECS = 1,
+	BIOSET_NEED_RESCUER = 2,
+	BIOSET_PERCPU_CACHE = 4,
+};
+
+enum {
+	DIO_SHOULD_DIRTY = 1,
+	DIO_IS_SYNC = 2,
+};
+
+struct blkdev_dio {
+	union {
+		struct kiocb *iocb;
+		struct task_struct *waiter;
+	};
+	size_t size;
+	atomic_t ref;
+	unsigned int flags;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct bio bio;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct rq_map_data {
+	struct page **pages;
+	int page_order;
+	int nr_entries;
+	long unsigned int offset;
+	int null_mapped;
+	int from_user;
+};
+
+struct bio_map_data {
+	bool is_our_pages: 1;
+	bool is_null_mapped: 1;
+	struct iov_iter iter;
+	struct iovec iov[0];
+};
+
+struct blk_mq_hw_ctx_sysfs_entry {
+	struct attribute attr;
+	ssize_t (*show)(struct blk_mq_hw_ctx *, char *);
+	ssize_t (*store)(struct blk_mq_hw_ctx *, const char *, size_t);
+};
+
+typedef int filler_t(struct file *, struct folio *);
+
+enum {
+	GENHD_FL_REMOVABLE = 1,
+	GENHD_FL_HIDDEN = 2,
+	GENHD_FL_NO_PART = 4,
+};
+
+struct _gpt_header {
+	__le64 signature;
+	__le32 revision;
+	__le32 header_size;
+	__le32 header_crc32;
+	__le32 reserved1;
+	__le64 my_lba;
+	__le64 alternate_lba;
+	__le64 first_usable_lba;
+	__le64 last_usable_lba;
+	efi_guid_t disk_guid;
+	__le64 partition_entry_lba;
+	__le32 num_partition_entries;
+	__le32 sizeof_partition_entry;
+	__le32 partition_entry_array_crc32;
+} __attribute__((packed));
+
+typedef struct _gpt_header gpt_header;
+
+struct _gpt_entry_attributes {
+	u64 required_to_function: 1;
+	u64 reserved: 47;
+	u64 type_guid_specific: 16;
+};
+
+typedef struct _gpt_entry_attributes gpt_entry_attributes;
+
+struct _gpt_entry {
+	efi_guid_t partition_type_guid;
+	efi_guid_t unique_partition_guid;
+	__le64 starting_lba;
+	__le64 ending_lba;
+	gpt_entry_attributes attributes;
+	__le16 partition_name[36];
+};
+
+typedef struct _gpt_entry gpt_entry;
+
+struct _gpt_mbr_record {
+	u8 boot_indicator;
+	u8 start_head;
+	u8 start_sector;
+	u8 start_track;
+	u8 os_type;
+	u8 end_head;
+	u8 end_sector;
+	u8 end_track;
+	__le32 starting_lba;
+	__le32 size_in_lba;
+};
+
+typedef struct _gpt_mbr_record gpt_mbr_record;
+
+struct _legacy_mbr {
+	u8 boot_code[440];
+	__le32 unique_mbr_signature;
+	__le16 unknown;
+	gpt_mbr_record partition_record[4];
+	__le16 signature;
+} __attribute__((packed));
+
+typedef struct _legacy_mbr legacy_mbr;
+
+struct throtl_service_queue {
+	struct throtl_service_queue *parent_sq;
+	struct list_head queued[2];
+	unsigned int nr_queued[2];
+	struct rb_root_cached pending_tree;
+	unsigned int nr_pending;
+	long unsigned int first_pending_disptime;
+	struct timer_list pending_timer;
+};
+
+struct latency_bucket {
+	long unsigned int total_latency;
+	int samples;
+};
+
+struct avg_latency_bucket {
+	long unsigned int latency;
+	bool valid;
+};
+
+struct throtl_data {
+	struct throtl_service_queue service_queue;
+	struct request_queue *queue;
+	unsigned int nr_queued[2];
+	unsigned int throtl_slice;
+	struct work_struct dispatch_work;
+	unsigned int limit_index;
+	bool limit_valid[2];
+	long unsigned int low_upgrade_time;
+	long unsigned int low_downgrade_time;
+	unsigned int scale;
+	struct latency_bucket tmp_buckets[18];
+	struct avg_latency_bucket avg_buckets[18];
+	struct latency_bucket *latency_buckets[2];
+	long unsigned int last_calculate_time;
+	long unsigned int filtered_latency;
+	bool track_bio_latency;
+};
+
+struct blkg_conf_ctx {
+	struct block_device *bdev;
+	struct blkcg_gq *blkg;
+	char *body;
+};
+
+enum blkg_rwstat_type {
+	BLKG_RWSTAT_READ = 0,
+	BLKG_RWSTAT_WRITE = 1,
+	BLKG_RWSTAT_SYNC = 2,
+	BLKG_RWSTAT_ASYNC = 3,
+	BLKG_RWSTAT_DISCARD = 4,
+	BLKG_RWSTAT_NR = 5,
+	BLKG_RWSTAT_TOTAL = 5,
+};
+
+struct blkg_rwstat_sample {
+	u64 cnt[5];
+};
+
+struct throtl_grp;
+
+struct throtl_qnode {
+	struct list_head node;
+	struct bio_list bios;
+	struct throtl_grp *tg;
+};
+
+struct throtl_grp {
+	struct blkg_policy_data pd;
+	struct rb_node rb_node;
+	struct throtl_data *td;
+	struct throtl_service_queue service_queue;
+	struct throtl_qnode qnode_on_self[2];
+	struct throtl_qnode qnode_on_parent[2];
+	long unsigned int disptime;
+	unsigned int flags;
+	bool has_rules[2];
+	uint64_t bps[4];
+	uint64_t bps_conf[4];
+	unsigned int iops[4];
+	unsigned int iops_conf[4];
+	uint64_t bytes_disp[2];
+	unsigned int io_disp[2];
+	long unsigned int last_low_overflow_time[2];
+	uint64_t last_bytes_disp[2];
+	unsigned int last_io_disp[2];
+	long unsigned int last_check_time;
+	long unsigned int latency_target;
+	long unsigned int latency_target_conf;
+	long unsigned int slice_start[2];
+	long unsigned int slice_end[2];
+	long unsigned int last_finish_time;
+	long unsigned int checked_last_finish_time;
+	long unsigned int avg_idletime;
+	long unsigned int idletime_threshold;
+	long unsigned int idletime_threshold_conf;
+	unsigned int bio_cnt;
+	unsigned int bad_bio_cnt;
+	long unsigned int bio_cnt_reset_time;
+	struct blkg_rwstat stat_bytes;
+	struct blkg_rwstat stat_ios;
+};
+
+enum tg_state_flags {
+	THROTL_TG_PENDING = 1,
+	THROTL_TG_WAS_EMPTY = 2,
+	THROTL_TG_HAS_IOPS_LIMIT = 4,
+	THROTL_TG_CANCELING = 8,
+};
+
+enum {
+	LIMIT_LOW = 0,
+	LIMIT_MAX = 1,
+	LIMIT_CNT = 2,
+};
+
+enum bip_flags {
+	BIP_BLOCK_INTEGRITY = 1,
+	BIP_MAPPED_INTEGRITY = 2,
+	BIP_CTRL_NOCHECK = 4,
+	BIP_DISK_NOCHECK = 8,
+	BIP_IP_CHECKSUM = 16,
+};
+
+enum blk_integrity_flags {
+	BLK_INTEGRITY_VERIFY = 1,
+	BLK_INTEGRITY_GENERATE = 2,
+	BLK_INTEGRITY_DEVICE_CAPABLE = 4,
+	BLK_INTEGRITY_IP_CHECKSUM = 8,
+};
+
+struct irq_poll;
+
+typedef int irq_poll_fn(struct irq_poll *, int);
+
+struct irq_poll {
+	struct list_head list;
+	long unsigned int state;
+	int weight;
+	irq_poll_fn *poll;
+};
+
+struct dim_sample {
+	ktime_t time;
+	u32 pkt_ctr;
+	u32 byte_ctr;
+	u16 event_ctr;
+	u32 comp_ctr;
+};
+
+struct dim_stats {
+	int ppms;
+	int bpms;
+	int epms;
+	int cpms;
+	int cpe_ratio;
+};
+
+struct dim {
+	u8 state;
+	struct dim_stats prev_stats;
+	struct dim_sample start_sample;
+	struct dim_sample measuring_sample;
+	struct work_struct work;
+	void *priv;
+	u8 profile_ix;
+	u8 mode;
+	u8 tune_state;
+	u8 steps_right;
+	u8 steps_left;
+	u8 tired;
+};
+
+enum rdma_nl_counter_mode {
+	RDMA_COUNTER_MODE_NONE = 0,
+	RDMA_COUNTER_MODE_AUTO = 1,
+	RDMA_COUNTER_MODE_MANUAL = 2,
+	RDMA_COUNTER_MODE_MAX = 3,
+};
+
+enum rdma_nl_counter_mask {
+	RDMA_COUNTER_MASK_QP_TYPE = 1,
+	RDMA_COUNTER_MASK_PID = 2,
+};
+
+enum rdma_restrack_type {
+	RDMA_RESTRACK_PD = 0,
+	RDMA_RESTRACK_CQ = 1,
+	RDMA_RESTRACK_QP = 2,
+	RDMA_RESTRACK_CM_ID = 3,
+	RDMA_RESTRACK_MR = 4,
+	RDMA_RESTRACK_CTX = 5,
+	RDMA_RESTRACK_COUNTER = 6,
+	RDMA_RESTRACK_SRQ = 7,
+	RDMA_RESTRACK_MAX = 8,
+};
+
+struct rdma_restrack_entry {
+	bool valid;
+	u8 no_track: 1;
+	struct kref kref;
+	struct completion comp;
+	struct task_struct *task;
+	const char *kern_name;
+	enum rdma_restrack_type type;
+	bool user;
+	u32 id;
+};
+
+struct rdma_link_ops {
+	struct list_head list;
+	const char *type;
+	int (*newlink)(const char *, struct net_device *);
+};
+
+struct auto_mode_param {
+	int qp_type;
+};
+
+struct rdma_counter_mode {
+	enum rdma_nl_counter_mode mode;
+	enum rdma_nl_counter_mask mask;
+	struct auto_mode_param param;
+};
+
+struct rdma_hw_stats;
+
+struct rdma_port_counter {
+	struct rdma_counter_mode mode;
+	struct rdma_hw_stats *hstats;
+	unsigned int num_counters;
+	struct mutex lock;
+};
+
+struct rdma_stat_desc;
+
+struct rdma_hw_stats {
+	struct mutex lock;
+	long unsigned int timestamp;
+	long unsigned int lifespan;
+	const struct rdma_stat_desc *descs;
+	long unsigned int *is_disabled;
+	int num_counters;
+	u64 value[0];
+};
+
+struct ib_device;
+
+struct rdma_counter {
+	struct rdma_restrack_entry res;
+	struct ib_device *device;
+	uint32_t id;
+	struct kref kref;
+	struct rdma_counter_mode mode;
+	struct mutex lock;
+	struct rdma_hw_stats *stats;
+	u32 port;
+};
+
+enum rdma_driver_id {
+	RDMA_DRIVER_UNKNOWN = 0,
+	RDMA_DRIVER_MLX5 = 1,
+	RDMA_DRIVER_MLX4 = 2,
+	RDMA_DRIVER_CXGB3 = 3,
+	RDMA_DRIVER_CXGB4 = 4,
+	RDMA_DRIVER_MTHCA = 5,
+	RDMA_DRIVER_BNXT_RE = 6,
+	RDMA_DRIVER_OCRDMA = 7,
+	RDMA_DRIVER_NES = 8,
+	RDMA_DRIVER_I40IW = 9,
+	RDMA_DRIVER_IRDMA = 9,
+	RDMA_DRIVER_VMW_PVRDMA = 10,
+	RDMA_DRIVER_QEDR = 11,
+	RDMA_DRIVER_HNS = 12,
+	RDMA_DRIVER_USNIC = 13,
+	RDMA_DRIVER_RXE = 14,
+	RDMA_DRIVER_HFI1 = 15,
+	RDMA_DRIVER_QIB = 16,
+	RDMA_DRIVER_EFA = 17,
+	RDMA_DRIVER_SIW = 18,
+	RDMA_DRIVER_ERDMA = 19,
+};
+
+enum ib_cq_notify_flags {
+	IB_CQ_SOLICITED = 1,
+	IB_CQ_NEXT_COMP = 2,
+	IB_CQ_SOLICITED_MASK = 3,
+	IB_CQ_REPORT_MISSED_EVENTS = 4,
+};
+
+struct ib_mad;
+
+enum rdma_link_layer {
+	IB_LINK_LAYER_UNSPECIFIED = 0,
+	IB_LINK_LAYER_INFINIBAND = 1,
+	IB_LINK_LAYER_ETHERNET = 2,
+};
+
+enum rdma_netdev_t {
+	RDMA_NETDEV_OPA_VNIC = 0,
+	RDMA_NETDEV_IPOIB = 1,
+};
+
+enum ib_srq_attr_mask {
+	IB_SRQ_MAX_WR = 1,
+	IB_SRQ_LIMIT = 2,
+};
+
+enum ib_mr_type {
+	IB_MR_TYPE_MEM_REG = 0,
+	IB_MR_TYPE_SG_GAPS = 1,
+	IB_MR_TYPE_DM = 2,
+	IB_MR_TYPE_USER = 3,
+	IB_MR_TYPE_DMA = 4,
+	IB_MR_TYPE_INTEGRITY = 5,
+};
+
+enum ib_uverbs_advise_mr_advice {
+	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH = 0,
+	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_WRITE = 1,
+	IB_UVERBS_ADVISE_MR_ADVICE_PREFETCH_NO_FAULT = 2,
+};
+
+struct uverbs_attr_bundle;
+
+struct rdma_cm_id;
+
+struct iw_cm_id;
+
+struct iw_cm_conn_param;
+
+struct ib_qp;
+
+struct ib_send_wr;
+
+struct ib_recv_wr;
+
+struct ib_cq;
+
+struct ib_wc;
+
+struct ib_srq;
+
+struct ib_grh;
+
+struct ib_device_attr;
+
+struct ib_udata;
+
+struct ib_device_modify;
+
+struct ib_port_attr;
+
+struct ib_port_modify;
+
+struct ib_port_immutable;
+
+struct rdma_netdev_alloc_params;
+
+union ib_gid;
+
+struct ib_gid_attr;
+
+struct ib_ucontext;
+
+struct rdma_user_mmap_entry;
+
+struct ib_pd;
+
+struct ib_ah;
+
+struct rdma_ah_init_attr;
+
+struct rdma_ah_attr;
+
+struct ib_srq_init_attr;
+
+struct ib_srq_attr;
+
+struct ib_qp_init_attr;
+
+struct ib_qp_attr;
+
+struct ib_cq_init_attr;
+
+struct ib_mr;
+
+struct ib_sge;
+
+struct ib_mr_status;
+
+struct ib_mw;
+
+struct ib_xrcd;
+
+struct ib_flow;
+
+struct ib_flow_attr;
+
+struct ib_flow_action;
+
+struct ib_wq;
+
+struct ib_wq_init_attr;
+
+struct ib_wq_attr;
+
+struct ib_rwq_ind_table;
+
+struct ib_rwq_ind_table_init_attr;
+
+struct ib_dm;
+
+struct ib_dm_alloc_attr;
+
+struct ib_dm_mr_attr;
+
+struct ib_counters;
+
+struct ib_counters_read_attr;
+
+struct ib_device_ops {
+	struct module *owner;
+	enum rdma_driver_id driver_id;
+	u32 uverbs_abi_ver;
+	unsigned int uverbs_no_driver_id_binding: 1;
+	const struct attribute_group *device_group;
+	const struct attribute_group **port_groups;
+	int (*post_send)(struct ib_qp *, const struct ib_send_wr *, const struct ib_send_wr **);
+	int (*post_recv)(struct ib_qp *, const struct ib_recv_wr *, const struct ib_recv_wr **);
+	void (*drain_rq)(struct ib_qp *);
+	void (*drain_sq)(struct ib_qp *);
+	int (*poll_cq)(struct ib_cq *, int, struct ib_wc *);
+	int (*peek_cq)(struct ib_cq *, int);
+	int (*req_notify_cq)(struct ib_cq *, enum ib_cq_notify_flags);
+	int (*post_srq_recv)(struct ib_srq *, const struct ib_recv_wr *, const struct ib_recv_wr **);
+	int (*process_mad)(struct ib_device *, int, u32, const struct ib_wc *, const struct ib_grh *, const struct ib_mad *, struct ib_mad *, size_t *, u16 *);
+	int (*query_device)(struct ib_device *, struct ib_device_attr *, struct ib_udata *);
+	int (*modify_device)(struct ib_device *, int, struct ib_device_modify *);
+	void (*get_dev_fw_str)(struct ib_device *, char *);
+	const struct cpumask * (*get_vector_affinity)(struct ib_device *, int);
+	int (*query_port)(struct ib_device *, u32, struct ib_port_attr *);
+	int (*modify_port)(struct ib_device *, u32, int, struct ib_port_modify *);
+	int (*get_port_immutable)(struct ib_device *, u32, struct ib_port_immutable *);
+	enum rdma_link_layer (*get_link_layer)(struct ib_device *, u32);
+	struct net_device * (*get_netdev)(struct ib_device *, u32);
+	struct net_device * (*alloc_rdma_netdev)(struct ib_device *, u32, enum rdma_netdev_t, const char *, unsigned char, void (*)(struct net_device *));
+	int (*rdma_netdev_get_params)(struct ib_device *, u32, enum rdma_netdev_t, struct rdma_netdev_alloc_params *);
+	int (*query_gid)(struct ib_device *, u32, int, union ib_gid *);
+	int (*add_gid)(const struct ib_gid_attr *, void **);
+	int (*del_gid)(const struct ib_gid_attr *, void **);
+	int (*query_pkey)(struct ib_device *, u32, u16, u16 *);
+	int (*alloc_ucontext)(struct ib_ucontext *, struct ib_udata *);
+	void (*dealloc_ucontext)(struct ib_ucontext *);
+	int (*mmap)(struct ib_ucontext *, struct vm_area_struct *);
+	void (*mmap_free)(struct rdma_user_mmap_entry *);
+	void (*disassociate_ucontext)(struct ib_ucontext *);
+	int (*alloc_pd)(struct ib_pd *, struct ib_udata *);
+	int (*dealloc_pd)(struct ib_pd *, struct ib_udata *);
+	int (*create_ah)(struct ib_ah *, struct rdma_ah_init_attr *, struct ib_udata *);
+	int (*create_user_ah)(struct ib_ah *, struct rdma_ah_init_attr *, struct ib_udata *);
+	int (*modify_ah)(struct ib_ah *, struct rdma_ah_attr *);
+	int (*query_ah)(struct ib_ah *, struct rdma_ah_attr *);
+	int (*destroy_ah)(struct ib_ah *, u32);
+	int (*create_srq)(struct ib_srq *, struct ib_srq_init_attr *, struct ib_udata *);
+	int (*modify_srq)(struct ib_srq *, struct ib_srq_attr *, enum ib_srq_attr_mask, struct ib_udata *);
+	int (*query_srq)(struct ib_srq *, struct ib_srq_attr *);
+	int (*destroy_srq)(struct ib_srq *, struct ib_udata *);
+	int (*create_qp)(struct ib_qp *, struct ib_qp_init_attr *, struct ib_udata *);
+	int (*modify_qp)(struct ib_qp *, struct ib_qp_attr *, int, struct ib_udata *);
+	int (*query_qp)(struct ib_qp *, struct ib_qp_attr *, int, struct ib_qp_init_attr *);
+	int (*destroy_qp)(struct ib_qp *, struct ib_udata *);
+	int (*create_cq)(struct ib_cq *, const struct ib_cq_init_attr *, struct ib_udata *);
+	int (*modify_cq)(struct ib_cq *, u16, u16);
+	int (*destroy_cq)(struct ib_cq *, struct ib_udata *);
+	int (*resize_cq)(struct ib_cq *, int, struct ib_udata *);
+	struct ib_mr * (*get_dma_mr)(struct ib_pd *, int);
+	struct ib_mr * (*reg_user_mr)(struct ib_pd *, u64, u64, u64, int, struct ib_udata *);
+	struct ib_mr * (*reg_user_mr_dmabuf)(struct ib_pd *, u64, u64, u64, int, int, struct ib_udata *);
+	struct ib_mr * (*rereg_user_mr)(struct ib_mr *, int, u64, u64, u64, int, struct ib_pd *, struct ib_udata *);
+	int (*dereg_mr)(struct ib_mr *, struct ib_udata *);
+	struct ib_mr * (*alloc_mr)(struct ib_pd *, enum ib_mr_type, u32);
+	struct ib_mr * (*alloc_mr_integrity)(struct ib_pd *, u32, u32);
+	int (*advise_mr)(struct ib_pd *, enum ib_uverbs_advise_mr_advice, u32, struct ib_sge *, u32, struct uverbs_attr_bundle *);
+	int (*map_mr_sg)(struct ib_mr *, struct scatterlist *, int, unsigned int *);
+	int (*check_mr_status)(struct ib_mr *, u32, struct ib_mr_status *);
+	int (*alloc_mw)(struct ib_mw *, struct ib_udata *);
+	int (*dealloc_mw)(struct ib_mw *);
+	int (*attach_mcast)(struct ib_qp *, union ib_gid *, u16);
+	int (*detach_mcast)(struct ib_qp *, union ib_gid *, u16);
+	int (*alloc_xrcd)(struct ib_xrcd *, struct ib_udata *);
+	int (*dealloc_xrcd)(struct ib_xrcd *, struct ib_udata *);
+	struct ib_flow * (*create_flow)(struct ib_qp *, struct ib_flow_attr *, struct ib_udata *);
+	int (*destroy_flow)(struct ib_flow *);
+	int (*destroy_flow_action)(struct ib_flow_action *);
+	int (*set_vf_link_state)(struct ib_device *, int, u32, int);
+	int (*get_vf_config)(struct ib_device *, int, u32, struct ifla_vf_info *);
+	int (*get_vf_stats)(struct ib_device *, int, u32, struct ifla_vf_stats *);
+	int (*get_vf_guid)(struct ib_device *, int, u32, struct ifla_vf_guid *, struct ifla_vf_guid *);
+	int (*set_vf_guid)(struct ib_device *, int, u32, u64, int);
+	struct ib_wq * (*create_wq)(struct ib_pd *, struct ib_wq_init_attr *, struct ib_udata *);
+	int (*destroy_wq)(struct ib_wq *, struct ib_udata *);
+	int (*modify_wq)(struct ib_wq *, struct ib_wq_attr *, u32, struct ib_udata *);
+	int (*create_rwq_ind_table)(struct ib_rwq_ind_table *, struct ib_rwq_ind_table_init_attr *, struct ib_udata *);
+	int (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *);
+	struct ib_dm * (*alloc_dm)(struct ib_device *, struct ib_ucontext *, struct ib_dm_alloc_attr *, struct uverbs_attr_bundle *);
+	int (*dealloc_dm)(struct ib_dm *, struct uverbs_attr_bundle *);
+	struct ib_mr * (*reg_dm_mr)(struct ib_pd *, struct ib_dm *, struct ib_dm_mr_attr *, struct uverbs_attr_bundle *);
+	int (*create_counters)(struct ib_counters *, struct uverbs_attr_bundle *);
+	int (*destroy_counters)(struct ib_counters *);
+	int (*read_counters)(struct ib_counters *, struct ib_counters_read_attr *, struct uverbs_attr_bundle *);
+	int (*map_mr_sg_pi)(struct ib_mr *, struct scatterlist *, int, unsigned int *, struct scatterlist *, int, unsigned int *);
+	struct rdma_hw_stats * (*alloc_hw_device_stats)(struct ib_device *);
+	struct rdma_hw_stats * (*alloc_hw_port_stats)(struct ib_device *, u32);
+	int (*get_hw_stats)(struct ib_device *, struct rdma_hw_stats *, u32, int);
+	int (*modify_hw_stat)(struct ib_device *, u32, unsigned int, bool);
+	int (*fill_res_mr_entry)(struct sk_buff *, struct ib_mr *);
+	int (*fill_res_mr_entry_raw)(struct sk_buff *, struct ib_mr *);
+	int (*fill_res_cq_entry)(struct sk_buff *, struct ib_cq *);
+	int (*fill_res_cq_entry_raw)(struct sk_buff *, struct ib_cq *);
+	int (*fill_res_qp_entry)(struct sk_buff *, struct ib_qp *);
+	int (*fill_res_qp_entry_raw)(struct sk_buff *, struct ib_qp *);
+	int (*fill_res_cm_id_entry)(struct sk_buff *, struct rdma_cm_id *);
+	int (*enable_driver)(struct ib_device *);
+	void (*dealloc_driver)(struct ib_device *);
+	void (*iw_add_ref)(struct ib_qp *);
+	void (*iw_rem_ref)(struct ib_qp *);
+	struct ib_qp * (*iw_get_qp)(struct ib_device *, int);
+	int (*iw_connect)(struct iw_cm_id *, struct iw_cm_conn_param *);
+	int (*iw_accept)(struct iw_cm_id *, struct iw_cm_conn_param *);
+	int (*iw_reject)(struct iw_cm_id *, const void *, u8);
+	int (*iw_create_listen)(struct iw_cm_id *, int);
+	int (*iw_destroy_listen)(struct iw_cm_id *);
+	int (*counter_bind_qp)(struct rdma_counter *, struct ib_qp *);
+	int (*counter_unbind_qp)(struct ib_qp *);
+	int (*counter_dealloc)(struct rdma_counter *);
+	struct rdma_hw_stats * (*counter_alloc_stats)(struct rdma_counter *);
+	int (*counter_update_stats)(struct rdma_counter *);
+	int (*fill_stat_mr_entry)(struct sk_buff *, struct ib_mr *);
+	int (*query_ucontext)(struct ib_ucontext *, struct uverbs_attr_bundle *);
+	int (*get_numa_node)(struct ib_device *);
+	size_t size_ib_ah;
+	size_t size_ib_counters;
+	size_t size_ib_cq;
+	size_t size_ib_mw;
+	size_t size_ib_pd;
+	size_t size_ib_qp;
+	size_t size_ib_rwq_ind_table;
+	size_t size_ib_srq;
+	size_t size_ib_ucontext;
+	size_t size_ib_xrcd;
+};
+
+struct ib_core_device {
+	struct device dev;
+	possible_net_t rdma_net;
+	struct kobject *ports_kobj;
+	struct list_head port_list;
+	struct ib_device *owner;
+};
+
+enum ib_atomic_cap {
+	IB_ATOMIC_NONE = 0,
+	IB_ATOMIC_HCA = 1,
+	IB_ATOMIC_GLOB = 2,
+};
+
+struct ib_odp_caps {
+	uint64_t general_caps;
+	struct {
+		uint32_t rc_odp_caps;
+		uint32_t uc_odp_caps;
+		uint32_t ud_odp_caps;
+		uint32_t xrc_odp_caps;
+	} per_transport_caps;
+};
+
+struct ib_rss_caps {
+	u32 supported_qpts;
+	u32 max_rwq_indirection_tables;
+	u32 max_rwq_indirection_table_size;
+};
+
+struct ib_tm_caps {
+	u32 max_rndv_hdr_size;
+	u32 max_num_tags;
+	u32 flags;
+	u32 max_ops;
+	u32 max_sge;
+};
+
+struct ib_cq_caps {
+	u16 max_cq_moderation_count;
+	u16 max_cq_moderation_period;
+};
+
+struct ib_device_attr {
+	u64 fw_ver;
+	__be64 sys_image_guid;
+	u64 max_mr_size;
+	u64 page_size_cap;
+	u32 vendor_id;
+	u32 vendor_part_id;
+	u32 hw_ver;
+	int max_qp;
+	int max_qp_wr;
+	u64 device_cap_flags;
+	u64 kernel_cap_flags;
+	int max_send_sge;
+	int max_recv_sge;
+	int max_sge_rd;
+	int max_cq;
+	int max_cqe;
+	int max_mr;
+	int max_pd;
+	int max_qp_rd_atom;
+	int max_ee_rd_atom;
+	int max_res_rd_atom;
+	int max_qp_init_rd_atom;
+	int max_ee_init_rd_atom;
+	enum ib_atomic_cap atomic_cap;
+	enum ib_atomic_cap masked_atomic_cap;
+	int max_ee;
+	int max_rdd;
+	int max_mw;
+	int max_raw_ipv6_qp;
+	int max_raw_ethy_qp;
+	int max_mcast_grp;
+	int max_mcast_qp_attach;
+	int max_total_mcast_qp_attach;
+	int max_ah;
+	int max_srq;
+	int max_srq_wr;
+	int max_srq_sge;
+	unsigned int max_fast_reg_page_list_len;
+	unsigned int max_pi_fast_reg_page_list_len;
+	u16 max_pkeys;
+	u8 local_ca_ack_delay;
+	int sig_prot_cap;
+	int sig_guard_cap;
+	struct ib_odp_caps odp_caps;
+	uint64_t timestamp_mask;
+	uint64_t hca_core_clock;
+	struct ib_rss_caps rss_caps;
+	u32 max_wq_type_rq;
+	u32 raw_packet_caps;
+	struct ib_tm_caps tm_caps;
+	struct ib_cq_caps cq_caps;
+	u64 max_dm_size;
+	u32 max_sgl_rd;
+};
+
+struct hw_stats_device_data;
+
+struct rdma_restrack_root;
+
+struct uapi_definition;
+
+struct ib_port_data;
+
+struct ib_device {
+	struct device *dma_device;
+	struct ib_device_ops ops;
+	char name[64];
+	struct callback_head callback_head;
+	struct list_head event_handler_list;
+	struct rw_semaphore event_handler_rwsem;
+	spinlock_t qp_open_list_lock;
+	struct rw_semaphore client_data_rwsem;
+	struct xarray client_data;
+	struct mutex unregistration_lock;
+	rwlock_t cache_lock;
+	struct ib_port_data *port_data;
+	int num_comp_vectors;
+	union {
+		struct device dev;
+		struct ib_core_device coredev;
+	};
+	const struct attribute_group *groups[4];
+	u64 uverbs_cmd_mask;
+	char node_desc[64];
+	__be64 node_guid;
+	u32 local_dma_lkey;
+	u16 is_switch: 1;
+	u16 kverbs_provider: 1;
+	u16 use_cq_dim: 1;
+	u8 node_type;
+	u32 phys_port_cnt;
+	struct ib_device_attr attrs;
+	struct hw_stats_device_data *hw_stats_data;
+	u32 index;
+	spinlock_t cq_pools_lock;
+	struct list_head cq_pools[3];
+	struct rdma_restrack_root *res;
+	const struct uapi_definition *driver_def;
+	refcount_t refcount;
+	struct completion unreg_completion;
+	struct work_struct unregistration_work;
+	const struct rdma_link_ops *link_ops;
+	struct mutex compat_devs_mutex;
+	struct xarray compat_devs;
+	char iw_ifname[16];
+	u32 iw_driver_flags;
+	u32 lag_flags;
+};
+
+enum ib_signature_type {
+	IB_SIG_TYPE_NONE = 0,
+	IB_SIG_TYPE_T10_DIF = 1,
+};
+
+enum ib_t10_dif_bg_type {
+	IB_T10DIF_CRC = 0,
+	IB_T10DIF_CSUM = 1,
+};
+
+struct ib_t10_dif_domain {
+	enum ib_t10_dif_bg_type bg_type;
+	u16 pi_interval;
+	u16 bg;
+	u16 app_tag;
+	u32 ref_tag;
+	bool ref_remap;
+	bool app_escape;
+	bool ref_escape;
+	u16 apptag_check_mask;
+};
+
+struct ib_sig_domain {
+	enum ib_signature_type sig_type;
+	union {
+		struct ib_t10_dif_domain dif;
+	} sig;
+};
+
+struct ib_sig_attrs {
+	u8 check_mask;
+	struct ib_sig_domain mem;
+	struct ib_sig_domain wire;
+	int meta_length;
+};
+
+enum ib_sig_err_type {
+	IB_SIG_BAD_GUARD = 0,
+	IB_SIG_BAD_REFTAG = 1,
+	IB_SIG_BAD_APPTAG = 2,
+};
+
+struct ib_sig_err {
+	enum ib_sig_err_type err_type;
+	u32 expected;
+	u32 actual;
+	u64 sig_err_offset;
+	u32 key;
+};
+
+union ib_gid {
+	u8 raw[16];
+	struct {
+		__be64 subnet_prefix;
+		__be64 interface_id;
+	} global;
+};
+
+enum ib_gid_type {
+	IB_GID_TYPE_IB = 0,
+	IB_GID_TYPE_ROCE = 1,
+	IB_GID_TYPE_ROCE_UDP_ENCAP = 2,
+	IB_GID_TYPE_SIZE = 3,
+};
+
+struct ib_gid_attr {
+	struct net_device *ndev;
+	struct ib_device *device;
+	union ib_gid gid;
+	enum ib_gid_type gid_type;
+	u16 index;
+	u32 port_num;
+};
+
+struct ib_cq_init_attr {
+	unsigned int cqe;
+	u32 comp_vector;
+	u32 flags;
+};
+
+struct ib_dm_mr_attr {
+	u64 length;
+	u64 offset;
+	u32 access_flags;
+};
+
+struct ib_dm_alloc_attr {
+	u64 length;
+	u32 alignment;
+	u32 flags;
+};
+
+enum ib_mtu {
+	IB_MTU_256 = 1,
+	IB_MTU_512 = 2,
+	IB_MTU_1024 = 3,
+	IB_MTU_2048 = 4,
+	IB_MTU_4096 = 5,
+};
+
+enum ib_port_state {
+	IB_PORT_NOP = 0,
+	IB_PORT_DOWN = 1,
+	IB_PORT_INIT = 2,
+	IB_PORT_ARMED = 3,
+	IB_PORT_ACTIVE = 4,
+	IB_PORT_ACTIVE_DEFER = 5,
+};
+
+struct rdma_stat_desc {
+	const char *name;
+	unsigned int flags;
+	const void *priv;
+};
+
+struct ib_port_attr {
+	u64 subnet_prefix;
+	enum ib_port_state state;
+	enum ib_mtu max_mtu;
+	enum ib_mtu active_mtu;
+	u32 phys_mtu;
+	int gid_tbl_len;
+	unsigned int ip_gids: 1;
+	u32 port_cap_flags;
+	u32 max_msg_sz;
+	u32 bad_pkey_cntr;
+	u32 qkey_viol_cntr;
+	u16 pkey_tbl_len;
+	u32 sm_lid;
+	u32 lid;
+	u8 lmc;
+	u8 max_vl_num;
+	u8 sm_sl;
+	u8 subnet_timeout;
+	u8 init_type_reply;
+	u8 active_width;
+	u16 active_speed;
+	u8 phys_state;
+	u16 port_cap_flags2;
+};
+
+struct ib_device_modify {
+	u64 sys_image_guid;
+	char node_desc[64];
+};
+
+struct ib_port_modify {
+	u32 set_port_cap_mask;
+	u32 clr_port_cap_mask;
+	u8 init_type;
+};
+
+enum ib_event_type {
+	IB_EVENT_CQ_ERR = 0,
+	IB_EVENT_QP_FATAL = 1,
+	IB_EVENT_QP_REQ_ERR = 2,
+	IB_EVENT_QP_ACCESS_ERR = 3,
+	IB_EVENT_COMM_EST = 4,
+	IB_EVENT_SQ_DRAINED = 5,
+	IB_EVENT_PATH_MIG = 6,
+	IB_EVENT_PATH_MIG_ERR = 7,
+	IB_EVENT_DEVICE_FATAL = 8,
+	IB_EVENT_PORT_ACTIVE = 9,
+	IB_EVENT_PORT_ERR = 10,
+	IB_EVENT_LID_CHANGE = 11,
+	IB_EVENT_PKEY_CHANGE = 12,
+	IB_EVENT_SM_CHANGE = 13,
+	IB_EVENT_SRQ_ERR = 14,
+	IB_EVENT_SRQ_LIMIT_REACHED = 15,
+	IB_EVENT_QP_LAST_WQE_REACHED = 16,
+	IB_EVENT_CLIENT_REREGISTER = 17,
+	IB_EVENT_GID_CHANGE = 18,
+	IB_EVENT_WQ_FATAL = 19,
+};
+
+struct ib_ucq_object;
+
+typedef void (*ib_comp_handler)(struct ib_cq *, void *);
+
+struct ib_event;
+
+struct ib_cq {
+	struct ib_device *device;
+	struct ib_ucq_object *uobject;
+	ib_comp_handler comp_handler;
+	void (*event_handler)(struct ib_event *, void *);
+	void *cq_context;
+	int cqe;
+	unsigned int cqe_used;
+	atomic_t usecnt;
+	enum ib_poll_context poll_ctx;
+	struct ib_wc *wc;
+	struct list_head pool_entry;
+	union {
+		struct irq_poll iop;
+		struct work_struct work;
+	};
+	struct workqueue_struct *comp_wq;
+	struct dim *dim;
+	ktime_t timestamp;
+	u8 interrupt: 1;
+	u8 shared: 1;
+	unsigned int comp_vector;
+	struct rdma_restrack_entry res;
+};
+
+struct ib_uqp_object;
+
+enum ib_qp_type {
+	IB_QPT_SMI = 0,
+	IB_QPT_GSI = 1,
+	IB_QPT_RC = 2,
+	IB_QPT_UC = 3,
+	IB_QPT_UD = 4,
+	IB_QPT_RAW_IPV6 = 5,
+	IB_QPT_RAW_ETHERTYPE = 6,
+	IB_QPT_RAW_PACKET = 8,
+	IB_QPT_XRC_INI = 9,
+	IB_QPT_XRC_TGT = 10,
+	IB_QPT_MAX = 11,
+	IB_QPT_DRIVER = 255,
+	IB_QPT_RESERVED1 = 4096,
+	IB_QPT_RESERVED2 = 4097,
+	IB_QPT_RESERVED3 = 4098,
+	IB_QPT_RESERVED4 = 4099,
+	IB_QPT_RESERVED5 = 4100,
+	IB_QPT_RESERVED6 = 4101,
+	IB_QPT_RESERVED7 = 4102,
+	IB_QPT_RESERVED8 = 4103,
+	IB_QPT_RESERVED9 = 4104,
+	IB_QPT_RESERVED10 = 4105,
+};
+
+struct ib_qp_security;
+
+struct ib_qp {
+	struct ib_device *device;
+	struct ib_pd *pd;
+	struct ib_cq *send_cq;
+	struct ib_cq *recv_cq;
+	spinlock_t mr_lock;
+	int mrs_used;
+	struct list_head rdma_mrs;
+	struct list_head sig_mrs;
+	struct ib_srq *srq;
+	struct ib_xrcd *xrcd;
+	struct list_head xrcd_list;
+	atomic_t usecnt;
+	struct list_head open_list;
+	struct ib_qp *real_qp;
+	struct ib_uqp_object *uobject;
+	void (*event_handler)(struct ib_event *, void *);
+	void *qp_context;
+	const struct ib_gid_attr *av_sgid_attr;
+	const struct ib_gid_attr *alt_path_sgid_attr;
+	u32 qp_num;
+	u32 max_write_sge;
+	u32 max_read_sge;
+	enum ib_qp_type qp_type;
+	struct ib_rwq_ind_table *rwq_ind_tbl;
+	struct ib_qp_security *qp_sec;
+	u32 port;
+	bool integrity_en;
+	struct rdma_restrack_entry res;
+	struct rdma_counter *counter;
+};
+
+struct ib_usrq_object;
+
+enum ib_srq_type {
+	IB_SRQT_BASIC = 0,
+	IB_SRQT_XRC = 1,
+	IB_SRQT_TM = 2,
+};
+
+struct ib_srq {
+	struct ib_device *device;
+	struct ib_pd *pd;
+	struct ib_usrq_object *uobject;
+	void (*event_handler)(struct ib_event *, void *);
+	void *srq_context;
+	enum ib_srq_type srq_type;
+	atomic_t usecnt;
+	struct {
+		struct ib_cq *cq;
+		union {
+			struct {
+				struct ib_xrcd *xrcd;
+				u32 srq_num;
+			} xrc;
+		};
+	} ext;
+	struct rdma_restrack_entry res;
+};
+
+struct ib_uwq_object;
+
+enum ib_wq_state {
+	IB_WQS_RESET = 0,
+	IB_WQS_RDY = 1,
+	IB_WQS_ERR = 2,
+};
+
+enum ib_wq_type {
+	IB_WQT_RQ = 0,
+};
+
+struct ib_wq {
+	struct ib_device *device;
+	struct ib_uwq_object *uobject;
+	void *wq_context;
+	void (*event_handler)(struct ib_event *, void *);
+	struct ib_pd *pd;
+	struct ib_cq *cq;
+	u32 wq_num;
+	enum ib_wq_state state;
+	enum ib_wq_type wq_type;
+	atomic_t usecnt;
+};
+
+struct ib_event {
+	struct ib_device *device;
+	union {
+		struct ib_cq *cq;
+		struct ib_qp *qp;
+		struct ib_srq *srq;
+		struct ib_wq *wq;
+		u32 port_num;
+	} element;
+	enum ib_event_type event;
+};
+
+struct ib_global_route {
+	const struct ib_gid_attr *sgid_attr;
+	union ib_gid dgid;
+	u32 flow_label;
+	u8 sgid_index;
+	u8 hop_limit;
+	u8 traffic_class;
+};
+
+struct ib_grh {
+	__be32 version_tclass_flow;
+	__be16 paylen;
+	u8 next_hdr;
+	u8 hop_limit;
+	union ib_gid sgid;
+	union ib_gid dgid;
+};
+
+struct ib_mr_status {
+	u32 fail_status;
+	struct ib_sig_err sig_err;
+};
+
+struct rdma_ah_init_attr {
+	struct rdma_ah_attr *ah_attr;
+	u32 flags;
+	struct net_device *xmit_slave;
+};
+
+enum rdma_ah_attr_type {
+	RDMA_AH_ATTR_TYPE_UNDEFINED = 0,
+	RDMA_AH_ATTR_TYPE_IB = 1,
+	RDMA_AH_ATTR_TYPE_ROCE = 2,
+	RDMA_AH_ATTR_TYPE_OPA = 3,
+};
+
+struct ib_ah_attr {
+	u16 dlid;
+	u8 src_path_bits;
+};
+
+struct roce_ah_attr {
+	u8 dmac[6];
+};
+
+struct opa_ah_attr {
+	u32 dlid;
+	u8 src_path_bits;
+	bool make_grd;
+};
+
+struct rdma_ah_attr {
+	struct ib_global_route grh;
+	u8 sl;
+	u8 static_rate;
+	u32 port_num;
+	u8 ah_flags;
+	enum rdma_ah_attr_type type;
+	union {
+		struct ib_ah_attr ib;
+		struct roce_ah_attr roce;
+		struct opa_ah_attr opa;
+	};
+};
+
+enum ib_wc_status {
+	IB_WC_SUCCESS = 0,
+	IB_WC_LOC_LEN_ERR = 1,
+	IB_WC_LOC_QP_OP_ERR = 2,
+	IB_WC_LOC_EEC_OP_ERR = 3,
+	IB_WC_LOC_PROT_ERR = 4,
+	IB_WC_WR_FLUSH_ERR = 5,
+	IB_WC_MW_BIND_ERR = 6,
+	IB_WC_BAD_RESP_ERR = 7,
+	IB_WC_LOC_ACCESS_ERR = 8,
+	IB_WC_REM_INV_REQ_ERR = 9,
+	IB_WC_REM_ACCESS_ERR = 10,
+	IB_WC_REM_OP_ERR = 11,
+	IB_WC_RETRY_EXC_ERR = 12,
+	IB_WC_RNR_RETRY_EXC_ERR = 13,
+	IB_WC_LOC_RDD_VIOL_ERR = 14,
+	IB_WC_REM_INV_RD_REQ_ERR = 15,
+	IB_WC_REM_ABORT_ERR = 16,
+	IB_WC_INV_EECN_ERR = 17,
+	IB_WC_INV_EEC_STATE_ERR = 18,
+	IB_WC_FATAL_ERR = 19,
+	IB_WC_RESP_TIMEOUT_ERR = 20,
+	IB_WC_GENERAL_ERR = 21,
+};
+
+enum ib_wc_opcode {
+	IB_WC_SEND = 0,
+	IB_WC_RDMA_WRITE = 1,
+	IB_WC_RDMA_READ = 2,
+	IB_WC_COMP_SWAP = 3,
+	IB_WC_FETCH_ADD = 4,
+	IB_WC_BIND_MW = 5,
+	IB_WC_LOCAL_INV = 6,
+	IB_WC_LSO = 7,
+	IB_WC_REG_MR = 8,
+	IB_WC_MASKED_COMP_SWAP = 9,
+	IB_WC_MASKED_FETCH_ADD = 10,
+	IB_WC_RECV = 128,
+	IB_WC_RECV_RDMA_WITH_IMM = 129,
+};
+
+struct ib_cqe {
+	void (*done)(struct ib_cq *, struct ib_wc *);
+};
+
+struct ib_wc {
+	union {
+		u64 wr_id;
+		struct ib_cqe *wr_cqe;
+	};
+	enum ib_wc_status status;
+	enum ib_wc_opcode opcode;
+	u32 vendor_err;
+	u32 byte_len;
+	struct ib_qp *qp;
+	union {
+		__be32 imm_data;
+		u32 invalidate_rkey;
+	} ex;
+	u32 src_qp;
+	u32 slid;
+	int wc_flags;
+	u16 pkey_index;
+	u8 sl;
+	u8 dlid_path_bits;
+	u32 port_num;
+	u8 smac[6];
+	u16 vlan_id;
+	u8 network_hdr_type;
+};
+
+struct ib_srq_attr {
+	u32 max_wr;
+	u32 max_sge;
+	u32 srq_limit;
+};
+
+struct ib_xrcd {
+	struct ib_device *device;
+	atomic_t usecnt;
+	struct inode *inode;
+	struct rw_semaphore tgt_qps_rwsem;
+	struct xarray tgt_qps;
+};
+
+struct ib_srq_init_attr {
+	void (*event_handler)(struct ib_event *, void *);
+	void *srq_context;
+	struct ib_srq_attr attr;
+	enum ib_srq_type srq_type;
+	struct {
+		struct ib_cq *cq;
+		union {
+			struct {
+				struct ib_xrcd *xrcd;
+			} xrc;
+			struct {
+				u32 max_num_tags;
+			} tag_matching;
+		};
+	} ext;
+};
+
+struct ib_qp_cap {
+	u32 max_send_wr;
+	u32 max_recv_wr;
+	u32 max_send_sge;
+	u32 max_recv_sge;
+	u32 max_inline_data;
+	u32 max_rdma_ctxs;
+};
+
+enum ib_sig_type {
+	IB_SIGNAL_ALL_WR = 0,
+	IB_SIGNAL_REQ_WR = 1,
+};
+
+struct ib_qp_init_attr {
+	void (*event_handler)(struct ib_event *, void *);
+	void *qp_context;
+	struct ib_cq *send_cq;
+	struct ib_cq *recv_cq;
+	struct ib_srq *srq;
+	struct ib_xrcd *xrcd;
+	struct ib_qp_cap cap;
+	enum ib_sig_type sq_sig_type;
+	enum ib_qp_type qp_type;
+	u32 create_flags;
+	u32 port_num;
+	struct ib_rwq_ind_table *rwq_ind_tbl;
+	u32 source_qpn;
+};
+
+struct ib_uobject;
+
+struct ib_rwq_ind_table {
+	struct ib_device *device;
+	struct ib_uobject *uobject;
+	atomic_t usecnt;
+	u32 ind_tbl_num;
+	u32 log_ind_tbl_size;
+	struct ib_wq **ind_tbl;
+};
+
+enum ib_qp_state {
+	IB_QPS_RESET = 0,
+	IB_QPS_INIT = 1,
+	IB_QPS_RTR = 2,
+	IB_QPS_RTS = 3,
+	IB_QPS_SQD = 4,
+	IB_QPS_SQE = 5,
+	IB_QPS_ERR = 6,
+};
+
+enum ib_mig_state {
+	IB_MIG_MIGRATED = 0,
+	IB_MIG_REARM = 1,
+	IB_MIG_ARMED = 2,
+};
+
+enum ib_mw_type {
+	IB_MW_TYPE_1 = 1,
+	IB_MW_TYPE_2 = 2,
+};
+
+struct ib_qp_attr {
+	enum ib_qp_state qp_state;
+	enum ib_qp_state cur_qp_state;
+	enum ib_mtu path_mtu;
+	enum ib_mig_state path_mig_state;
+	u32 qkey;
+	u32 rq_psn;
+	u32 sq_psn;
+	u32 dest_qp_num;
+	int qp_access_flags;
+	struct ib_qp_cap cap;
+	struct rdma_ah_attr ah_attr;
+	struct rdma_ah_attr alt_ah_attr;
+	u16 pkey_index;
+	u16 alt_pkey_index;
+	u8 en_sqd_async_notify;
+	u8 sq_draining;
+	u8 max_rd_atomic;
+	u8 max_dest_rd_atomic;
+	u8 min_rnr_timer;
+	u32 port_num;
+	u8 timeout;
+	u8 retry_cnt;
+	u8 rnr_retry;
+	u32 alt_port_num;
+	u8 alt_timeout;
+	u32 rate_limit;
+	struct net_device *xmit_slave;
+};
+
+enum ib_wr_opcode {
+	IB_WR_RDMA_WRITE = 0,
+	IB_WR_RDMA_WRITE_WITH_IMM = 1,
+	IB_WR_SEND = 2,
+	IB_WR_SEND_WITH_IMM = 3,
+	IB_WR_RDMA_READ = 4,
+	IB_WR_ATOMIC_CMP_AND_SWP = 5,
+	IB_WR_ATOMIC_FETCH_AND_ADD = 6,
+	IB_WR_BIND_MW = 8,
+	IB_WR_LSO = 10,
+	IB_WR_SEND_WITH_INV = 9,
+	IB_WR_RDMA_READ_WITH_INV = 11,
+	IB_WR_LOCAL_INV = 7,
+	IB_WR_MASKED_ATOMIC_CMP_AND_SWP = 12,
+	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD = 13,
+	IB_WR_REG_MR = 32,
+	IB_WR_REG_MR_INTEGRITY = 33,
+	IB_WR_RESERVED1 = 240,
+	IB_WR_RESERVED2 = 241,
+	IB_WR_RESERVED3 = 242,
+	IB_WR_RESERVED4 = 243,
+	IB_WR_RESERVED5 = 244,
+	IB_WR_RESERVED6 = 245,
+	IB_WR_RESERVED7 = 246,
+	IB_WR_RESERVED8 = 247,
+	IB_WR_RESERVED9 = 248,
+	IB_WR_RESERVED10 = 249,
+};
+
+struct ib_sge {
+	u64 addr;
+	u32 length;
+	u32 lkey;
+};
+
+struct ib_send_wr {
+	struct ib_send_wr *next;
+	union {
+		u64 wr_id;
+		struct ib_cqe *wr_cqe;
+	};
+	struct ib_sge *sg_list;
+	int num_sge;
+	enum ib_wr_opcode opcode;
+	int send_flags;
+	union {
+		__be32 imm_data;
+		u32 invalidate_rkey;
+	} ex;
+};
+
+struct ib_ah {
+	struct ib_device *device;
+	struct ib_pd *pd;
+	struct ib_uobject *uobject;
+	const struct ib_gid_attr *sgid_attr;
+	enum rdma_ah_attr_type type;
+};
+
+struct ib_mr {
+	struct ib_device *device;
+	struct ib_pd *pd;
+	u32 lkey;
+	u32 rkey;
+	u64 iova;
+	u64 length;
+	unsigned int page_size;
+	enum ib_mr_type type;
+	bool need_inval;
+	union {
+		struct ib_uobject *uobject;
+		struct list_head qp_entry;
+	};
+	struct ib_dm *dm;
+	struct ib_sig_attrs *sig_attrs;
+	struct rdma_restrack_entry res;
+};
+
+struct ib_recv_wr {
+	struct ib_recv_wr *next;
+	union {
+		u64 wr_id;
+		struct ib_cqe *wr_cqe;
+	};
+	struct ib_sge *sg_list;
+	int num_sge;
+};
+
+struct ib_rdmacg_object {};
+
+struct ib_uverbs_file;
+
+struct ib_ucontext {
+	struct ib_device *device;
+	struct ib_uverbs_file *ufile;
+	struct ib_rdmacg_object cg_obj;
+	struct rdma_restrack_entry res;
+	struct xarray mmap_xa;
+};
+
+struct uverbs_api_object;
+
+struct ib_uobject {
+	u64 user_handle;
+	struct ib_uverbs_file *ufile;
+	struct ib_ucontext *context;
+	void *object;
+	struct list_head list;
+	struct ib_rdmacg_object cg_obj;
+	int id;
+	struct kref ref;
+	atomic_t usecnt;
+	struct callback_head rcu;
+	const struct uverbs_api_object *uapi_object;
+};
+
+struct ib_udata {
+	const void *inbuf;
+	void *outbuf;
+	size_t inlen;
+	size_t outlen;
+};
+
+struct ib_pd {
+	u32 local_dma_lkey;
+	u32 flags;
+	struct ib_device *device;
+	struct ib_uobject *uobject;
+	atomic_t usecnt;
+	u32 unsafe_global_rkey;
+	struct ib_mr *__internal_mr;
+	struct rdma_restrack_entry res;
+};
+
+struct ib_wq_init_attr {
+	void *wq_context;
+	enum ib_wq_type wq_type;
+	u32 max_wr;
+	u32 max_sge;
+	struct ib_cq *cq;
+	void (*event_handler)(struct ib_event *, void *);
+	u32 create_flags;
+};
+
+struct ib_wq_attr {
+	enum ib_wq_state wq_state;
+	enum ib_wq_state curr_wq_state;
+	u32 flags;
+	u32 flags_mask;
+};
+
+struct ib_rwq_ind_table_init_attr {
+	u32 log_ind_tbl_size;
+	struct ib_wq **ind_tbl;
+};
+
+enum port_pkey_state {
+	IB_PORT_PKEY_NOT_VALID = 0,
+	IB_PORT_PKEY_VALID = 1,
+	IB_PORT_PKEY_LISTED = 2,
+};
+
+struct ib_port_pkey {
+	enum port_pkey_state state;
+	u16 pkey_index;
+	u32 port_num;
+	struct list_head qp_list;
+	struct list_head to_error_list;
+	struct ib_qp_security *sec;
+};
+
+struct ib_ports_pkeys;
+
+struct ib_qp_security {
+	struct ib_qp *qp;
+	struct ib_device *dev;
+	struct mutex mutex;
+	struct ib_ports_pkeys *ports_pkeys;
+	struct list_head shared_qp_list;
+	void *security;
+	bool destroying;
+	atomic_t error_list_count;
+	struct completion error_complete;
+	int error_comps_pending;
+};
+
+struct ib_ports_pkeys {
+	struct ib_port_pkey main;
+	struct ib_port_pkey alt;
+};
+
+struct ib_dm {
+	struct ib_device *device;
+	u32 length;
+	u32 flags;
+	struct ib_uobject *uobject;
+	atomic_t usecnt;
+};
+
+struct ib_mw {
+	struct ib_device *device;
+	struct ib_pd *pd;
+	struct ib_uobject *uobject;
+	u32 rkey;
+	enum ib_mw_type type;
+};
+
+enum ib_flow_attr_type {
+	IB_FLOW_ATTR_NORMAL = 0,
+	IB_FLOW_ATTR_ALL_DEFAULT = 1,
+	IB_FLOW_ATTR_MC_DEFAULT = 2,
+	IB_FLOW_ATTR_SNIFFER = 3,
+};
+
+enum ib_flow_spec_type {
+	IB_FLOW_SPEC_ETH = 32,
+	IB_FLOW_SPEC_IB = 34,
+	IB_FLOW_SPEC_IPV4 = 48,
+	IB_FLOW_SPEC_IPV6 = 49,
+	IB_FLOW_SPEC_ESP = 52,
+	IB_FLOW_SPEC_TCP = 64,
+	IB_FLOW_SPEC_UDP = 65,
+	IB_FLOW_SPEC_VXLAN_TUNNEL = 80,
+	IB_FLOW_SPEC_GRE = 81,
+	IB_FLOW_SPEC_MPLS = 96,
+	IB_FLOW_SPEC_INNER = 256,
+	IB_FLOW_SPEC_ACTION_TAG = 4096,
+	IB_FLOW_SPEC_ACTION_DROP = 4097,
+	IB_FLOW_SPEC_ACTION_HANDLE = 4098,
+	IB_FLOW_SPEC_ACTION_COUNT = 4099,
+};
+
+struct ib_flow_eth_filter {
+	u8 dst_mac[6];
+	u8 src_mac[6];
+	__be16 ether_type;
+	__be16 vlan_tag;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_eth {
+	u32 type;
+	u16 size;
+	struct ib_flow_eth_filter val;
+	struct ib_flow_eth_filter mask;
+};
+
+struct ib_flow_ib_filter {
+	__be16 dlid;
+	__u8 sl;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_ib {
+	u32 type;
+	u16 size;
+	struct ib_flow_ib_filter val;
+	struct ib_flow_ib_filter mask;
+};
+
+struct ib_flow_ipv4_filter {
+	__be32 src_ip;
+	__be32 dst_ip;
+	u8 proto;
+	u8 tos;
+	u8 ttl;
+	u8 flags;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_ipv4 {
+	u32 type;
+	u16 size;
+	struct ib_flow_ipv4_filter val;
+	struct ib_flow_ipv4_filter mask;
+};
+
+struct ib_flow_ipv6_filter {
+	u8 src_ip[16];
+	u8 dst_ip[16];
+	__be32 flow_label;
+	u8 next_hdr;
+	u8 traffic_class;
+	u8 hop_limit;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_ipv6 {
+	u32 type;
+	u16 size;
+	struct ib_flow_ipv6_filter val;
+	struct ib_flow_ipv6_filter mask;
+};
+
+struct ib_flow_tcp_udp_filter {
+	__be16 dst_port;
+	__be16 src_port;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_tcp_udp {
+	u32 type;
+	u16 size;
+	struct ib_flow_tcp_udp_filter val;
+	struct ib_flow_tcp_udp_filter mask;
+};
+
+struct ib_flow_tunnel_filter {
+	__be32 tunnel_id;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_tunnel {
+	u32 type;
+	u16 size;
+	struct ib_flow_tunnel_filter val;
+	struct ib_flow_tunnel_filter mask;
+};
+
+struct ib_flow_esp_filter {
+	__be32 spi;
+	__be32 seq;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_esp {
+	u32 type;
+	u16 size;
+	struct ib_flow_esp_filter val;
+	struct ib_flow_esp_filter mask;
+};
+
+struct ib_flow_gre_filter {
+	__be16 c_ks_res0_ver;
+	__be16 protocol;
+	__be32 key;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_gre {
+	u32 type;
+	u16 size;
+	struct ib_flow_gre_filter val;
+	struct ib_flow_gre_filter mask;
+};
+
+struct ib_flow_mpls_filter {
+	__be32 tag;
+	u8 real_sz[0];
+};
+
+struct ib_flow_spec_mpls {
+	u32 type;
+	u16 size;
+	struct ib_flow_mpls_filter val;
+	struct ib_flow_mpls_filter mask;
+};
+
+struct ib_flow_spec_action_tag {
+	enum ib_flow_spec_type type;
+	u16 size;
+	u32 tag_id;
+};
+
+struct ib_flow_spec_action_drop {
+	enum ib_flow_spec_type type;
+	u16 size;
+};
+
+struct ib_flow_spec_action_handle {
+	enum ib_flow_spec_type type;
+	u16 size;
+	struct ib_flow_action *act;
+};
+
+enum ib_flow_action_type {
+	IB_FLOW_ACTION_UNSPECIFIED = 0,
+	IB_FLOW_ACTION_ESP = 1,
+};
+
+struct ib_flow_action {
+	struct ib_device *device;
+	struct ib_uobject *uobject;
+	enum ib_flow_action_type type;
+	atomic_t usecnt;
+};
+
+struct ib_flow_spec_action_count {
+	enum ib_flow_spec_type type;
+	u16 size;
+	struct ib_counters *counters;
+};
+
+struct ib_counters {
+	struct ib_device *device;
+	struct ib_uobject *uobject;
+	atomic_t usecnt;
+};
+
+union ib_flow_spec {
+	struct {
+		u32 type;
+		u16 size;
+	};
+	struct ib_flow_spec_eth eth;
+	struct ib_flow_spec_ib ib;
+	struct ib_flow_spec_ipv4 ipv4;
+	struct ib_flow_spec_tcp_udp tcp_udp;
+	struct ib_flow_spec_ipv6 ipv6;
+	struct ib_flow_spec_tunnel tunnel;
+	struct ib_flow_spec_esp esp;
+	struct ib_flow_spec_gre gre;
+	struct ib_flow_spec_mpls mpls;
+	struct ib_flow_spec_action_tag flow_tag;
+	struct ib_flow_spec_action_drop drop;
+	struct ib_flow_spec_action_handle action;
+	struct ib_flow_spec_action_count flow_count;
+};
+
+struct ib_flow_attr {
+	enum ib_flow_attr_type type;
+	u16 size;
+	u16 priority;
+	u32 flags;
+	u8 num_of_specs;
+	u32 port;
+	union ib_flow_spec flows[0];
+};
+
+struct ib_flow {
+	struct ib_qp *qp;
+	struct ib_device *device;
+	struct ib_uobject *uobject;
+};
+
+struct ib_pkey_cache;
+
+struct ib_gid_table;
+
+struct ib_port_cache {
+	u64 subnet_prefix;
+	struct ib_pkey_cache *pkey;
+	struct ib_gid_table *gid;
+	u8 lmc;
+	enum ib_port_state port_state;
+};
+
+struct ib_port_immutable {
+	int pkey_tbl_len;
+	int gid_tbl_len;
+	u32 core_cap_flags;
+	u32 max_mad_size;
+};
+
+struct ib_port;
+
+struct ib_port_data {
+	struct ib_device *ib_dev;
+	struct ib_port_immutable immutable;
+	spinlock_t pkey_list_lock;
+	spinlock_t netdev_lock;
+	struct list_head pkey_list;
+	struct ib_port_cache cache;
+	struct net_device *netdev;
+	struct hlist_node ndev_hash_link;
+	struct rdma_port_counter port_counter;
+	struct ib_port *sysfs;
+};
+
+struct rdma_netdev_alloc_params {
+	size_t sizeof_priv;
+	unsigned int txqs;
+	unsigned int rxqs;
+	void *param;
+	int (*initialize_rdma_netdev)(struct ib_device *, u32, struct net_device *, void *);
+};
+
+struct ib_counters_read_attr {
+	u64 *counters_buff;
+	u32 ncounters;
+	u32 flags;
+};
+
+struct rdma_user_mmap_entry {
+	struct kref ref;
+	struct ib_ucontext *ucontext;
+	long unsigned int start_pgoff;
+	size_t npages;
+	bool driver_removed;
+};
+
+struct io_uring_file_index_range {
+	__u32 off;
+	__u32 len;
+	__u64 resv;
+};
+
+struct io_uring_rsrc_update {
+	__u32 offset;
+	__u32 resv;
+	__u64 data;
+};
+
+struct io_tctx_node {
+	struct list_head ctx_node;
+	struct task_struct *task;
+	struct io_ring_ctx *ctx;
+};
+
+struct io_sq_data {
+	refcount_t refs;
+	atomic_t park_pending;
+	struct mutex lock;
+	struct list_head ctx_list;
+	struct task_struct *thread;
+	struct wait_queue_head wait;
+	unsigned int sq_thread_idle;
+	int sq_cpu;
+	pid_t task_pid;
+	pid_t task_tgid;
+	long unsigned int state;
+	struct completion exited;
+};
+
+struct rhltable {
+	struct rhashtable ht;
+};
+
+union nested_table {
+	union nested_table *table;
+	struct rhash_lock_head *bucket;
+};
+
+struct sw842_hlist_node8 {
+	struct hlist_node node;
+	u64 data;
+	u8 index;
+};
+
+struct sw842_hlist_node4 {
+	struct hlist_node node;
+	u32 data;
+	u16 index;
+};
+
+struct sw842_hlist_node2 {
+	struct hlist_node node;
+	u16 data;
+	u8 index;
+};
+
+struct sw842_param {
+	u8 *in;
+	u8 *instart;
+	u64 ilen;
+	u8 *out;
+	u64 olen;
+	u8 bit;
+	u64 data8[1];
+	u32 data4[2];
+	u16 data2[4];
+	int index8[1];
+	int index4[2];
+	int index2[4];
+	struct hlist_head htable8[1024];
+	struct hlist_head htable4[2048];
+	struct hlist_head htable2[1024];
+	struct sw842_hlist_node8 node8[256];
+	struct sw842_hlist_node4 node4[512];
+	struct sw842_hlist_node2 node2[256];
+};
+
+typedef struct {
+	size_t bitContainer;
+	unsigned int bitsConsumed;
+	const char *ptr;
+	const char *start;
+	const char *limitPtr;
+} BIT_DStream_t;
+
+typedef enum {
+	BIT_DStream_unfinished = 0,
+	BIT_DStream_endOfBuffer = 1,
+	BIT_DStream_completed = 2,
+	BIT_DStream_overflow = 3,
+} BIT_DStream_status;
+
+typedef U32 HUF_DTable;
+
+typedef struct {
+	BYTE maxTableLog;
+	BYTE tableType;
+	BYTE tableLog;
+	BYTE reserved;
+} DTableDesc;
+
+typedef struct {
+	BYTE byte;
+	BYTE nbBits;
+} HUF_DEltX1;
+
+typedef struct {
+	U32 rankVal[16];
+	U32 rankStart[16];
+	U32 statsWksp[218];
+	BYTE symbols[256];
+	BYTE huffWeight[256];
+} HUF_ReadDTableX1_Workspace;
+
+typedef struct {
+	U16 sequence;
+	BYTE nbBits;
+	BYTE length;
+} HUF_DEltX2;
+
+typedef struct {
+	BYTE symbol;
+	BYTE weight;
+} sortedSymbol_t;
+
+typedef U32 rankValCol_t[13];
+
+typedef struct {
+	U32 rankVal[156];
+	U32 rankStats[13];
+	U32 rankStart0[14];
+	sortedSymbol_t sortedSymbol[256];
+	BYTE weightList[256];
+	U32 calleeWksp[218];
+} HUF_ReadDTableX2_Workspace;
+
+typedef struct {
+	U32 tableTime;
+	U32 decode256Time;
+} algo_time_t;
+
+struct raid6_calls {
+	void (*gen_syndrome)(int, size_t, void **);
+	void (*xor_syndrome)(int, int, int, size_t, void **);
+	int (*valid)();
+	const char *name;
+	int priority;
+};
+
+struct raid6_recov_calls {
+	void (*data2)(int, size_t, int, int, void **);
+	void (*datap)(int, size_t, int, void **);
+	int (*valid)();
+	const char *name;
+	int priority;
+};
+
+typedef unsigned char uint8_t___2;
+
+typedef signed char int8x16_t[16];
+
+typedef unsigned char __Poly8_t;
+
+typedef __Poly8_t poly8x16_t[16];
+
+typedef unsigned char uint8x16_t[16];
+
+typedef uint8x16_t unative_t;
+
+struct ddebug_table {
+	struct list_head link;
+	const char *mod_name;
+	unsigned int num_ddebugs;
+	struct _ddebug *ddebugs;
+};
+
+struct ddebug_query {
+	const char *filename;
+	const char *module;
+	const char *function;
+	const char *format;
+	unsigned int first_lineno;
+	unsigned int last_lineno;
+};
+
+struct ddebug_iter {
