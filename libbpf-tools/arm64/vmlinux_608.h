@@ -85778,3 +85778,2090 @@ struct compat_sigcontext {
 
 struct compat_ucontext {
 	compat_ulong_t uc_flags;
+	compat_uptr_t uc_link;
+	compat_stack_t uc_stack;
+	struct compat_sigcontext uc_mcontext;
+	compat_sigset_t uc_sigmask;
+	int __unused[30];
+	compat_ulong_t uc_regspace[128];
+};
+
+struct compat_sigframe {
+	struct compat_ucontext uc;
+	compat_ulong_t retcode[2];
+};
+
+struct compat_rt_sigframe {
+	struct compat_siginfo info;
+	struct compat_sigframe sig;
+};
+
+struct compat_user_vfp {
+	compat_u64 fpregs[32];
+	compat_ulong_t fpscr;
+};
+
+struct compat_user_vfp_exc {
+	compat_ulong_t fpexc;
+	compat_ulong_t fpinst;
+	compat_ulong_t fpinst2;
+};
+
+struct compat_vfp_sigframe {
+	compat_ulong_t magic;
+	compat_ulong_t size;
+	struct compat_user_vfp ufp;
+	struct compat_user_vfp_exc ufp_exc;
+};
+
+struct compat_aux_sigframe {
+	struct compat_vfp_sigframe vfp;
+	long unsigned int end_magic;
+};
+
+union __fpsimd_vreg {
+	__int128 unsigned raw;
+	struct {
+		u64 lo;
+		u64 hi;
+	};
+};
+
+struct hyp_shared_pfn {
+	u64 pfn;
+	int count;
+	struct rb_node node;
+};
+
+struct kvm_vcpu_init {
+	__u32 target;
+	__u32 features[7];
+};
+
+struct kvm_vcpu_events {
+	struct {
+		__u8 serror_pending;
+		__u8 serror_has_esr;
+		__u8 ext_dabt_pending;
+		__u8 pad[5];
+		__u64 serror_esr;
+	} exception;
+	__u32 reserved[12];
+};
+
+struct kvm_arm_copy_mte_tags {
+	__u64 guest_ipa;
+	__u64 length;
+	void *addr;
+	__u64 flags;
+	__u64 reserved[2];
+};
+
+struct kvm_one_reg {
+	__u64 id;
+	__u64 addr;
+};
+
+struct sve_state_reg_region {
+	unsigned int koffset;
+	unsigned int klen;
+	unsigned int upad;
+};
+
+struct vgic_vmcr {
+	u32 grpen0;
+	u32 grpen1;
+	u32 ackctl;
+	u32 fiqen;
+	u32 cbpr;
+	u32 eoim;
+	u32 abpr;
+	u32 bpr;
+	u32 pmr;
+};
+
+struct trace_event_raw_vgic_update_irq_pending {
+	struct trace_entry ent;
+	long unsigned int vcpu_id;
+	__u32 irq;
+	bool level;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_vgic_update_irq_pending {};
+
+typedef void (*btf_trace_vgic_update_irq_pending)(void *, long unsigned int, __u32, bool);
+
+struct its_device {
+	struct list_head dev_list;
+	struct list_head itt_head;
+	u32 num_eventid_bits;
+	gpa_t itt_addr;
+	u32 device_id;
+};
+
+struct its_collection {
+	struct list_head coll_list;
+	u32 collection_id;
+	u32 target_addr;
+};
+
+struct its_ite {
+	struct list_head ite_list;
+	struct vgic_irq *irq;
+	struct its_collection *collection;
+	u32 event_id;
+};
+
+struct vgic_translation_cache_entry {
+	struct list_head entry;
+	phys_addr_t db;
+	u32 devid;
+	u32 eventid;
+	struct vgic_irq *irq;
+};
+
+struct vgic_its_abi {
+	int cte_esz;
+	int dte_esz;
+	int ite_esz;
+	int (*save_tables)(struct vgic_its *);
+	int (*restore_tables)(struct vgic_its *);
+	int (*commit)(struct vgic_its *);
+};
+
+typedef int (*entry_fn_t)(struct vgic_its *, u32, void *, void *);
+
+typedef void (*hcall_t)(struct kvm_cpu_context *);
+
+struct kvm_nvhe_stacktrace_info {
+	long unsigned int stack_base;
+	long unsigned int overflow_stack_base;
+	long unsigned int fp;
+	long unsigned int pc;
+};
+
+struct crypto_aes_xts_ctx {
+	struct crypto_aes_ctx key1;
+	int: 32;
+	struct crypto_aes_ctx key2;
+	int: 32;
+};
+
+struct crypto_aes_essiv_cbc_ctx {
+	struct crypto_aes_ctx key1;
+	int: 32;
+	struct crypto_aes_ctx key2;
+	struct crypto_shash *hash;
+};
+
+struct mac_tfm_ctx {
+	struct crypto_aes_ctx key;
+	int: 32;
+	u8 consts[0];
+};
+
+struct mac_desc_ctx {
+	unsigned int len;
+	u8 dg[16];
+};
+
+struct taint_flag {
+	char c_true;
+	char c_false;
+	bool module;
+};
+
+enum ftrace_dump_mode {
+	DUMP_NONE = 0,
+	DUMP_ALL = 1,
+	DUMP_ORIG = 2,
+};
+
+enum con_flush_mode {
+	CONSOLE_FLUSH_PENDING = 0,
+	CONSOLE_REPLAY_ALL = 1,
+};
+
+enum error_detector {
+	ERROR_DETECTOR_KFENCE = 0,
+	ERROR_DETECTOR_KASAN = 1,
+	ERROR_DETECTOR_WARN = 2,
+};
+
+struct warn_args {
+	const char *fmt;
+	va_list args;
+};
+
+struct ptrace_peeksiginfo_args {
+	__u64 off;
+	__u32 flags;
+	__s32 nr;
+};
+
+struct ptrace_syscall_info {
+	__u8 op;
+	__u8 pad[3];
+	__u32 arch;
+	__u64 instruction_pointer;
+	__u64 stack_pointer;
+	union {
+		struct {
+			__u64 nr;
+			__u64 args[6];
+		} entry;
+		struct {
+			__s64 rval;
+			__u8 is_error;
+		} exit;
+		struct {
+			__u64 nr;
+			__u64 args[6];
+			__u32 ret_data;
+		} seccomp;
+	};
+};
+
+struct ptrace_rseq_configuration {
+	__u64 rseq_abi_pointer;
+	__u32 rseq_abi_size;
+	__u32 signature;
+	__u32 flags;
+	__u32 pad;
+};
+
+struct compat_iovec {
+	compat_uptr_t iov_base;
+	compat_size_t iov_len;
+};
+
+typedef struct compat_siginfo compat_siginfo_t;
+
+struct umd_info {
+	const char *driver_name;
+	struct file *pipe_to_umh;
+	struct file *pipe_from_umh;
+	struct path wd;
+	struct pid *tgid;
+};
+
+struct semaphore_waiter {
+	struct list_head list;
+	struct task_struct *task;
+	bool up;
+};
+
+struct optimistic_spin_node {
+	struct optimistic_spin_node *next;
+	struct optimistic_spin_node *prev;
+	int locked;
+	int cpu;
+};
+
+struct pm_qos_request {
+	struct plist_node node;
+	struct pm_qos_constraints *qos;
+};
+
+struct sysrq_key_op {
+	void (* const handler)(int);
+	const char * const help_msg;
+	const char * const action_msg;
+	const int enable_mask;
+};
+
+struct kmsg_dump_iter {
+	u64 cur_seq;
+	u64 next_seq;
+};
+
+struct kmsg_dumper {
+	struct list_head list;
+	void (*dump)(struct kmsg_dumper *, enum kmsg_dump_reason);
+	enum kmsg_dump_reason max_reason;
+	bool registered;
+};
+
+struct trace_event_raw_console {
+	struct trace_entry ent;
+	u32 __data_loc_msg;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_console {
+	u32 msg;
+};
+
+typedef void (*btf_trace_console)(void *, const char *, size_t);
+
+struct console_cmdline {
+	char name[16];
+	int index;
+	bool user_specified;
+	char *options;
+	char *brl_options;
+};
+
+enum printk_info_flags {
+	LOG_NEWLINE = 2,
+	LOG_CONT = 8,
+};
+
+enum devkmsg_log_bits {
+	__DEVKMSG_LOG_BIT_ON = 0,
+	__DEVKMSG_LOG_BIT_OFF = 1,
+	__DEVKMSG_LOG_BIT_LOCK = 2,
+};
+
+enum devkmsg_log_masks {
+	DEVKMSG_LOG_MASK_ON = 1,
+	DEVKMSG_LOG_MASK_OFF = 2,
+	DEVKMSG_LOG_MASK_LOCK = 4,
+};
+
+enum con_msg_format_flags {
+	MSG_FORMAT_DEFAULT = 0,
+	MSG_FORMAT_SYSLOG = 1,
+};
+
+struct latched_seq {
+	seqcount_latch_t latch;
+	u64 val[2];
+};
+
+struct devkmsg_user {
+	atomic64_t seq;
+	struct ratelimit_state rs;
+	struct mutex lock;
+	char buf[8192];
+	struct printk_info info;
+	char text_buf[8192];
+	struct printk_record record;
+};
+
+struct irqchip_fwid {
+	struct fwnode_handle fwnode;
+	unsigned int type;
+	char *name;
+	phys_addr_t *pa;
+};
+
+struct io_tlb_area {
+	long unsigned int used;
+	unsigned int index;
+	spinlock_t lock;
+};
+
+struct io_tlb_slot {
+	phys_addr_t orig_addr;
+	size_t alloc_size;
+	unsigned int list;
+};
+
+struct trace_event_raw_swiotlb_bounced {
+	struct trace_entry ent;
+	u32 __data_loc_dev_name;
+	u64 dma_mask;
+	dma_addr_t dev_addr;
+	size_t size;
+	bool force;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_swiotlb_bounced {
+	u32 dev_name;
+};
+
+typedef void (*btf_trace_swiotlb_bounced)(void *, struct device *, dma_addr_t, size_t);
+
+struct module_use {
+	struct list_head source_list;
+	struct list_head target_list;
+	struct module *source;
+	struct module *target;
+};
+
+struct module_sect_attr {
+	struct bin_attribute battr;
+	long unsigned int address;
+};
+
+struct module_sect_attrs {
+	struct attribute_group grp;
+	unsigned int nsections;
+	struct module_sect_attr attrs[0];
+};
+
+struct module_notes_attrs {
+	struct kobject *dir;
+	unsigned int notes;
+	struct bin_attribute attrs[0];
+};
+
+struct softirq_action {
+	void (*action)(struct softirq_action *);
+};
+
+enum tick_broadcast_state {
+	TICK_BROADCAST_EXIT = 0,
+	TICK_BROADCAST_ENTER = 1,
+};
+
+struct futex_waitv {
+	__u64 val;
+	__u64 uaddr;
+	__u32 flags;
+	__u32 __reserved;
+};
+
+struct futex_vector {
+	struct futex_waitv w;
+	struct futex_q q;
+};
+
+struct rusage {
+	struct __kernel_old_timeval ru_utime;
+	struct __kernel_old_timeval ru_stime;
+	__kernel_long_t ru_maxrss;
+	__kernel_long_t ru_ixrss;
+	__kernel_long_t ru_idrss;
+	__kernel_long_t ru_isrss;
+	__kernel_long_t ru_minflt;
+	__kernel_long_t ru_majflt;
+	__kernel_long_t ru_nswap;
+	__kernel_long_t ru_inblock;
+	__kernel_long_t ru_oublock;
+	__kernel_long_t ru_msgsnd;
+	__kernel_long_t ru_msgrcv;
+	__kernel_long_t ru_nsignals;
+	__kernel_long_t ru_nvcsw;
+	__kernel_long_t ru_nivcsw;
+};
+
+struct compat_rusage {
+	struct old_timeval32 ru_utime;
+	struct old_timeval32 ru_stime;
+	compat_long_t ru_maxrss;
+	compat_long_t ru_ixrss;
+	compat_long_t ru_idrss;
+	compat_long_t ru_isrss;
+	compat_long_t ru_minflt;
+	compat_long_t ru_majflt;
+	compat_long_t ru_nswap;
+	compat_long_t ru_inblock;
+	compat_long_t ru_oublock;
+	compat_long_t ru_msgsnd;
+	compat_long_t ru_msgrcv;
+	compat_long_t ru_nsignals;
+	compat_long_t ru_nvcsw;
+	compat_long_t ru_nivcsw;
+};
+
+struct root_domain;
+
+enum {
+	CGRP_ROOT_NOPREFIX = 2,
+	CGRP_ROOT_XATTR = 4,
+	CGRP_ROOT_NS_DELEGATE = 8,
+	CGRP_ROOT_FAVOR_DYNMODS = 16,
+	CGRP_ROOT_CPUSET_V2_MODE = 65536,
+	CGRP_ROOT_MEMORY_LOCAL_EVENTS = 131072,
+	CGRP_ROOT_MEMORY_RECURSIVE_PROT = 262144,
+};
+
+struct fmeter {
+	int cnt;
+	int val;
+	time64_t time;
+	spinlock_t lock;
+};
+
+struct cpuset {
+	struct cgroup_subsys_state css;
+	long unsigned int flags;
+	cpumask_var_t cpus_allowed;
+	nodemask_t mems_allowed;
+	cpumask_var_t effective_cpus;
+	nodemask_t effective_mems;
+	cpumask_var_t subparts_cpus;
+	nodemask_t old_mems_allowed;
+	struct fmeter fmeter;
+	int attach_in_progress;
+	int pn;
+	int relax_domain_level;
+	int nr_subparts_cpus;
+	int partition_root_state;
+	int use_parent_ecpus;
+	int child_ecpus_count;
+	struct cgroup_file partition_file;
+};
+
+struct tmpmasks {
+	cpumask_var_t addmask;
+	cpumask_var_t delmask;
+	cpumask_var_t new_cpus;
+};
+
+typedef enum {
+	CS_ONLINE = 0,
+	CS_CPU_EXCLUSIVE = 1,
+	CS_MEM_EXCLUSIVE = 2,
+	CS_MEM_HARDWALL = 3,
+	CS_MEMORY_MIGRATE = 4,
+	CS_SCHED_LOAD_BALANCE = 5,
+	CS_SPREAD_PAGE = 6,
+	CS_SPREAD_SLAB = 7,
+} cpuset_flagbits_t;
+
+enum subparts_cmd {
+	partcmd_enable = 0,
+	partcmd_disable = 1,
+	partcmd_update = 2,
+};
+
+struct cpuset_migrate_mm_work {
+	struct work_struct work;
+	struct mm_struct *mm;
+	nodemask_t from;
+	nodemask_t to;
+};
+
+typedef enum {
+	FILE_MEMORY_MIGRATE = 0,
+	FILE_CPULIST = 1,
+	FILE_MEMLIST = 2,
+	FILE_EFFECTIVE_CPULIST = 3,
+	FILE_EFFECTIVE_MEMLIST = 4,
+	FILE_SUBPARTS_CPULIST = 5,
+	FILE_CPU_EXCLUSIVE = 6,
+	FILE_MEM_EXCLUSIVE = 7,
+	FILE_MEM_HARDWALL = 8,
+	FILE_SCHED_LOAD_BALANCE = 9,
+	FILE_PARTITION_ROOT = 10,
+	FILE_SCHED_RELAX_DOMAIN_LEVEL = 11,
+	FILE_MEMORY_PRESSURE_ENABLED = 12,
+	FILE_MEMORY_PRESSURE = 13,
+	FILE_SPREAD_PAGE = 14,
+	FILE_SPREAD_SLAB = 15,
+} cpuset_filetype_t;
+
+struct kprobe_blacklist_entry {
+	struct list_head list;
+	long unsigned int start_addr;
+	long unsigned int end_addr;
+};
+
+struct kprobe_insn_page {
+	struct list_head list;
+	kprobe_opcode_t *insns;
+	struct kprobe_insn_cache *cache;
+	int nused;
+	int ngarbage;
+	char slot_used[0];
+};
+
+enum kprobe_slot_state {
+	SLOT_CLEAN = 0,
+	SLOT_DIRTY = 1,
+	SLOT_USED = 2,
+};
+
+enum ring_buffer_flags {
+	RB_FL_OVERWRITE = 1,
+};
+
+typedef struct vfsmount * (*debugfs_automount_t)(struct dentry *, void *);
+
+struct trace_export {
+	struct trace_export *next;
+	void (*write)(struct trace_export *, const void *, unsigned int);
+	int flags;
+};
+
+enum trace_iter_flags {
+	TRACE_FILE_LAT_FMT = 1,
+	TRACE_FILE_ANNOTATE = 2,
+	TRACE_FILE_TIME_IN_NS = 4,
+};
+
+enum event_trigger_type {
+	ETT_NONE = 0,
+	ETT_TRACE_ONOFF = 1,
+	ETT_SNAPSHOT = 2,
+	ETT_STACKTRACE = 4,
+	ETT_EVENT_ENABLE = 8,
+	ETT_EVENT_HIST = 16,
+	ETT_HIST_ENABLE = 32,
+	ETT_EVENT_EPROBE = 64,
+};
+
+struct ftrace_entry {
+	struct trace_entry ent;
+	long unsigned int ip;
+	long unsigned int parent_ip;
+};
+
+struct bprint_entry {
+	struct trace_entry ent;
+	long unsigned int ip;
+	const char *fmt;
+	u32 buf[0];
+};
+
+struct print_entry {
+	struct trace_entry ent;
+	long unsigned int ip;
+	char buf[0];
+};
+
+struct raw_data_entry {
+	struct trace_entry ent;
+	unsigned int id;
+	char buf[0];
+};
+
+struct bputs_entry {
+	struct trace_entry ent;
+	long unsigned int ip;
+	const char *str;
+};
+
+struct func_repeats_entry {
+	struct trace_entry ent;
+	long unsigned int ip;
+	long unsigned int parent_ip;
+	u16 count;
+	u16 top_delta_ts;
+	u32 bottom_delta_ts;
+};
+
+struct trace_eval_map_head {
+	struct module *mod;
+	long unsigned int length;
+};
+
+union trace_eval_map_item;
+
+struct trace_eval_map_tail {
+	union trace_eval_map_item *next;
+	const char *end;
+};
+
+union trace_eval_map_item {
+	struct trace_eval_map map;
+	struct trace_eval_map_head head;
+	struct trace_eval_map_tail tail;
+};
+
+struct saved_cmdlines_buffer {
+	unsigned int map_pid_to_cmdline[32769];
+	unsigned int *map_cmdline_to_pid;
+	unsigned int cmdline_num;
+	int cmdline_idx;
+	char *saved_cmdlines;
+};
+
+struct ftrace_stack {
+	long unsigned int calls[1024];
+};
+
+struct ftrace_stacks {
+	struct ftrace_stack stacks[4];
+};
+
+struct trace_buffer_struct {
+	int nesting;
+	char buffer[4096];
+};
+
+struct ftrace_buffer_info {
+	struct trace_iterator iter;
+	void *spare;
+	unsigned int spare_cpu;
+	unsigned int read;
+};
+
+struct err_info {
+	const char **errs;
+	u8 type;
+	u16 pos;
+	u64 ts;
+};
+
+struct tracing_log_err {
+	struct list_head list;
+	struct err_info info;
+	char loc[128];
+	char *cmd;
+};
+
+struct buffer_ref {
+	struct trace_buffer *buffer;
+	void *page;
+	int cpu;
+	refcount_t refcount;
+};
+
+struct ftrace_func_mapper;
+
+enum dynevent_type {
+	DYNEVENT_TYPE_SYNTH = 1,
+	DYNEVENT_TYPE_KPROBE = 2,
+	DYNEVENT_TYPE_NONE = 3,
+};
+
+struct dynevent_cmd;
+
+typedef int (*dynevent_create_fn_t)(struct dynevent_cmd *);
+
+struct dynevent_cmd {
+	struct seq_buf seq;
+	const char *event_name;
+	unsigned int n_fields;
+	enum dynevent_type type;
+	dynevent_create_fn_t run_command;
+	void *private_data;
+};
+
+struct synth_field_desc {
+	const char *type;
+	const char *name;
+};
+
+struct synth_trace_event;
+
+struct synth_event;
+
+struct synth_event_trace_state {
+	struct trace_event_buffer fbuffer;
+	struct synth_trace_event *entry;
+	struct trace_buffer *buffer;
+	struct synth_event *event;
+	unsigned int cur_field;
+	unsigned int n_u64;
+	bool disabled;
+	bool add_next;
+	bool add_name;
+};
+
+struct synth_trace_event {
+	struct trace_entry ent;
+	u64 fields[0];
+};
+
+struct dyn_event_operations;
+
+struct dyn_event {
+	struct list_head list;
+	struct dyn_event_operations *ops;
+};
+
+struct synth_field;
+
+struct synth_event {
+	struct dyn_event devent;
+	int ref;
+	char *name;
+	struct synth_field **fields;
+	unsigned int n_fields;
+	struct synth_field **dynamic_fields;
+	unsigned int n_dynamic_fields;
+	unsigned int n_u64;
+	struct trace_event_class class;
+	struct trace_event_call call;
+	struct tracepoint *tp;
+	struct module *mod;
+};
+
+struct dyn_event_operations {
+	struct list_head list;
+	int (*create)(const char *);
+	int (*show)(struct seq_file *, struct dyn_event *);
+	bool (*is_busy)(struct dyn_event *);
+	int (*free)(struct dyn_event *);
+	bool (*match)(const char *, const char *, int, const char **, struct dyn_event *);
+};
+
+typedef int (*dynevent_check_arg_fn_t)(void *);
+
+struct dynevent_arg {
+	const char *str;
+	char separator;
+};
+
+struct dynevent_arg_pair {
+	const char *lhs;
+	const char *rhs;
+	char operator;
+	char separator;
+};
+
+struct synth_field {
+	char *type;
+	char *name;
+	size_t size;
+	unsigned int offset;
+	unsigned int field_pos;
+	bool is_signed;
+	bool is_string;
+	bool is_dynamic;
+};
+
+enum {
+	SYNTH_ERR_BAD_NAME = 0,
+	SYNTH_ERR_INVALID_CMD = 1,
+	SYNTH_ERR_INVALID_DYN_CMD = 2,
+	SYNTH_ERR_EVENT_EXISTS = 3,
+	SYNTH_ERR_TOO_MANY_FIELDS = 4,
+	SYNTH_ERR_INCOMPLETE_TYPE = 5,
+	SYNTH_ERR_INVALID_TYPE = 6,
+	SYNTH_ERR_INVALID_FIELD = 7,
+	SYNTH_ERR_INVALID_ARRAY_SPEC = 8,
+};
+
+typedef int (*print_type_func_t)(struct trace_seq *, void *, void *);
+
+enum fetch_op {
+	FETCH_OP_NOP = 0,
+	FETCH_OP_REG = 1,
+	FETCH_OP_STACK = 2,
+	FETCH_OP_STACKP = 3,
+	FETCH_OP_RETVAL = 4,
+	FETCH_OP_IMM = 5,
+	FETCH_OP_COMM = 6,
+	FETCH_OP_ARG = 7,
+	FETCH_OP_FOFFS = 8,
+	FETCH_OP_DATA = 9,
+	FETCH_OP_DEREF = 10,
+	FETCH_OP_UDEREF = 11,
+	FETCH_OP_ST_RAW = 12,
+	FETCH_OP_ST_MEM = 13,
+	FETCH_OP_ST_UMEM = 14,
+	FETCH_OP_ST_STRING = 15,
+	FETCH_OP_ST_USTRING = 16,
+	FETCH_OP_MOD_BF = 17,
+	FETCH_OP_LP_ARRAY = 18,
+	FETCH_OP_TP_ARG = 19,
+	FETCH_OP_END = 20,
+	FETCH_NOP_SYMBOL = 21,
+};
+
+struct fetch_insn {
+	enum fetch_op op;
+	union {
+		unsigned int param;
+		struct {
+			unsigned int size;
+			int offset;
+		};
+		struct {
+			unsigned char basesize;
+			unsigned char lshift;
+			unsigned char rshift;
+		};
+		long unsigned int immediate;
+		void *data;
+	};
+};
+
+struct fetch_type {
+	const char *name;
+	size_t size;
+	int is_signed;
+	print_type_func_t print;
+	const char *fmt;
+	const char *fmttype;
+};
+
+struct probe_arg {
+	struct fetch_insn *code;
+	bool dynamic;
+	unsigned int offset;
+	unsigned int count;
+	const char *name;
+	const char *comm;
+	char *fmt;
+	const struct fetch_type *type;
+};
+
+struct trace_uprobe_filter {
+	rwlock_t rwlock;
+	int nr_systemwide;
+	struct list_head perf_events;
+};
+
+struct trace_probe_event {
+	unsigned int flags;
+	struct trace_event_class class;
+	struct trace_event_call call;
+	struct list_head files;
+	struct list_head probes;
+	struct trace_uprobe_filter filter[0];
+};
+
+struct trace_probe {
+	struct list_head list;
+	struct trace_probe_event *event;
+	ssize_t size;
+	unsigned int nr_args;
+	struct probe_arg args[0];
+};
+
+struct event_file_link {
+	struct trace_event_file *file;
+	struct list_head list;
+};
+
+enum probe_print_type {
+	PROBE_PRINT_NORMAL = 0,
+	PROBE_PRINT_RETURN = 1,
+	PROBE_PRINT_EVENT = 2,
+};
+
+enum {
+	TP_ERR_FILE_NOT_FOUND = 0,
+	TP_ERR_NO_REGULAR_FILE = 1,
+	TP_ERR_BAD_REFCNT = 2,
+	TP_ERR_REFCNT_OPEN_BRACE = 3,
+	TP_ERR_BAD_REFCNT_SUFFIX = 4,
+	TP_ERR_BAD_UPROBE_OFFS = 5,
+	TP_ERR_MAXACT_NO_KPROBE = 6,
+	TP_ERR_BAD_MAXACT = 7,
+	TP_ERR_MAXACT_TOO_BIG = 8,
+	TP_ERR_BAD_PROBE_ADDR = 9,
+	TP_ERR_BAD_RETPROBE = 10,
+	TP_ERR_BAD_ADDR_SUFFIX = 11,
+	TP_ERR_NO_GROUP_NAME = 12,
+	TP_ERR_GROUP_TOO_LONG = 13,
+	TP_ERR_BAD_GROUP_NAME = 14,
+	TP_ERR_NO_EVENT_NAME = 15,
+	TP_ERR_EVENT_TOO_LONG = 16,
+	TP_ERR_BAD_EVENT_NAME = 17,
+	TP_ERR_EVENT_EXIST = 18,
+	TP_ERR_RETVAL_ON_PROBE = 19,
+	TP_ERR_BAD_STACK_NUM = 20,
+	TP_ERR_BAD_ARG_NUM = 21,
+	TP_ERR_BAD_VAR = 22,
+	TP_ERR_BAD_REG_NAME = 23,
+	TP_ERR_BAD_MEM_ADDR = 24,
+	TP_ERR_BAD_IMM = 25,
+	TP_ERR_IMMSTR_NO_CLOSE = 26,
+	TP_ERR_FILE_ON_KPROBE = 27,
+	TP_ERR_BAD_FILE_OFFS = 28,
+	TP_ERR_SYM_ON_UPROBE = 29,
+	TP_ERR_TOO_MANY_OPS = 30,
+	TP_ERR_DEREF_NEED_BRACE = 31,
+	TP_ERR_BAD_DEREF_OFFS = 32,
+	TP_ERR_DEREF_OPEN_BRACE = 33,
+	TP_ERR_COMM_CANT_DEREF = 34,
+	TP_ERR_BAD_FETCH_ARG = 35,
+	TP_ERR_ARRAY_NO_CLOSE = 36,
+	TP_ERR_BAD_ARRAY_SUFFIX = 37,
+	TP_ERR_BAD_ARRAY_NUM = 38,
+	TP_ERR_ARRAY_TOO_BIG = 39,
+	TP_ERR_BAD_TYPE = 40,
+	TP_ERR_BAD_STRING = 41,
+	TP_ERR_BAD_BITFIELD = 42,
+	TP_ERR_ARG_NAME_TOO_LONG = 43,
+	TP_ERR_NO_ARG_NAME = 44,
+	TP_ERR_BAD_ARG_NAME = 45,
+	TP_ERR_USED_ARG_NAME = 46,
+	TP_ERR_ARG_TOO_LONG = 47,
+	TP_ERR_NO_ARG_BODY = 48,
+	TP_ERR_BAD_INSN_BNDRY = 49,
+	TP_ERR_FAIL_REG_PROBE = 50,
+	TP_ERR_DIFF_PROBE_TYPE = 51,
+	TP_ERR_DIFF_ARG_TYPE = 52,
+	TP_ERR_SAME_PROBE = 53,
+	TP_ERR_NO_EVENT_INFO = 54,
+	TP_ERR_BAD_ATTACH_EVENT = 55,
+	TP_ERR_BAD_ATTACH_ARG = 56,
+};
+
+struct trace_probe_log {
+	const char *subsystem;
+	const char **argv;
+	int argc;
+	int index;
+};
+
+struct bpf_attach_target_info {
+	struct btf_func_model fmodel;
+	long int tgt_addr;
+	const char *tgt_name;
+	const struct btf_type *tgt_type;
+};
+
+struct bpf_kfunc_desc {
+	struct btf_func_model func_model;
+	u32 func_id;
+	s32 imm;
+	u16 offset;
+};
+
+struct bpf_kfunc_desc_tab {
+	struct bpf_kfunc_desc descs[256];
+	u32 nr_descs;
+};
+
+struct bpf_kfunc_btf {
+	struct btf *btf;
+	struct module *module;
+	u16 offset;
+};
+
+struct bpf_kfunc_btf_tab {
+	struct bpf_kfunc_btf descs[256];
+	u32 nr_descs;
+};
+
+struct bpf_struct_ops {
+	const struct bpf_verifier_ops *verifier_ops;
+	int (*init)(struct btf *);
+	int (*check_member)(const struct btf_type *, const struct btf_member *);
+	int (*init_member)(const struct btf_type *, const struct btf_member *, void *, const void *);
+	int (*reg)(void *);
+	void (*unreg)(void *);
+	const struct btf_type *type;
+	const struct btf_type *value_type;
+	const char *name;
+	struct btf_func_model func_models[64];
+	u32 type_id;
+	u32 value_id;
+};
+
+typedef u32 (*bpf_convert_ctx_access_t)(enum bpf_access_type, const struct bpf_insn *, struct bpf_insn *, struct bpf_prog *, u32 *);
+
+enum bpf_stack_slot_type {
+	STACK_INVALID = 0,
+	STACK_SPILL = 1,
+	STACK_MISC = 2,
+	STACK_ZERO = 3,
+	STACK_DYNPTR = 4,
+};
+
+struct bpf_verifier_stack_elem {
+	struct bpf_verifier_state st;
+	int insn_idx;
+	int prev_insn_idx;
+	struct bpf_verifier_stack_elem *next;
+	u32 log_pos;
+};
+
+struct bpf_call_arg_meta {
+	struct bpf_map *map_ptr;
+	bool raw_mode;
+	bool pkt_access;
+	u8 release_regno;
+	int regno;
+	int access_size;
+	int mem_size;
+	u64 msize_max_value;
+	int ref_obj_id;
+	int map_uid;
+	int func_id;
+	struct btf *btf;
+	u32 btf_id;
+	struct btf *ret_btf;
+	u32 ret_btf_id;
+	u32 subprogno;
+	struct bpf_map_value_off_desc *kptr_off_desc;
+	u8 uninit_dynptr_regno;
+};
+
+enum reg_arg_type {
+	SRC_OP = 0,
+	DST_OP = 1,
+	DST_OP_NO_MARK = 2,
+};
+
+enum bpf_access_src {
+	ACCESS_DIRECT = 1,
+	ACCESS_HELPER = 2,
+};
+
+struct bpf_reg_types {
+	const enum bpf_reg_type types[10];
+	u32 *btf_id;
+};
+
+enum {
+	AT_PKT_END = 4294967295,
+	BEYOND_PKT_END = 4294967294,
+};
+
+typedef int (*set_callee_state_fn)(struct bpf_verifier_env *, struct bpf_func_state *, struct bpf_func_state *, int);
+
+enum {
+	REASON_BOUNDS = 4294967295,
+	REASON_TYPE = 4294967294,
+	REASON_PATHS = 4294967293,
+	REASON_LIMIT = 4294967292,
+	REASON_STACK = 4294967291,
+};
+
+struct bpf_sanitize_info {
+	struct bpf_insn_aux_data aux;
+	bool mask_to_left;
+};
+
+enum {
+	DISCOVERED = 16,
+	EXPLORED = 32,
+	FALLTHROUGH = 1,
+	BRANCH = 2,
+};
+
+enum {
+	DONE_EXPLORING = 0,
+	KEEP_EXPLORING = 1,
+};
+
+enum {
+	BPF_RB_NO_WAKEUP = 1,
+	BPF_RB_FORCE_WAKEUP = 2,
+};
+
+enum {
+	BPF_RB_AVAIL_DATA = 0,
+	BPF_RB_RING_SIZE = 1,
+	BPF_RB_CONS_POS = 2,
+	BPF_RB_PROD_POS = 3,
+};
+
+enum {
+	BPF_RINGBUF_BUSY_BIT = 2147483648,
+	BPF_RINGBUF_DISCARD_BIT = 1073741824,
+	BPF_RINGBUF_HDR_SZ = 8,
+};
+
+struct bpf_dynptr_kern {
+	void *data;
+	u32 size;
+	u32 offset;
+};
+
+struct bpf_ringbuf {
+	wait_queue_head_t waitq;
+	struct irq_work work;
+	u64 mask;
+	struct page **pages;
+	int nr_pages;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t spinlock;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long unsigned int consumer_pos;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
