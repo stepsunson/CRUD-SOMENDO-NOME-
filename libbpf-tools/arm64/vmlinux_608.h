@@ -92064,3 +92064,2162 @@ struct trace_event_raw_ext4_es_shrink_scan_exit {
 	dev_t dev;
 	int nr_shrunk;
 	int cache_cnt;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_collapse_range {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t offset;
+	loff_t len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_insert_range {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t offset;
+	loff_t len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_shrink {
+	struct trace_entry ent;
+	dev_t dev;
+	int nr_shrunk;
+	long long unsigned int scan_time;
+	int nr_skipped;
+	int retried;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_insert_delayed_block {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	ext4_lblk_t len;
+	ext4_fsblk_t pblk;
+	char status;
+	bool allocated;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fsmap_class {
+	struct trace_entry ent;
+	dev_t dev;
+	dev_t keydev;
+	u32 agno;
+	u64 bno;
+	u64 len;
+	u64 owner;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_getfsmap_class {
+	struct trace_entry ent;
+	dev_t dev;
+	dev_t keydev;
+	u64 block;
+	u64 len;
+	u64 owner;
+	u64 flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_shutdown {
+	struct trace_entry ent;
+	dev_t dev;
+	unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_error {
+	struct trace_entry ent;
+	dev_t dev;
+	const char *function;
+	unsigned int line;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_prefetch_bitmaps {
+	struct trace_entry ent;
+	dev_t dev;
+	__u32 group;
+	__u32 next;
+	__u32 ios;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_lazy_itable_init {
+	struct trace_entry ent;
+	dev_t dev;
+	__u32 group;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_replay_scan {
+	struct trace_entry ent;
+	dev_t dev;
+	int error;
+	int off;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_replay {
+	struct trace_entry ent;
+	dev_t dev;
+	int tag;
+	int ino;
+	int priv1;
+	int priv2;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_commit_start {
+	struct trace_entry ent;
+	dev_t dev;
+	tid_t tid;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_commit_stop {
+	struct trace_entry ent;
+	dev_t dev;
+	int nblks;
+	int reason;
+	int num_fc;
+	int num_fc_ineligible;
+	int nblks_agg;
+	tid_t tid;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_stats {
+	struct trace_entry ent;
+	dev_t dev;
+	unsigned int fc_ineligible_rc[9];
+	long unsigned int fc_commits;
+	long unsigned int fc_ineligible_commits;
+	long unsigned int fc_numblks;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_dentry {
+	struct trace_entry ent;
+	dev_t dev;
+	tid_t t_tid;
+	ino_t i_ino;
+	tid_t i_sync_tid;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	tid_t t_tid;
+	ino_t i_ino;
+	tid_t i_sync_tid;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_range {
+	struct trace_entry ent;
+	dev_t dev;
+	tid_t t_tid;
+	ino_t i_ino;
+	tid_t i_sync_tid;
+	long int start;
+	long int end;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_cleanup {
+	struct trace_entry ent;
+	dev_t dev;
+	int j_fc_off;
+	int full;
+	tid_t tid;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_update_sb {
+	struct trace_entry ent;
+	dev_t dev;
+	ext4_fsblk_t fsblk;
+	unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_ext4_other_inode_update_time {};
+
+struct trace_event_data_offsets_ext4_free_inode {};
+
+struct trace_event_data_offsets_ext4_request_inode {};
+
+struct trace_event_data_offsets_ext4_allocate_inode {};
+
+struct trace_event_data_offsets_ext4_evict_inode {};
+
+struct trace_event_data_offsets_ext4_drop_inode {};
+
+struct trace_event_data_offsets_ext4_nfs_commit_metadata {};
+
+struct trace_event_data_offsets_ext4_mark_inode_dirty {};
+
+struct trace_event_data_offsets_ext4_begin_ordered_truncate {};
+
+struct trace_event_data_offsets_ext4__write_begin {};
+
+struct trace_event_data_offsets_ext4__write_end {};
+
+struct trace_event_data_offsets_ext4_writepages {};
+
+struct trace_event_data_offsets_ext4_da_write_pages {};
+
+struct trace_event_data_offsets_ext4_da_write_pages_extent {};
+
+struct trace_event_data_offsets_ext4_writepages_result {};
+
+struct trace_event_data_offsets_ext4__page_op {};
+
+struct trace_event_data_offsets_ext4_invalidate_folio_op {};
+
+struct trace_event_data_offsets_ext4_discard_blocks {};
+
+struct trace_event_data_offsets_ext4__mb_new_pa {};
+
+struct trace_event_data_offsets_ext4_mb_release_inode_pa {};
+
+struct trace_event_data_offsets_ext4_mb_release_group_pa {};
+
+struct trace_event_data_offsets_ext4_discard_preallocations {};
+
+struct trace_event_data_offsets_ext4_mb_discard_preallocations {};
+
+struct trace_event_data_offsets_ext4_request_blocks {};
+
+struct trace_event_data_offsets_ext4_allocate_blocks {};
+
+struct trace_event_data_offsets_ext4_free_blocks {};
+
+struct trace_event_data_offsets_ext4_sync_file_enter {};
+
+struct trace_event_data_offsets_ext4_sync_file_exit {};
+
+struct trace_event_data_offsets_ext4_sync_fs {};
+
+struct trace_event_data_offsets_ext4_alloc_da_blocks {};
+
+struct trace_event_data_offsets_ext4_mballoc_alloc {};
+
+struct trace_event_data_offsets_ext4_mballoc_prealloc {};
+
+struct trace_event_data_offsets_ext4__mballoc {};
+
+struct trace_event_data_offsets_ext4_forget {};
+
+struct trace_event_data_offsets_ext4_da_update_reserve_space {};
+
+struct trace_event_data_offsets_ext4_da_reserve_space {};
+
+struct trace_event_data_offsets_ext4_da_release_space {};
+
+struct trace_event_data_offsets_ext4__bitmap_load {};
+
+struct trace_event_data_offsets_ext4_read_block_bitmap_load {};
+
+struct trace_event_data_offsets_ext4__fallocate_mode {};
+
+struct trace_event_data_offsets_ext4_fallocate_exit {};
+
+struct trace_event_data_offsets_ext4_unlink_enter {};
+
+struct trace_event_data_offsets_ext4_unlink_exit {};
+
+struct trace_event_data_offsets_ext4__truncate {};
+
+struct trace_event_data_offsets_ext4_ext_convert_to_initialized_enter {};
+
+struct trace_event_data_offsets_ext4_ext_convert_to_initialized_fastpath {};
+
+struct trace_event_data_offsets_ext4__map_blocks_enter {};
+
+struct trace_event_data_offsets_ext4__map_blocks_exit {};
+
+struct trace_event_data_offsets_ext4_ext_load_extent {};
+
+struct trace_event_data_offsets_ext4_load_inode {};
+
+struct trace_event_data_offsets_ext4_journal_start {};
+
+struct trace_event_data_offsets_ext4_journal_start_reserved {};
+
+struct trace_event_data_offsets_ext4__trim {};
+
+struct trace_event_data_offsets_ext4_ext_handle_unwritten_extents {};
+
+struct trace_event_data_offsets_ext4_get_implied_cluster_alloc_exit {};
+
+struct trace_event_data_offsets_ext4_ext_show_extent {};
+
+struct trace_event_data_offsets_ext4_remove_blocks {};
+
+struct trace_event_data_offsets_ext4_ext_rm_leaf {};
+
+struct trace_event_data_offsets_ext4_ext_rm_idx {};
+
+struct trace_event_data_offsets_ext4_ext_remove_space {};
+
+struct trace_event_data_offsets_ext4_ext_remove_space_done {};
+
+struct trace_event_data_offsets_ext4__es_extent {};
+
+struct trace_event_data_offsets_ext4_es_remove_extent {};
+
+struct trace_event_data_offsets_ext4_es_find_extent_range_enter {};
+
+struct trace_event_data_offsets_ext4_es_find_extent_range_exit {};
+
+struct trace_event_data_offsets_ext4_es_lookup_extent_enter {};
+
+struct trace_event_data_offsets_ext4_es_lookup_extent_exit {};
+
+struct trace_event_data_offsets_ext4__es_shrink_enter {};
+
+struct trace_event_data_offsets_ext4_es_shrink_scan_exit {};
+
+struct trace_event_data_offsets_ext4_collapse_range {};
+
+struct trace_event_data_offsets_ext4_insert_range {};
+
+struct trace_event_data_offsets_ext4_es_shrink {};
+
+struct trace_event_data_offsets_ext4_es_insert_delayed_block {};
+
+struct trace_event_data_offsets_ext4_fsmap_class {};
+
+struct trace_event_data_offsets_ext4_getfsmap_class {};
+
+struct trace_event_data_offsets_ext4_shutdown {};
+
+struct trace_event_data_offsets_ext4_error {};
+
+struct trace_event_data_offsets_ext4_prefetch_bitmaps {};
+
+struct trace_event_data_offsets_ext4_lazy_itable_init {};
+
+struct trace_event_data_offsets_ext4_fc_replay_scan {};
+
+struct trace_event_data_offsets_ext4_fc_replay {};
+
+struct trace_event_data_offsets_ext4_fc_commit_start {};
+
+struct trace_event_data_offsets_ext4_fc_commit_stop {};
+
+struct trace_event_data_offsets_ext4_fc_stats {};
+
+struct trace_event_data_offsets_ext4_fc_track_dentry {};
+
+struct trace_event_data_offsets_ext4_fc_track_inode {};
+
+struct trace_event_data_offsets_ext4_fc_track_range {};
+
+struct trace_event_data_offsets_ext4_fc_cleanup {};
+
+struct trace_event_data_offsets_ext4_update_sb {};
+
+typedef void (*btf_trace_ext4_other_inode_update_time)(void *, struct inode *, ino_t);
+
+typedef void (*btf_trace_ext4_free_inode)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_request_inode)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_allocate_inode)(void *, struct inode *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_evict_inode)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_drop_inode)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_nfs_commit_metadata)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_mark_inode_dirty)(void *, struct inode *, long unsigned int);
+
+typedef void (*btf_trace_ext4_begin_ordered_truncate)(void *, struct inode *, loff_t);
+
+typedef void (*btf_trace_ext4_write_begin)(void *, struct inode *, loff_t, unsigned int);
+
+typedef void (*btf_trace_ext4_da_write_begin)(void *, struct inode *, loff_t, unsigned int);
+
+typedef void (*btf_trace_ext4_write_end)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_journalled_write_end)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_da_write_end)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_writepages)(void *, struct inode *, struct writeback_control *);
+
+typedef void (*btf_trace_ext4_da_write_pages)(void *, struct inode *, long unsigned int, struct writeback_control *);
+
+typedef void (*btf_trace_ext4_da_write_pages_extent)(void *, struct inode *, struct ext4_map_blocks *);
+
+typedef void (*btf_trace_ext4_writepages_result)(void *, struct inode *, struct writeback_control *, int, int);
+
+typedef void (*btf_trace_ext4_writepage)(void *, struct page *);
+
+typedef void (*btf_trace_ext4_readpage)(void *, struct page *);
+
+typedef void (*btf_trace_ext4_releasepage)(void *, struct page *);
+
+typedef void (*btf_trace_ext4_invalidate_folio)(void *, struct folio *, size_t, size_t);
+
+typedef void (*btf_trace_ext4_journalled_invalidate_folio)(void *, struct folio *, size_t, size_t);
+
+typedef void (*btf_trace_ext4_discard_blocks)(void *, struct super_block *, long long unsigned int, long long unsigned int);
+
+typedef void (*btf_trace_ext4_mb_new_inode_pa)(void *, struct ext4_allocation_context *, struct ext4_prealloc_space *);
+
+typedef void (*btf_trace_ext4_mb_new_group_pa)(void *, struct ext4_allocation_context *, struct ext4_prealloc_space *);
+
+typedef void (*btf_trace_ext4_mb_release_inode_pa)(void *, struct ext4_prealloc_space *, long long unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_mb_release_group_pa)(void *, struct super_block *, struct ext4_prealloc_space *);
+
+typedef void (*btf_trace_ext4_discard_preallocations)(void *, struct inode *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_mb_discard_preallocations)(void *, struct super_block *, int);
+
+typedef void (*btf_trace_ext4_request_blocks)(void *, struct ext4_allocation_request *);
+
+typedef void (*btf_trace_ext4_allocate_blocks)(void *, struct ext4_allocation_request *, long long unsigned int);
+
+typedef void (*btf_trace_ext4_free_blocks)(void *, struct inode *, __u64, long unsigned int, int);
+
+typedef void (*btf_trace_ext4_sync_file_enter)(void *, struct file *, int);
+
+typedef void (*btf_trace_ext4_sync_file_exit)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_sync_fs)(void *, struct super_block *, int);
+
+typedef void (*btf_trace_ext4_alloc_da_blocks)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_mballoc_alloc)(void *, struct ext4_allocation_context *);
+
+typedef void (*btf_trace_ext4_mballoc_prealloc)(void *, struct ext4_allocation_context *);
+
+typedef void (*btf_trace_ext4_mballoc_discard)(void *, struct super_block *, struct inode *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_mballoc_free)(void *, struct super_block *, struct inode *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_forget)(void *, struct inode *, int, __u64);
+
+typedef void (*btf_trace_ext4_da_update_reserve_space)(void *, struct inode *, int, int);
+
+typedef void (*btf_trace_ext4_da_reserve_space)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_da_release_space)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_mb_bitmap_load)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_mb_buddy_bitmap_load)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_load_inode_bitmap)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_read_block_bitmap_load)(void *, struct super_block *, long unsigned int, bool);
+
+typedef void (*btf_trace_ext4_fallocate_enter)(void *, struct inode *, loff_t, loff_t, int);
+
+typedef void (*btf_trace_ext4_punch_hole)(void *, struct inode *, loff_t, loff_t, int);
+
+typedef void (*btf_trace_ext4_zero_range)(void *, struct inode *, loff_t, loff_t, int);
+
+typedef void (*btf_trace_ext4_fallocate_exit)(void *, struct inode *, loff_t, unsigned int, int);
+
+typedef void (*btf_trace_ext4_unlink_enter)(void *, struct inode *, struct dentry *);
+
+typedef void (*btf_trace_ext4_unlink_exit)(void *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_truncate_enter)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_truncate_exit)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_ext_convert_to_initialized_enter)(void *, struct inode *, struct ext4_map_blocks *, struct ext4_extent *);
+
+typedef void (*btf_trace_ext4_ext_convert_to_initialized_fastpath)(void *, struct inode *, struct ext4_map_blocks *, struct ext4_extent *, struct ext4_extent *);
+
+typedef void (*btf_trace_ext4_ext_map_blocks_enter)(void *, struct inode *, ext4_lblk_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_ind_map_blocks_enter)(void *, struct inode *, ext4_lblk_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_ext_map_blocks_exit)(void *, struct inode *, unsigned int, struct ext4_map_blocks *, int);
+
+typedef void (*btf_trace_ext4_ind_map_blocks_exit)(void *, struct inode *, unsigned int, struct ext4_map_blocks *, int);
+
+typedef void (*btf_trace_ext4_ext_load_extent)(void *, struct inode *, ext4_lblk_t, ext4_fsblk_t);
+
+typedef void (*btf_trace_ext4_load_inode)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_journal_start)(void *, struct super_block *, int, int, int, long unsigned int);
+
+typedef void (*btf_trace_ext4_journal_start_reserved)(void *, struct super_block *, int, long unsigned int);
+
+typedef void (*btf_trace_ext4_trim_extent)(void *, struct super_block *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_trim_all_free)(void *, struct super_block *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_ext_handle_unwritten_extents)(void *, struct inode *, struct ext4_map_blocks *, int, unsigned int, ext4_fsblk_t);
+
+typedef void (*btf_trace_ext4_get_implied_cluster_alloc_exit)(void *, struct super_block *, struct ext4_map_blocks *, int);
+
+typedef void (*btf_trace_ext4_ext_show_extent)(void *, struct inode *, ext4_lblk_t, ext4_fsblk_t, short unsigned int);
+
+typedef void (*btf_trace_ext4_remove_blocks)(void *, struct inode *, struct ext4_extent *, ext4_lblk_t, ext4_fsblk_t, struct partial_cluster *);
+
+typedef void (*btf_trace_ext4_ext_rm_leaf)(void *, struct inode *, ext4_lblk_t, struct ext4_extent *, struct partial_cluster *);
+
+typedef void (*btf_trace_ext4_ext_rm_idx)(void *, struct inode *, ext4_fsblk_t);
+
+typedef void (*btf_trace_ext4_ext_remove_space)(void *, struct inode *, ext4_lblk_t, ext4_lblk_t, int);
+
+typedef void (*btf_trace_ext4_ext_remove_space_done)(void *, struct inode *, ext4_lblk_t, ext4_lblk_t, int, struct partial_cluster *, __le16);
+
+typedef void (*btf_trace_ext4_es_insert_extent)(void *, struct inode *, struct extent_status *);
+
+typedef void (*btf_trace_ext4_es_cache_extent)(void *, struct inode *, struct extent_status *);
+
+typedef void (*btf_trace_ext4_es_remove_extent)(void *, struct inode *, ext4_lblk_t, ext4_lblk_t);
+
+typedef void (*btf_trace_ext4_es_find_extent_range_enter)(void *, struct inode *, ext4_lblk_t);
+
+typedef void (*btf_trace_ext4_es_find_extent_range_exit)(void *, struct inode *, struct extent_status *);
+
+typedef void (*btf_trace_ext4_es_lookup_extent_enter)(void *, struct inode *, ext4_lblk_t);
+
+typedef void (*btf_trace_ext4_es_lookup_extent_exit)(void *, struct inode *, struct extent_status *, int);
+
+typedef void (*btf_trace_ext4_es_shrink_count)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_es_shrink_scan_enter)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_es_shrink_scan_exit)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_collapse_range)(void *, struct inode *, loff_t, loff_t);
+
+typedef void (*btf_trace_ext4_insert_range)(void *, struct inode *, loff_t, loff_t);
+
+typedef void (*btf_trace_ext4_es_shrink)(void *, struct super_block *, int, u64, int, int);
+
+typedef void (*btf_trace_ext4_es_insert_delayed_block)(void *, struct inode *, struct extent_status *, bool);
+
+typedef void (*btf_trace_ext4_fsmap_low_key)(void *, struct super_block *, u32, u32, u64, u64, u64);
+
+typedef void (*btf_trace_ext4_fsmap_high_key)(void *, struct super_block *, u32, u32, u64, u64, u64);
+
+typedef void (*btf_trace_ext4_fsmap_mapping)(void *, struct super_block *, u32, u32, u64, u64, u64);
+
+typedef void (*btf_trace_ext4_getfsmap_low_key)(void *, struct super_block *, struct ext4_fsmap *);
+
+typedef void (*btf_trace_ext4_getfsmap_high_key)(void *, struct super_block *, struct ext4_fsmap *);
+
+typedef void (*btf_trace_ext4_getfsmap_mapping)(void *, struct super_block *, struct ext4_fsmap *);
+
+typedef void (*btf_trace_ext4_shutdown)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_error)(void *, struct super_block *, const char *, unsigned int);
+
+typedef void (*btf_trace_ext4_prefetch_bitmaps)(void *, struct super_block *, ext4_group_t, ext4_group_t, unsigned int);
+
+typedef void (*btf_trace_ext4_lazy_itable_init)(void *, struct super_block *, ext4_group_t);
+
+typedef void (*btf_trace_ext4_fc_replay_scan)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_fc_replay)(void *, struct super_block *, int, int, int, int);
+
+typedef void (*btf_trace_ext4_fc_commit_start)(void *, struct super_block *, tid_t);
+
+typedef void (*btf_trace_ext4_fc_commit_stop)(void *, struct super_block *, int, int, tid_t);
+
+typedef void (*btf_trace_ext4_fc_stats)(void *, struct super_block *);
+
+typedef void (*btf_trace_ext4_fc_track_create)(void *, handle_t *, struct inode *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_fc_track_link)(void *, handle_t *, struct inode *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_fc_track_unlink)(void *, handle_t *, struct inode *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_fc_track_inode)(void *, handle_t *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_fc_track_range)(void *, handle_t *, struct inode *, long int, long int, int);
+
+typedef void (*btf_trace_ext4_fc_cleanup)(void *, journal_t *, int, tid_t);
+
+typedef void (*btf_trace_ext4_update_sb)(void *, struct super_block *, ext4_fsblk_t, unsigned int);
+
+struct ext4_err_translation {
+	int code;
+	int errno;
+};
+
+enum {
+	Opt_bsd_df = 0,
+	Opt_minix_df = 1,
+	Opt_grpid = 2,
+	Opt_nogrpid = 3,
+	Opt_resgid = 4,
+	Opt_resuid = 5,
+	Opt_sb = 6,
+	Opt_nouid32 = 7,
+	Opt_debug = 8,
+	Opt_removed = 9,
+	Opt_user_xattr = 10,
+	Opt_nouser_xattr = 11,
+	Opt_acl = 12,
+	Opt_noacl = 13,
+	Opt_auto_da_alloc = 14,
+	Opt_noauto_da_alloc = 15,
+	Opt_noload = 16,
+	Opt_commit = 17,
+	Opt_min_batch_time = 18,
+	Opt_max_batch_time = 19,
+	Opt_journal_dev = 20,
+	Opt_journal_path = 21,
+	Opt_journal_checksum = 22,
+	Opt_journal_async_commit = 23,
+	Opt_abort = 24,
+	Opt_data_journal = 25,
+	Opt_data_ordered = 26,
+	Opt_data_writeback = 27,
+	Opt_data_err_abort = 28,
+	Opt_data_err_ignore = 29,
+	Opt_test_dummy_encryption = 30,
+	Opt_inlinecrypt = 31,
+	Opt_usrjquota = 32,
+	Opt_grpjquota = 33,
+	Opt_quota = 34,
+	Opt_noquota = 35,
+	Opt_barrier = 36,
+	Opt_nobarrier = 37,
+	Opt_err___4 = 38,
+	Opt_usrquota = 39,
+	Opt_grpquota = 40,
+	Opt_prjquota = 41,
+	Opt_dax = 42,
+	Opt_dax_always = 43,
+	Opt_dax_inode = 44,
+	Opt_dax_never = 45,
+	Opt_stripe = 46,
+	Opt_delalloc = 47,
+	Opt_nodelalloc = 48,
+	Opt_warn_on_error = 49,
+	Opt_nowarn_on_error = 50,
+	Opt_mblk_io_submit = 51,
+	Opt_debug_want_extra_isize = 52,
+	Opt_nomblk_io_submit = 53,
+	Opt_block_validity = 54,
+	Opt_noblock_validity = 55,
+	Opt_inode_readahead_blks = 56,
+	Opt_journal_ioprio = 57,
+	Opt_dioread_nolock = 58,
+	Opt_dioread_lock = 59,
+	Opt_discard = 60,
+	Opt_nodiscard = 61,
+	Opt_init_itable = 62,
+	Opt_noinit_itable = 63,
+	Opt_max_dir_size_kb = 64,
+	Opt_nojournal_checksum = 65,
+	Opt_nombcache = 66,
+	Opt_no_prefetch_block_bitmaps = 67,
+	Opt_mb_optimize_scan = 68,
+	Opt_errors = 69,
+	Opt_data = 70,
+	Opt_data_err = 71,
+	Opt_jqfmt = 72,
+	Opt_dax_type = 73,
+};
+
+struct mount_opts {
+	int token;
+	int mount_opt;
+	int flags;
+};
+
+struct ext4_sb_encodings {
+	__u16 magic;
+	char *name;
+	unsigned int version;
+};
+
+struct ext4_fs_context {
+	char *s_qf_names[3];
+	struct fscrypt_dummy_policy dummy_enc_policy;
+	int s_jquota_fmt;
+	short unsigned int qname_spec;
+	long unsigned int vals_s_flags;
+	long unsigned int mask_s_flags;
+	long unsigned int journal_devnum;
+	long unsigned int s_commit_interval;
+	long unsigned int s_stripe;
+	unsigned int s_inode_readahead_blks;
+	unsigned int s_want_extra_isize;
+	unsigned int s_li_wait_mult;
+	unsigned int s_max_dir_size_kb;
+	unsigned int journal_ioprio;
+	unsigned int vals_s_mount_opt;
+	unsigned int mask_s_mount_opt;
+	unsigned int vals_s_mount_opt2;
+	unsigned int mask_s_mount_opt2;
+	long unsigned int vals_s_mount_flags;
+	long unsigned int mask_s_mount_flags;
+	unsigned int opt_flags;
+	unsigned int spec;
+	u32 s_max_batch_time;
+	u32 s_min_batch_time;
+	kuid_t s_resuid;
+	kgid_t s_resgid;
+	ext4_fsblk_t s_sb_block;
+};
+
+struct ext4_mount_options {
+	long unsigned int s_mount_opt;
+	long unsigned int s_mount_opt2;
+	kuid_t s_resuid;
+	kgid_t s_resgid;
+	long unsigned int s_commit_interval;
+	u32 s_min_batch_time;
+	u32 s_max_batch_time;
+	int s_jquota_fmt;
+	char *s_qf_names[3];
+};
+
+enum btrfs_mod_log_op {
+	BTRFS_MOD_LOG_KEY_REPLACE = 0,
+	BTRFS_MOD_LOG_KEY_ADD = 1,
+	BTRFS_MOD_LOG_KEY_REMOVE = 2,
+	BTRFS_MOD_LOG_KEY_REMOVE_WHILE_FREEING = 3,
+	BTRFS_MOD_LOG_KEY_REMOVE_WHILE_MOVING = 4,
+	BTRFS_MOD_LOG_MOVE_KEYS = 5,
+	BTRFS_MOD_LOG_ROOT_REPLACE = 6,
+};
+
+struct btrfs_csums {
+	u16 size;
+	const char name[10];
+	const char driver[12];
+};
+
+struct btrfs_free_space_entry {
+	__le64 offset;
+	__le64 bytes;
+	__u8 type;
+} __attribute__((packed));
+
+struct btrfs_free_space_header {
+	struct btrfs_disk_key location;
+	__le64 generation;
+	__le64 num_entries;
+	__le64 num_bitmaps;
+} __attribute__((packed));
+
+struct btrfs_trim_range {
+	u64 start;
+	u64 bytes;
+	struct list_head list;
+};
+
+struct ulist_iterator {
+	struct list_head *cur_list;
+};
+
+struct ulist_node {
+	u64 val;
+	u64 aux;
+	struct list_head list;
+	struct rb_node rb_node;
+};
+
+struct btrfs_qgroup_status_item {
+	__le64 version;
+	__le64 generation;
+	__le64 flags;
+	__le64 rescan;
+};
+
+struct btrfs_qgroup_info_item {
+	__le64 generation;
+	__le64 rfer;
+	__le64 rfer_cmpr;
+	__le64 excl;
+	__le64 excl_cmpr;
+};
+
+struct btrfs_qgroup_limit_item {
+	__le64 flags;
+	__le64 max_rfer;
+	__le64 max_excl;
+	__le64 rsv_rfer;
+	__le64 rsv_excl;
+};
+
+struct btrfs_qgroup_extent_record {
+	struct rb_node node;
+	u64 bytenr;
+	u64 num_bytes;
+	u32 data_rsv;
+	u64 data_rsv_refroot;
+	struct ulist *old_roots;
+};
+
+struct btrfs_qgroup_swapped_block {
+	struct rb_node node;
+	int level;
+	bool trace_leaf;
+	u64 subvol_bytenr;
+	u64 subvol_generation;
+	u64 reloc_bytenr;
+	u64 reloc_generation;
+	u64 last_snapshot;
+	struct btrfs_key first_key;
+};
+
+struct btrfs_qgroup_list {
+	struct list_head next_group;
+	struct list_head next_member;
+	struct btrfs_qgroup *group;
+	struct btrfs_qgroup *member;
+};
+
+enum btrfs_flush_state {
+	FLUSH_DELAYED_ITEMS_NR = 1,
+	FLUSH_DELAYED_ITEMS = 2,
+	FLUSH_DELAYED_REFS_NR = 3,
+	FLUSH_DELAYED_REFS = 4,
+	FLUSH_DELALLOC = 5,
+	FLUSH_DELALLOC_WAIT = 6,
+	FLUSH_DELALLOC_FULL = 7,
+	ALLOC_CHUNK = 8,
+	ALLOC_CHUNK_FORCE = 9,
+	RUN_DELAYED_IPUTS = 10,
+	COMMIT_TRANS = 11,
+};
+
+struct reserve_ticket {
+	u64 bytes;
+	int error;
+	bool steal;
+	struct list_head list;
+	wait_queue_head_t wait;
+};
+
+struct radix_tree_iter {
+	long unsigned int index;
+	long unsigned int next_index;
+	long unsigned int tags;
+	struct xa_node *node;
+};
+
+enum {
+	RADIX_TREE_ITER_TAG_MASK = 15,
+	RADIX_TREE_ITER_TAGGED = 16,
+	RADIX_TREE_ITER_CONTIG = 32,
+};
+
+struct compat_keyctl_kdf_params {
+	compat_uptr_t hashname;
+	compat_uptr_t otherinfo;
+	__u32 otherinfolen;
+	__u32 __spare[8];
+};
+
+struct keyctl_dh_params {
+	union {
+		__s32 private;
+		__s32 priv;
+	};
+	__s32 prime;
+	__s32 base;
+};
+
+struct keyctl_kdf_params {
+	char *hashname;
+	char *otherinfo;
+	__u32 otherinfolen;
+	__u32 __spare[8];
+};
+
+enum chacha20poly1305_lengths {
+	XCHACHA20POLY1305_NONCE_SIZE = 24,
+	CHACHA20POLY1305_KEY_SIZE = 32,
+	CHACHA20POLY1305_AUTHTAG_SIZE = 16,
+};
+
+struct big_key_payload {
+	u8 *data;
+	struct path path;
+	size_t length;
+};
+
+enum lsm_event {
+	LSM_POLICY_CHANGE = 0,
+};
+
+enum nf_hook_ops_type {
+	NF_HOOK_OP_UNDEFINED = 0,
+	NF_HOOK_OP_NF_TABLES = 1,
+};
+
+struct nf_hook_ops {
+	nf_hookfn *hook;
+	struct net_device *dev;
+	void *priv;
+	u8 pf;
+	enum nf_hook_ops_type hook_ops_type: 8;
+	unsigned int hooknum;
+	int priority;
+};
+
+enum nf_ip_hook_priorities {
+	NF_IP_PRI_FIRST = 2147483648,
+	NF_IP_PRI_RAW_BEFORE_DEFRAG = 4294966846,
+	NF_IP_PRI_CONNTRACK_DEFRAG = 4294966896,
+	NF_IP_PRI_RAW = 4294966996,
+	NF_IP_PRI_SELINUX_FIRST = 4294967071,
+	NF_IP_PRI_CONNTRACK = 4294967096,
+	NF_IP_PRI_MANGLE = 4294967146,
+	NF_IP_PRI_NAT_DST = 4294967196,
+	NF_IP_PRI_FILTER = 0,
+	NF_IP_PRI_SECURITY = 50,
+	NF_IP_PRI_NAT_SRC = 100,
+	NF_IP_PRI_SELINUX_LAST = 225,
+	NF_IP_PRI_CONNTRACK_HELPER = 300,
+	NF_IP_PRI_CONNTRACK_CONFIRM = 2147483647,
+	NF_IP_PRI_LAST = 2147483647,
+};
+
+enum nf_ip6_hook_priorities {
+	NF_IP6_PRI_FIRST = 2147483648,
+	NF_IP6_PRI_RAW_BEFORE_DEFRAG = 4294966846,
+	NF_IP6_PRI_CONNTRACK_DEFRAG = 4294966896,
+	NF_IP6_PRI_RAW = 4294966996,
+	NF_IP6_PRI_SELINUX_FIRST = 4294967071,
+	NF_IP6_PRI_CONNTRACK = 4294967096,
+	NF_IP6_PRI_MANGLE = 4294967146,
+	NF_IP6_PRI_NAT_DST = 4294967196,
+	NF_IP6_PRI_FILTER = 0,
+	NF_IP6_PRI_SECURITY = 50,
+	NF_IP6_PRI_NAT_SRC = 100,
+	NF_IP6_PRI_SELINUX_LAST = 225,
+	NF_IP6_PRI_CONNTRACK_HELPER = 300,
+	NF_IP6_PRI_LAST = 2147483647,
+};
+
+enum bpf_cmd {
+	BPF_MAP_CREATE = 0,
+	BPF_MAP_LOOKUP_ELEM = 1,
+	BPF_MAP_UPDATE_ELEM = 2,
+	BPF_MAP_DELETE_ELEM = 3,
+	BPF_MAP_GET_NEXT_KEY = 4,
+	BPF_PROG_LOAD = 5,
+	BPF_OBJ_PIN = 6,
+	BPF_OBJ_GET = 7,
+	BPF_PROG_ATTACH = 8,
+	BPF_PROG_DETACH = 9,
+	BPF_PROG_TEST_RUN = 10,
+	BPF_PROG_RUN = 10,
+	BPF_PROG_GET_NEXT_ID = 11,
+	BPF_MAP_GET_NEXT_ID = 12,
+	BPF_PROG_GET_FD_BY_ID = 13,
+	BPF_MAP_GET_FD_BY_ID = 14,
+	BPF_OBJ_GET_INFO_BY_FD = 15,
+	BPF_PROG_QUERY = 16,
+	BPF_RAW_TRACEPOINT_OPEN = 17,
+	BPF_BTF_LOAD = 18,
+	BPF_BTF_GET_FD_BY_ID = 19,
+	BPF_TASK_FD_QUERY = 20,
+	BPF_MAP_LOOKUP_AND_DELETE_ELEM = 21,
+	BPF_MAP_FREEZE = 22,
+	BPF_BTF_GET_NEXT_ID = 23,
+	BPF_MAP_LOOKUP_BATCH = 24,
+	BPF_MAP_LOOKUP_AND_DELETE_BATCH = 25,
+	BPF_MAP_UPDATE_BATCH = 26,
+	BPF_MAP_DELETE_BATCH = 27,
+	BPF_LINK_CREATE = 28,
+	BPF_LINK_UPDATE = 29,
+	BPF_LINK_GET_FD_BY_ID = 30,
+	BPF_LINK_GET_NEXT_ID = 31,
+	BPF_ENABLE_STATS = 32,
+	BPF_ITER_CREATE = 33,
+	BPF_LINK_DETACH = 34,
+	BPF_PROG_BIND_MAP = 35,
+};
+
+struct tty_file_private {
+	struct tty_struct *tty;
+	struct file *file;
+	struct list_head list;
+};
+
+struct dccp_hdr {
+	__be16 dccph_sport;
+	__be16 dccph_dport;
+	__u8 dccph_doff;
+	__u8 dccph_cscov: 4;
+	__u8 dccph_ccval: 4;
+	__sum16 dccph_checksum;
+	__u8 dccph_x: 1;
+	__u8 dccph_type: 4;
+	__u8 dccph_reserved: 3;
+	__u8 dccph_seq2;
+	__be16 dccph_seq;
+};
+
+enum dccp_state {
+	DCCP_OPEN = 1,
+	DCCP_REQUESTING = 2,
+	DCCP_LISTEN = 10,
+	DCCP_RESPOND = 3,
+	DCCP_ACTIVE_CLOSEREQ = 4,
+	DCCP_PASSIVE_CLOSE = 8,
+	DCCP_CLOSING = 11,
+	DCCP_TIME_WAIT = 6,
+	DCCP_CLOSED = 7,
+	DCCP_NEW_SYN_RECV = 12,
+	DCCP_PARTOPEN = 13,
+	DCCP_PASSIVE_CLOSEREQ = 14,
+	DCCP_MAX_STATES = 15,
+};
+
+enum sctp_msg_flags {
+	MSG_NOTIFICATION = 32768,
+};
+
+enum sctp_cid {
+	SCTP_CID_DATA = 0,
+	SCTP_CID_INIT = 1,
+	SCTP_CID_INIT_ACK = 2,
+	SCTP_CID_SACK = 3,
+	SCTP_CID_HEARTBEAT = 4,
+	SCTP_CID_HEARTBEAT_ACK = 5,
+	SCTP_CID_ABORT = 6,
+	SCTP_CID_SHUTDOWN = 7,
+	SCTP_CID_SHUTDOWN_ACK = 8,
+	SCTP_CID_ERROR = 9,
+	SCTP_CID_COOKIE_ECHO = 10,
+	SCTP_CID_COOKIE_ACK = 11,
+	SCTP_CID_ECN_ECNE = 12,
+	SCTP_CID_ECN_CWR = 13,
+	SCTP_CID_SHUTDOWN_COMPLETE = 14,
+	SCTP_CID_AUTH = 15,
+	SCTP_CID_I_DATA = 64,
+	SCTP_CID_FWD_TSN = 192,
+	SCTP_CID_ASCONF = 193,
+	SCTP_CID_I_FWD_TSN = 194,
+	SCTP_CID_ASCONF_ACK = 128,
+	SCTP_CID_RECONF = 130,
+	SCTP_CID_PAD = 132,
+};
+
+enum sctp_param {
+	SCTP_PARAM_HEARTBEAT_INFO = 256,
+	SCTP_PARAM_IPV4_ADDRESS = 1280,
+	SCTP_PARAM_IPV6_ADDRESS = 1536,
+	SCTP_PARAM_STATE_COOKIE = 1792,
+	SCTP_PARAM_UNRECOGNIZED_PARAMETERS = 2048,
+	SCTP_PARAM_COOKIE_PRESERVATIVE = 2304,
+	SCTP_PARAM_HOST_NAME_ADDRESS = 2816,
+	SCTP_PARAM_SUPPORTED_ADDRESS_TYPES = 3072,
+	SCTP_PARAM_ECN_CAPABLE = 128,
+	SCTP_PARAM_RANDOM = 640,
+	SCTP_PARAM_CHUNKS = 896,
+	SCTP_PARAM_HMAC_ALGO = 1152,
+	SCTP_PARAM_SUPPORTED_EXT = 2176,
+	SCTP_PARAM_FWD_TSN_SUPPORT = 192,
+	SCTP_PARAM_ADD_IP = 448,
+	SCTP_PARAM_DEL_IP = 704,
+	SCTP_PARAM_ERR_CAUSE = 960,
+	SCTP_PARAM_SET_PRIMARY = 1216,
+	SCTP_PARAM_SUCCESS_REPORT = 1472,
+	SCTP_PARAM_ADAPTATION_LAYER_IND = 1728,
+	SCTP_PARAM_RESET_OUT_REQUEST = 3328,
+	SCTP_PARAM_RESET_IN_REQUEST = 3584,
+	SCTP_PARAM_RESET_TSN_REQUEST = 3840,
+	SCTP_PARAM_RESET_RESPONSE = 4096,
+	SCTP_PARAM_RESET_ADD_OUT_STREAMS = 4352,
+	SCTP_PARAM_RESET_ADD_IN_STREAMS = 4608,
+};
+
+enum {
+	SCTP_MAX_STREAM = 65535,
+};
+
+enum sctp_event_timeout {
+	SCTP_EVENT_TIMEOUT_NONE = 0,
+	SCTP_EVENT_TIMEOUT_T1_COOKIE = 1,
+	SCTP_EVENT_TIMEOUT_T1_INIT = 2,
+	SCTP_EVENT_TIMEOUT_T2_SHUTDOWN = 3,
+	SCTP_EVENT_TIMEOUT_T3_RTX = 4,
+	SCTP_EVENT_TIMEOUT_T4_RTO = 5,
+	SCTP_EVENT_TIMEOUT_T5_SHUTDOWN_GUARD = 6,
+	SCTP_EVENT_TIMEOUT_HEARTBEAT = 7,
+	SCTP_EVENT_TIMEOUT_RECONF = 8,
+	SCTP_EVENT_TIMEOUT_PROBE = 9,
+	SCTP_EVENT_TIMEOUT_SACK = 10,
+	SCTP_EVENT_TIMEOUT_AUTOCLOSE = 11,
+};
+
+enum {
+	SCTP_MAX_DUP_TSNS = 16,
+};
+
+enum {
+	SCTP_AUTH_HMAC_ID_RESERVED_0 = 0,
+	SCTP_AUTH_HMAC_ID_SHA1 = 1,
+	SCTP_AUTH_HMAC_ID_RESERVED_2 = 2,
+	SCTP_AUTH_HMAC_ID_SHA256 = 3,
+	__SCTP_AUTH_HMAC_MAX = 4,
+};
+
+struct task_security_struct {
+	u32 osid;
+	u32 sid;
+	u32 exec_sid;
+	u32 create_sid;
+	u32 keycreate_sid;
+	u32 sockcreate_sid;
+};
+
+enum label_initialized {
+	LABEL_INVALID = 0,
+	LABEL_INITIALIZED = 1,
+	LABEL_PENDING = 2,
+};
+
+struct inode_security_struct {
+	struct inode *inode;
+	struct list_head list;
+	u32 task_sid;
+	u32 sid;
+	u16 sclass;
+	unsigned char initialized;
+	spinlock_t lock;
+};
+
+struct file_security_struct {
+	u32 sid;
+	u32 fown_sid;
+	u32 isid;
+	u32 pseqno;
+};
+
+struct superblock_security_struct {
+	u32 sid;
+	u32 def_sid;
+	u32 mntpoint_sid;
+	short unsigned int behavior;
+	short unsigned int flags;
+	struct mutex lock;
+	struct list_head isec_head;
+	spinlock_t isec_lock;
+};
+
+struct msg_security_struct {
+	u32 sid;
+};
+
+struct ipc_security_struct {
+	u16 sclass;
+	u32 sid;
+};
+
+struct tun_security_struct {
+	u32 sid;
+};
+
+struct key_security_struct {
+	u32 sid;
+};
+
+struct ib_security_struct {
+	u32 sid;
+};
+
+struct bpf_security_struct {
+	u32 sid;
+};
+
+struct perf_event_security_struct {
+	u32 sid;
+};
+
+struct selinux_mnt_opts {
+	u32 fscontext_sid;
+	u32 context_sid;
+	u32 rootcontext_sid;
+	u32 defcontext_sid;
+};
+
+enum {
+	Opt_error = 4294967295,
+	Opt_context = 0,
+	Opt_defcontext = 1,
+	Opt_fscontext = 2,
+	Opt_rootcontext = 3,
+	Opt_seclabel = 4,
+};
+
+struct landlock_ruleset_attr {
+	__u64 handled_access_fs;
+};
+
+enum landlock_rule_type {
+	LANDLOCK_RULE_PATH_BENEATH = 1,
+};
+
+struct landlock_path_beneath_attr {
+	__u64 allowed_access;
+	__s32 parent_fd;
+} __attribute__((packed));
+
+struct signature_v2_hdr {
+	uint8_t type;
+	uint8_t version;
+	uint8_t hash_algo;
+	__be32 keyid;
+	__be16 sig_size;
+	uint8_t sig[0];
+} __attribute__((packed));
+
+struct efi_mokvar_table_entry {
+	char name[256];
+	u64 data_size;
+	u8 data[0];
+};
+
+typedef void (*efi_element_handler_t)(const char *, const void *, size_t);
+
+struct crypto_engine_op {
+	int (*prepare_request)(struct crypto_engine *, void *);
+	int (*unprepare_request)(struct crypto_engine *, void *);
+	int (*do_one_request)(struct crypto_engine *, void *);
+};
+
+struct crypto_engine_ctx {
+	struct crypto_engine_op op;
+};
+
+struct crypto_hash_walk {
+	char *data;
+	unsigned int offset;
+	unsigned int alignmask;
+	struct page *pg;
+	unsigned int entrylen;
+	unsigned int total;
+	struct scatterlist *sg;
+	unsigned int flags;
+};
+
+struct shash_instance {
+	void (*free)(struct shash_instance *);
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	union {
+		struct {
+			char head[256];
+			struct crypto_instance base;
+		} s;
+		struct shash_alg alg;
+	};
+};
+
+struct crypto_shash_spawn {
+	struct crypto_spawn base;
+};
+
+struct crypto_report_hash {
+	char type[64];
+	unsigned int blocksize;
+	unsigned int digestsize;
+};
+
+struct rsa_key {
+	const u8 *n;
+	const u8 *e;
+	const u8 *d;
+	const u8 *p;
+	const u8 *q;
+	const u8 *dp;
+	const u8 *dq;
+	const u8 *qinv;
+	size_t n_sz;
+	size_t e_sz;
+	size_t d_sz;
+	size_t p_sz;
+	size_t q_sz;
+	size_t dp_sz;
+	size_t dq_sz;
+	size_t qinv_sz;
+};
+
+enum ecdsasignature_actions {
+	ACT_ecdsa_get_signature_r = 0,
+	ACT_ecdsa_get_signature_s = 1,
+	NR__ecdsasignature_actions = 2,
+};
+
+struct crypto_report_acomp {
+	char type[64];
+};
+
+struct acomp_alg {
+	int (*compress)(struct acomp_req *);
+	int (*decompress)(struct acomp_req *);
+	void (*dst_free)(struct scatterlist *);
+	int (*init)(struct crypto_acomp *);
+	void (*exit)(struct crypto_acomp *);
+	unsigned int reqsize;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct crypto_alg base;
+};
+
+struct md5_state {
+	u32 hash[4];
+	u32 block[16];
+	u64 byte_count;
+};
+
+typedef struct {
+	u64 a;
+	u64 b;
+} u128;
+
+typedef struct {
+	__le64 b;
+	__le64 a;
+} le128;
+
+struct gf128mul_64k {
+	struct gf128mul_4k *t[16];
+};
+
+struct aead_instance {
+	void (*free)(struct aead_instance *);
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	union {
+		struct {
+			char head[128];
+			struct crypto_instance base;
+		} s;
+		struct aead_alg alg;
+	};
+};
+
+struct crypto_ahash_spawn {
+	struct crypto_spawn base;
+};
+
+struct crypto_authenc_keys {
+	const u8 *authkey;
+	const u8 *enckey;
+	unsigned int authkeylen;
+	unsigned int enckeylen;
+};
+
+struct authenc_esn_instance_ctx {
+	struct crypto_ahash_spawn auth;
+	struct crypto_skcipher_spawn enc;
+};
+
+struct crypto_authenc_esn_ctx {
+	unsigned int reqoff;
+	struct crypto_ahash *auth;
+	struct crypto_skcipher *enc;
+	struct crypto_sync_skcipher *null;
+};
+
+struct authenc_esn_request_ctx {
+	struct scatterlist src[2];
+	struct scatterlist dst[2];
+	char tail[0];
+};
+
+struct ecdh {
+	char *key;
+	short unsigned int key_size;
+};
+
+struct ecdh_ctx {
+	unsigned int curve_id;
+	unsigned int ndigits;
+	u64 private_key[8];
+};
+
+struct asymmetric_key_parser {
+	struct list_head link;
+	struct module *owner;
+	const char *name;
+	int (*parse)(struct key_preparsed_payload *);
+};
+
+struct section_header;
+
+struct pefile_context {
+	unsigned int header_size;
+	unsigned int image_checksum_offset;
+	unsigned int cert_dirent_offset;
+	unsigned int n_data_dirents;
+	unsigned int n_sections;
+	unsigned int certs_size;
+	unsigned int sig_offset;
+	unsigned int sig_len;
+	const struct section_header *secs;
+	const void *digest;
+	unsigned int digest_len;
+	const char *digest_algo;
+};
+
+struct section_header {
+	char name[8];
+	uint32_t virtual_size;
+	uint32_t virtual_address;
+	uint32_t raw_data_size;
+	uint32_t data_addr;
+	uint32_t relocs;
+	uint32_t line_numbers;
+	uint16_t num_relocs;
+	uint16_t num_lin_numbers;
+	uint32_t flags;
+};
+
+enum mscode_actions {
+	ACT_mscode_note_content_type = 0,
+	ACT_mscode_note_digest = 1,
+	ACT_mscode_note_digest_algo = 2,
+	NR__mscode_actions = 3,
+};
+
+struct kdf_testvec {
+	unsigned char *key;
+	size_t keylen;
+	unsigned char *ikm;
+	size_t ikmlen;
+	struct kvec info;
+	unsigned char *expected;
+	size_t expectedlen;
+};
+
+enum {
+	WBT_RWQ_BG = 0,
+	WBT_RWQ_KSWAPD = 1,
+	WBT_RWQ_DISCARD = 2,
+	WBT_NUM_RWQ = 3,
+};
+
+typedef bool (*sb_for_each_fn)(struct sbitmap *, unsigned int, void *);
+
+typedef bool busy_tag_iter_fn(struct request *, void *);
+
+enum {
+	BLK_MQ_F_SHOULD_MERGE = 1,
+	BLK_MQ_F_TAG_QUEUE_SHARED = 2,
+	BLK_MQ_F_STACKING = 4,
+	BLK_MQ_F_TAG_HCTX_SHARED = 8,
+	BLK_MQ_F_BLOCKING = 32,
+	BLK_MQ_F_NO_SCHED = 64,
+	BLK_MQ_F_NO_SCHED_BY_DEFAULT = 128,
+	BLK_MQ_F_ALLOC_POLICY_START_BIT = 8,
+	BLK_MQ_F_ALLOC_POLICY_BITS = 1,
+	BLK_MQ_S_STOPPED = 0,
+	BLK_MQ_S_TAG_ACTIVE = 1,
+	BLK_MQ_S_SCHED_RESTART = 2,
+	BLK_MQ_S_INACTIVE = 3,
+	BLK_MQ_MAX_DEPTH = 10240,
+	BLK_MQ_CPU_WORK_BATCH = 8,
+};
+
+enum {
+	BLK_MQ_REQ_NOWAIT = 1,
+	BLK_MQ_REQ_RESERVED = 2,
+	BLK_MQ_REQ_PM = 4,
+};
+
+enum {
+	BLK_MQ_UNIQUE_TAG_BITS = 16,
+	BLK_MQ_UNIQUE_TAG_MASK = 65535,
+};
+
+enum {
+	sysctl_hung_task_timeout_secs = 0,
+};
+
+enum {
+	BLK_MQ_NO_TAG = 4294967295,
+	BLK_MQ_TAG_MIN = 1,
+	BLK_MQ_TAG_MAX = 4294967294,
+};
+
+struct mq_inflight {
+	struct block_device *part;
+	unsigned int inflight[2];
+};
+
+struct blk_rq_wait {
+	struct completion done;
+	blk_status_t ret;
+};
+
+struct flush_busy_ctx_data {
+	struct blk_mq_hw_ctx *hctx;
+	struct list_head *list;
+};
+
+struct dispatch_rq_data {
+	struct blk_mq_hw_ctx *hctx;
+	struct request *rq;
+};
+
+enum prep_dispatch {
+	PREP_DISPATCH_OK = 0,
+	PREP_DISPATCH_NO_TAG = 1,
+	PREP_DISPATCH_NO_BUDGET = 2,
+};
+
+struct rq_iter_data {
+	struct blk_mq_hw_ctx *hctx;
+	bool has_rq;
+};
+
+struct blk_mq_qe_pair {
+	struct list_head node;
+	struct request_queue *q;
+	struct elevator_type *type;
+};
+
+enum {
+	LINUX_RAID_PARTITION = 253,
+};
+
+struct sgi_volume {
+	s8 name[8];
+	__be32 block_num;
+	__be32 num_bytes;
+};
+
+struct sgi_partition {
+	__be32 num_blocks;
+	__be32 first_block;
+	__be32 type;
+};
+
+struct sgi_disklabel {
+	__be32 magic_mushroom;
+	__be16 root_part_num;
+	__be16 swap_part_num;
+	s8 boot_file[16];
+	u8 _unused0[48];
+	struct sgi_volume volume[15];
+	struct sgi_partition partitions[16];
+	__be32 csum;
+	__be32 _unused1;
+};
+
+struct klist_iter {
+	struct klist *i_klist;
+	struct klist_node *i_cur;
+};
+
+struct class_dev_iter {
+	struct klist_iter ki;
+	const struct device_type *type;
+};
+
+struct blk_crypto_mode {
+	const char *name;
+	const char *cipher_str;
+	unsigned int keysize;
+	unsigned int ivsize;
+};
+
+struct xattr_name {
+	char name[256];
+};
+
+struct xattr_ctx {
+	union {
+		const void *cvalue;
+		void *value;
+	};
+	void *kvalue;
+	size_t size;
+	struct xattr_name *kname;
+	unsigned int flags;
+};
+
+struct io_xattr {
+	struct file *file;
+	struct xattr_ctx ctx;
+	struct filename *filename;
+};
+
+enum {
+	IORING_MSG_DATA = 0,
+	IORING_MSG_SEND_FD = 1,
+};
+
+struct io_msg {
+	struct file *file;
+	u64 user_data;
+	u32 len;
+	u32 cmd;
+	u32 src_fd;
+	u32 dst_fd;
+	u32 flags;
+};
+
+typedef s32 compat_ssize_t;
+
+struct iov_iter_state {
+	size_t iov_offset;
+	size_t count;
+	long unsigned int nr_segs;
+};
+
+struct wait_page_key {
+	struct folio *folio;
+	int bit_nr;
+	int page_match;
+};
+
+struct io_rw_state {
+	struct iov_iter iter;
+	struct iov_iter_state iter_state;
+	struct iovec fast_iov[8];
+};
+
+struct io_async_rw {
+	struct io_rw_state s;
+	const struct iovec *free_iovec;
+	size_t bytes_done;
+	struct wait_page_queue wpq;
+};
+
+struct io_rw {
+	struct kiocb kiocb;
+	u64 addr;
+	u32 len;
+	rwf_t flags;
+};
+
+enum string_size_units {
+	STRING_UNITS_10 = 0,
+	STRING_UNITS_2 = 1,
+};
+
+struct strarray {
+	char **array;
+	size_t n;
+};
+
+typedef struct {
+	const uint8_t *externalDict;
+	size_t extDictSize;
+	const uint8_t *prefixEnd;
+	size_t prefixSize;
+} LZ4_streamDecode_t_internal;
+
+typedef union {
+	long long unsigned int table[4];
+	LZ4_streamDecode_t_internal internal_donotuse;
+} LZ4_streamDecode_t;
+
+typedef uintptr_t uptrval;
+
+typedef enum {
+	noDict = 0,
+	withPrefix64k = 1,
+	usingExtDict = 2,
+} dict_directive;
+
+typedef enum {
+	endOnOutputSize = 0,
+	endOnInputSize = 1,
+} endCondition_directive;
+
+typedef enum {
+	decode_full_block = 0,
+	partial_decode = 1,
+} earlyEnd_directive;
+
+typedef struct {
+	size_t bitContainer;
+	unsigned int bitPos;
+	char *startPtr;
+	char *ptr;
+	char *endPtr;
+} BIT_CStream_t;
+
+typedef struct {
+	ptrdiff_t value;
+	const void *stateTable;
+	const void *symbolTT;
+	unsigned int stateLog;
+} FSE_CState_t;
+
+typedef struct {
+	int deltaFindState;
+	U32 deltaNbBits;
+} FSE_symbolCompressionTransform;
+
+typedef struct {
+	S16 norm[53];
+	U32 wksp[182];
+} ZSTD_BuildCTableWksp;
+
+typedef enum {
+	search_hashChain = 0,
+	search_binaryTree = 1,
+} searchMethod_e;
+
+typedef size_t (*searchMax_f)(ZSTD_matchState_t *, const BYTE *, const BYTE *, size_t *);
+
+struct cpu_rmap {
+	struct kref refcount;
+	u16 size;
+	u16 used;
+	void **obj;
+	struct {
+		u16 index;
+		u16 dist;
+	} near[0];
+};
+
+struct irq_glue {
+	struct irq_affinity_notify notify;
+	struct cpu_rmap *rmap;
+	u16 index;
+};
+
+typedef long unsigned int mpi_limb_t;
+
+typedef mpi_limb_t *mpi_ptr_t;
+
+typedef int mpi_size_t;
+
+typedef mpi_limb_t UWtype;
+
+typedef unsigned int UHWtype;
+
+struct gcry_mpi {
+	int alloced;
+	int nlimbs;
+	int nbits;
+	int sign;
+	unsigned int flags;
+	mpi_limb_t *d;
+};
+
+typedef struct gcry_mpi *MPI;
+
+enum gcry_mpi_constants {
+	MPI_C_ZERO = 0,
+	MPI_C_ONE = 1,
+	MPI_C_TWO = 2,
+	MPI_C_THREE = 3,
+	MPI_C_FOUR = 4,
+	MPI_C_EIGHT = 5,
+};
+
+struct barrett_ctx_s;
+
+typedef struct barrett_ctx_s *mpi_barrett_t;
+
+struct gcry_mpi_point {
+	MPI x;
+	MPI y;
+	MPI z;
+};
+
+typedef struct gcry_mpi_point *MPI_POINT;
+
+enum gcry_mpi_ec_models {
+	MPI_EC_WEIERSTRASS = 0,
+	MPI_EC_MONTGOMERY = 1,
+	MPI_EC_EDWARDS = 2,
+};
+
+enum ecc_dialects {
+	ECC_DIALECT_STANDARD = 0,
+	ECC_DIALECT_ED25519 = 1,
+	ECC_DIALECT_SAFECURVE = 2,
+};
+
+struct mpi_ec_ctx {
+	enum gcry_mpi_ec_models model;
+	enum ecc_dialects dialect;
+	int flags;
+	unsigned int nbits;
+	MPI p;
+	MPI a;
+	MPI b;
+	MPI_POINT G;
+	MPI n;
+	unsigned int h;
+	MPI_POINT Q;
+	MPI d;
+	const char *name;
+	struct {
+		struct {
+			unsigned int a_is_pminus3: 1;
+			unsigned int two_inv_p: 1;
+		} valid;
+		int a_is_pminus3;
+		MPI two_inv_p;
+		mpi_barrett_t p_barrett;
+		MPI scratch[11];
+	} t;
+	void (*addm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*subm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*mulm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*pow2)(MPI, const MPI, struct mpi_ec_ctx *);
+	void (*mul2)(MPI, MPI, struct mpi_ec_ctx *);
+};
+
+struct field_table {
+	const char *p;
+	void (*addm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*subm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*mulm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*mul2)(MPI, MPI, struct mpi_ec_ctx *);
+	void (*pow2)(MPI, const MPI, struct mpi_ec_ctx *);
+};
+
+struct dim_cq_moder {
+	u16 usec;
+	u16 pkts;
+	u16 comps;
+	u8 cq_period_mode;
+};
+
+enum dim_cq_period_mode {
+	DIM_CQ_PERIOD_MODE_START_FROM_EQE = 0,
+	DIM_CQ_PERIOD_MODE_START_FROM_CQE = 1,
+	DIM_CQ_PERIOD_NUM_MODES = 2,
+};
+
+enum dim_state {
+	DIM_START_MEASURE = 0,
+	DIM_MEASURE_IN_PROGRESS = 1,
+	DIM_APPLY_NEW_PROFILE = 2,
+};
+
+enum dim_tune_state {
+	DIM_PARKING_ON_TOP = 0,
+	DIM_PARKING_TIRED = 1,
+	DIM_GOING_RIGHT = 2,
+	DIM_GOING_LEFT = 3,
+};
+
+enum dim_stats_state {
+	DIM_STATS_WORSE = 0,
+	DIM_STATS_SAME = 1,
+	DIM_STATS_BETTER = 2,
+};
+
+enum dim_step_result {
+	DIM_STEPPED = 0,
+	DIM_TOO_TIRED = 1,
+	DIM_ON_EDGE = 2,
+};
+
+enum format_type {
+	FORMAT_TYPE_NONE = 0,
+	FORMAT_TYPE_WIDTH = 1,
+	FORMAT_TYPE_PRECISION = 2,
+	FORMAT_TYPE_CHAR = 3,
+	FORMAT_TYPE_STR = 4,
+	FORMAT_TYPE_PTR = 5,
+	FORMAT_TYPE_PERCENT_CHAR = 6,
+	FORMAT_TYPE_INVALID = 7,
+	FORMAT_TYPE_LONG_LONG = 8,
+	FORMAT_TYPE_ULONG = 9,
+	FORMAT_TYPE_LONG = 10,
+	FORMAT_TYPE_UBYTE = 11,
+	FORMAT_TYPE_BYTE = 12,
+	FORMAT_TYPE_USHORT = 13,
+	FORMAT_TYPE_SHORT = 14,
+	FORMAT_TYPE_UINT = 15,
+	FORMAT_TYPE_INT = 16,
+	FORMAT_TYPE_SIZE_T = 17,
+	FORMAT_TYPE_PTRDIFF = 18,
+};
+
+struct printf_spec {
+	unsigned int type: 8;
+	int field_width: 24;
+	unsigned int flags: 8;
+	unsigned int base: 8;
+	int precision: 16;
+};
+
+struct page_flags_fields {
+	int width;
+	int shift;
+	int mask;
+	const struct printf_spec *spec;
+	const char *name;
+};
+
+struct acpi_madt_generic_translator {
+	struct acpi_subtable_header header;
+	u16 reserved;
+	u32 translation_id;
+	u64 base_address;
+	u32 reserved2;
+} __attribute__((packed));
+
+struct mvebu_icu_subset_data {
+	unsigned int icu_group;
+	unsigned int offset_set_ah;
+	unsigned int offset_set_al;
+	unsigned int offset_clr_ah;
+	unsigned int offset_clr_al;
+};
+
+struct mvebu_icu {
+	void *base;
+	struct device *dev;
+};
+
+struct mvebu_icu_msi_data {
+	struct mvebu_icu *icu;
+	atomic_t initialized;
+	const struct mvebu_icu_subset_data *subset_data;
+};
+
+struct mvebu_icu_irq_data {
+	struct mvebu_icu *icu;
+	unsigned int icu_group;
+	unsigned int type;
+};
+
+struct pdc_pin_region {
+	u32 pin_base;
+	u32 parent_base;
+	u32 cnt;
+};
+
+enum pdc_irq_config_bits {
+	PDC_LEVEL_LOW = 0,
+	PDC_EDGE_FALLING = 2,
+	PDC_LEVEL_HIGH = 4,
+	PDC_EDGE_RISING = 6,
+	PDC_EDGE_DUAL = 7,
+};
+
+enum meson_soc_id {
+	MESON_SOC_G12A = 0,
+	MESON_SOC_A1 = 1,
+};
+
+struct phy_meson_g12a_usb2_priv {
+	struct device *dev;
+	struct regmap *regmap;
+	struct clk *clk;
+	struct reset_control *reset;
+	int soc_id;
+};
+
+struct pingroup {
+	const char *name;
+	const unsigned int *pins;
+	size_t npins;
+};
+
+struct amd_function {
+	const char *name;
+	const char * const groups[4];
+	unsigned int ngroups;
+	int index;
+};
+
+struct amd_gpio {
+	raw_spinlock_t lock;
+	void *base;
+	void *iomux_base;
+	const struct pingroup *groups;
+	u32 ngroups;
+	struct pinctrl_dev *pctrl;
+	struct gpio_chip gc;
+	unsigned int hwbank_num;
+	struct resource *res;
+	struct platform_device *pdev;
+	u32 *saved_regs;
+	int irq;
+};
+
+enum amd_functions {
+	IMX_F0_GPIO0 = 0,
+	IMX_F1_GPIO0 = 1,
+	IMX_F2_GPIO0 = 2,
+	IMX_F3_GPIO0 = 3,
+	IMX_F0_GPIO1 = 4,
+	IMX_F1_GPIO1 = 5,
+	IMX_F2_GPIO1 = 6,
+	IMX_F3_GPIO1 = 7,
+	IMX_F0_GPIO2 = 8,
+	IMX_F1_GPIO2 = 9,
+	IMX_F2_GPIO2 = 10,
+	IMX_F3_GPIO2 = 11,
+	IMX_F0_GPIO3 = 12,
+	IMX_F1_GPIO3 = 13,
+	IMX_F2_GPIO3 = 14,
+	IMX_F3_GPIO3 = 15,
+	IMX_F0_GPIO4 = 16,
+	IMX_F1_GPIO4 = 17,
+	IMX_F2_GPIO4 = 18,
+	IMX_F3_GPIO4 = 19,
+	IMX_F0_GPIO5 = 20,
+	IMX_F1_GPIO5 = 21,
+	IMX_F2_GPIO5 = 22,
+	IMX_F3_GPIO5 = 23,
+	IMX_F0_GPIO6 = 24,
+	IMX_F1_GPIO6 = 25,
+	IMX_F2_GPIO6 = 26,
+	IMX_F3_GPIO6 = 27,
+	IMX_F0_GPIO7 = 28,
+	IMX_F1_GPIO7 = 29,
+	IMX_F2_GPIO7 = 30,
+	IMX_F3_GPIO7 = 31,
+	IMX_F0_GPIO8 = 32,
+	IMX_F1_GPIO8 = 33,
+	IMX_F2_GPIO8 = 34,
+	IMX_F3_GPIO8 = 35,
+	IMX_F0_GPIO9 = 36,
+	IMX_F1_GPIO9 = 37,
+	IMX_F2_GPIO9 = 38,
+	IMX_F3_GPIO9 = 39,
+	IMX_F0_GPIO10 = 40,
+	IMX_F1_GPIO10 = 41,
+	IMX_F2_GPIO10 = 42,
+	IMX_F3_GPIO10 = 43,
+	IMX_F0_GPIO11 = 44,
+	IMX_F1_GPIO11 = 45,
+	IMX_F2_GPIO11 = 46,
+	IMX_F3_GPIO11 = 47,
+	IMX_F0_GPIO12 = 48,
+	IMX_F1_GPIO12 = 49,
+	IMX_F2_GPIO12 = 50,
+	IMX_F3_GPIO12 = 51,
+	IMX_F0_GPIO13 = 52,
+	IMX_F1_GPIO13 = 53,
+	IMX_F2_GPIO13 = 54,
+	IMX_F3_GPIO13 = 55,
+	IMX_F0_GPIO14 = 56,
+	IMX_F1_GPIO14 = 57,
+	IMX_F2_GPIO14 = 58,
+	IMX_F3_GPIO14 = 59,
+	IMX_F0_GPIO15 = 60,
+	IMX_F1_GPIO15 = 61,
+	IMX_F2_GPIO15 = 62,
+	IMX_F3_GPIO15 = 63,
+	IMX_F0_GPIO16 = 64,
+	IMX_F1_GPIO16 = 65,
+	IMX_F2_GPIO16 = 66,
+	IMX_F3_GPIO16 = 67,
+	IMX_F0_GPIO17 = 68,
+	IMX_F1_GPIO17 = 69,
+	IMX_F2_GPIO17 = 70,
+	IMX_F3_GPIO17 = 71,
+	IMX_F0_GPIO18 = 72,
+	IMX_F1_GPIO18 = 73,
+	IMX_F2_GPIO18 = 74,
+	IMX_F3_GPIO18 = 75,
+	IMX_F0_GPIO19 = 76,
+	IMX_F1_GPIO19 = 77,
+	IMX_F2_GPIO19 = 78,
+	IMX_F3_GPIO19 = 79,
+	IMX_F0_GPIO20 = 80,
+	IMX_F1_GPIO20 = 81,
+	IMX_F2_GPIO20 = 82,
+	IMX_F3_GPIO20 = 83,
+	IMX_F0_GPIO21 = 84,
+	IMX_F1_GPIO21 = 85,
+	IMX_F2_GPIO21 = 86,
+	IMX_F3_GPIO21 = 87,
+	IMX_F0_GPIO22 = 88,
+	IMX_F1_GPIO22 = 89,
+	IMX_F2_GPIO22 = 90,
+	IMX_F3_GPIO22 = 91,
+	IMX_F0_GPIO23 = 92,
+	IMX_F1_GPIO23 = 93,
+	IMX_F2_GPIO23 = 94,
+	IMX_F3_GPIO23 = 95,
+	IMX_F0_GPIO24 = 96,
+	IMX_F1_GPIO24 = 97,
+	IMX_F2_GPIO24 = 98,
+	IMX_F3_GPIO24 = 99,
+	IMX_F0_GPIO25 = 100,
+	IMX_F1_GPIO25 = 101,
+	IMX_F2_GPIO25 = 102,
+	IMX_F3_GPIO25 = 103,
+	IMX_F0_GPIO26 = 104,
+	IMX_F1_GPIO26 = 105,
+	IMX_F2_GPIO26 = 106,
+	IMX_F3_GPIO26 = 107,
+	IMX_F0_GPIO27 = 108,
+	IMX_F1_GPIO27 = 109,
+	IMX_F2_GPIO27 = 110,
+	IMX_F3_GPIO27 = 111,
+	IMX_F0_GPIO28 = 112,
+	IMX_F1_GPIO28 = 113,
+	IMX_F2_GPIO28 = 114,
+	IMX_F3_GPIO28 = 115,
+	IMX_F0_GPIO29 = 116,
+	IMX_F1_GPIO29 = 117,
+	IMX_F2_GPIO29 = 118,
+	IMX_F3_GPIO29 = 119,
+	IMX_F0_GPIO30 = 120,
+	IMX_F1_GPIO30 = 121,
+	IMX_F2_GPIO30 = 122,
+	IMX_F3_GPIO30 = 123,
+	IMX_F0_GPIO31 = 124,
