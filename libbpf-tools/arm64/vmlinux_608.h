@@ -96331,3 +96331,2053 @@ struct tegra_clk_pll_params {
 	u32 lock_reg;
 	u32 lock_mask;
 	u32 lock_enable_bit_idx;
+	u32 iddq_reg;
+	u32 iddq_bit_idx;
+	u32 reset_reg;
+	u32 reset_bit_idx;
+	u32 sdm_din_reg;
+	u32 sdm_din_mask;
+	u32 sdm_ctrl_reg;
+	u32 sdm_ctrl_en_mask;
+	u32 ssc_ctrl_reg;
+	u32 ssc_ctrl_en_mask;
+	u32 aux_reg;
+	u32 dyn_ramp_reg;
+	u32 ext_misc_reg[6];
+	u32 pmc_divnm_reg;
+	u32 pmc_divp_reg;
+	u32 flags;
+	int stepa_shift;
+	int stepb_shift;
+	int lock_delay;
+	int max_p;
+	bool defaults_set;
+	const struct pdiv_map *pdiv_tohw;
+	struct div_nmp *div_nmp;
+	struct tegra_clk_pll_freq_table *freq_table;
+	long unsigned int fixed_rate;
+	u16 mdiv_default;
+	u32 (*round_p_to_pdiv)(u32, u32 *);
+	void (*set_gain)(struct tegra_clk_pll_freq_table *);
+	int (*calc_rate)(struct clk_hw *, struct tegra_clk_pll_freq_table *, long unsigned int, long unsigned int);
+	long unsigned int (*adjust_vco)(struct tegra_clk_pll_params *, long unsigned int);
+	void (*set_defaults)(struct tegra_clk_pll *);
+	int (*dyn_ramp)(struct tegra_clk_pll *, struct tegra_clk_pll_freq_table *);
+	int (*pre_rate_change)();
+	void (*post_rate_change)();
+};
+
+struct tegra_clk_pll {
+	struct clk_hw hw;
+	void *clk_base;
+	void *pmc;
+	spinlock_t *lock;
+	struct tegra_clk_pll_params *params;
+};
+
+struct tegra_clk_periph_gate {
+	u32 magic;
+	struct clk_hw hw;
+	void *clk_base;
+	u8 flags;
+	int clk_num;
+	int *enable_refcnt;
+	const struct tegra_clk_periph_regs *regs;
+};
+
+struct tegra_clk_periph {
+	u32 magic;
+	struct clk_hw hw;
+	struct clk_mux mux;
+	struct tegra_clk_frac_div divider;
+	struct tegra_clk_periph_gate gate;
+	const struct clk_ops *mux_ops;
+	const struct clk_ops *div_ops;
+	const struct clk_ops *gate_ops;
+};
+
+struct tegra_periph_init_data {
+	const char *name;
+	int clk_id;
+	union {
+		const char * const *parent_names;
+		const char *parent_name;
+	} p;
+	int num_parents;
+	struct tegra_clk_periph periph;
+	u32 offset;
+	const char *con_id;
+	const char *dev_id;
+	long unsigned int flags;
+};
+
+enum clk_id {
+	tegra_clk_actmon = 0,
+	tegra_clk_adx = 1,
+	tegra_clk_adx1 = 2,
+	tegra_clk_afi = 3,
+	tegra_clk_amx = 4,
+	tegra_clk_amx1 = 5,
+	tegra_clk_apb2ape = 6,
+	tegra_clk_ahbdma = 7,
+	tegra_clk_apbdma = 8,
+	tegra_clk_apbif = 9,
+	tegra_clk_ape = 10,
+	tegra_clk_audio0 = 11,
+	tegra_clk_audio0_2x = 12,
+	tegra_clk_audio0_mux = 13,
+	tegra_clk_audio1 = 14,
+	tegra_clk_audio1_2x = 15,
+	tegra_clk_audio1_mux = 16,
+	tegra_clk_audio2 = 17,
+	tegra_clk_audio2_2x = 18,
+	tegra_clk_audio2_mux = 19,
+	tegra_clk_audio3 = 20,
+	tegra_clk_audio3_2x = 21,
+	tegra_clk_audio3_mux = 22,
+	tegra_clk_audio4 = 23,
+	tegra_clk_audio4_2x = 24,
+	tegra_clk_audio4_mux = 25,
+	tegra_clk_bsea = 26,
+	tegra_clk_bsev = 27,
+	tegra_clk_cclk_g = 28,
+	tegra_clk_cclk_lp = 29,
+	tegra_clk_cilab = 30,
+	tegra_clk_cilcd = 31,
+	tegra_clk_cile = 32,
+	tegra_clk_clk_32k = 33,
+	tegra_clk_clk72Mhz = 34,
+	tegra_clk_clk72Mhz_8 = 35,
+	tegra_clk_clk_m = 36,
+	tegra_clk_osc = 37,
+	tegra_clk_osc_div2 = 38,
+	tegra_clk_osc_div4 = 39,
+	tegra_clk_cml0 = 40,
+	tegra_clk_cml1 = 41,
+	tegra_clk_csi = 42,
+	tegra_clk_csite = 43,
+	tegra_clk_csite_8 = 44,
+	tegra_clk_csus = 45,
+	tegra_clk_cve = 46,
+	tegra_clk_dam0 = 47,
+	tegra_clk_dam1 = 48,
+	tegra_clk_dam2 = 49,
+	tegra_clk_d_audio = 50,
+	tegra_clk_dbgapb = 51,
+	tegra_clk_dds = 52,
+	tegra_clk_dfll_ref = 53,
+	tegra_clk_dfll_soc = 54,
+	tegra_clk_disp1 = 55,
+	tegra_clk_disp1_8 = 56,
+	tegra_clk_disp2 = 57,
+	tegra_clk_disp2_8 = 58,
+	tegra_clk_dp2 = 59,
+	tegra_clk_dpaux = 60,
+	tegra_clk_dpaux1 = 61,
+	tegra_clk_dsialp = 62,
+	tegra_clk_dsia_mux = 63,
+	tegra_clk_dsiblp = 64,
+	tegra_clk_dsib_mux = 65,
+	tegra_clk_dtv = 66,
+	tegra_clk_emc = 67,
+	tegra_clk_entropy = 68,
+	tegra_clk_entropy_8 = 69,
+	tegra_clk_epp = 70,
+	tegra_clk_epp_8 = 71,
+	tegra_clk_extern1 = 72,
+	tegra_clk_extern2 = 73,
+	tegra_clk_extern3 = 74,
+	tegra_clk_fuse = 75,
+	tegra_clk_fuse_burn = 76,
+	tegra_clk_gpu = 77,
+	tegra_clk_gr2d = 78,
+	tegra_clk_gr2d_8 = 79,
+	tegra_clk_gr3d = 80,
+	tegra_clk_gr3d_8 = 81,
+	tegra_clk_hclk = 82,
+	tegra_clk_hda = 83,
+	tegra_clk_hda_8 = 84,
+	tegra_clk_hda2codec_2x = 85,
+	tegra_clk_hda2codec_2x_8 = 86,
+	tegra_clk_hda2hdmi = 87,
+	tegra_clk_hdmi = 88,
+	tegra_clk_hdmi_audio = 89,
+	tegra_clk_host1x = 90,
+	tegra_clk_host1x_8 = 91,
+	tegra_clk_host1x_9 = 92,
+	tegra_clk_hsic_trk = 93,
+	tegra_clk_i2c1 = 94,
+	tegra_clk_i2c2 = 95,
+	tegra_clk_i2c3 = 96,
+	tegra_clk_i2c4 = 97,
+	tegra_clk_i2c5 = 98,
+	tegra_clk_i2c6 = 99,
+	tegra_clk_i2cslow = 100,
+	tegra_clk_i2s0 = 101,
+	tegra_clk_i2s0_sync = 102,
+	tegra_clk_i2s1 = 103,
+	tegra_clk_i2s1_sync = 104,
+	tegra_clk_i2s2 = 105,
+	tegra_clk_i2s2_sync = 106,
+	tegra_clk_i2s3 = 107,
+	tegra_clk_i2s3_sync = 108,
+	tegra_clk_i2s4 = 109,
+	tegra_clk_i2s4_sync = 110,
+	tegra_clk_isp = 111,
+	tegra_clk_isp_8 = 112,
+	tegra_clk_isp_9 = 113,
+	tegra_clk_ispb = 114,
+	tegra_clk_kbc = 115,
+	tegra_clk_kfuse = 116,
+	tegra_clk_la = 117,
+	tegra_clk_maud = 118,
+	tegra_clk_mipi = 119,
+	tegra_clk_mipibif = 120,
+	tegra_clk_mipi_cal = 121,
+	tegra_clk_mpe = 122,
+	tegra_clk_mselect = 123,
+	tegra_clk_msenc = 124,
+	tegra_clk_ndflash = 125,
+	tegra_clk_ndflash_8 = 126,
+	tegra_clk_ndspeed = 127,
+	tegra_clk_ndspeed_8 = 128,
+	tegra_clk_nor = 129,
+	tegra_clk_nvdec = 130,
+	tegra_clk_nvenc = 131,
+	tegra_clk_nvjpg = 132,
+	tegra_clk_owr = 133,
+	tegra_clk_owr_8 = 134,
+	tegra_clk_pcie = 135,
+	tegra_clk_pclk = 136,
+	tegra_clk_pll_a = 137,
+	tegra_clk_pll_a_out0 = 138,
+	tegra_clk_pll_a1 = 139,
+	tegra_clk_pll_c = 140,
+	tegra_clk_pll_c2 = 141,
+	tegra_clk_pll_c3 = 142,
+	tegra_clk_pll_c4 = 143,
+	tegra_clk_pll_c4_out0 = 144,
+	tegra_clk_pll_c4_out1 = 145,
+	tegra_clk_pll_c4_out2 = 146,
+	tegra_clk_pll_c4_out3 = 147,
+	tegra_clk_pll_c_out1 = 148,
+	tegra_clk_pll_d = 149,
+	tegra_clk_pll_d2 = 150,
+	tegra_clk_pll_d2_out0 = 151,
+	tegra_clk_pll_d_out0 = 152,
+	tegra_clk_pll_dp = 153,
+	tegra_clk_pll_e_out0 = 154,
+	tegra_clk_pll_g_ref = 155,
+	tegra_clk_pll_m = 156,
+	tegra_clk_pll_m_out1 = 157,
+	tegra_clk_pll_mb = 158,
+	tegra_clk_pll_p = 159,
+	tegra_clk_pll_p_out1 = 160,
+	tegra_clk_pll_p_out2 = 161,
+	tegra_clk_pll_p_out2_int = 162,
+	tegra_clk_pll_p_out3 = 163,
+	tegra_clk_pll_p_out4 = 164,
+	tegra_clk_pll_p_out4_cpu = 165,
+	tegra_clk_pll_p_out5 = 166,
+	tegra_clk_pll_p_out_hsio = 167,
+	tegra_clk_pll_p_out_xusb = 168,
+	tegra_clk_pll_p_out_cpu = 169,
+	tegra_clk_pll_p_out_adsp = 170,
+	tegra_clk_pll_ref = 171,
+	tegra_clk_pll_re_out = 172,
+	tegra_clk_pll_re_vco = 173,
+	tegra_clk_pll_u = 174,
+	tegra_clk_pll_u_out = 175,
+	tegra_clk_pll_u_out1 = 176,
+	tegra_clk_pll_u_out2 = 177,
+	tegra_clk_pll_u_12m = 178,
+	tegra_clk_pll_u_480m = 179,
+	tegra_clk_pll_u_48m = 180,
+	tegra_clk_pll_u_60m = 181,
+	tegra_clk_pll_x = 182,
+	tegra_clk_pll_x_out0 = 183,
+	tegra_clk_pwm = 184,
+	tegra_clk_qspi = 185,
+	tegra_clk_rtc = 186,
+	tegra_clk_sata = 187,
+	tegra_clk_sata_8 = 188,
+	tegra_clk_sata_cold = 189,
+	tegra_clk_sata_oob = 190,
+	tegra_clk_sata_oob_8 = 191,
+	tegra_clk_sbc1 = 192,
+	tegra_clk_sbc1_8 = 193,
+	tegra_clk_sbc1_9 = 194,
+	tegra_clk_sbc2 = 195,
+	tegra_clk_sbc2_8 = 196,
+	tegra_clk_sbc2_9 = 197,
+	tegra_clk_sbc3 = 198,
+	tegra_clk_sbc3_8 = 199,
+	tegra_clk_sbc3_9 = 200,
+	tegra_clk_sbc4 = 201,
+	tegra_clk_sbc4_8 = 202,
+	tegra_clk_sbc4_9 = 203,
+	tegra_clk_sbc5 = 204,
+	tegra_clk_sbc5_8 = 205,
+	tegra_clk_sbc6 = 206,
+	tegra_clk_sbc6_8 = 207,
+	tegra_clk_sclk = 208,
+	tegra_clk_sdmmc_legacy = 209,
+	tegra_clk_sdmmc1 = 210,
+	tegra_clk_sdmmc1_8 = 211,
+	tegra_clk_sdmmc1_9 = 212,
+	tegra_clk_sdmmc2 = 213,
+	tegra_clk_sdmmc2_8 = 214,
+	tegra_clk_sdmmc3 = 215,
+	tegra_clk_sdmmc3_8 = 216,
+	tegra_clk_sdmmc3_9 = 217,
+	tegra_clk_sdmmc4 = 218,
+	tegra_clk_sdmmc4_8 = 219,
+	tegra_clk_se = 220,
+	tegra_clk_se_10 = 221,
+	tegra_clk_soc_therm = 222,
+	tegra_clk_soc_therm_8 = 223,
+	tegra_clk_sor0 = 224,
+	tegra_clk_sor0_out = 225,
+	tegra_clk_sor1 = 226,
+	tegra_clk_sor1_out = 227,
+	tegra_clk_spdif = 228,
+	tegra_clk_spdif_2x = 229,
+	tegra_clk_spdif_in = 230,
+	tegra_clk_spdif_in_8 = 231,
+	tegra_clk_spdif_in_sync = 232,
+	tegra_clk_spdif_mux = 233,
+	tegra_clk_spdif_out = 234,
+	tegra_clk_timer = 235,
+	tegra_clk_trace = 236,
+	tegra_clk_tsec = 237,
+	tegra_clk_tsec_8 = 238,
+	tegra_clk_tsecb = 239,
+	tegra_clk_tsensor = 240,
+	tegra_clk_tvdac = 241,
+	tegra_clk_tvo = 242,
+	tegra_clk_uarta = 243,
+	tegra_clk_uarta_8 = 244,
+	tegra_clk_uartb = 245,
+	tegra_clk_uartb_8 = 246,
+	tegra_clk_uartc = 247,
+	tegra_clk_uartc_8 = 248,
+	tegra_clk_uartd = 249,
+	tegra_clk_uartd_8 = 250,
+	tegra_clk_uarte = 251,
+	tegra_clk_uarte_8 = 252,
+	tegra_clk_uartape = 253,
+	tegra_clk_usb2 = 254,
+	tegra_clk_usb2_hsic_trk = 255,
+	tegra_clk_usb2_trk = 256,
+	tegra_clk_usb3 = 257,
+	tegra_clk_usbd = 258,
+	tegra_clk_vcp = 259,
+	tegra_clk_vde = 260,
+	tegra_clk_vde_8 = 261,
+	tegra_clk_vfir = 262,
+	tegra_clk_vi = 263,
+	tegra_clk_vi_8 = 264,
+	tegra_clk_vi_9 = 265,
+	tegra_clk_vi_10 = 266,
+	tegra_clk_vi_i2c = 267,
+	tegra_clk_vic03 = 268,
+	tegra_clk_vic03_8 = 269,
+	tegra_clk_vim2_clk = 270,
+	tegra_clk_vimclk_sync = 271,
+	tegra_clk_vi_sensor = 272,
+	tegra_clk_vi_sensor_8 = 273,
+	tegra_clk_vi_sensor_9 = 274,
+	tegra_clk_vi_sensor2 = 275,
+	tegra_clk_vi_sensor2_8 = 276,
+	tegra_clk_xusb_dev = 277,
+	tegra_clk_xusb_dev_src = 278,
+	tegra_clk_xusb_dev_src_8 = 279,
+	tegra_clk_xusb_falcon_src = 280,
+	tegra_clk_xusb_falcon_src_8 = 281,
+	tegra_clk_xusb_fs_src = 282,
+	tegra_clk_xusb_gate = 283,
+	tegra_clk_xusb_host = 284,
+	tegra_clk_xusb_host_src = 285,
+	tegra_clk_xusb_host_src_8 = 286,
+	tegra_clk_xusb_hs_src = 287,
+	tegra_clk_xusb_hs_src_4 = 288,
+	tegra_clk_xusb_ss = 289,
+	tegra_clk_xusb_ss_src = 290,
+	tegra_clk_xusb_ss_src_8 = 291,
+	tegra_clk_xusb_ss_div2 = 292,
+	tegra_clk_xusb_ssp_src = 293,
+	tegra_clk_sclk_mux = 294,
+	tegra_clk_sor_safe = 295,
+	tegra_clk_cec = 296,
+	tegra_clk_ispa = 297,
+	tegra_clk_dmic1 = 298,
+	tegra_clk_dmic2 = 299,
+	tegra_clk_dmic3 = 300,
+	tegra_clk_dmic1_sync_clk = 301,
+	tegra_clk_dmic2_sync_clk = 302,
+	tegra_clk_dmic3_sync_clk = 303,
+	tegra_clk_dmic1_sync_clk_mux = 304,
+	tegra_clk_dmic2_sync_clk_mux = 305,
+	tegra_clk_dmic3_sync_clk_mux = 306,
+	tegra_clk_iqc1 = 307,
+	tegra_clk_iqc2 = 308,
+	tegra_clk_pll_a_out_adsp = 309,
+	tegra_clk_pll_a_out0_out_adsp = 310,
+	tegra_clk_adsp = 311,
+	tegra_clk_adsp_neon = 312,
+	tegra_clk_max = 313,
+};
+
+struct pll_out_data {
+	char *div_name;
+	char *pll_out_name;
+	u32 offset;
+	int clk_id;
+	u8 div_shift;
+	u8 div_flags;
+	u8 rst_shift;
+	spinlock_t *lock;
+};
+
+struct tegra_audio_clk_info {
+	char *name;
+	struct tegra_clk_pll_params *pll_params;
+	int clk_id;
+	char *parent;
+};
+
+struct cpu_clk_suspend_context {
+	u32 clk_csite_src;
+	u32 cclkg_burst;
+	u32 cclkg_divider;
+};
+
+struct icst_params {
+	long unsigned int ref;
+	long unsigned int vco_max;
+	long unsigned int vco_min;
+	short unsigned int vd_min;
+	short unsigned int vd_max;
+	unsigned char rd_min;
+	unsigned char rd_max;
+	const unsigned char *s2div;
+	const unsigned char *idx2s;
+};
+
+struct clk_icst_desc {
+	const struct icst_params *params;
+	u32 vco_offset;
+	u32 lock_offset;
+};
+
+struct zynqmp_clk_gate {
+	struct clk_hw hw;
+	u8 flags;
+	u32 clk_id;
+};
+
+enum pm_query_id {
+	PM_QID_INVALID = 0,
+	PM_QID_CLOCK_GET_NAME = 1,
+	PM_QID_CLOCK_GET_TOPOLOGY = 2,
+	PM_QID_CLOCK_GET_FIXEDFACTOR_PARAMS = 3,
+	PM_QID_CLOCK_GET_PARENTS = 4,
+	PM_QID_CLOCK_GET_ATTRIBUTES = 5,
+	PM_QID_PINCTRL_GET_NUM_PINS = 6,
+	PM_QID_PINCTRL_GET_NUM_FUNCTIONS = 7,
+	PM_QID_PINCTRL_GET_NUM_FUNCTION_GROUPS = 8,
+	PM_QID_PINCTRL_GET_FUNCTION_NAME = 9,
+	PM_QID_PINCTRL_GET_FUNCTION_GROUPS = 10,
+	PM_QID_PINCTRL_GET_PIN_GROUPS = 11,
+	PM_QID_CLOCK_GET_NUM_CLOCKS = 12,
+	PM_QID_CLOCK_GET_MAX_DIVISOR = 13,
+};
+
+struct zynqmp_pm_query_data {
+	u32 qid;
+	u32 arg1;
+	u32 arg2;
+	u32 arg3;
+};
+
+enum topology_type {
+	TYPE_INVALID = 0,
+	TYPE_MUX = 1,
+	TYPE_PLL = 2,
+	TYPE_FIXEDFACTOR = 3,
+	TYPE_DIV1 = 4,
+	TYPE_DIV2 = 5,
+	TYPE_GATE = 6,
+};
+
+enum clk_type {
+	CLK_TYPE_OUTPUT = 0,
+	CLK_TYPE_EXTERNAL = 1,
+};
+
+struct clock_parent {
+	char name[50];
+	int id;
+	u32 flag;
+};
+
+struct zynqmp_clock {
+	char clk_name[50];
+	u32 valid;
+	enum clk_type type;
+	struct clock_topology node[6];
+	u32 num_nodes;
+	struct clock_parent parent[100];
+	u32 num_parents;
+	u32 clk_id;
+};
+
+struct name_resp {
+	char name[16];
+};
+
+struct topology_resp {
+	u32 topology[3];
+};
+
+struct parents_resp {
+	u32 parents[3];
+};
+
+struct attr_resp {
+	u32 attr[1];
+};
+
+enum k3_ring_mode {
+	K3_RINGACC_RING_MODE_RING = 0,
+	K3_RINGACC_RING_MODE_MESSAGE = 1,
+	K3_RINGACC_RING_MODE_CREDENTIALS = 2,
+	K3_RINGACC_RING_MODE_INVALID = 3,
+};
+
+enum k3_ring_size {
+	K3_RINGACC_RING_ELSIZE_4 = 0,
+	K3_RINGACC_RING_ELSIZE_8 = 1,
+	K3_RINGACC_RING_ELSIZE_16 = 2,
+	K3_RINGACC_RING_ELSIZE_32 = 3,
+	K3_RINGACC_RING_ELSIZE_64 = 4,
+	K3_RINGACC_RING_ELSIZE_128 = 5,
+	K3_RINGACC_RING_ELSIZE_256 = 6,
+	K3_RINGACC_RING_ELSIZE_INVALID = 7,
+};
+
+struct k3_ring_cfg {
+	u32 size;
+	enum k3_ring_size elm_size;
+	enum k3_ring_mode mode;
+	u32 flags;
+	struct device *dma_dev;
+	u32 asel;
+};
+
+struct k3_ringacc_init_data {
+	const struct ti_sci_handle *tisci;
+	u32 tisci_dev_id;
+	u32 num_rings;
+};
+
+struct k3_event_route_data {
+	void *priv;
+	int (*set_event)(void *, u32);
+};
+
+struct cppi5_desc_hdr_t {
+	u32 pkt_info0;
+	u32 pkt_info1;
+	u32 pkt_info2;
+	u32 src_dst_tag;
+};
+
+struct cppi5_host_desc_t {
+	struct cppi5_desc_hdr_t hdr;
+	u64 next_desc;
+	u64 buf_ptr;
+	u32 buf_info1;
+	u32 org_buf_len;
+	u64 org_buf_ptr;
+	u32 epib[0];
+};
+
+enum cppi5_tr_types {
+	CPPI5_TR_TYPE0 = 0,
+	CPPI5_TR_TYPE1 = 1,
+	CPPI5_TR_TYPE2 = 2,
+	CPPI5_TR_TYPE3 = 3,
+	CPPI5_TR_TYPE4 = 4,
+	CPPI5_TR_TYPE5 = 5,
+	CPPI5_TR_TYPE8 = 8,
+	CPPI5_TR_TYPE9 = 9,
+	CPPI5_TR_TYPE10 = 10,
+	CPPI5_TR_TYPE11 = 11,
+	CPPI5_TR_TYPE15 = 15,
+	CPPI5_TR_TYPE_MAX = 16,
+};
+
+enum cppi5_tr_event_size {
+	CPPI5_TR_EVENT_SIZE_COMPLETION = 0,
+	CPPI5_TR_EVENT_SIZE_ICNT1_DEC = 1,
+	CPPI5_TR_EVENT_SIZE_ICNT2_DEC = 2,
+	CPPI5_TR_EVENT_SIZE_ICNT3_DEC = 3,
+	CPPI5_TR_EVENT_SIZE_MAX = 4,
+};
+
+enum cppi5_tr_trigger {
+	CPPI5_TR_TRIGGER_NONE = 0,
+	CPPI5_TR_TRIGGER_GLOBAL0 = 1,
+	CPPI5_TR_TRIGGER_GLOBAL1 = 2,
+	CPPI5_TR_TRIGGER_LOCAL_EVENT = 3,
+	CPPI5_TR_TRIGGER_MAX = 4,
+};
+
+enum cppi5_tr_trigger_type {
+	CPPI5_TR_TRIGGER_TYPE_ICNT1_DEC = 0,
+	CPPI5_TR_TRIGGER_TYPE_ICNT2_DEC = 1,
+	CPPI5_TR_TRIGGER_TYPE_ICNT3_DEC = 2,
+	CPPI5_TR_TRIGGER_TYPE_ALL = 3,
+	CPPI5_TR_TRIGGER_TYPE_MAX = 4,
+};
+
+typedef u32 cppi5_tr_flags_t;
+
+struct cppi5_tr_type1_t {
+	cppi5_tr_flags_t flags;
+	u16 icnt0;
+	u16 icnt1;
+	u64 addr;
+	s32 dim1;
+	long: 32;
+	long: 64;
+};
+
+struct cppi5_tr_type15_t {
+	cppi5_tr_flags_t flags;
+	u16 icnt0;
+	u16 icnt1;
+	u64 addr;
+	s32 dim1;
+	u16 icnt2;
+	u16 icnt3;
+	s32 dim2;
+	s32 dim3;
+	u32 _reserved;
+	s32 ddim1;
+	u64 daddr;
+	s32 ddim2;
+	s32 ddim3;
+	u16 dicnt0;
+	u16 dicnt1;
+	u16 dicnt2;
+	u16 dicnt3;
+};
+
+struct cppi5_tr_resp_t {
+	u8 status;
+	u8 _reserved;
+	u8 cmd_id;
+	u8 flags;
+};
+
+enum udma_rm_range {
+	RM_RANGE_BCHAN = 0,
+	RM_RANGE_TCHAN = 1,
+	RM_RANGE_RCHAN = 2,
+	RM_RANGE_RFLOW = 3,
+	RM_RANGE_TFLOW = 4,
+	RM_RANGE_LAST = 5,
+};
+
+struct udma_tisci_rm {
+	const struct ti_sci_handle *tisci;
+	const struct ti_sci_rm_udmap_ops *tisci_udmap_ops;
+	u32 tisci_dev_id;
+	const struct ti_sci_rm_psil_ops *tisci_psil_ops;
+	u32 tisci_navss_dev_id;
+	struct ti_sci_resource *rm_ranges[5];
+};
+
+struct udma_static_tr {
+	u8 elsize;
+	u16 elcnt;
+	u16 bstcnt;
+};
+
+enum k3_dma_type {
+	DMA_TYPE_UDMA = 0,
+	DMA_TYPE_BCDMA = 1,
+	DMA_TYPE_PKTDMA = 2,
+};
+
+enum udma_mmr {
+	MMR_GCFG = 0,
+	MMR_BCHANRT = 1,
+	MMR_RCHANRT = 2,
+	MMR_TCHANRT = 3,
+	MMR_LAST = 4,
+};
+
+struct k3_ring;
+
+struct udma_tchan {
+	void *reg_rt;
+	int id;
+	struct k3_ring *t_ring;
+	struct k3_ring *tc_ring;
+	int tflow_id;
+};
+
+struct udma_rflow {
+	int id;
+	struct k3_ring *fd_ring;
+	struct k3_ring *r_ring;
+};
+
+struct udma_rchan {
+	void *reg_rt;
+	int id;
+};
+
+struct udma_oes_offsets {
+	u32 udma_rchan;
+	u32 bcdma_bchan_data;
+	u32 bcdma_bchan_ring;
+	u32 bcdma_tchan_data;
+	u32 bcdma_tchan_ring;
+	u32 bcdma_rchan_data;
+	u32 bcdma_rchan_ring;
+	u32 pktdma_tchan_flow;
+	u32 pktdma_rchan_flow;
+};
+
+struct udma_match_data {
+	enum k3_dma_type type;
+	u32 psil_base;
+	bool enable_memcpy_support;
+	u32 flags;
+	u32 statictr_z_mask;
+	u8 burst_size[3];
+};
+
+struct udma_soc_data {
+	struct udma_oes_offsets oes;
+	u32 bcdma_trigger_event_offset;
+};
+
+struct udma_hwdesc {
+	size_t cppi5_desc_size;
+	void *cppi5_desc_vaddr;
+	dma_addr_t cppi5_desc_paddr;
+	void *tr_req_base;
+	struct cppi5_tr_resp_t *tr_resp_base;
+};
+
+struct udma_rx_flush {
+	struct udma_hwdesc hwdescs[2];
+	size_t buffer_size;
+	void *buffer_vaddr;
+	dma_addr_t buffer_paddr;
+};
+
+struct udma_tpl {
+	u8 levels;
+	u32 start_idx[3];
+};
+
+struct k3_ringacc;
+
+struct udma_chan;
+
+struct udma_dev {
+	struct dma_device ddev;
+	struct device *dev;
+	void *mmrs[4];
+	const struct udma_match_data *match_data;
+	const struct udma_soc_data *soc_data;
+	struct udma_tpl bchan_tpl;
+	struct udma_tpl tchan_tpl;
+	struct udma_tpl rchan_tpl;
+	size_t desc_align;
+	struct udma_tisci_rm tisci_rm;
+	struct k3_ringacc *ringacc;
+	struct work_struct purge_work;
+	struct list_head desc_to_purge;
+	spinlock_t lock;
+	struct udma_rx_flush rx_flush;
+	int bchan_cnt;
+	int tchan_cnt;
+	int echan_cnt;
+	int rchan_cnt;
+	int rflow_cnt;
+	int tflow_cnt;
+	long unsigned int *bchan_map;
+	long unsigned int *tchan_map;
+	long unsigned int *rchan_map;
+	long unsigned int *rflow_gp_map;
+	long unsigned int *rflow_gp_map_allocated;
+	long unsigned int *rflow_in_use;
+	long unsigned int *tflow_map;
+	struct udma_tchan *bchans;
+	struct udma_tchan *tchans;
+	struct udma_rchan *rchans;
+	struct udma_rflow *rflows;
+	struct udma_chan *channels;
+	u32 psil_base;
+	u32 atype;
+	u32 asel;
+};
+
+enum udma_chan_state {
+	UDMA_CHAN_IS_IDLE = 0,
+	UDMA_CHAN_IS_ACTIVE = 1,
+	UDMA_CHAN_IS_TERMINATING = 2,
+};
+
+struct udma_tx_drain {
+	struct delayed_work work;
+	ktime_t tstamp;
+	u32 residue;
+};
+
+struct udma_chan_config {
+	bool pkt_mode;
+	bool needs_epib;
+	u32 psd_size;
+	u32 metadata_size;
+	u32 hdesc_size;
+	bool notdpkt;
+	int remote_thread_id;
+	u32 atype;
+	u32 asel;
+	u32 src_thread;
+	u32 dst_thread;
+	enum psil_endpoint_type ep_type;
+	bool enable_acc32;
+	bool enable_burst;
+	enum udma_tp_level channel_tpl;
+	u32 tr_trigger_type;
+	int mapped_channel_id;
+	int default_flow_id;
+	enum dma_transfer_direction dir;
+};
+
+struct udma_desc;
+
+struct udma_chan {
+	struct virt_dma_chan vc;
+	struct dma_slave_config cfg;
+	struct udma_dev *ud;
+	struct device *dma_dev;
+	struct udma_desc *desc;
+	struct udma_desc *terminated_desc;
+	struct udma_static_tr static_tr;
+	char *name;
+	struct udma_tchan *bchan;
+	struct udma_tchan *tchan;
+	struct udma_rchan *rchan;
+	struct udma_rflow *rflow;
+	bool psil_paired;
+	int irq_num_ring;
+	int irq_num_udma;
+	bool cyclic;
+	bool paused;
+	enum udma_chan_state state;
+	struct completion teardown_completed;
+	struct udma_tx_drain tx_drain;
+	struct udma_chan_config config;
+	bool use_dma_pool;
+	struct dma_pool *hdesc_pool;
+	u32 id;
+};
+
+struct udma_desc {
+	struct virt_dma_desc vd;
+	bool terminated;
+	enum dma_transfer_direction dir;
+	struct udma_static_tr static_tr;
+	u32 residue;
+	unsigned int sglen;
+	unsigned int desc_idx;
+	unsigned int tr_idx;
+	u32 metadata_size;
+	void *metadata;
+	unsigned int hwdesc_count;
+	struct udma_hwdesc hwdesc[0];
+};
+
+struct udma_filter_param {
+	int remote_thread_id;
+	u32 atype;
+	u32 asel;
+	u32 tr_trigger_type;
+};
+
+struct fsl_soc_die_attr {
+	char *die;
+	u32 svr;
+	u32 mask;
+};
+
+struct fsl_soc_data {
+	const char *sfp_compat;
+	u32 uid_offset;
+};
+
+struct meson_gx_pwrc_vpu {
+	struct generic_pm_domain genpd;
+	struct regmap *regmap_ao;
+	struct regmap *regmap_hhi;
+	struct reset_control *rstc;
+	struct clk *vpu_clk;
+	struct clk *vapb_clk;
+};
+
+struct qcom_smem_state_ops {
+	int (*update_bits)(void *, u32, u32);
+};
+
+struct qcom_smem_state {
+	struct kref refcount;
+	bool orphan;
+	struct list_head list;
+	struct device_node *of_node;
+	void *priv;
+	struct qcom_smem_state_ops ops;
+};
+
+struct nvmem_cell_lookup {
+	const char *nvmem_name;
+	const char *cell_name;
+	const char *dev_id;
+	const char *con_id;
+	struct list_head node;
+};
+
+struct tegra_fuse;
+
+struct tegra_fuse_info {
+	u32 (*read)(struct tegra_fuse *, unsigned int);
+	unsigned int size;
+	unsigned int spare;
+};
+
+struct tegra_fuse_soc;
+
+struct tegra_fuse {
+	struct device *dev;
+	void *base;
+	phys_addr_t phys;
+	struct clk *clk;
+	struct reset_control *rst;
+	u32 (*read_early)(struct tegra_fuse *, unsigned int);
+	u32 (*read)(struct tegra_fuse *, unsigned int);
+	const struct tegra_fuse_soc *soc;
+	struct {
+		struct mutex lock;
+		struct completion wait;
+		struct dma_chan *chan;
+		struct dma_slave_config config;
+		dma_addr_t phys;
+		u32 *virt;
+	} apbdma;
+	struct nvmem_device *nvmem;
+	struct nvmem_cell_lookup *lookups;
+};
+
+struct tegra_fuse_soc {
+	void (*init)(struct tegra_fuse *);
+	void (*speedo_init)(struct tegra_sku_info *);
+	int (*probe)(struct tegra_fuse *);
+	const struct tegra_fuse_info *info;
+	const struct nvmem_cell_lookup *lookups;
+	unsigned int num_lookups;
+	const struct attribute_group *soc_attr_group;
+	bool clk_suspend_on;
+};
+
+struct k3_soc_id {
+	unsigned int id;
+	const char *family_name;
+};
+
+struct virtio_pci_modern_common_cfg {
+	struct virtio_pci_common_cfg cfg;
+	__le16 queue_notify_data;
+	__le16 queue_reset;
+};
+
+struct fixed_voltage_config {
+	const char *supply_name;
+	const char *input_supply;
+	int microvolts;
+	unsigned int startup_delay;
+	unsigned int off_on_delay;
+	unsigned int enabled_at_boot: 1;
+	struct regulator_init_data *init_data;
+};
+
+struct fixed_regulator_data {
+	struct fixed_voltage_config cfg;
+	struct regulator_init_data init_data;
+	struct platform_device pdev;
+};
+
+struct gpio_regulator_state {
+	int value;
+	int gpios;
+};
+
+struct gpio_regulator_config {
+	const char *supply_name;
+	unsigned int enabled_at_boot: 1;
+	unsigned int startup_delay;
+	enum gpiod_flags *gflags;
+	int ngpios;
+	struct gpio_regulator_state *states;
+	int nr_states;
+	enum regulator_type type;
+	struct regulator_init_data *init_data;
+};
+
+struct gpio_regulator_data {
+	struct regulator_desc desc;
+	struct gpio_desc **gpiods;
+	int nr_gpios;
+	struct gpio_regulator_state *states;
+	int nr_states;
+	int state;
+};
+
+struct imx7_src_signal {
+	unsigned int offset;
+	unsigned int bit;
+};
+
+struct imx7_src_variant {
+	const struct imx7_src_signal *signals;
+	unsigned int signals_num;
+	struct reset_control_ops ops;
+};
+
+struct imx7_src {
+	struct reset_controller_dev rcdev;
+	struct regmap *regmap;
+	const struct imx7_src_signal *signals;
+};
+
+enum imx7_src_registers {
+	SRC_A7RCR0 = 4,
+	SRC_M4RCR = 12,
+	SRC_ERCR = 20,
+	SRC_HSICPHY_RCR = 28,
+	SRC_USBOPHY1_RCR = 32,
+	SRC_USBOPHY2_RCR = 36,
+	SRC_MIPIPHY_RCR = 40,
+	SRC_PCIEPHY_RCR = 44,
+	SRC_DDRC_RCR = 4096,
+};
+
+enum imx8mq_src_registers {
+	SRC_A53RCR0 = 4,
+	SRC_HDMI_RCR = 48,
+	SRC_DISP_RCR = 52,
+	SRC_GPU_RCR = 64,
+	SRC_VPU_RCR = 68,
+	SRC_PCIE2_RCR = 72,
+	SRC_MIPIPHY1_RCR = 76,
+	SRC_MIPIPHY2_RCR = 80,
+	SRC_DDRC2_RCR = 4100,
+};
+
+enum imx8mp_src_registers {
+	SRC_SUPERMIX_RCR = 24,
+	SRC_AUDIOMIX_RCR = 28,
+	SRC_MLMIX_RCR = 40,
+	SRC_GPU2D_RCR = 56,
+	SRC_GPU3D_RCR = 60,
+	SRC_VPU_G1_RCR = 72,
+	SRC_VPU_G2_RCR = 76,
+	SRC_VPUVC8KE_RCR = 80,
+	SRC_NOC_RCR = 84,
+};
+
+struct n_tty_data {
+	size_t read_head;
+	size_t commit_head;
+	size_t canon_head;
+	size_t echo_head;
+	size_t echo_commit;
+	size_t echo_mark;
+	long unsigned int char_map[4];
+	long unsigned int overrun_time;
+	int num_overrun;
+	bool no_room;
+	unsigned char lnext: 1;
+	unsigned char erasing: 1;
+	unsigned char raw: 1;
+	unsigned char real_raw: 1;
+	unsigned char icanon: 1;
+	unsigned char push: 1;
+	char read_buf[4096];
+	long unsigned int read_flags[64];
+	unsigned char echo_buf[4096];
+	size_t read_tail;
+	size_t line_start;
+	size_t lookahead_count;
+	unsigned int column;
+	unsigned int canon_column;
+	size_t echo_tail;
+	struct mutex atomic_read_lock;
+	struct mutex output_lock;
+};
+
+enum {
+	ERASE = 0,
+	WERASE = 1,
+	KILL = 2,
+};
+
+struct kbentry {
+	unsigned char kb_table;
+	unsigned char kb_index;
+	short unsigned int kb_value;
+};
+
+struct kbsentry {
+	unsigned char kb_func;
+	unsigned char kb_string[512];
+};
+
+struct kbdiacr {
+	unsigned char diacr;
+	unsigned char base;
+	unsigned char result;
+};
+
+struct kbdiacrs {
+	unsigned int kb_cnt;
+	struct kbdiacr kbdiacr[256];
+};
+
+struct kbdiacruc {
+	unsigned int diacr;
+	unsigned int base;
+	unsigned int result;
+};
+
+struct kbdiacrsuc {
+	unsigned int kb_cnt;
+	struct kbdiacruc kbdiacruc[256];
+};
+
+struct kbkeycode {
+	unsigned int scancode;
+	unsigned int keycode;
+};
+
+struct kbd_repeat {
+	int delay;
+	int period;
+};
+
+struct keyboard_notifier_param {
+	struct vc_data *vc;
+	int down;
+	int shift;
+	int ledstate;
+	unsigned int value;
+};
+
+struct kbd_struct {
+	unsigned char lockstate;
+	unsigned char slockstate;
+	unsigned char ledmode: 1;
+	unsigned char ledflagstate: 4;
+	char: 3;
+	unsigned char default_ledflagstate: 4;
+	unsigned char kbdmode: 3;
+	char: 1;
+	unsigned char modeflags: 5;
+};
+
+struct vt_spawn_console {
+	spinlock_t lock;
+	struct pid *pid;
+	int sig;
+};
+
+typedef void k_handler_fn(struct vc_data *, unsigned char, char);
+
+typedef void fn_handler_fn(struct vc_data *);
+
+struct getset_keycode_data {
+	struct input_keymap_entry ke;
+	int error;
+};
+
+struct kbd_led_trigger {
+	struct led_trigger trigger;
+	unsigned int mask;
+};
+
+struct of_serial_info {
+	struct clk *clk;
+	struct reset_control *rst;
+	int type;
+	int line;
+};
+
+struct tegra_uart_chip_data {
+	bool tx_fifo_full_status;
+	bool allow_txfifo_reset_fifo_mode;
+	bool support_clk_src_div;
+	bool fifo_mode_enable_status;
+	int uart_max_port;
+	int max_dma_burst_bytes;
+	int error_tolerance_low_range;
+	int error_tolerance_high_range;
+};
+
+struct tegra_baud_tolerance {
+	u32 lower_range_baud;
+	u32 upper_range_baud;
+	s32 tolerance;
+};
+
+struct tegra_uart_port {
+	struct uart_port uport;
+	const struct tegra_uart_chip_data *cdata;
+	struct clk *uart_clk;
+	struct reset_control *rst;
+	unsigned int current_baud;
+	long unsigned int fcr_shadow;
+	long unsigned int mcr_shadow;
+	long unsigned int lcr_shadow;
+	long unsigned int ier_shadow;
+	bool rts_active;
+	int tx_in_progress;
+	unsigned int tx_bytes;
+	bool enable_modem_interrupt;
+	bool rx_timeout;
+	int rx_in_progress;
+	int symb_bit;
+	struct dma_chan *rx_dma_chan;
+	struct dma_chan *tx_dma_chan;
+	dma_addr_t rx_dma_buf_phys;
+	dma_addr_t tx_dma_buf_phys;
+	unsigned char *rx_dma_buf_virt;
+	unsigned char *tx_dma_buf_virt;
+	struct dma_async_tx_descriptor *tx_dma_desc;
+	struct dma_async_tx_descriptor *rx_dma_desc;
+	dma_cookie_t tx_cookie;
+	dma_cookie_t rx_cookie;
+	unsigned int tx_bytes_requested;
+	unsigned int rx_bytes_requested;
+	struct tegra_baud_tolerance *baud_tolerance;
+	int n_adjustable_baud_rates;
+	int required_rate;
+	int configured_rate;
+	bool use_rx_pio;
+	bool use_tx_pio;
+	bool rx_dma_active;
+};
+
+struct memdev {
+	const char *name;
+	umode_t mode;
+	const struct file_operations *fops;
+	fmode_t fmode;
+};
+
+struct file_priv {
+	struct tpm_chip *chip;
+	struct tpm_space *space;
+	struct mutex buffer_mutex;
+	struct timer_list user_read_timer;
+	struct work_struct timeout_work;
+	struct work_struct async_work;
+	wait_queue_head_t async_wait;
+	ssize_t response_length;
+	bool response_read;
+	bool command_enqueued;
+	u8 data_buffer[4096];
+};
+
+struct tcpa_event {
+	u32 pcr_index;
+	u32 event_type;
+	u8 pcr_value[20];
+	u32 event_size;
+	u8 event_data[0];
+};
+
+struct tcpa_pc_event {
+	u32 event_id;
+	u32 event_size;
+	u8 event_data[0];
+};
+
+enum tcpa_pc_event_ids {
+	SMBIOS = 1,
+	BIS_CERT = 2,
+	POST_BIOS_ROM = 3,
+	ESCD = 4,
+	CMOS = 5,
+	NVRAM = 6,
+	OPTION_ROM_EXEC = 7,
+	OPTION_ROM_CONFIG = 8,
+	OPTION_ROM_MICROCODE = 10,
+	S_CRTM_VERSION = 11,
+	S_CRTM_CONTENTS = 12,
+	POST_CONTENTS = 13,
+	HOST_TABLE_OF_DEVICES = 14,
+};
+
+struct acpi_table_tpm2 {
+	struct acpi_table_header header;
+	u16 platform_class;
+	u16 reserved;
+	u64 control_address;
+	u32 start_method;
+} __attribute__((packed));
+
+enum crb_defaults {
+	CRB_ACPI_START_REVISION_ID = 1,
+	CRB_ACPI_START_INDEX = 1,
+};
+
+enum crb_loc_ctrl {
+	CRB_LOC_CTRL_REQUEST_ACCESS = 1,
+	CRB_LOC_CTRL_RELINQUISH = 2,
+};
+
+enum crb_loc_state {
+	CRB_LOC_STATE_LOC_ASSIGNED = 2,
+	CRB_LOC_STATE_TPM_REG_VALID_STS = 128,
+};
+
+enum crb_ctrl_req {
+	CRB_CTRL_REQ_CMD_READY = 1,
+	CRB_CTRL_REQ_GO_IDLE = 2,
+};
+
+enum crb_ctrl_sts {
+	CRB_CTRL_STS_ERROR = 1,
+	CRB_CTRL_STS_TPM_IDLE = 2,
+};
+
+enum crb_start {
+	CRB_START_INVOKE = 1,
+};
+
+enum crb_cancel {
+	CRB_CANCEL_INVOKE = 1,
+};
+
+struct crb_regs_head {
+	u32 loc_state;
+	u32 reserved1;
+	u32 loc_ctrl;
+	u32 loc_sts;
+	u8 reserved2[32];
+	u64 intf_id;
+	u64 ctrl_ext;
+};
+
+struct crb_regs_tail {
+	u32 ctrl_req;
+	u32 ctrl_sts;
+	u32 ctrl_cancel;
+	u32 ctrl_start;
+	u32 ctrl_int_enable;
+	u32 ctrl_int_sts;
+	u32 ctrl_cmd_size;
+	u32 ctrl_cmd_pa_low;
+	u32 ctrl_cmd_pa_high;
+	u32 ctrl_rsp_size;
+	u64 ctrl_rsp_pa;
+};
+
+enum crb_status {
+	CRB_DRV_STS_COMPLETE = 1,
+};
+
+struct crb_priv {
+	u32 sm;
+	const char *hid;
+	struct crb_regs_head *regs_h;
+	struct crb_regs_tail *regs_t;
+	u8 *cmd;
+	u8 *rsp;
+	u32 cmd_size;
+	u32 smc_func_id;
+};
+
+struct tpm2_crb_smc {
+	u32 interrupt;
+	u8 interrupt_flags;
+	u8 op_flags;
+	u16 reserved2;
+	u32 smc_func_id;
+};
+
+struct iommu_group {
+	struct kobject kobj;
+	struct kobject *devices_kobj;
+	struct list_head devices;
+	struct mutex mutex;
+	void *iommu_data;
+	void (*iommu_data_release)(void *);
+	char *name;
+	int id;
+	struct iommu_domain *default_domain;
+	struct iommu_domain *blocking_domain;
+	struct iommu_domain *domain;
+	struct list_head entry;
+	unsigned int owner_cnt;
+	void *owner;
+};
+
+enum iommu_fault_type {
+	IOMMU_FAULT_DMA_UNRECOV = 1,
+	IOMMU_FAULT_PAGE_REQ = 2,
+};
+
+struct group_device {
+	struct list_head list;
+	struct device *dev;
+	char *name;
+};
+
+struct iommu_group_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct iommu_group *, char *);
+	ssize_t (*store)(struct iommu_group *, const char *, size_t);
+};
+
+struct group_for_pci_data {
+	struct pci_dev *pdev;
+	struct iommu_group *group;
+};
+
+struct __group_domain_type {
+	struct device *dev;
+	unsigned int type;
+};
+
+struct tegra_smmu {
+	void *regs;
+	struct device *dev;
+	struct tegra_mc *mc;
+	const struct tegra_smmu_soc *soc;
+	struct list_head groups;
+	long unsigned int pfn_mask;
+	long unsigned int tlb_mask;
+	long unsigned int *asids;
+	struct mutex lock;
+	struct list_head list;
+	struct dentry *debugfs;
+	struct iommu_device iommu;
+};
+
+struct tegra_smmu_group {
+	struct list_head list;
+	struct tegra_smmu *smmu;
+	const struct tegra_smmu_group_soc *soc;
+	struct iommu_group *group;
+	unsigned int swgroup;
+};
+
+struct tegra_smmu_as {
+	struct iommu_domain domain;
+	struct tegra_smmu *smmu;
+	unsigned int use_count;
+	spinlock_t lock;
+	u32 *count;
+	struct page **pts;
+	struct page *pd;
+	dma_addr_t pd_dma;
+	unsigned int id;
+	u32 attr;
+};
+
+struct drm_gem_close {
+	__u32 handle;
+	__u32 pad;
+};
+
+struct drm_gem_flink {
+	__u32 handle;
+	__u32 name;
+};
+
+struct drm_gem_open {
+	__u32 name;
+	__u32 handle;
+	__u64 size;
+};
+
+struct ww_class {
+	atomic_long_t stamp;
+	struct lock_class_key acquire_key;
+	struct lock_class_key mutex_key;
+	const char *acquire_name;
+	const char *mutex_name;
+	unsigned int is_wait_die;
+};
+
+enum dma_resv_usage {
+	DMA_RESV_USAGE_KERNEL = 0,
+	DMA_RESV_USAGE_WRITE = 1,
+	DMA_RESV_USAGE_READ = 2,
+	DMA_RESV_USAGE_BOOKKEEP = 3,
+};
+
+struct drm_writeback_job {
+	struct drm_writeback_connector *connector;
+	bool prepared;
+	struct work_struct cleanup_work;
+	struct list_head list_entry;
+	struct drm_framebuffer *fb;
+	struct dma_fence *out_fence;
+	void *priv;
+};
+
+struct drm_writeback_connector {
+	struct drm_connector base;
+	struct drm_encoder encoder;
+	struct drm_property_blob *pixel_formats_blob_ptr;
+	spinlock_t job_lock;
+	struct list_head job_queue;
+	unsigned int fence_context;
+	spinlock_t fence_lock;
+	long unsigned int fence_seqno;
+	char timeline_name[32];
+};
+
+struct drm_mode_crtc_lut {
+	__u32 crtc_id;
+	__u32 gamma_size;
+	__u64 red;
+	__u64 green;
+	__u64 blue;
+};
+
+struct drm_color_lut {
+	__u16 red;
+	__u16 green;
+	__u16 blue;
+	__u16 reserved;
+};
+
+enum drm_color_lut_tests {
+	DRM_COLOR_LUT_EQUAL_CHANNELS = 1,
+	DRM_COLOR_LUT_NON_DECREASING = 2,
+};
+
+struct drm_flip_work;
+
+typedef void (*drm_flip_func_t)(struct drm_flip_work *, void *);
+
+struct drm_flip_work {
+	const char *name;
+	drm_flip_func_t func;
+	struct work_struct worker;
+	struct list_head queued;
+	struct list_head commited;
+	spinlock_t lock;
+};
+
+struct drm_flip_task {
+	struct list_head node;
+	void *data;
+};
+
+struct drm_afbc_framebuffer {
+	struct drm_framebuffer base;
+	u32 block_width;
+	u32 block_height;
+	u32 aligned_width;
+	u32 aligned_height;
+	u32 offset;
+	u32 afbc_size;
+};
+
+enum proc_cn_mcast_op {
+	PROC_CN_MCAST_LISTEN = 1,
+	PROC_CN_MCAST_IGNORE = 2,
+};
+
+enum what {
+	PROC_EVENT_NONE = 0,
+	PROC_EVENT_FORK = 1,
+	PROC_EVENT_EXEC = 2,
+	PROC_EVENT_UID = 4,
+	PROC_EVENT_GID = 64,
+	PROC_EVENT_SID = 128,
+	PROC_EVENT_PTRACE = 256,
+	PROC_EVENT_COMM = 512,
+	PROC_EVENT_COREDUMP = 1073741824,
+	PROC_EVENT_EXIT = 2147483648,
+};
+
+struct fork_proc_event {
+	__kernel_pid_t parent_pid;
+	__kernel_pid_t parent_tgid;
+	__kernel_pid_t child_pid;
+	__kernel_pid_t child_tgid;
+};
+
+struct exec_proc_event {
+	__kernel_pid_t process_pid;
+	__kernel_pid_t process_tgid;
+};
+
+struct id_proc_event {
+	__kernel_pid_t process_pid;
+	__kernel_pid_t process_tgid;
+	union {
+		__u32 ruid;
+		__u32 rgid;
+	} r;
+	union {
+		__u32 euid;
+		__u32 egid;
+	} e;
+};
+
+struct sid_proc_event {
+	__kernel_pid_t process_pid;
+	__kernel_pid_t process_tgid;
+};
+
+struct ptrace_proc_event {
+	__kernel_pid_t process_pid;
+	__kernel_pid_t process_tgid;
+	__kernel_pid_t tracer_pid;
+	__kernel_pid_t tracer_tgid;
+};
+
+struct comm_proc_event {
+	__kernel_pid_t process_pid;
+	__kernel_pid_t process_tgid;
+	char comm[16];
+};
+
+struct coredump_proc_event {
+	__kernel_pid_t process_pid;
+	__kernel_pid_t process_tgid;
+	__kernel_pid_t parent_pid;
+	__kernel_pid_t parent_tgid;
+};
+
+struct exit_proc_event {
+	__kernel_pid_t process_pid;
+	__kernel_pid_t process_tgid;
+	__u32 exit_code;
+	__u32 exit_signal;
+	__kernel_pid_t parent_pid;
+	__kernel_pid_t parent_tgid;
+};
+
+struct proc_event {
+	enum what what;
+	__u32 cpu;
+	__u64 timestamp_ns;
+	union {
+		struct {
+			__u32 err;
+		} ack;
+		struct fork_proc_event fork;
+		struct exec_proc_event exec;
+		struct id_proc_event id;
+		struct sid_proc_event sid;
+		struct ptrace_proc_event ptrace;
+		struct comm_proc_event comm;
+		struct coredump_proc_event coredump;
+		struct exit_proc_event exit;
+	} event_data;
+};
+
+struct local_event {
+	local_lock_t lock;
+	__u32 count;
+};
+
+struct attribute_container {
+	struct list_head node;
+	struct klist containers;
+	struct class *class;
+	const struct attribute_group *grp;
+	struct device_attribute **attrs;
+	int (*match)(struct attribute_container *, struct device *);
+	long unsigned int flags;
+};
+
+struct internal_container {
+	struct klist_node node;
+	struct attribute_container *cont;
+	struct device classdev;
+};
+
+enum fw_opt {
+	FW_OPT_UEVENT = 1,
+	FW_OPT_NOWAIT = 2,
+	FW_OPT_USERHELPER = 4,
+	FW_OPT_NO_WARN = 8,
+	FW_OPT_NOCACHE = 16,
+	FW_OPT_NOFALLBACK_SYSFS = 32,
+	FW_OPT_FALLBACK_PLATFORM = 64,
+	FW_OPT_PARTIAL = 128,
+};
+
+enum fw_status {
+	FW_STATUS_UNKNOWN = 0,
+	FW_STATUS_LOADING = 1,
+	FW_STATUS_DONE = 2,
+	FW_STATUS_ABORTED = 3,
+};
+
+struct fw_state {
+	struct completion completion;
+	enum fw_status status;
+};
+
+struct firmware_cache;
+
+struct fw_priv {
+	struct kref ref;
+	struct list_head list;
+	struct firmware_cache *fwc;
+	struct fw_state fw_st;
+	void *data;
+	size_t size;
+	size_t allocated_size;
+	size_t offset;
+	u32 opt_flags;
+	bool is_paged_buf;
+	struct page **pages;
+	int nr_pages;
+	int page_array_size;
+	bool need_uevent;
+	struct list_head pending_list;
+	const char *fw_name;
+};
+
+struct firmware_fallback_config {
+	unsigned int force_sysfs_fallback;
+	unsigned int ignore_sysfs_fallback;
+	int old_timeout;
+	int loading_timeout;
+};
+
+struct fw_sysfs {
+	bool nowait;
+	struct device dev;
+	struct fw_priv *fw_priv;
+	struct firmware *fw;
+	void *fw_upload_priv;
+};
+
+struct reg_field {
+	unsigned int reg;
+	unsigned int lsb;
+	unsigned int msb;
+	unsigned int id_size;
+	unsigned int id_offset;
+};
+
+struct regmap_range_node {
+	struct rb_node node;
+	const char *name;
+	struct regmap *map;
+	unsigned int range_min;
+	unsigned int range_max;
+	unsigned int selector_reg;
+	unsigned int selector_mask;
+	int selector_shift;
+	unsigned int window_start;
+	unsigned int window_len;
+};
+
+struct regmap_field {
+	struct regmap *regmap;
+	unsigned int mask;
+	unsigned int shift;
+	unsigned int reg;
+	unsigned int id_size;
+	unsigned int id_offset;
+};
+
+struct trace_event_raw_regmap_reg {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	unsigned int reg;
+	unsigned int val;
+	char __data[0];
+};
+
+struct trace_event_raw_regmap_block {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	unsigned int reg;
+	int count;
+	char __data[0];
+};
+
+struct trace_event_raw_regcache_sync {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u32 __data_loc_status;
+	u32 __data_loc_type;
+	char __data[0];
+};
+
+struct trace_event_raw_regmap_bool {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	int flag;
+	char __data[0];
+};
+
+struct trace_event_raw_regmap_async {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_regcache_drop_region {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	unsigned int from;
+	unsigned int to;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_regmap_reg {
+	u32 name;
+};
+
+struct trace_event_data_offsets_regmap_block {
+	u32 name;
+};
+
+struct trace_event_data_offsets_regcache_sync {
+	u32 name;
+	u32 status;
+	u32 type;
+};
+
+struct trace_event_data_offsets_regmap_bool {
+	u32 name;
+};
+
+struct trace_event_data_offsets_regmap_async {
+	u32 name;
+};
+
+struct trace_event_data_offsets_regcache_drop_region {
+	u32 name;
+};
+
+typedef void (*btf_trace_regmap_reg_write)(void *, struct regmap *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_regmap_reg_read)(void *, struct regmap *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_regmap_reg_read_cache)(void *, struct regmap *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_regmap_hw_read_start)(void *, struct regmap *, unsigned int, int);
+
+typedef void (*btf_trace_regmap_hw_read_done)(void *, struct regmap *, unsigned int, int);
+
+typedef void (*btf_trace_regmap_hw_write_start)(void *, struct regmap *, unsigned int, int);
+
+typedef void (*btf_trace_regmap_hw_write_done)(void *, struct regmap *, unsigned int, int);
+
+typedef void (*btf_trace_regcache_sync)(void *, struct regmap *, const char *, const char *);
+
+typedef void (*btf_trace_regmap_cache_only)(void *, struct regmap *, bool);
+
+typedef void (*btf_trace_regmap_cache_bypass)(void *, struct regmap *, bool);
+
+typedef void (*btf_trace_regmap_async_write_start)(void *, struct regmap *, unsigned int, int);
+
+typedef void (*btf_trace_regmap_async_io_complete)(void *, struct regmap *);
+
+typedef void (*btf_trace_regmap_async_complete_start)(void *, struct regmap *);
+
+typedef void (*btf_trace_regmap_async_complete_done)(void *, struct regmap *);
+
+typedef void (*btf_trace_regcache_drop_region)(void *, struct regmap *, unsigned int, unsigned int);
+
+enum scale_freq_source {
+	SCALE_FREQ_SOURCE_CPUFREQ = 0,
+	SCALE_FREQ_SOURCE_ARCH = 1,
+	SCALE_FREQ_SOURCE_CPPC = 2,
+};
+
+struct scale_freq_data {
+	enum scale_freq_source source;
+	void (*set_freq_scale)();
+};
+
+struct trace_event_raw_thermal_pressure_update {
+	struct trace_entry ent;
+	long unsigned int thermal_pressure;
+	int cpu;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_thermal_pressure_update {};
+
+typedef void (*btf_trace_thermal_pressure_update)(void *, int, long unsigned int);
+
+struct cppc_perf_caps {
+	u32 guaranteed_perf;
+	u32 highest_perf;
+	u32 nominal_perf;
+	u32 lowest_perf;
+	u32 lowest_nonlinear_perf;
+	u32 lowest_freq;
+	u32 nominal_freq;
+};
+
+enum max77686_pmic_reg {
+	MAX77686_REG_DEVICE_ID = 0,
+	MAX77686_REG_INTSRC = 1,
+	MAX77686_REG_INT1 = 2,
+	MAX77686_REG_INT2 = 3,
+	MAX77686_REG_INT1MSK = 4,
+	MAX77686_REG_INT2MSK = 5,
+	MAX77686_REG_STATUS1 = 6,
+	MAX77686_REG_STATUS2 = 7,
+	MAX77686_REG_PWRON = 8,
+	MAX77686_REG_ONOFF_DELAY = 9,
+	MAX77686_REG_MRSTB = 10,
+	MAX77686_REG_BUCK1CTRL = 16,
+	MAX77686_REG_BUCK1OUT = 17,
+	MAX77686_REG_BUCK2CTRL1 = 18,
+	MAX77686_REG_BUCK234FREQ = 19,
+	MAX77686_REG_BUCK2DVS1 = 20,
+	MAX77686_REG_BUCK2DVS2 = 21,
+	MAX77686_REG_BUCK2DVS3 = 22,
+	MAX77686_REG_BUCK2DVS4 = 23,
+	MAX77686_REG_BUCK2DVS5 = 24,
+	MAX77686_REG_BUCK2DVS6 = 25,
+	MAX77686_REG_BUCK2DVS7 = 26,
+	MAX77686_REG_BUCK2DVS8 = 27,
+	MAX77686_REG_BUCK3CTRL1 = 28,
+	MAX77686_REG_BUCK3DVS1 = 30,
+	MAX77686_REG_BUCK3DVS2 = 31,
+	MAX77686_REG_BUCK3DVS3 = 32,
+	MAX77686_REG_BUCK3DVS4 = 33,
+	MAX77686_REG_BUCK3DVS5 = 34,
+	MAX77686_REG_BUCK3DVS6 = 35,
+	MAX77686_REG_BUCK3DVS7 = 36,
+	MAX77686_REG_BUCK3DVS8 = 37,
+	MAX77686_REG_BUCK4CTRL1 = 38,
+	MAX77686_REG_BUCK4DVS1 = 40,
+	MAX77686_REG_BUCK4DVS2 = 41,
+	MAX77686_REG_BUCK4DVS3 = 42,
+	MAX77686_REG_BUCK4DVS4 = 43,
+	MAX77686_REG_BUCK4DVS5 = 44,
+	MAX77686_REG_BUCK4DVS6 = 45,
+	MAX77686_REG_BUCK4DVS7 = 46,
+	MAX77686_REG_BUCK4DVS8 = 47,
+	MAX77686_REG_BUCK5CTRL = 48,
+	MAX77686_REG_BUCK5OUT = 49,
+	MAX77686_REG_BUCK6CTRL = 50,
+	MAX77686_REG_BUCK6OUT = 51,
+	MAX77686_REG_BUCK7CTRL = 52,
+	MAX77686_REG_BUCK7OUT = 53,
+	MAX77686_REG_BUCK8CTRL = 54,
+	MAX77686_REG_BUCK8OUT = 55,
+	MAX77686_REG_BUCK9CTRL = 56,
+	MAX77686_REG_BUCK9OUT = 57,
+	MAX77686_REG_LDO1CTRL1 = 64,
+	MAX77686_REG_LDO2CTRL1 = 65,
+	MAX77686_REG_LDO3CTRL1 = 66,
+	MAX77686_REG_LDO4CTRL1 = 67,
+	MAX77686_REG_LDO5CTRL1 = 68,
+	MAX77686_REG_LDO6CTRL1 = 69,
+	MAX77686_REG_LDO7CTRL1 = 70,
+	MAX77686_REG_LDO8CTRL1 = 71,
+	MAX77686_REG_LDO9CTRL1 = 72,
+	MAX77686_REG_LDO10CTRL1 = 73,
+	MAX77686_REG_LDO11CTRL1 = 74,
+	MAX77686_REG_LDO12CTRL1 = 75,
+	MAX77686_REG_LDO13CTRL1 = 76,
+	MAX77686_REG_LDO14CTRL1 = 77,
+	MAX77686_REG_LDO15CTRL1 = 78,
+	MAX77686_REG_LDO16CTRL1 = 79,
+	MAX77686_REG_LDO17CTRL1 = 80,
+	MAX77686_REG_LDO18CTRL1 = 81,
+	MAX77686_REG_LDO19CTRL1 = 82,
+	MAX77686_REG_LDO20CTRL1 = 83,
+	MAX77686_REG_LDO21CTRL1 = 84,
+	MAX77686_REG_LDO22CTRL1 = 85,
+	MAX77686_REG_LDO23CTRL1 = 86,
+	MAX77686_REG_LDO24CTRL1 = 87,
+	MAX77686_REG_LDO25CTRL1 = 88,
+	MAX77686_REG_LDO26CTRL1 = 89,
+	MAX77686_REG_LDO1CTRL2 = 96,
+	MAX77686_REG_LDO2CTRL2 = 97,
+	MAX77686_REG_LDO3CTRL2 = 98,
+	MAX77686_REG_LDO4CTRL2 = 99,
+	MAX77686_REG_LDO5CTRL2 = 100,
+	MAX77686_REG_LDO6CTRL2 = 101,
+	MAX77686_REG_LDO7CTRL2 = 102,
+	MAX77686_REG_LDO8CTRL2 = 103,
+	MAX77686_REG_LDO9CTRL2 = 104,
+	MAX77686_REG_LDO10CTRL2 = 105,
+	MAX77686_REG_LDO11CTRL2 = 106,
+	MAX77686_REG_LDO12CTRL2 = 107,
+	MAX77686_REG_LDO13CTRL2 = 108,
+	MAX77686_REG_LDO14CTRL2 = 109,
+	MAX77686_REG_LDO15CTRL2 = 110,
+	MAX77686_REG_LDO16CTRL2 = 111,
+	MAX77686_REG_LDO17CTRL2 = 112,
+	MAX77686_REG_LDO18CTRL2 = 113,
+	MAX77686_REG_LDO19CTRL2 = 114,
+	MAX77686_REG_LDO20CTRL2 = 115,
+	MAX77686_REG_LDO21CTRL2 = 116,
+	MAX77686_REG_LDO22CTRL2 = 117,
+	MAX77686_REG_LDO23CTRL2 = 118,
+	MAX77686_REG_LDO24CTRL2 = 119,
+	MAX77686_REG_LDO25CTRL2 = 120,
+	MAX77686_REG_LDO26CTRL2 = 121,
+	MAX77686_REG_BBAT_CHG = 126,
+	MAX77686_REG_32KHZ = 127,
+	MAX77686_REG_PMIC_END = 128,
+};
+
+enum max77802_pmic_reg {
+	MAX77802_REG_DEVICE_ID = 0,
+	MAX77802_REG_INTSRC = 1,
+	MAX77802_REG_INT1 = 2,
+	MAX77802_REG_INT2 = 3,
+	MAX77802_REG_INT1MSK = 4,
+	MAX77802_REG_INT2MSK = 5,
+	MAX77802_REG_STATUS1 = 6,
+	MAX77802_REG_STATUS2 = 7,
+	MAX77802_REG_PWRON = 8,
+	MAX77802_REG_MRSTB = 10,
+	MAX77802_REG_EPWRHOLD = 11,
+	MAX77802_REG_BOOSTCTRL = 14,
+	MAX77802_REG_BOOSTOUT = 15,
+	MAX77802_REG_BUCK1CTRL = 16,
+	MAX77802_REG_BUCK1DVS1 = 17,
+	MAX77802_REG_BUCK1DVS2 = 18,
+	MAX77802_REG_BUCK1DVS3 = 19,
+	MAX77802_REG_BUCK1DVS4 = 20,
+	MAX77802_REG_BUCK1DVS5 = 21,
+	MAX77802_REG_BUCK1DVS6 = 22,
+	MAX77802_REG_BUCK1DVS7 = 23,
+	MAX77802_REG_BUCK1DVS8 = 24,
+	MAX77802_REG_BUCK2CTRL1 = 26,
+	MAX77802_REG_BUCK2CTRL2 = 27,
+	MAX77802_REG_BUCK2PHTRAN = 28,
+	MAX77802_REG_BUCK2DVS1 = 29,
