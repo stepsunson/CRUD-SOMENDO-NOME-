@@ -94223,3 +94223,2111 @@ enum amd_functions {
 	IMX_F2_GPIO30 = 122,
 	IMX_F3_GPIO30 = 123,
 	IMX_F0_GPIO31 = 124,
+	IMX_F1_GPIO31 = 125,
+	IMX_F2_GPIO31 = 126,
+	IMX_F3_GPIO31 = 127,
+	IMX_F0_GPIO32 = 128,
+	IMX_F1_GPIO32 = 129,
+	IMX_F2_GPIO32 = 130,
+	IMX_F3_GPIO32 = 131,
+	IMX_F0_GPIO33 = 132,
+	IMX_F1_GPIO33 = 133,
+	IMX_F2_GPIO33 = 134,
+	IMX_F3_GPIO33 = 135,
+	IMX_F0_GPIO34 = 136,
+	IMX_F1_GPIO34 = 137,
+	IMX_F2_GPIO34 = 138,
+	IMX_F3_GPIO34 = 139,
+	IMX_F0_GPIO35 = 140,
+	IMX_F1_GPIO35 = 141,
+	IMX_F2_GPIO35 = 142,
+	IMX_F3_GPIO35 = 143,
+	IMX_F0_GPIO36 = 144,
+	IMX_F1_GPIO36 = 145,
+	IMX_F2_GPIO36 = 146,
+	IMX_F3_GPIO36 = 147,
+	IMX_F0_GPIO37 = 148,
+	IMX_F1_GPIO37 = 149,
+	IMX_F2_GPIO37 = 150,
+	IMX_F3_GPIO37 = 151,
+	IMX_F0_GPIO38 = 152,
+	IMX_F1_GPIO38 = 153,
+	IMX_F2_GPIO38 = 154,
+	IMX_F3_GPIO38 = 155,
+	IMX_F0_GPIO39 = 156,
+	IMX_F1_GPIO39 = 157,
+	IMX_F2_GPIO39 = 158,
+	IMX_F3_GPIO39 = 159,
+	IMX_F0_GPIO40 = 160,
+	IMX_F1_GPIO40 = 161,
+	IMX_F2_GPIO40 = 162,
+	IMX_F3_GPIO40 = 163,
+	IMX_F0_GPIO41 = 164,
+	IMX_F1_GPIO41 = 165,
+	IMX_F2_GPIO41 = 166,
+	IMX_F3_GPIO41 = 167,
+	IMX_F0_GPIO42 = 168,
+	IMX_F1_GPIO42 = 169,
+	IMX_F2_GPIO42 = 170,
+	IMX_F3_GPIO42 = 171,
+	IMX_F0_GPIO43 = 172,
+	IMX_F1_GPIO43 = 173,
+	IMX_F2_GPIO43 = 174,
+	IMX_F3_GPIO43 = 175,
+	IMX_F0_GPIO44 = 176,
+	IMX_F1_GPIO44 = 177,
+	IMX_F2_GPIO44 = 178,
+	IMX_F3_GPIO44 = 179,
+	IMX_F0_GPIO45 = 180,
+	IMX_F1_GPIO45 = 181,
+	IMX_F2_GPIO45 = 182,
+	IMX_F3_GPIO45 = 183,
+	IMX_F0_GPIO46 = 184,
+	IMX_F1_GPIO46 = 185,
+	IMX_F2_GPIO46 = 186,
+	IMX_F3_GPIO46 = 187,
+	IMX_F0_GPIO47 = 188,
+	IMX_F1_GPIO47 = 189,
+	IMX_F2_GPIO47 = 190,
+	IMX_F3_GPIO47 = 191,
+	IMX_F0_GPIO48 = 192,
+	IMX_F1_GPIO48 = 193,
+	IMX_F2_GPIO48 = 194,
+	IMX_F3_GPIO48 = 195,
+	IMX_F0_GPIO49 = 196,
+	IMX_F1_GPIO49 = 197,
+	IMX_F2_GPIO49 = 198,
+	IMX_F3_GPIO49 = 199,
+	IMX_F0_GPIO50 = 200,
+	IMX_F1_GPIO50 = 201,
+	IMX_F2_GPIO50 = 202,
+	IMX_F3_GPIO50 = 203,
+	IMX_F0_GPIO51 = 204,
+	IMX_F1_GPIO51 = 205,
+	IMX_F2_GPIO51 = 206,
+	IMX_F3_GPIO51 = 207,
+	IMX_F0_GPIO52 = 208,
+	IMX_F1_GPIO52 = 209,
+	IMX_F2_GPIO52 = 210,
+	IMX_F3_GPIO52 = 211,
+	IMX_F0_GPIO53 = 212,
+	IMX_F1_GPIO53 = 213,
+	IMX_F2_GPIO53 = 214,
+	IMX_F3_GPIO53 = 215,
+	IMX_F0_GPIO54 = 216,
+	IMX_F1_GPIO54 = 217,
+	IMX_F2_GPIO54 = 218,
+	IMX_F3_GPIO54 = 219,
+	IMX_F0_GPIO55 = 220,
+	IMX_F1_GPIO55 = 221,
+	IMX_F2_GPIO55 = 222,
+	IMX_F3_GPIO55 = 223,
+	IMX_F0_GPIO56 = 224,
+	IMX_F1_GPIO56 = 225,
+	IMX_F2_GPIO56 = 226,
+	IMX_F3_GPIO56 = 227,
+	IMX_F0_GPIO57 = 228,
+	IMX_F1_GPIO57 = 229,
+	IMX_F2_GPIO57 = 230,
+	IMX_F3_GPIO57 = 231,
+	IMX_F0_GPIO58 = 232,
+	IMX_F1_GPIO58 = 233,
+	IMX_F2_GPIO58 = 234,
+	IMX_F3_GPIO58 = 235,
+	IMX_F0_GPIO59 = 236,
+	IMX_F1_GPIO59 = 237,
+	IMX_F2_GPIO59 = 238,
+	IMX_F3_GPIO59 = 239,
+	IMX_F0_GPIO60 = 240,
+	IMX_F1_GPIO60 = 241,
+	IMX_F2_GPIO60 = 242,
+	IMX_F3_GPIO60 = 243,
+	IMX_F0_GPIO61 = 244,
+	IMX_F1_GPIO61 = 245,
+	IMX_F2_GPIO61 = 246,
+	IMX_F3_GPIO61 = 247,
+	IMX_F0_GPIO62 = 248,
+	IMX_F1_GPIO62 = 249,
+	IMX_F2_GPIO62 = 250,
+	IMX_F3_GPIO62 = 251,
+	IMX_F0_GPIO64 = 252,
+	IMX_F1_GPIO64 = 253,
+	IMX_F2_GPIO64 = 254,
+	IMX_F3_GPIO64 = 255,
+	IMX_F0_GPIO65 = 256,
+	IMX_F1_GPIO65 = 257,
+	IMX_F2_GPIO65 = 258,
+	IMX_F3_GPIO65 = 259,
+	IMX_F0_GPIO66 = 260,
+	IMX_F1_GPIO66 = 261,
+	IMX_F2_GPIO66 = 262,
+	IMX_F3_GPIO66 = 263,
+	IMX_F0_GPIO67 = 264,
+	IMX_F1_GPIO67 = 265,
+	IMX_F2_GPIO67 = 266,
+	IMX_F3_GPIO67 = 267,
+	IMX_F0_GPIO68 = 268,
+	IMX_F1_GPIO68 = 269,
+	IMX_F2_GPIO68 = 270,
+	IMX_F3_GPIO68 = 271,
+	IMX_F0_GPIO69 = 272,
+	IMX_F1_GPIO69 = 273,
+	IMX_F2_GPIO69 = 274,
+	IMX_F3_GPIO69 = 275,
+	IMX_F0_GPIO70 = 276,
+	IMX_F1_GPIO70 = 277,
+	IMX_F2_GPIO70 = 278,
+	IMX_F3_GPIO70 = 279,
+	IMX_F0_GPIO71 = 280,
+	IMX_F1_GPIO71 = 281,
+	IMX_F2_GPIO71 = 282,
+	IMX_F3_GPIO71 = 283,
+	IMX_F0_GPIO72 = 284,
+	IMX_F1_GPIO72 = 285,
+	IMX_F2_GPIO72 = 286,
+	IMX_F3_GPIO72 = 287,
+	IMX_F0_GPIO73 = 288,
+	IMX_F1_GPIO73 = 289,
+	IMX_F2_GPIO73 = 290,
+	IMX_F3_GPIO73 = 291,
+	IMX_F0_GPIO74 = 292,
+	IMX_F1_GPIO74 = 293,
+	IMX_F2_GPIO74 = 294,
+	IMX_F3_GPIO74 = 295,
+	IMX_F0_GPIO75 = 296,
+	IMX_F1_GPIO75 = 297,
+	IMX_F2_GPIO75 = 298,
+	IMX_F3_GPIO75 = 299,
+	IMX_F0_GPIO76 = 300,
+	IMX_F1_GPIO76 = 301,
+	IMX_F2_GPIO76 = 302,
+	IMX_F3_GPIO76 = 303,
+	IMX_F0_GPIO77 = 304,
+	IMX_F1_GPIO77 = 305,
+	IMX_F2_GPIO77 = 306,
+	IMX_F3_GPIO77 = 307,
+	IMX_F0_GPIO78 = 308,
+	IMX_F1_GPIO78 = 309,
+	IMX_F2_GPIO78 = 310,
+	IMX_F3_GPIO78 = 311,
+	IMX_F0_GPIO79 = 312,
+	IMX_F1_GPIO79 = 313,
+	IMX_F2_GPIO79 = 314,
+	IMX_F3_GPIO79 = 315,
+	IMX_F0_GPIO80 = 316,
+	IMX_F1_GPIO80 = 317,
+	IMX_F2_GPIO80 = 318,
+	IMX_F3_GPIO80 = 319,
+	IMX_F0_GPIO81 = 320,
+	IMX_F1_GPIO81 = 321,
+	IMX_F2_GPIO81 = 322,
+	IMX_F3_GPIO81 = 323,
+	IMX_F0_GPIO82 = 324,
+	IMX_F1_GPIO82 = 325,
+	IMX_F2_GPIO82 = 326,
+	IMX_F3_GPIO82 = 327,
+	IMX_F0_GPIO83 = 328,
+	IMX_F1_GPIO83 = 329,
+	IMX_F2_GPIO83 = 330,
+	IMX_F3_GPIO83 = 331,
+	IMX_F0_GPIO84 = 332,
+	IMX_F1_GPIO84 = 333,
+	IMX_F2_GPIO84 = 334,
+	IMX_F3_GPIO84 = 335,
+	IMX_F0_GPIO85 = 336,
+	IMX_F1_GPIO85 = 337,
+	IMX_F2_GPIO85 = 338,
+	IMX_F3_GPIO85 = 339,
+	IMX_F0_GPIO86 = 340,
+	IMX_F1_GPIO86 = 341,
+	IMX_F2_GPIO86 = 342,
+	IMX_F3_GPIO86 = 343,
+	IMX_F0_GPIO87 = 344,
+	IMX_F1_GPIO87 = 345,
+	IMX_F2_GPIO87 = 346,
+	IMX_F3_GPIO87 = 347,
+	IMX_F0_GPIO88 = 348,
+	IMX_F1_GPIO88 = 349,
+	IMX_F2_GPIO88 = 350,
+	IMX_F3_GPIO88 = 351,
+	IMX_F0_GPIO89 = 352,
+	IMX_F1_GPIO89 = 353,
+	IMX_F2_GPIO89 = 354,
+	IMX_F3_GPIO89 = 355,
+	IMX_F0_GPIO90 = 356,
+	IMX_F1_GPIO90 = 357,
+	IMX_F2_GPIO90 = 358,
+	IMX_F3_GPIO90 = 359,
+	IMX_F0_GPIO91 = 360,
+	IMX_F1_GPIO91 = 361,
+	IMX_F2_GPIO91 = 362,
+	IMX_F3_GPIO91 = 363,
+	IMX_F0_GPIO92 = 364,
+	IMX_F1_GPIO92 = 365,
+	IMX_F2_GPIO92 = 366,
+	IMX_F3_GPIO92 = 367,
+	IMX_F0_GPIO93 = 368,
+	IMX_F1_GPIO93 = 369,
+	IMX_F2_GPIO93 = 370,
+	IMX_F3_GPIO93 = 371,
+	IMX_F0_GPIO94 = 372,
+	IMX_F1_GPIO94 = 373,
+	IMX_F2_GPIO94 = 374,
+	IMX_F3_GPIO94 = 375,
+	IMX_F0_GPIO95 = 376,
+	IMX_F1_GPIO95 = 377,
+	IMX_F2_GPIO95 = 378,
+	IMX_F3_GPIO95 = 379,
+	IMX_F0_GPIO96 = 380,
+	IMX_F1_GPIO96 = 381,
+	IMX_F2_GPIO96 = 382,
+	IMX_F3_GPIO96 = 383,
+	IMX_F0_GPIO97 = 384,
+	IMX_F1_GPIO97 = 385,
+	IMX_F2_GPIO97 = 386,
+	IMX_F3_GPIO97 = 387,
+	IMX_F0_GPIO98 = 388,
+	IMX_F1_GPIO98 = 389,
+	IMX_F2_GPIO98 = 390,
+	IMX_F3_GPIO98 = 391,
+	IMX_F0_GPIO99 = 392,
+	IMX_F1_GPIO99 = 393,
+	IMX_F2_GPIO99 = 394,
+	IMX_F3_GPIO99 = 395,
+	IMX_F0_GPIO100 = 396,
+	IMX_F1_GPIO100 = 397,
+	IMX_F2_GPIO100 = 398,
+	IMX_F3_GPIO100 = 399,
+	IMX_F0_GPIO101 = 400,
+	IMX_F1_GPIO101 = 401,
+	IMX_F2_GPIO101 = 402,
+	IMX_F3_GPIO101 = 403,
+	IMX_F0_GPIO102 = 404,
+	IMX_F1_GPIO102 = 405,
+	IMX_F2_GPIO102 = 406,
+	IMX_F3_GPIO102 = 407,
+	IMX_F0_GPIO103 = 408,
+	IMX_F1_GPIO103 = 409,
+	IMX_F2_GPIO103 = 410,
+	IMX_F3_GPIO103 = 411,
+	IMX_F0_GPIO104 = 412,
+	IMX_F1_GPIO104 = 413,
+	IMX_F2_GPIO104 = 414,
+	IMX_F3_GPIO104 = 415,
+	IMX_F0_GPIO105 = 416,
+	IMX_F1_GPIO105 = 417,
+	IMX_F2_GPIO105 = 418,
+	IMX_F3_GPIO105 = 419,
+	IMX_F0_GPIO106 = 420,
+	IMX_F1_GPIO106 = 421,
+	IMX_F2_GPIO106 = 422,
+	IMX_F3_GPIO106 = 423,
+	IMX_F0_GPIO107 = 424,
+	IMX_F1_GPIO107 = 425,
+	IMX_F2_GPIO107 = 426,
+	IMX_F3_GPIO107 = 427,
+	IMX_F0_GPIO108 = 428,
+	IMX_F1_GPIO108 = 429,
+	IMX_F2_GPIO108 = 430,
+	IMX_F3_GPIO108 = 431,
+	IMX_F0_GPIO109 = 432,
+	IMX_F1_GPIO109 = 433,
+	IMX_F2_GPIO109 = 434,
+	IMX_F3_GPIO109 = 435,
+	IMX_F0_GPIO110 = 436,
+	IMX_F1_GPIO110 = 437,
+	IMX_F2_GPIO110 = 438,
+	IMX_F3_GPIO110 = 439,
+	IMX_F0_GPIO111 = 440,
+	IMX_F1_GPIO111 = 441,
+	IMX_F2_GPIO111 = 442,
+	IMX_F3_GPIO111 = 443,
+	IMX_F0_GPIO112 = 444,
+	IMX_F1_GPIO112 = 445,
+	IMX_F2_GPIO112 = 446,
+	IMX_F3_GPIO112 = 447,
+	IMX_F0_GPIO113 = 448,
+	IMX_F1_GPIO113 = 449,
+	IMX_F2_GPIO113 = 450,
+	IMX_F3_GPIO113 = 451,
+	IMX_F0_GPIO114 = 452,
+	IMX_F1_GPIO114 = 453,
+	IMX_F2_GPIO114 = 454,
+	IMX_F3_GPIO114 = 455,
+	IMX_F0_GPIO115 = 456,
+	IMX_F1_GPIO115 = 457,
+	IMX_F2_GPIO115 = 458,
+	IMX_F3_GPIO115 = 459,
+	IMX_F0_GPIO116 = 460,
+	IMX_F1_GPIO116 = 461,
+	IMX_F2_GPIO116 = 462,
+	IMX_F3_GPIO116 = 463,
+	IMX_F0_GPIO117 = 464,
+	IMX_F1_GPIO117 = 465,
+	IMX_F2_GPIO117 = 466,
+	IMX_F3_GPIO117 = 467,
+	IMX_F0_GPIO118 = 468,
+	IMX_F1_GPIO118 = 469,
+	IMX_F2_GPIO118 = 470,
+	IMX_F3_GPIO118 = 471,
+	IMX_F0_GPIO119 = 472,
+	IMX_F1_GPIO119 = 473,
+	IMX_F2_GPIO119 = 474,
+	IMX_F3_GPIO119 = 475,
+	IMX_F0_GPIO120 = 476,
+	IMX_F1_GPIO120 = 477,
+	IMX_F2_GPIO120 = 478,
+	IMX_F3_GPIO120 = 479,
+	IMX_F0_GPIO121 = 480,
+	IMX_F1_GPIO121 = 481,
+	IMX_F2_GPIO121 = 482,
+	IMX_F3_GPIO121 = 483,
+	IMX_F0_GPIO122 = 484,
+	IMX_F1_GPIO122 = 485,
+	IMX_F2_GPIO122 = 486,
+	IMX_F3_GPIO122 = 487,
+	IMX_F0_GPIO123 = 488,
+	IMX_F1_GPIO123 = 489,
+	IMX_F2_GPIO123 = 490,
+	IMX_F3_GPIO123 = 491,
+	IMX_F0_GPIO124 = 492,
+	IMX_F1_GPIO124 = 493,
+	IMX_F2_GPIO124 = 494,
+	IMX_F3_GPIO124 = 495,
+	IMX_F0_GPIO125 = 496,
+	IMX_F1_GPIO125 = 497,
+	IMX_F2_GPIO125 = 498,
+	IMX_F3_GPIO125 = 499,
+	IMX_F0_GPIO126 = 500,
+	IMX_F1_GPIO126 = 501,
+	IMX_F2_GPIO126 = 502,
+	IMX_F3_GPIO126 = 503,
+	IMX_F0_GPIO127 = 504,
+	IMX_F1_GPIO127 = 505,
+	IMX_F2_GPIO127 = 506,
+	IMX_F3_GPIO127 = 507,
+	IMX_F0_GPIO128 = 508,
+	IMX_F1_GPIO128 = 509,
+	IMX_F2_GPIO128 = 510,
+	IMX_F3_GPIO128 = 511,
+	IMX_F0_GPIO129 = 512,
+	IMX_F1_GPIO129 = 513,
+	IMX_F2_GPIO129 = 514,
+	IMX_F3_GPIO129 = 515,
+	IMX_F0_GPIO130 = 516,
+	IMX_F1_GPIO130 = 517,
+	IMX_F2_GPIO130 = 518,
+	IMX_F3_GPIO130 = 519,
+	IMX_F0_GPIO131 = 520,
+	IMX_F1_GPIO131 = 521,
+	IMX_F2_GPIO131 = 522,
+	IMX_F3_GPIO131 = 523,
+	IMX_F0_GPIO132 = 524,
+	IMX_F1_GPIO132 = 525,
+	IMX_F2_GPIO132 = 526,
+	IMX_F3_GPIO132 = 527,
+	IMX_F0_GPIO133 = 528,
+	IMX_F1_GPIO133 = 529,
+	IMX_F2_GPIO133 = 530,
+	IMX_F3_GPIO133 = 531,
+	IMX_F0_GPIO134 = 532,
+	IMX_F1_GPIO134 = 533,
+	IMX_F2_GPIO134 = 534,
+	IMX_F3_GPIO134 = 535,
+	IMX_F0_GPIO135 = 536,
+	IMX_F1_GPIO135 = 537,
+	IMX_F2_GPIO135 = 538,
+	IMX_F3_GPIO135 = 539,
+	IMX_F0_GPIO136 = 540,
+	IMX_F1_GPIO136 = 541,
+	IMX_F2_GPIO136 = 542,
+	IMX_F3_GPIO136 = 543,
+	IMX_F0_GPIO137 = 544,
+	IMX_F1_GPIO137 = 545,
+	IMX_F2_GPIO137 = 546,
+	IMX_F3_GPIO137 = 547,
+	IMX_F0_GPIO138 = 548,
+	IMX_F1_GPIO138 = 549,
+	IMX_F2_GPIO138 = 550,
+	IMX_F3_GPIO138 = 551,
+	IMX_F0_GPIO139 = 552,
+	IMX_F1_GPIO139 = 553,
+	IMX_F2_GPIO139 = 554,
+	IMX_F3_GPIO139 = 555,
+	IMX_F0_GPIO140 = 556,
+	IMX_F1_GPIO140 = 557,
+	IMX_F2_GPIO140 = 558,
+	IMX_F3_GPIO140 = 559,
+	IMX_F0_GPIO141 = 560,
+	IMX_F1_GPIO141 = 561,
+	IMX_F2_GPIO141 = 562,
+	IMX_F3_GPIO141 = 563,
+	IMX_F0_GPIO142 = 564,
+	IMX_F1_GPIO142 = 565,
+	IMX_F2_GPIO142 = 566,
+	IMX_F3_GPIO142 = 567,
+	IMX_F0_GPIO143 = 568,
+	IMX_F1_GPIO143 = 569,
+	IMX_F2_GPIO143 = 570,
+	IMX_F3_GPIO143 = 571,
+	IMX_F0_GPIO144 = 572,
+	IMX_F1_GPIO144 = 573,
+	IMX_F2_GPIO144 = 574,
+	IMX_F3_GPIO144 = 575,
+};
+
+enum imx8mm_pads {
+	MX8MM_PAD_RESERVE0 = 0,
+	MX8MM_PAD_RESERVE1 = 1,
+	MX8MM_PAD_RESERVE2 = 2,
+	MX8MM_PAD_RESERVE3 = 3,
+	MX8MM_PAD_RESERVE4 = 4,
+	MX8MM_PAD_RESERVE5 = 5,
+	MX8MM_PAD_RESERVE6 = 6,
+	MX8MM_PAD_RESERVE7 = 7,
+	MX8MM_PAD_RESERVE8 = 8,
+	MX8MM_PAD_RESERVE9 = 9,
+	MX8MM_IOMUXC_GPIO1_IO00 = 10,
+	MX8MM_IOMUXC_GPIO1_IO01 = 11,
+	MX8MM_IOMUXC_GPIO1_IO02 = 12,
+	MX8MM_IOMUXC_GPIO1_IO03 = 13,
+	MX8MM_IOMUXC_GPIO1_IO04 = 14,
+	MX8MM_IOMUXC_GPIO1_IO05 = 15,
+	MX8MM_IOMUXC_GPIO1_IO06 = 16,
+	MX8MM_IOMUXC_GPIO1_IO07 = 17,
+	MX8MM_IOMUXC_GPIO1_IO08 = 18,
+	MX8MM_IOMUXC_GPIO1_IO09 = 19,
+	MX8MM_IOMUXC_GPIO1_IO10 = 20,
+	MX8MM_IOMUXC_GPIO1_IO11 = 21,
+	MX8MM_IOMUXC_GPIO1_IO12 = 22,
+	MX8MM_IOMUXC_GPIO1_IO13 = 23,
+	MX8MM_IOMUXC_GPIO1_IO14 = 24,
+	MX8MM_IOMUXC_GPIO1_IO15 = 25,
+	MX8MM_IOMUXC_ENET_MDC = 26,
+	MX8MM_IOMUXC_ENET_MDIO = 27,
+	MX8MM_IOMUXC_ENET_TD3 = 28,
+	MX8MM_IOMUXC_ENET_TD2 = 29,
+	MX8MM_IOMUXC_ENET_TD1 = 30,
+	MX8MM_IOMUXC_ENET_TD0 = 31,
+	MX8MM_IOMUXC_ENET_TX_CTL = 32,
+	MX8MM_IOMUXC_ENET_TXC = 33,
+	MX8MM_IOMUXC_ENET_RX_CTL = 34,
+	MX8MM_IOMUXC_ENET_RXC = 35,
+	MX8MM_IOMUXC_ENET_RD0 = 36,
+	MX8MM_IOMUXC_ENET_RD1 = 37,
+	MX8MM_IOMUXC_ENET_RD2 = 38,
+	MX8MM_IOMUXC_ENET_RD3 = 39,
+	MX8MM_IOMUXC_SD1_CLK = 40,
+	MX8MM_IOMUXC_SD1_CMD = 41,
+	MX8MM_IOMUXC_SD1_DATA0 = 42,
+	MX8MM_IOMUXC_SD1_DATA1 = 43,
+	MX8MM_IOMUXC_SD1_DATA2 = 44,
+	MX8MM_IOMUXC_SD1_DATA3 = 45,
+	MX8MM_IOMUXC_SD1_DATA4 = 46,
+	MX8MM_IOMUXC_SD1_DATA5 = 47,
+	MX8MM_IOMUXC_SD1_DATA6 = 48,
+	MX8MM_IOMUXC_SD1_DATA7 = 49,
+	MX8MM_IOMUXC_SD1_RESET_B = 50,
+	MX8MM_IOMUXC_SD1_STROBE = 51,
+	MX8MM_IOMUXC_SD2_CD_B = 52,
+	MX8MM_IOMUXC_SD2_CLK = 53,
+	MX8MM_IOMUXC_SD2_CMD = 54,
+	MX8MM_IOMUXC_SD2_DATA0 = 55,
+	MX8MM_IOMUXC_SD2_DATA1 = 56,
+	MX8MM_IOMUXC_SD2_DATA2 = 57,
+	MX8MM_IOMUXC_SD2_DATA3 = 58,
+	MX8MM_IOMUXC_SD2_RESET_B = 59,
+	MX8MM_IOMUXC_SD2_WP = 60,
+	MX8MM_IOMUXC_NAND_ALE = 61,
+	MX8MM_IOMUXC_NAND_CE0 = 62,
+	MX8MM_IOMUXC_NAND_CE1 = 63,
+	MX8MM_IOMUXC_NAND_CE2 = 64,
+	MX8MM_IOMUXC_NAND_CE3 = 65,
+	MX8MM_IOMUXC_NAND_CLE = 66,
+	MX8MM_IOMUXC_NAND_DATA00 = 67,
+	MX8MM_IOMUXC_NAND_DATA01 = 68,
+	MX8MM_IOMUXC_NAND_DATA02 = 69,
+	MX8MM_IOMUXC_NAND_DATA03 = 70,
+	MX8MM_IOMUXC_NAND_DATA04 = 71,
+	MX8MM_IOMUXC_NAND_DATA05 = 72,
+	MX8MM_IOMUXC_NAND_DATA06 = 73,
+	MX8MM_IOMUXC_NAND_DATA07 = 74,
+	MX8MM_IOMUXC_NAND_DQS = 75,
+	MX8MM_IOMUXC_NAND_RE_B = 76,
+	MX8MM_IOMUXC_NAND_READY_B = 77,
+	MX8MM_IOMUXC_NAND_WE_B = 78,
+	MX8MM_IOMUXC_NAND_WP_B = 79,
+	MX8MM_IOMUXC_SAI5_RXFS = 80,
+	MX8MM_IOMUXC_SAI5_RXC = 81,
+	MX8MM_IOMUXC_SAI5_RXD0 = 82,
+	MX8MM_IOMUXC_SAI5_RXD1 = 83,
+	MX8MM_IOMUXC_SAI5_RXD2 = 84,
+	MX8MM_IOMUXC_SAI5_RXD3 = 85,
+	MX8MM_IOMUXC_SAI5_MCLK = 86,
+	MX8MM_IOMUXC_SAI1_RXFS = 87,
+	MX8MM_IOMUXC_SAI1_RXC = 88,
+	MX8MM_IOMUXC_SAI1_RXD0 = 89,
+	MX8MM_IOMUXC_SAI1_RXD1 = 90,
+	MX8MM_IOMUXC_SAI1_RXD2 = 91,
+	MX8MM_IOMUXC_SAI1_RXD3 = 92,
+	MX8MM_IOMUXC_SAI1_RXD4 = 93,
+	MX8MM_IOMUXC_SAI1_RXD5 = 94,
+	MX8MM_IOMUXC_SAI1_RXD6 = 95,
+	MX8MM_IOMUXC_SAI1_RXD7 = 96,
+	MX8MM_IOMUXC_SAI1_TXFS = 97,
+	MX8MM_IOMUXC_SAI1_TXC = 98,
+	MX8MM_IOMUXC_SAI1_TXD0 = 99,
+	MX8MM_IOMUXC_SAI1_TXD1 = 100,
+	MX8MM_IOMUXC_SAI1_TXD2 = 101,
+	MX8MM_IOMUXC_SAI1_TXD3 = 102,
+	MX8MM_IOMUXC_SAI1_TXD4 = 103,
+	MX8MM_IOMUXC_SAI1_TXD5 = 104,
+	MX8MM_IOMUXC_SAI1_TXD6 = 105,
+	MX8MM_IOMUXC_SAI1_TXD7 = 106,
+	MX8MM_IOMUXC_SAI1_MCLK = 107,
+	MX8MM_IOMUXC_SAI2_RXFS = 108,
+	MX8MM_IOMUXC_SAI2_RXC = 109,
+	MX8MM_IOMUXC_SAI2_RXD0 = 110,
+	MX8MM_IOMUXC_SAI2_TXFS = 111,
+	MX8MM_IOMUXC_SAI2_TXC = 112,
+	MX8MM_IOMUXC_SAI2_TXD0 = 113,
+	MX8MM_IOMUXC_SAI2_MCLK = 114,
+	MX8MM_IOMUXC_SAI3_RXFS = 115,
+	MX8MM_IOMUXC_SAI3_RXC = 116,
+	MX8MM_IOMUXC_SAI3_RXD = 117,
+	MX8MM_IOMUXC_SAI3_TXFS = 118,
+	MX8MM_IOMUXC_SAI3_TXC = 119,
+	MX8MM_IOMUXC_SAI3_TXD = 120,
+	MX8MM_IOMUXC_SAI3_MCLK = 121,
+	MX8MM_IOMUXC_SPDIF_TX = 122,
+	MX8MM_IOMUXC_SPDIF_RX = 123,
+	MX8MM_IOMUXC_SPDIF_EXT_CLK = 124,
+	MX8MM_IOMUXC_ECSPI1_SCLK = 125,
+	MX8MM_IOMUXC_ECSPI1_MOSI = 126,
+	MX8MM_IOMUXC_ECSPI1_MISO = 127,
+	MX8MM_IOMUXC_ECSPI1_SS0 = 128,
+	MX8MM_IOMUXC_ECSPI2_SCLK = 129,
+	MX8MM_IOMUXC_ECSPI2_MOSI = 130,
+	MX8MM_IOMUXC_ECSPI2_MISO = 131,
+	MX8MM_IOMUXC_ECSPI2_SS0 = 132,
+	MX8MM_IOMUXC_I2C1_SCL = 133,
+	MX8MM_IOMUXC_I2C1_SDA = 134,
+	MX8MM_IOMUXC_I2C2_SCL = 135,
+	MX8MM_IOMUXC_I2C2_SDA = 136,
+	MX8MM_IOMUXC_I2C3_SCL = 137,
+	MX8MM_IOMUXC_I2C3_SDA = 138,
+	MX8MM_IOMUXC_I2C4_SCL = 139,
+	MX8MM_IOMUXC_I2C4_SDA = 140,
+	MX8MM_IOMUXC_UART1_RXD = 141,
+	MX8MM_IOMUXC_UART1_TXD = 142,
+	MX8MM_IOMUXC_UART2_RXD = 143,
+	MX8MM_IOMUXC_UART2_TXD = 144,
+	MX8MM_IOMUXC_UART3_RXD = 145,
+	MX8MM_IOMUXC_UART3_TXD = 146,
+	MX8MM_IOMUXC_UART4_RXD = 147,
+	MX8MM_IOMUXC_UART4_TXD = 148,
+};
+
+enum pin_id {
+	TEGRA_PIN_DAP6_SCLK_PA0 = 0,
+	TEGRA_PIN_DAP6_DOUT_PA1 = 1,
+	TEGRA_PIN_DAP6_DIN_PA2 = 2,
+	TEGRA_PIN_DAP6_FS_PA3 = 3,
+	TEGRA_PIN_DAP4_SCLK_PA4 = 4,
+	TEGRA_PIN_DAP4_DOUT_PA5 = 5,
+	TEGRA_PIN_DAP4_DIN_PA6 = 6,
+	TEGRA_PIN_DAP4_FS_PA7 = 7,
+	TEGRA_PIN_CPU_PWR_REQ_0_PB0 = 8,
+	TEGRA_PIN_CPU_PWR_REQ_1_PB1 = 9,
+	TEGRA_PIN_QSPI0_SCK_PC0 = 10,
+	TEGRA_PIN_QSPI0_CS_N_PC1 = 11,
+	TEGRA_PIN_QSPI0_IO0_PC2 = 12,
+	TEGRA_PIN_QSPI0_IO1_PC3 = 13,
+	TEGRA_PIN_QSPI0_IO2_PC4 = 14,
+	TEGRA_PIN_QSPI0_IO3_PC5 = 15,
+	TEGRA_PIN_QSPI1_SCK_PC6 = 16,
+	TEGRA_PIN_QSPI1_CS_N_PC7 = 17,
+	TEGRA_PIN_QSPI1_IO0_PD0 = 18,
+	TEGRA_PIN_QSPI1_IO1_PD1 = 19,
+	TEGRA_PIN_QSPI1_IO2_PD2 = 20,
+	TEGRA_PIN_QSPI1_IO3_PD3 = 21,
+	TEGRA_PIN_EQOS_TXC_PE0 = 22,
+	TEGRA_PIN_EQOS_TD0_PE1 = 23,
+	TEGRA_PIN_EQOS_TD1_PE2 = 24,
+	TEGRA_PIN_EQOS_TD2_PE3 = 25,
+	TEGRA_PIN_EQOS_TD3_PE4 = 26,
+	TEGRA_PIN_EQOS_TX_CTL_PE5 = 27,
+	TEGRA_PIN_EQOS_RD0_PE6 = 28,
+	TEGRA_PIN_EQOS_RD1_PE7 = 29,
+	TEGRA_PIN_EQOS_RD2_PF0 = 30,
+	TEGRA_PIN_EQOS_RD3_PF1 = 31,
+	TEGRA_PIN_EQOS_RX_CTL_PF2 = 32,
+	TEGRA_PIN_EQOS_RXC_PF3 = 33,
+	TEGRA_PIN_EQOS_SMA_MDIO_PF4 = 34,
+	TEGRA_PIN_EQOS_SMA_MDC_PF5 = 35,
+	TEGRA_PIN_SOC_GPIO00_PG0 = 36,
+	TEGRA_PIN_SOC_GPIO01_PG1 = 37,
+	TEGRA_PIN_SOC_GPIO02_PG2 = 38,
+	TEGRA_PIN_SOC_GPIO03_PG3 = 39,
+	TEGRA_PIN_SOC_GPIO08_PG4 = 40,
+	TEGRA_PIN_SOC_GPIO09_PG5 = 41,
+	TEGRA_PIN_SOC_GPIO10_PG6 = 42,
+	TEGRA_PIN_SOC_GPIO11_PG7 = 43,
+	TEGRA_PIN_SOC_GPIO12_PH0 = 44,
+	TEGRA_PIN_SOC_GPIO13_PH1 = 45,
+	TEGRA_PIN_SOC_GPIO14_PH2 = 46,
+	TEGRA_PIN_UART4_TX_PH3 = 47,
+	TEGRA_PIN_UART4_RX_PH4 = 48,
+	TEGRA_PIN_UART4_RTS_PH5 = 49,
+	TEGRA_PIN_UART4_CTS_PH6 = 50,
+	TEGRA_PIN_DAP2_SCLK_PH7 = 51,
+	TEGRA_PIN_DAP2_DOUT_PI0 = 52,
+	TEGRA_PIN_DAP2_DIN_PI1 = 53,
+	TEGRA_PIN_DAP2_FS_PI2 = 54,
+	TEGRA_PIN_GEN1_I2C_SCL_PI3 = 55,
+	TEGRA_PIN_GEN1_I2C_SDA_PI4 = 56,
+	TEGRA_PIN_SDMMC1_CLK_PJ0 = 57,
+	TEGRA_PIN_SDMMC1_CMD_PJ1 = 58,
+	TEGRA_PIN_SDMMC1_DAT0_PJ2 = 59,
+	TEGRA_PIN_SDMMC1_DAT1_PJ3 = 60,
+	TEGRA_PIN_SDMMC1_DAT2_PJ4 = 61,
+	TEGRA_PIN_SDMMC1_DAT3_PJ5 = 62,
+	TEGRA_PIN_PEX_L0_CLKREQ_N_PK0 = 63,
+	TEGRA_PIN_PEX_L0_RST_N_PK1 = 64,
+	TEGRA_PIN_PEX_L1_CLKREQ_N_PK2 = 65,
+	TEGRA_PIN_PEX_L1_RST_N_PK3 = 66,
+	TEGRA_PIN_PEX_L2_CLKREQ_N_PK4 = 67,
+	TEGRA_PIN_PEX_L2_RST_N_PK5 = 68,
+	TEGRA_PIN_PEX_L3_CLKREQ_N_PK6 = 69,
+	TEGRA_PIN_PEX_L3_RST_N_PK7 = 70,
+	TEGRA_PIN_PEX_L4_CLKREQ_N_PL0 = 71,
+	TEGRA_PIN_PEX_L4_RST_N_PL1 = 72,
+	TEGRA_PIN_PEX_WAKE_N_PL2 = 73,
+	TEGRA_PIN_SATA_DEV_SLP_PL3 = 74,
+	TEGRA_PIN_DP_AUX_CH0_HPD_PM0 = 75,
+	TEGRA_PIN_DP_AUX_CH1_HPD_PM1 = 76,
+	TEGRA_PIN_DP_AUX_CH2_HPD_PM2 = 77,
+	TEGRA_PIN_DP_AUX_CH3_HPD_PM3 = 78,
+	TEGRA_PIN_HDMI_CEC_PM4 = 79,
+	TEGRA_PIN_SOC_GPIO50_PM5 = 80,
+	TEGRA_PIN_SOC_GPIO51_PM6 = 81,
+	TEGRA_PIN_SOC_GPIO52_PM7 = 82,
+	TEGRA_PIN_SOC_GPIO53_PN0 = 83,
+	TEGRA_PIN_SOC_GPIO54_PN1 = 84,
+	TEGRA_PIN_SOC_GPIO55_PN2 = 85,
+	TEGRA_PIN_SDMMC3_CLK_PO0 = 86,
+	TEGRA_PIN_SDMMC3_CMD_PO1 = 87,
+	TEGRA_PIN_SDMMC3_DAT0_PO2 = 88,
+	TEGRA_PIN_SDMMC3_DAT1_PO3 = 89,
+	TEGRA_PIN_SDMMC3_DAT2_PO4 = 90,
+	TEGRA_PIN_SDMMC3_DAT3_PO5 = 91,
+	TEGRA_PIN_EXTPERIPH1_CLK_PP0 = 92,
+	TEGRA_PIN_EXTPERIPH2_CLK_PP1 = 93,
+	TEGRA_PIN_CAM_I2C_SCL_PP2 = 94,
+	TEGRA_PIN_CAM_I2C_SDA_PP3 = 95,
+	TEGRA_PIN_SOC_GPIO04_PP4 = 96,
+	TEGRA_PIN_SOC_GPIO05_PP5 = 97,
+	TEGRA_PIN_SOC_GPIO06_PP6 = 98,
+	TEGRA_PIN_SOC_GPIO07_PP7 = 99,
+	TEGRA_PIN_SOC_GPIO20_PQ0 = 100,
+	TEGRA_PIN_SOC_GPIO21_PQ1 = 101,
+	TEGRA_PIN_SOC_GPIO22_PQ2 = 102,
+	TEGRA_PIN_SOC_GPIO23_PQ3 = 103,
+	TEGRA_PIN_SOC_GPIO40_PQ4 = 104,
+	TEGRA_PIN_SOC_GPIO41_PQ5 = 105,
+	TEGRA_PIN_SOC_GPIO42_PQ6 = 106,
+	TEGRA_PIN_SOC_GPIO43_PQ7 = 107,
+	TEGRA_PIN_SOC_GPIO44_PR0 = 108,
+	TEGRA_PIN_SOC_GPIO45_PR1 = 109,
+	TEGRA_PIN_UART1_TX_PR2 = 110,
+	TEGRA_PIN_UART1_RX_PR3 = 111,
+	TEGRA_PIN_UART1_RTS_PR4 = 112,
+	TEGRA_PIN_UART1_CTS_PR5 = 113,
+	TEGRA_PIN_DAP1_SCLK_PS0 = 114,
+	TEGRA_PIN_DAP1_DOUT_PS1 = 115,
+	TEGRA_PIN_DAP1_DIN_PS2 = 116,
+	TEGRA_PIN_DAP1_FS_PS3 = 117,
+	TEGRA_PIN_AUD_MCLK_PS4 = 118,
+	TEGRA_PIN_SOC_GPIO30_PS5 = 119,
+	TEGRA_PIN_SOC_GPIO31_PS6 = 120,
+	TEGRA_PIN_SOC_GPIO32_PS7 = 121,
+	TEGRA_PIN_SOC_GPIO33_PT0 = 122,
+	TEGRA_PIN_DAP3_SCLK_PT1 = 123,
+	TEGRA_PIN_DAP3_DOUT_PT2 = 124,
+	TEGRA_PIN_DAP3_DIN_PT3 = 125,
+	TEGRA_PIN_DAP3_FS_PT4 = 126,
+	TEGRA_PIN_DAP5_SCLK_PT5 = 127,
+	TEGRA_PIN_DAP5_DOUT_PT6 = 128,
+	TEGRA_PIN_DAP5_DIN_PT7 = 129,
+	TEGRA_PIN_DAP5_FS_PU0 = 130,
+	TEGRA_PIN_DIRECTDC1_CLK_PV0 = 131,
+	TEGRA_PIN_DIRECTDC1_IN_PV1 = 132,
+	TEGRA_PIN_DIRECTDC1_OUT0_PV2 = 133,
+	TEGRA_PIN_DIRECTDC1_OUT1_PV3 = 134,
+	TEGRA_PIN_DIRECTDC1_OUT2_PV4 = 135,
+	TEGRA_PIN_DIRECTDC1_OUT3_PV5 = 136,
+	TEGRA_PIN_DIRECTDC1_OUT4_PV6 = 137,
+	TEGRA_PIN_DIRECTDC1_OUT5_PV7 = 138,
+	TEGRA_PIN_DIRECTDC1_OUT6_PW0 = 139,
+	TEGRA_PIN_DIRECTDC1_OUT7_PW1 = 140,
+	TEGRA_PIN_GPU_PWR_REQ_PX0 = 141,
+	TEGRA_PIN_CV_PWR_REQ_PX1 = 142,
+	TEGRA_PIN_GP_PWM2_PX2 = 143,
+	TEGRA_PIN_GP_PWM3_PX3 = 144,
+	TEGRA_PIN_UART2_TX_PX4 = 145,
+	TEGRA_PIN_UART2_RX_PX5 = 146,
+	TEGRA_PIN_UART2_RTS_PX6 = 147,
+	TEGRA_PIN_UART2_CTS_PX7 = 148,
+	TEGRA_PIN_SPI3_SCK_PY0 = 149,
+	TEGRA_PIN_SPI3_MISO_PY1 = 150,
+	TEGRA_PIN_SPI3_MOSI_PY2 = 151,
+	TEGRA_PIN_SPI3_CS0_PY3 = 152,
+	TEGRA_PIN_SPI3_CS1_PY4 = 153,
+	TEGRA_PIN_UART5_TX_PY5 = 154,
+	TEGRA_PIN_UART5_RX_PY6 = 155,
+	TEGRA_PIN_UART5_RTS_PY7 = 156,
+	TEGRA_PIN_UART5_CTS_PZ0 = 157,
+	TEGRA_PIN_USB_VBUS_EN0_PZ1 = 158,
+	TEGRA_PIN_USB_VBUS_EN1_PZ2 = 159,
+	TEGRA_PIN_SPI1_SCK_PZ3 = 160,
+	TEGRA_PIN_SPI1_MISO_PZ4 = 161,
+	TEGRA_PIN_SPI1_MOSI_PZ5 = 162,
+	TEGRA_PIN_SPI1_CS0_PZ6 = 163,
+	TEGRA_PIN_SPI1_CS1_PZ7 = 164,
+	TEGRA_PIN_CAN1_DOUT_PAA0 = 165,
+	TEGRA_PIN_CAN1_DIN_PAA1 = 166,
+	TEGRA_PIN_CAN0_DOUT_PAA2 = 167,
+	TEGRA_PIN_CAN0_DIN_PAA3 = 168,
+	TEGRA_PIN_CAN0_STB_PAA4 = 169,
+	TEGRA_PIN_CAN0_EN_PAA5 = 170,
+	TEGRA_PIN_CAN0_WAKE_PAA6 = 171,
+	TEGRA_PIN_CAN0_ERR_PAA7 = 172,
+	TEGRA_PIN_CAN1_STB_PBB0 = 173,
+	TEGRA_PIN_CAN1_EN_PBB1 = 174,
+	TEGRA_PIN_CAN1_WAKE_PBB2 = 175,
+	TEGRA_PIN_CAN1_ERR_PBB3 = 176,
+	TEGRA_PIN_SPI2_SCK_PCC0 = 177,
+	TEGRA_PIN_SPI2_MISO_PCC1 = 178,
+	TEGRA_PIN_SPI2_MOSI_PCC2 = 179,
+	TEGRA_PIN_SPI2_CS0_PCC3 = 180,
+	TEGRA_PIN_TOUCH_CLK_PCC4 = 181,
+	TEGRA_PIN_UART3_TX_PCC5 = 182,
+	TEGRA_PIN_UART3_RX_PCC6 = 183,
+	TEGRA_PIN_GEN2_I2C_SCL_PCC7 = 184,
+	TEGRA_PIN_GEN2_I2C_SDA_PDD0 = 185,
+	TEGRA_PIN_GEN8_I2C_SCL_PDD1 = 186,
+	TEGRA_PIN_GEN8_I2C_SDA_PDD2 = 187,
+	TEGRA_PIN_SAFE_STATE_PEE0 = 188,
+	TEGRA_PIN_VCOMP_ALERT_PEE1 = 189,
+	TEGRA_PIN_AO_RETENTION_N_PEE2 = 190,
+	TEGRA_PIN_BATT_OC_PEE3 = 191,
+	TEGRA_PIN_POWER_ON_PEE4 = 192,
+	TEGRA_PIN_PWR_I2C_SCL_PEE5 = 193,
+	TEGRA_PIN_PWR_I2C_SDA_PEE6 = 194,
+	TEGRA_PIN_UFS0_REF_CLK_PFF0 = 195,
+	TEGRA_PIN_UFS0_RST_PFF1 = 196,
+	TEGRA_PIN_PEX_L5_CLKREQ_N_PGG0 = 197,
+	TEGRA_PIN_PEX_L5_RST_N_PGG1 = 198,
+	TEGRA_PIN_DIRECTDC_COMP = 199,
+	TEGRA_PIN_SDMMC4_CLK = 200,
+	TEGRA_PIN_SDMMC4_CMD = 201,
+	TEGRA_PIN_SDMMC4_DQS = 202,
+	TEGRA_PIN_SDMMC4_DAT7 = 203,
+	TEGRA_PIN_SDMMC4_DAT6 = 204,
+	TEGRA_PIN_SDMMC4_DAT5 = 205,
+	TEGRA_PIN_SDMMC4_DAT4 = 206,
+	TEGRA_PIN_SDMMC4_DAT3 = 207,
+	TEGRA_PIN_SDMMC4_DAT2 = 208,
+	TEGRA_PIN_SDMMC4_DAT1 = 209,
+	TEGRA_PIN_SDMMC4_DAT0 = 210,
+	TEGRA_PIN_SDMMC1_COMP = 211,
+	TEGRA_PIN_SDMMC1_HV_TRIM = 212,
+	TEGRA_PIN_SDMMC3_COMP = 213,
+	TEGRA_PIN_SDMMC3_HV_TRIM = 214,
+	TEGRA_PIN_EQOS_COMP = 215,
+	TEGRA_PIN_QSPI_COMP = 216,
+	TEGRA_PIN_SYS_RESET_N = 217,
+	TEGRA_PIN_SHUTDOWN_N = 218,
+	TEGRA_PIN_PMU_INT_N = 219,
+	TEGRA_PIN_SOC_PWR_REQ = 220,
+	TEGRA_PIN_CLK_32K_IN = 221,
+};
+
+enum tegra_mux_dt {
+	TEGRA_MUX_RSVD0___2 = 0,
+	TEGRA_MUX_RSVD1___2 = 1,
+	TEGRA_MUX_RSVD2___2 = 2,
+	TEGRA_MUX_RSVD3___2 = 3,
+	TEGRA_MUX_TOUCH___2 = 4,
+	TEGRA_MUX_UARTC___2 = 5,
+	TEGRA_MUX_I2C8 = 6,
+	TEGRA_MUX_UARTG = 7,
+	TEGRA_MUX_SPI2___2 = 8,
+	TEGRA_MUX_GP = 9,
+	TEGRA_MUX_DCA = 10,
+	TEGRA_MUX_WDT = 11,
+	TEGRA_MUX_I2C2___2 = 12,
+	TEGRA_MUX_CAN1 = 13,
+	TEGRA_MUX_CAN0 = 14,
+	TEGRA_MUX_DMIC3___2 = 15,
+	TEGRA_MUX_DMIC5 = 16,
+	TEGRA_MUX_GPIO = 17,
+	TEGRA_MUX_DSPK1 = 18,
+	TEGRA_MUX_DSPK0 = 19,
+	TEGRA_MUX_SPDIF___2 = 20,
+	TEGRA_MUX_AUD___2 = 21,
+	TEGRA_MUX_I2S1___2 = 22,
+	TEGRA_MUX_DMIC1___2 = 23,
+	TEGRA_MUX_DMIC2___2 = 24,
+	TEGRA_MUX_I2S3___2 = 25,
+	TEGRA_MUX_DMIC4 = 26,
+	TEGRA_MUX_I2S4 = 27,
+	TEGRA_MUX_EXTPERIPH2 = 28,
+	TEGRA_MUX_EXTPERIPH1 = 29,
+	TEGRA_MUX_I2C3___2 = 30,
+	TEGRA_MUX_VGP1___2 = 31,
+	TEGRA_MUX_VGP2___2 = 32,
+	TEGRA_MUX_VGP3___2 = 33,
+	TEGRA_MUX_VGP4___2 = 34,
+	TEGRA_MUX_VGP5___2 = 35,
+	TEGRA_MUX_VGP6___2 = 36,
+	TEGRA_MUX_SLVS = 37,
+	TEGRA_MUX_EXTPERIPH3___2 = 38,
+	TEGRA_MUX_EXTPERIPH4 = 39,
+	TEGRA_MUX_I2S2___2 = 40,
+	TEGRA_MUX_UARTD___2 = 41,
+	TEGRA_MUX_I2C1___2 = 42,
+	TEGRA_MUX_UARTA___2 = 43,
+	TEGRA_MUX_DIRECTDC1 = 44,
+	TEGRA_MUX_DIRECTDC = 45,
+	TEGRA_MUX_IQC1___2 = 46,
+	TEGRA_MUX_IQC2 = 47,
+	TEGRA_MUX_I2S6 = 48,
+	TEGRA_MUX_SDMMC3___2 = 49,
+	TEGRA_MUX_SDMMC1___2 = 50,
+	TEGRA_MUX_DP___2 = 51,
+	TEGRA_MUX_HDMI = 52,
+	TEGRA_MUX_PE2 = 53,
+	TEGRA_MUX_IGPU = 54,
+	TEGRA_MUX_SATA___2 = 55,
+	TEGRA_MUX_PE1___2 = 56,
+	TEGRA_MUX_PE0___2 = 57,
+	TEGRA_MUX_PE3 = 58,
+	TEGRA_MUX_PE4 = 59,
+	TEGRA_MUX_PE5 = 60,
+	TEGRA_MUX_SOC___2 = 61,
+	TEGRA_MUX_EQOS = 62,
+	TEGRA_MUX_QSPI___2 = 63,
+	TEGRA_MUX_QSPI0 = 64,
+	TEGRA_MUX_QSPI1 = 65,
+	TEGRA_MUX_MIPI = 66,
+	TEGRA_MUX_SCE = 67,
+	TEGRA_MUX_I2C5 = 68,
+	TEGRA_MUX_DISPLAYA___2 = 69,
+	TEGRA_MUX_DISPLAYB___2 = 70,
+	TEGRA_MUX_DCB = 71,
+	TEGRA_MUX_SPI1___2 = 72,
+	TEGRA_MUX_UARTB___2 = 73,
+	TEGRA_MUX_UARTE = 74,
+	TEGRA_MUX_SPI3___2 = 75,
+	TEGRA_MUX_NV = 76,
+	TEGRA_MUX_CCLA___2 = 77,
+	TEGRA_MUX_I2S5 = 78,
+	TEGRA_MUX_USB___2 = 79,
+	TEGRA_MUX_UFS0 = 80,
+	TEGRA_MUX_DGPU = 81,
+	TEGRA_MUX_SDMMC4 = 82,
+};
+
+struct acpi_gpio_info {
+	struct acpi_device *adev;
+	enum gpiod_flags flags;
+	bool gpioint;
+	int pin_config;
+	int polarity;
+	int triggering;
+	unsigned int debounce;
+	unsigned int quirks;
+};
+
+struct acpi_gpiolib_dmi_quirk {
+	bool no_edge_events_on_boot;
+	char *ignore_wake;
+	char *ignore_interrupt;
+};
+
+struct acpi_gpio_event {
+	struct list_head node;
+	acpi_handle handle;
+	irq_handler_t handler;
+	unsigned int pin;
+	unsigned int irq;
+	long unsigned int irqflags;
+	bool irq_is_wake;
+	bool irq_requested;
+	struct gpio_desc *desc;
+};
+
+struct acpi_gpio_connection {
+	struct list_head node;
+	unsigned int pin;
+	struct gpio_desc *desc;
+};
+
+struct acpi_gpio_chip {
+	struct acpi_connection_info conn_info;
+	struct list_head conns;
+	struct mutex conn_lock;
+	struct gpio_chip *chip;
+	struct list_head events;
+	struct list_head deferred_req_irqs_list_entry;
+};
+
+struct acpi_gpio_lookup {
+	struct acpi_gpio_info info;
+	int index;
+	u16 pin_index;
+	bool active_low;
+	struct gpio_desc *desc;
+	int n;
+};
+
+struct mvebu_gpio_chip;
+
+struct mvebu_pwm {
+	struct regmap *regs;
+	u32 offset;
+	long unsigned int clk_rate;
+	struct gpio_desc *gpiod;
+	struct pwm_chip chip;
+	spinlock_t lock;
+	struct mvebu_gpio_chip *mvchip;
+	u32 blink_select;
+	u32 blink_on_duration;
+	u32 blink_off_duration;
+};
+
+struct mvebu_gpio_chip {
+	struct gpio_chip chip;
+	struct regmap *regs;
+	u32 offset;
+	struct regmap *percpu_regs;
+	int irqbase;
+	struct irq_domain *domain;
+	int soc_variant;
+	struct clk *clk;
+	struct mvebu_pwm *mvpwm;
+	u32 out_reg;
+	u32 io_conf_reg;
+	u32 blink_en_reg;
+	u32 in_pol_reg;
+	u32 edge_mask_regs[4];
+	u32 level_mask_regs[4];
+};
+
+struct fsl_gpio_soc_data {
+	bool have_paddr;
+};
+
+struct vf610_gpio_port {
+	struct gpio_chip gc;
+	struct irq_chip ic;
+	void *base;
+	void *gpio_base;
+	const struct fsl_gpio_soc_data *sdata;
+	u8 irqc[32];
+	struct clk *clk_port;
+	struct clk *clk_gpio;
+	int irq;
+};
+
+struct pcie_pme_service_data {
+	spinlock_t lock;
+	struct pcie_device *srv;
+	struct work_struct work;
+	bool noirq;
+};
+
+struct hpx_type0 {
+	u32 revision;
+	u8 cache_line_size;
+	u8 latency_timer;
+	u8 enable_serr;
+	u8 enable_perr;
+};
+
+struct hpx_type1 {
+	u32 revision;
+	u8 max_mem_read;
+	u8 avg_max_split;
+	u16 tot_max_split;
+};
+
+struct hpx_type2 {
+	u32 revision;
+	u32 unc_err_mask_and;
+	u32 unc_err_mask_or;
+	u32 unc_err_sever_and;
+	u32 unc_err_sever_or;
+	u32 cor_err_mask_and;
+	u32 cor_err_mask_or;
+	u32 adv_err_cap_and;
+	u32 adv_err_cap_or;
+	u16 pci_exp_devctl_and;
+	u16 pci_exp_devctl_or;
+	u16 pci_exp_lnkctl_and;
+	u16 pci_exp_lnkctl_or;
+	u32 sec_unc_err_sever_and;
+	u32 sec_unc_err_sever_or;
+	u32 sec_unc_err_mask_and;
+	u32 sec_unc_err_mask_or;
+};
+
+struct hpx_type3 {
+	u16 device_type;
+	u16 function_type;
+	u16 config_space_location;
+	u16 pci_exp_cap_id;
+	u16 pci_exp_cap_ver;
+	u16 pci_exp_vendor_id;
+	u16 dvsec_id;
+	u16 dvsec_rev;
+	u16 match_offset;
+	u32 match_mask_and;
+	u32 match_value;
+	u16 reg_offset;
+	u32 reg_mask_and;
+	u32 reg_mask_or;
+};
+
+enum hpx_type3_dev_type {
+	HPX_TYPE_ENDPOINT = 1,
+	HPX_TYPE_LEG_END = 2,
+	HPX_TYPE_RC_END = 4,
+	HPX_TYPE_RC_EC = 8,
+	HPX_TYPE_ROOT_PORT = 16,
+	HPX_TYPE_UPSTREAM = 32,
+	HPX_TYPE_DOWNSTREAM = 64,
+	HPX_TYPE_PCI_BRIDGE = 128,
+	HPX_TYPE_PCIE_BRIDGE = 256,
+};
+
+enum hpx_type3_fn_type {
+	HPX_FN_NORMAL = 1,
+	HPX_FN_SRIOV_PHYS = 2,
+	HPX_FN_SRIOV_VIRT = 4,
+};
+
+enum hpx_type3_cfg_loc {
+	HPX_CFG_PCICFG = 0,
+	HPX_CFG_PCIE_CAP = 1,
+	HPX_CFG_PCIE_CAP_EXT = 2,
+	HPX_CFG_VEND_CAP = 3,
+	HPX_CFG_DVSEC = 4,
+	HPX_CFG_MAX = 5,
+};
+
+enum xilinx_cpm_version {
+	CPM = 0,
+	CPM5 = 1,
+};
+
+struct xilinx_cpm_variant {
+	enum xilinx_cpm_version version;
+};
+
+struct xilinx_cpm_pcie {
+	struct device *dev;
+	void *reg_base;
+	void *cpm_base;
+	struct irq_domain *intx_domain;
+	struct irq_domain *cpm_domain;
+	struct pci_config_window *cfg;
+	int intx_irq;
+	int irq;
+	raw_spinlock_t lock;
+	const struct xilinx_cpm_variant *variant;
+};
+
+struct armada8k_pcie {
+	struct dw_pcie *pci;
+	struct clk *clk;
+	struct clk *clk_reg;
+	struct phy *phy[4];
+	unsigned int phy_count;
+};
+
+enum {
+	CMD_UPHY_PCIE_LANE_MARGIN_CONTROL = 1,
+	CMD_UPHY_PCIE_LANE_MARGIN_STATUS = 2,
+	CMD_UPHY_PCIE_EP_CONTROLLER_PLL_INIT = 3,
+	CMD_UPHY_PCIE_CONTROLLER_STATE = 4,
+	CMD_UPHY_PCIE_EP_CONTROLLER_PLL_OFF = 5,
+	CMD_UPHY_MAX = 6,
+};
+
+struct cmd_uphy_margin_control_request {
+	int32_t en;
+	int32_t clr;
+	uint32_t x;
+	uint32_t y;
+	uint32_t nblks;
+};
+
+struct cmd_uphy_margin_status_response {
+	uint32_t status;
+};
+
+struct cmd_uphy_ep_controller_pll_init_request {
+	uint8_t ep_controller;
+};
+
+struct cmd_uphy_pcie_controller_state_request {
+	uint8_t pcie_controller;
+	uint8_t enable;
+};
+
+struct cmd_uphy_ep_controller_pll_off_request {
+	uint8_t ep_controller;
+};
+
+struct mrq_uphy_request {
+	uint16_t lane;
+	uint16_t cmd;
+	union {
+		struct cmd_uphy_margin_control_request uphy_set_margin_control;
+		struct cmd_uphy_ep_controller_pll_init_request ep_ctrlr_pll_init;
+		struct cmd_uphy_pcie_controller_state_request controller_state;
+		struct cmd_uphy_ep_controller_pll_off_request ep_ctrlr_pll_off;
+	};
+};
+
+struct mrq_uphy_response {
+	union {
+		struct cmd_uphy_margin_status_response uphy_get_margin_status;
+	};
+};
+
+struct tegra_pcie_dw_of_data {
+	u32 version;
+	enum dw_pcie_device_mode mode;
+	bool has_msix_doorbell_access_fix;
+	bool has_sbr_reset_fix;
+	bool has_l1ss_exit_fix;
+	bool has_ltr_req_fix;
+	u32 cdm_chk_int_en_bit;
+	u32 gen4_preset_vec;
+	u8 n_fts[2];
+};
+
+struct tegra_pcie_dw {
+	struct device *dev;
+	struct resource *appl_res;
+	struct resource *dbi_res;
+	struct resource *atu_dma_res;
+	void *appl_base;
+	struct clk *core_clk;
+	struct reset_control *core_apb_rst;
+	struct reset_control *core_rst;
+	struct dw_pcie pci;
+	struct tegra_bpmp *bpmp;
+	struct tegra_pcie_dw_of_data *of_data;
+	bool supports_clkreq;
+	bool enable_cdm_check;
+	bool enable_srns;
+	bool link_state;
+	bool update_fc_fixup;
+	bool enable_ext_refclk;
+	u8 init_link_width;
+	u32 msi_ctrl_int;
+	u32 num_lanes;
+	u32 cid;
+	u32 cfg_link_cap_l1sub;
+	u32 ras_des_cap;
+	u32 pcie_cap_base;
+	u32 aspm_cmrt;
+	u32 aspm_pwr_on_t;
+	u32 aspm_l0s_enter_lat;
+	struct regulator *pex_ctl_supply;
+	struct regulator *slot_ctl_3v3;
+	struct regulator *slot_ctl_12v;
+	unsigned int phy_count;
+	struct phy **phys;
+	struct dentry *debugfs;
+	struct gpio_desc *pex_rst_gpiod;
+	struct gpio_desc *pex_refclk_sel_gpiod;
+	unsigned int pex_rst_irq;
+	int ep_state;
+};
+
+struct acpi_madt_local_apic {
+	struct acpi_subtable_header header;
+	u8 processor_id;
+	u8 id;
+	u32 lapic_flags;
+};
+
+struct acpi_madt_io_apic {
+	struct acpi_subtable_header header;
+	u8 id;
+	u8 reserved;
+	u32 address;
+	u32 global_irq_base;
+};
+
+struct acpi_madt_interrupt_override {
+	struct acpi_subtable_header header;
+	u8 bus;
+	u8 source_irq;
+	u32 global_irq;
+	u16 inti_flags;
+} __attribute__((packed));
+
+struct acpi_madt_nmi_source {
+	struct acpi_subtable_header header;
+	u16 inti_flags;
+	u32 global_irq;
+};
+
+struct acpi_madt_local_apic_nmi {
+	struct acpi_subtable_header header;
+	u8 processor_id;
+	u16 inti_flags;
+	u8 lint;
+} __attribute__((packed));
+
+struct acpi_madt_local_apic_override {
+	struct acpi_subtable_header header;
+	u16 reserved;
+	u64 address;
+} __attribute__((packed));
+
+struct acpi_madt_io_sapic {
+	struct acpi_subtable_header header;
+	u8 id;
+	u8 reserved;
+	u32 global_irq_base;
+	u64 address;
+};
+
+struct acpi_madt_local_sapic {
+	struct acpi_subtable_header header;
+	u8 processor_id;
+	u8 id;
+	u8 eid;
+	u8 reserved[3];
+	u32 lapic_flags;
+	u32 uid;
+	char uid_string[1];
+} __attribute__((packed));
+
+struct acpi_madt_interrupt_source {
+	struct acpi_subtable_header header;
+	u16 inti_flags;
+	u8 type;
+	u8 id;
+	u8 eid;
+	u8 io_sapic_vector;
+	u32 global_irq;
+	u32 flags;
+};
+
+struct acpi_madt_local_x2apic {
+	struct acpi_subtable_header header;
+	u16 reserved;
+	u32 local_apic_id;
+	u32 lapic_flags;
+	u32 uid;
+};
+
+struct acpi_madt_local_x2apic_nmi {
+	struct acpi_subtable_header header;
+	u16 inti_flags;
+	u32 uid;
+	u8 lint;
+	u8 reserved[3];
+};
+
+struct cpio_data {
+	void *data;
+	size_t size;
+	char name[18];
+};
+
+enum acpi_subtable_type {
+	ACPI_SUBTABLE_COMMON = 0,
+	ACPI_SUBTABLE_HMAT = 1,
+	ACPI_SUBTABLE_PRMT = 2,
+	ACPI_SUBTABLE_CEDT = 3,
+};
+
+struct acpi_subtable_entry {
+	union acpi_subtable_headers *hdr;
+	enum acpi_subtable_type type;
+};
+
+struct acpi_device_physical_node {
+	unsigned int node_id;
+	struct list_head node;
+	struct device *dev;
+	bool put_online: 1;
+};
+
+struct find_child_walk_data {
+	struct acpi_device *adev;
+	u64 address;
+	int score;
+	bool check_sta;
+	bool check_children;
+};
+
+struct dock_station {
+	acpi_handle handle;
+	long unsigned int last_dock_time;
+	u32 flags;
+	struct list_head dependent_devices;
+	struct list_head sibling;
+	struct platform_device *dock_device;
+};
+
+struct dock_dependent_device {
+	struct list_head list;
+	struct acpi_device *adev;
+};
+
+enum dock_callback_type {
+	DOCK_CALL_HANDLER = 0,
+	DOCK_CALL_FIXUP = 1,
+	DOCK_CALL_UEVENT = 2,
+};
+
+typedef u32 acpi_name;
+
+typedef acpi_status (*acpi_exception_handler)(acpi_status, acpi_name, u16, u32, void *);
+
+struct acpi_mem_mapping {
+	acpi_physical_address physical_address;
+	u8 *logical_address;
+	acpi_size length;
+	struct acpi_mem_mapping *next_mm;
+};
+
+struct acpi_mem_space_context {
+	u32 length;
+	acpi_physical_address address;
+	struct acpi_mem_mapping *cur_mm;
+	struct acpi_mem_mapping *first_mm;
+};
+
+struct acpi_data_table_space_context {
+	void *pointer;
+};
+
+struct acpi_signal_fatal_info {
+	u32 type;
+	u32 code;
+	u32 argument;
+};
+
+struct acpi_device_info {
+	u32 info_size;
+	u32 name;
+	acpi_object_type type;
+	u8 param_count;
+	u16 valid;
+	u8 flags;
+	u8 highest_dstates[4];
+	u8 lowest_dstates[5];
+	u64 address;
+	struct acpi_pnp_device_id hardware_id;
+	struct acpi_pnp_device_id unique_id;
+	struct acpi_pnp_device_id class_code;
+	struct acpi_pnp_device_id_list compatible_id_list;
+};
+
+struct acpi_exception_info {
+	char *name;
+};
+
+struct acpi_predefined_names {
+	const char *name;
+	u8 type;
+	char *val;
+};
+
+typedef u32 (*acpi_sci_handler)(void *);
+
+typedef acpi_status (*acpi_init_handler)(acpi_handle, u32);
+
+typedef u32 (*acpi_interface_handler)(acpi_string, u32);
+
+struct acpi_mutex_info {
+	void *mutex;
+	u32 use_count;
+	u64 thread_id;
+};
+
+struct acpi_sci_handler_info {
+	struct acpi_sci_handler_info *next;
+	acpi_sci_handler address;
+	void *context;
+};
+
+struct acpi_address_range {
+	struct acpi_address_range *next;
+	struct acpi_namespace_node *region_node;
+	acpi_physical_address start_address;
+	acpi_physical_address end_address;
+};
+
+struct acpi_comment_node {
+	char *comment;
+	struct acpi_comment_node *next;
+};
+
+struct acpi_interface_info {
+	char *name;
+	struct acpi_interface_info *next;
+	u8 flags;
+	u8 value;
+};
+
+typedef acpi_status (*acpi_walk_aml_callback)(u8 *, u32, u32, u8, void **);
+
+struct acpi_fan_fps {
+	u64 control;
+	u64 trip_point;
+	u64 speed;
+	u64 noise_level;
+	u64 power;
+	char name[20];
+	struct device_attribute dev_attr;
+};
+
+struct acpi_fan_fif {
+	u8 revision;
+	u8 fine_grain_ctrl;
+	u8 step_size;
+	u8 low_speed_notification;
+};
+
+struct acpi_fan_fst {
+	u64 revision;
+	u64 control;
+	u64 speed;
+};
+
+struct acpi_fan {
+	bool acpi4;
+	struct acpi_fan_fif fif;
+	struct acpi_fan_fps *fps;
+	int fps_count;
+	struct thermal_cooling_device *cdev;
+	struct device_attribute fst_speed;
+	struct device_attribute fine_grain_control;
+};
+
+struct acpi_handle_list {
+	u32 count;
+	acpi_handle handles[10];
+};
+
+struct acpi_thermal_state {
+	u8 critical: 1;
+	u8 hot: 1;
+	u8 passive: 1;
+	u8 active: 1;
+	u8 reserved: 4;
+	int active_index;
+};
+
+struct acpi_thermal_state_flags {
+	u8 valid: 1;
+	u8 enabled: 1;
+	u8 reserved: 6;
+};
+
+struct acpi_thermal_critical {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+};
+
+struct acpi_thermal_hot {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+};
+
+struct acpi_thermal_passive {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+	long unsigned int tc1;
+	long unsigned int tc2;
+	long unsigned int tsp;
+	struct acpi_handle_list devices;
+};
+
+struct acpi_thermal_active {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+	struct acpi_handle_list devices;
+};
+
+struct acpi_thermal_trips {
+	struct acpi_thermal_critical critical;
+	struct acpi_thermal_hot hot;
+	struct acpi_thermal_passive passive;
+	struct acpi_thermal_active active[10];
+};
+
+struct acpi_thermal_flags {
+	u8 cooling_mode: 1;
+	u8 devices: 1;
+	u8 reserved: 6;
+};
+
+struct acpi_thermal {
+	struct acpi_device *device;
+	acpi_bus_id name;
+	long unsigned int temperature;
+	long unsigned int last_temperature;
+	long unsigned int polling_frequency;
+	volatile u8 zombie;
+	struct acpi_thermal_flags flags;
+	struct acpi_thermal_state state;
+	struct acpi_thermal_trips trips;
+	struct acpi_handle_list devices;
+	struct thermal_zone_device *thermal_zone;
+	int kelvin_offset;
+	struct work_struct thermal_check_work;
+	struct mutex thermal_check_lock;
+	refcount_t thermal_check_count;
+};
+
+struct acpi_table_hest {
+	struct acpi_table_header header;
+	u32 error_source_count;
+};
+
+enum acpi_hest_types {
+	ACPI_HEST_TYPE_IA32_CHECK = 0,
+	ACPI_HEST_TYPE_IA32_CORRECTED_CHECK = 1,
+	ACPI_HEST_TYPE_IA32_NMI = 2,
+	ACPI_HEST_TYPE_NOT_USED3 = 3,
+	ACPI_HEST_TYPE_NOT_USED4 = 4,
+	ACPI_HEST_TYPE_NOT_USED5 = 5,
+	ACPI_HEST_TYPE_AER_ROOT_PORT = 6,
+	ACPI_HEST_TYPE_AER_ENDPOINT = 7,
+	ACPI_HEST_TYPE_AER_BRIDGE = 8,
+	ACPI_HEST_TYPE_GENERIC_ERROR = 9,
+	ACPI_HEST_TYPE_GENERIC_ERROR_V2 = 10,
+	ACPI_HEST_TYPE_IA32_DEFERRED_CHECK = 11,
+	ACPI_HEST_TYPE_RESERVED = 12,
+};
+
+struct acpi_hest_notify {
+	u8 type;
+	u8 length;
+	u16 config_write_enable;
+	u32 poll_interval;
+	u32 vector;
+	u32 polling_threshold_value;
+	u32 polling_threshold_window;
+	u32 error_threshold_value;
+	u32 error_threshold_window;
+};
+
+struct acpi_hest_ia_machine_check {
+	struct acpi_hest_header header;
+	u16 reserved1;
+	u8 flags;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	u64 global_capability_data;
+	u64 global_control_data;
+	u8 num_hardware_banks;
+	u8 reserved3[7];
+};
+
+struct acpi_hest_ia_corrected {
+	struct acpi_hest_header header;
+	u16 reserved1;
+	u8 flags;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	struct acpi_hest_notify notify;
+	u8 num_hardware_banks;
+	u8 reserved2[3];
+};
+
+struct acpi_hest_generic {
+	struct acpi_hest_header header;
+	u16 related_source_id;
+	u8 reserved;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	u32 max_raw_data_length;
+	struct acpi_generic_address error_status_address;
+	struct acpi_hest_notify notify;
+	u32 error_block_length;
+} __attribute__((packed));
+
+struct acpi_hest_ia_deferred_check {
+	struct acpi_hest_header header;
+	u16 reserved1;
+	u8 flags;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	struct acpi_hest_notify notify;
+	u8 num_hardware_banks;
+	u8 reserved2[3];
+};
+
+enum hest_status {
+	HEST_ENABLED = 0,
+	HEST_DISABLED = 1,
+	HEST_NOT_FOUND = 2,
+};
+
+typedef int (*apei_hest_func_t)(struct acpi_hest_header *, void *);
+
+struct ghes_arr {
+	struct platform_device **ghes_devs;
+	unsigned int count;
+};
+
+struct pnp_fixup {
+	char id[7];
+	void (*quirk_function)(struct pnp_dev *);
+};
+
+struct clk_lookup_alloc {
+	struct clk_lookup cl;
+	char dev_id[20];
+	char con_id[16];
+};
+
+struct ccsr_guts {
+	u32 porpllsr;
+	u32 porbmsr;
+	u32 porimpscr;
+	u32 pordevsr;
+	u32 pordbgmsr;
+	u32 pordevsr2;
+	u8 res018[8];
+	u32 porcir;
+	u8 res024[12];
+	u32 gpiocr;
+	u8 res034[12];
+	u32 gpoutdr;
+	u8 res044[12];
+	u32 gpindr;
+	u8 res054[12];
+	u32 pmuxcr;
+	u32 pmuxcr2;
+	u32 dmuxcr;
+	u8 res06c[4];
+	u32 devdisr;
+	u32 devdisr2;
+	u8 res078[4];
+	u32 pmjcr;
+	u32 powmgtcsr;
+	u32 pmrccr;
+	u32 pmpdccr;
+	u32 pmcdr;
+	u32 mcpsumr;
+	u32 rstrscr;
+	u32 ectrstcr;
+	u32 autorstsr;
+	u32 pvr;
+	u32 svr;
+	u8 res0a8[8];
+	u32 rstcr;
+	u8 res0b4[12];
+	u32 iovselsr;
+	u8 res0c4[60];
+	u32 rcwsr[16];
+	u8 res140[228];
+	u32 iodelay1;
+	u32 iodelay2;
+	u8 res22c[984];
+	u32 pamubypenr;
+	u8 res608[504];
+	u32 clkdvdr;
+	u8 res804[252];
+	u32 ircr;
+	u8 res904[4];
+	u32 dmacr;
+	u8 res90c[8];
+	u32 elbccr;
+	u8 res918[520];
+	u32 ddr1clkdr;
+	u32 ddr2clkdr;
+	u32 ddrclkdr;
+	u8 resb2c[724];
+	u32 clkocr;
+	u8 rese04[12];
+	u32 ddrdllcr;
+	u8 rese14[12];
+	u32 lbcdllcr;
+	u32 cpfor;
+	u8 rese28[220];
+	u32 srds1cr0;
+	u32 srds1cr1;
+	u8 resf0c[32];
+	u32 itcr;
+	u8 resf30[16];
+	u32 srds2cr0;
+	u32 srds2cr1;
+};
+
+struct clockgen_pll_div {
+	struct clk *clk;
+	char name[32];
+};
+
+struct clockgen_pll {
+	struct clockgen_pll_div div[32];
+};
+
+struct clockgen_sourceinfo {
+	u32 flags;
+	int pll;
+	int div;
+};
+
+struct clockgen_muxinfo {
+	struct clockgen_sourceinfo clksel[16];
+};
+
+struct clockgen;
+
+struct clockgen_chipinfo {
+	const char *compat;
+	const char *guts_compat;
+	const struct clockgen_muxinfo *cmux_groups[2];
+	const struct clockgen_muxinfo *hwaccel[5];
+	void (*init_periph)(struct clockgen *);
+	int cmux_to_group[9];
+	u32 pll_mask;
+	u32 flags;
+};
+
+struct clockgen {
+	struct device_node *node;
+	void *regs;
+	struct clockgen_chipinfo info;
+	struct clk *sysclk;
+	struct clk *coreclk;
+	struct clockgen_pll pll[6];
+	struct clk *cmux[8];
+	struct clk *hwaccel[5];
+	struct clk *fman[2];
+	struct ccsr_guts *guts;
+};
+
+struct mux_hwclock {
+	struct clk_hw hw;
+	struct clockgen *cg;
+	const struct clockgen_muxinfo *info;
+	u32 *reg;
+	u8 parent_to_clksel[16];
+	s8 clksel_to_parent[16];
+	int num_parents;
+};
+
+struct clkgate_separated {
+	struct clk_hw hw;
+	void *enable;
+	u8 bit_idx;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct hi6220_clk_divider {
+	struct clk_hw hw;
+	void *reg;
+	u8 shift;
+	u8 width;
+	u32 mask;
+	const struct clk_div_table *table;
+	spinlock_t *lock;
+};
+
+struct hisi_phase_clock {
+	unsigned int id;
+	const char *name;
+	const char *parent_names;
+	long unsigned int flags;
+	long unsigned int offset;
+	u8 shift;
+	u8 width;
+	u32 *phase_degrees;
+	u32 *phase_regvals;
+	u8 phase_num;
+};
+
+struct clk_hisi_phase {
+	struct clk_hw hw;
+	void *reg;
+	u32 *phase_degrees;
+	u32 *phase_regvals;
+	u8 phase_num;
+	u32 mask;
+	u8 shift;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct imx_clk_scu_rsrc_table {
+	const u32 *rsrc;
+	u8 num;
+};
+
+struct clk_lpcg_scu {
+	struct clk_hw hw;
+	void *reg;
+	u8 bit_idx;
+	bool hw_gate;
+	u32 state;
+};
+
+struct meson_aoclk_data {
+	const unsigned int reset_reg;
+	const int num_reset;
+	const unsigned int *reset;
+	const int num_clks;
+	struct clk_regmap **clks;
+	const struct clk_hw_onecell_data *hw_data;
+};
+
+struct meson_clk_dualdiv_param {
+	unsigned int n1;
+	unsigned int n2;
+	unsigned int m1;
+	unsigned int m2;
+	unsigned int dual;
+};
+
+struct meson_clk_dualdiv_data {
+	struct parm n1;
+	struct parm n2;
+	struct parm m1;
+	struct parm m2;
+	struct parm dual;
+	const struct meson_clk_dualdiv_param *table;
+};
+
+struct clk_periph_driver_data {
+	struct clk_hw_onecell_data *hw_data;
+	spinlock_t lock;
+	void *reg;
+	u32 tbg_sel;
+	u32 div_sel0;
+	u32 div_sel1;
+	u32 div_sel2;
+	u32 clk_sel;
+	u32 clk_dis;
+};
+
+struct clk_double_div {
+	struct clk_hw hw;
+	void *reg1;
+	u8 shift1;
+	void *reg2;
+	u8 shift2;
+};
+
+struct clk_pm_cpu {
+	struct clk_hw hw;
+	void *reg_mux;
+	u8 shift_mux;
+	u32 mask_mux;
+	void *reg_div;
+	u8 shift_div;
+	struct regmap *nb_pm_base;
+	long unsigned int l1_expiration;
+};
+
+struct clk_periph_data {
+	const char *name;
+	const char * const *parent_names;
+	int num_parents;
+	struct clk_hw *mux_hw;
+	struct clk_hw *rate_hw;
+	struct clk_hw *gate_hw;
+	struct clk_hw *muxrate_hw;
+	bool is_double_div;
+};
+
+struct clk_regmap_mux {
+	u32 reg;
+	u32 shift;
+	u32 width;
+	const struct parent_map *parent_map;
+	struct clk_regmap___2 clkr;
+};
+
+struct qcom_reset_controller {
+	const struct qcom_reset_map *reset_map;
+	struct regmap *regmap;
+	struct reset_controller_dev rcdev;
+};
+
+enum {
+	P_XO___2 = 0,
+	P_GPLL0___2 = 1,
+	P_GPLL1 = 2,
+	P_GPLL4___2 = 3,
+	P_PCIE_0_1_PIPE_CLK = 4,
+	P_SATA_ASIC0_CLK = 5,
+	P_SATA_RX_CLK = 6,
+	P_SLEEP_CLK___2 = 7,
+};
+
+struct clk_rcg_dfs_data {
+	struct clk_rcg2 *rcg;
+	struct clk_init_data *init;
+};
+
+enum {
+	P_BI_TCXO = 0,
+	P_CORE_BI_PLL_TEST_SE = 1,
+	P_GPLL0_OUT_EVEN = 2,
+	P_GPLL0_OUT_MAIN = 3,
+	P_GPLL1_OUT_MAIN = 4,
+	P_GPLL4_OUT_MAIN = 5,
+	P_GPLL6_OUT_MAIN = 6,
+	P_GPLL7_OUT_MAIN = 7,
+	P_SLEEP_CLK___3 = 8,
+};
+
+enum rk3568_pmu_plls {
+	ppll = 0,
+	hpll = 1,
+};
+
+enum rk3568_plls {
+	apll___2 = 0,
+	dpll___3 = 1,
+	gpll___3 = 2,
+	cpll___3 = 3,
+	npll___3 = 4,
+	vpll = 5,
+};
+
+struct clk_rk3568_inits {
+	void (*inits)(struct device_node *);
+};
+
+struct ccu_nk {
+	u16 reg;
+	u32 enable;
+	u32 lock;
+	struct ccu_mult_internal n;
+	struct ccu_mult_internal k;
+	unsigned int fixed_post_div;
+	struct ccu_common common;
+};
+
+struct ccu_nkm {
+	u32 enable;
+	u32 lock;
+	struct ccu_mult_internal n;
+	struct ccu_mult_internal k;
+	struct ccu_div_internal m;
+	struct ccu_mux_internal mux;
+	unsigned int fixed_post_div;
+	struct ccu_common common;
+};
+
+struct ccu_phase {
+	u8 shift;
+	u8 width;
+	struct ccu_common common;
+};
+
+struct tegra_clk_periph_fixed {
+	struct clk_hw hw;
+	void *base;
+	const struct tegra_clk_periph_regs *regs;
+	unsigned int mul;
+	unsigned int div;
+	unsigned int num;
+};
+
+struct tegra_clk_pll_out {
+	struct clk_hw hw;
+	void *reg;
+	u8 enb_bit_idx;
+	u8 rst_bit_idx;
+	spinlock_t *lock;
+	u8 flags;
+};
+
+struct tegra_clk_frac_div {
+	struct clk_hw hw;
+	void *reg;
+	u8 flags;
+	u8 shift;
+	u8 width;
+	u8 frac_width;
+	spinlock_t *lock;
+};
+
+struct tegra_clk_super_mux {
+	struct clk_hw hw;
+	void *reg;
+	struct tegra_clk_frac_div frac_div;
+	const struct clk_ops *div_ops;
+	u8 width;
+	u8 flags;
+	u8 div2_index;
+	u8 pllx_index;
+	spinlock_t *lock;
+};
+
+struct tegra_clk_pll_freq_table {
+	long unsigned int input_rate;
+	long unsigned int output_rate;
+	u32 n;
+	u32 m;
+	u8 p;
+	u8 cpcon;
+	u16 sdm_data;
+};
+
+struct pdiv_map {
+	u8 pdiv;
+	u8 hw_val;
+};
+
+struct div_nmp {
+	u8 divn_shift;
+	u8 divn_width;
+	u8 divm_shift;
+	u8 divm_width;
+	u8 divp_shift;
+	u8 divp_width;
+	u8 override_divn_shift;
+	u8 override_divm_shift;
+	u8 override_divp_shift;
+};
+
+struct tegra_clk_pll;
+
+struct tegra_clk_pll_params {
+	long unsigned int input_min;
+	long unsigned int input_max;
+	long unsigned int cf_min;
+	long unsigned int cf_max;
+	long unsigned int vco_min;
+	long unsigned int vco_max;
+	u32 base_reg;
+	u32 misc_reg;
+	u32 lock_reg;
+	u32 lock_mask;
+	u32 lock_enable_bit_idx;
