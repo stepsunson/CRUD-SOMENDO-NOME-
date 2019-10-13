@@ -123426,3 +123426,2073 @@ struct trace_event_raw_writeback_dirty_inode_template {
 
 struct trace_event_raw_inode_foreign_history {
 	struct trace_entry ent;
+	char name[32];
+	ino_t ino;
+	ino_t cgroup_ino;
+	unsigned int history;
+	char __data[0];
+};
+
+struct trace_event_raw_inode_switch_wbs {
+	struct trace_entry ent;
+	char name[32];
+	ino_t ino;
+	ino_t old_cgroup_ino;
+	ino_t new_cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_track_foreign_dirty {
+	struct trace_entry ent;
+	char name[32];
+	u64 bdi_id;
+	ino_t ino;
+	unsigned int memcg_id;
+	ino_t cgroup_ino;
+	ino_t page_cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_flush_foreign {
+	struct trace_entry ent;
+	char name[32];
+	ino_t cgroup_ino;
+	unsigned int frn_bdi_id;
+	unsigned int frn_memcg_id;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_write_inode_template {
+	struct trace_entry ent;
+	char name[32];
+	ino_t ino;
+	int sync_mode;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_work_class {
+	struct trace_entry ent;
+	char name[32];
+	long int nr_pages;
+	dev_t sb_dev;
+	int sync_mode;
+	int for_kupdate;
+	int range_cyclic;
+	int for_background;
+	int reason;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_pages_written {
+	struct trace_entry ent;
+	long int pages;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_class {
+	struct trace_entry ent;
+	char name[32];
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_bdi_register {
+	struct trace_entry ent;
+	char name[32];
+	char __data[0];
+};
+
+struct trace_event_raw_wbc_class {
+	struct trace_entry ent;
+	char name[32];
+	long int nr_to_write;
+	long int pages_skipped;
+	int sync_mode;
+	int for_kupdate;
+	int for_background;
+	int for_reclaim;
+	int range_cyclic;
+	long int range_start;
+	long int range_end;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_queue_io {
+	struct trace_entry ent;
+	char name[32];
+	long unsigned int older;
+	long int age;
+	int moved;
+	int reason;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_global_dirty_state {
+	struct trace_entry ent;
+	long unsigned int nr_dirty;
+	long unsigned int nr_writeback;
+	long unsigned int background_thresh;
+	long unsigned int dirty_thresh;
+	long unsigned int dirty_limit;
+	long unsigned int nr_dirtied;
+	long unsigned int nr_written;
+	char __data[0];
+};
+
+struct trace_event_raw_bdi_dirty_ratelimit {
+	struct trace_entry ent;
+	char bdi[32];
+	long unsigned int write_bw;
+	long unsigned int avg_write_bw;
+	long unsigned int dirty_rate;
+	long unsigned int dirty_ratelimit;
+	long unsigned int task_ratelimit;
+	long unsigned int balanced_dirty_ratelimit;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_balance_dirty_pages {
+	struct trace_entry ent;
+	char bdi[32];
+	long unsigned int limit;
+	long unsigned int setpoint;
+	long unsigned int dirty;
+	long unsigned int bdi_setpoint;
+	long unsigned int bdi_dirty;
+	long unsigned int dirty_ratelimit;
+	long unsigned int task_ratelimit;
+	unsigned int dirtied;
+	unsigned int dirtied_pause;
+	long unsigned int paused;
+	long int pause;
+	long unsigned int period;
+	long int think;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_sb_inodes_requeue {
+	struct trace_entry ent;
+	char name[32];
+	ino_t ino;
+	long unsigned int state;
+	long unsigned int dirtied_when;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_single_inode_template {
+	struct trace_entry ent;
+	char name[32];
+	ino_t ino;
+	long unsigned int state;
+	long unsigned int dirtied_when;
+	long unsigned int writeback_index;
+	long int nr_to_write;
+	long unsigned int wrote;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_inode_template {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	long unsigned int state;
+	__u16 mode;
+	long unsigned int dirtied_when;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_writeback_folio_template {};
+
+struct trace_event_data_offsets_writeback_dirty_inode_template {};
+
+struct trace_event_data_offsets_inode_foreign_history {};
+
+struct trace_event_data_offsets_inode_switch_wbs {};
+
+struct trace_event_data_offsets_track_foreign_dirty {};
+
+struct trace_event_data_offsets_flush_foreign {};
+
+struct trace_event_data_offsets_writeback_write_inode_template {};
+
+struct trace_event_data_offsets_writeback_work_class {};
+
+struct trace_event_data_offsets_writeback_pages_written {};
+
+struct trace_event_data_offsets_writeback_class {};
+
+struct trace_event_data_offsets_writeback_bdi_register {};
+
+struct trace_event_data_offsets_wbc_class {};
+
+struct trace_event_data_offsets_writeback_queue_io {};
+
+struct trace_event_data_offsets_global_dirty_state {};
+
+struct trace_event_data_offsets_bdi_dirty_ratelimit {};
+
+struct trace_event_data_offsets_balance_dirty_pages {};
+
+struct trace_event_data_offsets_writeback_sb_inodes_requeue {};
+
+struct trace_event_data_offsets_writeback_single_inode_template {};
+
+struct trace_event_data_offsets_writeback_inode_template {};
+
+typedef void (*btf_trace_writeback_dirty_folio)(void *, struct folio *, struct address_space *);
+
+typedef void (*btf_trace_folio_wait_writeback)(void *, struct folio *, struct address_space *);
+
+typedef void (*btf_trace_writeback_mark_inode_dirty)(void *, struct inode *, int);
+
+typedef void (*btf_trace_writeback_dirty_inode_start)(void *, struct inode *, int);
+
+typedef void (*btf_trace_writeback_dirty_inode)(void *, struct inode *, int);
+
+typedef void (*btf_trace_inode_foreign_history)(void *, struct inode *, struct writeback_control *, unsigned int);
+
+typedef void (*btf_trace_inode_switch_wbs)(void *, struct inode *, struct bdi_writeback *, struct bdi_writeback *);
+
+typedef void (*btf_trace_track_foreign_dirty)(void *, struct folio *, struct bdi_writeback *);
+
+typedef void (*btf_trace_flush_foreign)(void *, struct bdi_writeback *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_writeback_write_inode_start)(void *, struct inode *, struct writeback_control *);
+
+typedef void (*btf_trace_writeback_write_inode)(void *, struct inode *, struct writeback_control *);
+
+typedef void (*btf_trace_writeback_queue)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_exec)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_start)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_written)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_wait)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_pages_written)(void *, long int);
+
+typedef void (*btf_trace_writeback_wake_background)(void *, struct bdi_writeback *);
+
+typedef void (*btf_trace_writeback_bdi_register)(void *, struct backing_dev_info *);
+
+typedef void (*btf_trace_wbc_writepage)(void *, struct writeback_control *, struct backing_dev_info *);
+
+typedef void (*btf_trace_writeback_queue_io)(void *, struct bdi_writeback *, struct wb_writeback_work *, long unsigned int, int);
+
+typedef void (*btf_trace_global_dirty_state)(void *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_bdi_dirty_ratelimit)(void *, struct bdi_writeback *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_balance_dirty_pages)(void *, struct bdi_writeback *, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long int, long unsigned int);
+
+typedef void (*btf_trace_writeback_sb_inodes_requeue)(void *, struct inode *);
+
+typedef void (*btf_trace_writeback_single_inode_start)(void *, struct inode *, struct writeback_control *, long unsigned int);
+
+typedef void (*btf_trace_writeback_single_inode)(void *, struct inode *, struct writeback_control *, long unsigned int);
+
+typedef void (*btf_trace_writeback_lazytime)(void *, struct inode *);
+
+typedef void (*btf_trace_writeback_lazytime_iput)(void *, struct inode *);
+
+typedef void (*btf_trace_writeback_dirty_inode_enqueue)(void *, struct inode *);
+
+typedef void (*btf_trace_sb_mark_inode_writeback)(void *, struct inode *);
+
+typedef void (*btf_trace_sb_clear_inode_writeback)(void *, struct inode *);
+
+struct inode_switch_wbs_context {
+	struct rcu_work work;
+	struct bdi_writeback *new_wb;
+	struct inode *inodes[0];
+};
+
+typedef int dio_iodone_t(struct kiocb *, loff_t, ssize_t, void *);
+
+typedef void dio_submit_t(struct bio *, struct inode *, loff_t);
+
+enum {
+	DIO_LOCKING = 1,
+	DIO_SKIP_HOLES = 2,
+};
+
+struct dio_submit {
+	struct bio *bio;
+	unsigned int blkbits;
+	unsigned int blkfactor;
+	unsigned int start_zero_done;
+	int pages_in_io;
+	sector_t block_in_file;
+	unsigned int blocks_available;
+	int reap_counter;
+	sector_t final_block_in_request;
+	int boundary;
+	get_block_t *get_block;
+	dio_submit_t *submit_io;
+	loff_t logical_offset_in_bio;
+	sector_t final_block_in_bio;
+	sector_t next_block_for_io;
+	struct page *cur_page;
+	unsigned int cur_page_offset;
+	unsigned int cur_page_len;
+	sector_t cur_page_block;
+	loff_t cur_page_fs_offset;
+	struct iov_iter *iter;
+	unsigned int head;
+	unsigned int tail;
+	size_t from;
+	size_t to;
+};
+
+struct dio {
+	int flags;
+	blk_opf_t opf;
+	struct gendisk *bio_disk;
+	struct inode *inode;
+	loff_t i_size;
+	dio_iodone_t *end_io;
+	void *private;
+	spinlock_t bio_lock;
+	int page_errors;
+	int is_async;
+	bool defer_completion;
+	bool should_dirty;
+	int io_error;
+	long unsigned int refcount;
+	struct bio *bio_list;
+	struct task_struct *waiter;
+	struct kiocb *iocb;
+	ssize_t result;
+	union {
+		struct page *pages[64];
+		struct work_struct complete_work;
+	};
+	long: 64;
+	long: 64;
+};
+
+typedef u32 compat_aio_context_t;
+
+struct kioctx;
+
+struct kioctx_table {
+	struct callback_head rcu;
+	unsigned int nr;
+	struct kioctx *table[0];
+};
+
+typedef __kernel_ulong_t aio_context_t;
+
+enum {
+	IOCB_CMD_PREAD = 0,
+	IOCB_CMD_PWRITE = 1,
+	IOCB_CMD_FSYNC = 2,
+	IOCB_CMD_FDSYNC = 3,
+	IOCB_CMD_POLL = 5,
+	IOCB_CMD_NOOP = 6,
+	IOCB_CMD_PREADV = 7,
+	IOCB_CMD_PWRITEV = 8,
+};
+
+struct io_event {
+	__u64 data;
+	__u64 obj;
+	__s64 res;
+	__s64 res2;
+};
+
+struct iocb {
+	__u64 aio_data;
+	__u32 aio_key;
+	__kernel_rwf_t aio_rw_flags;
+	__u16 aio_lio_opcode;
+	__s16 aio_reqprio;
+	__u32 aio_fildes;
+	__u64 aio_buf;
+	__u64 aio_nbytes;
+	__s64 aio_offset;
+	__u64 aio_reserved2;
+	__u32 aio_flags;
+	__u32 aio_resfd;
+};
+
+typedef int kiocb_cancel_fn(struct kiocb *);
+
+struct aio_ring {
+	unsigned int id;
+	unsigned int nr;
+	unsigned int head;
+	unsigned int tail;
+	unsigned int magic;
+	unsigned int compat_features;
+	unsigned int incompat_features;
+	unsigned int header_length;
+	struct io_event io_events[0];
+};
+
+struct kioctx_cpu;
+
+struct ctx_rq_wait;
+
+struct kioctx {
+	struct percpu_ref users;
+	atomic_t dead;
+	struct percpu_ref reqs;
+	long unsigned int user_id;
+	struct kioctx_cpu *cpu;
+	unsigned int req_batch;
+	unsigned int max_reqs;
+	unsigned int nr_events;
+	long unsigned int mmap_base;
+	long unsigned int mmap_size;
+	struct page **ring_pages;
+	long int nr_pages;
+	struct rcu_work free_rwork;
+	struct ctx_rq_wait *rq_wait;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct {
+		atomic_t reqs_available;
+		long: 32;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct {
+		spinlock_t ctx_lock;
+		struct list_head active_reqs;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct {
+		struct mutex ring_lock;
+		wait_queue_head_t wait;
+		long: 64;
+	};
+	struct {
+		unsigned int tail;
+		unsigned int completed_events;
+		spinlock_t completion_lock;
+		long: 32;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct page *internal_pages[8];
+	struct file *aio_ring_file;
+	unsigned int id;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct kioctx_cpu {
+	unsigned int reqs_available;
+};
+
+struct ctx_rq_wait {
+	struct completion comp;
+	atomic_t count;
+};
+
+struct fsync_iocb {
+	struct file *file;
+	struct work_struct work;
+	bool datasync;
+	struct cred *creds;
+};
+
+struct poll_iocb {
+	struct file *file;
+	struct wait_queue_head *head;
+	__poll_t events;
+	bool cancelled;
+	bool work_scheduled;
+	bool work_need_resched;
+	struct wait_queue_entry wait;
+	struct work_struct work;
+};
+
+struct aio_kiocb {
+	union {
+		struct file *ki_filp;
+		struct kiocb rw;
+		struct fsync_iocb fsync;
+		struct poll_iocb poll;
+	};
+	struct kioctx *ki_ctx;
+	kiocb_cancel_fn *ki_cancel;
+	struct io_event ki_res;
+	struct list_head ki_list;
+	refcount_t ki_refcnt;
+	struct eventfd_ctx *ki_eventfd;
+};
+
+struct aio_poll_table {
+	struct poll_table_struct pt;
+	struct aio_kiocb *iocb;
+	bool queued;
+	int error;
+};
+
+struct __aio_sigset {
+	const sigset_t *sigmask;
+	size_t sigsetsize;
+};
+
+struct __compat_aio_sigset {
+	compat_uptr_t sigmask;
+	compat_size_t sigsetsize;
+};
+
+struct fsverity_enable_arg {
+	__u32 version;
+	__u32 hash_algorithm;
+	__u32 block_size;
+	__u32 salt_size;
+	__u64 salt_ptr;
+	__u32 sig_size;
+	__u32 __reserved1;
+	__u64 sig_ptr;
+	__u64 __reserved2[11];
+};
+
+struct posix_acl_xattr_entry {
+	__le16 e_tag;
+	__le16 e_perm;
+	__le32 e_id;
+};
+
+struct trace_event_raw_iomap_readpage_class {
+	struct trace_entry ent;
+	dev_t dev;
+	u64 ino;
+	int nr_pages;
+	char __data[0];
+};
+
+struct trace_event_raw_iomap_range_class {
+	struct trace_entry ent;
+	dev_t dev;
+	u64 ino;
+	loff_t size;
+	loff_t offset;
+	u64 length;
+	char __data[0];
+};
+
+struct trace_event_raw_iomap_class {
+	struct trace_entry ent;
+	dev_t dev;
+	u64 ino;
+	u64 addr;
+	loff_t offset;
+	u64 length;
+	u16 type;
+	u16 flags;
+	dev_t bdev;
+	char __data[0];
+};
+
+struct trace_event_raw_iomap_iter {
+	struct trace_entry ent;
+	dev_t dev;
+	u64 ino;
+	loff_t pos;
+	u64 length;
+	unsigned int flags;
+	const void *ops;
+	long unsigned int caller;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_iomap_readpage_class {};
+
+struct trace_event_data_offsets_iomap_range_class {};
+
+struct trace_event_data_offsets_iomap_class {};
+
+struct trace_event_data_offsets_iomap_iter {};
+
+typedef void (*btf_trace_iomap_readpage)(void *, struct inode *, int);
+
+typedef void (*btf_trace_iomap_readahead)(void *, struct inode *, int);
+
+typedef void (*btf_trace_iomap_writepage)(void *, struct inode *, loff_t, u64);
+
+typedef void (*btf_trace_iomap_release_folio)(void *, struct inode *, loff_t, u64);
+
+typedef void (*btf_trace_iomap_invalidate_folio)(void *, struct inode *, loff_t, u64);
+
+typedef void (*btf_trace_iomap_dio_invalidate_fail)(void *, struct inode *, loff_t, u64);
+
+typedef void (*btf_trace_iomap_iter_dstmap)(void *, struct inode *, struct iomap *);
+
+typedef void (*btf_trace_iomap_iter_srcmap)(void *, struct inode *, struct iomap *);
+
+typedef void (*btf_trace_iomap_iter)(void *, struct iomap_iter *, const void *, long unsigned int);
+
+struct quota_module_name {
+	int qm_fmt_id;
+	char *qm_mod_name;
+};
+
+struct dquot_warn {
+	struct super_block *w_sb;
+	struct kqid w_dq_id;
+	short int w_type;
+};
+
+enum kcore_type {
+	KCORE_TEXT = 0,
+	KCORE_VMALLOC = 1,
+	KCORE_RAM = 2,
+	KCORE_VMEMMAP = 3,
+	KCORE_USER = 4,
+};
+
+struct kcore_list {
+	struct list_head list;
+	long unsigned int addr;
+	size_t size;
+	int type;
+};
+
+struct kernfs_global_locks {
+	struct mutex open_file_mutex[1024];
+};
+
+struct kernfs_open_node {
+	struct callback_head callback_head;
+	atomic_t event;
+	wait_queue_head_t poll;
+	struct list_head files;
+};
+
+struct ext4_system_zone {
+	struct rb_node node;
+	ext4_fsblk_t start_blk;
+	unsigned int count;
+	u32 ino;
+};
+
+struct mmp_struct {
+	__le32 mmp_magic;
+	__le32 mmp_seq;
+	__le64 mmp_time;
+	char mmp_nodename[64];
+	char mmp_bdevname[32];
+	__le16 mmp_check_interval;
+	__le16 mmp_pad1;
+	__le32 mmp_pad2[226];
+	__le32 mmp_checksum;
+};
+
+enum {
+	BLOCK_BITMAP = 0,
+	INODE_BITMAP = 1,
+	INODE_TABLE = 2,
+	GROUP_TABLE_COUNT = 3,
+};
+
+struct ext4_rcu_ptr {
+	struct callback_head rcu;
+	void *ptr;
+};
+
+struct ext4_new_flex_group_data {
+	struct ext4_new_group_data *groups;
+	__u16 *bg_flags;
+	ext4_group_t count;
+};
+
+struct ext4_fc_tl {
+	__le16 fc_tag;
+	__le16 fc_len;
+};
+
+struct ext4_fc_head {
+	__le32 fc_features;
+	__le32 fc_tid;
+};
+
+struct ext4_fc_add_range {
+	__le32 fc_ino;
+	__u8 fc_ex[12];
+};
+
+struct ext4_fc_del_range {
+	__le32 fc_ino;
+	__le32 fc_lblk;
+	__le32 fc_len;
+};
+
+struct ext4_fc_dentry_info {
+	__le32 fc_parent_ino;
+	__le32 fc_ino;
+	__u8 fc_dname[0];
+};
+
+struct ext4_fc_inode {
+	__le32 fc_ino;
+	__u8 fc_raw_inode[0];
+};
+
+struct ext4_fc_tail {
+	__le32 fc_tid;
+	__le32 fc_crc;
+};
+
+enum {
+	EXT4_FC_STATUS_OK = 0,
+	EXT4_FC_STATUS_INELIGIBLE = 1,
+	EXT4_FC_STATUS_SKIPPED = 2,
+	EXT4_FC_STATUS_FAILED = 3,
+};
+
+struct ext4_fc_dentry_update {
+	int fcd_op;
+	int fcd_parent;
+	int fcd_ino;
+	struct qstr fcd_name;
+	unsigned char fcd_iname[32];
+	struct list_head fcd_list;
+	struct list_head fcd_dilist;
+};
+
+struct __track_dentry_update_args {
+	struct dentry *dentry;
+	int op;
+};
+
+struct __track_range_args {
+	ext4_lblk_t start;
+	ext4_lblk_t end;
+};
+
+struct dentry_info_args {
+	int parent_ino;
+	int dname_len;
+	int ino;
+	int inode_len;
+	char *dname;
+};
+
+struct jbd2_revoke_table_s {
+	int hash_size;
+	int hash_shift;
+	struct list_head *hash_table;
+};
+
+struct jbd2_revoke_record_s {
+	struct list_head hash;
+	tid_t sequence;
+	long long unsigned int blocknr;
+};
+
+struct getdents_callback___2 {
+	struct dir_context ctx;
+	char *name;
+	u64 ino;
+	int found;
+	int sequence;
+};
+
+enum {
+	AUTOFS_IOC_READY_CMD = 96,
+	AUTOFS_IOC_FAIL_CMD = 97,
+	AUTOFS_IOC_CATATONIC_CMD = 98,
+	AUTOFS_IOC_PROTOVER_CMD = 99,
+	AUTOFS_IOC_SETTIMEOUT_CMD = 100,
+	AUTOFS_IOC_EXPIRE_CMD = 101,
+};
+
+enum {
+	AUTOFS_IOC_EXPIRE_MULTI_CMD = 102,
+	AUTOFS_IOC_PROTOSUBVER_CMD = 103,
+	AUTOFS_IOC_ASKUMOUNT_CMD = 112,
+};
+
+struct extent_inode_elem;
+
+struct prelim_ref {
+	struct rb_node rbnode;
+	u64 root_id;
+	struct btrfs_key key_for_search;
+	int level;
+	int count;
+	struct extent_inode_elem *inode_list;
+	u64 parent;
+	u64 wanted_disk_byte;
+};
+
+struct raid56_bio_trace_info {
+	u64 devid;
+	u32 offset;
+	u8 stripe_nr;
+};
+
+struct trace_event_raw_btrfs_transaction_commit {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 generation;
+	u64 root_objectid;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__inode {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 ino;
+	u64 blocks;
+	u64 disk_i_size;
+	u64 generation;
+	u64 last_trans;
+	u64 logged_trans;
+	u64 root_objectid;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_get_extent {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 root_objectid;
+	u64 ino;
+	u64 start;
+	u64 len;
+	u64 orig_start;
+	u64 block_start;
+	u64 block_len;
+	long unsigned int flags;
+	int refs;
+	unsigned int compress_type;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_handle_em_exist {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 e_start;
+	u64 e_len;
+	u64 map_start;
+	u64 map_len;
+	u64 start;
+	u64 len;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__file_extent_item_regular {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 root_obj;
+	u64 ino;
+	loff_t isize;
+	u64 disk_isize;
+	u64 num_bytes;
+	u64 ram_bytes;
+	u64 disk_bytenr;
+	u64 disk_num_bytes;
+	u64 extent_offset;
+	u8 extent_type;
+	u8 compression;
+	u64 extent_start;
+	u64 extent_end;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__file_extent_item_inline {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 root_obj;
+	u64 ino;
+	loff_t isize;
+	u64 disk_isize;
+	u8 extent_type;
+	u8 compression;
+	u64 extent_start;
+	u64 extent_end;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__ordered_extent {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 ino;
+	u64 file_offset;
+	u64 start;
+	u64 len;
+	u64 disk_len;
+	u64 bytes_left;
+	long unsigned int flags;
+	int compress_type;
+	int refs;
+	u64 root_objectid;
+	u64 truncated_len;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__writepage {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 ino;
+	long unsigned int index;
+	long int nr_to_write;
+	long int pages_skipped;
+	loff_t range_start;
+	loff_t range_end;
+	char for_kupdate;
+	char for_reclaim;
+	char range_cyclic;
+	long unsigned int writeback_index;
+	u64 root_objectid;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_writepage_end_io_hook {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 ino;
+	u64 start;
+	u64 end;
+	int uptodate;
+	u64 root_objectid;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_sync_file {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 ino;
+	u64 parent;
+	int datasync;
+	u64 root_objectid;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_sync_fs {
+	struct trace_entry ent;
+	u8 fsid[16];
+	int wait;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_add_block_group {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 offset;
+	u64 size;
+	u64 flags;
+	u64 bytes_used;
+	u64 bytes_super;
+	int create;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_delayed_tree_ref {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bytenr;
+	u64 num_bytes;
+	int action;
+	u64 parent;
+	u64 ref_root;
+	int level;
+	int type;
+	u64 seq;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_delayed_data_ref {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bytenr;
+	u64 num_bytes;
+	int action;
+	u64 parent;
+	u64 ref_root;
+	u64 owner;
+	u64 offset;
+	int type;
+	u64 seq;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_delayed_ref_head {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bytenr;
+	u64 num_bytes;
+	int action;
+	int is_data;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__chunk {
+	struct trace_entry ent;
+	u8 fsid[16];
+	int num_stripes;
+	u64 type;
+	int sub_stripes;
+	u64 offset;
+	u64 size;
+	u64 root_objectid;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_cow_block {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 root_objectid;
+	u64 buf_start;
+	int refs;
+	u64 cow_start;
+	int buf_level;
+	int cow_level;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_space_reservation {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u32 __data_loc_type;
+	u64 val;
+	u64 bytes;
+	int reserve;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_trigger_flush {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 flags;
+	u64 bytes;
+	int flush;
+	u32 __data_loc_reason;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_flush_space {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 flags;
+	u64 num_bytes;
+	int state;
+	int ret;
+	bool for_preempt;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__reserved_extent {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 start;
+	u64 len;
+	char __data[0];
+};
+
+struct trace_event_raw_find_free_extent {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 root_objectid;
+	u64 num_bytes;
+	u64 empty_size;
+	u64 data;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__reserve_extent {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bg_objectid;
+	u64 flags;
+	u64 start;
+	u64 len;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_find_cluster {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bg_objectid;
+	u64 flags;
+	u64 start;
+	u64 bytes;
+	u64 empty_size;
+	u64 min_bytes;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_failed_cluster_setup {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bg_objectid;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_setup_cluster {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bg_objectid;
+	u64 flags;
+	u64 start;
+	u64 max_size;
+	u64 size;
+	int bitmap;
+	char __data[0];
+};
+
+struct trace_event_raw_alloc_extent_state {
+	struct trace_entry ent;
+	const struct extent_state *state;
+	long unsigned int mask;
+	const void *ip;
+	char __data[0];
+};
+
+struct trace_event_raw_free_extent_state {
+	struct trace_entry ent;
+	const struct extent_state *state;
+	const void *ip;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__work {
+	struct trace_entry ent;
+	u8 fsid[16];
+	const void *work;
+	const void *wq;
+	const void *func;
+	const void *ordered_func;
+	const void *ordered_free;
+	const void *normal_work;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__work__done {
+	struct trace_entry ent;
+	u8 fsid[16];
+	const void *wtag;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_workqueue {
+	struct trace_entry ent;
+	u8 fsid[16];
+	const void *wq;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_workqueue_done {
+	struct trace_entry ent;
+	u8 fsid[16];
+	const void *wq;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__qgroup_rsv_data {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 rootid;
+	u64 ino;
+	u64 start;
+	u64 len;
+	u64 reserved;
+	int op;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_qgroup_extent {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bytenr;
+	u64 num_bytes;
+	char __data[0];
+};
+
+struct trace_event_raw_qgroup_num_dirty_extents {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 transid;
+	u64 num_dirty_extents;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_qgroup_account_extent {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 transid;
+	u64 bytenr;
+	u64 num_bytes;
+	u64 nr_old_roots;
+	u64 nr_new_roots;
+	char __data[0];
+};
+
+struct trace_event_raw_qgroup_update_counters {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 qgid;
+	u64 old_rfer;
+	u64 old_excl;
+	u64 cur_old_count;
+	u64 cur_new_count;
+	char __data[0];
+};
+
+struct trace_event_raw_qgroup_update_reserve {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 qgid;
+	u64 cur_reserved;
+	s64 diff;
+	int type;
+	char __data[0];
+};
+
+struct trace_event_raw_qgroup_meta_reserve {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 refroot;
+	s64 diff;
+	int type;
+	char __data[0];
+};
+
+struct trace_event_raw_qgroup_meta_convert {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 refroot;
+	s64 diff;
+	char __data[0];
+};
+
+struct trace_event_raw_qgroup_meta_free_all_pertrans {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 refroot;
+	s64 diff;
+	int type;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__prelim_ref {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 root_id;
+	u64 objectid;
+	u8 type;
+	u64 offset;
+	int level;
+	int old_count;
+	u64 parent;
+	u64 bytenr;
+	int mod_count;
+	u64 tree_size;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_inode_mod_outstanding_extents {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 root_objectid;
+	u64 ino;
+	int mod;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__block_group {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 bytenr;
+	u64 len;
+	u64 used;
+	u64 flags;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_set_extent_bit {
+	struct trace_entry ent;
+	u8 fsid[16];
+	unsigned int owner;
+	u64 ino;
+	u64 rootid;
+	u64 start;
+	u64 len;
+	unsigned int set_bits;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_clear_extent_bit {
+	struct trace_entry ent;
+	u8 fsid[16];
+	unsigned int owner;
+	u64 ino;
+	u64 rootid;
+	u64 start;
+	u64 len;
+	unsigned int clear_bits;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_convert_extent_bit {
+	struct trace_entry ent;
+	u8 fsid[16];
+	unsigned int owner;
+	u64 ino;
+	u64 rootid;
+	u64 start;
+	u64 len;
+	unsigned int set_bits;
+	unsigned int clear_bits;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_dump_space_info {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 flags;
+	u64 total_bytes;
+	u64 bytes_used;
+	u64 bytes_pinned;
+	u64 bytes_reserved;
+	u64 bytes_may_use;
+	u64 bytes_readonly;
+	u64 reclaim_size;
+	int clamp;
+	u64 global_reserved;
+	u64 trans_reserved;
+	u64 delayed_refs_reserved;
+	u64 delayed_reserved;
+	u64 free_chunk_space;
+	u64 delalloc_bytes;
+	u64 ordered_bytes;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_reserve_ticket {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 flags;
+	u64 bytes;
+	u64 start_ns;
+	int flush;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_sleep_tree_lock {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 block;
+	u64 generation;
+	u64 start_ns;
+	u64 end_ns;
+	u64 diff_ns;
+	u64 owner;
+	int is_log_tree;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_locking_events {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 block;
+	u64 generation;
+	u64 owner;
+	int is_log_tree;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs__space_info_update {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 type;
+	u64 old;
+	s64 diff;
+	char __data[0];
+};
+
+struct trace_event_raw_btrfs_raid56_bio {
+	struct trace_entry ent;
+	u8 fsid[16];
+	u64 full_stripe;
+	u64 physical;
+	u64 devid;
+	u32 offset;
+	u32 len;
+	u8 opf;
+	u8 total_stripes;
+	u8 real_stripes;
+	u8 nr_data;
+	u8 stripe_nr;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_btrfs_transaction_commit {};
+
+struct trace_event_data_offsets_btrfs__inode {};
+
+struct trace_event_data_offsets_btrfs_get_extent {};
+
+struct trace_event_data_offsets_btrfs_handle_em_exist {};
+
+struct trace_event_data_offsets_btrfs__file_extent_item_regular {};
+
+struct trace_event_data_offsets_btrfs__file_extent_item_inline {};
+
+struct trace_event_data_offsets_btrfs__ordered_extent {};
+
+struct trace_event_data_offsets_btrfs__writepage {};
+
+struct trace_event_data_offsets_btrfs_writepage_end_io_hook {};
+
+struct trace_event_data_offsets_btrfs_sync_file {};
+
+struct trace_event_data_offsets_btrfs_sync_fs {};
+
+struct trace_event_data_offsets_btrfs_add_block_group {};
+
+struct trace_event_data_offsets_btrfs_delayed_tree_ref {};
+
+struct trace_event_data_offsets_btrfs_delayed_data_ref {};
+
+struct trace_event_data_offsets_btrfs_delayed_ref_head {};
+
+struct trace_event_data_offsets_btrfs__chunk {};
+
+struct trace_event_data_offsets_btrfs_cow_block {};
+
+struct trace_event_data_offsets_btrfs_space_reservation {
+	u32 type;
+};
+
+struct trace_event_data_offsets_btrfs_trigger_flush {
+	u32 reason;
+};
+
+struct trace_event_data_offsets_btrfs_flush_space {};
+
+struct trace_event_data_offsets_btrfs__reserved_extent {};
+
+struct trace_event_data_offsets_find_free_extent {};
+
+struct trace_event_data_offsets_btrfs__reserve_extent {};
+
+struct trace_event_data_offsets_btrfs_find_cluster {};
+
+struct trace_event_data_offsets_btrfs_failed_cluster_setup {};
+
+struct trace_event_data_offsets_btrfs_setup_cluster {};
+
+struct trace_event_data_offsets_alloc_extent_state {};
+
+struct trace_event_data_offsets_free_extent_state {};
+
+struct trace_event_data_offsets_btrfs__work {};
+
+struct trace_event_data_offsets_btrfs__work__done {};
+
+struct trace_event_data_offsets_btrfs_workqueue {
+	u32 name;
+};
+
+struct trace_event_data_offsets_btrfs_workqueue_done {};
+
+struct trace_event_data_offsets_btrfs__qgroup_rsv_data {};
+
+struct trace_event_data_offsets_btrfs_qgroup_extent {};
+
+struct trace_event_data_offsets_qgroup_num_dirty_extents {};
+
+struct trace_event_data_offsets_btrfs_qgroup_account_extent {};
+
+struct trace_event_data_offsets_qgroup_update_counters {};
+
+struct trace_event_data_offsets_qgroup_update_reserve {};
+
+struct trace_event_data_offsets_qgroup_meta_reserve {};
+
+struct trace_event_data_offsets_qgroup_meta_convert {};
+
+struct trace_event_data_offsets_qgroup_meta_free_all_pertrans {};
+
+struct trace_event_data_offsets_btrfs__prelim_ref {};
+
+struct trace_event_data_offsets_btrfs_inode_mod_outstanding_extents {};
+
+struct trace_event_data_offsets_btrfs__block_group {};
+
+struct trace_event_data_offsets_btrfs_set_extent_bit {};
+
+struct trace_event_data_offsets_btrfs_clear_extent_bit {};
+
+struct trace_event_data_offsets_btrfs_convert_extent_bit {};
+
+struct trace_event_data_offsets_btrfs_dump_space_info {};
+
+struct trace_event_data_offsets_btrfs_reserve_ticket {};
+
+struct trace_event_data_offsets_btrfs_sleep_tree_lock {};
+
+struct trace_event_data_offsets_btrfs_locking_events {};
+
+struct trace_event_data_offsets_btrfs__space_info_update {};
+
+struct trace_event_data_offsets_btrfs_raid56_bio {};
+
+typedef void (*btf_trace_btrfs_transaction_commit)(void *, const struct btrfs_fs_info *);
+
+typedef void (*btf_trace_btrfs_inode_new)(void *, const struct inode *);
+
+typedef void (*btf_trace_btrfs_inode_request)(void *, const struct inode *);
+
+typedef void (*btf_trace_btrfs_inode_evict)(void *, const struct inode *);
+
+typedef void (*btf_trace_btrfs_get_extent)(void *, const struct btrfs_root *, const struct btrfs_inode *, const struct extent_map *);
+
+typedef void (*btf_trace_btrfs_handle_em_exist)(void *, const struct btrfs_fs_info *, const struct extent_map *, const struct extent_map *, u64, u64);
+
+typedef void (*btf_trace_btrfs_get_extent_show_fi_regular)(void *, const struct btrfs_inode *, const struct extent_buffer *, const struct btrfs_file_extent_item *, u64);
+
+typedef void (*btf_trace_btrfs_truncate_show_fi_regular)(void *, const struct btrfs_inode *, const struct extent_buffer *, const struct btrfs_file_extent_item *, u64);
+
+typedef void (*btf_trace_btrfs_get_extent_show_fi_inline)(void *, const struct btrfs_inode *, const struct extent_buffer *, const struct btrfs_file_extent_item *, int, u64);
+
+typedef void (*btf_trace_btrfs_truncate_show_fi_inline)(void *, const struct btrfs_inode *, const struct extent_buffer *, const struct btrfs_file_extent_item *, int, u64);
+
+typedef void (*btf_trace_btrfs_ordered_extent_add)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_remove)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_start)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_put)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_lookup)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_lookup_range)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_lookup_first_range)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_lookup_for_logging)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_lookup_first)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_split)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_dec_test_pending)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace_btrfs_ordered_extent_mark_finished)(void *, const struct btrfs_inode *, const struct btrfs_ordered_extent *);
+
+typedef void (*btf_trace___extent_writepage)(void *, const struct page *, const struct inode *, const struct writeback_control *);
+
+typedef void (*btf_trace_btrfs_writepage_end_io_hook)(void *, const struct btrfs_inode *, u64, u64, int);
+
+typedef void (*btf_trace_btrfs_sync_file)(void *, const struct file *, int);
+
+typedef void (*btf_trace_btrfs_sync_fs)(void *, const struct btrfs_fs_info *, int);
+
+typedef void (*btf_trace_btrfs_add_block_group)(void *, const struct btrfs_fs_info *, const struct btrfs_block_group *, int);
+
+typedef void (*btf_trace_add_delayed_tree_ref)(void *, const struct btrfs_fs_info *, const struct btrfs_delayed_ref_node *, const struct btrfs_delayed_tree_ref *, int);
+
+typedef void (*btf_trace_run_delayed_tree_ref)(void *, const struct btrfs_fs_info *, const struct btrfs_delayed_ref_node *, const struct btrfs_delayed_tree_ref *, int);
+
+typedef void (*btf_trace_add_delayed_data_ref)(void *, const struct btrfs_fs_info *, const struct btrfs_delayed_ref_node *, const struct btrfs_delayed_data_ref *, int);
+
+typedef void (*btf_trace_run_delayed_data_ref)(void *, const struct btrfs_fs_info *, const struct btrfs_delayed_ref_node *, const struct btrfs_delayed_data_ref *, int);
+
+typedef void (*btf_trace_add_delayed_ref_head)(void *, const struct btrfs_fs_info *, const struct btrfs_delayed_ref_head *, int);
+
+typedef void (*btf_trace_run_delayed_ref_head)(void *, const struct btrfs_fs_info *, const struct btrfs_delayed_ref_head *, int);
+
+typedef void (*btf_trace_btrfs_chunk_alloc)(void *, const struct btrfs_fs_info *, const struct map_lookup *, u64, u64);
+
+typedef void (*btf_trace_btrfs_chunk_free)(void *, const struct btrfs_fs_info *, const struct map_lookup *, u64, u64);
+
+typedef void (*btf_trace_btrfs_cow_block)(void *, const struct btrfs_root *, const struct extent_buffer *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_space_reservation)(void *, const struct btrfs_fs_info *, const char *, u64, u64, int);
+
+typedef void (*btf_trace_btrfs_trigger_flush)(void *, const struct btrfs_fs_info *, u64, u64, int, const char *);
+
+typedef void (*btf_trace_btrfs_flush_space)(void *, const struct btrfs_fs_info *, u64, u64, int, int, bool);
+
+typedef void (*btf_trace_btrfs_reserved_extent_alloc)(void *, const struct btrfs_fs_info *, u64, u64);
+
+typedef void (*btf_trace_btrfs_reserved_extent_free)(void *, const struct btrfs_fs_info *, u64, u64);
+
+typedef void (*btf_trace_find_free_extent)(void *, const struct btrfs_root *, u64, u64, u64);
+
+typedef void (*btf_trace_btrfs_reserve_extent)(void *, const struct btrfs_block_group *, u64, u64);
+
+typedef void (*btf_trace_btrfs_reserve_extent_cluster)(void *, const struct btrfs_block_group *, u64, u64);
+
+typedef void (*btf_trace_btrfs_find_cluster)(void *, const struct btrfs_block_group *, u64, u64, u64, u64);
+
+typedef void (*btf_trace_btrfs_failed_cluster_setup)(void *, const struct btrfs_block_group *);
+
+typedef void (*btf_trace_btrfs_setup_cluster)(void *, const struct btrfs_block_group *, const struct btrfs_free_cluster *, u64, int);
+
+typedef void (*btf_trace_alloc_extent_state)(void *, const struct extent_state *, gfp_t, long unsigned int);
+
+typedef void (*btf_trace_free_extent_state)(void *, const struct extent_state *, long unsigned int);
+
+typedef void (*btf_trace_btrfs_work_queued)(void *, const struct btrfs_work *);
+
+typedef void (*btf_trace_btrfs_work_sched)(void *, const struct btrfs_work *);
+
+typedef void (*btf_trace_btrfs_all_work_done)(void *, const struct btrfs_fs_info *, const void *);
+
+typedef void (*btf_trace_btrfs_ordered_sched)(void *, const struct btrfs_work *);
+
+typedef void (*btf_trace_btrfs_workqueue_alloc)(void *, const struct btrfs_workqueue *, const char *);
+
+typedef void (*btf_trace_btrfs_workqueue_destroy)(void *, const struct btrfs_workqueue *);
+
+typedef void (*btf_trace_btrfs_qgroup_reserve_data)(void *, const struct inode *, u64, u64, u64, int);
+
+typedef void (*btf_trace_btrfs_qgroup_release_data)(void *, const struct inode *, u64, u64, u64, int);
+
+typedef void (*btf_trace_btrfs_qgroup_account_extents)(void *, const struct btrfs_fs_info *, const struct btrfs_qgroup_extent_record *);
+
+typedef void (*btf_trace_btrfs_qgroup_trace_extent)(void *, const struct btrfs_fs_info *, const struct btrfs_qgroup_extent_record *);
+
+typedef void (*btf_trace_qgroup_num_dirty_extents)(void *, const struct btrfs_fs_info *, u64, u64);
+
+typedef void (*btf_trace_btrfs_qgroup_account_extent)(void *, const struct btrfs_fs_info *, u64, u64, u64, u64, u64);
+
+typedef void (*btf_trace_qgroup_update_counters)(void *, const struct btrfs_fs_info *, const struct btrfs_qgroup *, u64, u64);
+
+typedef void (*btf_trace_qgroup_update_reserve)(void *, struct btrfs_fs_info *, struct btrfs_qgroup *, s64, int);
+
+typedef void (*btf_trace_qgroup_meta_reserve)(void *, struct btrfs_root *, s64, int);
+
+typedef void (*btf_trace_qgroup_meta_convert)(void *, struct btrfs_root *, s64);
+
+typedef void (*btf_trace_qgroup_meta_free_all_pertrans)(void *, struct btrfs_root *);
+
+typedef void (*btf_trace_btrfs_prelim_ref_merge)(void *, const struct btrfs_fs_info *, const struct prelim_ref *, const struct prelim_ref *, u64);
+
+typedef void (*btf_trace_btrfs_prelim_ref_insert)(void *, const struct btrfs_fs_info *, const struct prelim_ref *, const struct prelim_ref *, u64);
+
+typedef void (*btf_trace_btrfs_inode_mod_outstanding_extents)(void *, const struct btrfs_root *, u64, int);
+
+typedef void (*btf_trace_btrfs_remove_block_group)(void *, const struct btrfs_block_group *);
+
+typedef void (*btf_trace_btrfs_add_unused_block_group)(void *, const struct btrfs_block_group *);
+
+typedef void (*btf_trace_btrfs_add_reclaim_block_group)(void *, const struct btrfs_block_group *);
+
+typedef void (*btf_trace_btrfs_reclaim_block_group)(void *, const struct btrfs_block_group *);
+
+typedef void (*btf_trace_btrfs_skip_unused_block_group)(void *, const struct btrfs_block_group *);
+
+typedef void (*btf_trace_btrfs_set_extent_bit)(void *, const struct extent_io_tree *, u64, u64, unsigned int);
+
+typedef void (*btf_trace_btrfs_clear_extent_bit)(void *, const struct extent_io_tree *, u64, u64, unsigned int);
+
+typedef void (*btf_trace_btrfs_convert_extent_bit)(void *, const struct extent_io_tree *, u64, u64, unsigned int, unsigned int);
+
+typedef void (*btf_trace_btrfs_done_preemptive_reclaim)(void *, struct btrfs_fs_info *, const struct btrfs_space_info *);
+
+typedef void (*btf_trace_btrfs_fail_all_tickets)(void *, struct btrfs_fs_info *, const struct btrfs_space_info *);
+
+typedef void (*btf_trace_btrfs_reserve_ticket)(void *, const struct btrfs_fs_info *, u64, u64, u64, int, int);
+
+typedef void (*btf_trace_btrfs_tree_read_lock)(void *, const struct extent_buffer *, u64);
+
+typedef void (*btf_trace_btrfs_tree_lock)(void *, const struct extent_buffer *, u64);
+
+typedef void (*btf_trace_btrfs_tree_unlock)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_tree_read_unlock)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_tree_read_unlock_blocking)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_set_lock_blocking_read)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_set_lock_blocking_write)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_try_tree_read_lock)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_try_tree_write_lock)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_btrfs_tree_read_lock_atomic)(void *, const struct extent_buffer *);
+
+typedef void (*btf_trace_update_bytes_may_use)(void *, const struct btrfs_fs_info *, const struct btrfs_space_info *, u64, s64);
+
+typedef void (*btf_trace_update_bytes_pinned)(void *, const struct btrfs_fs_info *, const struct btrfs_space_info *, u64, s64);
+
+typedef void (*btf_trace_raid56_read_partial)(void *, const struct btrfs_raid_bio *, const struct bio *, const struct raid56_bio_trace_info *);
+
+typedef void (*btf_trace_raid56_write_stripe)(void *, const struct btrfs_raid_bio *, const struct bio *, const struct raid56_bio_trace_info *);
+
+typedef void (*btf_trace_raid56_scrub_write_stripe)(void *, const struct btrfs_raid_bio *, const struct bio *, const struct raid56_bio_trace_info *);
+
+typedef void (*btf_trace_raid56_scrub_read)(void *, const struct btrfs_raid_bio *, const struct bio *, const struct raid56_bio_trace_info *);
+
+typedef void (*btf_trace_raid56_scrub_read_recover)(void *, const struct btrfs_raid_bio *, const struct bio *, const struct raid56_bio_trace_info *);
+
+enum {
+	Opt_acl___2 = 0,
+	Opt_noacl___2 = 1,
+	Opt_clear_cache = 2,
+	Opt_commit_interval = 3,
+	Opt_compress = 4,
+	Opt_compress_force = 5,
+	Opt_compress_force_type = 6,
+	Opt_compress_type = 7,
+	Opt_degraded = 8,
+	Opt_device = 9,
+	Opt_fatal_errors = 10,
+	Opt_flushoncommit = 11,
+	Opt_noflushoncommit = 12,
+	Opt_max_inline = 13,
+	Opt_barrier___2 = 14,
+	Opt_nobarrier___2 = 15,
+	Opt_datacow = 16,
+	Opt_nodatacow = 17,
+	Opt_datasum = 18,
+	Opt_nodatasum = 19,
+	Opt_defrag = 20,
+	Opt_nodefrag = 21,
+	Opt_discard___2 = 22,
+	Opt_nodiscard___2 = 23,
+	Opt_discard_mode = 24,
+	Opt_norecovery = 25,
+	Opt_ratio = 26,
+	Opt_rescan_uuid_tree = 27,
+	Opt_skip_balance = 28,
+	Opt_space_cache = 29,
+	Opt_no_space_cache = 30,
+	Opt_space_cache_version = 31,
+	Opt_ssd = 32,
+	Opt_nossd = 33,
+	Opt_ssd_spread = 34,
+	Opt_nossd_spread = 35,
+	Opt_subvol = 36,
+	Opt_subvol_empty = 37,
+	Opt_subvolid = 38,
+	Opt_thread_pool = 39,
+	Opt_treelog = 40,
+	Opt_notreelog = 41,
+	Opt_user_subvol_rm_allowed = 42,
+	Opt_rescue = 43,
+	Opt_usebackuproot = 44,
+	Opt_nologreplay = 45,
+	Opt_ignorebadroots = 46,
+	Opt_ignoredatacsums = 47,
+	Opt_rescue_all = 48,
+	Opt_recovery = 49,
+	Opt_inode_cache = 50,
+	Opt_noinode_cache = 51,
+	Opt_check_integrity = 52,
+	Opt_check_integrity_including_extent_data = 53,
+	Opt_check_integrity_print_mask = 54,
+	Opt_enospc_debug = 55,
+	Opt_noenospc_debug = 56,
+	Opt_err___8 = 57,
+};
+
+typedef void submit_bio_hook_t(struct inode *, struct bio *, int, enum btrfs_compression_type);
+
+struct btrfs_subpage {
+	spinlock_t lock;
+	atomic_t readers;
+	union {
+		atomic_t eb_refs;
+		atomic_t writers;
+	};
+	long unsigned int bitmaps[0];
+};
+
+enum btrfs_subpage_type {
+	BTRFS_SUBPAGE_METADATA = 0,
+	BTRFS_SUBPAGE_DATA = 1,
+};
+
+struct tree_entry {
+	u64 start;
+	u64 end;
+	struct rb_node rb_node;
+};
+
+struct btrfs_bio_ctrl {
+	struct bio *bio;
+	int mirror_num;
+	enum btrfs_compression_type compress_type;
+	u32 len_to_stripe_boundary;
+	u32 len_to_oe_boundary;
+};
+
+struct extent_page_data {
+	struct btrfs_bio_ctrl bio_ctrl;
+	unsigned int extent_locked: 1;
+	unsigned int sync_io: 1;
+};
+
+struct processed_extent {
+	struct btrfs_inode *inode;
+	u64 start;
+	u64 end;
+	bool uptodate;
+};
+
+struct fiemap_cache {
+	u64 offset;
+	u64 phys;
+	u64 len;
+	u32 flags;
+	bool cached;
+};
+
+struct bucket_item {
+	u32 count;
+};
+
+struct heuristic_ws {
+	u8 *sample;
+	u32 sample_size;
+	struct bucket_item *bucket;
+	struct bucket_item *bucket_b;
+	struct list_head list;
+};
+
+struct btrfs_stripe_hash {
+	struct list_head hash_list;
+	spinlock_t lock;
+};
+
+struct btrfs_stripe_hash_table {
+	struct list_head stripe_cache;
+	spinlock_t cache_lock;
+	int cache_size;
+	struct btrfs_stripe_hash table[0];
+};
+
+struct sector_ptr {
+	struct page *page;
+	unsigned int pgoff: 24;
+	unsigned int uptodate: 8;
+};
+
+struct btrfs_plug_cb {
+	struct blk_plug_cb cb;
+	struct btrfs_fs_info *info;
+	struct list_head rbio_list;
+	struct work_struct work;
+};
+
+struct btrfs_verity_descriptor_item {
+	__le64 size;
+	__le64 reserved[2];
+	__u8 encryption;
+} __attribute__((packed));
+
+typedef int __kernel_ipc_pid_t;
+
+struct msgbuf {
+	__kernel_long_t mtype;
+	char mtext[1];
+};
+
+struct msg;
+
+struct msqid_ds {
+	struct ipc_perm msg_perm;
+	struct msg *msg_first;
+	struct msg *msg_last;
+	__kernel_old_time_t msg_stime;
+	__kernel_old_time_t msg_rtime;
+	__kernel_old_time_t msg_ctime;
+	long unsigned int msg_lcbytes;
+	long unsigned int msg_lqbytes;
+	short unsigned int msg_cbytes;
+	short unsigned int msg_qnum;
+	short unsigned int msg_qbytes;
+	__kernel_ipc_pid_t msg_lspid;
+	__kernel_ipc_pid_t msg_lrpid;
+};
+
+struct msqid64_ds {
+	struct ipc64_perm msg_perm;
+	long int msg_stime;
+	long int msg_rtime;
+	long int msg_ctime;
+	long unsigned int msg_cbytes;
+	long unsigned int msg_qnum;
+	long unsigned int msg_qbytes;
+	__kernel_pid_t msg_lspid;
+	__kernel_pid_t msg_lrpid;
+	long unsigned int __unused4;
+	long unsigned int __unused5;
+};
+
+struct msginfo {
+	int msgpool;
+	int msgmap;
+	int msgmax;
+	int msgmnb;
+	int msgmni;
+	int msgssz;
+	int msgtql;
+	short unsigned int msgseg;
+};
+
+typedef u16 compat_ipc_pid_t;
+
+struct compat_msqid64_ds {
+	struct compat_ipc64_perm msg_perm;
+	compat_ulong_t msg_stime;
+	compat_ulong_t msg_stime_high;
+	compat_ulong_t msg_rtime;
+	compat_ulong_t msg_rtime_high;
+	compat_ulong_t msg_ctime;
+	compat_ulong_t msg_ctime_high;
+	compat_ulong_t msg_cbytes;
+	compat_ulong_t msg_qnum;
+	compat_ulong_t msg_qbytes;
+	compat_pid_t msg_lspid;
+	compat_pid_t msg_lrpid;
+	compat_ulong_t __unused4;
+	compat_ulong_t __unused5;
+};
+
+struct msg_queue {
+	struct kern_ipc_perm q_perm;
+	time64_t q_stime;
+	time64_t q_rtime;
+	time64_t q_ctime;
+	long unsigned int q_cbytes;
+	long unsigned int q_qnum;
+	long unsigned int q_qbytes;
+	struct pid *q_lspid;
+	struct pid *q_lrpid;
+	struct list_head q_messages;
+	struct list_head q_receivers;
+	struct list_head q_senders;
+	long: 64;
+	long: 64;
+};
+
+struct msg_receiver {
+	struct list_head r_list;
+	struct task_struct *r_tsk;
+	int r_mode;
+	long int r_msgtype;
+	long int r_maxsize;
+	struct msg_msg *r_msg;
+};
+
+struct msg_sender {
+	struct list_head list;
+	struct task_struct *tsk;
+	size_t msgsz;
+};
+
+struct compat_msqid_ds {
+	struct compat_ipc_perm msg_perm;
+	compat_uptr_t msg_first;
+	compat_uptr_t msg_last;
+	old_time32_t msg_stime;
+	old_time32_t msg_rtime;
+	old_time32_t msg_ctime;
+	compat_ulong_t msg_lcbytes;
+	compat_ulong_t msg_lqbytes;
+	short unsigned int msg_cbytes;
+	short unsigned int msg_qnum;
+	short unsigned int msg_qbytes;
+	compat_ipc_pid_t msg_lspid;
+	compat_ipc_pid_t msg_lrpid;
+};
+
+struct compat_msgbuf {
+	compat_long_t mtype;
+	char mtext[1];
+};
+
+struct trusted_key_options {
+	uint16_t keytype;
+	uint32_t keyhandle;
+	unsigned char keyauth[20];
+	uint32_t blobauth_len;
+	unsigned char blobauth[20];
+	uint32_t pcrinfo_len;
+	unsigned char pcrinfo[64];
+	int pcrlock;
+	uint32_t hash;
+	uint32_t policydigest_len;
+	unsigned char policydigest[64];
+	uint32_t policyhandle;
+};
+
+struct osapsess {
+	uint32_t handle;
+	unsigned char secret[20];
+	unsigned char enonce[20];
+};
+
+enum {
+	SEAL_keytype = 1,
+	SRK_keytype = 4,
+};
+
+struct tpm_digests {
+	unsigned char encauth[20];
+	unsigned char pubauth[20];
+	unsigned char xorwork[40];
+	unsigned char xorhash[20];
+	unsigned char nonceodd[20];
+};
+
+enum {
+	Opt_err___9 = 0,
+	Opt_keyhandle = 1,
+	Opt_keyauth = 2,
+	Opt_blobauth = 3,
+	Opt_pcrinfo = 4,
+	Opt_pcrlock = 5,
+	Opt_migratable = 6,
+	Opt_hash___2 = 7,
+	Opt_policydigest = 8,
+	Opt_policyhandle = 9,
+};
+
+struct selinux_policy_convert_data;
+
+struct selinux_load_state {
+	struct selinux_policy *policy;
+	struct selinux_policy_convert_data *convert_data;
+};
+
+enum sel_inos {
+	SEL_ROOT_INO = 2,
+	SEL_LOAD = 3,
+	SEL_ENFORCE = 4,
