@@ -142330,3 +142330,2107 @@ enum hdmi_audio_coding_type {
 	HDMI_AUDIO_CODING_TYPE_DTS_HD = 11,
 	HDMI_AUDIO_CODING_TYPE_MLP = 12,
 	HDMI_AUDIO_CODING_TYPE_DST = 13,
+	HDMI_AUDIO_CODING_TYPE_WMA_PRO = 14,
+	HDMI_AUDIO_CODING_TYPE_CXT = 15,
+};
+
+enum hdmi_audio_sample_size {
+	HDMI_AUDIO_SAMPLE_SIZE_STREAM = 0,
+	HDMI_AUDIO_SAMPLE_SIZE_16 = 1,
+	HDMI_AUDIO_SAMPLE_SIZE_20 = 2,
+	HDMI_AUDIO_SAMPLE_SIZE_24 = 3,
+};
+
+enum hdmi_audio_sample_frequency {
+	HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM = 0,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_32000 = 1,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_44100 = 2,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_48000 = 3,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_88200 = 4,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_96000 = 5,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_176400 = 6,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_192000 = 7,
+};
+
+enum hdmi_audio_coding_type_ext {
+	HDMI_AUDIO_CODING_TYPE_EXT_CT = 0,
+	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC = 1,
+	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC_V2 = 2,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_SURROUND = 3,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC = 4,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_V2 = 5,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC = 6,
+	HDMI_AUDIO_CODING_TYPE_EXT_DRA = 7,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_SURROUND = 8,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC_SURROUND = 10,
+};
+
+struct hdmi_audio_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	unsigned char channels;
+	enum hdmi_audio_coding_type coding_type;
+	enum hdmi_audio_sample_size sample_size;
+	enum hdmi_audio_sample_frequency sample_frequency;
+	enum hdmi_audio_coding_type_ext coding_type_ext;
+	unsigned char channel_allocation;
+	unsigned char level_shift_value;
+	bool downmix_inhibit;
+};
+
+union hdmi_vendor_any_infoframe {
+	struct {
+		enum hdmi_infoframe_type type;
+		unsigned char version;
+		unsigned char length;
+		unsigned int oui;
+	} any;
+	struct hdmi_vendor_infoframe hdmi;
+};
+
+union hdmi_infoframe {
+	struct hdmi_any_infoframe any;
+	struct hdmi_avi_infoframe avi;
+	struct hdmi_spd_infoframe spd;
+	union hdmi_vendor_any_infoframe vendor;
+	struct hdmi_audio_infoframe audio;
+	struct hdmi_drm_infoframe drm;
+};
+
+struct fb_cvt_data {
+	u32 xres;
+	u32 yres;
+	u32 refresh;
+	u32 f_refresh;
+	u32 pixclock;
+	u32 hperiod;
+	u32 hblank;
+	u32 hfreq;
+	u32 htotal;
+	u32 vtotal;
+	u32 vsync;
+	u32 hsync;
+	u32 h_front_porch;
+	u32 h_back_porch;
+	u32 v_front_porch;
+	u32 v_back_porch;
+	u32 h_margin;
+	u32 v_margin;
+	u32 interlace;
+	u32 aspect_ratio;
+	u32 active_pixels;
+	u32 flags;
+	u32 status;
+};
+
+typedef u32 (*acpi_osd_handler)(void *);
+
+struct acpi_os_dpc {
+	acpi_osd_exec_callback function;
+	void *context;
+	struct work_struct work;
+};
+
+struct acpi_ioremap {
+	struct list_head list;
+	void *virt;
+	acpi_physical_address phys;
+	acpi_size size;
+	union {
+		long unsigned int refcount;
+		struct rcu_work rwork;
+	} track;
+};
+
+struct acpi_hp_work {
+	struct work_struct work;
+	struct acpi_device *adev;
+	u32 src;
+};
+
+struct acpi_processor_errata {
+	u8 smp;
+	struct {
+		u8 throttle: 1;
+		u8 fdma: 1;
+		u8 reserved: 6;
+		u32 bmisx;
+	} piix4;
+};
+
+struct acpi_ged_device {
+	struct device *dev;
+	struct list_head event_list;
+};
+
+struct acpi_ged_event {
+	struct list_head node;
+	struct device *dev;
+	unsigned int gsi;
+	unsigned int irq;
+	acpi_handle handle;
+};
+
+struct pcc_data {
+	struct pcc_mbox_chan *pcc_chan;
+	void *pcc_comm_addr;
+	struct completion done;
+	struct mbox_client cl;
+	struct acpi_pcc_info ctx;
+};
+
+typedef acpi_status (*acpi_repair_function)(struct acpi_evaluate_info *, union acpi_operand_object **);
+
+struct acpi_repair_info {
+	char name[4];
+	acpi_repair_function repair_function;
+};
+
+struct acpi_vendor_walk_info {
+	struct acpi_vendor_uuid *uuid;
+	struct acpi_buffer *buffer;
+	acpi_status status;
+};
+
+struct acpi_power_register {
+	u8 descriptor;
+	u16 length;
+	u8 space_id;
+	u8 bit_width;
+	u8 bit_offset;
+	u8 access_size;
+	u64 address;
+} __attribute__((packed));
+
+struct acpi_lpi_states_array {
+	unsigned int size;
+	unsigned int composite_states_size;
+	struct acpi_lpi_state *entries;
+	struct acpi_lpi_state *composite_states[8];
+};
+
+struct pnp_info_buffer {
+	char *buffer;
+	char *curr;
+	long unsigned int size;
+	long unsigned int len;
+	int stop;
+	int error;
+};
+
+typedef struct pnp_info_buffer pnp_info_buffer_t;
+
+struct tegra_ahb {
+	void *regs;
+	struct device *dev;
+	u32 ctx[0];
+};
+
+enum max77686_chip_name {
+	CHIP_MAX77686 = 0,
+	CHIP_MAX77802 = 1,
+	CHIP_MAX77620 = 2,
+};
+
+struct max77686_hw_clk_info {
+	const char *name;
+	u32 clk_reg;
+	u32 clk_enable_mask;
+	u32 flags;
+};
+
+struct max77686_clk_init_data {
+	struct regmap *regmap;
+	struct clk_hw hw;
+	struct clk_init_data clk_idata;
+	const struct max77686_hw_clk_info *clk_info;
+};
+
+struct max77686_clk_driver_data {
+	enum max77686_chip_name chip;
+	struct max77686_clk_init_data *max_clk_data;
+	size_t num_clks;
+};
+
+struct hi3660_stub_clk_chan {
+	struct mbox_client cl;
+	struct mbox_chan *mbox;
+};
+
+struct hi3660_stub_clk {
+	unsigned int id;
+	struct clk_hw hw;
+	unsigned int cmd;
+	unsigned int msg[8];
+	unsigned int rate;
+};
+
+struct imx_scu_clk_node {
+	const char *name;
+	u32 rsrc;
+	u8 clk_type;
+	const char * const *parents;
+	int num_parents;
+	struct clk_hw *hw;
+	struct list_head node;
+};
+
+struct clk_scu {
+	struct clk_hw hw;
+	u16 rsrc_id;
+	u8 clk_type;
+	struct clk_hw *parent;
+	u8 parent_index;
+	bool is_enabled;
+	u32 rate;
+};
+
+struct clk_gpr_scu {
+	struct clk_hw hw;
+	u16 rsrc_id;
+	u8 gpr_id;
+	u8 flags;
+	bool gate_invert;
+};
+
+struct imx_sc_msg_req_set_clock_rate {
+	struct imx_sc_rpc_msg hdr;
+	__le32 rate;
+	__le16 resource;
+	u8 clk;
+};
+
+struct req_get_clock_rate {
+	__le16 resource;
+	u8 clk;
+};
+
+struct resp_get_clock_rate {
+	__le32 rate;
+};
+
+struct imx_sc_msg_get_clock_rate {
+	struct imx_sc_rpc_msg hdr;
+	union {
+		struct req_get_clock_rate req;
+		struct resp_get_clock_rate resp;
+	} data;
+};
+
+struct req_get_clock_parent {
+	__le16 resource;
+	u8 clk;
+};
+
+struct resp_get_clock_parent {
+	u8 parent;
+};
+
+struct imx_sc_msg_get_clock_parent {
+	struct imx_sc_rpc_msg hdr;
+	union {
+		struct req_get_clock_parent req;
+		struct resp_get_clock_parent resp;
+	} data;
+};
+
+struct imx_sc_msg_set_clock_parent {
+	struct imx_sc_rpc_msg hdr;
+	__le16 resource;
+	u8 clk;
+	u8 parent;
+};
+
+struct imx_sc_msg_req_clock_enable {
+	struct imx_sc_rpc_msg hdr;
+	__le16 resource;
+	u8 clk;
+	u8 enable;
+	u8 autog;
+	int: 24;
+};
+
+struct cpu_dfs_regs {
+	unsigned int divider_reg;
+	unsigned int force_reg;
+	unsigned int ratio_reg;
+	unsigned int ratio_state_reg;
+	unsigned int divider_mask;
+	unsigned int cluster_offset;
+	unsigned int force_mask;
+	int divider_offset;
+	int divider_ratio;
+	int ratio_offset;
+	int ratio_state_offset;
+	int ratio_state_cluster_offset;
+};
+
+struct ap_cpu_clk {
+	unsigned int cluster;
+	const char *clk_name;
+	struct device *dev;
+	struct clk_hw hw;
+	struct regmap *pll_cr_base;
+	const struct cpu_dfs_regs *pll_regs;
+};
+
+enum gdsc_status {
+	GDSC_OFF = 0,
+	GDSC_ON = 1,
+};
+
+struct rockchip_cpuclk {
+	struct clk_hw hw;
+	struct clk *alt_parent;
+	void *reg_base;
+	struct notifier_block clk_nb;
+	unsigned int rate_count;
+	struct rockchip_cpuclk_rate_table *rate_table;
+	const struct rockchip_cpuclk_reg_data *reg_data;
+	spinlock_t *lock;
+};
+
+struct rockchip_mmc_clock {
+	struct clk_hw hw;
+	void *reg;
+	int id;
+	int shift;
+	int cached_phase;
+	struct notifier_block clk_rate_change_nb;
+};
+
+struct rockchip_ddrclk {
+	struct clk_hw hw;
+	void *reg_base;
+	int mux_offset;
+	int mux_shift;
+	int mux_width;
+	int div_shift;
+	int div_width;
+	int ddr_flag;
+	spinlock_t *lock;
+};
+
+enum px30_plls {
+	apll___4 = 0,
+	dpll___6 = 1,
+	cpll___5 = 2,
+	npll___5 = 3,
+	apll_b_h = 4,
+	apll_b_l = 5,
+};
+
+enum px30_pmu_plls {
+	gpll___5 = 0,
+};
+
+struct sunxi_ccu {
+	const struct sunxi_ccu_desc *desc;
+	spinlock_t lock;
+	struct ccu_reset reset;
+};
+
+struct sun6i_rtc_match_data {
+	bool have_ext_osc32k: 1;
+	bool have_iosc_calibration: 1;
+	bool rtc_32k_single_parent: 1;
+	const struct clk_parent_data *osc32k_fanout_parents;
+	u8 osc32k_fanout_nparents;
+};
+
+struct utmi_clk_param {
+	u32 osc_frequency;
+	u8 enable_delay_count;
+	u8 stable_count;
+	u8 active_delay_count;
+	u8 xtal_freq_count;
+};
+
+struct cpu_clk_suspend_context___2 {
+	u32 clk_csite_src;
+};
+
+struct tegra210_domain_mbist_war {
+	void (*handle_lvl2_ovr)(struct tegra210_domain_mbist_war *);
+	const u32 lvl2_offset;
+	const u32 lvl2_mask;
+	const unsigned int num_clks;
+	const unsigned int *clk_init_data;
+	struct clk_bulk_data *clks;
+};
+
+struct utmi_clk_param___2 {
+	u32 osc_frequency;
+	u8 enable_delay_count;
+	u16 stable_count;
+	u8 active_delay_count;
+	u16 xtal_freq_count;
+};
+
+struct zynqmp_clk_divider {
+	struct clk_hw hw;
+	u8 flags;
+	bool is_frac;
+	u32 clk_id;
+	u32 div_type;
+	u16 max_div;
+};
+
+struct of_dma_filter_info {
+	dma_cap_mask_t dma_cap;
+	dma_filter_fn filter_fn;
+};
+
+struct k3_udma_glue_tx_channel_cfg {
+	struct k3_ring_cfg tx_cfg;
+	struct k3_ring_cfg txcq_cfg;
+	bool tx_pause_on_err;
+	bool tx_filt_einfo;
+	bool tx_filt_pswords;
+	bool tx_supr_tdpkt;
+	u32 swdata_size;
+};
+
+struct k3_udma_glue_rx_flow_cfg {
+	struct k3_ring_cfg rx_cfg;
+	struct k3_ring_cfg rxfdq_cfg;
+	int ring_rxq_id;
+	int ring_rxfdq0_id;
+	bool rx_error_handling;
+	int src_tag_lo_sel;
+};
+
+struct k3_udma_glue_rx_channel_cfg {
+	u32 swdata_size;
+	int flow_id_base;
+	int flow_id_num;
+	bool flow_id_use_rxchan_id;
+	bool remote;
+	struct k3_udma_glue_rx_flow_cfg *def_flow_cfg;
+};
+
+struct udma_dev;
+
+struct k3_udma_glue_common {
+	struct device *dev;
+	struct device chan_dev;
+	struct udma_dev *udmax;
+	const struct udma_tisci_rm *tisci_rm;
+	struct k3_ringacc *ringacc;
+	u32 src_thread;
+	u32 dst_thread;
+	u32 hdesc_size;
+	bool epib;
+	u32 psdata_size;
+	u32 swdata_size;
+	u32 atype_asel;
+	struct psil_endpoint_config *ep_config;
+};
+
+struct udma_tchan;
+
+struct k3_udma_glue_tx_channel {
+	struct k3_udma_glue_common common;
+	struct udma_tchan *udma_tchanx;
+	int udma_tchan_id;
+	struct k3_ring *ringtx;
+	struct k3_ring *ringtxcq;
+	bool psil_paired;
+	int virq;
+	atomic_t free_pkts;
+	bool tx_pause_on_err;
+	bool tx_filt_einfo;
+	bool tx_filt_pswords;
+	bool tx_supr_tdpkt;
+	int udma_tflow_id;
+};
+
+struct udma_rflow;
+
+struct k3_udma_glue_rx_flow {
+	struct udma_rflow *udma_rflow;
+	int udma_rflow_id;
+	struct k3_ring *ringrx;
+	struct k3_ring *ringrxfdq;
+	int virq;
+};
+
+struct udma_rchan;
+
+struct k3_udma_glue_rx_channel {
+	struct k3_udma_glue_common common;
+	struct udma_rchan *udma_rchanx;
+	int udma_rchan_id;
+	bool remote;
+	bool psil_paired;
+	u32 swdata_size;
+	int flow_id_base;
+	struct k3_udma_glue_rx_flow *flows;
+	u32 flow_num;
+	u32 flows_ready;
+};
+
+enum qm_wq_class {
+	qm_wq_portal = 0,
+	qm_wq_pool = 1,
+	qm_wq_fman0 = 2,
+	qm_wq_fman1 = 3,
+	qm_wq_caam = 4,
+	qm_wq_pme = 5,
+	qm_wq_first = 0,
+	qm_wq_last = 5,
+};
+
+enum qm_memory {
+	qm_memory_fqd = 0,
+	qm_memory_pfdr = 1,
+};
+
+struct qm_ecir {
+	u32 info;
+};
+
+struct qm_ecir2 {
+	u32 info;
+};
+
+struct qm_eadr {
+	u32 info;
+};
+
+struct qman_hwerr_txt {
+	u32 mask;
+	const char *txt;
+};
+
+struct qman_error_info_mdata {
+	u16 addr_mask;
+	u16 bits;
+	const char *txt;
+};
+
+enum qm_dc_portal {
+	qm_dc_portal_fman0 = 0,
+	qm_dc_portal_fman1 = 1,
+};
+
+struct a64fx_diag_priv {
+	void *mmsc_reg_base;
+	int irq;
+	bool has_nmi;
+};
+
+struct meson_secure_pwrc;
+
+struct meson_secure_pwrc_domain {
+	struct generic_pm_domain base;
+	unsigned int index;
+	struct meson_secure_pwrc *pwrc;
+};
+
+struct meson_sm_firmware;
+
+struct meson_secure_pwrc {
+	struct meson_secure_pwrc_domain *domains;
+	struct genpd_onecell_data xlate;
+	struct meson_sm_firmware *fw;
+};
+
+struct meson_secure_pwrc_domain_desc {
+	unsigned int index;
+	unsigned int flags;
+	char *name;
+	bool (*is_off)(struct meson_secure_pwrc_domain *);
+};
+
+struct meson_secure_pwrc_domain_data {
+	unsigned int count;
+	struct meson_secure_pwrc_domain_desc *domains;
+};
+
+struct rpmhpd {
+	struct device *dev;
+	struct generic_pm_domain pd;
+	struct generic_pm_domain *parent;
+	struct rpmhpd *peer;
+	const bool active_only;
+	unsigned int corner;
+	unsigned int active_corner;
+	unsigned int enable_corner;
+	u32 level[16];
+	size_t level_count;
+	bool enabled;
+	const char *res_name;
+	u32 addr;
+};
+
+struct rpmhpd_desc {
+	struct rpmhpd **rpmhpds;
+	size_t num_pds;
+};
+
+struct k3_ring_rt_regs {
+	u32 resv_16[4];
+	u32 db;
+	u32 resv_4[1];
+	u32 occ;
+	u32 indx;
+	u32 hwocc;
+	u32 hwindx;
+};
+
+struct k3_ring_fifo_regs {
+	u32 head_data[128];
+	u32 tail_data[128];
+	u32 peek_head_data[128];
+	u32 peek_tail_data[128];
+};
+
+struct k3_ringacc_proxy_gcfg_regs {
+	u32 revision;
+	u32 config;
+};
+
+struct k3_ringacc_proxy_target_regs {
+	u32 control;
+	u32 status;
+	u8 resv_512[504];
+	u32 data[128];
+};
+
+enum k3_ringacc_proxy_access_mode {
+	PROXY_ACCESS_MODE_HEAD = 0,
+	PROXY_ACCESS_MODE_TAIL = 1,
+	PROXY_ACCESS_MODE_PEEK_HEAD = 2,
+	PROXY_ACCESS_MODE_PEEK_TAIL = 3,
+};
+
+struct k3_ring;
+
+struct k3_ring_ops {
+	int (*push_tail)(struct k3_ring *, void *);
+	int (*push_head)(struct k3_ring *, void *);
+	int (*pop_tail)(struct k3_ring *, void *);
+	int (*pop_head)(struct k3_ring *, void *);
+};
+
+struct k3_ring_state {
+	u32 free;
+	u32 occ;
+	u32 windex;
+	u32 rindex;
+	u32 tdown_complete: 1;
+};
+
+struct k3_ringacc;
+
+struct k3_ring {
+	struct k3_ring_rt_regs *rt;
+	struct k3_ring_fifo_regs *fifos;
+	struct k3_ringacc_proxy_target_regs *proxy;
+	dma_addr_t ring_mem_dma;
+	void *ring_mem_virt;
+	struct k3_ring_ops *ops;
+	u32 size;
+	enum k3_ring_size elm_size;
+	enum k3_ring_mode mode;
+	u32 flags;
+	struct k3_ring_state state;
+	u32 ring_id;
+	struct k3_ringacc *parent;
+	u32 use_count;
+	int proxy_id;
+	struct device *dma_dev;
+	u32 asel;
+};
+
+struct k3_ringacc_ops;
+
+struct k3_ringacc {
+	struct device *dev;
+	struct k3_ringacc_proxy_gcfg_regs *proxy_gcfg;
+	void *proxy_target_base;
+	u32 num_rings;
+	long unsigned int *rings_inuse;
+	struct ti_sci_resource *rm_gp_range;
+	bool dma_ring_reset_quirk;
+	u32 num_proxies;
+	long unsigned int *proxy_inuse;
+	struct k3_ring *rings;
+	struct list_head list;
+	struct mutex req_lock;
+	const struct ti_sci_handle *tisci;
+	const struct ti_sci_rm_ringacc_ops *tisci_ring_ops;
+	u32 tisci_dev_id;
+	const struct k3_ringacc_ops *ops;
+	bool dma_rings;
+};
+
+struct k3_ringacc_ops {
+	int (*init)(struct platform_device *, struct k3_ringacc *);
+};
+
+struct k3_ringacc_soc_data {
+	unsigned int dma_ring_reset_quirk: 1;
+};
+
+enum k3_ringacc_access_mode {
+	K3_RINGACC_ACCESS_MODE_PUSH_HEAD = 0,
+	K3_RINGACC_ACCESS_MODE_POP_HEAD = 1,
+	K3_RINGACC_ACCESS_MODE_PUSH_TAIL = 2,
+	K3_RINGACC_ACCESS_MODE_POP_TAIL = 3,
+	K3_RINGACC_ACCESS_MODE_PEEK_HEAD = 4,
+	K3_RINGACC_ACCESS_MODE_PEEK_TAIL = 5,
+};
+
+struct ringacc_match_data {
+	struct k3_ringacc_ops ops;
+};
+
+enum {
+	VP_MSIX_CONFIG_VECTOR = 0,
+	VP_MSIX_VQ_VECTOR = 1,
+};
+
+struct fixed_voltage_data {
+	struct regulator_desc desc;
+	struct regulator_dev *dev;
+	struct clk *enable_clock;
+	unsigned int enable_counter;
+	int performance_state;
+};
+
+struct fixed_dev_type {
+	bool has_enable_clock;
+	bool has_performance_state;
+};
+
+enum rk808_reg {
+	RK808_ID_DCDC1 = 0,
+	RK808_ID_DCDC2 = 1,
+	RK808_ID_DCDC3 = 2,
+	RK808_ID_DCDC4 = 3,
+	RK808_ID_LDO1 = 4,
+	RK808_ID_LDO2 = 5,
+	RK808_ID_LDO3 = 6,
+	RK808_ID_LDO4 = 7,
+	RK808_ID_LDO5 = 8,
+	RK808_ID_LDO6 = 9,
+	RK808_ID_LDO7 = 10,
+	RK808_ID_LDO8 = 11,
+	RK808_ID_SWITCH1 = 12,
+	RK808_ID_SWITCH2 = 13,
+};
+
+enum rk818_reg {
+	RK818_ID_DCDC1 = 0,
+	RK818_ID_DCDC2 = 1,
+	RK818_ID_DCDC3 = 2,
+	RK818_ID_DCDC4 = 3,
+	RK818_ID_BOOST = 4,
+	RK818_ID_LDO1 = 5,
+	RK818_ID_LDO2 = 6,
+	RK818_ID_LDO3 = 7,
+	RK818_ID_LDO4 = 8,
+	RK818_ID_LDO5 = 9,
+	RK818_ID_LDO6 = 10,
+	RK818_ID_LDO7 = 11,
+	RK818_ID_LDO8 = 12,
+	RK818_ID_LDO9 = 13,
+	RK818_ID_SWITCH = 14,
+	RK818_ID_HDMI_SWITCH = 15,
+	RK818_ID_OTG_SWITCH = 16,
+};
+
+enum rk805_reg {
+	RK805_ID_DCDC1 = 0,
+	RK805_ID_DCDC2 = 1,
+	RK805_ID_DCDC3 = 2,
+	RK805_ID_DCDC4 = 3,
+	RK805_ID_LDO1 = 4,
+	RK805_ID_LDO2 = 5,
+	RK805_ID_LDO3 = 6,
+};
+
+enum rk809_reg_id {
+	RK809_ID_DCDC5 = 13,
+	RK809_ID_SW1 = 14,
+	RK809_ID_SW2 = 15,
+	RK809_NUM_REGULATORS = 16,
+};
+
+struct rk808_regulator_data {
+	struct gpio_desc *dvs_gpio[2];
+};
+
+struct termios {
+	tcflag_t c_iflag;
+	tcflag_t c_oflag;
+	tcflag_t c_cflag;
+	tcflag_t c_lflag;
+	cc_t c_line;
+	cc_t c_cc[19];
+};
+
+struct termios2 {
+	tcflag_t c_iflag;
+	tcflag_t c_oflag;
+	tcflag_t c_cflag;
+	tcflag_t c_lflag;
+	cc_t c_line;
+	cc_t c_cc[19];
+	speed_t c_ispeed;
+	speed_t c_ospeed;
+};
+
+struct termio {
+	short unsigned int c_iflag;
+	short unsigned int c_oflag;
+	short unsigned int c_cflag;
+	short unsigned int c_lflag;
+	unsigned char c_line;
+	unsigned char c_cc[8];
+};
+
+struct sysrq_state {
+	struct input_handle handle;
+	struct work_struct reinject_work;
+	long unsigned int key_down[12];
+	unsigned int alt;
+	unsigned int alt_use;
+	unsigned int shift;
+	unsigned int shift_use;
+	bool active;
+	bool need_reinject;
+	bool reinjecting;
+	bool reset_canceled;
+	bool reset_requested;
+	long unsigned int reset_keybit[12];
+	int reset_seq_len;
+	int reset_seq_cnt;
+	int reset_seq_version;
+	struct timer_list keyreset_timer;
+};
+
+struct bcm2835aux_data {
+	struct clk *clk;
+	int line;
+	u32 cntl;
+};
+
+struct bcm2835_aux_serial_driver_data {
+	resource_size_t offset;
+};
+
+struct tegra_uart {
+	struct clk *clk;
+	struct reset_control *rst;
+	int line;
+};
+
+enum geni_icc_path_index {
+	GENI_TO_CORE = 0,
+	CPU_TO_GENI = 1,
+	GENI_TO_DDR = 2,
+};
+
+struct qcom_geni_private_data {
+	struct uart_driver *drv;
+	u32 poll_cached_bytes;
+	unsigned int poll_cached_bytes_cnt;
+	u32 write_cached_bytes;
+	unsigned int write_cached_bytes_cnt;
+};
+
+struct qcom_geni_serial_port {
+	struct uart_port uport;
+	struct geni_se se;
+	const char *name;
+	u32 tx_fifo_depth;
+	u32 tx_fifo_width;
+	u32 rx_fifo_depth;
+	bool setup;
+	int (*handle_rx)(struct uart_port *, u32, bool);
+	unsigned int baud;
+	void *rx_fifo;
+	u32 loopback;
+	bool brk;
+	unsigned int tx_remaining;
+	int wakeup_irq;
+	bool rx_tx_swap;
+	bool cts_rts_swap;
+	struct qcom_geni_private_data private_data;
+};
+
+struct tpmrm_priv {
+	struct file_priv priv;
+	struct tpm_space space;
+};
+
+enum qcom_iommu_clk {
+	CLK_IFACE = 0,
+	CLK_BUS = 1,
+	CLK_TBU = 2,
+	CLK_NUM = 3,
+};
+
+struct qcom_iommu_ctx;
+
+struct qcom_iommu_dev {
+	struct iommu_device iommu;
+	struct device *dev;
+	struct clk_bulk_data clks[3];
+	void *local_base;
+	u32 sec_id;
+	u8 num_ctxs;
+	struct qcom_iommu_ctx *ctxs[0];
+};
+
+struct qcom_iommu_ctx {
+	struct device *dev;
+	void *base;
+	bool secure_init;
+	u8 asid;
+	struct iommu_domain *domain;
+};
+
+struct qcom_iommu_domain {
+	struct io_pgtable_ops *pgtbl_ops;
+	spinlock_t pgtbl_lock;
+	struct mutex init_mutex;
+	struct iommu_domain domain;
+	struct qcom_iommu_dev *iommu;
+	struct iommu_fwspec *fwspec;
+};
+
+struct trace_event_raw_iommu_group_event {
+	struct trace_entry ent;
+	int gid;
+	u32 __data_loc_device;
+	char __data[0];
+};
+
+struct trace_event_raw_iommu_device_event {
+	struct trace_entry ent;
+	u32 __data_loc_device;
+	char __data[0];
+};
+
+struct trace_event_raw_map {
+	struct trace_entry ent;
+	u64 iova;
+	u64 paddr;
+	size_t size;
+	char __data[0];
+};
+
+struct trace_event_raw_unmap {
+	struct trace_entry ent;
+	u64 iova;
+	size_t size;
+	size_t unmapped_size;
+	char __data[0];
+};
+
+struct trace_event_raw_iommu_error {
+	struct trace_entry ent;
+	u32 __data_loc_device;
+	u32 __data_loc_driver;
+	u64 iova;
+	int flags;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_iommu_group_event {
+	u32 device;
+};
+
+struct trace_event_data_offsets_iommu_device_event {
+	u32 device;
+};
+
+struct trace_event_data_offsets_map {};
+
+struct trace_event_data_offsets_unmap {};
+
+struct trace_event_data_offsets_iommu_error {
+	u32 device;
+	u32 driver;
+};
+
+typedef void (*btf_trace_add_device_to_group)(void *, int, struct device *);
+
+typedef void (*btf_trace_remove_device_from_group)(void *, int, struct device *);
+
+typedef void (*btf_trace_attach_device_to_domain)(void *, struct device *);
+
+typedef void (*btf_trace_detach_device_from_domain)(void *, struct device *);
+
+typedef void (*btf_trace_map)(void *, long unsigned int, phys_addr_t, size_t);
+
+typedef void (*btf_trace_unmap)(void *, long unsigned int, size_t, size_t);
+
+typedef void (*btf_trace_io_page_fault)(void *, struct device *, long unsigned int, int);
+
+struct sun50i_iommu {
+	struct iommu_device iommu;
+	spinlock_t iommu_lock;
+	struct device *dev;
+	void *base;
+	struct reset_control *reset;
+	struct clk *clk;
+	struct iommu_domain *domain;
+	struct iommu_group *group;
+	struct kmem_cache *pt_pool;
+};
+
+struct sun50i_iommu_domain {
+	struct iommu_domain domain;
+	refcount_t refcnt;
+	u32 *dt;
+	dma_addr_t dt_dma;
+	struct sun50i_iommu *iommu;
+};
+
+enum sun50i_iommu_aci {
+	SUN50I_IOMMU_ACI_DO_NOT_USE = 0,
+	SUN50I_IOMMU_ACI_NONE = 1,
+	SUN50I_IOMMU_ACI_RD = 2,
+	SUN50I_IOMMU_ACI_WR = 3,
+	SUN50I_IOMMU_ACI_RD_WR = 4,
+};
+
+struct displayid_header {
+	u8 rev;
+	u8 bytes;
+	u8 prod_id;
+	u8 ext_count;
+};
+
+struct trace_event_raw_drm_vblank_event {
+	struct trace_entry ent;
+	int crtc;
+	unsigned int seq;
+	ktime_t time;
+	bool high_prec;
+	char __data[0];
+};
+
+struct trace_event_raw_drm_vblank_event_queued {
+	struct trace_entry ent;
+	struct drm_file *file;
+	int crtc;
+	unsigned int seq;
+	char __data[0];
+};
+
+struct trace_event_raw_drm_vblank_event_delivered {
+	struct trace_entry ent;
+	struct drm_file *file;
+	int crtc;
+	unsigned int seq;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_drm_vblank_event {};
+
+struct trace_event_data_offsets_drm_vblank_event_queued {};
+
+struct trace_event_data_offsets_drm_vblank_event_delivered {};
+
+typedef void (*btf_trace_drm_vblank_event)(void *, int, unsigned int, ktime_t, bool);
+
+typedef void (*btf_trace_drm_vblank_event_queued)(void *, struct drm_file *, int, unsigned int);
+
+typedef void (*btf_trace_drm_vblank_event_delivered)(void *, struct drm_file *, int, unsigned int);
+
+struct drm_print_iterator {
+	void *data;
+	ssize_t start;
+	ssize_t remain;
+	ssize_t offset;
+};
+
+struct drm_mode_create_lease {
+	__u64 object_ids;
+	__u32 object_count;
+	__u32 flags;
+	__u32 lessee_id;
+	__u32 fd;
+};
+
+struct drm_mode_list_lessees {
+	__u32 count_lessees;
+	__u32 pad;
+	__u64 lessees_ptr;
+};
+
+struct drm_mode_get_lease {
+	__u32 count_objects;
+	__u32 pad;
+	__u64 objects_ptr;
+};
+
+struct drm_mode_revoke_lease {
+	__u32 lessee_id;
+};
+
+struct simpledrm_device {
+	struct drm_device dev;
+	struct platform_device *pdev;
+	unsigned int clk_count;
+	struct clk **clks;
+	unsigned int regulator_count;
+	struct regulator **regulators;
+	struct drm_display_mode mode;
+	const struct drm_format_info *format;
+	unsigned int pitch;
+	struct resource *mem;
+	void *screen_base;
+	uint32_t formats[8];
+	size_t nformats;
+	struct drm_connector connector;
+	struct drm_simple_display_pipe pipe;
+};
+
+struct class_compat {
+	struct kobject *kobj;
+};
+
+struct devres_node {
+	struct list_head entry;
+	dr_release_t release;
+	const char *name;
+	size_t size;
+};
+
+struct devres {
+	struct devres_node node;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u8 data[0];
+};
+
+struct devres_group {
+	struct devres_node node[2];
+	void *id;
+	int color;
+};
+
+struct action_devres {
+	void *data;
+	void (*action)(void *);
+};
+
+struct pages_devres {
+	long unsigned int addr;
+	unsigned int order;
+};
+
+struct req {
+	struct req *next;
+	struct completion done;
+	int err;
+	const char *name;
+	umode_t mode;
+	kuid_t uid;
+	kgid_t gid;
+	struct device *dev;
+};
+
+enum fw_upload_err {
+	FW_UPLOAD_ERR_NONE = 0,
+	FW_UPLOAD_ERR_HW_ERROR = 1,
+	FW_UPLOAD_ERR_TIMEOUT = 2,
+	FW_UPLOAD_ERR_CANCELED = 3,
+	FW_UPLOAD_ERR_BUSY = 4,
+	FW_UPLOAD_ERR_INVALID_SIZE = 5,
+	FW_UPLOAD_ERR_RW_ERROR = 6,
+	FW_UPLOAD_ERR_WEAROUT = 7,
+	FW_UPLOAD_ERR_MAX = 8,
+};
+
+struct fw_upload {
+	void *dd_handle;
+	void *priv;
+};
+
+struct fw_upload_ops {
+	enum fw_upload_err (*prepare)(struct fw_upload *, const u8 *, u32);
+	enum fw_upload_err (*write)(struct fw_upload *, const u8 *, u32, u32, u32 *);
+	enum fw_upload_err (*poll_complete)(struct fw_upload *);
+	void (*cancel)(struct fw_upload *);
+	void (*cleanup)(struct fw_upload *);
+};
+
+enum fw_upload_prog {
+	FW_UPLOAD_PROG_IDLE = 0,
+	FW_UPLOAD_PROG_RECEIVING = 1,
+	FW_UPLOAD_PROG_PREPARING = 2,
+	FW_UPLOAD_PROG_TRANSFERRING = 3,
+	FW_UPLOAD_PROG_PROGRAMMING = 4,
+	FW_UPLOAD_PROG_MAX = 5,
+};
+
+struct fw_upload_priv {
+	struct fw_upload *fw_upload;
+	struct module *module;
+	const char *name;
+	const struct fw_upload_ops *ops;
+	struct mutex lock;
+	struct work_struct work;
+	const u8 *data;
+	u32 remaining_size;
+	enum fw_upload_prog progress;
+	enum fw_upload_prog err_progress;
+	enum fw_upload_err err_code;
+};
+
+struct regmap_debugfs_off_cache {
+	struct list_head list;
+	off_t min;
+	off_t max;
+	unsigned int base_reg;
+	unsigned int max_reg;
+};
+
+struct regmap_debugfs_node {
+	struct regmap *map;
+	struct list_head link;
+};
+
+struct devcd_entry {
+	struct device devcd_dev;
+	void *data;
+	size_t datalen;
+	struct module *owner;
+	ssize_t (*read)(char *, loff_t, size_t, void *, size_t);
+	void (*free)(void *);
+	struct delayed_work del_wk;
+	struct device *failing_dev;
+};
+
+enum {
+	AXP152_IRQ_LDO0IN_CONNECT = 1,
+	AXP152_IRQ_LDO0IN_REMOVAL = 2,
+	AXP152_IRQ_ALDO0IN_CONNECT = 3,
+	AXP152_IRQ_ALDO0IN_REMOVAL = 4,
+	AXP152_IRQ_DCDC1_V_LOW = 5,
+	AXP152_IRQ_DCDC2_V_LOW = 6,
+	AXP152_IRQ_DCDC3_V_LOW = 7,
+	AXP152_IRQ_DCDC4_V_LOW = 8,
+	AXP152_IRQ_PEK_SHORT = 9,
+	AXP152_IRQ_PEK_LONG = 10,
+	AXP152_IRQ_TIMER = 11,
+	AXP152_IRQ_PEK_RIS_EDGE = 12,
+	AXP152_IRQ_PEK_FAL_EDGE = 13,
+	AXP152_IRQ_GPIO3_INPUT = 14,
+	AXP152_IRQ_GPIO2_INPUT = 15,
+	AXP152_IRQ_GPIO1_INPUT = 16,
+	AXP152_IRQ_GPIO0_INPUT = 17,
+};
+
+enum {
+	AXP20X_IRQ_ACIN_OVER_V = 1,
+	AXP20X_IRQ_ACIN_PLUGIN = 2,
+	AXP20X_IRQ_ACIN_REMOVAL = 3,
+	AXP20X_IRQ_VBUS_OVER_V = 4,
+	AXP20X_IRQ_VBUS_PLUGIN = 5,
+	AXP20X_IRQ_VBUS_REMOVAL = 6,
+	AXP20X_IRQ_VBUS_V_LOW = 7,
+	AXP20X_IRQ_BATT_PLUGIN = 8,
+	AXP20X_IRQ_BATT_REMOVAL = 9,
+	AXP20X_IRQ_BATT_ENT_ACT_MODE = 10,
+	AXP20X_IRQ_BATT_EXIT_ACT_MODE = 11,
+	AXP20X_IRQ_CHARG = 12,
+	AXP20X_IRQ_CHARG_DONE = 13,
+	AXP20X_IRQ_BATT_TEMP_HIGH = 14,
+	AXP20X_IRQ_BATT_TEMP_LOW = 15,
+	AXP20X_IRQ_DIE_TEMP_HIGH = 16,
+	AXP20X_IRQ_CHARG_I_LOW = 17,
+	AXP20X_IRQ_DCDC1_V_LONG = 18,
+	AXP20X_IRQ_DCDC2_V_LONG = 19,
+	AXP20X_IRQ_DCDC3_V_LONG = 20,
+	AXP20X_IRQ_PEK_SHORT = 22,
+	AXP20X_IRQ_PEK_LONG = 23,
+	AXP20X_IRQ_N_OE_PWR_ON = 24,
+	AXP20X_IRQ_N_OE_PWR_OFF = 25,
+	AXP20X_IRQ_VBUS_VALID = 26,
+	AXP20X_IRQ_VBUS_NOT_VALID = 27,
+	AXP20X_IRQ_VBUS_SESS_VALID = 28,
+	AXP20X_IRQ_VBUS_SESS_END = 29,
+	AXP20X_IRQ_LOW_PWR_LVL1 = 30,
+	AXP20X_IRQ_LOW_PWR_LVL2 = 31,
+	AXP20X_IRQ_TIMER = 32,
+	AXP20X_IRQ_PEK_RIS_EDGE = 33,
+	AXP20X_IRQ_PEK_FAL_EDGE = 34,
+	AXP20X_IRQ_GPIO3_INPUT = 35,
+	AXP20X_IRQ_GPIO2_INPUT = 36,
+	AXP20X_IRQ_GPIO1_INPUT = 37,
+	AXP20X_IRQ_GPIO0_INPUT = 38,
+};
+
+enum axp22x_irqs {
+	AXP22X_IRQ_ACIN_OVER_V = 1,
+	AXP22X_IRQ_ACIN_PLUGIN = 2,
+	AXP22X_IRQ_ACIN_REMOVAL = 3,
+	AXP22X_IRQ_VBUS_OVER_V = 4,
+	AXP22X_IRQ_VBUS_PLUGIN = 5,
+	AXP22X_IRQ_VBUS_REMOVAL = 6,
+	AXP22X_IRQ_VBUS_V_LOW = 7,
+	AXP22X_IRQ_BATT_PLUGIN = 8,
+	AXP22X_IRQ_BATT_REMOVAL = 9,
+	AXP22X_IRQ_BATT_ENT_ACT_MODE = 10,
+	AXP22X_IRQ_BATT_EXIT_ACT_MODE = 11,
+	AXP22X_IRQ_CHARG = 12,
+	AXP22X_IRQ_CHARG_DONE = 13,
+	AXP22X_IRQ_BATT_TEMP_HIGH = 14,
+	AXP22X_IRQ_BATT_TEMP_LOW = 15,
+	AXP22X_IRQ_DIE_TEMP_HIGH = 16,
+	AXP22X_IRQ_PEK_SHORT = 17,
+	AXP22X_IRQ_PEK_LONG = 18,
+	AXP22X_IRQ_LOW_PWR_LVL1 = 19,
+	AXP22X_IRQ_LOW_PWR_LVL2 = 20,
+	AXP22X_IRQ_TIMER = 21,
+	AXP22X_IRQ_PEK_RIS_EDGE = 22,
+	AXP22X_IRQ_PEK_FAL_EDGE = 23,
+	AXP22X_IRQ_GPIO1_INPUT = 24,
+	AXP22X_IRQ_GPIO0_INPUT = 25,
+};
+
+enum axp288_irqs {
+	AXP288_IRQ_VBUS_FALL = 2,
+	AXP288_IRQ_VBUS_RISE = 3,
+	AXP288_IRQ_OV = 4,
+	AXP288_IRQ_FALLING_ALT = 5,
+	AXP288_IRQ_RISING_ALT = 6,
+	AXP288_IRQ_OV_ALT = 7,
+	AXP288_IRQ_DONE = 10,
+	AXP288_IRQ_CHARGING = 11,
+	AXP288_IRQ_SAFE_QUIT = 12,
+	AXP288_IRQ_SAFE_ENTER = 13,
+	AXP288_IRQ_ABSENT = 14,
+	AXP288_IRQ_APPEND = 15,
+	AXP288_IRQ_QWBTU = 16,
+	AXP288_IRQ_WBTU = 17,
+	AXP288_IRQ_QWBTO = 18,
+	AXP288_IRQ_WBTO = 19,
+	AXP288_IRQ_QCBTU = 20,
+	AXP288_IRQ_CBTU = 21,
+	AXP288_IRQ_QCBTO = 22,
+	AXP288_IRQ_CBTO = 23,
+	AXP288_IRQ_WL2 = 24,
+	AXP288_IRQ_WL1 = 25,
+	AXP288_IRQ_GPADC = 26,
+	AXP288_IRQ_OT = 31,
+	AXP288_IRQ_GPIO0 = 32,
+	AXP288_IRQ_GPIO1 = 33,
+	AXP288_IRQ_POKO = 34,
+	AXP288_IRQ_POKL = 35,
+	AXP288_IRQ_POKS = 36,
+	AXP288_IRQ_POKN = 37,
+	AXP288_IRQ_POKP = 38,
+	AXP288_IRQ_TIMER = 39,
+	AXP288_IRQ_MV_CHNG = 40,
+	AXP288_IRQ_BC_USB_CHNG = 41,
+};
+
+enum axp803_irqs {
+	AXP803_IRQ_ACIN_OVER_V = 1,
+	AXP803_IRQ_ACIN_PLUGIN = 2,
+	AXP803_IRQ_ACIN_REMOVAL = 3,
+	AXP803_IRQ_VBUS_OVER_V = 4,
+	AXP803_IRQ_VBUS_PLUGIN = 5,
+	AXP803_IRQ_VBUS_REMOVAL = 6,
+	AXP803_IRQ_BATT_PLUGIN = 7,
+	AXP803_IRQ_BATT_REMOVAL = 8,
+	AXP803_IRQ_BATT_ENT_ACT_MODE = 9,
+	AXP803_IRQ_BATT_EXIT_ACT_MODE = 10,
+	AXP803_IRQ_CHARG = 11,
+	AXP803_IRQ_CHARG_DONE = 12,
+	AXP803_IRQ_BATT_CHG_TEMP_HIGH = 13,
+	AXP803_IRQ_BATT_CHG_TEMP_HIGH_END = 14,
+	AXP803_IRQ_BATT_CHG_TEMP_LOW = 15,
+	AXP803_IRQ_BATT_CHG_TEMP_LOW_END = 16,
+	AXP803_IRQ_BATT_ACT_TEMP_HIGH = 17,
+	AXP803_IRQ_BATT_ACT_TEMP_HIGH_END = 18,
+	AXP803_IRQ_BATT_ACT_TEMP_LOW = 19,
+	AXP803_IRQ_BATT_ACT_TEMP_LOW_END = 20,
+	AXP803_IRQ_DIE_TEMP_HIGH = 21,
+	AXP803_IRQ_GPADC = 22,
+	AXP803_IRQ_LOW_PWR_LVL1 = 23,
+	AXP803_IRQ_LOW_PWR_LVL2 = 24,
+	AXP803_IRQ_TIMER = 25,
+	AXP803_IRQ_PEK_RIS_EDGE = 26,
+	AXP803_IRQ_PEK_FAL_EDGE = 27,
+	AXP803_IRQ_PEK_SHORT = 28,
+	AXP803_IRQ_PEK_LONG = 29,
+	AXP803_IRQ_PEK_OVER_OFF = 30,
+	AXP803_IRQ_GPIO1_INPUT = 31,
+	AXP803_IRQ_GPIO0_INPUT = 32,
+	AXP803_IRQ_BC_USB_CHNG = 33,
+	AXP803_IRQ_MV_CHNG = 34,
+};
+
+enum axp806_irqs {
+	AXP806_IRQ_DIE_TEMP_HIGH_LV1 = 0,
+	AXP806_IRQ_DIE_TEMP_HIGH_LV2 = 1,
+	AXP806_IRQ_DCDCA_V_LOW = 2,
+	AXP806_IRQ_DCDCB_V_LOW = 3,
+	AXP806_IRQ_DCDCC_V_LOW = 4,
+	AXP806_IRQ_DCDCD_V_LOW = 5,
+	AXP806_IRQ_DCDCE_V_LOW = 6,
+	AXP806_IRQ_POK_LONG = 7,
+	AXP806_IRQ_POK_SHORT = 8,
+	AXP806_IRQ_WAKEUP = 9,
+	AXP806_IRQ_POK_FALL = 10,
+	AXP806_IRQ_POK_RISE = 11,
+};
+
+enum axp809_irqs {
+	AXP809_IRQ_ACIN_OVER_V = 1,
+	AXP809_IRQ_ACIN_PLUGIN = 2,
+	AXP809_IRQ_ACIN_REMOVAL = 3,
+	AXP809_IRQ_VBUS_OVER_V = 4,
+	AXP809_IRQ_VBUS_PLUGIN = 5,
+	AXP809_IRQ_VBUS_REMOVAL = 6,
+	AXP809_IRQ_VBUS_V_LOW = 7,
+	AXP809_IRQ_BATT_PLUGIN = 8,
+	AXP809_IRQ_BATT_REMOVAL = 9,
+	AXP809_IRQ_BATT_ENT_ACT_MODE = 10,
+	AXP809_IRQ_BATT_EXIT_ACT_MODE = 11,
+	AXP809_IRQ_CHARG = 12,
+	AXP809_IRQ_CHARG_DONE = 13,
+	AXP809_IRQ_BATT_CHG_TEMP_HIGH = 14,
+	AXP809_IRQ_BATT_CHG_TEMP_HIGH_END = 15,
+	AXP809_IRQ_BATT_CHG_TEMP_LOW = 16,
+	AXP809_IRQ_BATT_CHG_TEMP_LOW_END = 17,
+	AXP809_IRQ_BATT_ACT_TEMP_HIGH = 18,
+	AXP809_IRQ_BATT_ACT_TEMP_HIGH_END = 19,
+	AXP809_IRQ_BATT_ACT_TEMP_LOW = 20,
+	AXP809_IRQ_BATT_ACT_TEMP_LOW_END = 21,
+	AXP809_IRQ_DIE_TEMP_HIGH = 22,
+	AXP809_IRQ_LOW_PWR_LVL1 = 23,
+	AXP809_IRQ_LOW_PWR_LVL2 = 24,
+	AXP809_IRQ_TIMER = 25,
+	AXP809_IRQ_PEK_RIS_EDGE = 26,
+	AXP809_IRQ_PEK_FAL_EDGE = 27,
+	AXP809_IRQ_PEK_SHORT = 28,
+	AXP809_IRQ_PEK_LONG = 29,
+	AXP809_IRQ_PEK_OVER_OFF = 30,
+	AXP809_IRQ_GPIO1_INPUT = 31,
+	AXP809_IRQ_GPIO0_INPUT = 32,
+};
+
+struct dax_device {
+	struct inode inode;
+	struct cdev cdev;
+	void *private;
+	long unsigned int flags;
+	const struct dax_operations *ops;
+	void *holder_data;
+	const struct dax_holder_operations *holder_ops;
+};
+
+enum dax_device_flags {
+	DAXDEV_ALIVE = 0,
+	DAXDEV_WRITE_CACHE = 1,
+	DAXDEV_SYNC = 2,
+	DAXDEV_NOCACHE = 3,
+	DAXDEV_NOMC = 4,
+};
+
+struct dma_buf_stats_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct dma_buf *, struct dma_buf_stats_attribute *, char *);
+};
+
+enum scsi_prot_flags {
+	SCSI_PROT_TRANSFER_PI = 1,
+	SCSI_PROT_GUARD_CHECK = 2,
+	SCSI_PROT_REF_CHECK = 4,
+	SCSI_PROT_REF_INCREMENT = 8,
+	SCSI_PROT_IP_CHECKSUM = 16,
+};
+
+enum {
+	SD_EXT_CDB_SIZE = 32,
+	SD_MEMPOOL_SIZE = 2,
+};
+
+enum {
+	SD_DEF_XFER_BLOCKS = 65535,
+	SD_MAX_XFER_BLOCKS = 4294967295,
+	SD_MAX_WS10_BLOCKS = 65535,
+	SD_MAX_WS16_BLOCKS = 8388607,
+};
+
+enum {
+	SD_LBP_FULL = 0,
+	SD_LBP_UNMAP = 1,
+	SD_LBP_WS16 = 2,
+	SD_LBP_WS10 = 3,
+	SD_LBP_ZERO = 4,
+	SD_LBP_DISABLE = 5,
+};
+
+enum {
+	SD_ZERO_WRITE = 0,
+	SD_ZERO_WS = 1,
+	SD_ZERO_WS16_UNMAP = 2,
+	SD_ZERO_WS10_UNMAP = 3,
+};
+
+struct ata_internal {
+	struct scsi_transport_template t;
+	struct device_attribute private_port_attrs[3];
+	struct device_attribute private_link_attrs[3];
+	struct device_attribute private_dev_attrs[9];
+	struct transport_container link_attr_cont;
+	struct transport_container dev_attr_cont;
+	struct device_attribute *link_attrs[4];
+	struct device_attribute *port_attrs[4];
+	struct device_attribute *dev_attrs[10];
+};
+
+struct ata_show_ering_arg {
+	char *buf;
+	int written;
+};
+
+struct spi_mem_driver {
+	struct spi_driver spidrv;
+	int (*probe)(struct spi_mem *);
+	int (*remove)(struct spi_mem *);
+	void (*shutdown)(struct spi_mem *);
+};
+
+struct mdio_board_entry {
+	struct list_head list;
+	struct mdio_board_info board_info;
+};
+
+struct sfp;
+
+struct sfp_socket_ops;
+
+struct sfp_quirk;
+
+struct sfp_bus {
+	struct kref kref;
+	struct list_head node;
+	struct fwnode_handle *fwnode;
+	const struct sfp_socket_ops *socket_ops;
+	struct device *sfp_dev;
+	struct sfp *sfp;
+	const struct sfp_quirk *sfp_quirk;
+	const struct sfp_upstream_ops *upstream_ops;
+	void *upstream;
+	struct phy_device *phydev;
+	bool registered;
+	bool started;
+};
+
+enum {
+	SFF8024_ID_UNK = 0,
+	SFF8024_ID_SFF_8472 = 2,
+	SFF8024_ID_SFP = 3,
+	SFF8024_ID_DWDM_SFP = 11,
+	SFF8024_ID_QSFP_8438 = 12,
+	SFF8024_ID_QSFP_8436_8636 = 13,
+	SFF8024_ID_QSFP28_8636 = 17,
+	SFF8024_ENCODING_UNSPEC = 0,
+	SFF8024_ENCODING_8B10B = 1,
+	SFF8024_ENCODING_4B5B = 2,
+	SFF8024_ENCODING_NRZ = 3,
+	SFF8024_ENCODING_8472_MANCHESTER = 4,
+	SFF8024_ENCODING_8472_SONET = 5,
+	SFF8024_ENCODING_8472_64B66B = 6,
+	SFF8024_ENCODING_8436_MANCHESTER = 6,
+	SFF8024_ENCODING_8436_SONET = 4,
+	SFF8024_ENCODING_8436_64B66B = 5,
+	SFF8024_ENCODING_256B257B = 7,
+	SFF8024_ENCODING_PAM4 = 8,
+	SFF8024_CONNECTOR_UNSPEC = 0,
+	SFF8024_CONNECTOR_SC = 1,
+	SFF8024_CONNECTOR_FIBERJACK = 6,
+	SFF8024_CONNECTOR_LC = 7,
+	SFF8024_CONNECTOR_MT_RJ = 8,
+	SFF8024_CONNECTOR_MU = 9,
+	SFF8024_CONNECTOR_SG = 10,
+	SFF8024_CONNECTOR_OPTICAL_PIGTAIL = 11,
+	SFF8024_CONNECTOR_MPO_1X12 = 12,
+	SFF8024_CONNECTOR_MPO_2X16 = 13,
+	SFF8024_CONNECTOR_HSSDC_II = 32,
+	SFF8024_CONNECTOR_COPPER_PIGTAIL = 33,
+	SFF8024_CONNECTOR_RJ45 = 34,
+	SFF8024_CONNECTOR_NOSEPARATE = 35,
+	SFF8024_CONNECTOR_MXC_2X16 = 36,
+	SFF8024_ECC_UNSPEC = 0,
+	SFF8024_ECC_100G_25GAUI_C2M_AOC = 1,
+	SFF8024_ECC_100GBASE_SR4_25GBASE_SR = 2,
+	SFF8024_ECC_100GBASE_LR4_25GBASE_LR = 3,
+	SFF8024_ECC_100GBASE_ER4_25GBASE_ER = 4,
+	SFF8024_ECC_100GBASE_SR10 = 5,
+	SFF8024_ECC_100GBASE_CR4 = 11,
+	SFF8024_ECC_25GBASE_CR_S = 12,
+	SFF8024_ECC_25GBASE_CR_N = 13,
+	SFF8024_ECC_10GBASE_T_SFI = 22,
+	SFF8024_ECC_10GBASE_T_SR = 28,
+	SFF8024_ECC_5GBASE_T = 29,
+	SFF8024_ECC_2_5GBASE_T = 30,
+};
+
+struct sfp_socket_ops {
+	void (*attach)(struct sfp *);
+	void (*detach)(struct sfp *);
+	void (*start)(struct sfp *);
+	void (*stop)(struct sfp *);
+	int (*module_info)(struct sfp *, struct ethtool_modinfo *);
+	int (*module_eeprom)(struct sfp *, struct ethtool_eeprom *, u8 *);
+	int (*module_eeprom_by_page)(struct sfp *, const struct ethtool_module_eeprom *, struct netlink_ext_ack *);
+};
+
+struct sfp_quirk {
+	const char *vendor;
+	const char *part;
+	void (*modes)(const struct sfp_eeprom_id *, long unsigned int *);
+};
+
+struct usb_qualifier_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 bcdUSB;
+	__u8 bDeviceClass;
+	__u8 bDeviceSubClass;
+	__u8 bDeviceProtocol;
+	__u8 bMaxPacketSize0;
+	__u8 bNumConfigurations;
+	__u8 bRESERVED;
+};
+
+struct usb_otg_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bmAttributes;
+};
+
+struct usb_set_sel_req {
+	__u8 u1_sel;
+	__u8 u1_pel;
+	__le16 u2_sel;
+	__le16 u2_pel;
+};
+
+struct usbdevfs_hub_portinfo {
+	char nports;
+	char port[127];
+};
+
+enum hub_led_mode {
+	INDICATOR_AUTO = 0,
+	INDICATOR_CYCLE = 1,
+	INDICATOR_GREEN_BLINK = 2,
+	INDICATOR_GREEN_BLINK_OFF = 3,
+	INDICATOR_AMBER_BLINK = 4,
+	INDICATOR_AMBER_BLINK_OFF = 5,
+	INDICATOR_ALT_BLINK = 6,
+	INDICATOR_ALT_BLINK_OFF = 7,
+};
+
+struct usb_tt_clear {
+	struct list_head clear_list;
+	unsigned int tt;
+	u16 devinfo;
+	struct usb_hcd *hcd;
+	struct usb_host_endpoint *ep;
+};
+
+enum hub_activation_type {
+	HUB_INIT = 0,
+	HUB_INIT2 = 1,
+	HUB_INIT3 = 2,
+	HUB_POST_RESET = 3,
+	HUB_RESUME = 4,
+	HUB_RESET_RESUME = 5,
+};
+
+enum hub_quiescing_type {
+	HUB_DISCONNECT = 0,
+	HUB_PRE_RESET = 1,
+	HUB_SUSPEND = 2,
+};
+
+struct usb_phy_roothub {
+	struct phy *phy;
+	struct list_head list;
+};
+
+enum usb_phy_interface {
+	USBPHY_INTERFACE_MODE_UNKNOWN = 0,
+	USBPHY_INTERFACE_MODE_UTMI = 1,
+	USBPHY_INTERFACE_MODE_UTMIW = 2,
+	USBPHY_INTERFACE_MODE_ULPI = 3,
+	USBPHY_INTERFACE_MODE_SERIAL = 4,
+	USBPHY_INTERFACE_MODE_HSIC = 5,
+};
+
+struct ehci_iso_packet {
+	u64 bufp;
+	__le32 transaction;
+	u8 cross;
+	u32 buf1;
+};
+
+struct ehci_iso_sched {
+	struct list_head td_list;
+	unsigned int span;
+	unsigned int first_packet;
+	struct ehci_iso_packet packet[0];
+};
+
+struct ehci_tt {
+	u16 bandwidth[8];
+	struct list_head tt_list;
+	struct list_head ps_list;
+	struct usb_tt *usb_tt;
+	int tt_port;
+};
+
+struct debug_buffer {
+	ssize_t (*fill_func)(struct debug_buffer *);
+	struct usb_bus *bus;
+	struct mutex mutex;
+	size_t count;
+	char *output_buf;
+	size_t alloc_size;
+};
+
+struct input_led {
+	struct led_classdev cdev;
+	struct input_handle *handle;
+	unsigned int code;
+};
+
+struct input_leds {
+	struct input_handle handle;
+	unsigned int num_leds;
+	struct input_led leds[0];
+};
+
+typedef u64 (*btf_bpf_rc_repeat)(u32 *);
+
+typedef u64 (*btf_bpf_rc_keydown)(u32 *, u32, u64, u32);
+
+typedef u64 (*btf_bpf_rc_pointer_rel)(u32 *, s32, s32);
+
+struct trace_event_raw_thermal_temperature {
+	struct trace_entry ent;
+	u32 __data_loc_thermal_zone;
+	int id;
+	int temp_prev;
+	int temp;
+	char __data[0];
+};
+
+struct trace_event_raw_cdev_update {
+	struct trace_entry ent;
+	u32 __data_loc_type;
+	long unsigned int target;
+	char __data[0];
+};
+
+struct trace_event_raw_thermal_zone_trip {
+	struct trace_entry ent;
+	u32 __data_loc_thermal_zone;
+	int id;
+	int trip;
+	enum thermal_trip_type trip_type;
+	char __data[0];
+};
+
+struct trace_event_raw_thermal_power_cpu_get_power_simple {
+	struct trace_entry ent;
+	int cpu;
+	u32 power;
+	char __data[0];
+};
+
+struct trace_event_raw_thermal_power_cpu_limit {
+	struct trace_entry ent;
+	u32 __data_loc_cpumask;
+	unsigned int freq;
+	long unsigned int cdev_state;
+	u32 power;
+	char __data[0];
+};
+
+struct trace_event_raw_thermal_power_devfreq_get_power {
+	struct trace_entry ent;
+	u32 __data_loc_type;
+	long unsigned int freq;
+	u32 busy_time;
+	u32 total_time;
+	u32 power;
+	char __data[0];
+};
+
+struct trace_event_raw_thermal_power_devfreq_limit {
+	struct trace_entry ent;
+	u32 __data_loc_type;
+	unsigned int freq;
+	long unsigned int cdev_state;
+	u32 power;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_thermal_temperature {
+	u32 thermal_zone;
+};
+
+struct trace_event_data_offsets_cdev_update {
+	u32 type;
+};
+
+struct trace_event_data_offsets_thermal_zone_trip {
+	u32 thermal_zone;
+};
+
+struct trace_event_data_offsets_thermal_power_cpu_get_power_simple {};
+
+struct trace_event_data_offsets_thermal_power_cpu_limit {
+	u32 cpumask;
+};
+
+struct trace_event_data_offsets_thermal_power_devfreq_get_power {
+	u32 type;
+};
+
+struct trace_event_data_offsets_thermal_power_devfreq_limit {
+	u32 type;
+};
+
+typedef void (*btf_trace_thermal_temperature)(void *, struct thermal_zone_device *);
+
+typedef void (*btf_trace_cdev_update)(void *, struct thermal_cooling_device *, long unsigned int);
+
+typedef void (*btf_trace_thermal_zone_trip)(void *, struct thermal_zone_device *, int, enum thermal_trip_type);
+
+typedef void (*btf_trace_thermal_power_cpu_get_power_simple)(void *, int, u32);
+
+typedef void (*btf_trace_thermal_power_cpu_limit)(void *, const struct cpumask *, unsigned int, long unsigned int, u32);
+
+typedef void (*btf_trace_thermal_power_devfreq_get_power)(void *, struct thermal_cooling_device *, struct devfreq_dev_status *, long unsigned int, u32);
+
+typedef void (*btf_trace_thermal_power_devfreq_limit)(void *, struct thermal_cooling_device *, long unsigned int, long unsigned int, u32);
+
+struct cs_policy_dbs_info {
+	struct policy_dbs_info policy_dbs;
+	unsigned int down_skip;
+	unsigned int requested_freq;
+};
+
+struct cs_dbs_tuners {
+	unsigned int down_threshold;
+	unsigned int freq_step;
+};
+
+struct tegra124_cpufreq_priv {
+	struct clk *cpu_clk;
+	struct clk *pllp_clk;
+	struct clk *pllx_clk;
+	struct clk *dfll_clk;
+	struct platform_device *cpufreq_dt_pdev;
+};
+
+struct ti_sci_msg_hdr {
+	u16 type;
+	u8 host;
+	u8 seq;
+	u32 flags;
+};
+
+struct ti_sci_msg_resp_version {
+	struct ti_sci_msg_hdr hdr;
+	char firmware_description[32];
+	u16 firmware_revision;
+	u8 abi_major;
+	u8 abi_minor;
+};
+
+struct ti_sci_msg_req_reboot {
+	struct ti_sci_msg_hdr hdr;
+};
+
+struct ti_sci_msg_req_set_device_state {
+	struct ti_sci_msg_hdr hdr;
+	u32 id;
+	u32 reserved;
+	u8 state;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_get_device_state {
+	struct ti_sci_msg_hdr hdr;
+	u32 id;
+};
+
+struct ti_sci_msg_resp_get_device_state {
+	struct ti_sci_msg_hdr hdr;
+	u32 context_loss_count;
+	u32 resets;
+	u8 programmed_state;
+	u8 current_state;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_set_device_resets {
+	struct ti_sci_msg_hdr hdr;
+	u32 id;
+	u32 resets;
+};
+
+struct ti_sci_msg_req_set_clock_state {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u8 clk_id;
+	u8 request_state;
+	u32 clk_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_get_clock_state {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u8 clk_id;
+	u32 clk_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_resp_get_clock_state {
+	struct ti_sci_msg_hdr hdr;
+	u8 programmed_state;
+	u8 current_state;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_set_clock_parent {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u8 clk_id;
+	u8 parent_id;
+	u32 clk_id_32;
+	u32 parent_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_get_clock_parent {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u8 clk_id;
+	u32 clk_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_resp_get_clock_parent {
+	struct ti_sci_msg_hdr hdr;
+	u8 parent_id;
+	u32 parent_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_get_clock_num_parents {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u8 clk_id;
+	u32 clk_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_resp_get_clock_num_parents {
+	struct ti_sci_msg_hdr hdr;
+	u8 num_parents;
+	u32 num_parents_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_query_clock_freq {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u64 min_freq_hz;
+	u64 target_freq_hz;
+	u64 max_freq_hz;
+	u8 clk_id;
+	u32 clk_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_resp_query_clock_freq {
+	struct ti_sci_msg_hdr hdr;
+	u64 freq_hz;
+};
+
+struct ti_sci_msg_req_set_clock_freq {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u64 min_freq_hz;
+	u64 target_freq_hz;
+	u64 max_freq_hz;
+	u8 clk_id;
+	u32 clk_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_get_clock_freq {
+	struct ti_sci_msg_hdr hdr;
+	u32 dev_id;
+	u8 clk_id;
+	u32 clk_id_32;
+} __attribute__((packed));
+
+struct ti_sci_msg_resp_get_clock_freq {
+	struct ti_sci_msg_hdr hdr;
+	u64 freq_hz;
+};
+
+struct ti_sci_msg_req_get_resource_range {
+	struct ti_sci_msg_hdr hdr;
+	u16 type;
+	u8 subtype;
+	u8 secondary_host;
+};
+
+struct ti_sci_msg_resp_get_resource_range {
+	struct ti_sci_msg_hdr hdr;
+	u16 range_start;
+	u16 range_num;
+	u16 range_start_sec;
+	u16 range_num_sec;
+};
+
+struct ti_sci_msg_req_manage_irq {
+	struct ti_sci_msg_hdr hdr;
+	u32 valid_params;
+	u16 src_id;
+	u16 src_index;
+	u16 dst_id;
+	u16 dst_host_irq;
+	u16 ia_id;
+	u16 vint;
+	u16 global_event;
+	u8 vint_status_bit;
+	u8 secondary_host;
+};
+
+struct ti_sci_msg_rm_ring_cfg_req {
+	struct ti_sci_msg_hdr hdr;
+	u32 valid_params;
+	u16 nav_id;
+	u16 index;
+	u32 addr_lo;
+	u32 addr_hi;
+	u32 count;
+	u8 mode;
+	u8 size;
+	u8 order_id;
+	u16 virtid;
+	u8 asel;
+} __attribute__((packed));
