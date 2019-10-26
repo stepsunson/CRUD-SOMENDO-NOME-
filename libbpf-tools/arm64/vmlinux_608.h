@@ -144434,3 +144434,2056 @@ struct ti_sci_msg_rm_ring_cfg_req {
 	u16 virtid;
 	u8 asel;
 } __attribute__((packed));
+
+struct ti_sci_msg_psil_pair {
+	struct ti_sci_msg_hdr hdr;
+	u32 nav_id;
+	u32 src_thread;
+	u32 dst_thread;
+};
+
+struct ti_sci_msg_psil_unpair {
+	struct ti_sci_msg_hdr hdr;
+	u32 nav_id;
+	u32 src_thread;
+	u32 dst_thread;
+};
+
+struct ti_sci_msg_rm_udmap_tx_ch_cfg_req {
+	struct ti_sci_msg_hdr hdr;
+	u32 valid_params;
+	u16 nav_id;
+	u16 index;
+	u8 tx_pause_on_err;
+	u8 tx_filt_einfo;
+	u8 tx_filt_pswords;
+	u8 tx_atype;
+	u8 tx_chan_type;
+	u8 tx_supr_tdpkt;
+	u16 tx_fetch_size;
+	u8 tx_credit_count;
+	u16 txcq_qnum;
+	u8 tx_priority;
+	u8 tx_qos;
+	u8 tx_orderid;
+	u16 fdepth;
+	u8 tx_sched_priority;
+	u8 tx_burst_size;
+	u8 tx_tdtype;
+	u8 extended_ch_type;
+} __attribute__((packed));
+
+struct ti_sci_msg_rm_udmap_rx_ch_cfg_req {
+	struct ti_sci_msg_hdr hdr;
+	u32 valid_params;
+	u16 nav_id;
+	u16 index;
+	u16 rx_fetch_size;
+	u16 rxcq_qnum;
+	u8 rx_priority;
+	u8 rx_qos;
+	u8 rx_orderid;
+	u8 rx_sched_priority;
+	u16 flowid_start;
+	u16 flowid_cnt;
+	u8 rx_pause_on_err;
+	u8 rx_atype;
+	u8 rx_chan_type;
+	u8 rx_ignore_short;
+	u8 rx_ignore_long;
+	u8 rx_burst_size;
+} __attribute__((packed));
+
+struct ti_sci_msg_rm_udmap_flow_cfg_req {
+	struct ti_sci_msg_hdr hdr;
+	u32 valid_params;
+	u16 nav_id;
+	u16 flow_index;
+	u8 rx_einfo_present;
+	u8 rx_psinfo_present;
+	u8 rx_error_handling;
+	u8 rx_desc_type;
+	u16 rx_sop_offset;
+	u16 rx_dest_qnum;
+	u8 rx_src_tag_hi;
+	u8 rx_src_tag_lo;
+	u8 rx_dest_tag_hi;
+	u8 rx_dest_tag_lo;
+	u8 rx_src_tag_hi_sel;
+	u8 rx_src_tag_lo_sel;
+	u8 rx_dest_tag_hi_sel;
+	u8 rx_dest_tag_lo_sel;
+	u16 rx_fdq0_sz0_qnum;
+	u16 rx_fdq1_qnum;
+	u16 rx_fdq2_qnum;
+	u16 rx_fdq3_qnum;
+	u8 rx_ps_location;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_proc_request {
+	struct ti_sci_msg_hdr hdr;
+	u8 processor_id;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_proc_release {
+	struct ti_sci_msg_hdr hdr;
+	u8 processor_id;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_proc_handover {
+	struct ti_sci_msg_hdr hdr;
+	u8 processor_id;
+	u8 host_id;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_set_config {
+	struct ti_sci_msg_hdr hdr;
+	u8 processor_id;
+	u32 bootvector_low;
+	u32 bootvector_high;
+	u32 config_flags_set;
+	u32 config_flags_clear;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_set_ctrl {
+	struct ti_sci_msg_hdr hdr;
+	u8 processor_id;
+	u32 control_flags_set;
+	u32 control_flags_clear;
+} __attribute__((packed));
+
+struct ti_sci_msg_req_get_status {
+	struct ti_sci_msg_hdr hdr;
+	u8 processor_id;
+} __attribute__((packed));
+
+struct ti_sci_msg_resp_get_status {
+	struct ti_sci_msg_hdr hdr;
+	u8 processor_id;
+	u32 bootvector_low;
+	u32 bootvector_high;
+	u32 config_flags;
+	u32 control_flags;
+	u32 status_flags;
+} __attribute__((packed));
+
+struct ti_sci_xfer {
+	struct ti_msgmgr_message tx_message;
+	u8 rx_len;
+	u8 *xfer_buf;
+	struct completion done;
+};
+
+struct ti_sci_xfers_info {
+	struct semaphore sem_xfer_count;
+	struct ti_sci_xfer *xfer_block;
+	long unsigned int *xfer_alloc_table;
+	spinlock_t xfer_lock;
+};
+
+struct ti_sci_desc {
+	u8 default_host_id;
+	int max_rx_timeout_ms;
+	int max_msgs;
+	int max_msg_size;
+};
+
+struct ti_sci_info {
+	struct device *dev;
+	struct notifier_block nb;
+	const struct ti_sci_desc *desc;
+	struct dentry *d;
+	void *debug_region;
+	char *debug_buffer;
+	size_t debug_region_size;
+	struct ti_sci_handle handle;
+	struct mbox_client cl;
+	struct mbox_chan *chan_tx;
+	struct mbox_chan *chan_rx;
+	struct ti_sci_xfers_info minfo;
+	struct list_head node;
+	u8 host_id;
+	int users;
+	bool is_suspending;
+};
+
+struct scmi_sensor_reading {
+	long long int value;
+	long long unsigned int timestamp;
+};
+
+struct scmi_range_attrs {
+	long long int min_range;
+	long long int max_range;
+};
+
+struct scmi_sensor_axis_info {
+	unsigned int id;
+	unsigned int type;
+	int scale;
+	char name[64];
+	bool extended_attrs;
+	unsigned int resolution;
+	int exponent;
+	struct scmi_range_attrs attrs;
+};
+
+struct scmi_sensor_intervals_info {
+	bool segmented;
+	unsigned int count;
+	unsigned int *desc;
+	unsigned int prealloc_pool[16];
+};
+
+struct scmi_sensor_info {
+	unsigned int id;
+	unsigned int type;
+	int scale;
+	unsigned int num_trip_points;
+	bool async;
+	bool update;
+	bool timestamped;
+	int tstamp_scale;
+	unsigned int num_axis;
+	struct scmi_sensor_axis_info *axis;
+	struct scmi_sensor_intervals_info intervals;
+	unsigned int sensor_config;
+	char name[64];
+	bool extended_scalar_attrs;
+	unsigned int sensor_power;
+	unsigned int resolution;
+	int exponent;
+	struct scmi_range_attrs scalar_attrs;
+};
+
+struct scmi_sensor_proto_ops {
+	int (*count_get)(const struct scmi_protocol_handle *);
+	const struct scmi_sensor_info * (*info_get)(const struct scmi_protocol_handle *, u32);
+	int (*trip_point_config)(const struct scmi_protocol_handle *, u32, u8, u64);
+	int (*reading_get)(const struct scmi_protocol_handle *, u32, u64 *);
+	int (*reading_get_timestamped)(const struct scmi_protocol_handle *, u32, u8, struct scmi_sensor_reading *);
+	int (*config_get)(const struct scmi_protocol_handle *, u32, u32 *);
+	int (*config_set)(const struct scmi_protocol_handle *, u32, u32);
+};
+
+struct scmi_sensor_trip_point_report {
+	ktime_t timestamp;
+	unsigned int agent_id;
+	unsigned int sensor_id;
+	unsigned int trip_point_desc;
+};
+
+struct scmi_sensor_update_report {
+	ktime_t timestamp;
+	unsigned int agent_id;
+	unsigned int sensor_id;
+	unsigned int readings_count;
+	struct scmi_sensor_reading readings[0];
+};
+
+enum scmi_sensor_protocol_cmd {
+	SENSOR_DESCRIPTION_GET = 3,
+	SENSOR_TRIP_POINT_NOTIFY = 4,
+	SENSOR_TRIP_POINT_CONFIG = 5,
+	SENSOR_READING_GET = 6,
+	SENSOR_AXIS_DESCRIPTION_GET = 7,
+	SENSOR_LIST_UPDATE_INTERVALS = 8,
+	SENSOR_CONFIG_GET = 9,
+	SENSOR_CONFIG_SET = 10,
+	SENSOR_CONTINUOUS_UPDATE_NOTIFY = 11,
+	SENSOR_NAME_GET = 12,
+	SENSOR_AXIS_NAME_GET = 13,
+};
+
+struct scmi_msg_resp_sensor_attributes {
+	__le16 num_sensors;
+	u8 max_requests;
+	u8 reserved;
+	__le32 reg_addr_low;
+	__le32 reg_addr_high;
+	__le32 reg_size;
+};
+
+struct scmi_msg_resp_attrs {
+	__le32 min_range_low;
+	__le32 min_range_high;
+	__le32 max_range_low;
+	__le32 max_range_high;
+};
+
+struct scmi_msg_sensor_description {
+	__le32 desc_index;
+};
+
+struct scmi_sensor_descriptor {
+	__le32 id;
+	__le32 attributes_low;
+	__le32 attributes_high;
+	u8 name[16];
+	__le32 power;
+	__le32 resolution;
+	struct scmi_msg_resp_attrs scalar_attrs;
+};
+
+struct scmi_msg_resp_sensor_description {
+	__le16 num_returned;
+	__le16 num_remaining;
+	struct scmi_sensor_descriptor desc[0];
+};
+
+struct scmi_msg_sensor_axis_description_get {
+	__le32 id;
+	__le32 axis_desc_index;
+};
+
+struct scmi_axis_descriptor {
+	__le32 id;
+	__le32 attributes_low;
+	__le32 attributes_high;
+	u8 name[16];
+	__le32 resolution;
+	struct scmi_msg_resp_attrs attrs;
+};
+
+struct scmi_msg_resp_sensor_axis_description {
+	__le32 num_axis_flags;
+	struct scmi_axis_descriptor desc[0];
+};
+
+struct scmi_sensor_axis_name_descriptor {
+	__le32 axis_id;
+	u8 name[64];
+};
+
+struct scmi_msg_resp_sensor_axis_names_description {
+	__le32 num_axis_flags;
+	struct scmi_sensor_axis_name_descriptor desc[0];
+};
+
+struct scmi_msg_sensor_list_update_intervals {
+	__le32 id;
+	__le32 index;
+};
+
+struct scmi_msg_resp_sensor_list_update_intervals {
+	__le32 num_intervals_flags;
+	__le32 intervals[0];
+};
+
+struct scmi_msg_sensor_request_notify {
+	__le32 id;
+	__le32 event_control;
+};
+
+struct scmi_msg_set_sensor_trip_point {
+	__le32 id;
+	__le32 event_control;
+	__le32 value_low;
+	__le32 value_high;
+};
+
+struct scmi_msg_sensor_config_set {
+	__le32 id;
+	__le32 sensor_config;
+};
+
+struct scmi_msg_sensor_reading_get {
+	__le32 id;
+	__le32 flags;
+};
+
+struct scmi_resp_sensor_reading_complete {
+	__le32 id;
+	__le32 readings_low;
+	__le32 readings_high;
+};
+
+struct scmi_sensor_reading_resp {
+	__le32 sensor_value_low;
+	__le32 sensor_value_high;
+	__le32 timestamp_low;
+	__le32 timestamp_high;
+};
+
+struct scmi_resp_sensor_reading_complete_v3 {
+	__le32 id;
+	struct scmi_sensor_reading_resp readings[0];
+};
+
+struct scmi_sensor_trip_notify_payld {
+	__le32 agent_id;
+	__le32 sensor_id;
+	__le32 trip_point_desc;
+};
+
+struct scmi_sensor_update_notify_payld {
+	__le32 agent_id;
+	__le32 sensor_id;
+	struct scmi_sensor_reading_resp readings[0];
+};
+
+struct sensors_info {
+	u32 version;
+	int num_sensors;
+	int max_requests;
+	u64 reg_addr;
+	u32 reg_size;
+	struct scmi_sensor_info *sensors;
+};
+
+struct scmi_sens_ipriv {
+	void *priv;
+	struct device *dev;
+};
+
+struct scmi_apriv {
+	bool any_axes_support_extended_names;
+	struct scmi_sensor_info *s;
+};
+
+struct bmp_header {
+	u16 id;
+	u32 size;
+} __attribute__((packed));
+
+typedef struct {
+	efi_guid_t guid;
+	u64 table;
+} efi_config_table_64_t;
+
+typedef struct {
+	efi_guid_t guid;
+	long unsigned int *ptr;
+	const char name[16];
+} efi_config_table_type_t;
+
+struct efi_error_code {
+	efi_status_t status;
+	int errno;
+	const char *description;
+};
+
+enum efi_rts_ids {
+	EFI_NONE = 0,
+	EFI_GET_TIME = 1,
+	EFI_SET_TIME = 2,
+	EFI_GET_WAKEUP_TIME = 3,
+	EFI_SET_WAKEUP_TIME = 4,
+	EFI_GET_VARIABLE = 5,
+	EFI_GET_NEXT_VARIABLE = 6,
+	EFI_SET_VARIABLE = 7,
+	EFI_QUERY_VARIABLE_INFO = 8,
+	EFI_GET_NEXT_HIGH_MONO_COUNT = 9,
+	EFI_RESET_SYSTEM = 10,
+	EFI_UPDATE_CAPSULE = 11,
+	EFI_QUERY_CAPSULE_CAPS = 12,
+};
+
+struct efi_runtime_work {
+	void *arg1;
+	void *arg2;
+	void *arg3;
+	void *arg4;
+	void *arg5;
+	efi_status_t status;
+	struct work_struct work;
+	enum efi_rts_ids efi_rts_id;
+	struct completion efi_rts_comp;
+};
+
+struct pidff_usage {
+	struct hid_field *field;
+	s32 *value;
+};
+
+struct pidff_device {
+	struct hid_device *hid;
+	struct hid_report *reports[13];
+	struct pidff_usage set_effect[7];
+	struct pidff_usage set_envelope[5];
+	struct pidff_usage set_condition[8];
+	struct pidff_usage set_periodic[5];
+	struct pidff_usage set_constant[2];
+	struct pidff_usage set_ramp[3];
+	struct pidff_usage device_gain[1];
+	struct pidff_usage block_load[2];
+	struct pidff_usage pool[3];
+	struct pidff_usage effect_operation[2];
+	struct pidff_usage block_free[1];
+	struct hid_field *create_new_effect_type;
+	struct hid_field *set_effect_type;
+	struct hid_field *effect_direction;
+	struct hid_field *device_control;
+	struct hid_field *block_load_status;
+	struct hid_field *effect_operation_status;
+	int control_id[2];
+	int type_id[11];
+	int status_id[2];
+	int operation_id[2];
+	int pid_id[64];
+};
+
+struct supplier_bindings {
+	struct device_node * (*parse_prop)(struct device_node *, const char *, int);
+	bool optional;
+	bool node_not_dev;
+};
+
+struct trace_event_raw_cros_ec_request_start {
+	struct trace_entry ent;
+	uint32_t version;
+	uint32_t offset;
+	uint32_t command;
+	uint32_t outsize;
+	uint32_t insize;
+	char __data[0];
+};
+
+struct trace_event_raw_cros_ec_request_done {
+	struct trace_entry ent;
+	uint32_t version;
+	uint32_t offset;
+	uint32_t command;
+	uint32_t outsize;
+	uint32_t insize;
+	uint32_t result;
+	int retval;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_cros_ec_request_start {};
+
+struct trace_event_data_offsets_cros_ec_request_done {};
+
+typedef void (*btf_trace_cros_ec_request_start)(void *, struct cros_ec_command *);
+
+typedef void (*btf_trace_cros_ec_request_done)(void *, struct cros_ec_command *, int);
+
+struct fsl_ifc_nand {
+	__be32 ncfgr;
+	u32 res1[4];
+	__be32 nand_fcr0;
+	__be32 nand_fcr1;
+	u32 res2[8];
+	__be32 row0;
+	u32 res3;
+	__be32 col0;
+	u32 res4;
+	__be32 row1;
+	u32 res5;
+	__be32 col1;
+	u32 res6;
+	__be32 row2;
+	u32 res7;
+	__be32 col2;
+	u32 res8;
+	__be32 row3;
+	u32 res9;
+	__be32 col3;
+	u32 res10[36];
+	__be32 nand_fbcr;
+	u32 res11;
+	__be32 nand_fir0;
+	__be32 nand_fir1;
+	__be32 nand_fir2;
+	u32 res12[16];
+	__be32 nand_csel;
+	u32 res13;
+	__be32 nandseq_strt;
+	u32 res14;
+	__be32 nand_evter_stat;
+	u32 res15;
+	__be32 pgrdcmpl_evt_stat;
+	u32 res16[2];
+	__be32 nand_evter_en;
+	u32 res17[2];
+	__be32 nand_evter_intr_en;
+	__be32 nand_vol_addr_stat;
+	u32 res18;
+	__be32 nand_erattr0;
+	__be32 nand_erattr1;
+	u32 res19[16];
+	__be32 nand_fsr;
+	u32 res20;
+	__be32 nand_eccstat[8];
+	u32 res21[28];
+	__be32 nanndcr;
+	u32 res22[2];
+	__be32 nand_autoboot_trgr;
+	u32 res23;
+	__be32 nand_mdr;
+	u32 res24[28];
+	__be32 nand_dll_lowcfg0;
+	__be32 nand_dll_lowcfg1;
+	u32 res25;
+	__be32 nand_dll_lowstat;
+	u32 res26[60];
+};
+
+struct fsl_ifc_nor {
+	__be32 nor_evter_stat;
+	u32 res1[2];
+	__be32 nor_evter_en;
+	u32 res2[2];
+	__be32 nor_evter_intr_en;
+	u32 res3[2];
+	__be32 nor_erattr0;
+	__be32 nor_erattr1;
+	__be32 nor_erattr2;
+	u32 res4[4];
+	__be32 norcr;
+	u32 res5[239];
+};
+
+struct fsl_ifc_gpcm {
+	__be32 gpcm_evter_stat;
+	u32 res1[2];
+	__be32 gpcm_evter_en;
+	u32 res2[2];
+	__be32 gpcm_evter_intr_en;
+	u32 res3[2];
+	__be32 gpcm_erattr0;
+	__be32 gpcm_erattr1;
+	__be32 gpcm_erattr2;
+	__be32 gpcm_stat;
+};
+
+struct fsl_ifc_global {
+	__be32 ifc_rev;
+	u32 res1[2];
+	struct {
+		__be32 cspr_ext;
+		__be32 cspr;
+		u32 res2;
+	} cspr_cs[8];
+	u32 res3[13];
+	struct {
+		__be32 amask;
+		u32 res4[2];
+	} amask_cs[8];
+	u32 res5[12];
+	struct {
+		__be32 csor;
+		__be32 csor_ext;
+		u32 res6;
+	} csor_cs[8];
+	u32 res7[12];
+	struct {
+		__be32 ftim[4];
+		u32 res8[8];
+	} ftim_cs[8];
+	u32 res9[48];
+	__be32 rb_stat;
+	__be32 rb_map;
+	__be32 wb_map;
+	__be32 ifc_gcr;
+	u32 res10[2];
+	__be32 cm_evter_stat;
+	u32 res11[2];
+	__be32 cm_evter_en;
+	u32 res12[2];
+	__be32 cm_evter_intr_en;
+	u32 res13[2];
+	__be32 cm_erattr0;
+	__be32 cm_erattr1;
+	u32 res14[2];
+	__be32 ifc_ccr;
+	__be32 ifc_csr;
+	__be32 ddr_ccr_low;
+};
+
+struct fsl_ifc_runtime {
+	struct fsl_ifc_nand ifc_nand;
+	struct fsl_ifc_nor ifc_nor;
+	struct fsl_ifc_gpcm ifc_gpcm;
+};
+
+struct fsl_ifc_ctrl {
+	struct device *dev;
+	struct fsl_ifc_global *gregs;
+	struct fsl_ifc_runtime *rregs;
+	int irq;
+	int nand_irq;
+	spinlock_t lock;
+	void *nand;
+	int version;
+	int banks;
+	u32 nand_stat;
+	wait_queue_head_t nand_wait;
+	bool little_endian;
+};
+
+struct arm_ccn_component {
+	void *base;
+	u32 type;
+	long unsigned int pmu_events_mask[1];
+	union {
+		struct {
+			long unsigned int dt_cmp_mask[1];
+		} xp;
+	};
+};
+
+struct arm_ccn_dt {
+	int id;
+	void *base;
+	spinlock_t config_lock;
+	long unsigned int pmu_counters_mask[1];
+	struct {
+		struct arm_ccn_component *source;
+		struct perf_event *event;
+	} pmu_counters[9];
+	struct {
+		u64 l;
+		u64 h;
+	} cmp_mask[12];
+	struct hrtimer hrtimer;
+	unsigned int cpu;
+	struct hlist_node node;
+	struct pmu pmu;
+};
+
+struct arm_ccn {
+	struct device *dev;
+	void *base;
+	unsigned int irq;
+	unsigned int sbas_present: 1;
+	unsigned int sbsx_present: 1;
+	int num_nodes;
+	struct arm_ccn_component *node;
+	int num_xps;
+	struct arm_ccn_component *xp;
+	struct arm_ccn_dt dt;
+	int mn_id;
+};
+
+struct arm_ccn_pmu_event {
+	struct device_attribute attr;
+	u32 type;
+	u32 event;
+	int num_ports;
+	int num_vcs;
+	const char *def;
+	int mask;
+};
+
+enum m1_pmu_events {
+	M1_PMU_PERFCTR_UNKNOWN_01 = 1,
+	M1_PMU_PERFCTR_CPU_CYCLES = 2,
+	M1_PMU_PERFCTR_INSTRUCTIONS = 140,
+	M1_PMU_PERFCTR_UNKNOWN_8d = 141,
+	M1_PMU_PERFCTR_UNKNOWN_8e = 142,
+	M1_PMU_PERFCTR_UNKNOWN_8f = 143,
+	M1_PMU_PERFCTR_UNKNOWN_90 = 144,
+	M1_PMU_PERFCTR_UNKNOWN_93 = 147,
+	M1_PMU_PERFCTR_UNKNOWN_94 = 148,
+	M1_PMU_PERFCTR_UNKNOWN_95 = 149,
+	M1_PMU_PERFCTR_UNKNOWN_96 = 150,
+	M1_PMU_PERFCTR_UNKNOWN_97 = 151,
+	M1_PMU_PERFCTR_UNKNOWN_98 = 152,
+	M1_PMU_PERFCTR_UNKNOWN_99 = 153,
+	M1_PMU_PERFCTR_UNKNOWN_9a = 154,
+	M1_PMU_PERFCTR_UNKNOWN_9b = 155,
+	M1_PMU_PERFCTR_UNKNOWN_9c = 156,
+	M1_PMU_PERFCTR_UNKNOWN_9f = 159,
+	M1_PMU_PERFCTR_UNKNOWN_bf = 191,
+	M1_PMU_PERFCTR_UNKNOWN_c0 = 192,
+	M1_PMU_PERFCTR_UNKNOWN_c1 = 193,
+	M1_PMU_PERFCTR_UNKNOWN_c4 = 196,
+	M1_PMU_PERFCTR_UNKNOWN_c5 = 197,
+	M1_PMU_PERFCTR_UNKNOWN_c6 = 198,
+	M1_PMU_PERFCTR_UNKNOWN_c8 = 200,
+	M1_PMU_PERFCTR_UNKNOWN_ca = 202,
+	M1_PMU_PERFCTR_UNKNOWN_cb = 203,
+	M1_PMU_PERFCTR_UNKNOWN_f5 = 245,
+	M1_PMU_PERFCTR_UNKNOWN_f6 = 246,
+	M1_PMU_PERFCTR_UNKNOWN_f7 = 247,
+	M1_PMU_PERFCTR_UNKNOWN_f8 = 248,
+	M1_PMU_PERFCTR_UNKNOWN_fd = 253,
+	M1_PMU_PERFCTR_LAST = 255,
+	M1_PMU_CFG_COUNT_USER = 256,
+	M1_PMU_CFG_COUNT_KERNEL = 512,
+};
+
+struct tb_cap_extended_long {
+	u8 zero1;
+	u8 cap;
+	u8 vsec_id;
+	u8 zero2;
+	u16 next;
+	u16 length;
+};
+
+struct tb_cap_any {
+	union {
+		struct tb_cap_basic basic;
+		struct tb_cap_extended_short extended_short;
+		struct tb_cap_extended_long extended_long;
+	};
+};
+
+struct icc_bulk_data {
+	struct icc_path *path;
+	const char *name;
+	u32 avg_bw;
+	u32 peak_bw;
+};
+
+struct icc_bulk_devres {
+	struct icc_bulk_data *paths;
+	int num_paths;
+};
+
+struct net_device_devres {
+	struct net_device *ndev;
+};
+
+struct scm_timestamping {
+	struct __kernel_old_timespec ts[3];
+};
+
+struct scm_timestamping64 {
+	struct __kernel_timespec ts[3];
+};
+
+enum {
+	IF_LINK_MODE_DEFAULT = 0,
+	IF_LINK_MODE_DORMANT = 1,
+	IF_LINK_MODE_TESTING = 2,
+};
+
+enum lw_bits {
+	LW_URGENT = 0,
+};
+
+enum devlink_command {
+	DEVLINK_CMD_UNSPEC = 0,
+	DEVLINK_CMD_GET = 1,
+	DEVLINK_CMD_SET = 2,
+	DEVLINK_CMD_NEW = 3,
+	DEVLINK_CMD_DEL = 4,
+	DEVLINK_CMD_PORT_GET = 5,
+	DEVLINK_CMD_PORT_SET = 6,
+	DEVLINK_CMD_PORT_NEW = 7,
+	DEVLINK_CMD_PORT_DEL = 8,
+	DEVLINK_CMD_PORT_SPLIT = 9,
+	DEVLINK_CMD_PORT_UNSPLIT = 10,
+	DEVLINK_CMD_SB_GET = 11,
+	DEVLINK_CMD_SB_SET = 12,
+	DEVLINK_CMD_SB_NEW = 13,
+	DEVLINK_CMD_SB_DEL = 14,
+	DEVLINK_CMD_SB_POOL_GET = 15,
+	DEVLINK_CMD_SB_POOL_SET = 16,
+	DEVLINK_CMD_SB_POOL_NEW = 17,
+	DEVLINK_CMD_SB_POOL_DEL = 18,
+	DEVLINK_CMD_SB_PORT_POOL_GET = 19,
+	DEVLINK_CMD_SB_PORT_POOL_SET = 20,
+	DEVLINK_CMD_SB_PORT_POOL_NEW = 21,
+	DEVLINK_CMD_SB_PORT_POOL_DEL = 22,
+	DEVLINK_CMD_SB_TC_POOL_BIND_GET = 23,
+	DEVLINK_CMD_SB_TC_POOL_BIND_SET = 24,
+	DEVLINK_CMD_SB_TC_POOL_BIND_NEW = 25,
+	DEVLINK_CMD_SB_TC_POOL_BIND_DEL = 26,
+	DEVLINK_CMD_SB_OCC_SNAPSHOT = 27,
+	DEVLINK_CMD_SB_OCC_MAX_CLEAR = 28,
+	DEVLINK_CMD_ESWITCH_GET = 29,
+	DEVLINK_CMD_ESWITCH_SET = 30,
+	DEVLINK_CMD_DPIPE_TABLE_GET = 31,
+	DEVLINK_CMD_DPIPE_ENTRIES_GET = 32,
+	DEVLINK_CMD_DPIPE_HEADERS_GET = 33,
+	DEVLINK_CMD_DPIPE_TABLE_COUNTERS_SET = 34,
+	DEVLINK_CMD_RESOURCE_SET = 35,
+	DEVLINK_CMD_RESOURCE_DUMP = 36,
+	DEVLINK_CMD_RELOAD = 37,
+	DEVLINK_CMD_PARAM_GET = 38,
+	DEVLINK_CMD_PARAM_SET = 39,
+	DEVLINK_CMD_PARAM_NEW = 40,
+	DEVLINK_CMD_PARAM_DEL = 41,
+	DEVLINK_CMD_REGION_GET = 42,
+	DEVLINK_CMD_REGION_SET = 43,
+	DEVLINK_CMD_REGION_NEW = 44,
+	DEVLINK_CMD_REGION_DEL = 45,
+	DEVLINK_CMD_REGION_READ = 46,
+	DEVLINK_CMD_PORT_PARAM_GET = 47,
+	DEVLINK_CMD_PORT_PARAM_SET = 48,
+	DEVLINK_CMD_PORT_PARAM_NEW = 49,
+	DEVLINK_CMD_PORT_PARAM_DEL = 50,
+	DEVLINK_CMD_INFO_GET = 51,
+	DEVLINK_CMD_HEALTH_REPORTER_GET = 52,
+	DEVLINK_CMD_HEALTH_REPORTER_SET = 53,
+	DEVLINK_CMD_HEALTH_REPORTER_RECOVER = 54,
+	DEVLINK_CMD_HEALTH_REPORTER_DIAGNOSE = 55,
+	DEVLINK_CMD_HEALTH_REPORTER_DUMP_GET = 56,
+	DEVLINK_CMD_HEALTH_REPORTER_DUMP_CLEAR = 57,
+	DEVLINK_CMD_FLASH_UPDATE = 58,
+	DEVLINK_CMD_FLASH_UPDATE_END = 59,
+	DEVLINK_CMD_FLASH_UPDATE_STATUS = 60,
+	DEVLINK_CMD_TRAP_GET = 61,
+	DEVLINK_CMD_TRAP_SET = 62,
+	DEVLINK_CMD_TRAP_NEW = 63,
+	DEVLINK_CMD_TRAP_DEL = 64,
+	DEVLINK_CMD_TRAP_GROUP_GET = 65,
+	DEVLINK_CMD_TRAP_GROUP_SET = 66,
+	DEVLINK_CMD_TRAP_GROUP_NEW = 67,
+	DEVLINK_CMD_TRAP_GROUP_DEL = 68,
+	DEVLINK_CMD_TRAP_POLICER_GET = 69,
+	DEVLINK_CMD_TRAP_POLICER_SET = 70,
+	DEVLINK_CMD_TRAP_POLICER_NEW = 71,
+	DEVLINK_CMD_TRAP_POLICER_DEL = 72,
+	DEVLINK_CMD_HEALTH_REPORTER_TEST = 73,
+	DEVLINK_CMD_RATE_GET = 74,
+	DEVLINK_CMD_RATE_SET = 75,
+	DEVLINK_CMD_RATE_NEW = 76,
+	DEVLINK_CMD_RATE_DEL = 77,
+	DEVLINK_CMD_LINECARD_GET = 78,
+	DEVLINK_CMD_LINECARD_SET = 79,
+	DEVLINK_CMD_LINECARD_NEW = 80,
+	DEVLINK_CMD_LINECARD_DEL = 81,
+	DEVLINK_CMD_SELFTESTS_GET = 82,
+	DEVLINK_CMD_SELFTESTS_RUN = 83,
+	__DEVLINK_CMD_MAX = 84,
+	DEVLINK_CMD_MAX = 83,
+};
+
+enum devlink_eswitch_mode {
+	DEVLINK_ESWITCH_MODE_LEGACY = 0,
+	DEVLINK_ESWITCH_MODE_SWITCHDEV = 1,
+};
+
+enum devlink_eswitch_encap_mode {
+	DEVLINK_ESWITCH_ENCAP_MODE_NONE = 0,
+	DEVLINK_ESWITCH_ENCAP_MODE_BASIC = 1,
+};
+
+enum {
+	DEVLINK_ATTR_STATS_RX_PACKETS = 0,
+	DEVLINK_ATTR_STATS_RX_BYTES = 1,
+	DEVLINK_ATTR_STATS_RX_DROPPED = 2,
+	__DEVLINK_ATTR_STATS_MAX = 3,
+	DEVLINK_ATTR_STATS_MAX = 2,
+};
+
+enum {
+	DEVLINK_FLASH_OVERWRITE_SETTINGS_BIT = 0,
+	DEVLINK_FLASH_OVERWRITE_IDENTIFIERS_BIT = 1,
+	__DEVLINK_FLASH_OVERWRITE_MAX_BIT = 2,
+	DEVLINK_FLASH_OVERWRITE_MAX_BIT = 1,
+};
+
+enum devlink_attr_selftest_id {
+	DEVLINK_ATTR_SELFTEST_ID_UNSPEC = 0,
+	DEVLINK_ATTR_SELFTEST_ID_FLASH = 1,
+	__DEVLINK_ATTR_SELFTEST_ID_MAX = 2,
+	DEVLINK_ATTR_SELFTEST_ID_MAX = 1,
+};
+
+enum devlink_selftest_status {
+	DEVLINK_SELFTEST_STATUS_SKIP = 0,
+	DEVLINK_SELFTEST_STATUS_PASS = 1,
+	DEVLINK_SELFTEST_STATUS_FAIL = 2,
+};
+
+enum devlink_attr_selftest_result {
+	DEVLINK_ATTR_SELFTEST_RESULT_UNSPEC = 0,
+	DEVLINK_ATTR_SELFTEST_RESULT = 1,
+	DEVLINK_ATTR_SELFTEST_RESULT_ID = 2,
+	DEVLINK_ATTR_SELFTEST_RESULT_STATUS = 3,
+	__DEVLINK_ATTR_SELFTEST_RESULT_MAX = 4,
+	DEVLINK_ATTR_SELFTEST_RESULT_MAX = 3,
+};
+
+enum devlink_trap_action {
+	DEVLINK_TRAP_ACTION_DROP = 0,
+	DEVLINK_TRAP_ACTION_TRAP = 1,
+	DEVLINK_TRAP_ACTION_MIRROR = 2,
+};
+
+enum {
+	DEVLINK_ATTR_TRAP_METADATA_TYPE_IN_PORT = 0,
+	DEVLINK_ATTR_TRAP_METADATA_TYPE_FA_COOKIE = 1,
+};
+
+enum devlink_reload_action {
+	DEVLINK_RELOAD_ACTION_UNSPEC = 0,
+	DEVLINK_RELOAD_ACTION_DRIVER_REINIT = 1,
+	DEVLINK_RELOAD_ACTION_FW_ACTIVATE = 2,
+	__DEVLINK_RELOAD_ACTION_MAX = 3,
+	DEVLINK_RELOAD_ACTION_MAX = 2,
+};
+
+enum devlink_reload_limit {
+	DEVLINK_RELOAD_LIMIT_UNSPEC = 0,
+	DEVLINK_RELOAD_LIMIT_NO_RESET = 1,
+	__DEVLINK_RELOAD_LIMIT_MAX = 2,
+	DEVLINK_RELOAD_LIMIT_MAX = 1,
+};
+
+enum devlink_linecard_state {
+	DEVLINK_LINECARD_STATE_UNSPEC = 0,
+	DEVLINK_LINECARD_STATE_UNPROVISIONED = 1,
+	DEVLINK_LINECARD_STATE_UNPROVISIONING = 2,
+	DEVLINK_LINECARD_STATE_PROVISIONING = 3,
+	DEVLINK_LINECARD_STATE_PROVISIONING_FAILED = 4,
+	DEVLINK_LINECARD_STATE_PROVISIONED = 5,
+	DEVLINK_LINECARD_STATE_ACTIVE = 6,
+	__DEVLINK_LINECARD_STATE_MAX = 7,
+	DEVLINK_LINECARD_STATE_MAX = 6,
+};
+
+enum devlink_attr {
+	DEVLINK_ATTR_UNSPEC = 0,
+	DEVLINK_ATTR_BUS_NAME = 1,
+	DEVLINK_ATTR_DEV_NAME = 2,
+	DEVLINK_ATTR_PORT_INDEX = 3,
+	DEVLINK_ATTR_PORT_TYPE = 4,
+	DEVLINK_ATTR_PORT_DESIRED_TYPE = 5,
+	DEVLINK_ATTR_PORT_NETDEV_IFINDEX = 6,
+	DEVLINK_ATTR_PORT_NETDEV_NAME = 7,
+	DEVLINK_ATTR_PORT_IBDEV_NAME = 8,
+	DEVLINK_ATTR_PORT_SPLIT_COUNT = 9,
+	DEVLINK_ATTR_PORT_SPLIT_GROUP = 10,
+	DEVLINK_ATTR_SB_INDEX = 11,
+	DEVLINK_ATTR_SB_SIZE = 12,
+	DEVLINK_ATTR_SB_INGRESS_POOL_COUNT = 13,
+	DEVLINK_ATTR_SB_EGRESS_POOL_COUNT = 14,
+	DEVLINK_ATTR_SB_INGRESS_TC_COUNT = 15,
+	DEVLINK_ATTR_SB_EGRESS_TC_COUNT = 16,
+	DEVLINK_ATTR_SB_POOL_INDEX = 17,
+	DEVLINK_ATTR_SB_POOL_TYPE = 18,
+	DEVLINK_ATTR_SB_POOL_SIZE = 19,
+	DEVLINK_ATTR_SB_POOL_THRESHOLD_TYPE = 20,
+	DEVLINK_ATTR_SB_THRESHOLD = 21,
+	DEVLINK_ATTR_SB_TC_INDEX = 22,
+	DEVLINK_ATTR_SB_OCC_CUR = 23,
+	DEVLINK_ATTR_SB_OCC_MAX = 24,
+	DEVLINK_ATTR_ESWITCH_MODE = 25,
+	DEVLINK_ATTR_ESWITCH_INLINE_MODE = 26,
+	DEVLINK_ATTR_DPIPE_TABLES = 27,
+	DEVLINK_ATTR_DPIPE_TABLE = 28,
+	DEVLINK_ATTR_DPIPE_TABLE_NAME = 29,
+	DEVLINK_ATTR_DPIPE_TABLE_SIZE = 30,
+	DEVLINK_ATTR_DPIPE_TABLE_MATCHES = 31,
+	DEVLINK_ATTR_DPIPE_TABLE_ACTIONS = 32,
+	DEVLINK_ATTR_DPIPE_TABLE_COUNTERS_ENABLED = 33,
+	DEVLINK_ATTR_DPIPE_ENTRIES = 34,
+	DEVLINK_ATTR_DPIPE_ENTRY = 35,
+	DEVLINK_ATTR_DPIPE_ENTRY_INDEX = 36,
+	DEVLINK_ATTR_DPIPE_ENTRY_MATCH_VALUES = 37,
+	DEVLINK_ATTR_DPIPE_ENTRY_ACTION_VALUES = 38,
+	DEVLINK_ATTR_DPIPE_ENTRY_COUNTER = 39,
+	DEVLINK_ATTR_DPIPE_MATCH = 40,
+	DEVLINK_ATTR_DPIPE_MATCH_VALUE = 41,
+	DEVLINK_ATTR_DPIPE_MATCH_TYPE = 42,
+	DEVLINK_ATTR_DPIPE_ACTION = 43,
+	DEVLINK_ATTR_DPIPE_ACTION_VALUE = 44,
+	DEVLINK_ATTR_DPIPE_ACTION_TYPE = 45,
+	DEVLINK_ATTR_DPIPE_VALUE = 46,
+	DEVLINK_ATTR_DPIPE_VALUE_MASK = 47,
+	DEVLINK_ATTR_DPIPE_VALUE_MAPPING = 48,
+	DEVLINK_ATTR_DPIPE_HEADERS = 49,
+	DEVLINK_ATTR_DPIPE_HEADER = 50,
+	DEVLINK_ATTR_DPIPE_HEADER_NAME = 51,
+	DEVLINK_ATTR_DPIPE_HEADER_ID = 52,
+	DEVLINK_ATTR_DPIPE_HEADER_FIELDS = 53,
+	DEVLINK_ATTR_DPIPE_HEADER_GLOBAL = 54,
+	DEVLINK_ATTR_DPIPE_HEADER_INDEX = 55,
+	DEVLINK_ATTR_DPIPE_FIELD = 56,
+	DEVLINK_ATTR_DPIPE_FIELD_NAME = 57,
+	DEVLINK_ATTR_DPIPE_FIELD_ID = 58,
+	DEVLINK_ATTR_DPIPE_FIELD_BITWIDTH = 59,
+	DEVLINK_ATTR_DPIPE_FIELD_MAPPING_TYPE = 60,
+	DEVLINK_ATTR_PAD = 61,
+	DEVLINK_ATTR_ESWITCH_ENCAP_MODE = 62,
+	DEVLINK_ATTR_RESOURCE_LIST = 63,
+	DEVLINK_ATTR_RESOURCE = 64,
+	DEVLINK_ATTR_RESOURCE_NAME = 65,
+	DEVLINK_ATTR_RESOURCE_ID = 66,
+	DEVLINK_ATTR_RESOURCE_SIZE = 67,
+	DEVLINK_ATTR_RESOURCE_SIZE_NEW = 68,
+	DEVLINK_ATTR_RESOURCE_SIZE_VALID = 69,
+	DEVLINK_ATTR_RESOURCE_SIZE_MIN = 70,
+	DEVLINK_ATTR_RESOURCE_SIZE_MAX = 71,
+	DEVLINK_ATTR_RESOURCE_SIZE_GRAN = 72,
+	DEVLINK_ATTR_RESOURCE_UNIT = 73,
+	DEVLINK_ATTR_RESOURCE_OCC = 74,
+	DEVLINK_ATTR_DPIPE_TABLE_RESOURCE_ID = 75,
+	DEVLINK_ATTR_DPIPE_TABLE_RESOURCE_UNITS = 76,
+	DEVLINK_ATTR_PORT_FLAVOUR = 77,
+	DEVLINK_ATTR_PORT_NUMBER = 78,
+	DEVLINK_ATTR_PORT_SPLIT_SUBPORT_NUMBER = 79,
+	DEVLINK_ATTR_PARAM = 80,
+	DEVLINK_ATTR_PARAM_NAME = 81,
+	DEVLINK_ATTR_PARAM_GENERIC = 82,
+	DEVLINK_ATTR_PARAM_TYPE = 83,
+	DEVLINK_ATTR_PARAM_VALUES_LIST = 84,
+	DEVLINK_ATTR_PARAM_VALUE = 85,
+	DEVLINK_ATTR_PARAM_VALUE_DATA = 86,
+	DEVLINK_ATTR_PARAM_VALUE_CMODE = 87,
+	DEVLINK_ATTR_REGION_NAME = 88,
+	DEVLINK_ATTR_REGION_SIZE = 89,
+	DEVLINK_ATTR_REGION_SNAPSHOTS = 90,
+	DEVLINK_ATTR_REGION_SNAPSHOT = 91,
+	DEVLINK_ATTR_REGION_SNAPSHOT_ID = 92,
+	DEVLINK_ATTR_REGION_CHUNKS = 93,
+	DEVLINK_ATTR_REGION_CHUNK = 94,
+	DEVLINK_ATTR_REGION_CHUNK_DATA = 95,
+	DEVLINK_ATTR_REGION_CHUNK_ADDR = 96,
+	DEVLINK_ATTR_REGION_CHUNK_LEN = 97,
+	DEVLINK_ATTR_INFO_DRIVER_NAME = 98,
+	DEVLINK_ATTR_INFO_SERIAL_NUMBER = 99,
+	DEVLINK_ATTR_INFO_VERSION_FIXED = 100,
+	DEVLINK_ATTR_INFO_VERSION_RUNNING = 101,
+	DEVLINK_ATTR_INFO_VERSION_STORED = 102,
+	DEVLINK_ATTR_INFO_VERSION_NAME = 103,
+	DEVLINK_ATTR_INFO_VERSION_VALUE = 104,
+	DEVLINK_ATTR_SB_POOL_CELL_SIZE = 105,
+	DEVLINK_ATTR_FMSG = 106,
+	DEVLINK_ATTR_FMSG_OBJ_NEST_START = 107,
+	DEVLINK_ATTR_FMSG_PAIR_NEST_START = 108,
+	DEVLINK_ATTR_FMSG_ARR_NEST_START = 109,
+	DEVLINK_ATTR_FMSG_NEST_END = 110,
+	DEVLINK_ATTR_FMSG_OBJ_NAME = 111,
+	DEVLINK_ATTR_FMSG_OBJ_VALUE_TYPE = 112,
+	DEVLINK_ATTR_FMSG_OBJ_VALUE_DATA = 113,
+	DEVLINK_ATTR_HEALTH_REPORTER = 114,
+	DEVLINK_ATTR_HEALTH_REPORTER_NAME = 115,
+	DEVLINK_ATTR_HEALTH_REPORTER_STATE = 116,
+	DEVLINK_ATTR_HEALTH_REPORTER_ERR_COUNT = 117,
+	DEVLINK_ATTR_HEALTH_REPORTER_RECOVER_COUNT = 118,
+	DEVLINK_ATTR_HEALTH_REPORTER_DUMP_TS = 119,
+	DEVLINK_ATTR_HEALTH_REPORTER_GRACEFUL_PERIOD = 120,
+	DEVLINK_ATTR_HEALTH_REPORTER_AUTO_RECOVER = 121,
+	DEVLINK_ATTR_FLASH_UPDATE_FILE_NAME = 122,
+	DEVLINK_ATTR_FLASH_UPDATE_COMPONENT = 123,
+	DEVLINK_ATTR_FLASH_UPDATE_STATUS_MSG = 124,
+	DEVLINK_ATTR_FLASH_UPDATE_STATUS_DONE = 125,
+	DEVLINK_ATTR_FLASH_UPDATE_STATUS_TOTAL = 126,
+	DEVLINK_ATTR_PORT_PCI_PF_NUMBER = 127,
+	DEVLINK_ATTR_PORT_PCI_VF_NUMBER = 128,
+	DEVLINK_ATTR_STATS = 129,
+	DEVLINK_ATTR_TRAP_NAME = 130,
+	DEVLINK_ATTR_TRAP_ACTION = 131,
+	DEVLINK_ATTR_TRAP_TYPE = 132,
+	DEVLINK_ATTR_TRAP_GENERIC = 133,
+	DEVLINK_ATTR_TRAP_METADATA = 134,
+	DEVLINK_ATTR_TRAP_GROUP_NAME = 135,
+	DEVLINK_ATTR_RELOAD_FAILED = 136,
+	DEVLINK_ATTR_HEALTH_REPORTER_DUMP_TS_NS = 137,
+	DEVLINK_ATTR_NETNS_FD = 138,
+	DEVLINK_ATTR_NETNS_PID = 139,
+	DEVLINK_ATTR_NETNS_ID = 140,
+	DEVLINK_ATTR_HEALTH_REPORTER_AUTO_DUMP = 141,
+	DEVLINK_ATTR_TRAP_POLICER_ID = 142,
+	DEVLINK_ATTR_TRAP_POLICER_RATE = 143,
+	DEVLINK_ATTR_TRAP_POLICER_BURST = 144,
+	DEVLINK_ATTR_PORT_FUNCTION = 145,
+	DEVLINK_ATTR_INFO_BOARD_SERIAL_NUMBER = 146,
+	DEVLINK_ATTR_PORT_LANES = 147,
+	DEVLINK_ATTR_PORT_SPLITTABLE = 148,
+	DEVLINK_ATTR_PORT_EXTERNAL = 149,
+	DEVLINK_ATTR_PORT_CONTROLLER_NUMBER = 150,
+	DEVLINK_ATTR_FLASH_UPDATE_STATUS_TIMEOUT = 151,
+	DEVLINK_ATTR_FLASH_UPDATE_OVERWRITE_MASK = 152,
+	DEVLINK_ATTR_RELOAD_ACTION = 153,
+	DEVLINK_ATTR_RELOAD_ACTIONS_PERFORMED = 154,
+	DEVLINK_ATTR_RELOAD_LIMITS = 155,
+	DEVLINK_ATTR_DEV_STATS = 156,
+	DEVLINK_ATTR_RELOAD_STATS = 157,
+	DEVLINK_ATTR_RELOAD_STATS_ENTRY = 158,
+	DEVLINK_ATTR_RELOAD_STATS_LIMIT = 159,
+	DEVLINK_ATTR_RELOAD_STATS_VALUE = 160,
+	DEVLINK_ATTR_REMOTE_RELOAD_STATS = 161,
+	DEVLINK_ATTR_RELOAD_ACTION_INFO = 162,
+	DEVLINK_ATTR_RELOAD_ACTION_STATS = 163,
+	DEVLINK_ATTR_PORT_PCI_SF_NUMBER = 164,
+	DEVLINK_ATTR_RATE_TYPE = 165,
+	DEVLINK_ATTR_RATE_TX_SHARE = 166,
+	DEVLINK_ATTR_RATE_TX_MAX = 167,
+	DEVLINK_ATTR_RATE_NODE_NAME = 168,
+	DEVLINK_ATTR_RATE_PARENT_NODE_NAME = 169,
+	DEVLINK_ATTR_REGION_MAX_SNAPSHOTS = 170,
+	DEVLINK_ATTR_LINECARD_INDEX = 171,
+	DEVLINK_ATTR_LINECARD_STATE = 172,
+	DEVLINK_ATTR_LINECARD_TYPE = 173,
+	DEVLINK_ATTR_LINECARD_SUPPORTED_TYPES = 174,
+	DEVLINK_ATTR_NESTED_DEVLINK = 175,
+	DEVLINK_ATTR_SELFTESTS = 176,
+	__DEVLINK_ATTR_MAX = 177,
+	DEVLINK_ATTR_MAX = 176,
+};
+
+enum devlink_dpipe_field_mapping_type {
+	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_NONE = 0,
+	DEVLINK_DPIPE_FIELD_MAPPING_TYPE_IFINDEX = 1,
+};
+
+enum devlink_dpipe_match_type {
+	DEVLINK_DPIPE_MATCH_TYPE_FIELD_EXACT = 0,
+};
+
+enum devlink_dpipe_action_type {
+	DEVLINK_DPIPE_ACTION_TYPE_FIELD_MODIFY = 0,
+};
+
+enum devlink_dpipe_field_ethernet_id {
+	DEVLINK_DPIPE_FIELD_ETHERNET_DST_MAC = 0,
+};
+
+enum devlink_dpipe_field_ipv4_id {
+	DEVLINK_DPIPE_FIELD_IPV4_DST_IP = 0,
+};
+
+enum devlink_dpipe_field_ipv6_id {
+	DEVLINK_DPIPE_FIELD_IPV6_DST_IP = 0,
+};
+
+enum devlink_dpipe_header_id {
+	DEVLINK_DPIPE_HEADER_ETHERNET = 0,
+	DEVLINK_DPIPE_HEADER_IPV4 = 1,
+	DEVLINK_DPIPE_HEADER_IPV6 = 2,
+};
+
+enum devlink_resource_unit {
+	DEVLINK_RESOURCE_UNIT_ENTRY = 0,
+};
+
+enum devlink_port_function_attr {
+	DEVLINK_PORT_FUNCTION_ATTR_UNSPEC = 0,
+	DEVLINK_PORT_FUNCTION_ATTR_HW_ADDR = 1,
+	DEVLINK_PORT_FN_ATTR_STATE = 2,
+	DEVLINK_PORT_FN_ATTR_OPSTATE = 3,
+	__DEVLINK_PORT_FUNCTION_ATTR_MAX = 4,
+	DEVLINK_PORT_FUNCTION_ATTR_MAX = 3,
+};
+
+enum devlink_port_fn_state {
+	DEVLINK_PORT_FN_STATE_INACTIVE = 0,
+	DEVLINK_PORT_FN_STATE_ACTIVE = 1,
+};
+
+enum devlink_port_fn_opstate {
+	DEVLINK_PORT_FN_OPSTATE_DETACHED = 0,
+	DEVLINK_PORT_FN_OPSTATE_ATTACHED = 1,
+};
+
+struct devlink_linecard_ops;
+
+struct devlink_linecard_type;
+
+struct devlink_linecard {
+	struct list_head list;
+	struct devlink *devlink;
+	unsigned int index;
+	refcount_t refcount;
+	const struct devlink_linecard_ops *ops;
+	void *priv;
+	enum devlink_linecard_state state;
+	struct mutex state_lock;
+	const char *type;
+	struct devlink_linecard_type *types;
+	unsigned int types_count;
+	struct devlink *nested_devlink;
+};
+
+struct devlink_port_new_attrs {
+	enum devlink_port_flavour flavour;
+	unsigned int port_index;
+	u32 controller;
+	u32 sfnum;
+	u16 pfnum;
+	u8 port_index_valid: 1;
+	u8 controller_valid: 1;
+	u8 sfnum_valid: 1;
+};
+
+struct devlink_linecard_ops {
+	int (*provision)(struct devlink_linecard *, void *, const char *, const void *, struct netlink_ext_ack *);
+	int (*unprovision)(struct devlink_linecard *, void *, struct netlink_ext_ack *);
+	bool (*same_provision)(struct devlink_linecard *, void *, const char *, const void *);
+	unsigned int (*types_count)(struct devlink_linecard *, void *);
+	void (*types_get)(struct devlink_linecard *, void *, unsigned int, const char **, const void **);
+};
+
+struct devlink_dpipe_field {
+	const char *name;
+	unsigned int id;
+	unsigned int bitwidth;
+	enum devlink_dpipe_field_mapping_type mapping_type;
+};
+
+struct devlink_dpipe_header {
+	const char *name;
+	unsigned int id;
+	struct devlink_dpipe_field *fields;
+	unsigned int fields_count;
+	bool global;
+};
+
+struct devlink_dpipe_match {
+	enum devlink_dpipe_match_type type;
+	unsigned int header_index;
+	struct devlink_dpipe_header *header;
+	unsigned int field_id;
+};
+
+struct devlink_dpipe_action {
+	enum devlink_dpipe_action_type type;
+	unsigned int header_index;
+	struct devlink_dpipe_header *header;
+	unsigned int field_id;
+};
+
+struct devlink_dpipe_value {
+	union {
+		struct devlink_dpipe_action *action;
+		struct devlink_dpipe_match *match;
+	};
+	unsigned int mapping_value;
+	bool mapping_valid;
+	unsigned int value_size;
+	void *value;
+	void *mask;
+};
+
+struct devlink_dpipe_entry {
+	u64 index;
+	struct devlink_dpipe_value *match_values;
+	unsigned int match_values_count;
+	struct devlink_dpipe_value *action_values;
+	unsigned int action_values_count;
+	u64 counter;
+	bool counter_valid;
+};
+
+struct devlink_dpipe_dump_ctx {
+	struct genl_info *info;
+	enum devlink_command cmd;
+	struct sk_buff *skb;
+	struct nlattr *nest;
+	void *hdr;
+};
+
+struct devlink_dpipe_table_ops;
+
+struct devlink_dpipe_table {
+	void *priv;
+	struct list_head list;
+	const char *name;
+	bool counters_enabled;
+	bool counter_control_extern;
+	bool resource_valid;
+	u64 resource_id;
+	u64 resource_units;
+	struct devlink_dpipe_table_ops *table_ops;
+	struct callback_head rcu;
+};
+
+struct devlink_dpipe_table_ops {
+	int (*actions_dump)(void *, struct sk_buff *);
+	int (*matches_dump)(void *, struct sk_buff *);
+	int (*entries_dump)(void *, bool, struct devlink_dpipe_dump_ctx *);
+	int (*counters_set_update)(void *, bool);
+	u64 (*size_get)(void *);
+};
+
+struct devlink_dpipe_headers {
+	struct devlink_dpipe_header **headers;
+	unsigned int headers_count;
+};
+
+struct devlink_resource_size_params {
+	u64 size_min;
+	u64 size_max;
+	u64 size_granularity;
+	enum devlink_resource_unit unit;
+};
+
+typedef u64 devlink_resource_occ_get_t(void *);
+
+enum devlink_param_type {
+	DEVLINK_PARAM_TYPE_U8 = 0,
+	DEVLINK_PARAM_TYPE_U16 = 1,
+	DEVLINK_PARAM_TYPE_U32 = 2,
+	DEVLINK_PARAM_TYPE_STRING = 3,
+	DEVLINK_PARAM_TYPE_BOOL = 4,
+};
+
+struct devlink_flash_notify {
+	const char *status_msg;
+	const char *component;
+	long unsigned int done;
+	long unsigned int total;
+	long unsigned int timeout;
+};
+
+struct devlink_param {
+	u32 id;
+	const char *name;
+	bool generic;
+	enum devlink_param_type type;
+	long unsigned int supported_cmodes;
+	int (*get)(struct devlink *, u32, struct devlink_param_gset_ctx *);
+	int (*set)(struct devlink *, u32, struct devlink_param_gset_ctx *);
+	int (*validate)(struct devlink *, u32, union devlink_param_value, struct netlink_ext_ack *);
+};
+
+struct devlink_param_item {
+	struct list_head list;
+	const struct devlink_param *param;
+	union devlink_param_value driverinit_value;
+	bool driverinit_value_valid;
+};
+
+enum devlink_param_generic_id {
+	DEVLINK_PARAM_GENERIC_ID_INT_ERR_RESET = 0,
+	DEVLINK_PARAM_GENERIC_ID_MAX_MACS = 1,
+	DEVLINK_PARAM_GENERIC_ID_ENABLE_SRIOV = 2,
+	DEVLINK_PARAM_GENERIC_ID_REGION_SNAPSHOT = 3,
+	DEVLINK_PARAM_GENERIC_ID_IGNORE_ARI = 4,
+	DEVLINK_PARAM_GENERIC_ID_MSIX_VEC_PER_PF_MAX = 5,
+	DEVLINK_PARAM_GENERIC_ID_MSIX_VEC_PER_PF_MIN = 6,
+	DEVLINK_PARAM_GENERIC_ID_FW_LOAD_POLICY = 7,
+	DEVLINK_PARAM_GENERIC_ID_RESET_DEV_ON_DRV_PROBE = 8,
+	DEVLINK_PARAM_GENERIC_ID_ENABLE_ROCE = 9,
+	DEVLINK_PARAM_GENERIC_ID_ENABLE_REMOTE_DEV_RESET = 10,
+	DEVLINK_PARAM_GENERIC_ID_ENABLE_ETH = 11,
+	DEVLINK_PARAM_GENERIC_ID_ENABLE_RDMA = 12,
+	DEVLINK_PARAM_GENERIC_ID_ENABLE_VNET = 13,
+	DEVLINK_PARAM_GENERIC_ID_ENABLE_IWARP = 14,
+	DEVLINK_PARAM_GENERIC_ID_IO_EQ_SIZE = 15,
+	DEVLINK_PARAM_GENERIC_ID_EVENT_EQ_SIZE = 16,
+	__DEVLINK_PARAM_GENERIC_ID_MAX = 17,
+	DEVLINK_PARAM_GENERIC_ID_MAX = 16,
+};
+
+struct devlink_flash_update_params {
+	const struct firmware *fw;
+	const char *component;
+	u32 overwrite_mask;
+};
+
+struct devlink_region_ops {
+	const char *name;
+	void (*destructor)(const void *);
+	int (*snapshot)(struct devlink *, const struct devlink_region_ops *, struct netlink_ext_ack *, u8 **);
+	void *priv;
+};
+
+struct devlink_port_region_ops {
+	const char *name;
+	void (*destructor)(const void *);
+	int (*snapshot)(struct devlink_port *, const struct devlink_port_region_ops *, struct netlink_ext_ack *, u8 **);
+	void *priv;
+};
+
+enum devlink_health_reporter_state {
+	DEVLINK_HEALTH_REPORTER_STATE_HEALTHY = 0,
+	DEVLINK_HEALTH_REPORTER_STATE_ERROR = 1,
+};
+
+struct devlink_health_reporter;
+
+struct devlink_fmsg;
+
+struct devlink_health_reporter_ops {
+	char *name;
+	int (*recover)(struct devlink_health_reporter *, void *, struct netlink_ext_ack *);
+	int (*dump)(struct devlink_health_reporter *, struct devlink_fmsg *, void *, struct netlink_ext_ack *);
+	int (*diagnose)(struct devlink_health_reporter *, struct devlink_fmsg *, struct netlink_ext_ack *);
+	int (*test)(struct devlink_health_reporter *, struct netlink_ext_ack *);
+};
+
+struct devlink_health_reporter {
+	struct list_head list;
+	void *priv;
+	const struct devlink_health_reporter_ops *ops;
+	struct devlink *devlink;
+	struct devlink_port *devlink_port;
+	struct devlink_fmsg *dump_fmsg;
+	struct mutex dump_lock;
+	u64 graceful_period;
+	bool auto_recover;
+	bool auto_dump;
+	u8 health_state;
+	u64 dump_ts;
+	u64 dump_real_ts;
+	u64 error_count;
+	u64 recovery_count;
+	u64 last_recovery_ts;
+	refcount_t refcount;
+};
+
+struct devlink_fmsg {
+	struct list_head item_list;
+	bool putting_binary;
+};
+
+struct devlink_trap_policer {
+	u32 id;
+	u64 init_rate;
+	u64 init_burst;
+	u64 max_rate;
+	u64 min_rate;
+	u64 max_burst;
+	u64 min_burst;
+};
+
+struct devlink_trap_group {
+	const char *name;
+	u16 id;
+	bool generic;
+	u32 init_policer_id;
+};
+
+struct devlink_trap {
+	enum devlink_trap_type type;
+	enum devlink_trap_action init_action;
+	bool generic;
+	u16 id;
+	const char *name;
+	u16 init_group_id;
+	u32 metadata_cap;
+};
+
+enum devlink_trap_generic_id {
+	DEVLINK_TRAP_GENERIC_ID_SMAC_MC = 0,
+	DEVLINK_TRAP_GENERIC_ID_VLAN_TAG_MISMATCH = 1,
+	DEVLINK_TRAP_GENERIC_ID_INGRESS_VLAN_FILTER = 2,
+	DEVLINK_TRAP_GENERIC_ID_INGRESS_STP_FILTER = 3,
+	DEVLINK_TRAP_GENERIC_ID_EMPTY_TX_LIST = 4,
+	DEVLINK_TRAP_GENERIC_ID_PORT_LOOPBACK_FILTER = 5,
+	DEVLINK_TRAP_GENERIC_ID_BLACKHOLE_ROUTE = 6,
+	DEVLINK_TRAP_GENERIC_ID_TTL_ERROR = 7,
+	DEVLINK_TRAP_GENERIC_ID_TAIL_DROP = 8,
+	DEVLINK_TRAP_GENERIC_ID_NON_IP_PACKET = 9,
+	DEVLINK_TRAP_GENERIC_ID_UC_DIP_MC_DMAC = 10,
+	DEVLINK_TRAP_GENERIC_ID_DIP_LB = 11,
+	DEVLINK_TRAP_GENERIC_ID_SIP_MC = 12,
+	DEVLINK_TRAP_GENERIC_ID_SIP_LB = 13,
+	DEVLINK_TRAP_GENERIC_ID_CORRUPTED_IP_HDR = 14,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_SIP_BC = 15,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_MC_DIP_RESERVED_SCOPE = 16,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_MC_DIP_INTERFACE_LOCAL_SCOPE = 17,
+	DEVLINK_TRAP_GENERIC_ID_MTU_ERROR = 18,
+	DEVLINK_TRAP_GENERIC_ID_UNRESOLVED_NEIGH = 19,
+	DEVLINK_TRAP_GENERIC_ID_RPF = 20,
+	DEVLINK_TRAP_GENERIC_ID_REJECT_ROUTE = 21,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_LPM_UNICAST_MISS = 22,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_LPM_UNICAST_MISS = 23,
+	DEVLINK_TRAP_GENERIC_ID_NON_ROUTABLE = 24,
+	DEVLINK_TRAP_GENERIC_ID_DECAP_ERROR = 25,
+	DEVLINK_TRAP_GENERIC_ID_OVERLAY_SMAC_MC = 26,
+	DEVLINK_TRAP_GENERIC_ID_INGRESS_FLOW_ACTION_DROP = 27,
+	DEVLINK_TRAP_GENERIC_ID_EGRESS_FLOW_ACTION_DROP = 28,
+	DEVLINK_TRAP_GENERIC_ID_STP = 29,
+	DEVLINK_TRAP_GENERIC_ID_LACP = 30,
+	DEVLINK_TRAP_GENERIC_ID_LLDP = 31,
+	DEVLINK_TRAP_GENERIC_ID_IGMP_QUERY = 32,
+	DEVLINK_TRAP_GENERIC_ID_IGMP_V1_REPORT = 33,
+	DEVLINK_TRAP_GENERIC_ID_IGMP_V2_REPORT = 34,
+	DEVLINK_TRAP_GENERIC_ID_IGMP_V3_REPORT = 35,
+	DEVLINK_TRAP_GENERIC_ID_IGMP_V2_LEAVE = 36,
+	DEVLINK_TRAP_GENERIC_ID_MLD_QUERY = 37,
+	DEVLINK_TRAP_GENERIC_ID_MLD_V1_REPORT = 38,
+	DEVLINK_TRAP_GENERIC_ID_MLD_V2_REPORT = 39,
+	DEVLINK_TRAP_GENERIC_ID_MLD_V1_DONE = 40,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_DHCP = 41,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_DHCP = 42,
+	DEVLINK_TRAP_GENERIC_ID_ARP_REQUEST = 43,
+	DEVLINK_TRAP_GENERIC_ID_ARP_RESPONSE = 44,
+	DEVLINK_TRAP_GENERIC_ID_ARP_OVERLAY = 45,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_NEIGH_SOLICIT = 46,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_NEIGH_ADVERT = 47,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_BFD = 48,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_BFD = 49,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_OSPF = 50,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_OSPF = 51,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_BGP = 52,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_BGP = 53,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_VRRP = 54,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_VRRP = 55,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_PIM = 56,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_PIM = 57,
+	DEVLINK_TRAP_GENERIC_ID_UC_LB = 58,
+	DEVLINK_TRAP_GENERIC_ID_LOCAL_ROUTE = 59,
+	DEVLINK_TRAP_GENERIC_ID_EXTERNAL_ROUTE = 60,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_UC_DIP_LINK_LOCAL_SCOPE = 61,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_DIP_ALL_NODES = 62,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_DIP_ALL_ROUTERS = 63,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_ROUTER_SOLICIT = 64,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_ROUTER_ADVERT = 65,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_REDIRECT = 66,
+	DEVLINK_TRAP_GENERIC_ID_IPV4_ROUTER_ALERT = 67,
+	DEVLINK_TRAP_GENERIC_ID_IPV6_ROUTER_ALERT = 68,
+	DEVLINK_TRAP_GENERIC_ID_PTP_EVENT = 69,
+	DEVLINK_TRAP_GENERIC_ID_PTP_GENERAL = 70,
+	DEVLINK_TRAP_GENERIC_ID_FLOW_ACTION_SAMPLE = 71,
+	DEVLINK_TRAP_GENERIC_ID_FLOW_ACTION_TRAP = 72,
+	DEVLINK_TRAP_GENERIC_ID_EARLY_DROP = 73,
+	DEVLINK_TRAP_GENERIC_ID_VXLAN_PARSING = 74,
+	DEVLINK_TRAP_GENERIC_ID_LLC_SNAP_PARSING = 75,
+	DEVLINK_TRAP_GENERIC_ID_VLAN_PARSING = 76,
+	DEVLINK_TRAP_GENERIC_ID_PPPOE_PPP_PARSING = 77,
+	DEVLINK_TRAP_GENERIC_ID_MPLS_PARSING = 78,
+	DEVLINK_TRAP_GENERIC_ID_ARP_PARSING = 79,
+	DEVLINK_TRAP_GENERIC_ID_IP_1_PARSING = 80,
+	DEVLINK_TRAP_GENERIC_ID_IP_N_PARSING = 81,
+	DEVLINK_TRAP_GENERIC_ID_GRE_PARSING = 82,
+	DEVLINK_TRAP_GENERIC_ID_UDP_PARSING = 83,
+	DEVLINK_TRAP_GENERIC_ID_TCP_PARSING = 84,
+	DEVLINK_TRAP_GENERIC_ID_IPSEC_PARSING = 85,
+	DEVLINK_TRAP_GENERIC_ID_SCTP_PARSING = 86,
+	DEVLINK_TRAP_GENERIC_ID_DCCP_PARSING = 87,
+	DEVLINK_TRAP_GENERIC_ID_GTP_PARSING = 88,
+	DEVLINK_TRAP_GENERIC_ID_ESP_PARSING = 89,
+	DEVLINK_TRAP_GENERIC_ID_BLACKHOLE_NEXTHOP = 90,
+	DEVLINK_TRAP_GENERIC_ID_DMAC_FILTER = 91,
+	__DEVLINK_TRAP_GENERIC_ID_MAX = 92,
+	DEVLINK_TRAP_GENERIC_ID_MAX = 91,
+};
+
+enum devlink_trap_group_generic_id {
+	DEVLINK_TRAP_GROUP_GENERIC_ID_L2_DROPS = 0,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_L3_DROPS = 1,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_L3_EXCEPTIONS = 2,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_BUFFER_DROPS = 3,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_TUNNEL_DROPS = 4,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_ACL_DROPS = 5,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_STP = 6,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_LACP = 7,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_LLDP = 8,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_MC_SNOOPING = 9,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_DHCP = 10,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_NEIGH_DISCOVERY = 11,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_BFD = 12,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_OSPF = 13,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_BGP = 14,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_VRRP = 15,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_PIM = 16,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_UC_LB = 17,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_LOCAL_DELIVERY = 18,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_EXTERNAL_DELIVERY = 19,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_IPV6 = 20,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_PTP_EVENT = 21,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_PTP_GENERAL = 22,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_ACL_SAMPLE = 23,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_ACL_TRAP = 24,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_PARSER_ERROR_DROPS = 25,
+	__DEVLINK_TRAP_GROUP_GENERIC_ID_MAX = 26,
+	DEVLINK_TRAP_GROUP_GENERIC_ID_MAX = 25,
+};
+
+enum {
+	DEVLINK_F_RELOAD = 1,
+};
+
+struct devlink_info_req;
+
+struct devlink_ops {
+	u32 supported_flash_update_params;
+	long unsigned int reload_actions;
+	long unsigned int reload_limits;
+	int (*reload_down)(struct devlink *, bool, enum devlink_reload_action, enum devlink_reload_limit, struct netlink_ext_ack *);
+	int (*reload_up)(struct devlink *, enum devlink_reload_action, enum devlink_reload_limit, u32 *, struct netlink_ext_ack *);
+	int (*port_type_set)(struct devlink_port *, enum devlink_port_type);
+	int (*port_split)(struct devlink *, struct devlink_port *, unsigned int, struct netlink_ext_ack *);
+	int (*port_unsplit)(struct devlink *, struct devlink_port *, struct netlink_ext_ack *);
+	int (*sb_pool_get)(struct devlink *, unsigned int, u16, struct devlink_sb_pool_info *);
+	int (*sb_pool_set)(struct devlink *, unsigned int, u16, u32, enum devlink_sb_threshold_type, struct netlink_ext_ack *);
+	int (*sb_port_pool_get)(struct devlink_port *, unsigned int, u16, u32 *);
+	int (*sb_port_pool_set)(struct devlink_port *, unsigned int, u16, u32, struct netlink_ext_ack *);
+	int (*sb_tc_pool_bind_get)(struct devlink_port *, unsigned int, u16, enum devlink_sb_pool_type, u16 *, u32 *);
+	int (*sb_tc_pool_bind_set)(struct devlink_port *, unsigned int, u16, enum devlink_sb_pool_type, u16, u32, struct netlink_ext_ack *);
+	int (*sb_occ_snapshot)(struct devlink *, unsigned int);
+	int (*sb_occ_max_clear)(struct devlink *, unsigned int);
+	int (*sb_occ_port_pool_get)(struct devlink_port *, unsigned int, u16, u32 *, u32 *);
+	int (*sb_occ_tc_port_bind_get)(struct devlink_port *, unsigned int, u16, enum devlink_sb_pool_type, u32 *, u32 *);
+	int (*eswitch_mode_get)(struct devlink *, u16 *);
+	int (*eswitch_mode_set)(struct devlink *, u16, struct netlink_ext_ack *);
+	int (*eswitch_inline_mode_get)(struct devlink *, u8 *);
+	int (*eswitch_inline_mode_set)(struct devlink *, u8, struct netlink_ext_ack *);
+	int (*eswitch_encap_mode_get)(struct devlink *, enum devlink_eswitch_encap_mode *);
+	int (*eswitch_encap_mode_set)(struct devlink *, enum devlink_eswitch_encap_mode, struct netlink_ext_ack *);
+	int (*info_get)(struct devlink *, struct devlink_info_req *, struct netlink_ext_ack *);
+	int (*flash_update)(struct devlink *, struct devlink_flash_update_params *, struct netlink_ext_ack *);
+	int (*trap_init)(struct devlink *, const struct devlink_trap *, void *);
+	void (*trap_fini)(struct devlink *, const struct devlink_trap *, void *);
+	int (*trap_action_set)(struct devlink *, const struct devlink_trap *, enum devlink_trap_action, struct netlink_ext_ack *);
+	int (*trap_group_init)(struct devlink *, const struct devlink_trap_group *);
+	int (*trap_group_set)(struct devlink *, const struct devlink_trap_group *, const struct devlink_trap_policer *, struct netlink_ext_ack *);
+	int (*trap_group_action_set)(struct devlink *, const struct devlink_trap_group *, enum devlink_trap_action, struct netlink_ext_ack *);
+	int (*trap_drop_counter_get)(struct devlink *, const struct devlink_trap *, u64 *);
+	int (*trap_policer_init)(struct devlink *, const struct devlink_trap_policer *);
+	void (*trap_policer_fini)(struct devlink *, const struct devlink_trap_policer *);
+	int (*trap_policer_set)(struct devlink *, const struct devlink_trap_policer *, u64, u64, struct netlink_ext_ack *);
+	int (*trap_policer_counter_get)(struct devlink *, const struct devlink_trap_policer *, u64 *);
+	int (*port_function_hw_addr_get)(struct devlink_port *, u8 *, int *, struct netlink_ext_ack *);
+	int (*port_function_hw_addr_set)(struct devlink_port *, const u8 *, int, struct netlink_ext_ack *);
+	int (*port_new)(struct devlink *, const struct devlink_port_new_attrs *, struct netlink_ext_ack *, unsigned int *);
+	int (*port_del)(struct devlink *, unsigned int, struct netlink_ext_ack *);
+	int (*port_fn_state_get)(struct devlink_port *, enum devlink_port_fn_state *, enum devlink_port_fn_opstate *, struct netlink_ext_ack *);
+	int (*port_fn_state_set)(struct devlink_port *, enum devlink_port_fn_state, struct netlink_ext_ack *);
+	int (*rate_leaf_tx_share_set)(struct devlink_rate *, void *, u64, struct netlink_ext_ack *);
+	int (*rate_leaf_tx_max_set)(struct devlink_rate *, void *, u64, struct netlink_ext_ack *);
+	int (*rate_node_tx_share_set)(struct devlink_rate *, void *, u64, struct netlink_ext_ack *);
+	int (*rate_node_tx_max_set)(struct devlink_rate *, void *, u64, struct netlink_ext_ack *);
+	int (*rate_node_new)(struct devlink_rate *, void **, struct netlink_ext_ack *);
+	int (*rate_node_del)(struct devlink_rate *, void *, struct netlink_ext_ack *);
+	int (*rate_leaf_parent_set)(struct devlink_rate *, struct devlink_rate *, void *, void *, struct netlink_ext_ack *);
+	int (*rate_node_parent_set)(struct devlink_rate *, struct devlink_rate *, void *, void *, struct netlink_ext_ack *);
+	bool (*selftest_check)(struct devlink *, unsigned int, struct netlink_ext_ack *);
+	enum devlink_selftest_status (*selftest_run)(struct devlink *, unsigned int, struct netlink_ext_ack *);
+};
+
+struct devlink_info_req {
+	struct sk_buff *msg;
+};
+
+struct trace_event_raw_devlink_hwmsg {
+	struct trace_entry ent;
+	u32 __data_loc_bus_name;
+	u32 __data_loc_dev_name;
+	u32 __data_loc_driver_name;
+	bool incoming;
+	long unsigned int type;
+	u32 __data_loc_buf;
+	size_t len;
+	char __data[0];
+};
+
+struct trace_event_raw_devlink_hwerr {
+	struct trace_entry ent;
+	u32 __data_loc_bus_name;
+	u32 __data_loc_dev_name;
+	u32 __data_loc_driver_name;
+	int err;
+	u32 __data_loc_msg;
+	char __data[0];
+};
+
+struct trace_event_raw_devlink_health_report {
+	struct trace_entry ent;
+	u32 __data_loc_bus_name;
+	u32 __data_loc_dev_name;
+	u32 __data_loc_driver_name;
+	u32 __data_loc_reporter_name;
+	u32 __data_loc_msg;
+	char __data[0];
+};
+
+struct trace_event_raw_devlink_health_recover_aborted {
+	struct trace_entry ent;
+	u32 __data_loc_bus_name;
+	u32 __data_loc_dev_name;
+	u32 __data_loc_driver_name;
+	u32 __data_loc_reporter_name;
+	bool health_state;
+	u64 time_since_last_recover;
+	char __data[0];
+};
+
+struct trace_event_raw_devlink_health_reporter_state_update {
+	struct trace_entry ent;
+	u32 __data_loc_bus_name;
+	u32 __data_loc_dev_name;
+	u32 __data_loc_driver_name;
+	u32 __data_loc_reporter_name;
+	u8 new_state;
+	char __data[0];
+};
+
+struct trace_event_raw_devlink_trap_report {
+	struct trace_entry ent;
+	u32 __data_loc_bus_name;
+	u32 __data_loc_dev_name;
+	u32 __data_loc_driver_name;
+	u32 __data_loc_trap_name;
+	u32 __data_loc_trap_group_name;
+	char input_dev_name[16];
+	char __data[0];
+};
+
+struct trace_event_data_offsets_devlink_hwmsg {
+	u32 bus_name;
+	u32 dev_name;
+	u32 driver_name;
+	u32 buf;
+};
+
+struct trace_event_data_offsets_devlink_hwerr {
+	u32 bus_name;
+	u32 dev_name;
+	u32 driver_name;
+	u32 msg;
+};
+
+struct trace_event_data_offsets_devlink_health_report {
+	u32 bus_name;
+	u32 dev_name;
+	u32 driver_name;
+	u32 reporter_name;
+	u32 msg;
+};
+
+struct trace_event_data_offsets_devlink_health_recover_aborted {
+	u32 bus_name;
+	u32 dev_name;
+	u32 driver_name;
+	u32 reporter_name;
+};
+
+struct trace_event_data_offsets_devlink_health_reporter_state_update {
+	u32 bus_name;
+	u32 dev_name;
+	u32 driver_name;
+	u32 reporter_name;
+};
+
+struct trace_event_data_offsets_devlink_trap_report {
+	u32 bus_name;
+	u32 dev_name;
+	u32 driver_name;
+	u32 trap_name;
+	u32 trap_group_name;
+};
+
+typedef void (*btf_trace_devlink_hwmsg)(void *, const struct devlink *, bool, long unsigned int, const u8 *, size_t);
+
+typedef void (*btf_trace_devlink_hwerr)(void *, const struct devlink *, int, const char *);
+
+typedef void (*btf_trace_devlink_health_report)(void *, const struct devlink *, const char *, const char *);
+
+typedef void (*btf_trace_devlink_health_recover_aborted)(void *, const struct devlink *, const char *, bool, u64);
+
+typedef void (*btf_trace_devlink_health_reporter_state_update)(void *, const struct devlink *, const char *, bool);
+
+typedef void (*btf_trace_devlink_trap_report)(void *, const struct devlink *, struct sk_buff *, const struct devlink_trap_metadata *);
+
+struct devlink_linecard_type {
+	const char *type;
+	const void *priv;
+};
+
+struct devlink_resource {
+	const char *name;
+	u64 id;
+	u64 size;
+	u64 size_new;
+	bool size_valid;
+	struct devlink_resource *parent;
+	struct devlink_resource_size_params size_params;
+	struct list_head list;
+	struct list_head resource_list;
+	devlink_resource_occ_get_t *occ_get;
+	void *occ_get_priv;
+};
+
+struct devlink_sb {
+	struct list_head list;
+	unsigned int index;
+	u32 size;
+	u16 ingress_pools_count;
+	u16 egress_pools_count;
+	u16 ingress_tc_count;
+	u16 egress_tc_count;
+};
+
+struct devlink_region {
+	struct devlink *devlink;
+	struct devlink_port *port;
+	struct list_head list;
+	union {
+		const struct devlink_region_ops *ops;
+		const struct devlink_port_region_ops *port_ops;
+	};
+	struct mutex snapshot_lock;
+	struct list_head snapshot_list;
+	u32 max_snapshots;
+	u32 cur_snapshots;
+	u64 size;
+};
+
+struct devlink_snapshot {
+	struct list_head list;
+	struct devlink_region *region;
+	u8 *data;
+	u32 id;
+};
+
+enum devlink_multicast_groups {
+	DEVLINK_MCGRP_CONFIG = 0,
+};
+
+struct devlink_reload_combination {
+	enum devlink_reload_action action;
+	enum devlink_reload_limit limit;
+};
+
+struct devlink_fmsg_item {
+	struct list_head list;
+	int attrtype;
+	u8 nla_type;
+	u16 len;
+	int value[0];
+};
+
+struct devlink_stats {
+	u64_stats_t rx_bytes;
+	u64_stats_t rx_packets;
+	struct u64_stats_sync syncp;
+};
+
+struct devlink_trap_policer_item {
+	const struct devlink_trap_policer *policer;
+	u64 rate;
+	u64 burst;
+	struct list_head list;
+};
+
+struct devlink_trap_group_item {
+	const struct devlink_trap_group *group;
+	struct devlink_trap_policer_item *policer_item;
+	struct list_head list;
+	struct devlink_stats *stats;
+};
+
+struct devlink_trap_item {
+	const struct devlink_trap *trap;
+	struct devlink_trap_group_item *group_item;
+	struct list_head list;
+	enum devlink_trap_action action;
+	struct devlink_stats *stats;
+	void *priv;
+};
+
+enum {
+	TCA_CGROUP_UNSPEC = 0,
+	TCA_CGROUP_ACT = 1,
+	TCA_CGROUP_POLICE = 2,
+	TCA_CGROUP_EMATCHES = 3,
+	__TCA_CGROUP_MAX = 4,
+};
+
+struct cls_cgroup_head {
+	u32 handle;
+	struct tcf_exts exts;
+	struct tcf_ematch_tree ematches;
+	struct tcf_proto *tp;
+	struct rcu_work rwork;
+};
+
+struct link_mode_info {
+	int speed;
+	u8 lanes;
+	u8 duplex;
+};
+
+struct linkmodes_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_link_ksettings ksettings;
+	struct ethtool_link_settings *lsettings;
+	bool peer_empty;
+};
+
+struct coalesce_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_coalesce coalesce;
+	struct kernel_ethtool_coalesce kernel_coalesce;
+	u32 supported_params;
+};
+
+struct eeprom_req_info {
+	struct ethnl_req_info base;
+	u32 offset;
+	u32 length;
+	u8 page;
+	u8 bank;
+	u8 i2c_address;
+};
+
+struct eeprom_reply_data {
+	struct ethnl_reply_data base;
+	u32 length;
+	u8 *data;
+};
+
+struct xt_entry_match {
+	union {
+		struct {
+			__u16 match_size;
+			char name[29];
+			__u8 revision;
+		} user;
+		struct {
+			__u16 match_size;
+			struct xt_match *match;
+		} kernel;
+		__u16 match_size;
+	} u;
+	unsigned char data[0];
+};
+
+struct xt_entry_target {
+	union {
+		struct {
+			__u16 target_size;
+			char name[29];
+			__u8 revision;
+		} user;
+		struct {
+			__u16 target_size;
+			struct xt_target *target;
+		} kernel;
+		__u16 target_size;
+	} u;
+	unsigned char data[0];
+};
+
+struct xt_standard_target {
+	struct xt_entry_target target;
+	int verdict;
+};
+
+struct xt_error_target {
+	struct xt_entry_target target;
+	char errorname[30];
+};
+
+struct xt_counters {
+	__u64 pcnt;
+	__u64 bcnt;
+};
+
+struct xt_counters_info {
+	char name[32];
+	unsigned int num_counters;
+	struct xt_counters counters[0];
+};
+
+struct xt_table_info;
+
+struct xt_table {
+	struct list_head list;
+	unsigned int valid_hooks;
+	struct xt_table_info *private;
+	struct nf_hook_ops *ops;
+	struct module *me;
+	u_int8_t af;
+	int priority;
+	const char name[32];
+};
+
+struct xt_table_info {
+	unsigned int size;
+	unsigned int number;
+	unsigned int initial_entries;
+	unsigned int hook_entry[5];
+	unsigned int underflow[5];
+	unsigned int stacksize;
+	void ***jumpstack;
+	unsigned char entries[0];
+};
+
+struct xt_percpu_counter_alloc_state {
+	unsigned int off;
+	const char *mem;
