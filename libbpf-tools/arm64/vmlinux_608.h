@@ -146487,3 +146487,1063 @@ struct xt_table_info {
 struct xt_percpu_counter_alloc_state {
 	unsigned int off;
 	const char *mem;
+};
+
+struct compat_xt_entry_match {
+	union {
+		struct {
+			u_int16_t match_size;
+			char name[29];
+			u_int8_t revision;
+		} user;
+		struct {
+			u_int16_t match_size;
+			compat_uptr_t match;
+		} kernel;
+		u_int16_t match_size;
+	} u;
+	unsigned char data[0];
+};
+
+struct compat_xt_entry_target {
+	union {
+		struct {
+			u_int16_t target_size;
+			char name[29];
+			u_int8_t revision;
+		} user;
+		struct {
+			u_int16_t target_size;
+			compat_uptr_t target;
+		} kernel;
+		u_int16_t target_size;
+	} u;
+	unsigned char data[0];
+};
+
+struct compat_xt_counters {
+	compat_u64 pcnt;
+	compat_u64 bcnt;
+};
+
+struct compat_xt_counters_info {
+	char name[32];
+	compat_uint_t num_counters;
+	struct compat_xt_counters counters[0];
+};
+
+struct xt_template {
+	struct list_head list;
+	int (*table_init)(struct net *);
+	struct module *me;
+	char name[32];
+};
+
+struct xt_pernet {
+	struct list_head tables[13];
+};
+
+struct compat_delta {
+	unsigned int offset;
+	int delta;
+};
+
+struct xt_af {
+	struct mutex mutex;
+	struct list_head match;
+	struct list_head target;
+	struct mutex compat_mutex;
+	struct compat_delta *compat_tab;
+	unsigned int number;
+	unsigned int cur;
+};
+
+struct compat_xt_standard_target {
+	struct compat_xt_entry_target t;
+	compat_uint_t verdict;
+};
+
+struct compat_xt_error_target {
+	struct compat_xt_entry_target t;
+	char errorname[30];
+};
+
+struct nf_mttg_trav {
+	struct list_head *head;
+	struct list_head *curr;
+	uint8_t class;
+};
+
+enum {
+	MTTG_TRAV_INIT = 0,
+	MTTG_TRAV_NFP_UNSPEC = 1,
+	MTTG_TRAV_NFP_SPEC = 2,
+	MTTG_TRAV_DONE = 3,
+};
+
+struct compat_rtentry {
+	u32 rt_pad1;
+	struct sockaddr rt_dst;
+	struct sockaddr rt_gateway;
+	struct sockaddr rt_genmask;
+	short unsigned int rt_flags;
+	short int rt_pad2;
+	u32 rt_pad3;
+	unsigned char rt_tos;
+	unsigned char rt_class;
+	short int rt_pad4;
+	short int rt_metric;
+	compat_uptr_t rt_dev;
+	u32 rt_mtu;
+	u32 rt_window;
+	short unsigned int rt_irtt;
+};
+
+enum lwtunnel_ip_t {
+	LWTUNNEL_IP_UNSPEC = 0,
+	LWTUNNEL_IP_ID = 1,
+	LWTUNNEL_IP_DST = 2,
+	LWTUNNEL_IP_SRC = 3,
+	LWTUNNEL_IP_TTL = 4,
+	LWTUNNEL_IP_TOS = 5,
+	LWTUNNEL_IP_FLAGS = 6,
+	LWTUNNEL_IP_PAD = 7,
+	LWTUNNEL_IP_OPTS = 8,
+	__LWTUNNEL_IP_MAX = 9,
+};
+
+enum lwtunnel_ip6_t {
+	LWTUNNEL_IP6_UNSPEC = 0,
+	LWTUNNEL_IP6_ID = 1,
+	LWTUNNEL_IP6_DST = 2,
+	LWTUNNEL_IP6_SRC = 3,
+	LWTUNNEL_IP6_HOPLIMIT = 4,
+	LWTUNNEL_IP6_TC = 5,
+	LWTUNNEL_IP6_FLAGS = 6,
+	LWTUNNEL_IP6_PAD = 7,
+	LWTUNNEL_IP6_OPTS = 8,
+	__LWTUNNEL_IP6_MAX = 9,
+};
+
+enum {
+	LWTUNNEL_IP_OPTS_UNSPEC = 0,
+	LWTUNNEL_IP_OPTS_GENEVE = 1,
+	LWTUNNEL_IP_OPTS_VXLAN = 2,
+	LWTUNNEL_IP_OPTS_ERSPAN = 3,
+	__LWTUNNEL_IP_OPTS_MAX = 4,
+};
+
+enum {
+	LWTUNNEL_IP_OPT_GENEVE_UNSPEC = 0,
+	LWTUNNEL_IP_OPT_GENEVE_CLASS = 1,
+	LWTUNNEL_IP_OPT_GENEVE_TYPE = 2,
+	LWTUNNEL_IP_OPT_GENEVE_DATA = 3,
+	__LWTUNNEL_IP_OPT_GENEVE_MAX = 4,
+};
+
+enum {
+	LWTUNNEL_IP_OPT_VXLAN_UNSPEC = 0,
+	LWTUNNEL_IP_OPT_VXLAN_GBP = 1,
+	__LWTUNNEL_IP_OPT_VXLAN_MAX = 2,
+};
+
+enum {
+	LWTUNNEL_IP_OPT_ERSPAN_UNSPEC = 0,
+	LWTUNNEL_IP_OPT_ERSPAN_VER = 1,
+	LWTUNNEL_IP_OPT_ERSPAN_INDEX = 2,
+	LWTUNNEL_IP_OPT_ERSPAN_DIR = 3,
+	LWTUNNEL_IP_OPT_ERSPAN_HWID = 4,
+	__LWTUNNEL_IP_OPT_ERSPAN_MAX = 5,
+};
+
+struct geneve_opt {
+	__be16 opt_class;
+	u8 type;
+	u8 length: 5;
+	u8 r3: 1;
+	u8 r2: 1;
+	u8 r1: 1;
+	u8 opt_data[0];
+};
+
+struct vxlan_metadata {
+	u32 gbp;
+};
+
+struct erspan_md2 {
+	__be32 timestamp;
+	__be16 sgt;
+	__u8 hwid_upper: 2;
+	__u8 ft: 5;
+	__u8 p: 1;
+	__u8 o: 1;
+	__u8 gra: 2;
+	__u8 dir: 1;
+	__u8 hwid: 4;
+};
+
+struct erspan_metadata {
+	int version;
+	union {
+		__be32 index;
+		struct erspan_md2 md2;
+	} u;
+};
+
+typedef short unsigned int vifi_t;
+
+struct vifctl {
+	vifi_t vifc_vifi;
+	unsigned char vifc_flags;
+	unsigned char vifc_threshold;
+	unsigned int vifc_rate_limit;
+	union {
+		struct in_addr vifc_lcl_addr;
+		int vifc_lcl_ifindex;
+	};
+	struct in_addr vifc_rmt_addr;
+};
+
+struct mfcctl {
+	struct in_addr mfcc_origin;
+	struct in_addr mfcc_mcastgrp;
+	vifi_t mfcc_parent;
+	unsigned char mfcc_ttls[32];
+	unsigned int mfcc_pkt_cnt;
+	unsigned int mfcc_byte_cnt;
+	unsigned int mfcc_wrong_if;
+	int mfcc_expire;
+};
+
+struct sioc_sg_req {
+	struct in_addr src;
+	struct in_addr grp;
+	long unsigned int pktcnt;
+	long unsigned int bytecnt;
+	long unsigned int wrong_if;
+};
+
+struct sioc_vif_req {
+	vifi_t vifi;
+	long unsigned int icount;
+	long unsigned int ocount;
+	long unsigned int ibytes;
+	long unsigned int obytes;
+};
+
+struct igmpmsg {
+	__u32 unused1;
+	__u32 unused2;
+	unsigned char im_msgtype;
+	unsigned char im_mbz;
+	unsigned char im_vif;
+	unsigned char im_vif_hi;
+	struct in_addr im_src;
+	struct in_addr im_dst;
+};
+
+enum {
+	IPMRA_TABLE_UNSPEC = 0,
+	IPMRA_TABLE_ID = 1,
+	IPMRA_TABLE_CACHE_RES_QUEUE_LEN = 2,
+	IPMRA_TABLE_MROUTE_REG_VIF_NUM = 3,
+	IPMRA_TABLE_MROUTE_DO_ASSERT = 4,
+	IPMRA_TABLE_MROUTE_DO_PIM = 5,
+	IPMRA_TABLE_VIFS = 6,
+	IPMRA_TABLE_MROUTE_DO_WRVIFWHOLE = 7,
+	__IPMRA_TABLE_MAX = 8,
+};
+
+enum {
+	IPMRA_VIF_UNSPEC = 0,
+	IPMRA_VIF = 1,
+	__IPMRA_VIF_MAX = 2,
+};
+
+enum {
+	IPMRA_VIFA_UNSPEC = 0,
+	IPMRA_VIFA_IFINDEX = 1,
+	IPMRA_VIFA_VIF_ID = 2,
+	IPMRA_VIFA_FLAGS = 3,
+	IPMRA_VIFA_BYTES_IN = 4,
+	IPMRA_VIFA_BYTES_OUT = 5,
+	IPMRA_VIFA_PACKETS_IN = 6,
+	IPMRA_VIFA_PACKETS_OUT = 7,
+	IPMRA_VIFA_LOCAL_ADDR = 8,
+	IPMRA_VIFA_REMOTE_ADDR = 9,
+	IPMRA_VIFA_PAD = 10,
+	__IPMRA_VIFA_MAX = 11,
+};
+
+enum {
+	IPMRA_CREPORT_UNSPEC = 0,
+	IPMRA_CREPORT_MSGTYPE = 1,
+	IPMRA_CREPORT_VIF_ID = 2,
+	IPMRA_CREPORT_SRC_ADDR = 3,
+	IPMRA_CREPORT_DST_ADDR = 4,
+	IPMRA_CREPORT_PKT = 5,
+	IPMRA_CREPORT_TABLE = 6,
+	__IPMRA_CREPORT_MAX = 7,
+};
+
+struct mfc_cache_cmp_arg {
+	__be32 mfc_mcastgrp;
+	__be32 mfc_origin;
+};
+
+struct mfc_cache {
+	struct mr_mfc _c;
+	union {
+		struct {
+			__be32 mfc_mcastgrp;
+			__be32 mfc_origin;
+		};
+		struct mfc_cache_cmp_arg cmparg;
+	};
+};
+
+struct ipmr_result {
+	struct mr_table *mrt;
+};
+
+struct compat_sioc_sg_req {
+	struct in_addr src;
+	struct in_addr grp;
+	compat_ulong_t pktcnt;
+	compat_ulong_t bytecnt;
+	compat_ulong_t wrong_if;
+};
+
+struct compat_sioc_vif_req {
+	vifi_t vifi;
+	compat_ulong_t icount;
+	compat_ulong_t ocount;
+	compat_ulong_t ibytes;
+	compat_ulong_t obytes;
+};
+
+struct tx_work {
+	struct delayed_work work;
+	struct sock *sk;
+};
+
+struct tls_rec;
+
+struct tls_sw_context_tx {
+	struct crypto_aead *aead_send;
+	struct crypto_wait async_wait;
+	struct tx_work tx_work;
+	struct tls_rec *open_rec;
+	struct list_head tx_list;
+	atomic_t encrypt_pending;
+	spinlock_t encrypt_compl_lock;
+	int async_notify;
+	u8 async_capable: 1;
+	long unsigned int tx_bitmask;
+};
+
+enum {
+	TCP_BPF_IPV4 = 0,
+	TCP_BPF_IPV6 = 1,
+	TCP_BPF_NUM_PROTS = 2,
+};
+
+enum {
+	TCP_BPF_BASE = 0,
+	TCP_BPF_TX = 1,
+	TCP_BPF_RX = 2,
+	TCP_BPF_TXRX = 3,
+	TCP_BPF_NUM_CFGS = 4,
+};
+
+struct xfrm_if;
+
+struct xfrm_if_cb {
+	struct xfrm_if * (*decode_session)(struct sk_buff *, short unsigned int);
+};
+
+struct xfrm_if_parms {
+	int link;
+	u32 if_id;
+};
+
+struct xfrm_if {
+	struct xfrm_if *next;
+	struct net_device *dev;
+	struct net *net;
+	struct xfrm_if_parms p;
+	struct gro_cells gro_cells;
+};
+
+struct xfrm_flo {
+	struct dst_entry *dst_orig;
+	u8 flags;
+};
+
+struct xfrm_pol_inexact_node {
+	struct rb_node node;
+	union {
+		xfrm_address_t addr;
+		struct callback_head rcu;
+	};
+	u8 prefixlen;
+	struct rb_root root;
+	struct hlist_head hhead;
+};
+
+struct xfrm_pol_inexact_key {
+	possible_net_t net;
+	u32 if_id;
+	u16 family;
+	u8 dir;
+	u8 type;
+};
+
+struct xfrm_pol_inexact_bin {
+	struct xfrm_pol_inexact_key k;
+	struct rhash_head head;
+	struct hlist_head hhead;
+	seqcount_spinlock_t count;
+	struct rb_root root_d;
+	struct rb_root root_s;
+	struct list_head inexact_bins;
+	struct callback_head rcu;
+};
+
+enum xfrm_pol_inexact_candidate_type {
+	XFRM_POL_CAND_BOTH = 0,
+	XFRM_POL_CAND_SADDR = 1,
+	XFRM_POL_CAND_DADDR = 2,
+	XFRM_POL_CAND_ANY = 3,
+	XFRM_POL_CAND_MAX = 4,
+};
+
+struct xfrm_pol_inexact_candidates {
+	struct hlist_head *res[4];
+};
+
+enum {
+	IFLA_INET6_UNSPEC = 0,
+	IFLA_INET6_FLAGS = 1,
+	IFLA_INET6_CONF = 2,
+	IFLA_INET6_STATS = 3,
+	IFLA_INET6_MCAST = 4,
+	IFLA_INET6_CACHEINFO = 5,
+	IFLA_INET6_ICMP6STATS = 6,
+	IFLA_INET6_TOKEN = 7,
+	IFLA_INET6_ADDR_GEN_MODE = 8,
+	IFLA_INET6_RA_MTU = 9,
+	__IFLA_INET6_MAX = 10,
+};
+
+enum in6_addr_gen_mode {
+	IN6_ADDR_GEN_MODE_EUI64 = 0,
+	IN6_ADDR_GEN_MODE_NONE = 1,
+	IN6_ADDR_GEN_MODE_STABLE_PRIVACY = 2,
+	IN6_ADDR_GEN_MODE_RANDOM = 3,
+};
+
+struct ifla_cacheinfo {
+	__u32 max_reasm_len;
+	__u32 tstamp;
+	__u32 reachable_time;
+	__u32 retrans_time;
+};
+
+struct wpan_phy;
+
+struct wpan_dev_header_ops;
+
+struct wpan_dev {
+	struct wpan_phy *wpan_phy;
+	int iftype;
+	struct list_head list;
+	struct net_device *netdev;
+	const struct wpan_dev_header_ops *header_ops;
+	struct net_device *lowpan_dev;
+	u32 identifier;
+	__le16 pan_id;
+	__le16 short_addr;
+	__le64 extended_addr;
+	atomic_t bsn;
+	atomic_t dsn;
+	u8 min_be;
+	u8 max_be;
+	u8 csma_retries;
+	s8 frame_retries;
+	bool lbt;
+	bool promiscuous_mode;
+	bool ackreq;
+};
+
+struct prefixmsg {
+	unsigned char prefix_family;
+	unsigned char prefix_pad1;
+	short unsigned int prefix_pad2;
+	int prefix_ifindex;
+	unsigned char prefix_type;
+	unsigned char prefix_len;
+	unsigned char prefix_flags;
+	unsigned char prefix_pad3;
+};
+
+enum {
+	PREFIX_UNSPEC = 0,
+	PREFIX_ADDRESS = 1,
+	PREFIX_CACHEINFO = 2,
+	__PREFIX_MAX = 3,
+};
+
+struct prefix_cacheinfo {
+	__u32 preferred_time;
+	__u32 valid_time;
+};
+
+struct in6_ifreq {
+	struct in6_addr ifr6_addr;
+	__u32 ifr6_prefixlen;
+	int ifr6_ifindex;
+};
+
+enum {
+	DEVCONF_FORWARDING = 0,
+	DEVCONF_HOPLIMIT = 1,
+	DEVCONF_MTU6 = 2,
+	DEVCONF_ACCEPT_RA = 3,
+	DEVCONF_ACCEPT_REDIRECTS = 4,
+	DEVCONF_AUTOCONF = 5,
+	DEVCONF_DAD_TRANSMITS = 6,
+	DEVCONF_RTR_SOLICITS = 7,
+	DEVCONF_RTR_SOLICIT_INTERVAL = 8,
+	DEVCONF_RTR_SOLICIT_DELAY = 9,
+	DEVCONF_USE_TEMPADDR = 10,
+	DEVCONF_TEMP_VALID_LFT = 11,
+	DEVCONF_TEMP_PREFERED_LFT = 12,
+	DEVCONF_REGEN_MAX_RETRY = 13,
+	DEVCONF_MAX_DESYNC_FACTOR = 14,
+	DEVCONF_MAX_ADDRESSES = 15,
+	DEVCONF_FORCE_MLD_VERSION = 16,
+	DEVCONF_ACCEPT_RA_DEFRTR = 17,
+	DEVCONF_ACCEPT_RA_PINFO = 18,
+	DEVCONF_ACCEPT_RA_RTR_PREF = 19,
+	DEVCONF_RTR_PROBE_INTERVAL = 20,
+	DEVCONF_ACCEPT_RA_RT_INFO_MAX_PLEN = 21,
+	DEVCONF_PROXY_NDP = 22,
+	DEVCONF_OPTIMISTIC_DAD = 23,
+	DEVCONF_ACCEPT_SOURCE_ROUTE = 24,
+	DEVCONF_MC_FORWARDING = 25,
+	DEVCONF_DISABLE_IPV6 = 26,
+	DEVCONF_ACCEPT_DAD = 27,
+	DEVCONF_FORCE_TLLAO = 28,
+	DEVCONF_NDISC_NOTIFY = 29,
+	DEVCONF_MLDV1_UNSOLICITED_REPORT_INTERVAL = 30,
+	DEVCONF_MLDV2_UNSOLICITED_REPORT_INTERVAL = 31,
+	DEVCONF_SUPPRESS_FRAG_NDISC = 32,
+	DEVCONF_ACCEPT_RA_FROM_LOCAL = 33,
+	DEVCONF_USE_OPTIMISTIC = 34,
+	DEVCONF_ACCEPT_RA_MTU = 35,
+	DEVCONF_STABLE_SECRET = 36,
+	DEVCONF_USE_OIF_ADDRS_ONLY = 37,
+	DEVCONF_ACCEPT_RA_MIN_HOP_LIMIT = 38,
+	DEVCONF_IGNORE_ROUTES_WITH_LINKDOWN = 39,
+	DEVCONF_DROP_UNICAST_IN_L2_MULTICAST = 40,
+	DEVCONF_DROP_UNSOLICITED_NA = 41,
+	DEVCONF_KEEP_ADDR_ON_DOWN = 42,
+	DEVCONF_RTR_SOLICIT_MAX_INTERVAL = 43,
+	DEVCONF_SEG6_ENABLED = 44,
+	DEVCONF_SEG6_REQUIRE_HMAC = 45,
+	DEVCONF_ENHANCED_DAD = 46,
+	DEVCONF_ADDR_GEN_MODE = 47,
+	DEVCONF_DISABLE_POLICY = 48,
+	DEVCONF_ACCEPT_RA_RT_INFO_MIN_PLEN = 49,
+	DEVCONF_NDISC_TCLASS = 50,
+	DEVCONF_RPL_SEG_ENABLED = 51,
+	DEVCONF_RA_DEFRTR_METRIC = 52,
+	DEVCONF_IOAM6_ENABLED = 53,
+	DEVCONF_IOAM6_ID = 54,
+	DEVCONF_IOAM6_ID_WIDE = 55,
+	DEVCONF_NDISC_EVICT_NOCARRIER = 56,
+	DEVCONF_ACCEPT_UNTRACKED_NA = 57,
+	DEVCONF_MAX = 58,
+};
+
+enum {
+	INET6_IFADDR_STATE_PREDAD = 0,
+	INET6_IFADDR_STATE_DAD = 1,
+	INET6_IFADDR_STATE_POSTDAD = 2,
+	INET6_IFADDR_STATE_ERRDAD = 3,
+	INET6_IFADDR_STATE_DEAD = 4,
+};
+
+enum nl802154_cca_modes {
+	__NL802154_CCA_INVALID = 0,
+	NL802154_CCA_ENERGY = 1,
+	NL802154_CCA_CARRIER = 2,
+	NL802154_CCA_ENERGY_CARRIER = 3,
+	NL802154_CCA_ALOHA = 4,
+	NL802154_CCA_UWB_SHR = 5,
+	NL802154_CCA_UWB_MULTIPLEXED = 6,
+	__NL802154_CCA_ATTR_AFTER_LAST = 7,
+	NL802154_CCA_ATTR_MAX = 6,
+};
+
+enum nl802154_cca_opts {
+	NL802154_CCA_OPT_ENERGY_CARRIER_AND = 0,
+	NL802154_CCA_OPT_ENERGY_CARRIER_OR = 1,
+	__NL802154_CCA_OPT_ATTR_AFTER_LAST = 2,
+	NL802154_CCA_OPT_ATTR_MAX = 1,
+};
+
+enum nl802154_supported_bool_states {
+	NL802154_SUPPORTED_BOOL_FALSE = 0,
+	NL802154_SUPPORTED_BOOL_TRUE = 1,
+	__NL802154_SUPPORTED_BOOL_INVALD = 2,
+	NL802154_SUPPORTED_BOOL_BOTH = 3,
+	__NL802154_SUPPORTED_BOOL_AFTER_LAST = 4,
+	NL802154_SUPPORTED_BOOL_MAX = 3,
+};
+
+struct wpan_phy_supported {
+	u32 channels[32];
+	u32 cca_modes;
+	u32 cca_opts;
+	u32 iftypes;
+	enum nl802154_supported_bool_states lbt;
+	u8 min_minbe;
+	u8 max_minbe;
+	u8 min_maxbe;
+	u8 max_maxbe;
+	u8 min_csma_backoffs;
+	u8 max_csma_backoffs;
+	s8 min_frame_retries;
+	s8 max_frame_retries;
+	size_t tx_powers_size;
+	size_t cca_ed_levels_size;
+	const s32 *tx_powers;
+	const s32 *cca_ed_levels;
+};
+
+struct wpan_phy_cca {
+	enum nl802154_cca_modes mode;
+	enum nl802154_cca_opts opt;
+};
+
+struct wpan_phy {
+	const void *privid;
+	u32 flags;
+	u8 current_channel;
+	u8 current_page;
+	struct wpan_phy_supported supported;
+	s32 transmit_power;
+	struct wpan_phy_cca cca;
+	__le64 perm_extended_addr;
+	s32 cca_ed_level;
+	u32 symbol_duration;
+	u16 lifs_period;
+	u16 sifs_period;
+	struct device dev;
+	possible_net_t _net;
+	long: 64;
+	long: 64;
+	char priv[0];
+};
+
+struct ieee802154_addr {
+	u8 mode;
+	__le16 pan_id;
+	union {
+		__le16 short_addr;
+		__le64 extended_addr;
+	};
+};
+
+struct wpan_dev_header_ops {
+	int (*create)(struct sk_buff *, struct net_device *, const struct ieee802154_addr *, const struct ieee802154_addr *, unsigned int);
+};
+
+union fwnet_hwaddr {
+	u8 u[16];
+	struct {
+		__be64 uniq_id;
+		u8 max_rec;
+		u8 sspd;
+		u8 fifo[6];
+	} uc;
+};
+
+struct in6_validator_info {
+	struct in6_addr i6vi_addr;
+	struct inet6_dev *i6vi_dev;
+	struct netlink_ext_ack *extack;
+};
+
+struct ifa6_config {
+	const struct in6_addr *pfx;
+	unsigned int plen;
+	u8 ifa_proto;
+	const struct in6_addr *peer_pfx;
+	u32 rt_priority;
+	u32 ifa_flags;
+	u32 preferred_lft;
+	u32 valid_lft;
+	u16 scope;
+};
+
+enum cleanup_prefix_rt_t {
+	CLEANUP_PREFIX_RT_NOP = 0,
+	CLEANUP_PREFIX_RT_DEL = 1,
+	CLEANUP_PREFIX_RT_EXPIRE = 2,
+};
+
+enum {
+	IPV6_SADDR_RULE_INIT = 0,
+	IPV6_SADDR_RULE_LOCAL = 1,
+	IPV6_SADDR_RULE_SCOPE = 2,
+	IPV6_SADDR_RULE_PREFERRED = 3,
+	IPV6_SADDR_RULE_HOA = 4,
+	IPV6_SADDR_RULE_OIF = 5,
+	IPV6_SADDR_RULE_LABEL = 6,
+	IPV6_SADDR_RULE_PRIVACY = 7,
+	IPV6_SADDR_RULE_ORCHID = 8,
+	IPV6_SADDR_RULE_PREFIX = 9,
+	IPV6_SADDR_RULE_NOT_OPTIMISTIC = 10,
+	IPV6_SADDR_RULE_MAX = 11,
+};
+
+struct ipv6_saddr_score {
+	int rule;
+	int addr_type;
+	struct inet6_ifaddr *ifa;
+	long unsigned int scorebits[1];
+	int scopedist;
+	int matchlen;
+};
+
+struct ipv6_saddr_dst {
+	const struct in6_addr *addr;
+	int ifindex;
+	int scope;
+	int label;
+	unsigned int prefs;
+};
+
+struct if6_iter_state {
+	struct seq_net_private p;
+	int bucket;
+	int offset;
+};
+
+enum addr_type_t {
+	UNICAST_ADDR = 0,
+	MULTICAST_ADDR = 1,
+	ANYCAST_ADDR = 2,
+};
+
+struct inet6_fill_args {
+	u32 portid;
+	u32 seq;
+	int event;
+	unsigned int flags;
+	int netnsid;
+	int ifindex;
+	enum addr_type_t type;
+};
+
+enum {
+	DAD_PROCESS = 0,
+	DAD_BEGIN = 1,
+	DAD_ABORT = 2,
+};
+
+struct mld2_grec {
+	__u8 grec_type;
+	__u8 grec_auxwords;
+	__be16 grec_nsrcs;
+	struct in6_addr grec_mca;
+	struct in6_addr grec_src[0];
+};
+
+struct mld2_report {
+	struct icmp6hdr mld2r_hdr;
+	struct mld2_grec mld2r_grec[0];
+};
+
+struct mld2_query {
+	struct icmp6hdr mld2q_hdr;
+	struct in6_addr mld2q_mca;
+	__u8 mld2q_qrv: 3;
+	__u8 mld2q_suppress: 1;
+	__u8 mld2q_resv2: 4;
+	__u8 mld2q_qqic;
+	__be16 mld2q_nsrcs;
+	struct in6_addr mld2q_srcs[0];
+};
+
+struct igmp6_mc_iter_state {
+	struct seq_net_private p;
+	struct net_device *dev;
+	struct inet6_dev *idev;
+};
+
+struct igmp6_mcf_iter_state {
+	struct seq_net_private p;
+	struct net_device *dev;
+	struct inet6_dev *idev;
+	struct ifmcaddr6 *im;
+};
+
+enum {
+	SEG6_LOCAL_UNSPEC = 0,
+	SEG6_LOCAL_ACTION = 1,
+	SEG6_LOCAL_SRH = 2,
+	SEG6_LOCAL_TABLE = 3,
+	SEG6_LOCAL_NH4 = 4,
+	SEG6_LOCAL_NH6 = 5,
+	SEG6_LOCAL_IIF = 6,
+	SEG6_LOCAL_OIF = 7,
+	SEG6_LOCAL_BPF = 8,
+	SEG6_LOCAL_VRFTABLE = 9,
+	SEG6_LOCAL_COUNTERS = 10,
+	__SEG6_LOCAL_MAX = 11,
+};
+
+enum {
+	SEG6_LOCAL_BPF_PROG_UNSPEC = 0,
+	SEG6_LOCAL_BPF_PROG = 1,
+	SEG6_LOCAL_BPF_PROG_NAME = 2,
+	__SEG6_LOCAL_BPF_PROG_MAX = 3,
+};
+
+enum {
+	SEG6_LOCAL_CNT_UNSPEC = 0,
+	SEG6_LOCAL_CNT_PAD = 1,
+	SEG6_LOCAL_CNT_PACKETS = 2,
+	SEG6_LOCAL_CNT_BYTES = 3,
+	SEG6_LOCAL_CNT_ERRORS = 4,
+	__SEG6_LOCAL_CNT_MAX = 5,
+};
+
+struct seg6_local_lwt;
+
+struct seg6_local_lwtunnel_ops {
+	int (*build_state)(struct seg6_local_lwt *, const void *, struct netlink_ext_ack *);
+	void (*destroy_state)(struct seg6_local_lwt *);
+};
+
+enum seg6_end_dt_mode {
+	DT_INVALID_MODE = 4294967274,
+	DT_LEGACY_MODE = 0,
+	DT_VRF_MODE = 1,
+};
+
+struct seg6_end_dt_info {
+	enum seg6_end_dt_mode mode;
+	struct net *net;
+	int vrf_ifindex;
+	int vrf_table;
+	u16 family;
+};
+
+struct pcpu_seg6_local_counters;
+
+struct seg6_action_desc;
+
+struct seg6_local_lwt {
+	int action;
+	struct ipv6_sr_hdr *srh;
+	int table;
+	struct in_addr nh4;
+	struct in6_addr nh6;
+	int iif;
+	int oif;
+	struct bpf_lwt_prog bpf;
+	struct seg6_end_dt_info dt_info;
+	struct pcpu_seg6_local_counters *pcpu_counters;
+	int headroom;
+	struct seg6_action_desc *desc;
+	long unsigned int parsed_optattrs;
+};
+
+struct seg6_action_desc {
+	int action;
+	long unsigned int attrs;
+	long unsigned int optattrs;
+	int (*input)(struct sk_buff *, struct seg6_local_lwt *);
+	int static_headroom;
+	struct seg6_local_lwtunnel_ops slwt_ops;
+};
+
+struct pcpu_seg6_local_counters {
+	u64_stats_t packets;
+	u64_stats_t bytes;
+	u64_stats_t errors;
+	struct u64_stats_sync syncp;
+};
+
+struct seg6_local_counters {
+	__u64 packets;
+	__u64 bytes;
+	__u64 errors;
+};
+
+struct seg6_action_param {
+	int (*parse)(struct nlattr **, struct seg6_local_lwt *);
+	int (*put)(struct sk_buff *, struct seg6_local_lwt *);
+	int (*cmp)(struct seg6_local_lwt *, struct seg6_local_lwt *);
+	void (*destroy)(struct seg6_local_lwt *);
+};
+
+struct vlan_group {
+	unsigned int nr_vlan_devs;
+	struct hlist_node hlist;
+	struct net_device **vlan_devices_arrays[16];
+};
+
+struct vlan_info {
+	struct net_device *real_dev;
+	struct vlan_group grp;
+	struct list_head vid_list;
+	unsigned int nr_vids;
+	struct callback_head rcu;
+};
+
+enum vlan_flags {
+	VLAN_FLAG_REORDER_HDR = 1,
+	VLAN_FLAG_GVRP = 2,
+	VLAN_FLAG_LOOSE_BINDING = 4,
+	VLAN_FLAG_MVRP = 8,
+	VLAN_FLAG_BRIDGE_BINDING = 16,
+};
+
+struct vlan_pcpu_stats {
+	u64_stats_t rx_packets;
+	u64_stats_t rx_bytes;
+	u64_stats_t rx_multicast;
+	u64_stats_t tx_packets;
+	u64_stats_t tx_bytes;
+	struct u64_stats_sync syncp;
+	u32 rx_errors;
+	u32 tx_dropped;
+};
+
+struct vlan_priority_tci_mapping {
+	u32 priority;
+	u16 vlan_qos;
+	struct vlan_priority_tci_mapping *next;
+};
+
+struct vlan_dev_priv {
+	unsigned int nr_ingress_mappings;
+	u32 ingress_priority_map[8];
+	unsigned int nr_egress_mappings;
+	struct vlan_priority_tci_mapping *egress_priority_map[16];
+	__be16 vlan_proto;
+	u16 vlan_id;
+	u16 flags;
+	struct net_device *real_dev;
+	netdevice_tracker dev_tracker;
+	unsigned char real_dev_addr[6];
+	struct proc_dir_entry *dent;
+	struct vlan_pcpu_stats *vlan_pcpu_stats;
+	struct netpoll *netpoll;
+};
+
+enum vlan_protos {
+	VLAN_PROTO_8021Q = 0,
+	VLAN_PROTO_8021AD = 1,
+	VLAN_PROTO_NUM = 2,
+};
+
+struct vlan_vid_info {
+	struct list_head list;
+	__be16 proto;
+	u16 vid;
+	int refcount;
+};
+
+enum {
+	NLBL_MGMT_C_UNSPEC = 0,
+	NLBL_MGMT_C_ADD = 1,
+	NLBL_MGMT_C_REMOVE = 2,
+	NLBL_MGMT_C_LISTALL = 3,
+	NLBL_MGMT_C_ADDDEF = 4,
+	NLBL_MGMT_C_REMOVEDEF = 5,
+	NLBL_MGMT_C_LISTDEF = 6,
+	NLBL_MGMT_C_PROTOCOLS = 7,
+	NLBL_MGMT_C_VERSION = 8,
+	__NLBL_MGMT_C_MAX = 9,
+};
+
+enum {
+	NLBL_MGMT_A_UNSPEC = 0,
+	NLBL_MGMT_A_DOMAIN = 1,
+	NLBL_MGMT_A_PROTOCOL = 2,
+	NLBL_MGMT_A_VERSION = 3,
+	NLBL_MGMT_A_CV4DOI = 4,
+	NLBL_MGMT_A_IPV6ADDR = 5,
+	NLBL_MGMT_A_IPV6MASK = 6,
+	NLBL_MGMT_A_IPV4ADDR = 7,
+	NLBL_MGMT_A_IPV4MASK = 8,
+	NLBL_MGMT_A_ADDRSELECTOR = 9,
+	NLBL_MGMT_A_SELECTORLIST = 10,
+	NLBL_MGMT_A_FAMILY = 11,
+	NLBL_MGMT_A_CLPDOI = 12,
+	__NLBL_MGMT_A_MAX = 13,
+};
+
+struct netlbl_domhsh_walk_arg___2 {
+	struct netlink_callback *nl_cb;
+	struct sk_buff *skb;
+	u32 seq;
+};
+
+struct ncsi_cmd_sp_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char reserved[3];
+	unsigned char hw_arbitration;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_dc_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char reserved[3];
+	unsigned char ald;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_rc_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 reserved;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_oem_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 mfr_id;
+	unsigned char data[0];
+};
+
+struct ncsi_cmd_handler {
+	unsigned char type;
+	int payload;
+	int (*handler)(struct sk_buff *, struct ncsi_cmd_arg *);
+};
+
+struct xsk_dma_map {
+	dma_addr_t *dma_pages;
+	struct device *dev;
+	struct net_device *netdev;
+	refcount_t users;
+	struct list_head list;
+	u32 dma_pages_cnt;
+	bool dma_need_sync;
+};
+
+#ifndef BPF_NO_PRESERVE_ACCESS_INDEX
+#pragma clang attribute pop
+#endif
+
+#endif /* __VMLINUX_H__ */
