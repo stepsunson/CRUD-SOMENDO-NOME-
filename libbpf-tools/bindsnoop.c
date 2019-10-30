@@ -95,4 +95,104 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 		break;
 	case 'P':
 		if (!arg) {
-			warn("No ports specifi
+			warn("No ports specified\n");
+			argp_usage(state);
+		}
+		target_ports = strdup(arg);
+		port = strtok(arg, ",");
+		while (port) {
+			port_num = strtol(port, NULL, 10);
+			if (errno || port_num <= 0 || port_num > 65536) {
+				warn("Invalid ports: %s\n", arg);
+				argp_usage(state);
+			}
+			port = strtok(NULL, ",");
+		}
+		break;
+	case 'x':
+		ignore_errors = false;
+		break;
+	case 't':
+		emit_timestamp = true;
+		break;
+	case 'v':
+		verbose = true;
+		break;
+	case 'h':
+		argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
+{
+	struct bind_event *e = data;
+	time_t t;
+	struct tm *tm;
+	char ts[32], addr[48];
+	char opts[] = {'F', 'T', 'N', 'R', 'r', '\0'};
+	const char *proto;
+	int i = 0;
+
+	if (emit_timestamp) {
+		time(&t);
+		tm = localtime(&t);
+		strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+		printf("%8s ", ts);
+	}
+	if (e->proto == IPPROTO_TCP)
+		proto = "TCP";
+	else if (e->proto == IPPROTO_UDP)
+		proto = "UDP";
+	else
+		proto = "UNK";
+	while (opts[i]) {
+		if (!((1 << i) & e->opts)) {
+			opts[i] = '.';
+		}
+		i++;
+	}
+	if (e->ver == 4) {
+		inet_ntop(AF_INET, &e->addr, addr, sizeof(addr));
+	} else {
+		inet_ntop(AF_INET6, &e->addr, addr, sizeof(addr));
+	}
+	printf("%-7d %-16s %-3d %-5s %-5s %-4d %-5d %-48s\n",
+	       e->pid, e->task, e->ret, proto, opts, e->bound_dev_if, e->port, addr);
+}
+
+static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	warn("lost %llu events on CPU #%d\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct perf_buffer *pb = NULL;
+	struct bindsnoop_bpf *obj;
+	int err, port_map_fd;
+	char *port;
+	short port_num;
+	int idx, cg_map_fd;
+	int cgfd = -1
