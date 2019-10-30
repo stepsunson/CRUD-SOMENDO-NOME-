@@ -195,4 +195,87 @@ int main(int argc, char **argv)
 	char *port;
 	short port_num;
 	int idx, cg_map_fd;
-	int cgfd = -1
+	int cgfd = -1;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = bindsnoop_bpf__open_opts(&open_opts);
+	if (!obj) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	obj->rodata->filter_cg = env.cg;
+	obj->rodata->target_pid = target_pid;
+	obj->rodata->ignore_errors = ignore_errors;
+	obj->rodata->filter_by_port = target_ports != NULL;
+
+	err = bindsnoop_bpf__load(obj);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	/* update cgroup path fd to map */
+	if (env.cg) {
+		idx = 0;
+		cg_map_fd = bpf_map__fd(obj->maps.cgroup_map);
+		cgfd = open(env.cgroupspath, O_RDONLY);
+		if (cgfd < 0) {
+			fprintf(stderr, "Failed opening Cgroup path: %s", env.cgroupspath);
+			goto cleanup;
+		}
+		if (bpf_map_update_elem(cg_map_fd, &idx, &cgfd, BPF_ANY)) {
+			fprintf(stderr, "Failed adding target cgroup to map");
+			goto cleanup;
+		}
+	}
+
+	if (target_ports) {
+		port_map_fd = bpf_map__fd(obj->maps.ports);
+		port = strtok(target_ports, ",");
+		while (port) {
+			port_num = strtol(port, NULL, 10);
+			bpf_map_update_elem(port_map_fd, &port_num, &port_num, BPF_ANY);
+			port = strtok(NULL, ",");
+		}
+	}
+
+	err = bindsnoop_bpf__attach(obj);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	pb = perf_buffer__new(bpf_map__fd(obj->maps.events), PERF_BUFFER_PAGES,
+			      handle_event, handle_lost_events, NULL, NULL);
+	if (!pb) {
+		err = -errno;
+		warn("failed to open perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	if (emit_timestamp)
+		printf("%-8s ", "TIME(s)");
+	printf("%-7s %-16s %-3s %-5s %-5s %-4s %-5s %-48s\n",
+	       "PID", "COMM", "RET", "PROTO", "OPTS", "IF", "PORT", "ADDR");
+
+	while (!exiting) {
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEO
