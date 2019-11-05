@@ -203,4 +203,46 @@ int main(int argc, char **argv)
 			goto cleanup;
 		}
 		obj->rodata->filter_dev = true;
-		obj->rodata->targ_dev = partition->d
+		obj->rodata->targ_dev = partition->dev;
+	}
+
+	err = biopattern_bpf__load(obj);
+	if (err) {
+		fprintf(stderr, "failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	err = biopattern_bpf__attach(obj);
+	if (err) {
+		fprintf(stderr, "failed to attach BPF programs\n");
+		goto cleanup;
+	}
+
+	signal(SIGINT, sig_handler);
+
+	printf("Tracing block device I/O requested seeks... Hit Ctrl-C to "
+		"end.\n");
+	if (env.timestamp)
+		printf("%-9s ", "TIME");
+	printf("%-7s %5s %5s %8s %10s\n", "DISK", "%RND", "%SEQ",
+		"COUNT", "KBYTES");
+
+	/* main: poll */
+	while (1) {
+		sleep(env.interval);
+
+		err = print_map(obj->maps.counters, partitions);
+		if (err)
+			break;
+
+		if (exiting || --env.times == 0)
+			break;
+	}
+
+cleanup:
+	biopattern_bpf__destroy(obj);
+	partitions__free(partitions);
+	cleanup_core_btf(&open_opts);
+
+	return err != 0;
+}
