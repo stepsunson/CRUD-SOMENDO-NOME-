@@ -120,4 +120,87 @@ static int print_map(struct bpf_map *counters, struct partitions *partitions)
 	char ts[32];
 	time_t t;
 
-	while (!bpf_map_get_next_key(fd, &
+	while (!bpf_map_get_next_key(fd, &lookup_key, &next_key)) {
+		err = bpf_map_lookup_elem(fd, &next_key, &counter);
+		if (err < 0) {
+			fprintf(stderr, "failed to lookup counters: %d\n", err);
+			return -1;
+		}
+		lookup_key = next_key;
+		total = counter.sequential + counter.random;
+		if (!total)
+			continue;
+		if (env.timestamp) {
+			time(&t);
+			tm = localtime(&t);
+			strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+			printf("%-9s ", ts);
+		}
+		partition = partitions__get_by_dev(partitions, next_key);
+		printf("%-7s %5ld %5ld %8d %10lld\n",
+			partition ? partition->name : "Unknown",
+			counter.random * 100L / total,
+			counter.sequential * 100L / total, total,
+			counter.bytes / 1024);
+	}
+
+	lookup_key = -1;
+	while (!bpf_map_get_next_key(fd, &lookup_key, &next_key)) {
+		err = bpf_map_delete_elem(fd, &next_key);
+		if (err < 0) {
+			fprintf(stderr, "failed to cleanup counters: %d\n", err);
+			return -1;
+		}
+		lookup_key = next_key;
+	}
+
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	struct partitions *partitions = NULL;
+	const struct partition *partition;
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct biopattern_bpf *obj;
+	int err;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = biopattern_bpf__open_opts(&open_opts);
+	if (!obj) {
+		fprintf(stderr, "failed to open BPF object\n");
+		return 1;
+	}
+
+	partitions = partitions__load();
+	if (!partitions) {
+		fprintf(stderr, "failed to load partitions info\n");
+		goto cleanup;
+	}
+
+	/* initialize global data (filtering options) */
+	if (env.disk) {
+		partition = partitions__get_by_name(partitions, env.disk);
+		if (!partition) {
+			fprintf(stderr, "invaild partition name: not exist\n");
+			goto cleanup;
+		}
+		obj->rodata->filter_dev = true;
+		obj->rodata->targ_dev = partition->d
