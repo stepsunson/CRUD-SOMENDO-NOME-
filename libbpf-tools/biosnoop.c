@@ -218,4 +218,76 @@ int main(int argc, char **argv)
 	}
 
 	/* initialize global data (filtering options) */
-	if (env.disk)
+	if (env.disk) {
+		partition = partitions__get_by_name(partitions, env.disk);
+		if (!partition) {
+			fprintf(stderr, "invaild partition name: not exist\n");
+			goto cleanup;
+		}
+		obj->rodata->filter_dev = true;
+		obj->rodata->targ_dev = partition->dev;
+	}
+	obj->rodata->targ_queued = env.queued;
+	obj->rodata->filter_cg = env.cg;
+
+	if (fentry_can_attach("blk_account_io_start", NULL))
+		bpf_program__set_attach_target(obj->progs.blk_account_io_start, 0,
+					       "blk_account_io_start");
+	else
+		bpf_program__set_attach_target(obj->progs.blk_account_io_start, 0,
+					       "__blk_account_io_start");
+
+	err = biosnoop_bpf__load(obj);
+	if (err) {
+		fprintf(stderr, "failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	/* update cgroup path fd to map */
+	if (env.cg) {
+		idx = 0;
+		cg_map_fd = bpf_map__fd(obj->maps.cgroup_map);
+		cgfd = open(env.cgroupspath, O_RDONLY);
+		if (cgfd < 0) {
+			fprintf(stderr, "Failed opening Cgroup path: %s\n", env.cgroupspath);
+			goto cleanup;
+		}
+		if (bpf_map_update_elem(cg_map_fd, &idx, &cgfd, BPF_ANY)) {
+			fprintf(stderr, "Failed adding target cgroup to map\n");
+			goto cleanup;
+		}
+	}
+
+	obj->links.blk_account_io_start = bpf_program__attach(obj->progs.blk_account_io_start);
+	if (!obj->links.blk_account_io_start) {
+		err = -errno;
+		fprintf(stderr, "failed to attach blk_account_io_start: %s\n",
+			strerror(-err));
+		goto cleanup;
+	}
+	ksyms = ksyms__load();
+	if (!ksyms) {
+		err = -ENOMEM;
+		fprintf(stderr, "failed to load kallsyms\n");
+		goto cleanup;
+	}
+	if (ksyms__get_symbol(ksyms, "blk_account_io_merge_bio")) {
+		obj->links.blk_account_io_merge_bio =
+			bpf_program__attach(obj->progs.blk_account_io_merge_bio);
+		if (!obj->links.blk_account_io_merge_bio) {
+			err = -errno;
+			fprintf(stderr, "failed to attach blk_account_io_merge_bio: %s\n",
+				strerror(-err));
+			goto cleanup;
+		}
+	}
+	if (env.queued) {
+		obj->links.block_rq_insert =
+			bpf_program__attach(obj->progs.block_rq_insert);
+		if (!obj->links.block_rq_insert) {
+			err = -errno;
+			fprintf(stderr, "failed to attach block_rq_insert: %s\n", strerror(-err));
+			goto cleanup;
+		}
+	}
+	obj->links.block_rq_
