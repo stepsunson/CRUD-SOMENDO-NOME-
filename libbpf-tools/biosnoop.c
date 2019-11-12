@@ -121,4 +121,101 @@ static void blk_fill_rwbs(char *rwbs, unsigned int op)
 	if (op & REQ_PREFLUSH)
 		rwbs[i++] = 'F';
 
-	switch 
+	switch (op & REQ_OP_MASK) {
+	case REQ_OP_WRITE:
+	case REQ_OP_WRITE_SAME:
+		rwbs[i++] = 'W';
+		break;
+	case REQ_OP_DISCARD:
+		rwbs[i++] = 'D';
+		break;
+	case REQ_OP_SECURE_ERASE:
+		rwbs[i++] = 'D';
+		rwbs[i++] = 'E';
+		break;
+	case REQ_OP_FLUSH:
+		rwbs[i++] = 'F';
+		break;
+	case REQ_OP_READ:
+		rwbs[i++] = 'R';
+		break;
+	default:
+		rwbs[i++] = 'N';
+	}
+
+	if (op & REQ_FUA)
+		rwbs[i++] = 'F';
+	if (op & REQ_RAHEAD)
+		rwbs[i++] = 'A';
+	if (op & REQ_SYNC)
+		rwbs[i++] = 'S';
+	if (op & REQ_META)
+		rwbs[i++] = 'M';
+
+	rwbs[i] = '\0';
+}
+
+static struct partitions *partitions;
+
+void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
+{
+	const struct partition *partition;
+	const struct event *e = data;
+	char rwbs[RWBS_LEN];
+
+	if (!start_ts)
+		start_ts = e->ts;
+	blk_fill_rwbs(rwbs, e->cmd_flags);
+	partition = partitions__get_by_dev(partitions, e->dev);
+	printf("%-11.6f %-14.14s %-7d %-7s %-4s %-10lld %-7d ",
+		(e->ts - start_ts) / 1000000000.0,
+		e->comm, e->pid, partition ? partition->name : "Unknown", rwbs,
+		e->sector, e->len);
+	if (env.queued)
+		printf("%7.3f ", e->qdelta != -1 ?
+			e->qdelta / 1000000.0 : -1);
+	printf("%7.3f\n", e->delta / 1000000.0);
+}
+
+void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	fprintf(stderr, "lost %llu events on CPU #%d\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	const struct partition *partition;
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct perf_buffer *pb = NULL;
+	struct ksyms *ksyms = NULL;
+	struct biosnoop_bpf *obj;
+	__u64 time_end = 0;
+	int err;
+	int idx, cg_map_fd;
+	int cgfd = -1;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	obj = biosnoop_bpf__open();
+	if (!obj) {
+		fprintf(stderr, "failed to open BPF object\n");
+		return 1;
+	}
+
+	partitions = partitions__load();
+	if (!partitions) {
+		fprintf(stderr, "failed to load partitions info\n");
+		goto cleanup;
+	}
+
+	/* initialize global data (filtering options) */
+	if (env.disk)
