@@ -290,4 +290,63 @@ int main(int argc, char **argv)
 			goto cleanup;
 		}
 	}
-	obj->links.block_rq_
+	obj->links.block_rq_issue = bpf_program__attach(obj->progs.block_rq_issue);
+	if (!obj->links.block_rq_issue) {
+		err = -errno;
+		fprintf(stderr, "failed to attach block_rq_issue: %s\n", strerror(-err));
+		goto cleanup;
+	}
+	obj->links.block_rq_complete = bpf_program__attach(obj->progs.block_rq_complete);
+	if (!obj->links.block_rq_complete) {
+		err = -errno;
+		fprintf(stderr, "failed to attach block_rq_complete: %s\n", strerror(-err));
+		goto cleanup;
+	}
+
+	pb = perf_buffer__new(bpf_map__fd(obj->maps.events), PERF_BUFFER_PAGES,
+			      handle_event, handle_lost_events, NULL, NULL);
+	if (!pb) {
+		err = -errno;
+		fprintf(stderr, "failed to open perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	printf("%-11s %-14s %-7s %-7s %-4s %-10s %-7s ",
+		"TIME(s)", "COMM", "PID", "DISK", "T", "SECTOR", "BYTES");
+	if (env.queued)
+		printf("%7s ", "QUE(ms)");
+	printf("%7s\n", "LAT(ms)");
+
+	/* setup duration */
+	if (env.duration)
+		time_end = get_ktime_ns() + env.duration * NSEC_PER_SEC;
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		fprintf(stderr, "can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	/* main: poll */
+	while (!exiting) {
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			fprintf(stderr, "error polling perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		/* reset err to return 0 if exiting */
+		err = 0;
+		if (env.duration && get_ktime_ns() > time_end)
+			break;
+	}
+
+cleanup:
+	perf_buffer__free(pb);
+	biosnoop_bpf__destroy(obj);
+	ksyms__free(ksyms);
+	partitions__free(partitions);
+	if (cgfd > 0)
+		close(cgfd);
+
+	return err != 0;
+}
