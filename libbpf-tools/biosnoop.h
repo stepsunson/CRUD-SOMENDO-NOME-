@@ -23,4 +23,4 @@ struct event {
 	__u32 dev;
 };
 
-#endif /* __BIOSNOO
+#endif /* __BIOSNOOP_H */
