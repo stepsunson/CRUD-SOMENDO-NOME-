@@ -81,3 +81,27 @@ int BPF_KPROBE(blk_account_io_done, struct request *req, u64 now)
 	disk = get_disk(req);
 	info.major = BPF_CORE_READ(disk, major);
 	info.minor = BPF_CORE_READ(disk, first_minor);
+	info.rwflag = !!((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE);
+
+	whop = bpf_map_lookup_elem(&whobyreq, &req);
+	if (whop) {
+		info.pid = whop->pid;
+		__builtin_memcpy(&info.name, whop->name, sizeof(info.name));
+	}
+
+	valp = bpf_map_lookup_or_try_init(&counts, &info, &zero);
+
+	if (valp) {
+		/* save stats */
+		valp->us += delta_us;
+		valp->bytes += startp->data_len;
+		valp->io++;
+	}
+
+	bpf_map_delete_elem(&start, &req);
+	bpf_map_delete_elem(&whobyreq, &req);
+
+	return 0;
+}
+
+char LICENSE[] SEC("license") = "GPL";
