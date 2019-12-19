@@ -22,4 +22,24 @@ struct {
 	__uint(max_entries, RINGBUF_SIZE);
 } events SEC(".maps");
 
-static __always_inlin
+static __always_inline void *reserve_buf(__u64 size)
+{
+	static const int zero = 0;
+
+	if (bpf_core_type_exists(struct bpf_ringbuf))
+		return bpf_ringbuf_reserve(&events, size, 0);
+
+	return bpf_map_lookup_elem(&heap, &zero);
+}
+
+static __always_inline long submit_buf(void *ctx, void *buf, __u64 size)
+{
+	if (bpf_core_type_exists(struct bpf_ringbuf)) {
+		bpf_ringbuf_submit(buf, 0);
+		return 0;
+	}
+
+	return bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, buf, size);
+}
+
+#endif /* __COMPAT_BPF_H */
