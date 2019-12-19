@@ -177,4 +177,73 @@ int main(int argc, char **argv)
 	}
 
 	if (fentry_can_attach("add_to_page_cache_lru", NULL)) {
-		bpf_program__set_autoload(obj->pro
+		bpf_program__set_autoload(obj->progs.kprobe_add_to_page_cache_lru, false);
+	} else {
+		bpf_program__set_autoload(obj->progs.fentry_add_to_page_cache_lru, false);
+	}
+
+	if (fentry_can_attach("mark_page_accessed", NULL)) {
+		bpf_program__set_autoload(obj->progs.kprobe_mark_page_accessed, false);
+	} else {
+		bpf_program__set_autoload(obj->progs.fentry_mark_page_accessed, false);
+	}
+
+	if (fentry_can_attach("mark_buffer_dirty", NULL)) {
+		bpf_program__set_autoload(obj->progs.kprobe_mark_buffer_dirty, false);
+	} else {
+		bpf_program__set_autoload(obj->progs.fentry_mark_buffer_dirty, false);
+	}
+
+	err = cachestat_bpf__load(obj);
+	if (err) {
+		fprintf(stderr, "failed to load BPF object\n");
+		goto cleanup;
+	}
+
+	if (!obj->bss) {
+		fprintf(stderr, "Memory-mapping BPF maps is supported starting from Linux 5.7, please upgrade.\n");
+		goto cleanup;
+	}
+
+	err = cachestat_bpf__attach(obj);
+	if (err) {
+		fprintf(stderr, "failed to attach BPF programs\n");
+		goto cleanup;
+	}
+
+	signal(SIGINT, sig_handler);
+
+	if (env.timestamp)
+		printf("%-8s ", "TIME");
+	printf("%8s %8s %8s %8s %12s %10s\n", "HITS", "MISSES", "DIRTIES",
+		"HITRATIO", "BUFFERS_MB", "CACHED_MB");
+
+	while (1) {
+		sleep(env.interval);
+
+		/* total = total cache accesses without counting dirties */
+		total = __atomic_exchange_n(&obj->bss->total, 0, __ATOMIC_RELAXED);
+		/* misses = total of add to lru because of read misses */
+		misses = __atomic_exchange_n(&obj->bss->misses, 0, __ATOMIC_RELAXED);
+		/* mbd = total of mark_buffer_dirty events */
+		mbd = __atomic_exchange_n(&obj->bss->mbd, 0, __ATOMIC_RELAXED);
+
+		if (total < 0)
+			total = 0;
+		if (misses < 0)
+			misses = 0;
+		hits = total - misses;
+		/*
+		 * If hits are < 0, then its possible misses are overestimated
+		 * due to possibly page cache read ahead adding more pages than
+		 * needed. In this case just assume misses as total and reset
+		 * hits.
+		 */
+		if (hits < 0) {
+			misses = total;
+			hits = 0;
+		}
+		ratio = total > 0 ? hits * 1.0 / total : 0.0;
+		err = get_meminfo(&buffers, &cached);
+		if (err) {
+			fprintf(stderr, "failed to get meminfo: %
