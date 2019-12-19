@@ -246,4 +246,24 @@ int main(int argc, char **argv)
 		ratio = total > 0 ? hits * 1.0 / total : 0.0;
 		err = get_meminfo(&buffers, &cached);
 		if (err) {
-			fprintf(stderr, "failed to get meminfo: %
+			fprintf(stderr, "failed to get meminfo: %d\n", err);
+			goto cleanup;
+		}
+		if (env.timestamp) {
+			time(&t);
+			tm = localtime(&t);
+			strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+			printf("%-8s ", ts);
+		}
+		printf("%8lld %8lld %8llu %7.2f%% %12llu %10llu\n",
+			hits, misses, mbd, 100 * ratio,
+			buffers / 1024, cached / 1024);
+
+		if (exiting || --env.times == 0)
+			break;
+	}
+
+cleanup:
+	cachestat_bpf__destroy(obj);
+	return err != 0;
+}
