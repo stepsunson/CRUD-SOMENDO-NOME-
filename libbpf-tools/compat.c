@@ -70,4 +70,46 @@ int bpf_buffer__open(struct bpf_buffer *buffer, bpf_buffer_sample_fn sample_cb,
 	case BPF_MAP_TYPE_PERF_EVENT_ARRAY:
 		buffer->fn = sample_cb;
 		buffer->ctx = ctx;
-		inner = perf_buffer__new(fd, PERF_BUFFER_PA
+		inner = perf_buffer__new(fd, PERF_BUFFER_PAGES, perfbuf_sample_fn, lost_cb, buffer, NULL);
+		break;
+	case BPF_MAP_TYPE_RINGBUF:
+		inner = ring_buffer__new(fd, sample_cb, ctx, NULL);
+		break;
+	default:
+		return 0;
+	}
+
+	if (!inner)
+		return -errno;
+
+	buffer->inner = inner;
+	return 0;
+}
+
+int bpf_buffer__poll(struct bpf_buffer *buffer, int timeout_ms)
+{
+	switch (buffer->type) {
+	case BPF_MAP_TYPE_PERF_EVENT_ARRAY:
+		return perf_buffer__poll(buffer->inner, timeout_ms);
+	case BPF_MAP_TYPE_RINGBUF:
+		return ring_buffer__poll(buffer->inner, timeout_ms);
+	default:
+		return -EINVAL;
+	}
+}
+
+void bpf_buffer__free(struct bpf_buffer *buffer)
+{
+	if (!buffer)
+		return;
+
+	switch (buffer->type) {
+	case BPF_MAP_TYPE_PERF_EVENT_ARRAY:
+		perf_buffer__free(buffer->inner);
+		break;
+	case BPF_MAP_TYPE_RINGBUF:
+		ring_buffer__free(buffer->inner);
+		break;
+	}
+	free(buffer);
+}
