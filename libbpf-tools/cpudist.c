@@ -189,4 +189,90 @@ static int print_log2_hists(int fd)
 	return 0;
 }
 
-int main(int argc, 
+int main(int argc, char **argv)
+{
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct cpudist_bpf *obj;
+	int pid_max, fd, err;
+	struct tm *tm;
+	char ts[32];
+	time_t t;
+	int idx, cg_map_fd;
+	int cgfd = -1;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	obj = cpudist_bpf__open();
+	if (!obj) {
+		fprintf(stderr, "failed to open BPF object\n");
+		return 1;
+	}
+
+	if (probe_tp_btf("sched_switch"))
+		bpf_program__set_autoload(obj->progs.sched_switch_tp, false);
+	else
+		bpf_program__set_autoload(obj->progs.sched_switch_btf, false);
+
+	/* initialize global data (filtering options) */
+	obj->rodata->filter_cg = env.cg;
+	obj->rodata->targ_per_process = env.per_process;
+	obj->rodata->targ_per_thread = env.per_thread;
+	obj->rodata->targ_ms = env.milliseconds;
+	obj->rodata->targ_offcpu = env.offcpu;
+	obj->rodata->targ_tgid = env.pid;
+
+	pid_max = get_pid_max();
+	if (pid_max < 0) {
+		fprintf(stderr, "failed to get pid_max\n");
+		return 1;
+	}
+
+	bpf_map__set_max_entries(obj->maps.start, pid_max);
+	if (!env.per_process && !env.per_thread)
+		bpf_map__set_max_entries(obj->maps.hists, 1);
+	else
+		bpf_map__set_max_entries(obj->maps.hists, pid_max);
+
+	err = cpudist_bpf__load(obj);
+	if (err) {
+		fprintf(stderr, "failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	/* update cgroup path fd to map */
+	if (env.cg) {
+		idx = 0;
+		cg_map_fd = bpf_map__fd(obj->maps.cgroup_map);
+		cgfd = open(env.cgroupspath, O_RDONLY);
+		if (cgfd < 0) {
+			fprintf(stderr, "Failed opening Cgroup path: %s", env.cgroupspath);
+			goto cleanup;
+		}
+		if (bpf_map_update_elem(cg_map_fd, &idx, &cgfd, BPF_ANY)) {
+			fprintf(stderr, "Failed adding target cgroup to map");
+			goto cleanup;
+		}
+	}
+
+	err = cpudist_bpf__attach(obj);
+	if (err) {
+		fprintf(stderr, "failed to attach BPF programs\n");
+		goto cleanup;
+	}
+
+	fd = bpf_map__fd(obj->maps.hists);
+
+	signal(SIGINT, sig_handler);
+
+	printf("Tracing %s-CPU time... Hit Ctrl-C to end.\n", env.offcpu ? "off" : "on");
+
+	/* main: poll *
