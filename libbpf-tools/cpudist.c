@@ -84,3 +84,109 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 		env.cg = true;
 		break;
 	case 'p':
+		errno = 0;
+		env.pid = strtol(arg, NULL, 10);
+		if (errno) {
+			fprintf(stderr, "invalid PID: %s\n", arg);
+			argp_usage(state);
+		}
+		break;
+	case 'O':
+		env.offcpu = true;
+		break;
+	case 'P':
+		env.per_process = true;
+		break;
+	case 'L':
+		env.per_thread = true;
+		break;
+	case 'T':
+		env.timestamp = true;
+		break;
+	case ARGP_KEY_ARG:
+		errno = 0;
+		if (pos_args == 0) {
+			env.interval = strtol(arg, NULL, 10);
+			if (errno) {
+				fprintf(stderr, "invalid internal\n");
+				argp_usage(state);
+			}
+		} else if (pos_args == 1) {
+			env.times = strtol(arg, NULL, 10);
+			if (errno) {
+				fprintf(stderr, "invalid times\n");
+				argp_usage(state);
+			}
+		} else {
+			fprintf(stderr,
+				"unrecognized positional argument: %s\n", arg);
+			argp_usage(state);
+		}
+		pos_args++;
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !env.verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static int get_pid_max(void)
+{
+	int pid_max;
+	FILE *f;
+
+	f = fopen("/proc/sys/kernel/pid_max", "r");
+	if (!f)
+		return -1;
+	if (fscanf(f, "%d\n", &pid_max) != 1)
+		pid_max = -1;
+	fclose(f);
+	return pid_max;
+}
+
+static void sig_handler(int sig)
+{
+	exiting = true;
+}
+
+static int print_log2_hists(int fd)
+{
+	char *units = env.milliseconds ? "msecs" : "usecs";
+	__u32 lookup_key = -2, next_key;
+	struct hist hist;
+	int err;
+
+	while (!bpf_map_get_next_key(fd, &lookup_key, &next_key)) {
+		err = bpf_map_lookup_elem(fd, &next_key, &hist);
+		if (err < 0) {
+			fprintf(stderr, "failed to lookup hist: %d\n", err);
+			return -1;
+		}
+		if (env.per_process)
+			printf("\npid = %d %s\n", next_key, hist.comm);
+		if (env.per_thread)
+			printf("\ntid = %d %s\n", next_key, hist.comm);
+		print_log2_hist(hist.slots, MAX_SLOTS, units);
+		lookup_key = next_key;
+	}
+
+	lookup_key = -2;
+	while (!bpf_map_get_next_key(fd, &lookup_key, &next_key)) {
+		err = bpf_map_delete_elem(fd, &next_key);
+		if (err < 0) {
+			fprintf(stderr, "failed to cleanup hist : %d\n", err);
+			return -1;
+		}
+		lookup_key = next_key;
+	}
+	return 0;
+}
+
+int main(int argc, 
