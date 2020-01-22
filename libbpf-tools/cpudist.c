@@ -275,4 +275,30 @@ int main(int argc, char **argv)
 
 	printf("Tracing %s-CPU time... Hit Ctrl-C to end.\n", env.offcpu ? "off" : "on");
 
-	/* main: poll *
+	/* main: poll */
+	while (1) {
+		sleep(env.interval);
+		printf("\n");
+
+		if (env.timestamp) {
+			time(&t);
+			tm = localtime(&t);
+			strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+			printf("%-8s\n", ts);
+		}
+
+		err = print_log2_hists(fd);
+		if (err)
+			break;
+
+		if (exiting || --env.times == 0)
+			break;
+	}
+
+cleanup:
+	cpudist_bpf__destroy(obj);
+	if (cgfd > 0)
+		close(cgfd);
+
+	return err != 0;
+}
