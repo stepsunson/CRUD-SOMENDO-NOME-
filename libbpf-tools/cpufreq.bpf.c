@@ -61,4 +61,25 @@ int do_sample(struct bpf_perf_event_data *ctx)
 	if (cpu >= MAX_CPU_NR)
 		return 0;
 	clamp_umax(cpu, MAX_CPU_NR - 1);
-	freq_mhz = 
+	freq_mhz = freqs_mhz[cpu];
+	if (!freq_mhz)
+		return 0;
+	/*
+	 * The range of the linear histogram is 0 ~ 5000mhz,
+	 * and the step size is 200.
+	 */
+	slot = freq_mhz / HIST_STEP_SIZE;
+	if (slot >= MAX_SLOTS)
+		slot = MAX_SLOTS - 1;
+	__sync_fetch_and_add(&syswide.slots[slot], 1);
+	if (!pid)
+		return 0;
+	bpf_get_current_comm(&hkey.comm, sizeof(hkey.comm));
+	hist = bpf_map_lookup_or_try_init(&hists, &hkey, &zero);
+	if (!hist)
+		return 0;
+	__sync_fetch_and_add(&hist->slots[slot], 1);
+	return 0;
+}
+
+char LICENSE[] SEC("license") = "GPL";
