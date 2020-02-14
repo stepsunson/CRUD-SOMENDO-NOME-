@@ -148,3 +148,97 @@ static int init_freqs_mhz(__u32 *freqs_mhz, int nr_cpus)
 			fprintf(stderr, "failed to open '%s': %s\n", path,
 				strerror(errno));
 			return -1;
+		}
+		if (fscanf(f, "%u\n", &freqs_mhz[i]) != 1) {
+			fprintf(stderr, "failed to parse '%s': %s\n", path,
+				strerror(errno));
+			fclose(f);
+			return -1;
+		}
+		/*
+		 * scaling_cur_freq is in kHz. To be handled with
+		 * a small data size, it's converted in mHz.
+		 */
+		freqs_mhz[i] /= 1000;
+		fclose(f);
+	}
+
+	return 0;
+}
+
+static void print_linear_hists(struct bpf_map *hists,
+			struct cpufreq_bpf__bss *bss)
+{
+	struct hkey lookup_key = {}, next_key;
+	int err, fd = bpf_map__fd(hists);
+	struct hist hist;
+
+	while (!bpf_map_get_next_key(fd, &lookup_key, &next_key)) {
+		err = bpf_map_lookup_elem(fd, &next_key, &hist);
+		if (err < 0) {
+			fprintf(stderr, "failed to lookup hist: %d\n", err);
+			return;
+		}
+		print_linear_hist(hist.slots, MAX_SLOTS, 0, HIST_STEP_SIZE,
+				next_key.comm);
+		printf("\n");
+		lookup_key = next_key;
+	}
+
+	printf("\n");
+	print_linear_hist(bss->syswide.slots, MAX_SLOTS, 0, HIST_STEP_SIZE,
+			  "syswide");
+}
+
+int main(int argc, char **argv)
+{
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct bpf_link *links[MAX_CPU_NR] = {};
+	struct cpufreq_bpf *obj;
+	int err, i;
+	int idx, cg_map_fd;
+	int cgfd = -1;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	nr_cpus = libbpf_num_possible_cpus();
+	if (nr_cpus < 0) {
+		fprintf(stderr, "failed to get # of possible cpus: '%s'!\n",
+			strerror(-nr_cpus));
+		return 1;
+	}
+	if (nr_cpus > MAX_CPU_NR) {
+		fprintf(stderr, "the number of cpu cores is too big, please "
+			"increase MAX_CPU_NR's value and recompile");
+		return 1;
+	}
+
+	obj = cpufreq_bpf__open_and_load();
+	if (!obj) {
+		fprintf(stderr, "failed to open and/or load BPF object\n");
+		return 1;
+	}
+
+	if (!obj->bss) {
+		fprintf(stderr, "Memory-mapping BPF maps is supported starting from Linux 5.7, please upgrade.\n");
+		goto cleanup;
+	}
+
+	err = init_freqs_mhz(obj->bss->freqs_mhz, nr_cpus);
+	if (err) {
+		fprintf(stderr, "failed to init freqs\n");
+		goto cleanup;
+	}
+
+	obj->bss->filter_cg = env.cg;
+
+	/* upda
