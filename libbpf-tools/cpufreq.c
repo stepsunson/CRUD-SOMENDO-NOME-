@@ -241,4 +241,50 @@ int main(int argc, char **argv)
 
 	obj->bss->filter_cg = env.cg;
 
-	/* upda
+	/* update cgroup path fd to map */
+	if (env.cg) {
+		idx = 0;
+		cg_map_fd = bpf_map__fd(obj->maps.cgroup_map);
+		cgfd = open(env.cgroupspath, O_RDONLY);
+		if (cgfd < 0) {
+			fprintf(stderr, "Failed opening Cgroup path: %s", env.cgroupspath);
+			goto cleanup;
+		}
+		if (bpf_map_update_elem(cg_map_fd, &idx, &cgfd, BPF_ANY)) {
+			fprintf(stderr, "Failed adding target cgroup to map");
+			goto cleanup;
+		}
+	}
+
+	err = open_and_attach_perf_event(env.freq, obj->progs.do_sample, links);
+	if (err)
+		goto cleanup;
+
+	err = cpufreq_bpf__attach(obj);
+	if (err) {
+		fprintf(stderr, "failed to attach BPF programs\n");
+		goto cleanup;
+	}
+
+	printf("Sampling CPU freq system-wide & by process. Ctrl-C to end.\n");
+
+	signal(SIGINT, sig_handler);
+
+	/*
+	 * We'll get sleep interrupted when someone presses Ctrl-C (which will
+	 * be "handled" with noop by sig_handler).
+	 */
+	sleep(env.duration);
+	printf("\n");
+
+	print_linear_hists(obj->maps.hists, obj->bss);
+
+cleanup:
+	for (i = 0; i < nr_cpus; i++)
+		bpf_link__destroy(links[i]);
+	cpufreq_bpf__destroy(obj);
+	if (cgfd > 0)
+		close(cgfd);
+
+	return err != 0;
+}
