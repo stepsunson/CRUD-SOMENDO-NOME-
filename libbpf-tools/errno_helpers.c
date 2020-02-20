@@ -77,4 +77,88 @@ static int errno_by_name_x86_64(const char *errno_name)
 	strcase("ENODATA", 61);
 	strcase("ETIME", 62);
 	strcase("ENOSR", 63);
-	st
+	strcase("ENONET", 64);
+	strcase("ENOPKG", 65);
+	strcase("EREMOTE", 66);
+	strcase("ENOLINK", 67);
+	strcase("EADV", 68);
+	strcase("ESRMNT", 69);
+	strcase("ECOMM", 70);
+	strcase("EPROTO", 71);
+	strcase("EMULTIHOP", 72);
+	strcase("EDOTDOT", 73);
+	strcase("EBADMSG", 74);
+	strcase("EOVERFLOW", 75);
+	strcase("ENOTUNIQ", 76);
+	strcase("EBADFD", 77);
+	strcase("EREMCHG", 78);
+	strcase("ELIBACC", 79);
+	strcase("ELIBBAD", 80);
+	strcase("ELIBSCN", 81);
+	strcase("ELIBMAX", 82);
+	strcase("ELIBEXEC", 83);
+	strcase("EILSEQ", 84);
+	strcase("ERESTART", 85);
+	strcase("ESTRPIPE", 86);
+	strcase("EUSERS", 87);
+	strcase("ENOTSOCK", 88);
+	strcase("EDESTADDRREQ", 89);
+	strcase("EMSGSIZE", 90);
+	strcase("EPROTOTYPE", 91);
+	strcase("ENOPROTOOPT", 92);
+	strcase("EPROTONOSUPPORT", 93);
+	strcase("ESOCKTNOSUPPORT", 94);
+	strcase("ENOTSUP", 95);
+	strcase("EOPNOTSUPP", 95);
+	strcase("EPFNOSUPPORT", 96);
+	strcase("EAFNOSUPPORT", 97);
+	strcase("EADDRINUSE", 98);
+	strcase("EADDRNOTAVAIL", 99);
+	strcase("ENETDOWN", 100);
+	strcase("ENETUNREACH", 101);
+	strcase("ENETRESET", 102);
+	strcase("ECONNABORTED", 103);
+	strcase("ECONNRESET", 104);
+	strcase("ENOBUFS", 105);
+	strcase("EISCONN", 106);
+	strcase("ENOTCONN", 107);
+	strcase("ESHUTDOWN", 108);
+	strcase("ETOOMANYREFS", 109);
+	strcase("ETIMEDOUT", 110);
+	strcase("ECONNREFUSED", 111);
+	strcase("EHOSTDOWN", 112);
+	strcase("EHOSTUNREACH", 113);
+	strcase("EALREADY", 114);
+	strcase("EINPROGRESS", 115);
+	strcase("ESTALE", 116);
+	strcase("EUCLEAN", 117);
+	strcase("ENOTNAM", 118);
+	strcase("ENAVAIL", 119);
+	strcase("EISNAM", 120);
+	strcase("EREMOTEIO", 121);
+	strcase("EDQUOT", 122);
+	strcase("ENOMEDIUM", 123);
+	strcase("EMEDIUMTYPE", 124);
+	strcase("ECANCELED", 125);
+	strcase("ENOKEY", 126);
+	strcase("EKEYEXPIRED", 127);
+	strcase("EKEYREVOKED", 128);
+	strcase("EKEYREJECTED", 129);
+	strcase("EOWNERDEAD", 130);
+	strcase("ENOTRECOVERABLE", 131);
+	strcase("ERFKILL", 132);
+	strcase("EHWPOISON", 133);
+
+#undef strcase
+
+	return -1;
+
+}
+#endif
+
+/* Try to find the errno number using the errno(1) program */
+static int errno_by_name_dynamic(const char *errno_name)
+{
+	int i, len = strlen(errno_name);
+	int err, number = -1;
+	char buf[128];
