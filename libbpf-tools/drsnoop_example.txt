@@ -63,4 +63,9 @@ EXAMPLES:
   -e, --extended             Extended fields output
   -p, --pid=PID              Process PID to trace
   -t, --tid=TID              Thread TID to trace
-  -v, --verbose              Verbose 
+  -v, --verbose              Verbose debug output
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -V, --version              Print program version
+
+Report bugs to <bpf@vger.kernel.org>.
