@@ -109,4 +109,37 @@ int tracepoint__syscalls__sys_enter_execve(struct trace_event_raw_sys_enter* ctx
 }
 
 SEC("tracepoint/syscalls/sys_exit_execve")
-int tracepoint__syscalls__sys_exit_execve(struct t
+int tracepoint__syscalls__sys_exit_execve(struct trace_event_raw_sys_exit* ctx)
+{
+	u64 id;
+	pid_t pid;
+	int ret;
+	struct event *event;
+
+	if (filter_cg && !bpf_current_task_under_cgroup(&cgroup_map, 0))
+		return 0;
+
+	u32 uid = (u32)bpf_get_current_uid_gid();
+
+	if (valid_uid(targ_uid) && targ_uid != uid)
+		return 0;
+	id = bpf_get_current_pid_tgid();
+	pid = (pid_t)id;
+	event = bpf_map_lookup_elem(&execs, &pid);
+	if (!event)
+		return 0;
+	ret = ctx->ret;
+	if (ignore_failed && ret < 0)
+		goto cleanup;
+
+	event->retval = ret;
+	bpf_get_current_comm(&event->comm, sizeof(event->comm));
+	size_t len = EVENT_SIZE(event);
+	if (len <= sizeof(*event))
+		bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, event, len);
+cleanup:
+	bpf_map_delete_elem(&execs, &pid);
+	return 0;
+}
+
+char LICENSE[] SEC("license") = "GPL";
