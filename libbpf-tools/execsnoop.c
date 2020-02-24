@@ -126,4 +126,116 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 		env.verbose = true;
 		break;
 	case MAX_ARGS_KEY:
-		e
+		errno = 0;
+		max_args = strtol(arg, NULL, 10);
+		if (errno || max_args < 1 || max_args > TOTAL_MAX_ARGS) {
+			fprintf(stderr, "Invalid MAX_ARGS %s, should be in [1, %d] range\n",
+					arg, TOTAL_MAX_ARGS);
+
+			argp_usage(state);
+		}
+		env.max_args = max_args;
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !env.verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static void time_since_start()
+{
+	long nsec, sec;
+	static struct timespec cur_time;
+	double time_diff;
+
+	clock_gettime(CLOCK_MONOTONIC, &cur_time);
+	nsec = cur_time.tv_nsec - start_time.tv_nsec;
+	sec = cur_time.tv_sec - start_time.tv_sec;
+	if (nsec < 0) {
+		nsec += NSEC_PER_SEC;
+		sec--;
+	}
+	time_diff = sec + (double)nsec / NSEC_PER_SEC;
+	printf("%-8.3f", time_diff);
+}
+
+static void inline quoted_symbol(char c) {
+	switch(c) {
+		case '"':
+			putchar('\\');
+			putchar('"');
+			break;
+		case '\t':
+			putchar('\\');
+			putchar('t');
+			break;
+		case '\n':
+			putchar('\\');
+			putchar('n');
+			break;
+		default:
+			putchar(c);
+			break;
+	}
+}
+
+static void print_args(const struct event *e, bool quote)
+{
+	int i, args_counter = 0;
+
+	if (env.quote)
+		putchar('"');
+
+	for (i = 0; i < e->args_size && args_counter < e->args_count; i++) {
+		char c = e->args[i];
+
+		if (env.quote) {
+			if (c == '\0') {
+				args_counter++;
+				putchar('"');
+				putchar(' ');
+				if (args_counter < e->args_count) {
+					putchar('"');
+				}
+			} else {
+				quoted_symbol(c);
+			}
+		} else {
+			if (c == '\0') {
+				args_counter++;
+				putchar(' ');
+			} else {
+				putchar(c);
+			}
+		}
+	}
+	if (e->args_count == env.max_args + 1) {
+		fputs(" ...", stdout);
+	}
+}
+
+static void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
+{
+	const struct event *e = data;
+	time_t t;
+	struct tm *tm;
+	char ts[32];
+
+	/* TODO: use pcre lib */
+	if (env.name && strstr(e->comm, env.name) == NULL)
+		return;
+
+	/* TODO: use pcre lib */
+	if 
