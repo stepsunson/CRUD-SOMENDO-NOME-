@@ -238,4 +238,94 @@ static void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
 		return;
 
 	/* TODO: use pcre lib */
-	if 
+	if (env.line && strstr(e->comm, env.line) == NULL)
+		return;
+
+	time(&t);
+	tm = localtime(&t);
+	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+
+	if (env.time) {
+		printf("%-8s ", ts);
+	}
+	if (env.timestamp) {
+		time_since_start();
+	}
+
+	if (env.print_uid)
+		printf("%-6d", e->uid);
+
+	printf("%-16s %-6d %-6d %3d ", e->comm, e->pid, e->ppid, e->retval);
+	print_args(e, env.quote);
+	putchar('\n');
+}
+
+static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	fprintf(stderr, "Lost %llu events on CPU #%d!\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct perf_buffer *pb = NULL;
+	struct execsnoop_bpf *obj;
+	int err;
+	int idx, cg_map_fd;
+	int cgfd = -1;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = execsnoop_bpf__open_opts(&open_opts);
+	if (!obj) {
+		fprintf(stderr, "failed to open BPF object\n");
+		return 1;
+	}
+
+	/* initialize global data (filtering options) */
+	obj->rodata->ignore_failed = !env.fails;
+	obj->rodata->targ_uid = env.uid;
+	obj->rodata->max_args = env.max_args;
+	obj->rodata->filter_cg = env.cg;
+
+	err = execsnoop_bpf__load(obj);
+	if (err) {
+		fprintf(stderr, "failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	/* update cgroup path fd to map */
+	if (env.cg) {
+		idx = 0;
+		cg_map_fd = bpf_map__fd(obj->maps.cgroup_map);
+		cgfd = open(env.cgroupspath, O_RDONLY);
+		if (cgfd < 0) {
+			fprintf(stderr, "Failed opening Cgroup path: %s", env.cgroupspath);
+			goto cleanup;
+		}
+		if (bpf_map_update_elem(cg_map_fd, &idx, &cgfd, BPF_ANY)) {
+			fprintf(stderr, "Failed adding target cgroup to map");
+			goto cleanup;
+		}
+	}
+
+	clock_gettime(CLOCK_MONOTONIC, &start_time);
+	err = execsnoop_bpf__attach(obj);
+	if (err) {
+		fprint
