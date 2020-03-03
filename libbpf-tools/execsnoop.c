@@ -328,4 +328,54 @@ int main(int argc, char **argv)
 	clock_gettime(CLOCK_MONOTONIC, &start_time);
 	err = execsnoop_bpf__attach(obj);
 	if (err) {
-		fprint
+		fprintf(stderr, "failed to attach BPF programs\n");
+		goto cleanup;
+	}
+	/* print headers */
+	if (env.time) {
+		printf("%-9s", "TIME");
+	}
+	if (env.timestamp) {
+		printf("%-8s ", "TIME(s)");
+	}
+	if (env.print_uid) {
+		printf("%-6s ", "UID");
+	}
+
+	printf("%-16s %-6s %-6s %3s %s\n", "PCOMM", "PID", "PPID", "RET", "ARGS");
+
+	/* setup event callbacks */
+	pb = perf_buffer__new(bpf_map__fd(obj->maps.events), PERF_BUFFER_PAGES,
+			      handle_event, handle_lost_events, NULL, NULL);
+	if (!pb) {
+		err = -errno;
+		fprintf(stderr, "failed to open perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		fprintf(stderr, "can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	/* main: poll */
+	while (!exiting) {
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			fprintf(stderr, "error polling perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		/* reset err to return 0 if exiting */
+		err = 0;
+	}
+
+cleanup:
+	perf_buffer__free(pb);
+	execsnoop_bpf__destroy(obj);
+	cleanup_core_btf(&open_opts);
+	if (cgfd > 0)
+		close(cgfd);
+
+	return err != 0;
+}
