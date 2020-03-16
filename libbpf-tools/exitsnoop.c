@@ -238,3 +238,28 @@ int main(int argc, char **argv)
 		err = 1;
 		goto cleanup;
 	}
+
+	if (emit_timestamp)
+		printf("%-8s ", "TIME(s)");
+	printf("%-16s %-7s %-7s %-7s %-7s %-s\n",
+	       "PCOMM", "PID", "PPID", "TID", "AGE(s)", "EXIT_CODE");
+
+	while (!exiting) {
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			warn("error polling perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		/* reset err to return 0 if exiting */
+		err = 0;
+	}
+
+cleanup:
+	perf_buffer__free(pb);
+	exitsnoop_bpf__destroy(obj);
+	cleanup_core_btf(&open_opts);
+	if (cgfd > 0)
+		close(cgfd);
+
+	return err != 0;
+}
