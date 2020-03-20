@@ -58,4 +58,35 @@ static int probe_entry(struct pt_regs *ctx, struct file *file, size_t count, enu
 		valuep->pid = pid;
 		valuep->tid = tid;
 		bpf_get_current_comm(&valuep->comm, sizeof(valuep->comm));
-		get_file_path(file, valuep->filename, sizeof(valuep->fil
+		get_file_path(file, valuep->filename, sizeof(valuep->filename));
+		if (S_ISREG(mode)) {
+			valuep->type = 'R';
+		} else if (S_ISSOCK(mode)) {
+			valuep->type = 'S';
+		} else {
+			valuep->type = 'O';
+		}
+	}
+	if (op == READ) {
+		valuep->reads++;
+		valuep->read_bytes += count;
+	} else {	/* op == WRITE */
+		valuep->writes++;
+		valuep->write_bytes += count;
+	}
+	return 0;
+};
+
+SEC("kprobe/vfs_read")
+int BPF_KPROBE(vfs_read_entry, struct file *file, char *buf, size_t count, loff_t *pos)
+{
+	return probe_entry(ctx, file, count, READ);
+}
+
+SEC("kprobe/vfs_write")
+int BPF_KPROBE(vfs_write_entry, struct file *file, const char *buf, size_t count, loff_t *pos)
+{
+	return probe_entry(ctx, file, count, WRITE);
+}
+
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
