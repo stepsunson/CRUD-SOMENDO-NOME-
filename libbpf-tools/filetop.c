@@ -138,4 +138,91 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 				argp_usage(state);
 			}
 		} else {
-	
+			warn("unrecognized positional argument: %s\n", arg);
+			argp_usage(state);
+		}
+		pos_args++;
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static int sort_column(const void *obj1, const void *obj2)
+{
+	struct file_stat *s1 = (struct file_stat *)obj1;
+	struct file_stat *s2 = (struct file_stat *)obj2;
+
+	if (sort_by == READS) {
+		return s2->reads - s1->reads;
+	} else if (sort_by == WRITES) {
+		return s2->writes - s1->writes;
+	} else if (sort_by == RBYTES) {
+		return s2->read_bytes - s1->read_bytes;
+	} else if (sort_by == WBYTES) {
+		return s2->write_bytes - s1->write_bytes;
+	} else {
+		return (s2->reads + s2->writes + s2->read_bytes + s2->write_bytes)
+		     - (s1->reads + s1->writes + s1->read_bytes + s1->write_bytes);
+	}
+}
+
+static int print_stat(struct filetop_bpf *obj)
+{
+	FILE *f;
+	time_t t;
+	struct tm *tm;
+	char ts[16], buf[256];
+	struct file_id key, *prev_key = NULL;
+	static struct file_stat values[OUTPUT_ROWS_LIMIT];
+	int n, i, err = 0, rows = 0;
+	int fd = bpf_map__fd(obj->maps.entries);
+
+	f = fopen("/proc/loadavg", "r");
+	if (f) {
+		time(&t);
+		tm = localtime(&t);
+		strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+		memset(buf, 0, sizeof(buf));
+		n = fread(buf, 1, sizeof(buf), f);
+		if (n)
+			printf("%8s loadavg: %s\n", ts, buf);
+		fclose(f);
+	}
+
+	printf("%-7s %-16s %-6s %-6s %-7s %-7s %1s %s\n",
+	       "TID", "COMM", "READS", "WRITES", "R_Kb", "W_Kb", "T", "FILE");
+
+	while (1) {
+		err = bpf_map_get_next_key(fd, prev_key, &key);
+		if (err) {
+			if (errno == ENOENT) {
+				err = 0;
+				break;
+			}
+			warn("bpf_map_get_next_key failed: %s\n", strerror(errno));
+			return err;
+		}
+		err = bpf_map_lookup_elem(fd, &key, &values[rows++]);
+		if (err) {
+			warn("bpf_map_lookup_elem failed: %s\n", strerror(errno));
+			return err;
+		}
+		prev_key = &key;
+	}
+
+	qsort(values, rows, sizeof(struct file_stat), sort_column);
+	rows = rows < output_rows ? 
