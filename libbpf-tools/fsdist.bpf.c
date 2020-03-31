@@ -81,4 +81,111 @@ int BPF_KRETPROBE(file_read_exit)
 }
 
 SEC("kprobe/dummy_file_write")
-int BPF_KPROBE(file_write_entry
+int BPF_KPROBE(file_write_entry)
+{
+	return probe_entry();
+}
+
+SEC("kretprobe/dummy_file_write")
+int BPF_KRETPROBE(file_write_exit)
+{
+	return probe_return(F_WRITE);
+}
+
+SEC("kprobe/dummy_file_open")
+int BPF_KPROBE(file_open_entry)
+{
+	return probe_entry();
+}
+
+SEC("kretprobe/dummy_file_open")
+int BPF_KRETPROBE(file_open_exit)
+{
+	return probe_return(F_OPEN);
+}
+
+SEC("kprobe/dummy_file_sync")
+int BPF_KPROBE(file_sync_entry)
+{
+	return probe_entry();
+}
+
+SEC("kretprobe/dummy_file_sync")
+int BPF_KRETPROBE(file_sync_exit)
+{
+	return probe_return(F_FSYNC);
+}
+
+SEC("kprobe/dummy_getattr")
+int BPF_KPROBE(getattr_entry)
+{
+	return probe_entry();
+}
+
+SEC("kretprobe/dummy_getattr")
+int BPF_KRETPROBE(getattr_exit)
+{
+	return probe_return(F_GETATTR);
+}
+
+SEC("fentry/dummy_file_read")
+int BPF_PROG(file_read_fentry)
+{
+	return probe_entry();
+}
+
+SEC("fexit/dummy_file_read")
+int BPF_PROG(file_read_fexit)
+{
+	return probe_return(F_READ);
+}
+
+SEC("fentry/dummy_file_write")
+int BPF_PROG(file_write_fentry)
+{
+	return probe_entry();
+}
+
+SEC("fexit/dummy_file_write")
+int BPF_PROG(file_write_fexit)
+{
+	return probe_return(F_WRITE);
+}
+
+SEC("fentry/dummy_file_open")
+int BPF_PROG(file_open_fentry)
+{
+	return probe_entry();
+}
+
+SEC("fexit/dummy_file_open")
+int BPF_PROG(file_open_fexit)
+{
+	return probe_return(F_OPEN);
+}
+
+SEC("fentry/dummy_file_sync")
+int BPF_PROG(file_sync_fentry)
+{
+	return probe_entry();
+}
+
+SEC("fexit/dummy_file_sync")
+int BPF_PROG(file_sync_fexit)
+{
+	return probe_return(F_FSYNC);
+}
+
+SEC("fentry/dummy_getattr")
+int BPF_PROG(getattr_fentry)
+{
+	return probe_entry();
+}
+
+SEC("fexit/dummy_getattr")
+int BPF_PROG(getattr_fexit)
+{
+	return probe_return(F_GETATTR);
+}
+
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
