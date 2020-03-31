@@ -325,4 +325,8 @@ int main(int argc, char **argv)
 	}
 
 cleanup:
-	filetop_bpf__de
+	filetop_bpf__destroy(obj);
+	cleanup_core_btf(&open_opts);
+
+	return err != 0;
+}
