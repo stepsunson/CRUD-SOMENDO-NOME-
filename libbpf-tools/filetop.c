@@ -225,4 +225,104 @@ static int print_stat(struct filetop_bpf *obj)
 	}
 
 	qsort(values, rows, sizeof(struct file_stat), sort_column);
-	rows = rows < output_rows ? 
+	rows = rows < output_rows ? rows : output_rows;
+	for (i = 0; i < rows; i++)
+		printf("%-7d %-16s %-6lld %-6lld %-7lld %-7lld %c %s\n",
+		       values[i].tid, values[i].comm, values[i].reads, values[i].writes,
+		       values[i].read_bytes / 1024, values[i].write_bytes / 1024,
+		       values[i].type, values[i].filename);
+
+	printf("\n");
+	prev_key = NULL;
+
+	while (1) {
+		err = bpf_map_get_next_key(fd, prev_key, &key);
+		if (err) {
+			if (errno == ENOENT) {
+				err = 0;
+				break;
+			}
+			warn("bpf_map_get_next_key failed: %s\n", strerror(errno));
+			return err;
+		}
+		err = bpf_map_delete_elem(fd, &key);
+		if (err) {
+			warn("bpf_map_delete_elem failed: %s\n", strerror(errno));
+			return err;
+		}
+		prev_key = &key;
+	}
+	return err;
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct filetop_bpf *obj;
+	int err;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = filetop_bpf__open_opts(&open_opts);
+	if (!obj) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	obj->rodata->target_pid = target_pid;
+	obj->rodata->regular_file_only = regular_file_only;
+
+	err = filetop_bpf__load(obj);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	err = filetop_bpf__attach(obj);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	while (1) {
+		sleep(interval);
+
+		if (clear_screen) {
+			err = system("clear");
+			if (err)
+				goto cleanup;
+		}
+
+		err = print_stat(obj);
+		if (err)
+			goto cleanup;
+
+		count--;
+		if (exiting || !count)
+			goto cleanup;
+	}
+
+cleanup:
+	filetop_bpf__de
