@@ -182,4 +182,75 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 
 static void alias_parse(char *prog)
 {
-	char *name
+	char *name = basename(prog);
+
+	if (!strcmp(name, "btrfsdist")) {
+		fs_type = BTRFS;
+	} else if (!strcmp(name, "ext4dist")) {
+		fs_type = EXT4;
+	} else if (!strcmp(name, "nfsdist")) {
+		fs_type = NFS;
+	} else if (!strcmp(name, "xfsdist")) {
+		fs_type = XFS;
+	}
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_handler(int sig)
+{
+	exiting = 1;
+}
+
+static int print_hists(struct fsdist_bpf__bss *bss)
+{
+	const char *units = timestamp_in_ms ? "msecs" : "usecs";
+	enum fs_file_op op;
+
+	for (op = F_READ; op < F_MAX_OP; op++) {
+		struct hist hist = bss->hists[op];
+
+		bss->hists[op] = zero;
+		if (!memcmp(&zero, &hist, sizeof(hist)))
+			continue;
+		printf("operation = '%s'\n", file_op_names[op]);
+		print_log2_hist(hist.slots, MAX_SLOTS, units);
+		printf("\n");
+	}
+	return 0;
+}
+
+static bool check_fentry()
+{
+	int i;
+	const char *fn_name, *module;
+	bool support_fentry = true;
+
+	for (i = 0; i < F_MAX_OP; i++) {
+		fn_name = fs_configs[fs_type].op_funcs[i];
+		module = fs_configs[fs_type].fs;
+		if (fn_name && !fentry_can_attach(fn_name, module)) {
+			support_fentry = false;
+			break;
+		}
+	}
+	return support_fentry;
+}
+
+static int fentry_set_attach_target(struct fsdist_bpf *obj)
+{
+	struct fs_config *cfg = &fs_configs[fs_type];
+	int err = 0;
+
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_read_fentry, 0, cfg->op_funcs[F_READ]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_read_fexit, 0, cfg->op_funcs[F_READ]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_write_fentry, 0, cfg->op_funcs[F_WRITE]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_write_fexit, 0, cfg->op_funcs[F_WRITE]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fentry, 0, cfg->op_funcs[F_OPEN]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fexit, 0, cfg->op_funcs[F_OPEN]);
+	err = err ?: bpf_program__set_attach_target(obj-
