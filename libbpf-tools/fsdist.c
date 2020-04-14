@@ -253,4 +253,49 @@ static int fentry_set_attach_target(struct fsdist_bpf *obj)
 	err = err ?: bpf_program__set_attach_target(obj->progs.file_write_fexit, 0, cfg->op_funcs[F_WRITE]);
 	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fentry, 0, cfg->op_funcs[F_OPEN]);
 	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fexit, 0, cfg->op_funcs[F_OPEN]);
-	err = err ?: bpf_program__set_attach_target(obj-
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_sync_fentry, 0, cfg->op_funcs[F_FSYNC]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_sync_fexit, 0, cfg->op_funcs[F_FSYNC]);
+	if (cfg->op_funcs[F_GETATTR]) {
+		err = err ?: bpf_program__set_attach_target(obj->progs.getattr_fentry, 0, cfg->op_funcs[F_GETATTR]);
+		err = err ?: bpf_program__set_attach_target(obj->progs.getattr_fexit, 0, cfg->op_funcs[F_GETATTR]);
+	} else {
+		bpf_program__set_autoload(obj->progs.getattr_fentry, false);
+		bpf_program__set_autoload(obj->progs.getattr_fexit, false);
+	}
+	return err;
+}
+
+static void disable_fentry(struct fsdist_bpf *obj)
+{
+	bpf_program__set_autoload(obj->progs.file_read_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_read_fexit, false);
+	bpf_program__set_autoload(obj->progs.file_write_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_write_fexit, false);
+	bpf_program__set_autoload(obj->progs.file_open_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_open_fexit, false);
+	bpf_program__set_autoload(obj->progs.file_sync_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_sync_fexit, false);
+	bpf_program__set_autoload(obj->progs.getattr_fentry, false);
+	bpf_program__set_autoload(obj->progs.getattr_fexit, false);
+}
+
+static void disable_kprobes(struct fsdist_bpf *obj)
+{
+	bpf_program__set_autoload(obj->progs.file_read_entry, false);
+	bpf_program__set_autoload(obj->progs.file_read_exit, false);
+	bpf_program__set_autoload(obj->progs.file_write_entry, false);
+	bpf_program__set_autoload(obj->progs.file_write_exit, false);
+	bpf_program__set_autoload(obj->progs.file_open_entry, false);
+	bpf_program__set_autoload(obj->progs.file_open_exit, false);
+	bpf_program__set_autoload(obj->progs.file_sync_entry, false);
+	bpf_program__set_autoload(obj->progs.file_sync_exit, false);
+	bpf_program__set_autoload(obj->progs.getattr_entry, false);
+	bpf_program__set_autoload(obj->progs.getattr_exit, false);
+}
+
+static int attach_kprobes(struct fsdist_bpf *obj)
+{
+	long err = 0;
+	struct fs_config *cfg = &fs_configs[fs_type];
+
+	/*
