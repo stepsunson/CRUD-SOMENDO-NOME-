@@ -352,4 +352,99 @@ int main(int argc, char **argv)
 	};
 	struct fsdist_bpf *skel;
 	struct tm *tm;
-	
+	char ts[32];
+	time_t t;
+	int err;
+	bool support_fentry;
+
+	alias_parse(argv[0]);
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+	if (fs_type == NONE) {
+		warn("filesystem must be specified using -t option.\n");
+		return 1;
+	}
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	skel = fsdist_bpf__open_opts(&open_opts);
+	if (!skel) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	skel->rodata->target_pid = target_pid;
+	skel->rodata->in_ms = timestamp_in_ms;
+
+	/*
+	 * before load
+	 * if fentry is supported, we set attach target and disable kprobes
+	 * otherwise, we disable fentry and attach kprobes after loading
+	 */
+	support_fentry = check_fentry();
+	if (support_fentry) {
+		err = fentry_set_attach_target(skel);
+		if (err) {
+			warn("failed to set attach target: %d\n", err);
+			goto cleanup;
+		}
+		disable_kprobes(skel);
+	} else {
+		disable_fentry(skel);
+	}
+
+	err = fsdist_bpf__load(skel);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	/*
+	 * after load
+	 * if fentry is supported, let libbpf do auto load
+	 * otherwise, we attach to kprobes manually
+	 */
+	err = support_fentry ? fsdist_bpf__attach(skel) : attach_kprobes(skel);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	signal(SIGINT, sig_handler);
+
+	printf("Tracing %s operation latency... Hit Ctrl-C to end.\n",
+	       fs_configs[fs_type].fs);
+
+	while (1) {
+		sleep(interval);
+		printf("\n");
+
+		if (emit_timestamp) {
+			time(&t);
+			tm = localtime(&t);
+			strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+			printf("%-8s\n", ts);
+		}
+
+		err = print_hists(skel->bss);
+		if (err)
+			break;
+
+		if (exiting || --count == 0)
+			break;
+	}
+
+cleanup:
+	fsdist_bpf__destroy(skel);
+	cleanup_core_btf(&open_opts);
+
+	return err != 0;
+}
