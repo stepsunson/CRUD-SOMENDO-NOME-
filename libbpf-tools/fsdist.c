@@ -298,4 +298,58 @@ static int attach_kprobes(struct fsdist_bpf *obj)
 	long err = 0;
 	struct fs_config *cfg = &fs_configs[fs_type];
 
-	/*
+	/* F_READ */
+	obj->links.file_read_entry = bpf_program__attach_kprobe(obj->progs.file_read_entry, false, cfg->op_funcs[F_READ]);
+	if (!obj->links.file_read_entry)
+		goto errout;
+	obj->links.file_read_exit = bpf_program__attach_kprobe(obj->progs.file_read_exit, true, cfg->op_funcs[F_READ]);
+	if (!obj->links.file_read_exit)
+		goto errout;
+	/* F_WRITE */
+	obj->links.file_write_entry = bpf_program__attach_kprobe(obj->progs.file_write_entry, false, cfg->op_funcs[F_WRITE]);
+	if (!obj->links.file_write_entry)
+		goto errout;
+	obj->links.file_write_exit = bpf_program__attach_kprobe(obj->progs.file_write_exit, true, cfg->op_funcs[F_WRITE]);
+	if (!obj->links.file_write_exit)
+		goto errout;
+	/* F_OPEN */
+	obj->links.file_open_entry = bpf_program__attach_kprobe(obj->progs.file_open_entry, false, cfg->op_funcs[F_OPEN]);
+	if (!obj->links.file_open_entry)
+		goto errout;
+	obj->links.file_open_exit = bpf_program__attach_kprobe(obj->progs.file_open_exit, true, cfg->op_funcs[F_OPEN]);
+	if (!obj->links.file_open_exit)
+		goto errout;
+	/* F_FSYNC */
+	obj->links.file_sync_entry = bpf_program__attach_kprobe(obj->progs.file_sync_entry, false, cfg->op_funcs[F_FSYNC]);
+	if (!obj->links.file_sync_entry)
+		goto errout;
+	obj->links.file_sync_exit = bpf_program__attach_kprobe(obj->progs.file_sync_exit, true, cfg->op_funcs[F_FSYNC]);
+	if (!obj->links.file_sync_exit)
+		goto errout;
+	/* F_GETATTR */
+	if (!cfg->op_funcs[F_GETATTR])
+		return 0;
+	obj->links.getattr_entry = bpf_program__attach_kprobe(obj->progs.getattr_entry, false, cfg->op_funcs[F_GETATTR]);
+	if (!obj->links.getattr_entry)
+		goto errout;
+	obj->links.getattr_exit = bpf_program__attach_kprobe(obj->progs.getattr_exit, true, cfg->op_funcs[F_GETATTR]);
+	if (!obj->links.getattr_exit)
+		goto errout;
+	return 0;
+errout:
+	err = -errno;
+	warn("failed to attach kprobe: %ld\n", err);
+	return err;
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct fsdist_bpf *skel;
+	struct tm *tm;
+	
