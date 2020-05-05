@@ -150,4 +150,76 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 		}
 		break;
 	case 'p':
-		errn
+		errno = 0;
+		target_pid = strtol(arg, NULL, 10);
+		if (errno || target_pid <= 0) {
+			warn("invalid PID: %s\n", arg);
+			argp_usage(state);
+		}
+		break;
+	case 'h':
+		argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static void alias_parse(char *prog)
+{
+	char *name = basename(prog);
+
+	if (!strcmp(name, "btrfsslower")) {
+		fs_type = BTRFS;
+	} else if (!strcmp(name, "ext4slower")) {
+		fs_type = EXT4;
+	} else if (!strcmp(name, "nfsslower")) {
+		fs_type = NFS;
+	} else if (!strcmp(name, "xfsslower")) {
+		fs_type = XFS;
+	}
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static bool check_fentry()
+{
+	int i;
+	const char *fn_name, *module;
+	bool support_fentry = true;
+
+	for (i = 0; i < F_MAX_OP; i++) {
+		fn_name = fs_configs[fs_type].op_funcs[i];
+		module = fs_configs[fs_type].fs;
+		if (fn_name && !fentry_can_attach(fn_name, module)) {
+			support_fentry = false;
+			break;
+		}
+	}
+	return support_fentry;
+}
+
+static int fentry_set_attach_target(struct fsslower_bpf *obj)
+{
+	struct fs_config *cfg = &fs_configs[fs_type];
+	int err = 0;
+
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_read_fentry, 0, cfg->op_funcs[F_READ]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_read_fexit, 0, cfg->op_funcs[F_READ]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_write_fentry, 0, cfg->op_funcs[F_WRITE]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_write_fexit, 0, cfg->op_funcs[F_WRITE]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fentry, 0, cfg->op_funcs[F_OPEN]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fexit, 0, cfg->op_funcs[F_OPEN]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_sync_fentry, 0, cfg->op_funcs[F_FSYNC]);
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_sync_fexit, 0, cfg->op
