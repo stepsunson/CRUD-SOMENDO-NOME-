@@ -444,4 +444,21 @@ int main(int argc, char **argv)
 
 	/* main: poll */
 	while (!exiting) {
-		err = perf_buffer_
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			fprintf(stderr, "error polling perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		if (duration && get_ktime_ns() > time_end)
+			goto cleanup;
+		/* reset err to return 0 if exiting */
+		err = 0;
+	}
+
+cleanup:
+	perf_buffer__free(pb);
+	fsslower_bpf__destroy(skel);
+	cleanup_core_btf(&open_opts);
+
+	return err != 0;
+}
