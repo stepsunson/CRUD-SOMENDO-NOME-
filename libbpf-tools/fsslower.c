@@ -222,4 +222,53 @@ static int fentry_set_attach_target(struct fsslower_bpf *obj)
 	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fentry, 0, cfg->op_funcs[F_OPEN]);
 	err = err ?: bpf_program__set_attach_target(obj->progs.file_open_fexit, 0, cfg->op_funcs[F_OPEN]);
 	err = err ?: bpf_program__set_attach_target(obj->progs.file_sync_fentry, 0, cfg->op_funcs[F_FSYNC]);
-	err = err ?: bpf_program__set_attach_target(obj->progs.file_sync_fexit, 0, cfg->op
+	err = err ?: bpf_program__set_attach_target(obj->progs.file_sync_fexit, 0, cfg->op_funcs[F_FSYNC]);
+	return err;
+}
+
+static void disable_fentry(struct fsslower_bpf *obj)
+{
+	bpf_program__set_autoload(obj->progs.file_read_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_read_fexit, false);
+	bpf_program__set_autoload(obj->progs.file_write_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_write_fexit, false);
+	bpf_program__set_autoload(obj->progs.file_open_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_open_fexit, false);
+	bpf_program__set_autoload(obj->progs.file_sync_fentry, false);
+	bpf_program__set_autoload(obj->progs.file_sync_fexit, false);
+}
+
+static void disable_kprobes(struct fsslower_bpf *obj)
+{
+	bpf_program__set_autoload(obj->progs.file_read_entry, false);
+	bpf_program__set_autoload(obj->progs.file_read_exit, false);
+	bpf_program__set_autoload(obj->progs.file_write_entry, false);
+	bpf_program__set_autoload(obj->progs.file_write_exit, false);
+	bpf_program__set_autoload(obj->progs.file_open_entry, false);
+	bpf_program__set_autoload(obj->progs.file_open_exit, false);
+	bpf_program__set_autoload(obj->progs.file_sync_entry, false);
+	bpf_program__set_autoload(obj->progs.file_sync_exit, false);
+}
+
+static int attach_kprobes(struct fsslower_bpf *obj)
+{
+	long err = 0;
+	struct fs_config *cfg = &fs_configs[fs_type];
+
+	/* F_READ */
+	obj->links.file_read_entry = bpf_program__attach_kprobe(obj->progs.file_read_entry, false, cfg->op_funcs[F_READ]);
+	if (!obj->links.file_read_entry)
+		goto errout;
+	obj->links.file_read_exit = bpf_program__attach_kprobe(obj->progs.file_read_exit, true, cfg->op_funcs[F_READ]);
+	if (!obj->links.file_read_exit)
+		goto errout;
+	/* F_WRITE */
+	obj->links.file_write_entry = bpf_program__attach_kprobe(obj->progs.file_write_entry, false, cfg->op_funcs[F_WRITE]);
+	if (!obj->links.file_write_entry)
+		goto errout;
+	obj->links.file_write_exit = bpf_program__attach_kprobe(obj->progs.file_write_exit, true, cfg->op_funcs[F_WRITE]);
+	if (!obj->links.file_write_exit)
+		goto errout;
+	/* F_OPEN */
+	obj->links.file_open_entry = bpf_program__attach_kprobe(obj->progs.file_open_entry, false, cfg->op_funcs[F_OPEN]);
+	if (!obj->links.f
