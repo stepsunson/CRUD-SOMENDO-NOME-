@@ -271,4 +271,85 @@ static int attach_kprobes(struct fsslower_bpf *obj)
 		goto errout;
 	/* F_OPEN */
 	obj->links.file_open_entry = bpf_program__attach_kprobe(obj->progs.file_open_entry, false, cfg->op_funcs[F_OPEN]);
-	if (!obj->links.f
+	if (!obj->links.file_open_entry)
+		goto errout;
+	obj->links.file_open_exit = bpf_program__attach_kprobe(obj->progs.file_open_exit, true, cfg->op_funcs[F_OPEN]);
+	if (!obj->links.file_open_exit)
+		goto errout;
+	/* F_FSYNC */
+	obj->links.file_sync_entry = bpf_program__attach_kprobe(obj->progs.file_sync_entry, false, cfg->op_funcs[F_FSYNC]);
+	if (!obj->links.file_sync_entry)
+		goto errout;
+	obj->links.file_sync_exit = bpf_program__attach_kprobe(obj->progs.file_sync_exit, true, cfg->op_funcs[F_FSYNC]);
+	if (!obj->links.file_sync_exit)
+		goto errout;
+	return 0;
+
+errout:
+	err = -errno;
+	warn("failed to attach kprobe: %ld\n", err);
+	return err;
+}
+
+static void print_headers()
+{
+	const char *fs = fs_configs[fs_type].fs;
+
+	if (csv) {
+		printf("ENDTIME_ns,TASK,PID,TYPE,BYTES,OFFSET_b,LATENCY_us,FILE\n");
+		return;
+	}
+
+	if (min_lat_ms)
+		printf("Tracing %s operations slower than %llu ms", fs, min_lat_ms);
+	else
+		printf("Tracing %s operations", fs);
+
+	if (duration)
+		printf(" for %ld secs.\n", duration);
+	else
+		printf("... Hit Ctrl-C to end.\n");
+
+	printf("%-8s %-16s %-7s %1s %-7s %-8s %7s %s\n",
+	       "TIME", "COMM", "PID", "T", "BYTES", "OFF_KB", "LAT(ms)", "FILENAME");
+}
+
+static void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
+{
+	const struct event *e = data;
+	struct tm *tm;
+	char ts[32];
+	time_t t;
+
+	if (csv) {
+		printf("%lld,%s,%d,%c,", e->end_ns, e->task, e->pid, file_op[e->op]);
+		if (e->size == LLONG_MAX)
+			printf("LL_MAX,");
+		else
+			printf("%ld,", e->size);
+		printf("%lld,%lld,%s\n", e->offset, e->delta_us, e->file);
+		return;
+	}
+
+	time(&t);
+	tm = localtime(&t);
+	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+
+	printf("%-8s %-16s %-7d %c ", ts, e->task, e->pid, file_op[e->op]);
+	if (e->size == LLONG_MAX)
+		printf("%-7s ", "LL_MAX");
+	else
+		printf("%-7ld ", e->size);
+	printf("%-8lld %7.2f %s\n", e->offset / 1024, (double)e->delta_us / 1000, e->file);
+}
+
+static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	warn("lost %llu events on CPU #%d\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts
