@@ -352,4 +352,96 @@ int main(int argc, char **argv)
 {
 	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
 	static const struct argp argp = {
-		.options = opts
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct perf_buffer *pb = NULL;
+	struct fsslower_bpf *skel;
+	__u64 time_end = 0;
+	int err;
+	bool support_fentry;
+
+	alias_parse(argv[0]);
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+	if (fs_type == NONE) {
+		warn("filesystem must be specified using -t option.\n");
+		return 1;
+	}
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	skel = fsslower_bpf__open_opts(&open_opts);
+	if (!skel) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	skel->rodata->target_pid = target_pid;
+	skel->rodata->min_lat_ns = min_lat_ms * 1000 * 1000;
+
+	/*
+	 * before load
+	 * if fentry is supported, we set attach target and disable kprobes
+	 * otherwise, we disable fentry and attach kprobes after loading
+	 */
+	support_fentry = check_fentry();
+	if (support_fentry) {
+		err = fentry_set_attach_target(skel);
+		if (err) {
+			warn("failed to set attach target: %d\n", err);
+			goto cleanup;
+		}
+		disable_kprobes(skel);
+	} else {
+		disable_fentry(skel);
+	}
+
+	err = fsslower_bpf__load(skel);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	/*
+	 * after load
+	 * if fentry is supported, let libbpf do auto load
+	 * otherwise, we attach to kprobes manually
+	 */
+	err = support_fentry ? fsslower_bpf__attach(skel) : attach_kprobes(skel);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	pb = perf_buffer__new(bpf_map__fd(skel->maps.events), PERF_BUFFER_PAGES,
+			      handle_event, handle_lost_events, NULL, NULL);
+	if (!pb) {
+		err = -errno;
+		warn("failed to open perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	print_headers();
+
+	if (duration)
+		time_end = get_ktime_ns() + duration * NSEC_PER_SEC;
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	/* main: poll */
+	while (!exiting) {
+		err = perf_buffer_
