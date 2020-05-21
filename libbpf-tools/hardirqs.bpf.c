@@ -122,4 +122,9 @@ int BPF_PROG(irq_handler_entry, int irq, struct irqaction *action)
 }
 
 SEC("raw_tp/irq_handler_exit")
-int BPF_PROG(irq
+int BPF_PROG(irq_handler_exit, int irq, struct irqaction *action)
+{
+	return handle_exit(irq, action);
+}
+
+char LICENSE[] SEC("license") = "GPL";
