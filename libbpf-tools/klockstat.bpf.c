@@ -622,3 +622,122 @@ int BPF_KPROBE(kprobe_down_read_killable, struct rw_semaphore *lock)
 	bpf_map_update_elem(&locks, &tid, &lock, BPF_ANY);
 	lock_contended(ctx, lock);
 	return 0;
+}
+
+SEC("kretprobe/down_read_killable")
+int BPF_KRETPROBE(kprobe_down_read_killable_exit, long ret)
+{
+	u32 tid = (u32)bpf_get_current_pid_tgid();
+	void **lock;
+
+	lock = bpf_map_lookup_elem(&locks, &tid);
+	if (!lock)
+		return 0;
+
+	bpf_map_delete_elem(&locks, &tid);
+
+	if (ret)
+		lock_aborted(*lock);
+	else
+		lock_acquired(*lock);
+	return 0;
+}
+
+SEC("kprobe/up_read")
+int BPF_KPROBE(kprobe_up_read, struct rw_semaphore *lock)
+{
+	lock_released(lock);
+	return 0;
+}
+
+SEC("kprobe/down_write")
+int BPF_KPROBE(kprobe_down_write, struct rw_semaphore *lock)
+{
+	u32 tid = (u32)bpf_get_current_pid_tgid();
+
+	bpf_map_update_elem(&locks, &tid, &lock, BPF_ANY);
+	lock_contended(ctx, lock);
+	return 0;
+}
+
+SEC("kretprobe/down_write")
+int BPF_KRETPROBE(kprobe_down_write_exit, long ret)
+{
+	u32 tid = (u32)bpf_get_current_pid_tgid();
+	void **lock;
+
+	lock = bpf_map_lookup_elem(&locks, &tid);
+	if (!lock)
+		return 0;
+
+	bpf_map_delete_elem(&locks, &tid);
+
+	lock_acquired(*lock);
+	return 0;
+}
+
+SEC("kprobe/down_write_trylock")
+int BPF_KPROBE(kprobe_down_write_trylock, struct rw_semaphore *lock)
+{
+	u32 tid = (u32)bpf_get_current_pid_tgid();
+
+	bpf_map_update_elem(&locks, &tid, &lock, BPF_ANY);
+	return 0;
+}
+
+SEC("kretprobe/down_write_trylock")
+int BPF_KRETPROBE(kprobe_down_write_trylock_exit, long ret)
+{
+	u32 tid = (u32)bpf_get_current_pid_tgid();
+	void **lock;
+
+	lock = bpf_map_lookup_elem(&locks, &tid);
+	if (!lock)
+		return 0;
+
+	bpf_map_delete_elem(&locks, &tid);
+
+	if (ret == 1) {
+		lock_contended(ctx, *lock);
+		lock_acquired(*lock);
+	}
+	return 0;
+}
+
+SEC("kprobe/down_write_killable")
+int BPF_KPROBE(kprobe_down_write_killable, struct rw_semaphore *lock)
+{
+	u32 tid = (u32)bpf_get_current_pid_tgid();
+
+	bpf_map_update_elem(&locks, &tid, &lock, BPF_ANY);
+	lock_contended(ctx, lock);
+	return 0;
+}
+
+SEC("kretprobe/down_write_killable")
+int BPF_KRETPROBE(kprobe_down_write_killable_exit, long ret)
+{
+	u32 tid = (u32)bpf_get_current_pid_tgid();
+	void **lock;
+
+	lock = bpf_map_lookup_elem(&locks, &tid);
+	if (!lock)
+		return 0;
+
+	bpf_map_delete_elem(&locks, &tid);
+
+	if (ret)
+		lock_aborted(*lock);
+	else
+		lock_acquired(*lock);
+	return 0;
+}
+
+SEC("kprobe/up_write")
+int BPF_KPROBE(kprobe_up_write, struct rw_semaphore *lock)
+{
+	lock_released(lock);
+	return 0;
+}
+
+char LICENSE[] SEC("license") = "GPL";
