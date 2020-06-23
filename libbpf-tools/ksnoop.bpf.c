@@ -165,4 +165,72 @@ static struct trace *get_trace(struct pt_regs *ctx, bool entry)
 			return NULL;
 		/* if tracing intermediate fn in stack of fns, stash data. */
 		if (trace->next_ip)
-			trace->data_flags 
+			trace->data_flags |= KSNOOP_F_STASH;
+		/* we may stash data on entry since predicates are a mix
+		 * of entry/return; in such cases, trace->flags specifies
+		 * KSNOOP_F_STASH, and we will output stashed data on return.
+		 */
+		if (trace->flags & KSNOOP_F_STASH)
+			trace->data_flags |= KSNOOP_F_STASH;
+		/* otherwise the data is outputted (because we've reached
+		 * the last fn in the set of fns specified).
+		 */
+	} else {
+		/* In stack mode, check if next fn matches the last fn
+		 * we returned from; i.e. "a" called "b", and now
+		 * we're at "a", was the last fn we returned from "b"?
+		 * If so, stash data for later display (when we reach the
+		 * first fn in the set of stack fns).
+		 */
+		if (trace->next_ip && trace->next_ip != last_ip)
+			return NULL;
+		if (trace->prev_ip)
+			trace->data_flags |= KSNOOP_F_STASH;
+		/* If there is no "prev" function, i.e. we are at the
+		 * first function in a set of stack functions, the trace
+		 * info is shown (along with any stashed info associated
+		 * with callers).
+		 */
+	}
+	trace->task = task;
+	return trace;
+}
+
+static void output_trace(struct pt_regs *ctx, struct trace *trace)
+{
+	__u16 trace_len;
+
+	if (trace->buf_len == 0)
+		goto skip;
+
+	/* we may be simply stashing values, and will report later */
+	if (trace->data_flags & KSNOOP_F_STASH) {
+		trace->data_flags &= ~KSNOOP_F_STASH;
+		trace->data_flags |= KSNOOP_F_STASHED;
+		return;
+	}
+	/* we may be outputting earlier stashed data */
+	if (trace->data_flags & KSNOOP_F_STASHED)
+		trace->data_flags &= ~KSNOOP_F_STASHED;
+
+	/* trim perf event size to only contain data we've recorded. */
+	trace_len = sizeof(*trace) + trace->buf_len - MAX_TRACE_BUF;
+
+	if (trace_len <= sizeof(*trace))
+		bpf_perf_event_output(ctx, &ksnoop_perf_map,
+				      BPF_F_CURRENT_CPU,
+				      trace, trace_len);
+skip:
+	clear_trace(trace);
+}
+
+static void output_stashed_traces(struct pt_regs *ctx,
+					 struct trace *currtrace,
+					 bool entry)
+{
+	struct func_stack *func_stack;
+	struct trace *trace = NULL;
+	__u8 i;
+	__u64 task = 0;
+
+	task = bpf_get_current_task(
