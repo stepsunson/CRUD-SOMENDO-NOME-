@@ -105,4 +105,64 @@ static struct trace *get_trace(struct pt_regs *ctx, bool entry)
 		/* mask used in case bounds checks are optimized out */
 		stack_depth = (stack_depth + 1) & FUNC_STACK_DEPTH_MASK;
 		func_stack->stack_depth = stack_depth;
-		/* rather than zero stack entries 
+		/* rather than zero stack entries on popping, we zero the
+		 * (stack_depth + 1)'th entry when pushing the current
+		 * entry.  The reason we take this approach is that
+		 * when tracking the set of functions we returned from,
+		 * we want the history of functions we returned from to
+		 * be preserved.
+		 */
+		if (stack_depth < FUNC_MAX_STACK_DEPTH)
+			func_stack->ips[stack_depth] = 0;
+	} else {
+		if (stack_depth == 0 || stack_depth >= FUNC_MAX_STACK_DEPTH)
+			return NULL;
+		last_stack_depth = stack_depth;
+		/* get address of last function we returned from */
+		if (last_stack_depth >= 0 &&
+		    last_stack_depth < FUNC_MAX_STACK_DEPTH)
+			last_ip = func_stack->ips[last_stack_depth];
+		if (stack_depth > 0) {
+			/* logical OR convinces verifier that we don't
+			 * end up with a < 0 value, translating to 0xff
+			 * and an outside of map element access.
+			 */
+			stack_depth = (stack_depth - 1) & FUNC_STACK_DEPTH_MASK;
+		}
+		/* retrieve ip from stack as IP in pt_regs is
+		 * bpf kretprobe trampoline address.
+		 */
+		if (stack_depth >= 0 && stack_depth < FUNC_MAX_STACK_DEPTH)
+			ip = func_stack->ips[stack_depth];
+		if (stack_depth >= 0 && stack_depth < FUNC_MAX_STACK_DEPTH)
+			func_stack->stack_depth = stack_depth;
+	}
+
+	trace = bpf_map_lookup_elem(&ksnoop_func_map, &ip);
+	if (!trace)
+		return NULL;
+
+	/* we may stash data on entry since predicates are a mix
+	 * of entry/return; in such cases, trace->flags specifies
+	 * KSNOOP_F_STASH, and we will output stashed data on return.
+	 * If returning, make sure we don't clear our stashed data.
+	 */
+	if (!entry && (trace->flags & KSNOOP_F_STASH)) {
+		/* skip clearing trace data */
+		if (!(trace->data_flags & KSNOOP_F_STASHED)) {
+			/* predicate must have failed */
+			return NULL;
+		}
+		/* skip clearing trace data */
+	} else {
+		/* clear trace data before starting. */
+		clear_trace(trace);
+	}
+
+	if (entry) {
+		/* if in stack mode, check if previous fn matches */
+		if (trace->prev_ip && trace->prev_ip != last_ip)
+			return NULL;
+		/* if tracing intermediate fn in stack of fns, stash data. */
+		if (trace->next_ip)
+			trace->data_flags 
