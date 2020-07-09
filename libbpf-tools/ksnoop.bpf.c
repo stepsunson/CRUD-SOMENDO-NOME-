@@ -392,4 +392,65 @@ static int ksnoop(struct pt_regs *ctx, bool entry)
 				ok = true;
 
 			if (currtrace->flags & KSNOOP_F_PREDICATE_LT &&
-			    currdata->raw_value < currtrac
+			    currdata->raw_value < currtrace->predicate_value)
+				ok = true;
+
+			if (!ok) {
+				clear_trace(trace);
+				return 0;
+			}
+		}
+
+		if (currtrace->flags & (KSNOOP_F_PTR | KSNOOP_F_MEMBER))
+			data_ptr = (void *)data;
+		else
+			data_ptr = &data;
+
+		if (trace->buf_len + MAX_TRACE_DATA >= MAX_TRACE_BUF)
+			break;
+
+		buf_offset = &trace->buf[trace->buf_len];
+		if (buf_offset > &trace->buf[MAX_TRACE_BUF]) {
+			currdata->err_type_id = currtrace->type_id;
+			currdata->err = -ENOSPC;
+			continue;
+		}
+		currdata->buf_offset = trace->buf_len;
+
+		tracesize = currtrace->size;
+		if (tracesize > MAX_TRACE_DATA)
+			tracesize = MAX_TRACE_DATA;
+		ret = bpf_probe_read_kernel(buf_offset, tracesize, data_ptr);
+		if (ret < 0) {
+			currdata->err_type_id = currtrace->type_id;
+			currdata->err = ret;
+			continue;
+		} else {
+			currdata->buf_len = tracesize;
+			trace->buf_len += tracesize;
+		}
+	}
+
+	/* show accumulated stashed traces (if any) */
+	if ((entry && trace->prev_ip && !trace->next_ip) ||
+	    (!entry && trace->next_ip && !trace->prev_ip))
+		output_stashed_traces(ctx, trace, entry);
+	else
+		output_trace(ctx, trace);
+
+	return 0;
+}
+
+SEC("kprobe/foo")
+int BPF_KPROBE(kprobe_entry)
+{
+	return ksnoop(ctx, true);
+}
+
+SEC("kretprobe/foo")
+int BPF_KRETPROBE(kprobe_return)
+{
+	return ksnoop(ctx, false);
+}
+
+char _license[] SEC("license") = "Dual BSD/GPL";
