@@ -12,4 +12,4 @@ struct event {
 	char disk[DISK_NAME_LEN];
 };
 
-#endif /* __MDF
+#endif /* __MDFLUSH_H */
