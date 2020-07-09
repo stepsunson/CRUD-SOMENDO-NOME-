@@ -319,4 +319,77 @@ static int ksnoop(struct pt_regs *ctx, bool entry)
 	trace->cpu = bpf_get_smp_processor_id();
 	trace->time = bpf_ktime_get_ns();
 
-	trac
+	trace->data_flags &= ~(KSNOOP_F_ENTRY | KSNOOP_F_RETURN);
+	if (entry)
+		trace->data_flags |= KSNOOP_F_ENTRY;
+	else
+		trace->data_flags |= KSNOOP_F_RETURN;
+
+
+	for (i = 0; i < MAX_TRACES; i++) {
+		struct trace_data *currdata;
+		struct value *currtrace;
+		char *buf_offset = NULL;
+		__u32 tracesize;
+
+		currdata = &trace->trace_data[i];
+		currtrace = &trace->traces[i];
+
+		if ((entry && !base_arg_is_entry(currtrace->base_arg)) ||
+		    (!entry && base_arg_is_entry(currtrace->base_arg)))
+			continue;
+
+		/* skip void (unused) trace arguments, ensuring not to
+		 * skip "void *".
+		 */
+		if (currtrace->type_id == 0 &&
+		    !(currtrace->flags & KSNOOP_F_PTR))
+			continue;
+
+		data = get_arg(ctx, currtrace->base_arg);
+
+		/* look up member value and read into data field. */
+		if (currtrace->flags & KSNOOP_F_MEMBER) {
+			if (currtrace->offset)
+				data += currtrace->offset;
+
+			/* member is a pointer; read it in */
+			if (currtrace->flags & KSNOOP_F_PTR) {
+				void *dataptr = (void *)data;
+
+				ret = bpf_probe_read_kernel(&data, sizeof(data), dataptr);
+				if (ret) {
+					currdata->err_type_id = currtrace->type_id;
+					currdata->err = ret;
+					continue;
+				}
+				currdata->raw_value = data;
+			} else if (currtrace->size <=
+				   sizeof(currdata->raw_value)) {
+				/* read member value for predicate comparison */
+				bpf_probe_read_kernel(&currdata->raw_value, currtrace->size, (void*)data);
+			}
+		} else {
+			currdata->raw_value = data;
+		}
+
+		/* simple predicate evaluation: if any predicate fails,
+		 * skip all tracing for this function.
+		 */
+		if (currtrace->flags & KSNOOP_F_PREDICATE_MASK) {
+			bool ok = false;
+
+			if (currtrace->flags & KSNOOP_F_PREDICATE_EQ &&
+			    currdata->raw_value == currtrace->predicate_value)
+				ok = true;
+
+			if (currtrace->flags & KSNOOP_F_PREDICATE_NOTEQ &&
+			    currdata->raw_value != currtrace->predicate_value)
+				ok = true;
+
+			if (currtrace->flags & KSNOOP_F_PREDICATE_GT &&
+			    currdata->raw_value > currtrace->predicate_value)
+				ok = true;
+
+			if (currtrace->flags & KSNOOP_F_PREDICATE_LT &&
+			    currdata->raw_value < currtrac
