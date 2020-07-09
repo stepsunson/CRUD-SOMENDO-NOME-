@@ -738,3 +738,273 @@ static void trace_handler(void *ctx, int cpu, void *data, __u32 size)
 		if (shown > 0)
 			printf(",\n");
 		printf("%34s %s = ", "", val->name);
+		if (val->flags & KSNOOP_F_PTR)
+			printf("*(0x%llx)", data->raw_value);
+		printf("\n");
+
+		if (data->err_type_id != 0) {
+			char typestr[MAX_STR];
+
+			printf("%36s /* Cannot show '%s' as '%s%s'; invalid/userspace ptr? */\n",
+			       "",
+			       val->name,
+			       type_id_to_str(trace->btf,
+					      val->type_id,
+					      typestr),
+			       val->flags & KSNOOP_F_PTR ?
+			       " *" : "");
+		} else {
+			ret = btf_dump__dump_type_data
+				(trace->dump, val->type_id,
+				 trace->buf + data->buf_offset,
+				 data->buf_len, &opts);
+			/* truncated? */
+			if (ret == -E2BIG)
+				printf("%36s... /* %d bytes of %d */", "",
+				       data->buf_len,
+				       val->size);
+		}
+		shown++;
+
+	}
+	printf("\n%31s);\n\n", "");
+	fflush(stdout);
+}
+
+static void lost_handler(void *ctx, int cpu, __u64 cnt)
+{
+	p_err("\t/* lost %llu events */", cnt);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static int add_traces(struct bpf_map *func_map, struct trace *traces,
+		      int nr_traces)
+{
+	int i, j, ret, nr_cpus = libbpf_num_possible_cpus();
+	struct trace *map_traces;
+
+	map_traces = calloc(nr_cpus, sizeof(struct trace));
+	if (!map_traces) {
+		p_err("Could not allocate memory for %d traces", nr_traces);
+		return -ENOMEM;
+	}
+	for (i = 0; i < nr_traces; i++) {
+		for (j = 0; j < nr_cpus; j++)
+			memcpy(&map_traces[j], &traces[i],
+			       sizeof(map_traces[j]));
+
+		ret = bpf_map_update_elem(bpf_map__fd(func_map),
+					  &traces[i].func.ip,
+					  map_traces,
+					  BPF_NOEXIST);
+		if (ret) {
+			p_err("Could not add map entry for '%s': %s",
+			      traces[i].func.name, strerror(-ret));
+			break;
+		}
+	}
+	free(map_traces);
+	return ret;
+}
+
+static int attach_traces(struct ksnoop_bpf *skel, struct trace *traces,
+			 int nr_traces)
+{
+	int i, ret;
+
+	for (i = 0; i < nr_traces; i++) {
+		traces[i].links[0] =
+			bpf_program__attach_kprobe(skel->progs.kprobe_entry,
+						   false,
+						   traces[i].func.name);
+		if (!traces[i].links[0]) {
+			ret = -errno;
+			p_err("Could not attach kprobe to '%s': %s",
+			      traces[i].func.name, strerror(-ret));
+				return ret;
+		}
+		p_debug("Attached kprobe for '%s'", traces[i].func.name);
+
+		traces[i].links[1] =
+			bpf_program__attach_kprobe(skel->progs.kprobe_return,
+						   true,
+						   traces[i].func.name);
+		if (!traces[i].links[1]) {
+			ret = -errno;
+			p_err("Could not attach kretprobe to '%s': %s",
+			      traces[i].func.name, strerror(-ret));
+			return ret;
+		}
+		p_debug("Attached kretprobe for '%s'", traces[i].func.name);
+	}
+	return 0;
+}
+
+static int cmd_trace(int argc, char **argv)
+{
+	struct bpf_map *perf_map, *func_map;
+	struct perf_buffer *pb = NULL;
+	struct ksnoop_bpf *skel;
+	int i, nr_traces, ret = -1;
+	struct trace *traces = NULL;
+
+	nr_traces = parse_traces(argc, argv, &traces);
+	if (nr_traces < 0)
+		return nr_traces;
+
+	skel = ksnoop_bpf__open_and_load();
+	if (!skel) {
+		ret = -errno;
+		p_err("Could not load ksnoop BPF: %s", strerror(-ret));
+		return 1;
+	}
+
+	perf_map = skel->maps.ksnoop_perf_map;
+	if (!perf_map) {
+		p_err("Could not find '%s'", "ksnoop_perf_map");
+		goto cleanup;
+	}
+	func_map = bpf_object__find_map_by_name(skel->obj, "ksnoop_func_map");
+	if (!func_map) {
+		p_err("Could not find '%s'", "ksnoop_func_map");
+		goto cleanup;
+	}
+
+	if (add_traces(func_map, traces, nr_traces)) {
+		p_err("Could not add traces to '%s'", "ksnoop_func_map");
+		goto cleanup;
+	}
+
+	if (attach_traces(skel, traces, nr_traces)) {
+		p_err("Could not attach %d traces", nr_traces);
+		goto cleanup;
+	}
+
+	pb = perf_buffer__new(bpf_map__fd(perf_map), pages,
+			      trace_handler, lost_handler, NULL, NULL);
+	if (!pb) {
+		ret = -errno;
+		p_err("Could not create perf buffer: %s", strerror(-ret));
+		goto cleanup;
+	}
+
+	printf("%16s %4s %8s %s\n", "TIME", "CPU", "PID", "FUNCTION/ARGS");
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		fprintf(stderr, "can't set signal handler: %s\n", strerror(errno));
+		ret = 1;
+		goto cleanup;
+	}
+
+	while (!exiting) {
+		ret = perf_buffer__poll(pb, 1);
+		if (ret < 0 && ret != -EINTR) {
+			fprintf(stderr, "error polling perf buffer: %s\n", strerror(-ret));
+			goto cleanup;
+		}
+		/* reset ret to return 0 if exiting */
+		ret = 0;
+	}
+
+cleanup:
+	for (i = 0; i < nr_traces; i++) {
+		bpf_link__destroy(traces[i].links[0]);
+		bpf_link__destroy(traces[i].links[1]);
+	}
+	free(traces);
+	perf_buffer__free(pb);
+	ksnoop_bpf__destroy(skel);
+
+	return ret;
+}
+
+struct cmd {
+	const char *cmd;
+	int (*func)(int argc, char **argv);
+};
+
+struct cmd cmds[] = {
+	{ "info",	cmd_info },
+	{ "trace",	cmd_trace },
+	{ "help",	cmd_help },
+	{ NULL,		NULL }
+};
+
+static int cmd_select(int argc, char **argv)
+{
+	int i;
+
+	for (i = 0; cmds[i].cmd; i++) {
+		if (strncmp(*argv, cmds[i].cmd, strlen(*argv)) == 0)
+			return cmds[i].func(argc - 1, argv + 1);
+	}
+	return cmd_trace(argc, argv);
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+int main(int argc, char *argv[])
+{
+	static const struct option options[] = {
+		{ "debug",	no_argument,		NULL,	'd' },
+		{ "verbose",	no_argument,		NULL,	'v' },
+		{ "help",	no_argument,		NULL,	'h' },
+		{ "version",	no_argument,		NULL,	'V' },
+		{ "pages",	required_argument,	NULL,	'P' },
+		{ "pid",	required_argument,	NULL,	'p' },
+		{ 0 }
+	};
+	int opt;
+
+	bin_name = argv[0];
+
+	while ((opt = getopt_long(argc, argv, "dvhp:P:sV", options,
+				  NULL)) >= 0) {
+		switch (opt) {
+		case 'd':
+			verbose = true;
+			log_level = DEBUG;
+			break;
+		case 'v':
+			verbose = true;
+			log_level = DEBUG;
+			break;
+		case 'h':
+			return cmd_help(argc, argv);
+		case 'V':
+			return do_version(argc, argv);
+		case 'p':
+			filter_pid = atoi(optarg);
+			break;
+		case 'P':
+			pages = atoi(optarg);
+			break;
+		case 's':
+			stack_mode = true;
+			break;
+		default:
+			p_err("unrecognized option '%s'", argv[optind - 1]);
+			usage();
+		}
+	}
+	if (argc == 1)
+		usage();
+	argc -= optind;
+	argv += optind;
+	if (argc < 0)
+		usage();
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	return cmd_select(argc, argv);
+}
