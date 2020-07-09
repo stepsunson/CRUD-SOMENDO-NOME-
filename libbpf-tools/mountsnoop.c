@@ -79,4 +79,107 @@ static const int flag_count = sizeof(flag_names) / sizeof(flag_names[0]);
 const char *argp_program_version = "mountsnoop 0.1";
 const char *argp_program_bug_address =
 	"https://github.com/iovisor/bcc/tree/master/libbpf-tools";
-const c
+const char argp_program_doc[] =
+"Trace mount and umount syscalls.\n"
+"\n"
+"USAGE: mountsnoop [-h] [-t] [-p PID] [-v]\n"
+"\n"
+"EXAMPLES:\n"
+"    mountsnoop         # trace mount and umount syscalls\n"
+"    mountsnoop -d      # detailed output (one line per column value)\n"
+"    mountsnoop -p 1216 # only trace PID 1216\n";
+
+static const struct argp_option opts[] = {
+	{ "pid", 'p', "PID", 0, "Process ID to trace" },
+	{ "timestamp", 't', NULL, 0, "Include timestamp on output" },
+	{ "detailed", 'd', NULL, 0, "Output result in detail mode" },
+	{ "verbose", 'v', NULL, 0, "Verbose debug output" },
+	{ NULL, 'h', NULL, OPTION_HIDDEN, "Show the full help" },
+	{},
+};
+
+static error_t parse_arg(int key, char *arg, struct argp_state *state)
+{
+	long pid;
+
+	switch (key) {
+	case 'p':
+		errno = 0;
+		pid = strtol(arg, NULL, 10);
+		if (errno || pid <= 0) {
+			warn("Invalid PID: %s\n", arg);
+			argp_usage(state);
+		}
+		target_pid = pid;
+		break;
+	case 't':
+		emit_timestamp = true;
+		break;
+	case 'd':
+		output_vertically = true;
+		break;
+	case 'v':
+		verbose = true;
+		break;
+	case 'h':
+		argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static const char *strflags(__u64 flags)
+{
+	static char str[512];
+	int i;
+
+	if (!flags)
+		return "0x0";
+
+	str[0] = '\0';
+	for (i = 0; i < flag_count; i++) {
+		if (!((1 << i) & flags))
+			continue;
+		if (str[0])
+			strcat(str, " | ");
+		strcat(str, flag_names[i]);
+	}
+	return str;
+}
+
+static const char *strerrno(int errnum)
+{
+	const char *errstr;
+	static char ret[32] = {};
+
+	if (!errnum)
+		return "0";
+
+	ret[0] = '\0';
+	errstr = strerrorname_np(-errnum);
+	if (!errstr) {
+		snprintf(ret, sizeof(ret), "%d", errnum);
+		return ret;
+	}
+
+	snprintf(ret, sizeof(ret), "-%s", errstr);
+	return ret;
+}
+
+static const char *gen_call(const struct event *e)
+{
+	static char
