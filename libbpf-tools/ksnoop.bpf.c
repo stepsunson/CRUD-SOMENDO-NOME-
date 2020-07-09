@@ -233,4 +233,90 @@ static void output_stashed_traces(struct pt_regs *ctx,
 	__u8 i;
 	__u64 task = 0;
 
-	task = bpf_get_current_task(
+	task = bpf_get_current_task();
+	func_stack = bpf_map_lookup_elem(&ksnoop_func_stack, &task);
+	if (!func_stack)
+		return;
+
+	if (entry) {
+		/* iterate from bottom to top of stack, outputting stashed
+		 * data we find.  This corresponds to the set of functions
+		 * we called before the current function.
+		 */
+		for (i = 0;
+		     i < func_stack->stack_depth - 1 && i < FUNC_MAX_STACK_DEPTH;
+		     i++) {
+			trace = bpf_map_lookup_elem(&ksnoop_func_map,
+						    &func_stack->ips[i]);
+			if (!trace || !(trace->data_flags & KSNOOP_F_STASHED))
+				break;
+			if (trace->task != task)
+				return;
+			output_trace(ctx, trace);
+		}
+	} else {
+		/* iterate from top to bottom of stack, outputting stashed
+		 * data we find.  This corresponds to the set of functions
+		 * that returned prior to the current returning function.
+		 */
+		for (i = FUNC_MAX_STACK_DEPTH; i > 0; i--) {
+			__u64 ip;
+
+			ip = func_stack->ips[i];
+			if (!ip)
+				continue;
+			trace = bpf_map_lookup_elem(&ksnoop_func_map, &ip);
+			if (!trace || !(trace->data_flags & KSNOOP_F_STASHED))
+				break;
+			if (trace->task != task)
+				return;
+			output_trace(ctx, trace);
+		}
+	}
+	/* finally output the current trace info */
+	output_trace(ctx, currtrace);
+}
+
+static __u64 get_arg(struct pt_regs *ctx, enum arg argnum)
+{
+	switch (argnum) {
+	case KSNOOP_ARG1:
+		return PT_REGS_PARM1_CORE(ctx);
+	case KSNOOP_ARG2:
+		return PT_REGS_PARM2_CORE(ctx);
+	case KSNOOP_ARG3:
+		return PT_REGS_PARM3_CORE(ctx);
+	case KSNOOP_ARG4:
+		return PT_REGS_PARM4_CORE(ctx);
+	case KSNOOP_ARG5:
+		return PT_REGS_PARM5_CORE(ctx);
+	case KSNOOP_RETURN:
+		return PT_REGS_RC_CORE(ctx);
+	default:
+		return 0;
+	}
+}
+
+static int ksnoop(struct pt_regs *ctx, bool entry)
+{
+	void *data_ptr = NULL;
+	struct trace *trace;
+	__u64 data;
+	__u32 currpid;
+	int ret;
+	__u8 i;
+
+	trace = get_trace(ctx, entry);
+	if (!trace)
+		return 0;
+
+	/* make sure we want events from this pid */
+	currpid = bpf_get_current_pid_tgid();
+	if (trace->filter_pid && trace->filter_pid != currpid)
+		return 0;
+	trace->pid = currpid;
+
+	trace->cpu = bpf_get_smp_processor_id();
+	trace->time = bpf_ktime_get_ns();
+
+	trac
