@@ -64,4 +64,60 @@ struct value {
 	__u32 offset;
 	__u32 size;
 	__u64 type_id;
-	__u64 flag
+	__u64 flags;
+	__u64 predicate_value;
+};
+
+struct func {
+	char name[MAX_NAME];
+	char mod[MAX_NAME];
+	__s32 id;
+	__u8 nr_args;
+	__u64 ip;
+	struct value args[MAX_VALUES];
+};
+
+#define MAX_TRACES MAX_VALUES
+
+#define MAX_TRACE_DATA	2048
+
+struct trace_data {
+	__u64 raw_value;
+	__u32 err_type_id;	/* type id we can't dereference */
+	int err;
+	__u32 buf_offset;
+	__u16 buf_len;
+};
+
+#define MAX_TRACE_BUF	(MAX_TRACES * MAX_TRACE_DATA)
+
+struct trace {
+	/* initial values are readonly in tracing context */
+	struct btf *btf;
+	struct btf_dump *dump;
+	struct func func;
+	__u8 nr_traces;
+	__u32 filter_pid;
+	__u64 prev_ip; /* these are used in stack-mode tracing */
+	__u64 next_ip;
+	struct value traces[MAX_TRACES];
+	__u64 flags;
+	/* values below this point are set or modified in tracing context */
+	__u64 task;
+	__u32 pid;
+	__u32 cpu;
+	__u64 time;
+	__u64 data_flags;
+	struct trace_data trace_data[MAX_TRACES];
+	__u16 buf_len;
+	char buf[MAX_TRACE_BUF];
+	char buf_end[0];
+	struct bpf_link *links[2];
+};
+
+#define PAGES_DEFAULT	16
+
+static inline int base_arg_is_entry(enum arg base_arg)
+{
+	return base_arg != KSNOOP_RETURN;
+}
