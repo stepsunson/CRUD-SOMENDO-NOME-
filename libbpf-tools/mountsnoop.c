@@ -264,4 +264,71 @@ int main(int argc, char **argv)
 	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
 	libbpf_set_print(libbpf_print_fn);
 
-	err = ensure_core_btf(&open_opt
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = mountsnoop_bpf__open_opts(&open_opts);
+	if (!obj) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	obj->rodata->target_pid = target_pid;
+
+	buf = bpf_buffer__new(obj->maps.events, obj->maps.heap);
+	if (!buf) {
+		err = -errno;
+		warn("failed to create ring/perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	err = mountsnoop_bpf__load(obj);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	err = mountsnoop_bpf__attach(obj);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	err = bpf_buffer__open(buf, handle_event, handle_lost_events, NULL);
+	if (err) {
+		warn("failed to open ring/perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	if (!output_vertically) {
+		if (emit_timestamp)
+			printf("%-8s ", "TIME");
+		printf("%-16s %-7s %-7s %-11s %s\n", "COMM", "PID", "TID", "MNT_NS", "CALL");
+	}
+
+	while (!exiting) {
+		err = bpf_buffer__poll(buf, POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			fprintf(stderr, "error polling ring/perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		/* reset err to return 0 if exiting */
+		err = 0;
+	}
+
+cleanup:
+	bpf_buffer__free(buf);
+	mountsnoop_bpf__destroy(obj);
+	cleanup_core_btf(&open_opts);
+
+	return err != 0;
+}
