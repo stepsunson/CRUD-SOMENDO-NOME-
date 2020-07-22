@@ -182,4 +182,86 @@ static const char *strerrno(int errnum)
 
 static const char *gen_call(const struct event *e)
 {
-	static char
+	static char call[10240];
+
+	memset(call, 0, sizeof(call));
+	if (e->op == UMOUNT) {
+		snprintf(call, sizeof(call), "umount(\"%s\", %s) = %s",
+			 e->dest, strflags(e->flags), strerrno(e->ret));
+	} else {
+		snprintf(call, sizeof(call), "mount(\"%s\", \"%s\", \"%s\", %s, \"%s\") = %s",
+			 e->src, e->dest, e->fs, strflags(e->flags), e->data, strerrno(e->ret));
+	}
+	return call;
+}
+
+static int handle_event(void *ctx, void *data, size_t len)
+{
+	const struct event *e = data;
+	struct tm *tm;
+	char ts[32];
+	time_t t;
+	const char *indent;
+	static const char *op_name[] = {
+		[MOUNT] = "MOUNT",
+		[UMOUNT] = "UMOUNT",
+	};
+
+	if (emit_timestamp) {
+		time(&t);
+		tm = localtime(&t);
+		strftime(ts, sizeof(ts), "%H:%M:%S ", tm);
+		printf("%s", ts);
+		indent = "    ";
+	} else {
+		indent = "";
+	}
+	if (!output_vertically) {
+		printf("%-16s %-7d %-7d %-11u %s\n",
+		       e->comm, e->pid, e->tid, e->mnt_ns, gen_call(e));
+		return 0;
+	}
+	if (emit_timestamp)
+		printf("\n");
+	printf("%sPID:    %d\n", indent, e->pid);
+	printf("%sTID:    %d\n", indent, e->tid);
+	printf("%sCOMM:   %s\n", indent, e->comm);
+	printf("%sOP:     %s\n", indent, op_name[e->op]);
+	printf("%sRET:    %s\n", indent, strerrno(e->ret));
+	printf("%sLAT:    %lldus\n", indent, e->delta / 1000);
+	printf("%sMNT_NS: %u\n", indent, e->mnt_ns);
+	printf("%sFS:     %s\n", indent, e->fs);
+	printf("%sSOURCE: %s\n", indent, e->src);
+	printf("%sTARGET: %s\n", indent, e->dest);
+	printf("%sDATA:   %s\n", indent, e->data);
+	printf("%sFLAGS:  %s\n", indent, strflags(e->flags));
+	printf("\n");
+
+	return 0;
+}
+
+static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	warn("lost %llu events on CPU #%d\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct bpf_buffer *buf = NULL;
+	struct mountsnoop_bpf *obj;
+	int err;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opt
