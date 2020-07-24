@@ -37,4 +37,4 @@ struct event {
 	enum op op;
 };
 
-#
+#endif /* __MOUNTSNOOP_H */
