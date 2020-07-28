@@ -87,4 +87,93 @@ const char argp_program_doc[] =
 "";
 
 static const struct argp_option opts[] = {
-	{ "du
+	{ "duration", 'd', "DURATION", 0, "Duration to trace"},
+	{ "extended-fields", 'e', NULL, 0, "Print extended fields"},
+	{ NULL, 'h', NULL, OPTION_HIDDEN, "Show the full help"},
+	{ "name", 'n', "NAME", 0, "Trace process names containing this"},
+	{ "pid", 'p', "PID", 0, "Process ID to trace"},
+	{ "tid", 't', "TID", 0, "Thread ID to trace"},
+	{ "timestamp", 'T', NULL, 0, "Print timestamp"},
+	{ "uid", 'u', "UID", 0, "User ID to trace"},
+	{ "print-uid", 'U', NULL, 0, "Print UID"},
+	{ "verbose", 'v', NULL, 0, "Verbose debug output" },
+	{ "failed", 'x', NULL, 0, "Failed opens only"},
+#ifdef USE_BLAZESYM
+	{ "callers", 'c', NULL, 0, "Show calling functions"},
+#endif
+	{},
+};
+
+static error_t parse_arg(int key, char *arg, struct argp_state *state)
+{
+	static int pos_args;
+	long int pid, uid, duration;
+
+	switch (key) {
+	case 'e':
+		env.extended = true;
+		break;
+	case 'h':
+		argp_usage(state);
+		break;
+	case 'T':
+		env.timestamp = true;
+		break;
+	case 'U':
+		env.print_uid = true;
+		break;
+	case 'v':
+		env.verbose = true;
+		break;
+	case 'x':
+		env.failed = true;
+		break;
+	case 'd':
+		errno = 0;
+		duration = strtol(arg, NULL, 10);
+		if (errno || duration <= 0) {
+			fprintf(stderr, "Invalid duration: %s\n", arg);
+			argp_usage(state);
+		}
+		env.duration = duration;
+		break;
+	case 'n':
+		errno = 0;
+		env.name = arg;
+		break;
+	case 'p':
+		errno = 0;
+		pid = strtol(arg, NULL, 10);
+		if (errno || pid <= 0) {
+			fprintf(stderr, "Invalid PID: %s\n", arg);
+			argp_usage(state);
+		}
+		env.pid = pid;
+		break;
+	case 't':
+		errno = 0;
+		pid = strtol(arg, NULL, 10);
+		if (errno || pid <= 0) {
+			fprintf(stderr, "Invalid TID: %s\n", arg);
+			argp_usage(state);
+		}
+		env.tid = pid;
+		break;
+	case 'u':
+		errno = 0;
+		uid = strtol(arg, NULL, 10);
+		if (errno || uid < 0 || uid >= INVALID_UID) {
+			fprintf(stderr, "Invalid UID %s\n", arg);
+			argp_usage(state);
+		}
+		env.uid = uid;
+		break;
+#ifdef USE_BLAZESYM
+	case 'c':
+		env.callers = true;
+		break;
+#endif
+	case ARGP_KEY_ARG:
+		if (pos_args++) {
+			fprintf(stderr,
+				"Unrecognized positional argu
