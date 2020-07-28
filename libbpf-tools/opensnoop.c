@@ -281,4 +281,88 @@ void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
 int main(int argc, char **argv)
 {
 	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
-	static const struct a
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct perf_buffer *pb = NULL;
+	struct opensnoop_bpf *obj;
+	__u64 time_end = 0;
+	int err;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = opensnoop_bpf__open_opts(&open_opts);
+	if (!obj) {
+		fprintf(stderr, "failed to open BPF object\n");
+		return 1;
+	}
+
+	/* initialize global data (filtering options) */
+	obj->rodata->targ_tgid = env.pid;
+	obj->rodata->targ_pid = env.tid;
+	obj->rodata->targ_uid = env.uid;
+	obj->rodata->targ_failed = env.failed;
+
+	/* aarch64 and riscv64 don't have open syscall */
+	if (!tracepoint_exists("syscalls", "sys_enter_open")) {
+		bpf_program__set_autoload(obj->progs.tracepoint__syscalls__sys_enter_open, false);
+		bpf_program__set_autoload(obj->progs.tracepoint__syscalls__sys_exit_open, false);
+	}
+
+	err = opensnoop_bpf__load(obj);
+	if (err) {
+		fprintf(stderr, "failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	err = opensnoop_bpf__attach(obj);
+	if (err) {
+		fprintf(stderr, "failed to attach BPF programs\n");
+		goto cleanup;
+	}
+
+#ifdef USE_BLAZESYM
+	if (env.callers)
+		symbolizer = blazesym_new();
+#endif
+
+	/* print headers */
+	if (env.timestamp)
+		printf("%-8s ", "TIME");
+	if (env.print_uid)
+		printf("%-7s ", "UID");
+	printf("%-6s %-16s %3s %3s ", "PID", "COMM", "FD", "ERR");
+	if (env.extended)
+		printf("%-8s ", "FLAGS");
+	printf("%s", "PATH");
+#ifdef USE_BLAZESYM
+	if (env.callers)
+		printf("/CALLER");
+#endif
+	printf("\n");
+
+	/* setup event callbacks */
+	pb = perf_buffer__new(bpf_map__fd(obj->maps.events), PERF_BUFFER_PAGES,
+			      handle_event, handle_lost_events, NULL, NULL);
+	if (!pb) {
+		err = -errno;
+		fprintf(stderr, "failed to open perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	/* setup duration */
+	if (env.duration)
+		time_end = get_ktime_ns() + e
