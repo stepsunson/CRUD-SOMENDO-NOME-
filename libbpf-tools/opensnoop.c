@@ -176,4 +176,109 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 	case ARGP_KEY_ARG:
 		if (pos_args++) {
 			fprintf(stderr,
-				"Unrecognized positional argu
+				"Unrecognized positional argument: %s\n", arg);
+			argp_usage(state);
+		}
+		errno = 0;
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !env.verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
+{
+	const struct event *e = data;
+	struct tm *tm;
+#ifdef USE_BLAZESYM
+	sym_src_cfg cfgs[] = {
+		{ .src_type = SRC_T_PROCESS, .params = { .process = { .pid = e->pid }}},
+	};
+	const blazesym_result *result = NULL;
+	const blazesym_csym *sym;
+	int i, j;
+#endif
+	int sps_cnt;
+	char ts[32];
+	time_t t;
+	int fd, err;
+
+	/* name filtering is currently done in user space */
+	if (env.name && strstr(e->comm, env.name) == NULL)
+		return;
+
+	/* prepare fields */
+	time(&t);
+	tm = localtime(&t);
+	strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+	if (e->ret >= 0) {
+		fd = e->ret;
+		err = 0;
+	} else {
+		fd = -1;
+		err = - e->ret;
+	}
+
+#ifdef USE_BLAZESYM
+	if (env.callers)
+		result = blazesym_symbolize(symbolizer, cfgs, 1, (const uint64_t *)&e->callers, 2);
+#endif
+
+	/* print output */
+	sps_cnt = 0;
+	if (env.timestamp) {
+		printf("%-8s ", ts);
+		sps_cnt += 9;
+	}
+	if (env.print_uid) {
+		printf("%-7d ", e->uid);
+		sps_cnt += 8;
+	}
+	printf("%-6d %-16s %3d %3d ", e->pid, e->comm, fd, err);
+	sps_cnt += 7 + 17 + 4 + 4;
+	if (env.extended) {
+		printf("%08o ", e->flags);
+		sps_cnt += 9;
+	}
+	printf("%s\n", e->fname);
+
+#ifdef USE_BLAZESYM
+	for (i = 0; result && i < result->size; i++) {
+		if (result->entries[i].size == 0)
+			continue;
+		sym = &result->entries[i].syms[0];
+
+		for (j = 0; j < sps_cnt; j++)
+			printf(" ");
+		if (sym->line_no)
+			printf("%s:%ld\n", sym->symbol, sym->line_no);
+		else
+			printf("%s\n", sym->symbol);
+	}
+
+	blazesym_result_free(result);
+#endif
+}
+
+void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	fprintf(stderr, "Lost %llu events on CPU #%d!\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct a
