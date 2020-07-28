@@ -365,4 +365,34 @@ int main(int argc, char **argv)
 
 	/* setup duration */
 	if (env.duration)
-		time_end = get_ktime_ns() + e
+		time_end = get_ktime_ns() + env.duration * NSEC_PER_SEC;
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		fprintf(stderr, "can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	/* main: poll */
+	while (!exiting) {
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			fprintf(stderr, "error polling perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		if (env.duration && get_ktime_ns() > time_end)
+			goto cleanup;
+		/* reset err to return 0 if exiting */
+		err = 0;
+	}
+
+cleanup:
+	perf_buffer__free(pb);
+	opensnoop_bpf__destroy(obj);
+	cleanup_core_btf(&open_opts);
+#ifdef USE_BLAZESYM
+	blazesym_free(symbolizer);
+#endif
+
+	return err != 0;
+}
