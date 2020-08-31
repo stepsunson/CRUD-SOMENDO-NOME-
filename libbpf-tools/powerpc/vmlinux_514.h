@@ -18069,3 +18069,2088 @@ struct icp_ops {
 	void (*cause_ipi)(int);
 	irq_handler_t ipi_action;
 };
+
+struct ics {
+	struct list_head link;
+	int (*map)(struct ics *, unsigned int);
+	void (*mask_unknown)(struct ics *, long unsigned int);
+	long int (*get_server)(struct ics *, long unsigned int);
+	int (*host_match)(struct ics *, struct device_node *);
+	char data[0];
+};
+
+struct xics_cppr {
+	unsigned char stack[3];
+	int index;
+};
+
+struct icp_ipl {
+	union {
+		u32 word;
+		u8 bytes[4];
+	} xirr_poll;
+	union {
+		u32 word;
+		u8 bytes[4];
+	} xirr;
+	u32 dummy;
+	union {
+		u32 word;
+		u8 bytes[4];
+	} qirr;
+	u32 link_a;
+	u32 link_b;
+	u32 link_c;
+};
+
+typedef s8 int8_t;
+
+typedef s16 int16_t;
+
+typedef s64 int64_t;
+
+enum {
+	IRQCHIP_FWNODE_REAL = 0,
+	IRQCHIP_FWNODE_NAMED = 1,
+	IRQCHIP_FWNODE_NAMED_ID = 2,
+};
+
+struct xive_irq_data {
+	u64 flags;
+	u64 eoi_page;
+	void *eoi_mmio;
+	u64 trig_page;
+	void *trig_mmio;
+	u32 esb_shift;
+	int src_chip;
+	u32 hw_irq;
+	int target;
+	bool saved_p;
+	bool stale_p;
+};
+
+struct xive_q {
+	__be32 *qpage;
+	u32 msk;
+	u32 idx;
+	u32 toggle;
+	u64 eoi_phys;
+	u32 esc_irq;
+	atomic_t count;
+	atomic_t pending_count;
+	u64 guest_qaddr;
+	u32 guest_qshift;
+};
+
+struct xive_cpu {
+	u32 hw_ipi;
+	struct xive_irq_data ipi_data;
+	int chip_id;
+	struct xive_q queue[8];
+	u8 pending_prio;
+	u8 cppr;
+};
+
+struct xive_ops {
+	int (*populate_irq_data)(u32, struct xive_irq_data *);
+	int (*configure_irq)(u32, u32, u8, u32);
+	int (*get_irq_config)(u32, u32 *, u8 *, u32 *);
+	int (*setup_queue)(unsigned int, struct xive_cpu *, u8);
+	void (*cleanup_queue)(unsigned int, struct xive_cpu *, u8);
+	void (*prepare_cpu)(unsigned int, struct xive_cpu *);
+	void (*setup_cpu)(unsigned int, struct xive_cpu *);
+	void (*teardown_cpu)(unsigned int, struct xive_cpu *);
+	bool (*match)(struct device_node *);
+	void (*shutdown)();
+	void (*update_pending)(struct xive_cpu *);
+	void (*sync_source)(u32);
+	u64 (*esb_rw)(u32, u32, u64, bool);
+	int (*get_ipi)(unsigned int, struct xive_cpu *);
+	void (*put_ipi)(unsigned int, struct xive_cpu *);
+	int (*debug_show)(struct seq_file *, void *);
+	const char *name;
+};
+
+struct xive_ipi_desc {
+	unsigned int irq;
+	char name[16];
+	atomic_t started;
+};
+
+struct xive_ipi_alloc_info {
+	irq_hw_number_t hwirq;
+};
+
+enum {
+	OPAL_XIVE_MODE_EMU = 0,
+	OPAL_XIVE_MODE_EXPL = 1,
+};
+
+enum {
+	OPAL_XIVE_IRQ_TRIGGER_PAGE = 1,
+	OPAL_XIVE_IRQ_STORE_EOI = 2,
+	OPAL_XIVE_IRQ_LSI = 4,
+	OPAL_XIVE_IRQ_SHIFT_BUG = 8,
+	OPAL_XIVE_IRQ_MASK_VIA_FW = 16,
+	OPAL_XIVE_IRQ_EOI_VIA_FW = 32,
+};
+
+enum {
+	OPAL_XIVE_EQ_ENABLED = 1,
+	OPAL_XIVE_EQ_ALWAYS_NOTIFY = 2,
+	OPAL_XIVE_EQ_ESCALATE = 4,
+};
+
+enum {
+	OPAL_XIVE_VP_ENABLED = 1,
+	OPAL_XIVE_VP_SINGLE_ESCALATION = 2,
+};
+
+enum {
+	XIVE_SYNC_EAS = 1,
+	XIVE_SYNC_QUEUE = 2,
+};
+
+struct xive_irq_bitmap {
+	long unsigned int *bitmap;
+	unsigned int base;
+	unsigned int count;
+	spinlock_t lock;
+	struct list_head list;
+};
+
+struct plist_head {
+	struct list_head node_list;
+};
+
+enum pm_qos_type {
+	PM_QOS_UNITIALIZED = 0,
+	PM_QOS_MAX = 1,
+	PM_QOS_MIN = 2,
+};
+
+struct pm_qos_constraints {
+	struct plist_head list;
+	s32 target_value;
+	s32 default_value;
+	s32 no_constraint_value;
+	enum pm_qos_type type;
+	struct blocking_notifier_head *notifiers;
+};
+
+struct freq_constraints {
+	struct pm_qos_constraints min_freq;
+	struct blocking_notifier_head min_freq_notifiers;
+	struct pm_qos_constraints max_freq;
+	struct blocking_notifier_head max_freq_notifiers;
+};
+
+struct pm_qos_flags {
+	struct list_head list;
+	s32 effective_flags;
+};
+
+struct dev_pm_qos_request;
+
+struct dev_pm_qos {
+	struct pm_qos_constraints resume_latency;
+	struct pm_qos_constraints latency_tolerance;
+	struct freq_constraints freq;
+	struct pm_qos_flags flags;
+	struct dev_pm_qos_request *resume_latency_req;
+	struct dev_pm_qos_request *latency_tolerance_req;
+	struct dev_pm_qos_request *flags_req;
+};
+
+struct pm_qos_flags_request {
+	struct list_head node;
+	s32 flags;
+};
+
+enum freq_qos_req_type {
+	FREQ_QOS_MIN = 1,
+	FREQ_QOS_MAX = 2,
+};
+
+struct freq_qos_request {
+	enum freq_qos_req_type type;
+	struct plist_node pnode;
+	struct freq_constraints *qos;
+};
+
+enum dev_pm_qos_req_type {
+	DEV_PM_QOS_RESUME_LATENCY = 1,
+	DEV_PM_QOS_LATENCY_TOLERANCE = 2,
+	DEV_PM_QOS_MIN_FREQUENCY = 3,
+	DEV_PM_QOS_MAX_FREQUENCY = 4,
+	DEV_PM_QOS_FLAGS = 5,
+};
+
+struct dev_pm_qos_request {
+	enum dev_pm_qos_req_type type;
+	union {
+		struct plist_node pnode;
+		struct pm_qos_flags_request flr;
+		struct freq_qos_request freq;
+	} data;
+	struct device *dev;
+};
+
+enum OpalThreadStatus {
+	OPAL_THREAD_INACTIVE = 0,
+	OPAL_THREAD_STARTED = 1,
+	OPAL_THREAD_UNAVAILABLE = 2,
+};
+
+enum {
+	OPAL_REINIT_CPUS_HILE_BE = 1,
+	OPAL_REINIT_CPUS_HILE_LE = 2,
+	OPAL_REINIT_CPUS_MMU_HASH = 4,
+	OPAL_REINIT_CPUS_MMU_RADIX = 8,
+	OPAL_REINIT_CPUS_TM_SUSPEND_DISABLED = 16,
+};
+
+enum {
+	OPAL_REBOOT_NORMAL = 0,
+	OPAL_REBOOT_PLATFORM_ERROR = 1,
+	OPAL_REBOOT_FULL_IPL = 2,
+	OPAL_REBOOT_MPIPL = 3,
+	OPAL_REBOOT_FAST = 4,
+};
+
+enum OpalPendingState {
+	OPAL_EVENT_OPAL_INTERNAL = 1,
+	OPAL_EVENT_NVRAM = 2,
+	OPAL_EVENT_RTC = 4,
+	OPAL_EVENT_CONSOLE_OUTPUT = 8,
+	OPAL_EVENT_CONSOLE_INPUT = 16,
+	OPAL_EVENT_ERROR_LOG_AVAIL = 32,
+	OPAL_EVENT_ERROR_LOG = 64,
+	OPAL_EVENT_EPOW = 128,
+	OPAL_EVENT_LED_STATUS = 256,
+	OPAL_EVENT_PCI_ERROR = 512,
+	OPAL_EVENT_DUMP_AVAIL = 1024,
+	OPAL_EVENT_MSG_PENDING = 2048,
+};
+
+enum opal_msg_type {
+	OPAL_MSG_ASYNC_COMP = 0,
+	OPAL_MSG_MEM_ERR = 1,
+	OPAL_MSG_EPOW = 2,
+	OPAL_MSG_SHUTDOWN = 3,
+	OPAL_MSG_HMI_EVT = 4,
+	OPAL_MSG_DPO = 5,
+	OPAL_MSG_PRD = 6,
+	OPAL_MSG_OCC = 7,
+	OPAL_MSG_PRD2 = 8,
+	OPAL_MSG_TYPE_MAX = 9,
+};
+
+struct opal_msg {
+	__be32 msg_type;
+	__be32 reserved;
+	__be64 params[8];
+};
+
+struct opal_ipmi_msg {
+	uint8_t version;
+	uint8_t netfn;
+	uint8_t cmd;
+	uint8_t data[0];
+};
+
+enum {
+	OPAL_HMI_FLAGS_TB_RESYNC = 1,
+	OPAL_HMI_FLAGS_DEC_LOST = 2,
+	OPAL_HMI_FLAGS_HDEC_LOST = 4,
+	OPAL_HMI_FLAGS_TOD_TB_FAIL = 8,
+	OPAL_HMI_FLAGS_NEW_EVENT = 0,
+};
+
+struct oppanel_line {
+	__be64 line;
+	__be64 line_len;
+};
+
+typedef struct oppanel_line oppanel_line_t;
+
+struct opal_sg_entry {
+	__be64 data;
+	__be64 length;
+};
+
+struct opal_sg_list {
+	__be64 length;
+	__be64 next;
+	struct opal_sg_entry entry[0];
+};
+
+struct opal_i2c_request {
+	uint8_t type;
+	uint8_t flags;
+	uint8_t subaddr_sz;
+	uint8_t reserved;
+	__be16 addr;
+	__be16 reserved2;
+	__be32 subaddr;
+	__be32 size;
+	__be64 buffer_ra;
+};
+
+struct opal_msg_node {
+	struct list_head list;
+	struct opal_msg msg;
+};
+
+struct opal {
+	u64 base;
+	u64 entry;
+	u64 size;
+};
+
+struct mcheck_recoverable_range {
+	u64 start_addr;
+	u64 end_addr;
+	u64 recover_addr;
+};
+
+struct opal_prd_msg;
+
+struct semaphore {
+	raw_spinlock_t lock;
+	unsigned int count;
+	struct list_head wait_list;
+};
+
+enum opal_async_token_state {
+	ASYNC_TOKEN_UNALLOCATED = 0,
+	ASYNC_TOKEN_ALLOCATED = 1,
+	ASYNC_TOKEN_DISPATCHED = 2,
+	ASYNC_TOKEN_ABANDONED = 3,
+	ASYNC_TOKEN_COMPLETED = 4,
+};
+
+struct opal_async_token {
+	enum opal_async_token_state state;
+	struct opal_msg response;
+};
+
+struct pnv_idle_states_t {
+	char name[16];
+	u32 latency_ns;
+	u32 residency_ns;
+	u64 psscr_val;
+	u64 psscr_mask;
+	u32 flags;
+	bool valid;
+};
+
+struct p7_sprs {
+	u64 tscr;
+	u64 worc;
+	u64 sdr1;
+	u64 rpr;
+	u64 lpcr;
+	u64 hfscr;
+	u64 fscr;
+	u64 purr;
+	u64 spurr;
+	u64 dscr;
+	u64 wort;
+	u64 amr;
+	u64 iamr;
+	u64 amor;
+	u64 uamor;
+};
+
+struct p9_sprs {
+	u64 ptcr;
+	u64 rpr;
+	u64 tscr;
+	u64 ldbar;
+	u64 lpcr;
+	u64 hfscr;
+	u64 fscr;
+	u64 pid;
+	u64 purr;
+	u64 spurr;
+	u64 dscr;
+	u64 wort;
+	u64 ciabr;
+	u64 mmcra;
+	u32 mmcr0;
+	u32 mmcr1;
+	u64 mmcr2;
+	u64 amr;
+	u64 iamr;
+	u64 amor;
+	u64 uamor;
+};
+
+enum OpalLPCAddressType {
+	OPAL_LPC_MEM = 0,
+	OPAL_LPC_IO = 1,
+	OPAL_LPC_FW = 2,
+};
+
+struct lpc_debugfs_entry {
+	enum OpalLPCAddressType lpc_type;
+};
+
+enum {
+	IMAGE_INVALID = 0,
+	IMAGE_LOADING = 1,
+	IMAGE_READY = 2,
+};
+
+struct image_data_t {
+	int status;
+	void *data;
+	uint32_t size;
+};
+
+struct image_header_t {
+	uint16_t magic;
+	uint16_t version;
+	uint32_t size;
+};
+
+struct validate_flash_t {
+	int status;
+	void *buf;
+	uint32_t buf_size;
+	uint32_t result;
+};
+
+struct manage_flash_t {
+	int status;
+};
+
+struct update_flash_t {
+	int status;
+};
+
+struct powernv_rng {
+	void *regs;
+	void *regs_real;
+	long unsigned int mask;
+};
+
+struct elog_obj {
+	struct kobject kobj;
+	struct bin_attribute raw_attr;
+	uint64_t id;
+	uint64_t type;
+	size_t size;
+	char *buffer;
+};
+
+struct elog_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct elog_obj *, struct elog_attribute *, char *);
+	ssize_t (*store)(struct elog_obj *, struct elog_attribute *, const char *, size_t);
+};
+
+struct dump_obj {
+	struct kobject kobj;
+	struct bin_attribute dump_attr;
+	uint32_t id;
+	uint32_t type;
+	uint32_t size;
+	char *buffer;
+};
+
+struct dump_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct dump_obj *, struct dump_attribute *, char *);
+	ssize_t (*store)(struct dump_obj *, struct dump_attribute *, const char *, size_t);
+};
+
+enum OpalSysparamPerm {
+	OPAL_SYSPARAM_READ = 1,
+	OPAL_SYSPARAM_WRITE = 2,
+	OPAL_SYSPARAM_RW = 3,
+};
+
+struct param_attr {
+	struct list_head list;
+	u32 param_id;
+	u32 param_size;
+	struct kobj_attribute kobj_attr;
+};
+
+struct memcons {
+	__be64 magic;
+	__be64 obuf_phys;
+	__be64 ibuf_phys;
+	__be32 obuf_size;
+	__be32 ibuf_size;
+	__be32 out_pos;
+	__be32 in_prod;
+	__be32 in_cons;
+};
+
+enum OpalHMI_Version {
+	OpalHMIEvt_V1 = 1,
+	OpalHMIEvt_V2 = 2,
+};
+
+enum OpalHMI_Severity {
+	OpalHMI_SEV_NO_ERROR = 0,
+	OpalHMI_SEV_WARNING = 1,
+	OpalHMI_SEV_ERROR_SYNC = 2,
+	OpalHMI_SEV_FATAL = 3,
+};
+
+enum OpalHMI_Disposition {
+	OpalHMI_DISPOSITION_RECOVERED = 0,
+	OpalHMI_DISPOSITION_NOT_RECOVERED = 1,
+};
+
+enum OpalHMI_ErrType {
+	OpalHMI_ERROR_MALFUNC_ALERT = 0,
+	OpalHMI_ERROR_PROC_RECOV_DONE = 1,
+	OpalHMI_ERROR_PROC_RECOV_DONE_AGAIN = 2,
+	OpalHMI_ERROR_PROC_RECOV_MASKED = 3,
+	OpalHMI_ERROR_TFAC = 4,
+	OpalHMI_ERROR_TFMR_PARITY = 5,
+	OpalHMI_ERROR_HA_OVERFLOW_WARN = 6,
+	OpalHMI_ERROR_XSCOM_FAIL = 7,
+	OpalHMI_ERROR_XSCOM_DONE = 8,
+	OpalHMI_ERROR_SCOM_FIR = 9,
+	OpalHMI_ERROR_DEBUG_TRIG_FIR = 10,
+	OpalHMI_ERROR_HYP_RESOURCE = 11,
+	OpalHMI_ERROR_CAPP_RECOVERY = 12,
+};
+
+enum OpalHMI_XstopType {
+	CHECKSTOP_TYPE_UNKNOWN = 0,
+	CHECKSTOP_TYPE_CORE = 1,
+	CHECKSTOP_TYPE_NX = 2,
+	CHECKSTOP_TYPE_NPU = 3,
+};
+
+enum OpalHMI_CoreXstopReason {
+	CORE_CHECKSTOP_IFU_REGFILE = 1,
+	CORE_CHECKSTOP_IFU_LOGIC = 2,
+	CORE_CHECKSTOP_PC_DURING_RECOV = 4,
+	CORE_CHECKSTOP_ISU_REGFILE = 8,
+	CORE_CHECKSTOP_ISU_LOGIC = 16,
+	CORE_CHECKSTOP_FXU_LOGIC = 32,
+	CORE_CHECKSTOP_VSU_LOGIC = 64,
+	CORE_CHECKSTOP_PC_RECOV_IN_MAINT_MODE = 128,
+	CORE_CHECKSTOP_LSU_REGFILE = 256,
+	CORE_CHECKSTOP_PC_FWD_PROGRESS = 512,
+	CORE_CHECKSTOP_LSU_LOGIC = 1024,
+	CORE_CHECKSTOP_PC_LOGIC = 2048,
+	CORE_CHECKSTOP_PC_HYP_RESOURCE = 4096,
+	CORE_CHECKSTOP_PC_HANG_RECOV_FAILED = 8192,
+	CORE_CHECKSTOP_PC_AMBI_HANG_DETECTED = 16384,
+	CORE_CHECKSTOP_PC_DEBUG_TRIG_ERR_INJ = 32768,
+	CORE_CHECKSTOP_PC_SPRD_HYP_ERR_INJ = 65536,
+};
+
+enum OpalHMI_NestAccelXstopReason {
+	NX_CHECKSTOP_SHM_INVAL_STATE_ERR = 1,
+	NX_CHECKSTOP_DMA_INVAL_STATE_ERR_1 = 2,
+	NX_CHECKSTOP_DMA_INVAL_STATE_ERR_2 = 4,
+	NX_CHECKSTOP_DMA_CH0_INVAL_STATE_ERR = 8,
+	NX_CHECKSTOP_DMA_CH1_INVAL_STATE_ERR = 16,
+	NX_CHECKSTOP_DMA_CH2_INVAL_STATE_ERR = 32,
+	NX_CHECKSTOP_DMA_CH3_INVAL_STATE_ERR = 64,
+	NX_CHECKSTOP_DMA_CH4_INVAL_STATE_ERR = 128,
+	NX_CHECKSTOP_DMA_CH5_INVAL_STATE_ERR = 256,
+	NX_CHECKSTOP_DMA_CH6_INVAL_STATE_ERR = 512,
+	NX_CHECKSTOP_DMA_CH7_INVAL_STATE_ERR = 1024,
+	NX_CHECKSTOP_DMA_CRB_UE = 2048,
+	NX_CHECKSTOP_DMA_CRB_SUE = 4096,
+	NX_CHECKSTOP_PBI_ISN_UE = 8192,
+};
+
+struct OpalHMIEvent {
+	uint8_t version;
+	uint8_t severity;
+	uint8_t type;
+	uint8_t disposition;
+	uint8_t reserved_1[4];
+	__be64 hmer;
+	__be64 tfmr;
+	union {
+		struct {
+			uint8_t xstop_type;
+			uint8_t reserved_1[3];
+			__be32 xstop_reason;
+			union {
+				__be32 pir;
+				__be32 chip_id;
+			} u;
+		} xstop_error;
+	} u;
+};
+
+struct OpalHmiEvtNode {
+	struct list_head list;
+	struct OpalHMIEvent hmi_evt;
+};
+
+struct xstop_reason {
+	uint32_t xstop_reason;
+	const char *unit_failed;
+	const char *description;
+};
+
+enum OpalSysEpow {
+	OPAL_SYSEPOW_POWER = 0,
+	OPAL_SYSEPOW_TEMP = 1,
+	OPAL_SYSEPOW_COOLING = 2,
+	OPAL_SYSEPOW_MAX = 3,
+};
+
+enum OpalSysPower {
+	OPAL_SYSPOWER_UPS = 1,
+	OPAL_SYSPOWER_CHNG = 2,
+	OPAL_SYSPOWER_FAIL = 4,
+	OPAL_SYSPOWER_INCL = 8,
+};
+
+struct opal_event_irqchip {
+	struct irq_chip irqchip;
+	struct irq_domain *domain;
+	long unsigned int mask;
+};
+
+struct powercap_attr {
+	u32 handle;
+	struct kobj_attribute attr;
+};
+
+struct pcap {
+	struct attribute_group pg;
+	struct powercap_attr *pattrs;
+};
+
+struct psr_attr {
+	u32 handle;
+	struct kobj_attribute attr;
+};
+
+struct sg_attr {
+	u32 handle;
+	struct kobj_attribute attr;
+};
+
+struct sensor_group {
+	char name[20];
+	struct attribute_group sg;
+	struct sg_attr *sgattrs;
+};
+
+struct sg_ops_info {
+	int opal_no;
+	const char *attr_name;
+	ssize_t (*store)(struct kobject *, struct kobj_attribute *, const char *, size_t);
+};
+
+struct memcons___2;
+
+struct split_state {
+	u8 step;
+	u8 master;
+};
+
+enum opal_mpipl_ops {
+	OPAL_MPIPL_ADD_RANGE = 0,
+	OPAL_MPIPL_REMOVE_RANGE = 1,
+	OPAL_MPIPL_REMOVE_ALL = 2,
+	OPAL_MPIPL_FREE_PRESERVED_MEMORY = 3,
+};
+
+enum opal_mpipl_tags {
+	OPAL_MPIPL_TAG_CPU = 0,
+	OPAL_MPIPL_TAG_OPAL = 1,
+	OPAL_MPIPL_TAG_KERNEL = 2,
+	OPAL_MPIPL_TAG_BOOT_MEM = 3,
+};
+
+struct opal_mpipl_region {
+	__be64 src;
+	__be64 dest;
+	__be64 size;
+};
+
+struct opal_mpipl_fadump {
+	u8 version;
+	u8 reserved[7];
+	__be32 crashing_pir;
+	__be32 cpu_data_version;
+	__be32 cpu_data_size;
+	__be32 region_cnt;
+	struct opal_mpipl_region region[0];
+};
+
+struct opal_fadump_mem_struct {
+	u8 version;
+	u8 reserved[3];
+	u16 region_cnt;
+	u16 registered_regions;
+	u64 fadumphdr_addr;
+	struct opal_mpipl_region rgn[128];
+};
+
+struct hdat_fadump_thread_hdr {
+	__be32 pir;
+	u8 core_state;
+	u8 reserved[3];
+	__be32 offset;
+	__be32 ecnt;
+	__be32 esize;
+	__be32 eactsz;
+};
+
+struct hdat_fadump_reg_entry {
+	__be32 reg_type;
+	__be32 reg_num;
+	__be64 reg_val;
+};
+
+enum OpalFreezeState {
+	OPAL_EEH_STOPPED_NOT_FROZEN = 0,
+	OPAL_EEH_STOPPED_MMIO_FREEZE = 1,
+	OPAL_EEH_STOPPED_DMA_FREEZE = 2,
+	OPAL_EEH_STOPPED_MMIO_DMA_FREEZE = 3,
+	OPAL_EEH_STOPPED_RESET = 4,
+	OPAL_EEH_STOPPED_TEMP_UNAVAIL = 5,
+	OPAL_EEH_STOPPED_PERM_UNAVAIL = 6,
+};
+
+enum OpalEehFreezeActionToken {
+	OPAL_EEH_ACTION_CLEAR_FREEZE_MMIO = 1,
+	OPAL_EEH_ACTION_CLEAR_FREEZE_DMA = 2,
+	OPAL_EEH_ACTION_CLEAR_FREEZE_ALL = 3,
+	OPAL_EEH_ACTION_SET_FREEZE_MMIO = 1,
+	OPAL_EEH_ACTION_SET_FREEZE_DMA = 2,
+	OPAL_EEH_ACTION_SET_FREEZE_ALL = 3,
+};
+
+enum {
+	OPAL_PHB_ERROR_DATA_TYPE_P7IOC = 1,
+	OPAL_PHB_ERROR_DATA_TYPE_PHB3 = 2,
+	OPAL_PHB_ERROR_DATA_TYPE_PHB4 = 3,
+};
+
+struct OpalIoPhbErrorCommon {
+	__be32 version;
+	__be32 ioType;
+	__be32 len;
+};
+
+struct OpalIoP7IOCPhbErrorData {
+	struct OpalIoPhbErrorCommon common;
+	__be32 brdgCtl;
+	__be32 portStatusReg;
+	__be32 rootCmplxStatus;
+	__be32 busAgentStatus;
+	__be32 deviceStatus;
+	__be32 slotStatus;
+	__be32 linkStatus;
+	__be32 devCmdStatus;
+	__be32 devSecStatus;
+	__be32 rootErrorStatus;
+	__be32 uncorrErrorStatus;
+	__be32 corrErrorStatus;
+	__be32 tlpHdr1;
+	__be32 tlpHdr2;
+	__be32 tlpHdr3;
+	__be32 tlpHdr4;
+	__be32 sourceId;
+	__be32 rsv3;
+	__be64 errorClass;
+	__be64 correlator;
+	__be64 p7iocPlssr;
+	__be64 p7iocCsr;
+	__be64 lemFir;
+	__be64 lemErrorMask;
+	__be64 lemWOF;
+	__be64 phbErrorStatus;
+	__be64 phbFirstErrorStatus;
+	__be64 phbErrorLog0;
+	__be64 phbErrorLog1;
+	__be64 mmioErrorStatus;
+	__be64 mmioFirstErrorStatus;
+	__be64 mmioErrorLog0;
+	__be64 mmioErrorLog1;
+	__be64 dma0ErrorStatus;
+	__be64 dma0FirstErrorStatus;
+	__be64 dma0ErrorLog0;
+	__be64 dma0ErrorLog1;
+	__be64 dma1ErrorStatus;
+	__be64 dma1FirstErrorStatus;
+	__be64 dma1ErrorLog0;
+	__be64 dma1ErrorLog1;
+	__be64 pestA[128];
+	__be64 pestB[128];
+};
+
+struct OpalIoPhb3ErrorData {
+	struct OpalIoPhbErrorCommon common;
+	__be32 brdgCtl;
+	__be32 portStatusReg;
+	__be32 rootCmplxStatus;
+	__be32 busAgentStatus;
+	__be32 deviceStatus;
+	__be32 slotStatus;
+	__be32 linkStatus;
+	__be32 devCmdStatus;
+	__be32 devSecStatus;
+	__be32 rootErrorStatus;
+	__be32 uncorrErrorStatus;
+	__be32 corrErrorStatus;
+	__be32 tlpHdr1;
+	__be32 tlpHdr2;
+	__be32 tlpHdr3;
+	__be32 tlpHdr4;
+	__be32 sourceId;
+	__be32 rsv3;
+	__be64 errorClass;
+	__be64 correlator;
+	__be64 nFir;
+	__be64 nFirMask;
+	__be64 nFirWOF;
+	__be64 phbPlssr;
+	__be64 phbCsr;
+	__be64 lemFir;
+	__be64 lemErrorMask;
+	__be64 lemWOF;
+	__be64 phbErrorStatus;
+	__be64 phbFirstErrorStatus;
+	__be64 phbErrorLog0;
+	__be64 phbErrorLog1;
+	__be64 mmioErrorStatus;
+	__be64 mmioFirstErrorStatus;
+	__be64 mmioErrorLog0;
+	__be64 mmioErrorLog1;
+	__be64 dma0ErrorStatus;
+	__be64 dma0FirstErrorStatus;
+	__be64 dma0ErrorLog0;
+	__be64 dma0ErrorLog1;
+	__be64 dma1ErrorStatus;
+	__be64 dma1FirstErrorStatus;
+	__be64 dma1ErrorLog0;
+	__be64 dma1ErrorLog1;
+	__be64 pestA[256];
+	__be64 pestB[256];
+};
+
+struct OpalIoPhb4ErrorData {
+	struct OpalIoPhbErrorCommon common;
+	__be32 brdgCtl;
+	__be32 deviceStatus;
+	__be32 slotStatus;
+	__be32 linkStatus;
+	__be32 devCmdStatus;
+	__be32 devSecStatus;
+	__be32 rootErrorStatus;
+	__be32 uncorrErrorStatus;
+	__be32 corrErrorStatus;
+	__be32 tlpHdr1;
+	__be32 tlpHdr2;
+	__be32 tlpHdr3;
+	__be32 tlpHdr4;
+	__be32 sourceId;
+	__be64 nFir;
+	__be64 nFirMask;
+	__be64 nFirWOF;
+	__be64 phbPlssr;
+	__be64 phbCsr;
+	__be64 lemFir;
+	__be64 lemErrorMask;
+	__be64 lemWOF;
+	__be64 phbErrorStatus;
+	__be64 phbFirstErrorStatus;
+	__be64 phbErrorLog0;
+	__be64 phbErrorLog1;
+	__be64 phbTxeErrorStatus;
+	__be64 phbTxeFirstErrorStatus;
+	__be64 phbTxeErrorLog0;
+	__be64 phbTxeErrorLog1;
+	__be64 phbRxeArbErrorStatus;
+	__be64 phbRxeArbFirstErrorStatus;
+	__be64 phbRxeArbErrorLog0;
+	__be64 phbRxeArbErrorLog1;
+	__be64 phbRxeMrgErrorStatus;
+	__be64 phbRxeMrgFirstErrorStatus;
+	__be64 phbRxeMrgErrorLog0;
+	__be64 phbRxeMrgErrorLog1;
+	__be64 phbRxeTceErrorStatus;
+	__be64 phbRxeTceFirstErrorStatus;
+	__be64 phbRxeTceErrorLog0;
+	__be64 phbRxeTceErrorLog1;
+	__be64 phbPblErrorStatus;
+	__be64 phbPblFirstErrorStatus;
+	__be64 phbPblErrorLog0;
+	__be64 phbPblErrorLog1;
+	__be64 phbPcieDlpErrorLog1;
+	__be64 phbPcieDlpErrorLog2;
+	__be64 phbPcieDlpErrorStatus;
+	__be64 phbRegbErrorStatus;
+	__be64 phbRegbFirstErrorStatus;
+	__be64 phbRegbErrorLog0;
+	__be64 phbRegbErrorLog1;
+	__be64 pestA[512];
+	__be64 pestB[512];
+};
+
+enum pnv_phb_type {
+	PNV_PHB_IODA1 = 0,
+	PNV_PHB_IODA2 = 1,
+	PNV_PHB_NPU_OCAPI = 2,
+};
+
+enum pnv_phb_model {
+	PNV_PHB_MODEL_UNKNOWN = 0,
+	PNV_PHB_MODEL_P7IOC = 1,
+	PNV_PHB_MODEL_PHB3 = 2,
+};
+
+struct pnv_phb;
+
+struct pnv_ioda_pe {
+	long unsigned int flags;
+	struct pnv_phb *phb;
+	int device_count;
+	struct pci_dev *parent_dev;
+	struct pci_dev *pdev;
+	struct pci_bus *pbus;
+	unsigned int rid;
+	unsigned int pe_number;
+	struct iommu_table_group table_group;
+	bool tce_bypass_enabled;
+	uint64_t tce_bypass_base;
+	bool dma_setup_done;
+	int mve_number;
+	struct pnv_ioda_pe *master;
+	struct list_head slaves;
+	struct list_head list;
+};
+
+struct pnv_phb {
+	struct pci_controller *hose;
+	enum pnv_phb_type type;
+	enum pnv_phb_model model;
+	u64 hub_id;
+	u64 opal_id;
+	int flags;
+	void *regs;
+	u64 regs_phys;
+	spinlock_t lock;
+	int has_dbgfs;
+	struct dentry *dbgfs;
+	unsigned int msi_base;
+	unsigned int msi32_support;
+	struct msi_bitmap msi_bmp;
+	int (*msi_setup)(struct pnv_phb *, struct pci_dev *, unsigned int, unsigned int, unsigned int, struct msi_msg *);
+	int (*init_m64)(struct pnv_phb *);
+	int (*get_pe_state)(struct pnv_phb *, int);
+	void (*freeze_pe)(struct pnv_phb *, int);
+	int (*unfreeze_pe)(struct pnv_phb *, int, int);
+	struct {
+		unsigned int total_pe_num;
+		unsigned int reserved_pe_idx;
+		unsigned int root_pe_idx;
+		unsigned int m32_size;
+		unsigned int m32_segsize;
+		unsigned int m32_pci_base;
+		unsigned int m64_bar_idx;
+		long unsigned int m64_size;
+		long unsigned int m64_segsize;
+		long unsigned int m64_base;
+		long unsigned int m64_bar_alloc;
+		unsigned int io_size;
+		unsigned int io_segsize;
+		unsigned int io_pci_base;
+		struct mutex pe_alloc_mutex;
+		long unsigned int *pe_alloc;
+		struct pnv_ioda_pe *pe_array;
+		unsigned int *m64_segmap;
+		unsigned int *m32_segmap;
+		unsigned int *io_segmap;
+		unsigned int dma32_count;
+		unsigned int *dma32_segmap;
+		int irq_chip_init;
+		struct irq_chip irq_chip;
+		struct list_head pe_list;
+		struct mutex pe_list_mutex;
+		unsigned int pe_rmap[65536];
+	} ioda;
+	unsigned int diag_data_size;
+	u8 *diag_data;
+};
+
+struct va_format {
+	const char *fmt;
+	va_list *va;
+};
+
+enum OpalMmioWindowType {
+	OPAL_M32_WINDOW_TYPE = 1,
+	OPAL_M64_WINDOW_TYPE = 2,
+	OPAL_IO_WINDOW_TYPE = 3,
+};
+
+enum OpalPciBusCompare {
+	OpalPciBusAny = 0,
+	OpalPciBus3Bits = 2,
+	OpalPciBus4Bits = 3,
+	OpalPciBus5Bits = 4,
+	OpalPciBus6Bits = 5,
+	OpalPciBus7Bits = 6,
+	OpalPciBusAll = 7,
+};
+
+enum OpalDeviceCompare {
+	OPAL_IGNORE_RID_DEVICE_NUMBER = 0,
+	OPAL_COMPARE_RID_DEVICE_NUMBER = 1,
+};
+
+enum OpalFuncCompare {
+	OPAL_IGNORE_RID_FUNCTION_NUMBER = 0,
+	OPAL_COMPARE_RID_FUNCTION_NUMBER = 1,
+};
+
+enum OpalPeAction {
+	OPAL_UNMAP_PE = 0,
+	OPAL_MAP_PE = 1,
+};
+
+enum OpalPeltvAction {
+	OPAL_REMOVE_PE_FROM_DOMAIN = 0,
+	OPAL_ADD_PE_TO_DOMAIN = 1,
+};
+
+enum OpalMveEnableAction {
+	OPAL_DISABLE_MVE = 0,
+	OPAL_ENABLE_MVE = 1,
+};
+
+enum OpalM64Action {
+	OPAL_DISABLE_M64 = 0,
+	OPAL_ENABLE_M64_SPLIT = 1,
+	OPAL_ENABLE_M64_NON_SPLIT = 2,
+};
+
+enum OpalPciResetScope {
+	OPAL_RESET_PHB_COMPLETE = 1,
+	OPAL_RESET_PCI_LINK = 2,
+	OPAL_RESET_PHB_ERROR = 3,
+	OPAL_RESET_PCI_HOT = 4,
+	OPAL_RESET_PCI_FUNDAMENTAL = 5,
+	OPAL_RESET_PCI_IODA_TABLE = 6,
+};
+
+enum OpalPciResetState {
+	OPAL_DEASSERT_RESET = 0,
+	OPAL_ASSERT_RESET = 1,
+};
+
+enum {
+	OPAL_PCI_TCE_KILL_PAGES = 0,
+	OPAL_PCI_TCE_KILL_PE = 1,
+	OPAL_PCI_TCE_KILL_ALL = 2,
+};
+
+struct iommu_table_group_link {
+	struct list_head next;
+	struct callback_head rcu;
+	struct iommu_table_group *table_group;
+};
+
+struct pnv_iov_data {
+	u16 num_vfs;
+	struct pnv_ioda_pe *vf_pe_arr;
+	bool m64_single_mode[6];
+	bool need_shift;
+	long unsigned int used_m64_bar_mask[1];
+	struct resource holes[6];
+};
+
+struct cxl_irq_ranges {
+	irq_hw_number_t offset[4];
+	irq_hw_number_t range[4];
+};
+
+enum OpalPciStatusToken {
+	OPAL_EEH_NO_ERROR = 0,
+	OPAL_EEH_IOC_ERROR = 1,
+	OPAL_EEH_PHB_ERROR = 2,
+	OPAL_EEH_PE_ERROR = 3,
+	OPAL_EEH_PE_MMIO_ERROR = 4,
+	OPAL_EEH_PE_DMA_ERROR = 5,
+};
+
+enum OpalPciErrorSeverity {
+	OPAL_EEH_SEV_NO_ERROR = 0,
+	OPAL_EEH_SEV_IOC_DEAD = 1,
+	OPAL_EEH_SEV_PHB_DEAD = 2,
+	OPAL_EEH_SEV_PHB_FENCED = 3,
+	OPAL_EEH_SEV_PE_ER = 4,
+	OPAL_EEH_SEV_INF = 5,
+};
+
+enum OpalErrinjectType {
+	OPAL_ERR_INJECT_TYPE_IOA_BUS_ERR = 0,
+	OPAL_ERR_INJECT_TYPE_IOA_BUS_ERR64 = 1,
+};
+
+enum OpalErrinjectFunc {
+	OPAL_ERR_INJECT_FUNC_IOA_LD_MEM_ADDR = 0,
+	OPAL_ERR_INJECT_FUNC_IOA_LD_MEM_DATA = 1,
+	OPAL_ERR_INJECT_FUNC_IOA_LD_IO_ADDR = 2,
+	OPAL_ERR_INJECT_FUNC_IOA_LD_IO_DATA = 3,
+	OPAL_ERR_INJECT_FUNC_IOA_LD_CFG_ADDR = 4,
+	OPAL_ERR_INJECT_FUNC_IOA_LD_CFG_DATA = 5,
+	OPAL_ERR_INJECT_FUNC_IOA_ST_MEM_ADDR = 6,
+	OPAL_ERR_INJECT_FUNC_IOA_ST_MEM_DATA = 7,
+	OPAL_ERR_INJECT_FUNC_IOA_ST_IO_ADDR = 8,
+	OPAL_ERR_INJECT_FUNC_IOA_ST_IO_DATA = 9,
+	OPAL_ERR_INJECT_FUNC_IOA_ST_CFG_ADDR = 10,
+	OPAL_ERR_INJECT_FUNC_IOA_ST_CFG_DATA = 11,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_RD_ADDR = 12,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_RD_DATA = 13,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_RD_MASTER = 14,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_RD_TARGET = 15,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_WR_ADDR = 16,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_WR_DATA = 17,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_WR_MASTER = 18,
+	OPAL_ERR_INJECT_FUNC_IOA_DMA_WR_TARGET = 19,
+};
+
+enum OpalPciReinitScope {
+	OPAL_REINIT_PCI_DEV = 1000,
+};
+
+enum {
+	OPAL_P7IOC_DIAG_TYPE_NONE = 0,
+	OPAL_P7IOC_DIAG_TYPE_RGC = 1,
+	OPAL_P7IOC_DIAG_TYPE_BI = 2,
+	OPAL_P7IOC_DIAG_TYPE_CI = 3,
+	OPAL_P7IOC_DIAG_TYPE_MISC = 4,
+	OPAL_P7IOC_DIAG_TYPE_I2C = 5,
+	OPAL_P7IOC_DIAG_TYPE_LAST = 6,
+};
+
+struct OpalIoP7IOCRgcErrorData {
+	__be64 rgcStatus;
+	__be64 rgcLdcp;
+};
+
+struct OpalIoP7IOCBiErrorData {
+	__be64 biLdcp0;
+	__be64 biLdcp1;
+	__be64 biLdcp2;
+	__be64 biFenceStatus;
+	uint8_t biDownbound;
+};
+
+struct OpalIoP7IOCCiErrorData {
+	__be64 ciPortStatus;
+	__be64 ciPortLdcp;
+	uint8_t ciPort;
+};
+
+struct OpalIoP7IOCErrorData {
+	__be16 type;
+	__be64 gemXfir;
+	__be64 gemRfir;
+	__be64 gemRirqfir;
+	__be64 gemMask;
+	__be64 gemRwof;
+	__be64 lemFir;
+	__be64 lemErrMask;
+	__be64 lemAction0;
+	__be64 lemAction1;
+	__be64 lemWof;
+	union {
+		struct OpalIoP7IOCRgcErrorData rgc;
+		struct OpalIoP7IOCBiErrorData bi;
+		struct OpalIoP7IOCCiErrorData ci;
+	};
+};
+
+enum OpalMemErr_Version {
+	OpalMemErr_V1 = 1,
+};
+
+enum OpalMemErrType {
+	OPAL_MEM_ERR_TYPE_RESILIENCE = 0,
+	OPAL_MEM_ERR_TYPE_DYN_DALLOC = 1,
+};
+
+enum OpalMemErr_ResilErrType {
+	OPAL_MEM_RESILIENCE_CE = 0,
+	OPAL_MEM_RESILIENCE_UE = 1,
+	OPAL_MEM_RESILIENCE_UE_SCRUB = 2,
+};
+
+enum OpalMemErr_DynErrType {
+	OPAL_MEM_DYNAMIC_DEALLOC = 0,
+};
+
+struct OpalMemoryErrorData {
+	enum OpalMemErr_Version version: 8;
+	enum OpalMemErrType type: 8;
+	__be16 flags;
+	uint8_t reserved_1[4];
+	union {
+		struct {
+			enum OpalMemErr_ResilErrType resil_err_type: 8;
+			uint8_t reserved_1[7];
+			__be64 physical_address_start;
+			__be64 physical_address_end;
+		} resilience;
+		struct {
+			enum OpalMemErr_DynErrType dyn_err_type: 8;
+			uint8_t reserved_1[7];
+			__be64 physical_address_start;
+			__be64 physical_address_end;
+		} dyn_dealloc;
+	} u;
+};
+
+struct OpalMsgNode {
+	struct list_head list;
+	struct opal_msg msg;
+};
+
+struct platform_driver {
+	int (*probe)(struct platform_device *);
+	int (*remove)(struct platform_device *);
+	void (*shutdown)(struct platform_device *);
+	int (*suspend)(struct platform_device *, pm_message_t);
+	int (*resume)(struct platform_device *);
+	struct device_driver driver;
+	const struct platform_device_id *id_table;
+	bool prevent_deferred_probe;
+	bool driver_managed_dma;
+};
+
+enum {
+	OPAL_IMC_COUNTERS_NEST = 1,
+	OPAL_IMC_COUNTERS_CORE = 2,
+	OPAL_IMC_COUNTERS_TRACE = 3,
+};
+
+struct imc_mem_info {
+	u64 *vbase;
+	u32 id;
+};
+
+struct imc_events {
+	u32 value;
+	char *name;
+	char *unit;
+	char *scale;
+};
+
+struct imc_pmu {
+	struct pmu pmu;
+	struct imc_mem_info *mem_info;
+	struct imc_events *events;
+	const struct attribute_group *attr_groups[4];
+	u32 counter_mem_size;
+	int domain;
+	bool imc_counter_mmaped;
+};
+
+enum {
+	IMC_TYPE_THREAD = 1,
+	IMC_TYPE_TRACE = 2,
+	IMC_TYPE_CORE = 4,
+	IMC_TYPE_CHIP = 16,
+};
+
+enum vas_cop_type {
+	VAS_COP_TYPE_FAULT = 0,
+	VAS_COP_TYPE_842 = 1,
+	VAS_COP_TYPE_842_HIPRI = 2,
+	VAS_COP_TYPE_GZIP = 3,
+	VAS_COP_TYPE_GZIP_HIPRI = 4,
+	VAS_COP_TYPE_FTW = 5,
+	VAS_COP_TYPE_MAX = 6,
+};
+
+struct vas_user_win_ref {
+	struct pid *pid;
+	struct pid *tgid;
+	struct mm_struct *mm;
+	struct mutex mmap_mutex;
+	struct vm_area_struct *vma;
+};
+
+struct vas_window {
+	u32 winid;
+	u32 wcreds_max;
+	u32 status;
+	enum vas_cop_type cop;
+	struct vas_user_win_ref task_ref;
+	char *dbgname;
+	struct dentry *dbgdir;
+};
+
+struct pnv_vas_window;
+
+struct vas_instance {
+	int vas_id;
+	struct ida ida;
+	struct list_head node;
+	struct platform_device *pdev;
+	u64 hvwc_bar_start;
+	u64 uwc_bar_start;
+	u64 paste_base_addr;
+	u64 paste_win_id_shift;
+	u64 irq_port;
+	int virq;
+	int fault_crbs;
+	int fault_fifo_size;
+	int fifo_in_progress;
+	spinlock_t fault_lock;
+	void *fault_fifo;
+	struct pnv_vas_window *fault_win;
+	struct mutex mutex;
+	struct pnv_vas_window *rxwin[6];
+	struct pnv_vas_window *windows[65536];
+	char *name;
+	char *dbgname;
+	struct dentry *dbgdir;
+};
+
+struct pnv_vas_window {
+	struct vas_window vas_win;
+	struct vas_instance *vinst;
+	bool tx_win;
+	bool nx_win;
+	bool user_win;
+	void *hvwc_map;
+	void *uwc_map;
+	void *paste_kaddr;
+	char *paste_addr_name;
+	struct pnv_vas_window *rxwin;
+	atomic_t num_txwins;
+};
+
+struct vas_user_win_ops {
+	struct vas_window * (*open_win)(int, u64, enum vas_cop_type);
+	u64 (*paste_addr)(struct vas_window *);
+	int (*close_win)(struct vas_window *);
+};
+
+struct vas_rx_win_attr {
+	void *rx_fifo;
+	int rx_fifo_size;
+	int wcreds_max;
+	bool pin_win;
+	bool rej_no_credit;
+	bool tx_wcred_mode;
+	bool rx_wcred_mode;
+	bool tx_win_ord_mode;
+	bool rx_win_ord_mode;
+	bool data_stamp;
+	bool nx_win;
+	bool fault_win;
+	bool user_win;
+	bool notify_disable;
+	bool intr_disable;
+	bool notify_early;
+	int lnotify_lpid;
+	int lnotify_pid;
+	int lnotify_tid;
+	u32 pswid;
+	int tc_mode;
+};
+
+struct vas_tx_win_attr {
+	enum vas_cop_type cop;
+	int wcreds_max;
+	int lpid;
+	int pidr;
+	int pswid;
+	int rsvd_txbuf_count;
+	int tc_mode;
+	bool user_win;
+	bool pin_win;
+	bool rej_no_credit;
+	bool rsvd_txbuf_enable;
+	bool tx_wcred_mode;
+	bool rx_wcred_mode;
+	bool tx_win_ord_mode;
+	bool rx_win_ord_mode;
+};
+
+enum vas_notify_scope {
+	VAS_SCOPE_LOCAL = 0,
+	VAS_SCOPE_GROUP = 1,
+	VAS_SCOPE_VECTORED_GROUP = 2,
+	VAS_SCOPE_UNUSED = 3,
+};
+
+enum vas_dma_type {
+	VAS_DMA_TYPE_INJECT = 0,
+	VAS_DMA_TYPE_WRITE = 1,
+};
+
+enum vas_notify_after_count {
+	VAS_NOTIFY_AFTER_256 = 0,
+	VAS_NOTIFY_NONE = 1,
+	VAS_NOTIFY_AFTER_2 = 2,
+};
+
+struct vas_winctx {
+	void *rx_fifo;
+	int rx_fifo_size;
+	int wcreds_max;
+	int rsvd_txbuf_count;
+	bool user_win;
+	bool nx_win;
+	bool fault_win;
+	bool rsvd_txbuf_enable;
+	bool pin_win;
+	bool rej_no_credit;
+	bool tx_wcred_mode;
+	bool rx_wcred_mode;
+	bool tx_word_mode;
+	bool rx_word_mode;
+	bool data_stamp;
+	bool xtra_write;
+	bool notify_disable;
+	bool intr_disable;
+	bool fifo_disable;
+	bool notify_early;
+	bool notify_os_intr_reg;
+	int lpid;
+	int pidr;
+	int lnotify_lpid;
+	int lnotify_pid;
+	int lnotify_tid;
+	u32 pswid;
+	int rx_win_id;
+	int fault_win_id;
+	int tc_mode;
+	u64 irq_port;
+	enum vas_dma_type dma_type;
+	enum vas_notify_scope min_scope;
+	enum vas_notify_scope max_scope;
+	enum vas_notify_after_count notify_after_count;
+};
+
+struct trace_event_raw_vas_rx_win_open {
+	struct trace_entry ent;
+	struct task_struct *tsk;
+	int pid;
+	int cop;
+	int vasid;
+	struct vas_rx_win_attr *rxattr;
+	int lnotify_lpid;
+	int lnotify_pid;
+	int lnotify_tid;
+	char __data[0];
+};
+
+struct trace_event_raw_vas_tx_win_open {
+	struct trace_entry ent;
+	struct task_struct *tsk;
+	int pid;
+	int cop;
+	int vasid;
+	struct vas_tx_win_attr *txattr;
+	int lpid;
+	int pidr;
+	char __data[0];
+};
+
+struct trace_event_raw_vas_paste_crb {
+	struct trace_entry ent;
+	struct task_struct *tsk;
+	struct vas_window *win;
+	int pid;
+	int vasid;
+	int winid;
+	long unsigned int paste_kaddr;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_vas_rx_win_open {};
+
+struct trace_event_data_offsets_vas_tx_win_open {};
+
+struct trace_event_data_offsets_vas_paste_crb {};
+
+typedef void (*btf_trace_vas_rx_win_open)(void *, struct task_struct *, int, int, struct vas_rx_win_attr *);
+
+typedef void (*btf_trace_vas_tx_win_open)(void *, struct task_struct *, int, int, struct vas_tx_win_attr *);
+
+typedef void (*btf_trace_vas_paste_crb)(void *, struct task_struct *, struct pnv_vas_window *);
+
+struct coprocessor_completion_block {
+	__be64 value;
+	__be64 address;
+};
+
+struct coprocessor_status_block {
+	u8 flags;
+	u8 cs;
+	u8 cc;
+	u8 ce;
+	__be32 count;
+	__be64 address;
+};
+
+struct data_descriptor_entry {
+	__be16 flags;
+	u8 count;
+	u8 index;
+	__be32 length;
+	__be64 address;
+};
+
+struct nx_fault_stamp {
+	__be64 fault_storage_addr;
+	__be16 reserved;
+	__u8 flags;
+	__u8 fault_status;
+	__be32 pswid;
+};
+
+struct coprocessor_request_block {
+	__be32 ccw;
+	__be32 flags;
+	__be64 csb_addr;
+	struct data_descriptor_entry source;
+	struct data_descriptor_entry target;
+	struct coprocessor_completion_block ccb;
+	union {
+		struct nx_fault_stamp nx;
+		u8 reserved[16];
+	} stamp;
+	u8 reserved[32];
+	struct coprocessor_status_block csb;
+};
+
+struct actag_range {
+	u16 start;
+	u16 count;
+};
+
+struct npu_link {
+	struct list_head list;
+	int domain;
+	int bus;
+	int dev;
+	u16 fn_desired_actags[8];
+	struct actag_range fn_actags[8];
+	bool assignment_done;
+};
+
+struct spa_data {
+	u64 phb_opal_id;
+	u32 bdfn;
+};
+
+struct debugfs_blob_wrapper {
+	void *data;
+	long unsigned int size;
+};
+
+struct scom_debug_entry {
+	u32 chip;
+	struct debugfs_blob_wrapper path;
+	char name[16];
+};
+
+struct hvcall_mpp_data {
+	long unsigned int entitled_mem;
+	long unsigned int mapped_mem;
+	short unsigned int group_num;
+	short unsigned int pool_num;
+	unsigned char mem_weight;
+	unsigned char unallocated_mem_weight;
+	long unsigned int unallocated_entitlement;
+	long unsigned int pool_size;
+	long int loan_request;
+	long unsigned int backing_mem;
+};
+
+struct hvcall_mpp_x_data {
+	long unsigned int coalesced_bytes;
+	long unsigned int pool_coalesced_bytes;
+	long unsigned int pool_purr_cycles;
+	long unsigned int pool_spurr_cycles;
+	long unsigned int reserved[3];
+};
+
+struct dtl_entry {
+	u8 dispatch_reason;
+	u8 preempt_reason;
+	__be16 processor_id;
+	__be32 enqueue_to_dispatch_time;
+	__be32 ready_to_enqueue_time;
+	__be32 waiting_to_ready_time;
+	__be64 timebase;
+	__be64 fault_addr;
+	__be64 srr0;
+	__be64 srr1;
+};
+
+struct dtl_worker {
+	struct delayed_work work;
+	int cpu;
+};
+
+struct vcpu_dispatch_data {
+	int last_disp_cpu;
+	int total_disp;
+	int same_cpu_disp;
+	int same_chip_disp;
+	int diff_chip_disp;
+	int far_chip_disp;
+	int numa_home_disp;
+	int numa_remote_disp;
+	int numa_far_disp;
+};
+
+struct hpt_resize_state {
+	long unsigned int shift;
+	int commit_rc;
+};
+
+struct of_drc_info {
+	char *drc_type;
+	char *drc_name_prefix;
+	u32 drc_index_start;
+	u32 drc_name_suffix_start;
+	u32 num_sequential_elems;
+	u32 sequential_inc;
+	u32 drc_power_domain;
+	u32 last_drc_index;
+};
+
+struct h_cpu_char_result {
+	u64 character;
+	u64 behaviour;
+};
+
+struct of_reconfig_data {
+	struct device_node *dn;
+	struct property *prop;
+	struct property *old_prop;
+};
+
+enum rtas_iov_fw_value_map {
+	NUM_RES_PROPERTY = 0,
+	LOW_INT = 1,
+	START_OF_ENTRIES = 2,
+	APERTURE_PROPERTY = 2,
+	WDW_SIZE_PROPERTY = 4,
+	NEXT_ENTRY = 7,
+};
+
+enum get_iov_fw_value_index {
+	BAR_ADDRS = 1,
+	APERTURE_SIZE = 2,
+	WDW_SIZE = 3,
+};
+
+struct memory_notify {
+	long unsigned int start_pfn;
+	long unsigned int nr_pages;
+	int status_change_nid_normal;
+	int status_change_nid;
+};
+
+enum {
+	DDW_QUERY_PE_DMA_WIN = 0,
+	DDW_CREATE_PE_DMA_WIN = 1,
+	DDW_REMOVE_PE_DMA_WIN = 2,
+	DDW_APPLICABLE_SIZE = 3,
+};
+
+enum {
+	DDW_EXT_SIZE = 0,
+	DDW_EXT_RESET_DMA_WIN = 1,
+	DDW_EXT_QUERY_OUT_SIZE = 2,
+};
+
+struct dynamic_dma_window_prop {
+	__be32 liobn;
+	__be64 dma_base;
+	__be32 tce_shift;
+	__be32 window_shift;
+};
+
+struct direct_window {
+	struct device_node *device;
+	const struct dynamic_dma_window_prop *prop;
+	struct list_head list;
+};
+
+struct ddw_query_response {
+	u32 windows_available;
+	u64 largest_available_block;
+	u32 page_size;
+	u32 migration_capable;
+};
+
+struct ddw_create_response {
+	u32 liobn;
+	u32 addr_hi;
+	u32 addr_lo;
+};
+
+struct failed_ddw_pdn {
+	struct device_node *pdn;
+	struct list_head list;
+};
+
+struct pseries_hp_errorlog {
+	u8 resource;
+	u8 action;
+	u8 id_type;
+	u8 reserved;
+	union {
+		__be32 drc_index;
+		__be32 drc_count;
+		struct {
+			__be32 count;
+			__be32 index;
+		} ic;
+		char drc_name[1];
+	} _drc_u;
+};
+
+struct pseries_mc_errorlog {
+	__be32 fru_id;
+	__be32 proc_id;
+	u8 error_type;
+	u8 sub_err_type;
+	u8 reserved_1[6];
+	__be64 effective_address;
+	__be64 logical_address;
+};
+
+struct epow_errorlog {
+	unsigned char sensor_value;
+	unsigned char event_modifier;
+	unsigned char extended_modifier;
+	unsigned char reserved;
+	unsigned char platform_reason;
+};
+
+struct hypertas_fw_feature {
+	long unsigned int val;
+	char *name;
+};
+
+struct vec5_fw_feature {
+	long unsigned int val;
+	unsigned int feature;
+};
+
+enum {
+	WQ_UNBOUND = 2,
+	WQ_FREEZABLE = 4,
+	WQ_MEM_RECLAIM = 8,
+	WQ_HIGHPRI = 16,
+	WQ_CPU_INTENSIVE = 32,
+	WQ_SYSFS = 64,
+	WQ_POWER_EFFICIENT = 128,
+	__WQ_DRAINING = 65536,
+	__WQ_ORDERED = 131072,
+	__WQ_LEGACY = 262144,
+	__WQ_ORDERED_EXPLICIT = 524288,
+	WQ_MAX_ACTIVE = 512,
+	WQ_MAX_UNBOUND_PER_CPU = 4,
+	WQ_DFL_ACTIVE = 256,
+};
+
+struct class_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct class *, struct class_attribute *, char *);
+	ssize_t (*store)(struct class *, struct class_attribute *, const char *, size_t);
+};
+
+struct pseries_hp_work {
+	struct work_struct work;
+	struct pseries_hp_errorlog *errlog;
+};
+
+struct cc_workarea {
+	__be32 drc_index;
+	__be32 zero;
+	__be32 name_offset;
+	__be32 prop_length;
+	__be32 prop_offset;
+};
+
+struct class_attribute_string {
+	struct class_attribute attr;
+	char *str;
+};
+
+enum vas_migrate_action {
+	VAS_SUSPEND = 0,
+	VAS_RESUME = 1,
+};
+
+struct update_props_workarea {
+	__be32 phandle;
+	__be32 state;
+	__be64 reserved;
+	__be32 nprops;
+} __attribute__((packed));
+
+struct pseries_suspend_info {
+	atomic_t counter;
+	bool done;
+};
+
+enum vasi_aborting_entity {
+	ORCHESTRATOR = 1,
+	VSP_SOURCE = 2,
+	PARTITION_FIRMWARE = 3,
+	PLATFORM_FIRMWARE = 4,
+	VSP_TARGET = 5,
+	MIGRATING_PARTITION = 6,
+};
+
+enum pci_bus_speed {
+	PCI_SPEED_33MHz = 0,
+	PCI_SPEED_66MHz = 1,
+	PCI_SPEED_66MHz_PCIX = 2,
+	PCI_SPEED_100MHz_PCIX = 3,
+	PCI_SPEED_133MHz_PCIX = 4,
+	PCI_SPEED_66MHz_PCIX_ECC = 5,
+	PCI_SPEED_100MHz_PCIX_ECC = 6,
+	PCI_SPEED_133MHz_PCIX_ECC = 7,
+	PCI_SPEED_66MHz_PCIX_266 = 9,
+	PCI_SPEED_100MHz_PCIX_266 = 10,
+	PCI_SPEED_133MHz_PCIX_266 = 11,
+	AGP_UNKNOWN = 12,
+	AGP_1X = 13,
+	AGP_2X = 14,
+	AGP_4X = 15,
+	AGP_8X = 16,
+	PCI_SPEED_66MHz_PCIX_533 = 17,
+	PCI_SPEED_100MHz_PCIX_533 = 18,
+	PCI_SPEED_133MHz_PCIX_533 = 19,
+	PCIE_SPEED_2_5GT = 20,
+	PCIE_SPEED_5_0GT = 21,
+	PCIE_SPEED_8_0GT = 22,
+	PCIE_SPEED_16_0GT = 23,
+	PCIE_SPEED_32_0GT = 24,
+	PCIE_SPEED_64_0GT = 25,
+	PCI_SPEED_UNKNOWN = 255,
+};
+
+struct pe_map_bar_entry {
+	__be64 bar;
+	__be16 rid;
+	__be16 pe_num;
+	__be32 reserved;
+};
+
+struct msi_counts {
+	struct device_node *requestor;
+	int num_devices;
+	int request;
+	int quota;
+	int spare;
+	int over_quota;
+};
+
+struct energy_scale_attribute {
+	__be64 id;
+	__be64 val;
+	u8 desc[64];
+	u8 value_desc[64];
+};
+
+struct h_energy_scale_info_hdr {
+	__be64 num_attrs;
+	__be64 array_offset;
+	u8 data_header_version;
+} __attribute__((packed));
+
+struct papr_attr {
+	u64 id;
+	struct kobj_attribute kobj_attr;
+};
+
+struct papr_group {
+	struct attribute_group pg;
+	struct papr_attr pgattrs[3];
+};
+
+struct papr_ops_info {
+	const char *attr_name;
+	ssize_t (*show)(struct kobject *, struct kobj_attribute *, char *);
+};
+
+typedef int mhp_t;
+
+struct memory_group {
+	int nid;
+	struct list_head memory_blocks;
+	long unsigned int present_kernel_pages;
+	long unsigned int present_movable_pages;
+	bool is_dynamic;
+	union {
+		struct {
+			long unsigned int max_pages;
+		} s;
+		struct {
+			long unsigned int unit_pages;
+		} d;
+	};
+};
+
+struct memory_block {
+	long unsigned int start_section_nr;
+	long unsigned int state;
+	int online_type;
+	int nid;
+	struct zone *zone;
+	struct device dev;
+	long unsigned int nr_vmemmap_pages;
+	struct memory_group *group;
+	struct list_head group_next;
+};
+
+struct module_version_attribute {
+	struct module_attribute mattr;
+	const char *module_name;
+	const char *version;
+};
+
+struct dev_ext_attribute {
+	struct device_attribute attr;
+	void *var;
+};
+
+struct pseudo_fs_context {
+	const struct super_operations *ops;
+	const struct xattr_handler **xattr;
+	const struct dentry_operations *dops;
+	long unsigned int magic;
+};
+
+struct balloon_dev_info {
+	long unsigned int isolated_pages;
+	spinlock_t pages_lock;
+	struct list_head pages;
+	int (*migratepage)(struct balloon_dev_info *, struct page *, struct page *, enum migrate_mode);
+	struct inode *inode;
+};
+
+struct dtl {
+	struct dtl_entry *buf;
+	int cpu;
+	int buf_entries;
+	u64 last_idx;
+	spinlock_t lock;
+};
+
+struct pseries_io_event {
+	uint8_t event_type;
+	uint8_t rpc_data_len;
+	uint8_t scope;
+	uint8_t event_subtype;
+	uint32_t drc_index;
+	uint8_t rpc_data[216];
+};
+
+struct hv_get_perf_counter_info_params {
+	__be32 counter_request;
+	__be32 starting_index;
+	__be16 secondary_index;
+	__be16 returned_values;
+	__be32 detail_rc;
+	__be16 cv_element_size;
+	__u8 counter_info_version_in;
+	__u8 counter_info_version_out;
+	__u8 reserved[12];
+	__u8 counter_value[0];
+};
+
+struct hv_gpci_request_buffer {
+	struct hv_get_perf_counter_info_params params;
+	uint8_t bytes[4064];
+};
+
+struct hvcall_ppp_data {
+	u64 entitlement;
+	u64 unallocated_entitlement;
+	u16 group_num;
+	u16 pool_num;
+	u8 capped;
+	u8 weight;
+	u8 unallocated_weight;
+	u16 active_procs_in_pool;
+	u16 active_system_procs;
+	u16 phys_platform_procs;
+	u32 max_proc_cap_avail;
+	u32 entitled_proc_cap_avail;
+};
+
+struct bus_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct bus_type *, char *);
+	ssize_t (*store)(struct bus_type *, const char *, size_t);
+};
+
+struct vio_device_id {
+	char type[32];
+	char compat[32];
+};
+
+struct vio_pfo_op {
+	u64 flags;
+	s64 in;
+	s64 inlen;
+	s64 out;
+	s64 outlen;
+	u64 csbcpb;
+	void *done;
+	long unsigned int handle;
+	unsigned int timeout;
+	long int hcall_err;
+};
+
+enum vio_dev_family {
+	VDEVICE = 0,
+	PFO = 1,
+};
+
+struct vio_dev {
+	const char *name;
+	const char *type;
+	uint32_t unit_address;
+	uint32_t resource_id;
+	unsigned int irq;
+	struct {
+		size_t desired;
+		size_t entitled;
+		size_t allocated;
+		atomic_t allocs_failed;
+	} cmo;
+	enum vio_dev_family family;
+	struct device dev;
+};
+
+struct vio_driver {
+	const char *name;
+	const struct vio_device_id *id_table;
+	int (*probe)(struct vio_dev *, const struct vio_device_id *);
+	void (*remove)(struct vio_dev *);
+	void (*shutdown)(struct vio_dev *);
+	long unsigned int (*get_desired_dma)(struct vio_dev *);
+	const struct dev_pm_ops *pm;
+	struct device_driver driver;
+};
