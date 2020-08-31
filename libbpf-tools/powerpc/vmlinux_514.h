@@ -20154,3 +20154,2072 @@ struct vio_driver {
 	const struct dev_pm_ops *pm;
 	struct device_driver driver;
 };
+
+struct vio_cmo_pool {
+	size_t size;
+	size_t free;
+};
+
+struct vio_cmo_dev_entry {
+	struct vio_dev *viodev;
+	struct list_head list;
+};
+
+struct vio_cmo {
+	spinlock_t lock;
+	struct delayed_work balance_q;
+	struct list_head device_list;
+	size_t entitled;
+	struct vio_cmo_pool reserve;
+	struct vio_cmo_pool excess;
+	size_t spare;
+	size_t min;
+	size_t desired;
+	size_t curr;
+	size_t high;
+};
+
+enum cc_attr {
+	CC_ATTR_MEM_ENCRYPT = 0,
+	CC_ATTR_HOST_MEM_ENCRYPT = 1,
+	CC_ATTR_GUEST_MEM_ENCRYPT = 2,
+	CC_ATTR_GUEST_STATE_ENCRYPT = 3,
+	CC_ATTR_GUEST_UNROLL_STRING_IO = 4,
+	CC_ATTR_GUEST_SEV_SNP = 5,
+};
+
+struct rtas_fadump_section {
+	__be32 request_flag;
+	__be16 source_data_type;
+	__be16 error_flags;
+	__be64 source_address;
+	__be64 source_len;
+	__be64 bytes_dumped;
+	__be64 destination_address;
+};
+
+struct rtas_fadump_section_header {
+	__be32 dump_format_version;
+	__be16 dump_num_sections;
+	__be16 dump_status_flag;
+	__be32 offset_first_dump_section;
+	__be32 dd_block_size;
+	__be64 dd_block_offset;
+	__be64 dd_num_blocks;
+	__be32 dd_offset_disk_path;
+	__be32 max_time_auto;
+};
+
+struct rtas_fadump_mem_struct {
+	struct rtas_fadump_section_header header;
+	struct rtas_fadump_section cpu_state_data;
+	struct rtas_fadump_section hpte_region;
+	struct rtas_fadump_section rmr_region;
+};
+
+struct rtas_fadump_reg_save_area_header {
+	__be64 magic_number;
+	__be32 version;
+	__be32 num_cpu_offset;
+};
+
+struct rtas_fadump_reg_entry {
+	__be64 reg_id;
+	__be64 reg_value;
+};
+
+typedef int suspend_state_t;
+
+struct platform_suspend_ops {
+	int (*valid)(suspend_state_t);
+	int (*begin)(suspend_state_t);
+	int (*prepare)();
+	int (*prepare_late)();
+	int (*enter)(suspend_state_t);
+	void (*wake)();
+	void (*finish)();
+	bool (*suspend_again)();
+	void (*end)();
+	void (*recover)();
+};
+
+struct hv_vas_all_caps {
+	__be64 descriptor;
+	__be64 feat_type;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct vas_all_caps {
+	u64 descriptor;
+	u64 feat_type;
+};
+
+enum vas_cop_feat_type {
+	VAS_GZIP_QOS_FEAT_TYPE = 0,
+	VAS_GZIP_DEF_FEAT_TYPE = 1,
+	VAS_MAX_FEAT_TYPE = 2,
+};
+
+struct hv_vas_cop_feat_caps {
+	__be64 descriptor;
+	u8 win_type;
+	u8 user_mode;
+	__be16 max_lpar_creds;
+	__be16 max_win_creds;
+	union {
+		__be16 reserved;
+		__be16 def_lpar_creds;
+	};
+	__be16 target_lpar_creds;
+	long: 48;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct vas_cop_feat_caps {
+	u64 descriptor;
+	u8 win_type;
+	u8 user_mode;
+	u16 max_lpar_creds;
+	u16 max_win_creds;
+	union {
+		u16 reserved;
+		u16 def_lpar_creds;
+	};
+	atomic_t nr_total_credits;
+	atomic_t nr_used_credits;
+};
+
+struct vas_caps {
+	struct vas_cop_feat_caps caps;
+	struct list_head list;
+	int nr_close_wins;
+	int nr_open_windows;
+	u8 feat;
+};
+
+struct pseries_vas_window {
+	struct vas_window vas_win;
+	u64 win_addr;
+	u8 win_type;
+	u32 complete_irq;
+	u32 fault_irq;
+	u64 domain[6];
+	u64 util;
+	u32 pid;
+	struct list_head win_list;
+	u64 flags;
+	char *name;
+	int fault_virq;
+};
+
+struct miscdevice {
+	int minor;
+	const char *name;
+	const struct file_operations *fops;
+	struct list_head list;
+	struct device *parent;
+	struct device *this_device;
+	const struct attribute_group **groups;
+	const char *nodename;
+	umode_t mode;
+};
+
+struct vas_caps_entry {
+	struct kobject kobj;
+	struct vas_cop_feat_caps *caps;
+};
+
+struct vas_sysfs_entry {
+	struct attribute attr;
+	ssize_t (*show)(struct vas_cop_feat_caps *, char *);
+	ssize_t (*store)(struct vas_cop_feat_caps *, const char *, size_t);
+};
+
+struct vas_tx_win_open_attr {
+	__u32 version;
+	__s16 vas_id;
+	__u16 reserved1;
+	__u64 flags;
+	__u64 reserved2[6];
+};
+
+struct coproc_dev {
+	struct cdev cdev;
+	struct device *device;
+	char *name;
+	dev_t devt;
+	struct class *class;
+	enum vas_cop_type cop_type;
+	const struct vas_user_win_ops *vops;
+};
+
+struct coproc_instance {
+	struct coproc_dev *coproc;
+	struct vas_window *txwin;
+};
+
+enum {
+	DUMP_PREFIX_NONE = 0,
+	DUMP_PREFIX_ADDRESS = 1,
+	DUMP_PREFIX_OFFSET = 2,
+};
+
+struct bpf_run_ctx {};
+
+struct bpf_cgroup_storage;
+
+struct bpf_prog_array_item {
+	struct bpf_prog *prog;
+	union {
+		struct bpf_cgroup_storage *cgroup_storage[2];
+		u64 bpf_cookie;
+	};
+};
+
+struct bpf_prog_array {
+	struct callback_head rcu;
+	struct bpf_prog_array_item items[0];
+};
+
+enum bpf_prog_type {
+	BPF_PROG_TYPE_UNSPEC = 0,
+	BPF_PROG_TYPE_SOCKET_FILTER = 1,
+	BPF_PROG_TYPE_KPROBE = 2,
+	BPF_PROG_TYPE_SCHED_CLS = 3,
+	BPF_PROG_TYPE_SCHED_ACT = 4,
+	BPF_PROG_TYPE_TRACEPOINT = 5,
+	BPF_PROG_TYPE_XDP = 6,
+	BPF_PROG_TYPE_PERF_EVENT = 7,
+	BPF_PROG_TYPE_CGROUP_SKB = 8,
+	BPF_PROG_TYPE_CGROUP_SOCK = 9,
+	BPF_PROG_TYPE_LWT_IN = 10,
+	BPF_PROG_TYPE_LWT_OUT = 11,
+	BPF_PROG_TYPE_LWT_XMIT = 12,
+	BPF_PROG_TYPE_SOCK_OPS = 13,
+	BPF_PROG_TYPE_SK_SKB = 14,
+	BPF_PROG_TYPE_CGROUP_DEVICE = 15,
+	BPF_PROG_TYPE_SK_MSG = 16,
+	BPF_PROG_TYPE_RAW_TRACEPOINT = 17,
+	BPF_PROG_TYPE_CGROUP_SOCK_ADDR = 18,
+	BPF_PROG_TYPE_LWT_SEG6LOCAL = 19,
+	BPF_PROG_TYPE_LIRC_MODE2 = 20,
+	BPF_PROG_TYPE_SK_REUSEPORT = 21,
+	BPF_PROG_TYPE_FLOW_DISSECTOR = 22,
+	BPF_PROG_TYPE_CGROUP_SYSCTL = 23,
+	BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE = 24,
+	BPF_PROG_TYPE_CGROUP_SOCKOPT = 25,
+	BPF_PROG_TYPE_TRACING = 26,
+	BPF_PROG_TYPE_STRUCT_OPS = 27,
+	BPF_PROG_TYPE_EXT = 28,
+	BPF_PROG_TYPE_LSM = 29,
+	BPF_PROG_TYPE_SK_LOOKUP = 30,
+	BPF_PROG_TYPE_SYSCALL = 31,
+};
+
+enum bpf_attach_type {
+	BPF_CGROUP_INET_INGRESS = 0,
+	BPF_CGROUP_INET_EGRESS = 1,
+	BPF_CGROUP_INET_SOCK_CREATE = 2,
+	BPF_CGROUP_SOCK_OPS = 3,
+	BPF_SK_SKB_STREAM_PARSER = 4,
+	BPF_SK_SKB_STREAM_VERDICT = 5,
+	BPF_CGROUP_DEVICE = 6,
+	BPF_SK_MSG_VERDICT = 7,
+	BPF_CGROUP_INET4_BIND = 8,
+	BPF_CGROUP_INET6_BIND = 9,
+	BPF_CGROUP_INET4_CONNECT = 10,
+	BPF_CGROUP_INET6_CONNECT = 11,
+	BPF_CGROUP_INET4_POST_BIND = 12,
+	BPF_CGROUP_INET6_POST_BIND = 13,
+	BPF_CGROUP_UDP4_SENDMSG = 14,
+	BPF_CGROUP_UDP6_SENDMSG = 15,
+	BPF_LIRC_MODE2 = 16,
+	BPF_FLOW_DISSECTOR = 17,
+	BPF_CGROUP_SYSCTL = 18,
+	BPF_CGROUP_UDP4_RECVMSG = 19,
+	BPF_CGROUP_UDP6_RECVMSG = 20,
+	BPF_CGROUP_GETSOCKOPT = 21,
+	BPF_CGROUP_SETSOCKOPT = 22,
+	BPF_TRACE_RAW_TP = 23,
+	BPF_TRACE_FENTRY = 24,
+	BPF_TRACE_FEXIT = 25,
+	BPF_MODIFY_RETURN = 26,
+	BPF_LSM_MAC = 27,
+	BPF_TRACE_ITER = 28,
+	BPF_CGROUP_INET4_GETPEERNAME = 29,
+	BPF_CGROUP_INET6_GETPEERNAME = 30,
+	BPF_CGROUP_INET4_GETSOCKNAME = 31,
+	BPF_CGROUP_INET6_GETSOCKNAME = 32,
+	BPF_XDP_DEVMAP = 33,
+	BPF_CGROUP_INET_SOCK_RELEASE = 34,
+	BPF_XDP_CPUMAP = 35,
+	BPF_SK_LOOKUP = 36,
+	BPF_XDP = 37,
+	BPF_SK_SKB_VERDICT = 38,
+	BPF_SK_REUSEPORT_SELECT = 39,
+	BPF_SK_REUSEPORT_SELECT_OR_MIGRATE = 40,
+	BPF_PERF_EVENT = 41,
+	__MAX_BPF_ATTACH_TYPE = 42,
+};
+
+struct sock_filter {
+	__u16 code;
+	__u8 jt;
+	__u8 jf;
+	__u32 k;
+};
+
+struct bpf_insn {
+	__u8 code;
+	__u8 dst_reg: 4;
+	__u8 src_reg: 4;
+	__s16 off;
+	__s32 imm;
+};
+
+struct bpf_prog_stats;
+
+struct bpf_prog_aux;
+
+struct sock_fprog_kern;
+
+struct bpf_prog {
+	u16 pages;
+	u16 jited: 1;
+	u16 jit_requested: 1;
+	u16 gpl_compatible: 1;
+	u16 cb_access: 1;
+	u16 dst_needed: 1;
+	u16 blinded: 1;
+	u16 is_func: 1;
+	u16 kprobe_override: 1;
+	u16 has_callchain_buf: 1;
+	u16 enforce_expected_attach_type: 1;
+	u16 call_get_stack: 1;
+	u16 call_get_func_ip: 1;
+	enum bpf_prog_type type;
+	enum bpf_attach_type expected_attach_type;
+	u32 len;
+	u32 jited_len;
+	u8 tag[8];
+	struct bpf_prog_stats *stats;
+	int *active;
+	unsigned int (*bpf_func)(const void *, const struct bpf_insn *);
+	struct bpf_prog_aux *aux;
+	struct sock_fprog_kern *orig_prog;
+	struct sock_filter insns[0];
+	struct bpf_insn insnsi[0];
+};
+
+struct tc_stats {
+	__u64 bytes;
+	__u32 packets;
+	__u32 drops;
+	__u32 overlimits;
+	__u32 bps;
+	__u32 pps;
+	__u32 qlen;
+	__u32 backlog;
+};
+
+struct tc_sizespec {
+	unsigned char cell_log;
+	unsigned char size_log;
+	short int cell_align;
+	int overhead;
+	unsigned int linklayer;
+	unsigned int mpu;
+	unsigned int mtu;
+	unsigned int tsize;
+};
+
+struct net_rate_estimator;
+
+struct qdisc_skb_head {
+	struct sk_buff *head;
+	struct sk_buff *tail;
+	__u32 qlen;
+	spinlock_t lock;
+};
+
+struct gnet_stats_basic_sync {
+	u64_stats_t bytes;
+	u64_stats_t packets;
+	struct u64_stats_sync syncp;
+};
+
+struct gnet_stats_queue {
+	__u32 qlen;
+	__u32 backlog;
+	__u32 drops;
+	__u32 requeues;
+	__u32 overlimits;
+};
+
+struct Qdisc_ops;
+
+struct qdisc_size_table;
+
+struct Qdisc {
+	int (*enqueue)(struct sk_buff *, struct Qdisc *, struct sk_buff **);
+	struct sk_buff * (*dequeue)(struct Qdisc *);
+	unsigned int flags;
+	u32 limit;
+	const struct Qdisc_ops *ops;
+	struct qdisc_size_table *stab;
+	struct hlist_node hash;
+	u32 handle;
+	u32 parent;
+	struct netdev_queue *dev_queue;
+	struct net_rate_estimator *rate_est;
+	struct gnet_stats_basic_sync *cpu_bstats;
+	struct gnet_stats_queue *cpu_qstats;
+	int pad;
+	refcount_t refcnt;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct sk_buff_head gso_skb;
+	struct qdisc_skb_head q;
+	struct gnet_stats_basic_sync bstats;
+	struct gnet_stats_queue qstats;
+	long unsigned int state;
+	long unsigned int state2;
+	struct Qdisc *next_sched;
+	struct sk_buff_head skb_bad_txq;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t busylock;
+	spinlock_t seqlock;
+	struct callback_head rcu;
+	netdevice_tracker dev_tracker;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long int privdata[0];
+};
+
+enum bpf_map_type {
+	BPF_MAP_TYPE_UNSPEC = 0,
+	BPF_MAP_TYPE_HASH = 1,
+	BPF_MAP_TYPE_ARRAY = 2,
+	BPF_MAP_TYPE_PROG_ARRAY = 3,
+	BPF_MAP_TYPE_PERF_EVENT_ARRAY = 4,
+	BPF_MAP_TYPE_PERCPU_HASH = 5,
+	BPF_MAP_TYPE_PERCPU_ARRAY = 6,
+	BPF_MAP_TYPE_STACK_TRACE = 7,
+	BPF_MAP_TYPE_CGROUP_ARRAY = 8,
+	BPF_MAP_TYPE_LRU_HASH = 9,
+	BPF_MAP_TYPE_LRU_PERCPU_HASH = 10,
+	BPF_MAP_TYPE_LPM_TRIE = 11,
+	BPF_MAP_TYPE_ARRAY_OF_MAPS = 12,
+	BPF_MAP_TYPE_HASH_OF_MAPS = 13,
+	BPF_MAP_TYPE_DEVMAP = 14,
+	BPF_MAP_TYPE_SOCKMAP = 15,
+	BPF_MAP_TYPE_CPUMAP = 16,
+	BPF_MAP_TYPE_XSKMAP = 17,
+	BPF_MAP_TYPE_SOCKHASH = 18,
+	BPF_MAP_TYPE_CGROUP_STORAGE = 19,
+	BPF_MAP_TYPE_REUSEPORT_SOCKARRAY = 20,
+	BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE = 21,
+	BPF_MAP_TYPE_QUEUE = 22,
+	BPF_MAP_TYPE_STACK = 23,
+	BPF_MAP_TYPE_SK_STORAGE = 24,
+	BPF_MAP_TYPE_DEVMAP_HASH = 25,
+	BPF_MAP_TYPE_STRUCT_OPS = 26,
+	BPF_MAP_TYPE_RINGBUF = 27,
+	BPF_MAP_TYPE_INODE_STORAGE = 28,
+	BPF_MAP_TYPE_TASK_STORAGE = 29,
+	BPF_MAP_TYPE_BLOOM_FILTER = 30,
+};
+
+struct bpf_map_ops;
+
+struct btf;
+
+struct bpf_map {
+	const struct bpf_map_ops *ops;
+	struct bpf_map *inner_map_meta;
+	void *security;
+	enum bpf_map_type map_type;
+	u32 key_size;
+	u32 value_size;
+	u32 max_entries;
+	u64 map_extra;
+	u32 map_flags;
+	int spin_lock_off;
+	int timer_off;
+	u32 id;
+	int numa_node;
+	u32 btf_key_type_id;
+	u32 btf_value_type_id;
+	u32 btf_vmlinux_value_type_id;
+	struct btf *btf;
+	struct mem_cgroup *memcg;
+	char name[16];
+	bool bypass_spec_v1;
+	bool frozen;
+	long: 48;
+	long: 64;
+	atomic64_t refcnt;
+	atomic64_t usercnt;
+	struct work_struct work;
+	struct mutex freeze_mutex;
+	atomic64_t writecnt;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_map_dev_ops;
+
+struct bpf_offloaded_map {
+	struct bpf_map map;
+	struct net_device *netdev;
+	const struct bpf_map_dev_ops *dev_ops;
+	void *dev_priv;
+	struct list_head offloads;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct tcf_proto;
+
+struct tcf_block;
+
+struct mini_Qdisc {
+	struct tcf_proto *filter_list;
+	struct tcf_block *block;
+	struct gnet_stats_basic_sync *cpu_bstats;
+	struct gnet_stats_queue *cpu_qstats;
+	long unsigned int rcu_state;
+};
+
+union bpf_attr {
+	struct {
+		__u32 map_type;
+		__u32 key_size;
+		__u32 value_size;
+		__u32 max_entries;
+		__u32 map_flags;
+		__u32 inner_map_fd;
+		__u32 numa_node;
+		char map_name[16];
+		__u32 map_ifindex;
+		__u32 btf_fd;
+		__u32 btf_key_type_id;
+		__u32 btf_value_type_id;
+		__u32 btf_vmlinux_value_type_id;
+		__u64 map_extra;
+	};
+	struct {
+		__u32 map_fd;
+		__u64 key;
+		union {
+			__u64 value;
+			__u64 next_key;
+		};
+		__u64 flags;
+	};
+	struct {
+		__u64 in_batch;
+		__u64 out_batch;
+		__u64 keys;
+		__u64 values;
+		__u32 count;
+		__u32 map_fd;
+		__u64 elem_flags;
+		__u64 flags;
+	} batch;
+	struct {
+		__u32 prog_type;
+		__u32 insn_cnt;
+		__u64 insns;
+		__u64 license;
+		__u32 log_level;
+		__u32 log_size;
+		__u64 log_buf;
+		__u32 kern_version;
+		__u32 prog_flags;
+		char prog_name[16];
+		__u32 prog_ifindex;
+		__u32 expected_attach_type;
+		__u32 prog_btf_fd;
+		__u32 func_info_rec_size;
+		__u64 func_info;
+		__u32 func_info_cnt;
+		__u32 line_info_rec_size;
+		__u64 line_info;
+		__u32 line_info_cnt;
+		__u32 attach_btf_id;
+		union {
+			__u32 attach_prog_fd;
+			__u32 attach_btf_obj_fd;
+		};
+		__u32 core_relo_cnt;
+		__u64 fd_array;
+		__u64 core_relos;
+		__u32 core_relo_rec_size;
+	};
+	struct {
+		__u64 pathname;
+		__u32 bpf_fd;
+		__u32 file_flags;
+	};
+	struct {
+		__u32 target_fd;
+		__u32 attach_bpf_fd;
+		__u32 attach_type;
+		__u32 attach_flags;
+		__u32 replace_bpf_fd;
+	};
+	struct {
+		__u32 prog_fd;
+		__u32 retval;
+		__u32 data_size_in;
+		__u32 data_size_out;
+		__u64 data_in;
+		__u64 data_out;
+		__u32 repeat;
+		__u32 duration;
+		__u32 ctx_size_in;
+		__u32 ctx_size_out;
+		__u64 ctx_in;
+		__u64 ctx_out;
+		__u32 flags;
+		__u32 cpu;
+	} test;
+	struct {
+		union {
+			__u32 start_id;
+			__u32 prog_id;
+			__u32 map_id;
+			__u32 btf_id;
+			__u32 link_id;
+		};
+		__u32 next_id;
+		__u32 open_flags;
+	};
+	struct {
+		__u32 bpf_fd;
+		__u32 info_len;
+		__u64 info;
+	} info;
+	struct {
+		__u32 target_fd;
+		__u32 attach_type;
+		__u32 query_flags;
+		__u32 attach_flags;
+		__u64 prog_ids;
+		__u32 prog_cnt;
+	} query;
+	struct {
+		__u64 name;
+		__u32 prog_fd;
+	} raw_tracepoint;
+	struct {
+		__u64 btf;
+		__u64 btf_log_buf;
+		__u32 btf_size;
+		__u32 btf_log_size;
+		__u32 btf_log_level;
+	};
+	struct {
+		__u32 pid;
+		__u32 fd;
+		__u32 flags;
+		__u32 buf_len;
+		__u64 buf;
+		__u32 prog_id;
+		__u32 fd_type;
+		__u64 probe_offset;
+		__u64 probe_addr;
+	} task_fd_query;
+	struct {
+		__u32 prog_fd;
+		union {
+			__u32 target_fd;
+			__u32 target_ifindex;
+		};
+		__u32 attach_type;
+		__u32 flags;
+		union {
+			__u32 target_btf_id;
+			struct {
+				__u64 iter_info;
+				__u32 iter_info_len;
+			};
+			struct {
+				__u64 bpf_cookie;
+			} perf_event;
+		};
+	} link_create;
+	struct {
+		__u32 link_fd;
+		__u32 new_prog_fd;
+		__u32 flags;
+		__u32 old_prog_fd;
+	} link_update;
+	struct {
+		__u32 link_fd;
+	} link_detach;
+	struct {
+		__u32 type;
+	} enable_stats;
+	struct {
+		__u32 link_fd;
+		__u32 flags;
+	} iter_create;
+	struct {
+		__u32 prog_fd;
+		__u32 map_fd;
+		__u32 flags;
+	} prog_bind_map;
+};
+
+struct bpf_func_info {
+	__u32 insn_off;
+	__u32 type_id;
+};
+
+struct bpf_line_info {
+	__u32 insn_off;
+	__u32 file_name_off;
+	__u32 line_off;
+	__u32 line_col;
+};
+
+typedef u64 (*bpf_callback_t)(u64, u64, u64, u64, u64);
+
+struct bpf_iter_aux_info;
+
+typedef int (*bpf_iter_init_seq_priv_t)(void *, struct bpf_iter_aux_info *);
+
+struct bpf_iter_aux_info {
+	struct bpf_map *map;
+};
+
+typedef void (*bpf_iter_fini_seq_priv_t)(void *);
+
+struct bpf_iter_seq_info {
+	const struct seq_operations *seq_ops;
+	bpf_iter_init_seq_priv_t init_seq_private;
+	bpf_iter_fini_seq_priv_t fini_seq_private;
+	u32 seq_priv_size;
+};
+
+struct btf_type;
+
+struct bpf_local_storage_map;
+
+struct bpf_verifier_env;
+
+struct bpf_func_state;
+
+struct bpf_map_ops {
+	int (*map_alloc_check)(union bpf_attr *);
+	struct bpf_map * (*map_alloc)(union bpf_attr *);
+	void (*map_release)(struct bpf_map *, struct file *);
+	void (*map_free)(struct bpf_map *);
+	int (*map_get_next_key)(struct bpf_map *, void *, void *);
+	void (*map_release_uref)(struct bpf_map *);
+	void * (*map_lookup_elem_sys_only)(struct bpf_map *, void *);
+	int (*map_lookup_batch)(struct bpf_map *, const union bpf_attr *, union bpf_attr *);
+	int (*map_lookup_and_delete_elem)(struct bpf_map *, void *, void *, u64);
+	int (*map_lookup_and_delete_batch)(struct bpf_map *, const union bpf_attr *, union bpf_attr *);
+	int (*map_update_batch)(struct bpf_map *, const union bpf_attr *, union bpf_attr *);
+	int (*map_delete_batch)(struct bpf_map *, const union bpf_attr *, union bpf_attr *);
+	void * (*map_lookup_elem)(struct bpf_map *, void *);
+	int (*map_update_elem)(struct bpf_map *, void *, void *, u64);
+	int (*map_delete_elem)(struct bpf_map *, void *);
+	int (*map_push_elem)(struct bpf_map *, void *, u64);
+	int (*map_pop_elem)(struct bpf_map *, void *);
+	int (*map_peek_elem)(struct bpf_map *, void *);
+	void * (*map_fd_get_ptr)(struct bpf_map *, struct file *, int);
+	void (*map_fd_put_ptr)(void *);
+	int (*map_gen_lookup)(struct bpf_map *, struct bpf_insn *);
+	u32 (*map_fd_sys_lookup_elem)(void *);
+	void (*map_seq_show_elem)(struct bpf_map *, void *, struct seq_file *);
+	int (*map_check_btf)(const struct bpf_map *, const struct btf *, const struct btf_type *, const struct btf_type *);
+	int (*map_poke_track)(struct bpf_map *, struct bpf_prog_aux *);
+	void (*map_poke_untrack)(struct bpf_map *, struct bpf_prog_aux *);
+	void (*map_poke_run)(struct bpf_map *, u32, struct bpf_prog *, struct bpf_prog *);
+	int (*map_direct_value_addr)(const struct bpf_map *, u64 *, u32);
+	int (*map_direct_value_meta)(const struct bpf_map *, u64, u32 *);
+	int (*map_mmap)(struct bpf_map *, struct vm_area_struct *);
+	__poll_t (*map_poll)(struct bpf_map *, struct file *, struct poll_table_struct *);
+	int (*map_local_storage_charge)(struct bpf_local_storage_map *, void *, u32);
+	void (*map_local_storage_uncharge)(struct bpf_local_storage_map *, void *, u32);
+	struct bpf_local_storage ** (*map_owner_storage_ptr)(void *);
+	int (*map_redirect)(struct bpf_map *, u32, u64);
+	bool (*map_meta_equal)(const struct bpf_map *, const struct bpf_map *);
+	int (*map_set_for_each_callback_args)(struct bpf_verifier_env *, struct bpf_func_state *, struct bpf_func_state *);
+	int (*map_for_each_callback)(struct bpf_map *, bpf_callback_t, void *, u64);
+	const char * const map_btf_name;
+	int *map_btf_id;
+	const struct bpf_iter_seq_info *iter_seq_info;
+};
+
+struct btf_header {
+	__u16 magic;
+	__u8 version;
+	__u8 flags;
+	__u32 hdr_len;
+	__u32 type_off;
+	__u32 type_len;
+	__u32 str_off;
+	__u32 str_len;
+};
+
+struct btf {
+	void *data;
+	struct btf_type **types;
+	u32 *resolved_ids;
+	u32 *resolved_sizes;
+	const char *strings;
+	void *nohdr_data;
+	struct btf_header hdr;
+	u32 nr_types;
+	u32 types_size;
+	u32 data_size;
+	refcount_t refcnt;
+	u32 id;
+	struct callback_head rcu;
+	struct btf *base_btf;
+	u32 start_id;
+	u32 start_str_off;
+	char name[56];
+	bool kernel_btf;
+};
+
+struct btf_type {
+	__u32 name_off;
+	__u32 info;
+	union {
+		__u32 size;
+		__u32 type;
+	};
+};
+
+struct bpf_ksym {
+	long unsigned int start;
+	long unsigned int end;
+	char name[128];
+	struct list_head lnode;
+	struct latch_tree_node tnode;
+	bool prog;
+};
+
+struct bpf_ctx_arg_aux;
+
+struct bpf_trampoline;
+
+struct bpf_jit_poke_descriptor;
+
+struct bpf_kfunc_desc_tab;
+
+struct bpf_kfunc_btf_tab;
+
+struct bpf_prog_ops;
+
+struct btf_mod_pair;
+
+struct bpf_prog_offload;
+
+struct bpf_func_info_aux;
+
+struct bpf_prog_aux {
+	atomic64_t refcnt;
+	u32 used_map_cnt;
+	u32 used_btf_cnt;
+	u32 max_ctx_offset;
+	u32 max_pkt_offset;
+	u32 max_tp_access;
+	u32 stack_depth;
+	u32 id;
+	u32 func_cnt;
+	u32 func_idx;
+	u32 attach_btf_id;
+	u32 ctx_arg_info_size;
+	u32 max_rdonly_access;
+	u32 max_rdwr_access;
+	struct btf *attach_btf;
+	const struct bpf_ctx_arg_aux *ctx_arg_info;
+	struct mutex dst_mutex;
+	struct bpf_prog *dst_prog;
+	struct bpf_trampoline *dst_trampoline;
+	enum bpf_prog_type saved_dst_prog_type;
+	enum bpf_attach_type saved_dst_attach_type;
+	bool verifier_zext;
+	bool offload_requested;
+	bool attach_btf_trace;
+	bool func_proto_unreliable;
+	bool sleepable;
+	bool tail_call_reachable;
+	struct hlist_node tramp_hlist;
+	const struct btf_type *attach_func_proto;
+	const char *attach_func_name;
+	struct bpf_prog **func;
+	void *jit_data;
+	struct bpf_jit_poke_descriptor *poke_tab;
+	struct bpf_kfunc_desc_tab *kfunc_tab;
+	struct bpf_kfunc_btf_tab *kfunc_btf_tab;
+	u32 size_poke_tab;
+	struct bpf_ksym ksym;
+	const struct bpf_prog_ops *ops;
+	struct bpf_map **used_maps;
+	struct mutex used_maps_mutex;
+	struct btf_mod_pair *used_btfs;
+	struct bpf_prog *prog;
+	struct user_struct *user;
+	u64 load_time;
+	u32 verified_insns;
+	struct bpf_map *cgroup_storage[2];
+	char name[16];
+	void *security;
+	struct bpf_prog_offload *offload;
+	struct btf *btf;
+	struct bpf_func_info *func_info;
+	struct bpf_func_info_aux *func_info_aux;
+	struct bpf_line_info *linfo;
+	void **jited_linfo;
+	u32 func_info_cnt;
+	u32 nr_linfo;
+	u32 linfo_idx;
+	u32 num_exentries;
+	struct exception_table_entry *extable;
+	union {
+		struct work_struct work;
+		struct callback_head rcu;
+	};
+};
+
+struct bpf_map_dev_ops {
+	int (*map_get_next_key)(struct bpf_offloaded_map *, void *, void *);
+	int (*map_lookup_elem)(struct bpf_offloaded_map *, void *, void *);
+	int (*map_update_elem)(struct bpf_offloaded_map *, void *, void *, u64);
+	int (*map_delete_elem)(struct bpf_offloaded_map *, void *);
+};
+
+enum bpf_reg_type {
+	NOT_INIT = 0,
+	SCALAR_VALUE = 1,
+	PTR_TO_CTX = 2,
+	CONST_PTR_TO_MAP = 3,
+	PTR_TO_MAP_VALUE = 4,
+	PTR_TO_MAP_KEY = 5,
+	PTR_TO_STACK = 6,
+	PTR_TO_PACKET_META = 7,
+	PTR_TO_PACKET = 8,
+	PTR_TO_PACKET_END = 9,
+	PTR_TO_FLOW_KEYS = 10,
+	PTR_TO_SOCKET = 11,
+	PTR_TO_SOCK_COMMON = 12,
+	PTR_TO_TCP_SOCK = 13,
+	PTR_TO_TP_BUFFER = 14,
+	PTR_TO_XDP_SOCK = 15,
+	PTR_TO_BTF_ID = 16,
+	PTR_TO_MEM = 17,
+	PTR_TO_BUF = 18,
+	PTR_TO_PERCPU_BTF_ID = 19,
+	PTR_TO_FUNC = 20,
+	__BPF_REG_TYPE_MAX = 21,
+	PTR_TO_MAP_VALUE_OR_NULL = 260,
+	PTR_TO_SOCKET_OR_NULL = 267,
+	PTR_TO_SOCK_COMMON_OR_NULL = 268,
+	PTR_TO_TCP_SOCK_OR_NULL = 269,
+	PTR_TO_BTF_ID_OR_NULL = 272,
+	__BPF_REG_TYPE_LIMIT = 2047,
+};
+
+struct bpf_prog_ops {
+	int (*test_run)(struct bpf_prog *, const union bpf_attr *, union bpf_attr *);
+};
+
+struct bpf_offload_dev;
+
+struct bpf_prog_offload {
+	struct bpf_prog *prog;
+	struct net_device *netdev;
+	struct bpf_offload_dev *offdev;
+	void *dev_priv;
+	struct list_head offloads;
+	bool dev_state;
+	bool opt_failed;
+	void *jited_image;
+	u32 jited_len;
+};
+
+struct btf_func_model {
+	u8 ret_size;
+	u8 nr_args;
+	u8 arg_size[12];
+};
+
+struct bpf_tramp_image {
+	void *image;
+	struct bpf_ksym ksym;
+	struct percpu_ref pcref;
+	void *ip_after_call;
+	void *ip_epilogue;
+	union {
+		struct callback_head rcu;
+		struct work_struct work;
+	};
+};
+
+struct bpf_trampoline {
+	struct hlist_node hlist;
+	struct mutex mutex;
+	refcount_t refcnt;
