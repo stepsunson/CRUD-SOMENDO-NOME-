@@ -22223,3 +22223,2056 @@ struct bpf_trampoline {
 	struct hlist_node hlist;
 	struct mutex mutex;
 	refcount_t refcnt;
+	u64 key;
+	struct {
+		struct btf_func_model model;
+		void *addr;
+		bool ftrace_managed;
+	} func;
+	struct bpf_prog *extension_prog;
+	struct hlist_head progs_hlist[3];
+	int progs_cnt[3];
+	struct bpf_tramp_image *cur_image;
+	u64 selector;
+	struct module *mod;
+};
+
+struct bpf_func_info_aux {
+	u16 linkage;
+	bool unreliable;
+};
+
+struct bpf_jit_poke_descriptor {
+	void *tailcall_target;
+	void *tailcall_bypass;
+	void *bypass_addr;
+	void *aux;
+	union {
+		struct {
+			struct bpf_map *map;
+			u32 key;
+		} tail_call;
+	};
+	bool tailcall_target_stable;
+	u8 adj_off;
+	u16 reason;
+	u32 insn_idx;
+};
+
+struct bpf_ctx_arg_aux {
+	u32 offset;
+	enum bpf_reg_type reg_type;
+	u32 btf_id;
+};
+
+struct btf_mod_pair {
+	struct btf *btf;
+	struct module *module;
+};
+
+struct tcmsg {
+	unsigned char tcm_family;
+	unsigned char tcm__pad1;
+	short unsigned int tcm__pad2;
+	int tcm_ifindex;
+	__u32 tcm_handle;
+	__u32 tcm_parent;
+	__u32 tcm_info;
+};
+
+struct gnet_dump {
+	spinlock_t *lock;
+	struct sk_buff *skb;
+	struct nlattr *tail;
+	int compat_tc_stats;
+	int compat_xstats;
+	int padattr;
+	void *xstats;
+	int xstats_len;
+	struct tc_stats tc_stats;
+};
+
+struct flow_block {
+	struct list_head cb_list;
+};
+
+typedef int flow_setup_cb_t(enum tc_setup_type, void *, void *);
+
+struct qdisc_size_table {
+	struct callback_head rcu;
+	struct list_head list;
+	struct tc_sizespec szopts;
+	int refcnt;
+	u16 data[0];
+};
+
+struct Qdisc_class_ops;
+
+struct Qdisc_ops {
+	struct Qdisc_ops *next;
+	const struct Qdisc_class_ops *cl_ops;
+	char id[16];
+	int priv_size;
+	unsigned int static_flags;
+	int (*enqueue)(struct sk_buff *, struct Qdisc *, struct sk_buff **);
+	struct sk_buff * (*dequeue)(struct Qdisc *);
+	struct sk_buff * (*peek)(struct Qdisc *);
+	int (*init)(struct Qdisc *, struct nlattr *, struct netlink_ext_ack *);
+	void (*reset)(struct Qdisc *);
+	void (*destroy)(struct Qdisc *);
+	int (*change)(struct Qdisc *, struct nlattr *, struct netlink_ext_ack *);
+	void (*attach)(struct Qdisc *);
+	int (*change_tx_queue_len)(struct Qdisc *, unsigned int);
+	void (*change_real_num_tx)(struct Qdisc *, unsigned int);
+	int (*dump)(struct Qdisc *, struct sk_buff *);
+	int (*dump_stats)(struct Qdisc *, struct gnet_dump *);
+	void (*ingress_block_set)(struct Qdisc *, u32);
+	void (*egress_block_set)(struct Qdisc *, u32);
+	u32 (*ingress_block_get)(struct Qdisc *);
+	u32 (*egress_block_get)(struct Qdisc *);
+	struct module *owner;
+};
+
+struct qdisc_walker;
+
+struct Qdisc_class_ops {
+	unsigned int flags;
+	struct netdev_queue * (*select_queue)(struct Qdisc *, struct tcmsg *);
+	int (*graft)(struct Qdisc *, long unsigned int, struct Qdisc *, struct Qdisc **, struct netlink_ext_ack *);
+	struct Qdisc * (*leaf)(struct Qdisc *, long unsigned int);
+	void (*qlen_notify)(struct Qdisc *, long unsigned int);
+	long unsigned int (*find)(struct Qdisc *, u32);
+	int (*change)(struct Qdisc *, u32, u32, struct nlattr **, long unsigned int *, struct netlink_ext_ack *);
+	int (*delete)(struct Qdisc *, long unsigned int, struct netlink_ext_ack *);
+	void (*walk)(struct Qdisc *, struct qdisc_walker *);
+	struct tcf_block * (*tcf_block)(struct Qdisc *, long unsigned int, struct netlink_ext_ack *);
+	long unsigned int (*bind_tcf)(struct Qdisc *, long unsigned int, u32);
+	void (*unbind_tcf)(struct Qdisc *, long unsigned int);
+	int (*dump)(struct Qdisc *, long unsigned int, struct sk_buff *, struct tcmsg *);
+	int (*dump_stats)(struct Qdisc *, long unsigned int, struct gnet_dump *);
+};
+
+struct tcf_chain;
+
+struct tcf_block {
+	struct mutex lock;
+	struct list_head chain_list;
+	u32 index;
+	u32 classid;
+	refcount_t refcnt;
+	struct net *net;
+	struct Qdisc *q;
+	struct rw_semaphore cb_lock;
+	struct flow_block flow_block;
+	struct list_head owner_list;
+	bool keep_dst;
+	atomic_t offloadcnt;
+	unsigned int nooffloaddevcnt;
+	unsigned int lockeddevcnt;
+	struct {
+		struct tcf_chain *chain;
+		struct list_head filter_chain_list;
+	} chain0;
+	struct callback_head rcu;
+	struct hlist_head proto_destroy_ht[128];
+	struct mutex proto_destroy_lock;
+};
+
+struct tcf_result;
+
+struct tcf_proto_ops;
+
+struct tcf_proto {
+	struct tcf_proto *next;
+	void *root;
+	int (*classify)(struct sk_buff *, const struct tcf_proto *, struct tcf_result *);
+	__be16 protocol;
+	u32 prio;
+	void *data;
+	const struct tcf_proto_ops *ops;
+	struct tcf_chain *chain;
+	spinlock_t lock;
+	bool deleting;
+	refcount_t refcnt;
+	struct callback_head rcu;
+	struct hlist_node destroy_ht_node;
+};
+
+struct tcf_result {
+	union {
+		struct {
+			long unsigned int class;
+			u32 classid;
+		};
+		const struct tcf_proto *goto_tp;
+		struct {
+			bool ingress;
+			struct gnet_stats_queue *qstats;
+		};
+	};
+};
+
+struct tcf_walker;
+
+struct tcf_proto_ops {
+	struct list_head head;
+	char kind[16];
+	int (*classify)(struct sk_buff *, const struct tcf_proto *, struct tcf_result *);
+	int (*init)(struct tcf_proto *);
+	void (*destroy)(struct tcf_proto *, bool, struct netlink_ext_ack *);
+	void * (*get)(struct tcf_proto *, u32);
+	void (*put)(struct tcf_proto *, void *);
+	int (*change)(struct net *, struct sk_buff *, struct tcf_proto *, long unsigned int, u32, struct nlattr **, void **, u32, struct netlink_ext_ack *);
+	int (*delete)(struct tcf_proto *, void *, bool *, bool, struct netlink_ext_ack *);
+	bool (*delete_empty)(struct tcf_proto *);
+	void (*walk)(struct tcf_proto *, struct tcf_walker *, bool);
+	int (*reoffload)(struct tcf_proto *, bool, flow_setup_cb_t *, void *, struct netlink_ext_ack *);
+	void (*hw_add)(struct tcf_proto *, void *);
+	void (*hw_del)(struct tcf_proto *, void *);
+	void (*bind_class)(void *, u32, long unsigned int, void *, long unsigned int);
+	void * (*tmplt_create)(struct net *, struct tcf_chain *, struct nlattr **, struct netlink_ext_ack *);
+	void (*tmplt_destroy)(void *);
+	int (*dump)(struct net *, struct tcf_proto *, void *, struct sk_buff *, struct tcmsg *, bool);
+	int (*terse_dump)(struct net *, struct tcf_proto *, void *, struct sk_buff *, struct tcmsg *, bool);
+	int (*tmplt_dump)(struct sk_buff *, struct net *, void *);
+	struct module *owner;
+	int flags;
+};
+
+struct tcf_chain {
+	struct mutex filter_chain_lock;
+	struct tcf_proto *filter_chain;
+	struct list_head list;
+	struct tcf_block *block;
+	u32 index;
+	unsigned int refcnt;
+	unsigned int action_refcnt;
+	bool explicitly_created;
+	bool flushing;
+	const struct tcf_proto_ops *tmplt_ops;
+	void *tmplt_priv;
+	struct callback_head rcu;
+};
+
+struct sock_fprog_kern {
+	u16 len;
+	struct sock_filter *filter;
+};
+
+struct bpf_binary_header {
+	u32 pages;
+	int: 32;
+	u8 image[0];
+};
+
+struct bpf_prog_stats {
+	u64_stats_t cnt;
+	u64_stats_t nsecs;
+	u64_stats_t misses;
+	struct u64_stats_sync syncp;
+	long: 64;
+};
+
+typedef void (*bpf_jit_fill_hole_t)(void *, unsigned int);
+
+struct codegen_context {
+	unsigned int seen;
+	unsigned int idx;
+	unsigned int stack_size;
+	int b2p[14];
+	unsigned int exentry_idx;
+};
+
+struct powerpc64_jit_data {
+	struct bpf_binary_header *header;
+	u32 *addrs;
+	u8 *image;
+	u32 proglen;
+	struct codegen_context ctx;
+};
+
+enum {
+	BPF_REG_0 = 0,
+	BPF_REG_1 = 1,
+	BPF_REG_2 = 2,
+	BPF_REG_3 = 3,
+	BPF_REG_4 = 4,
+	BPF_REG_5 = 5,
+	BPF_REG_6 = 6,
+	BPF_REG_7 = 7,
+	BPF_REG_8 = 8,
+	BPF_REG_9 = 9,
+	BPF_REG_10 = 10,
+	__MAX_BPF_REG = 11,
+};
+
+enum flow_action_hw_stats_bit {
+	FLOW_ACTION_HW_STATS_IMMEDIATE_BIT = 0,
+	FLOW_ACTION_HW_STATS_DELAYED_BIT = 1,
+	FLOW_ACTION_HW_STATS_DISABLED_BIT = 2,
+	FLOW_ACTION_HW_STATS_NUM_BITS = 3,
+};
+
+enum ftrace_dump_mode {
+	DUMP_NONE = 0,
+	DUMP_ALL = 1,
+	DUMP_ORIG = 2,
+};
+
+enum tk_offsets {
+	TK_OFFS_REAL = 0,
+	TK_OFFS_BOOT = 1,
+	TK_OFFS_TAI = 2,
+	TK_OFFS_MAX = 3,
+};
+
+struct sysrq_key_op {
+	void (* const handler)(int);
+	const char * const help_msg;
+	const char * const action_msg;
+	const int enable_mask;
+};
+
+enum {
+	XIVE_DUMP_TM_HYP = 0,
+	XIVE_DUMP_TM_POOL = 1,
+	XIVE_DUMP_TM_OS = 2,
+	XIVE_DUMP_TM_USER = 3,
+	XIVE_DUMP_VP = 4,
+	XIVE_DUMP_EMU_STATE = 5,
+};
+
+struct bpt {
+	long unsigned int address;
+	u32 *instr;
+	atomic_t ref_count;
+	int enabled;
+	long unsigned int pad;
+};
+
+typedef int (*instruction_dump_func)(long unsigned int, long unsigned int);
+
+typedef long unsigned int (*callfunc_t)(long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int);
+
+typedef uint64_t ppc_cpu_t;
+
+struct powerpc_opcode {
+	const char *name;
+	long unsigned int opcode;
+	long unsigned int mask;
+	ppc_cpu_t flags;
+	ppc_cpu_t deprecated;
+	unsigned char operands[8];
+};
+
+struct powerpc_operand {
+	unsigned int bitm;
+	int shift;
+	long unsigned int (*insert)(long unsigned int, long int, ppc_cpu_t, const char **);
+	long int (*extract)(long unsigned int, ppc_cpu_t, int *);
+	long unsigned int flags;
+};
+
+struct powerpc_macro {
+	const char *name;
+	unsigned int operands;
+	ppc_cpu_t flags;
+	const char *format;
+};
+
+enum perf_callchain_context {
+	PERF_CONTEXT_HV = 4294967264,
+	PERF_CONTEXT_KERNEL = 4294967168,
+	PERF_CONTEXT_USER = 4294966784,
+	PERF_CONTEXT_GUEST = 4294965248,
+	PERF_CONTEXT_GUEST_KERNEL = 4294965120,
+	PERF_CONTEXT_GUEST_USER = 4294964736,
+	PERF_CONTEXT_MAX = 4294963201,
+};
+
+struct perf_callchain_entry_ctx {
+	struct perf_callchain_entry *entry;
+	u32 max_stack;
+	u32 nr;
+	short int contexts;
+	bool contexts_maxed;
+};
+
+struct signal_frame_64 {
+	char dummy[128];
+	struct ucontext uc;
+	long unsigned int unused[2];
+	unsigned int tramp[6];
+	struct siginfo *pinfo;
+	void *puc;
+	struct siginfo info;
+	char abigap[288];
+};
+
+enum perf_sample_regs_abi {
+	PERF_SAMPLE_REGS_ABI_NONE = 0,
+	PERF_SAMPLE_REGS_ABI_32 = 1,
+	PERF_SAMPLE_REGS_ABI_64 = 2,
+};
+
+enum perf_event_powerpc_regs {
+	PERF_REG_POWERPC_R0 = 0,
+	PERF_REG_POWERPC_R1 = 1,
+	PERF_REG_POWERPC_R2 = 2,
+	PERF_REG_POWERPC_R3 = 3,
+	PERF_REG_POWERPC_R4 = 4,
+	PERF_REG_POWERPC_R5 = 5,
+	PERF_REG_POWERPC_R6 = 6,
+	PERF_REG_POWERPC_R7 = 7,
+	PERF_REG_POWERPC_R8 = 8,
+	PERF_REG_POWERPC_R9 = 9,
+	PERF_REG_POWERPC_R10 = 10,
+	PERF_REG_POWERPC_R11 = 11,
+	PERF_REG_POWERPC_R12 = 12,
+	PERF_REG_POWERPC_R13 = 13,
+	PERF_REG_POWERPC_R14 = 14,
+	PERF_REG_POWERPC_R15 = 15,
+	PERF_REG_POWERPC_R16 = 16,
+	PERF_REG_POWERPC_R17 = 17,
+	PERF_REG_POWERPC_R18 = 18,
+	PERF_REG_POWERPC_R19 = 19,
+	PERF_REG_POWERPC_R20 = 20,
+	PERF_REG_POWERPC_R21 = 21,
+	PERF_REG_POWERPC_R22 = 22,
+	PERF_REG_POWERPC_R23 = 23,
+	PERF_REG_POWERPC_R24 = 24,
+	PERF_REG_POWERPC_R25 = 25,
+	PERF_REG_POWERPC_R26 = 26,
+	PERF_REG_POWERPC_R27 = 27,
+	PERF_REG_POWERPC_R28 = 28,
+	PERF_REG_POWERPC_R29 = 29,
+	PERF_REG_POWERPC_R30 = 30,
+	PERF_REG_POWERPC_R31 = 31,
+	PERF_REG_POWERPC_NIP = 32,
+	PERF_REG_POWERPC_MSR = 33,
+	PERF_REG_POWERPC_ORIG_R3 = 34,
+	PERF_REG_POWERPC_CTR = 35,
+	PERF_REG_POWERPC_LINK = 36,
+	PERF_REG_POWERPC_XER = 37,
+	PERF_REG_POWERPC_CCR = 38,
+	PERF_REG_POWERPC_SOFTE = 39,
+	PERF_REG_POWERPC_TRAP = 40,
+	PERF_REG_POWERPC_DAR = 41,
+	PERF_REG_POWERPC_DSISR = 42,
+	PERF_REG_POWERPC_SIER = 43,
+	PERF_REG_POWERPC_MMCRA = 44,
+	PERF_REG_POWERPC_MMCR0 = 45,
+	PERF_REG_POWERPC_MMCR1 = 46,
+	PERF_REG_POWERPC_MMCR2 = 47,
+	PERF_REG_POWERPC_MMCR3 = 48,
+	PERF_REG_POWERPC_SIER2 = 49,
+	PERF_REG_POWERPC_SIER3 = 50,
+	PERF_REG_POWERPC_PMC1 = 51,
+	PERF_REG_POWERPC_PMC2 = 52,
+	PERF_REG_POWERPC_PMC3 = 53,
+	PERF_REG_POWERPC_PMC4 = 54,
+	PERF_REG_POWERPC_PMC5 = 55,
+	PERF_REG_POWERPC_PMC6 = 56,
+	PERF_REG_POWERPC_SDAR = 57,
+	PERF_REG_POWERPC_SIAR = 58,
+	PERF_REG_POWERPC_MAX = 45,
+	PERF_REG_EXTENDED_MAX = 59,
+};
+
+enum perf_event_sample_format {
+	PERF_SAMPLE_IP = 1,
+	PERF_SAMPLE_TID = 2,
+	PERF_SAMPLE_TIME = 4,
+	PERF_SAMPLE_ADDR = 8,
+	PERF_SAMPLE_READ = 16,
+	PERF_SAMPLE_CALLCHAIN = 32,
+	PERF_SAMPLE_ID = 64,
+	PERF_SAMPLE_CPU = 128,
+	PERF_SAMPLE_PERIOD = 256,
+	PERF_SAMPLE_STREAM_ID = 512,
+	PERF_SAMPLE_RAW = 1024,
+	PERF_SAMPLE_BRANCH_STACK = 2048,
+	PERF_SAMPLE_REGS_USER = 4096,
+	PERF_SAMPLE_STACK_USER = 8192,
+	PERF_SAMPLE_WEIGHT = 16384,
+	PERF_SAMPLE_DATA_SRC = 32768,
+	PERF_SAMPLE_IDENTIFIER = 65536,
+	PERF_SAMPLE_TRANSACTION = 131072,
+	PERF_SAMPLE_REGS_INTR = 262144,
+	PERF_SAMPLE_PHYS_ADDR = 524288,
+	PERF_SAMPLE_AUX = 1048576,
+	PERF_SAMPLE_CGROUP = 2097152,
+	PERF_SAMPLE_DATA_PAGE_SIZE = 4194304,
+	PERF_SAMPLE_CODE_PAGE_SIZE = 8388608,
+	PERF_SAMPLE_WEIGHT_STRUCT = 16777216,
+	PERF_SAMPLE_MAX = 33554432,
+	__PERF_SAMPLE_CALLCHAIN_EARLY = 0,
+};
+
+struct mmcr_regs {
+	long unsigned int mmcr0;
+	long unsigned int mmcr1;
+	long unsigned int mmcr2;
+	long unsigned int mmcra;
+	long unsigned int mmcr3;
+};
+
+struct power_pmu {
+	const char *name;
+	int n_counter;
+	int max_alternatives;
+	long unsigned int add_fields;
+	long unsigned int test_adder;
+	int (*compute_mmcr)(u64 *, int, unsigned int *, struct mmcr_regs *, struct perf_event **, u32);
+	int (*get_constraint)(u64, long unsigned int *, long unsigned int *, u64);
+	int (*get_alternatives)(u64, unsigned int, u64 *);
+	void (*get_mem_data_src)(union perf_mem_data_src *, u32, struct pt_regs *);
+	void (*get_mem_weight)(u64 *, u64);
+	long unsigned int group_constraint_mask;
+	long unsigned int group_constraint_val;
+	u64 (*bhrb_filter_map)(u64);
+	void (*config_bhrb)(u64);
+	void (*disable_pmc)(unsigned int, struct mmcr_regs *);
+	int (*limited_pmc_event)(u64);
+	u32 flags;
+	const struct attribute_group **attr_groups;
+	int n_generic;
+	int *generic_events;
+	u64 (*cache_events)[42];
+	int n_blacklist_ev;
+	int *blacklist_ev;
+	int bhrb_nr;
+	int capabilities;
+	int (*check_attr_config)(struct perf_event *);
+};
+
+struct perf_pmu_events_attr {
+	struct device_attribute attr;
+	u64 id;
+	const char *event_str;
+};
+
+struct cpu_hw_events {
+	int n_events;
+	int n_percpu;
+	int disabled;
+	int n_added;
+	int n_limited;
+	u8 pmcs_enabled;
+	struct perf_event *event[8];
+	u64 events[8];
+	unsigned int flags[8];
+	struct mmcr_regs mmcr;
+	struct perf_event *limited_counter[2];
+	u8 limited_hwidx[2];
+	u64 alternatives[64];
+	long unsigned int amasks[64];
+	long unsigned int avalues[64];
+	unsigned int txn_flags;
+	int n_txn_start;
+	u64 bhrb_filter;
+	unsigned int bhrb_users;
+	void *bhrb_context;
+	struct perf_branch_stack bhrb_stack;
+	struct perf_branch_entry bhrb_entries[32];
+	u64 ic_init;
+	long unsigned int pmcs[8];
+};
+
+struct perf_event_header {
+	__u32 type;
+	__u16 misc;
+	__u16 size;
+};
+
+enum perf_event_type {
+	PERF_RECORD_MMAP = 1,
+	PERF_RECORD_LOST = 2,
+	PERF_RECORD_COMM = 3,
+	PERF_RECORD_EXIT = 4,
+	PERF_RECORD_THROTTLE = 5,
+	PERF_RECORD_UNTHROTTLE = 6,
+	PERF_RECORD_FORK = 7,
+	PERF_RECORD_READ = 8,
+	PERF_RECORD_SAMPLE = 9,
+	PERF_RECORD_MMAP2 = 10,
+	PERF_RECORD_AUX = 11,
+	PERF_RECORD_ITRACE_START = 12,
+	PERF_RECORD_LOST_SAMPLES = 13,
+	PERF_RECORD_SWITCH = 14,
+	PERF_RECORD_SWITCH_CPU_WIDE = 15,
+	PERF_RECORD_NAMESPACES = 16,
+	PERF_RECORD_KSYMBOL = 17,
+	PERF_RECORD_BPF_EVENT = 18,
+	PERF_RECORD_CGROUP = 19,
+	PERF_RECORD_TEXT_POKE = 20,
+	PERF_RECORD_AUX_OUTPUT_HW_ID = 21,
+	PERF_RECORD_MAX = 22,
+};
+
+struct trace_imc_data {
+	u64 tb1;
+	u64 ip;
+	u64 val;
+	u64 cpmc1;
+	u64 cpmc2;
+	u64 cpmc3;
+	u64 cpmc4;
+	u64 tb2;
+};
+
+struct imc_pmu_ref {
+	struct mutex lock;
+	unsigned int id;
+	int refc;
+};
+
+enum hv_perf_domains {
+	HV_PERF_DOMAIN_PHYS_CHIP = 1,
+	HV_PERF_DOMAIN_PHYS_CORE = 2,
+	HV_PERF_DOMAIN_VCPU_HOME_CORE = 3,
+	HV_PERF_DOMAIN_VCPU_HOME_CHIP = 4,
+	HV_PERF_DOMAIN_VCPU_HOME_NODE = 5,
+	HV_PERF_DOMAIN_VCPU_REMOTE_NODE = 6,
+	HV_PERF_DOMAIN_MAX = 7,
+};
+
+struct hv_24x7_request {
+	__u8 performance_domain;
+	__u8 reserved[1];
+	__be16 data_size;
+	__be32 data_offset;
+	__be16 starting_lpar_ix;
+	__be16 max_num_lpars;
+	__be16 starting_ix;
+	__be16 max_ix;
+	__u8 starting_thread_group_ix;
+	__u8 max_num_thread_groups;
+	__u8 reserved2[14];
+};
+
+struct hv_24x7_request_buffer {
+	__u8 interface_version;
+	__u8 num_requests;
+	__u8 reserved[14];
+	struct hv_24x7_request requests[0];
+};
+
+struct hv_24x7_result {
+	__u8 result_ix;
+	__u8 results_complete;
+	__be16 num_elements_returned;
+	__be16 result_element_data_size;
+	__u8 reserved[2];
+	char elements[0];
+};
+
+struct hv_24x7_data_result_buffer {
+	__u8 interface_version;
+	__u8 num_results;
+	__u8 reserved[1];
+	__u8 failing_request_ix;
+	__be32 detailed_rc;
+	__be64 cec_cfg_instance_id;
+	__be64 catalog_version_num;
+	__u8 reserved2[8];
+	struct hv_24x7_result results[0];
+};
+
+struct hv_24x7_catalog_page_0 {
+	__be32 magic;
+	__be32 length;
+	__be64 version;
+	__u8 build_time_stamp[16];
+	__u8 reserved2[32];
+	__be16 schema_data_offs;
+	__be16 schema_data_len;
+	__be16 schema_entry_count;
+	__u8 reserved3[2];
+	__be16 event_data_offs;
+	__be16 event_data_len;
+	__be16 event_entry_count;
+	__u8 reserved4[2];
+	__be16 group_data_offs;
+	__be16 group_data_len;
+	__be16 group_entry_count;
+	__u8 reserved5[2];
+	__be16 formula_data_offs;
+	__be16 formula_data_len;
+	__be16 formula_entry_count;
+	__u8 reserved6[2];
+};
+
+struct hv_24x7_event_data {
+	__be16 length;
+	__u8 reserved1[2];
+	__u8 domain;
+	__u8 reserved2[1];
+	__be16 event_group_record_offs;
+	__be16 event_group_record_len;
+	__be16 event_counter_offs;
+	__be32 flags;
+	__be16 primary_group_ix;
+	__be16 group_count;
+	__be16 event_name_len;
+	__u8 remainder[0];
+} __attribute__((packed));
+
+struct hv_perf_caps {
+	u16 version;
+	u16 collect_privileged: 1;
+	u16 ga: 1;
+	u16 expanded: 1;
+	u16 lab: 1;
+	u16 unused: 12;
+};
+
+struct hv_24x7_hw {
+	struct perf_event *events[255];
+};
+
+struct event_uniq {
+	struct rb_node node;
+	const char *name;
+	int nl;
+	unsigned int ct;
+	unsigned int domain;
+};
+
+enum {
+	HV_GPCI_CM_GA = 128,
+	HV_GPCI_CM_EXPANDED = 64,
+	HV_GPCI_CM_LAB = 32,
+};
+
+enum hv_gpci_requests {
+	HV_GPCI_dispatch_timebase_by_processor = 16,
+	HV_GPCI_entitled_capped_uncapped_donated_idle_timebase_by_partition = 32,
+	HV_GPCI_run_instructions_run_cycles_by_partition = 48,
+	HV_GPCI_system_performance_capabilities = 64,
+	HV_GPCI_processor_bus_utilization_abc_links = 80,
+	HV_GPCI_processor_bus_utilization_wxyz_links = 96,
+	HV_GPCI_processor_bus_utilization_gx_links = 112,
+	HV_GPCI_processor_bus_utilization_mc_links = 128,
+	HV_GPCI_processor_core_utilization = 148,
+	HV_GPCI_partition_hypervisor_queuing_times = 224,
+	HV_GPCI_system_hypervisor_times = 240,
+	HV_GPCI_system_tlbie_count_and_time = 244,
+	HV_GPCI_partition_instruction_count_and_time = 256,
+};
+
+struct hv_gpci_system_performance_capabilities {
+	__u8 perf_collect_privileged;
+	__u8 capability_mask;
+	__u8 reserved[14];
+};
+
+struct p {
+	struct hv_get_perf_counter_info_params params;
+	struct hv_gpci_system_performance_capabilities caps;
+};
+
+enum perf_hw_id {
+	PERF_COUNT_HW_CPU_CYCLES = 0,
+	PERF_COUNT_HW_INSTRUCTIONS = 1,
+	PERF_COUNT_HW_CACHE_REFERENCES = 2,
+	PERF_COUNT_HW_CACHE_MISSES = 3,
+	PERF_COUNT_HW_BRANCH_INSTRUCTIONS = 4,
+	PERF_COUNT_HW_BRANCH_MISSES = 5,
+	PERF_COUNT_HW_BUS_CYCLES = 6,
+	PERF_COUNT_HW_STALLED_CYCLES_FRONTEND = 7,
+	PERF_COUNT_HW_STALLED_CYCLES_BACKEND = 8,
+	PERF_COUNT_HW_REF_CPU_CYCLES = 9,
+	PERF_COUNT_HW_MAX = 10,
+};
+
+enum {
+	PM_IC_DEMAND_L2_BR_ALL = 18584,
+	PM_GCT_UTIL_7_TO_10_SLOTS = 8352,
+	PM_PMC2_SAVED = 65570,
+	PM_CMPLU_STALL_DFU = 131132,
+	PM_VSU0_16FLOP = 41124,
+	PM_MRK_LSU_DERAT_MISS = 249946,
+	PM_MRK_ST_CMPL = 65588,
+	PM_NEST_PAIR3_ADD = 264321,
+	PM_L2_ST_DISP = 287104,
+	PM_L2_CASTOUT_MOD = 90496,
+	PM_ISEG = 8356,
+	PM_MRK_INST_TIMEO = 262196,
+	PM_L2_RCST_DISP_FAIL_ADDR = 221826,
+	PM_LSU1_DC_PREF_STREAM_CONFIRM = 53430,
+	PM_IERAT_WR_64K = 16574,
+	PM_MRK_DTLB_MISS_16M = 315486,
+	PM_IERAT_MISS = 65782,
+	PM_MRK_PTEG_FROM_LMEM = 315474,
+	PM_FLOP = 65780,
+	PM_THRD_PRIO_4_5_CYC = 16564,
+	PM_BR_PRED_TA = 16554,
+	PM_CMPLU_STALL_FXU = 131092,
+	PM_EXT_INT = 131320,
+	PM_VSU_FSQRT_FDIV = 43144,
+	PM_MRK_LD_MISS_EXPOSED_CYC = 65598,
+	PM_LSU1_LDF = 49286,
+	PM_IC_WRITE_ALL = 18572,
+	PM_LSU0_SRQ_STFWD = 49312,
+	PM_PTEG_FROM_RL2L3_MOD = 114770,
+	PM_MRK_DATA_FROM_L31_SHR = 118862,
+	PM_DATA_FROM_L21_MOD = 245830,
+	PM_VSU1_SCAL_DOUBLE_ISSUED = 45194,
+	PM_VSU0_8FLOP = 41120,
+	PM_POWER_EVENT1 = 65646,
+	PM_DISP_CLB_HELD_BAL = 8338,
+	PM_VSU1_2FLOP = 41114,
+	PM_LWSYNC_HELD = 8346,
+	PM_PTEG_FROM_DL2L3_SHR = 245844,
+	PM_INST_FROM_L21_MOD = 213062,
+	PM_IERAT_XLATE_WR_16MPLUS = 16572,
+	PM_IC_REQ_ALL = 18568,
+	PM_DSLB_MISS = 53392,
+	PM_L3_MISS = 127106,
+	PM_LSU0_L1_PREF = 53432,
+	PM_VSU_SCALAR_SINGLE_ISSUED = 47236,
+	PM_LSU1_DC_PREF_STREAM_CONFIRM_STRIDE = 53438,
+	PM_L2_INST = 221312,
+	PM_VSU0_FRSP = 41140,
+	PM_FLUSH_DISP = 8322,
+	PM_PTEG_FROM_L2MISS = 311384,
+	PM_VSU1_DQ_ISSUED = 45210,
+	PM_CMPLU_STALL_LSU = 131090,
+	PM_MRK_DATA_FROM_DMEM = 118858,
+	PM_LSU_FLUSH_ULD = 51376,
+	PM_PTEG_FROM_LMEM = 311378,
+	PM_MRK_DERAT_MISS_16M = 249948,
+	PM_THRD_ALL_RUN_CYC = 131084,
+	PM_MEM0_PREFETCH_DISP = 131203,
+	PM_MRK_STALL_CMPLU_CYC_COUNT = 196671,
+	PM_DATA_FROM_DL2L3_MOD = 245836,
+	PM_VSU_FRSP = 43188,
+	PM_MRK_DATA_FROM_L21_MOD = 249926,
+	PM_PMC1_OVERFLOW = 131088,
+	PM_VSU0_SINGLE = 41128,
+	PM_MRK_PTEG_FROM_L3MISS = 184408,
+	PM_MRK_PTEG_FROM_L31_SHR = 184406,
+	PM_VSU0_VECTOR_SP_ISSUED = 45200,
+	PM_VSU1_FEST = 41146,
+	PM_MRK_INST_DISP = 131120,
+	PM_VSU0_COMPLEX_ISSUED = 45206,
+	PM_LSU1_FLUSH_UST = 49334,
+	PM_INST_CMPL = 2,
+	PM_FXU_IDLE = 65550,
+	PM_LSU0_FLUSH_ULD = 49328,
+	PM_MRK_DATA_FROM_DL2L3_MOD = 249932,
+	PM_LSU_LMQ_SRQ_EMPTY_ALL_CYC = 196636,
+	PM_LSU1_REJECT_LMQ_FULL = 49318,
+	PM_INST_PTEG_FROM_L21_MOD = 254038,
+	PM_INST_FROM_RL2L3_MOD = 81986,
+	PM_SHL_CREATED = 20610,
+	PM_L2_ST_HIT = 287106,
+	PM_DATA_FROM_DMEM = 114762,
+	PM_L3_LD_MISS = 192642,
+	PM_FXU1_BUSY_FXU0_IDLE = 262158,
+	PM_DISP_CLB_HELD_RES = 8340,
+	PM_L2_SN_SX_I_DONE = 222082,
+	PM_GRP_CMPL = 196612,
+	PM_STCX_CMPL = 49304,
+	PM_VSU0_2FLOP = 41112,
+	PM_L3_PREF_MISS = 258178,
+	PM_LSU_SRQ_SYNC_CYC = 53398,
+	PM_LSU_REJECT_ERAT_MISS = 131172,
+	PM_L1_ICACHE_MISS = 131324,
+	PM_LSU1_FLUSH_SRQ = 49342,
+	PM_LD_REF_L1_LSU0 = 49280,
+	PM_VSU0_FEST = 41144,
+	PM_VSU_VECTOR_SINGLE_ISSUED = 47248,
+	PM_FREQ_UP = 262156,
+	PM_DATA_FROM_LMEM = 245834,
+	PM_LSU1_LDX = 49290,
+	PM_PMC3_OVERFLOW = 262160,
+	PM_MRK_BR_MPRED = 196662,
+	PM_SHL_MATCH = 20614,
+	PM_MRK_BR_TAKEN = 65590,
+	PM_CMPLU_STALL_BRU = 262222,
+	PM_ISLB_MISS = 53394,
+	PM_CYC = 30,
+	PM_DISP_HELD_THERMAL = 196614,
+	PM_INST_PTEG_FROM_RL2L3_SHR = 188500,
+	PM_LSU1_SRQ_STFWD = 49314,
+	PM_GCT_NOSLOT_BR_MPRED = 262170,
+	PM_1PLUS_PPC_CMPL = 65778,
+	PM_PTEG_FROM_DMEM = 180306,
+	PM_VSU_2FLOP = 43160,
+	PM_GCT_FULL_CYC = 16518,
+	PM_MRK_DATA_FROM_L3_CYC = 262176,
+	PM_LSU_SRQ_S0_ALLOC = 53405,
+	PM_MRK_DERAT_MISS_4K = 118876,
+	PM_BR_MPRED_TA = 16558,
+	PM_INST_PTEG_FROM_L2MISS = 319576,
+	PM_DPU_HELD_POWER = 131078,
+	PM_RUN_INST_CMPL = 262394,
+	PM_MRK_VSU_FIN = 196658,
+	PM_LSU_SRQ_S0_VALID = 53404,
+	PM_GCT_EMPTY_CYC = 131080,
+	PM_IOPS_DISP = 196628,
+	PM_RUN_SPURR = 65544,
+	PM_PTEG_FROM_L21_MOD = 245846,
+	PM_VSU0_1FLOP = 41088,
+	PM_SNOOP_TLBIE = 53426,
+	PM_DATA_FROM_L3MISS = 180296,
+	PM_VSU_SINGLE = 43176,
+	PM_DTLB_MISS_16G = 114782,
+	PM_CMPLU_STALL_VECTOR = 131100,
+	PM_FLUSH = 262392,
+	PM_L2_LD_HIT = 221570,
+	PM_NEST_PAIR2_AND = 198787,
+	PM_VSU1_1FLOP = 41090,
+	PM_IC_PREF_REQ = 16522,
+	PM_L3_LD_HIT = 192640,
+	PM_GCT_NOSLOT_IC_MISS = 131098,
+	PM_DISP_HELD = 65542,
+	PM_L2_LD = 90240,
+	PM_LSU_FLUSH_SRQ = 51388,
+	PM_BC_PLUS_8_CONV = 16568,
+	PM_MRK_DATA_FROM_L31_MOD_CYC = 262182,
+	PM_CMPLU_STALL_VECTOR_LONG = 262218,
+	PM_L2_RCST_BUSY_RC_FULL = 156290,
+	PM_TB_BIT_TRANS = 196856,
+	PM_THERMAL_MAX = 262150,
+	PM_LSU1_FLUSH_ULD = 49330,
+	PM_LSU1_REJECT_LHS = 49326,
+	PM_LSU_LRQ_S0_ALLOC = 53407,
+	PM_L3_CO_L31 = 323712,
+	PM_POWER_EVENT4 = 262254,
+	PM_DATA_FROM_L31_SHR = 114766,
+	PM_BR_UNCOND = 16542,
+	PM_LSU1_DC_PREF_STREAM_ALLOC = 53418,
+	PM_PMC4_REWIND = 65568,
+	PM_L2_RCLD_DISP = 90752,
+	PM_THRD_PRIO_2_3_CYC = 16562,
+	PM_MRK_PTEG_FROM_L2MISS = 315480,
+	PM_IC_DEMAND_L2_BHT_REDIRECT = 16536,
+	PM_LSU_DERAT_MISS = 131318,
+	PM_IC_PREF_CANCEL_L2 = 16532,
+	PM_MRK_FIN_STALL_CYC_COUNT = 65597,
+	PM_BR_PRED_CCACHE = 16544,
+	PM_GCT_UTIL_1_TO_2_SLOTS = 8348,
+	PM_MRK_ST_CMPL_INT = 196660,
+	PM_LSU_TWO_TABLEWALK_CYC = 53414,
+	PM_MRK_DATA_FROM_L3MISS = 184392,
+	PM_GCT_NOSLOT_CYC = 65784,
+	PM_LSU_SET_MPRED = 49320,
+	PM_FLUSH_DISP_TLBIE = 8330,
+	PM_VSU1_FCONV = 41138,
+	PM_DERAT_MISS_16G = 311388,
+	PM_INST_FROM_LMEM = 213066,
+	PM_IC_DEMAND_L2_BR_REDIRECT = 16538,
+	PM_CMPLU_STALL_SCALAR_LONG = 131096,
+	PM_INST_PTEG_FROM_L2 = 122960,
+	PM_PTEG_FROM_L2 = 114768,
+	PM_MRK_DATA_FROM_L21_SHR_CYC = 131108,
+	PM_MRK_DTLB_MISS_4K = 184410,
+	PM_VSU0_FPSCR = 45212,
+	PM_VSU1_VECT_DOUBLE_ISSUED = 45186,
+	PM_MRK_PTEG_FROM_RL2L3_MOD = 118866,
+	PM_MEM0_RQ_DISP = 65667,
+	PM_L2_LD_MISS = 155776,
+	PM_VMX_RESULT_SAT_1 = 45216,
+	PM_L1_PREF = 55480,
+	PM_MRK_DATA_FROM_LMEM_CYC = 131116,
+	PM_GRP_IC_MISS_NONSPEC = 65548,
+	PM_PB_NODE_PUMP = 65665,
+	PM_SHL_MERGED = 20612,
+	PM_NEST_PAIR1_ADD = 133249,
+	PM_DATA_FROM_L3 = 114760,
+	PM_LSU_FLUSH = 8334,
+	PM_LSU_SRQ_SYNC_COUNT = 53399,
+	PM_PMC2_OVERFLOW = 196624,
+	PM_LSU_LDF = 51332,
+	PM_POWER_EVENT3 = 196718,
+	PM_DISP_WT = 196616,
+	PM_CMPLU_STALL_REJECT = 262166,
+	PM_IC_BANK_CONFLICT = 16514,
+	PM_BR_MPRED_CR_TA = 18606,
+	PM_L2_INST_MISS = 221314,
+	PM_CMPLU_STALL_ERAT_MISS = 262168,
+	PM_NEST_PAIR2_ADD = 198785,
+	PM_MRK_LSU_FLUSH = 53388,
+	PM_L2_LDST = 92288,
+	PM_INST_FROM_L31_SHR = 81998,
+	PM_VSU0_FIN = 41148,
+	PM_LARX_LSU = 51348,
+	PM_INST_FROM_RMEM = 213058,
+	PM_DISP_CLB_HELD_TLBIE = 8342,
+	PM_MRK_DATA_FROM_DMEM_CYC = 131118,
+	PM_BR_PRED_CR = 16552,
+	PM_LSU_REJECT = 65636,
+	PM_GCT_UTIL_3_TO_6_SLOTS = 8350,
+	PM_CMPLU_STALL_END_GCT_NOSLOT = 65576,
+	PM_LSU0_REJECT_LMQ_FULL = 49316,
+	PM_VSU_FEST = 43192,
+	PM_NEST_PAIR0_AND = 67715,
+	PM_PTEG_FROM_L3 = 180304,
+	PM_POWER_EVENT2 = 131182,
+	PM_IC_PREF_CANCEL_PAGE = 16528,
+	PM_VSU0_FSQRT_FDIV = 41096,
+	PM_MRK_GRP_CMPL = 262192,
+	PM_VSU0_SCAL_DOUBLE_ISSUED = 45192,
+	PM_GRP_DISP = 196618,
+	PM_LSU0_LDX = 49288,
+	PM_DATA_FROM_L2 = 114752,
+	PM_MRK_DATA_FROM_RL2L3_MOD = 118850,
+	PM_LD_REF_L1 = 51328,
+	PM_VSU0_VECT_DOUBLE_ISSUED = 45184,
+	PM_VSU1_2FLOP_DOUBLE = 41102,
+	PM_THRD_PRIO_6_7_CYC = 16566,
+	PM_BC_PLUS_8_RSLV_TAKEN = 16570,
+	PM_BR_MPRED_CR = 16556,
+	PM_L3_CO_MEM = 323714,
+	PM_LD_MISS_L1 = 262384,
+	PM_DATA_FROM_RL2L3_MOD = 114754,
+	PM_LSU_SRQ_FULL_CYC = 65562,
+	PM_TABLEWALK_CYC = 65574,
+	PM_MRK_PTEG_FROM_RMEM = 249938,
+	PM_LSU_SRQ_STFWD = 51360,
+	PM_INST_PTEG_FROM_RMEM = 254034,
+	PM_FXU0_FIN = 65540,
+	PM_LSU1_L1_SW_PREF = 49310,
+	PM_PTEG_FROM_L31_MOD = 114772,
+	PM_PMC5_OVERFLOW = 65572,
+	PM_LD_REF_L1_LSU1 = 49282,
+	PM_INST_PTEG_FROM_L21_SHR = 319574,
+	PM_CMPLU_STALL_THRD = 65564,
+	PM_DATA_FROM_RMEM = 245826,
+	PM_VSU0_SCAL_SINGLE_ISSUED = 45188,
+	PM_BR_MPRED_LSTACK = 16550,
+	PM_MRK_DATA_FROM_RL2L3_MOD_CYC = 262184,
+	PM_LSU0_FLUSH_UST = 49332,
+	PM_LSU_NCST = 49296,
+	PM_BR_TAKEN = 131076,
+	PM_INST_PTEG_FROM_LMEM = 319570,
+	PM_GCT_NOSLOT_BR_MPRED_IC_MISS = 262172,
+	PM_DTLB_MISS_4K = 180314,
+	PM_PMC4_SAVED = 196642,
+	PM_VSU1_PERMUTE_ISSUED = 45202,
+	PM_SLB_MISS = 55440,
+	PM_LSU1_FLUSH_LRQ = 49338,
+	PM_DTLB_MISS = 196860,
+	PM_VSU1_FRSP = 41142,
+	PM_VSU_VECTOR_DOUBLE_ISSUED = 47232,
+	PM_L2_CASTOUT_SHR = 90498,
+	PM_DATA_FROM_DL2L3_SHR = 245828,
+	PM_VSU1_STF = 45198,
+	PM_ST_FIN = 131312,
+	PM_PTEG_FROM_L21_SHR = 311382,
+	PM_L2_LOC_GUESS_WRONG = 156800,
+	PM_MRK_STCX_FAIL = 53390,
+	PM_LSU0_REJECT_LHS = 49324,
+	PM_IC_PREF_CANCEL_HIT = 16530,
+	PM_L3_PREF_BUSY = 323712,
+	PM_MRK_BRU_FIN = 131130,
+	PM_LSU1_NCLD = 49294,
+	PM_INST_PTEG_FROM_L31_MOD = 122964,
+	PM_LSU_NCLD = 51340,
+	PM_LSU_LDX = 51336,
+	PM_L2_LOC_GUESS_CORRECT = 91264,
+	PM_THRESH_TIMEO = 65592,
+	PM_L3_PREF_ST = 53422,
+	PM_DISP_CLB_HELD_SYNC = 8344,
+	PM_VSU_SIMPLE_ISSUED = 47252,
+	PM_VSU1_SINGLE = 41130,
+	PM_DATA_TABLEWALK_CYC = 196634,
+	PM_L2_RC_ST_DONE = 222080,
+	PM_MRK_PTEG_FROM_L21_MOD = 249942,
+	PM_LARX_LSU1 = 49302,
+	PM_MRK_DATA_FROM_RMEM = 249922,
+	PM_DISP_CLB_HELD = 8336,
+	PM_DERAT_MISS_4K = 114780,
+	PM_L2_RCLD_DISP_FAIL_ADDR = 90754,
+	PM_SEG_EXCEPTION = 10404,
+	PM_FLUSH_DISP_SB = 8332,
+	PM_L2_DC_INV = 156034,
+	PM_PTEG_FROM_DL2L3_MOD = 311380,
+	PM_DSEG = 8358,
+	PM_BR_PRED_LSTACK = 16546,
+	PM_VSU0_STF = 45196,
+	PM_LSU_FX_FIN = 65638,
+	PM_DERAT_MISS_16M = 245852,
+	PM_MRK_PTEG_FROM_DL2L3_MOD = 315476,
+	PM_GCT_UTIL_11_PLUS_SLOTS = 8354,
+	PM_INST_FROM_L3 = 81992,
+	PM_MRK_IFU_FIN = 196666,
+	PM_ITLB_MISS = 262396,
+	PM_VSU_STF = 47244,
+	PM_LSU_FLUSH_UST = 51380,
+	PM_L2_LDST_MISS = 157824,
+	PM_FXU1_FIN = 262148,
+	PM_SHL_DEALLOCATED = 20608,
+	PM_L2_SN_M_WR_DONE = 287618,
+	PM_LSU_REJECT_SET_MPRED = 51368,
+	PM_L3_PREF_LD = 53420,
+	PM_L2_SN_M_RD_DONE = 287616,
+	PM_MRK_DERAT_MISS_16G = 315484,
+	PM_VSU_FCONV = 43184,
+	PM_ANY_THRD_RUN_CYC = 65786,
+	PM_LSU_LMQ_FULL_CYC = 53412,
+	PM_MRK_LSU_REJECT_LHS = 53378,
+	PM_MRK_LD_MISS_L1_CYC = 262206,
+	PM_MRK_DATA_FROM_L2_CYC = 131104,
+	PM_INST_IMC_MATCH_DISP = 196630,
+	PM_MRK_DATA_FROM_RMEM_CYC = 262188,
+	PM_VSU0_SIMPLE_ISSUED = 45204,
+	PM_CMPLU_STALL_DIV = 262164,
+	PM_MRK_PTEG_FROM_RL2L3_SHR = 184404,
+	PM_VSU_FMA_DOUBLE = 43152,
+	PM_VSU_4FLOP = 43164,
+	PM_VSU1_FIN = 41150,
+	PM_NEST_PAIR1_AND = 133251,
+	PM_INST_PTEG_FROM_RL2L3_MOD = 122962,
+	PM_RUN_CYC = 131316,
+	PM_PTEG_FROM_RMEM = 245842,
+	PM_LSU_LRQ_S0_VALID = 53406,
+	PM_LSU0_LDF = 49284,
+	PM_FLUSH_COMPLETION = 196626,
+	PM_ST_MISS_L1 = 196848,
+	PM_L2_NODE_PUMP = 222336,
+	PM_INST_FROM_DL2L3_SHR = 213060,
+	PM_MRK_STALL_CMPLU_CYC = 196670,
+	PM_VSU1_DENORM = 41134,
+	PM_MRK_DATA_FROM_L31_SHR_CYC = 131110,
+	PM_NEST_PAIR0_ADD = 67713,
+	PM_INST_FROM_L3MISS = 147528,
+	PM_EE_OFF_EXT_INT = 8320,
+	PM_INST_PTEG_FROM_DMEM = 188498,
+	PM_INST_FROM_DL2L3_MOD = 213068,
+	PM_PMC6_OVERFLOW = 196644,
+	PM_VSU_2FLOP_DOUBLE = 43148,
+	PM_TLB_MISS = 131174,
+	PM_FXU_BUSY = 131086,
+	PM_L2_RCLD_DISP_FAIL_OTHER = 156288,
+	PM_LSU_REJECT_LMQ_FULL = 51364,
+	PM_IC_RELOAD_SHR = 16534,
+	PM_GRP_MRK = 65585,
+	PM_MRK_ST_NEST = 131124,
+	PM_VSU1_FSQRT_FDIV = 41098,
+	PM_LSU0_FLUSH_LRQ = 49336,
+	PM_LARX_LSU0 = 49300,
+	PM_IBUF_FULL_CYC = 16516,
+	PM_MRK_DATA_FROM_DL2L3_SHR_CYC = 131114,
+	PM_LSU_DC_PREF_STREAM_ALLOC = 55464,
+	PM_GRP_MRK_CYC = 65584,
+	PM_MRK_DATA_FROM_RL2L3_SHR_CYC = 131112,
+	PM_L2_GLOB_GUESS_CORRECT = 91266,
+	PM_LSU_REJECT_LHS = 51372,
+	PM_MRK_DATA_FROM_LMEM = 249930,
+	PM_INST_PTEG_FROM_L3 = 188496,
+	PM_FREQ_DOWN = 196620,
+	PM_PB_RETRY_NODE_PUMP = 196737,
+	PM_INST_FROM_RL2L3_SHR = 81996,
+	PM_MRK_INST_ISSUED = 65586,
+	PM_PTEG_FROM_L3MISS = 180312,
+	PM_RUN_PURR = 262388,
+	PM_MRK_GRP_IC_MISS = 262200,
+	PM_MRK_DATA_FROM_L3 = 118856,
+	PM_CMPLU_STALL_DCACHE_MISS = 131094,
+	PM_PTEG_FROM_RL2L3_SHR = 180308,
+	PM_LSU_FLUSH_LRQ = 51384,
+	PM_MRK_DERAT_MISS_64K = 184412,
+	PM_INST_PTEG_FROM_DL2L3_MOD = 319572,
+	PM_L2_ST_MISS = 155778,
+	PM_MRK_PTEG_FROM_L21_SHR = 315478,
+	PM_LWSYNC = 53396,
+	PM_LSU0_DC_PREF_STREAM_CONFIRM_STRIDE = 53436,
+	PM_MRK_LSU_FLUSH_LRQ = 53384,
+	PM_INST_IMC_MATCH_CMPL = 65776,
+	PM_NEST_PAIR3_AND = 264323,
+	PM_PB_RETRY_SYS_PUMP = 262273,
+	PM_MRK_INST_FIN = 196656,
+	PM_MRK_PTEG_FROM_DL2L3_SHR = 249940,
+	PM_INST_FROM_L31_MOD = 81988,
+	PM_MRK_DTLB_MISS_64K = 249950,
+	PM_LSU_FIN = 196710,
+	PM_MRK_LSU_REJECT = 262244,
+	PM_L2_CO_FAIL_BUSY = 91010,
+	PM_MEM0_WQ_DISP = 262275,
+	PM_DATA_FROM_L31_MOD = 114756,
+	PM_THERMAL_WARN = 65558,
+	PM_VSU0_4FLOP = 41116,
+	PM_BR_MPRED_CCACHE = 16548,
+	PM_CMPLU_STALL_IFU = 262220,
+	PM_L1_DEMAND_WRITE = 16524,
+	PM_FLUSH_BR_MPRED = 8324,
+	PM_MRK_DTLB_MISS_16G = 118878,
+	PM_MRK_PTEG_FROM_DMEM = 184402,
+	PM_L2_RCST_DISP = 221824,
+	PM_CMPLU_STALL = 262154,
+	PM_LSU_PARTIAL_CDF = 49322,
+	PM_DISP_CLB_HELD_SB = 8360,
+	PM_VSU0_FMA_DOUBLE = 41104,
+	PM_FXU0_BUSY_FXU1_IDLE = 196622,
+	PM_IC_DEMAND_CYC = 65560,
+	PM_MRK_DATA_FROM_L21_SHR = 249934,
+	PM_MRK_LSU_FLUSH_UST = 53382,
+	PM_INST_PTEG_FROM_L3MISS = 188504,
+	PM_VSU_DENORM = 43180,
+	PM_MRK_LSU_PARTIAL_CDF = 53376,
+	PM_INST_FROM_L21_SHR = 213070,
+	PM_IC_PREF_WRITE = 16526,
+	PM_BR_PRED = 16540,
+	PM_INST_FROM_DMEM = 81994,
+	PM_IC_PREF_CANCEL_ALL = 18576,
+	PM_LSU_DC_PREF_STREAM_CONFIRM = 55476,
+	PM_MRK_LSU_FLUSH_SRQ = 53386,
+	PM_MRK_FIN_STALL_CYC = 65596,
+	PM_L2_RCST_DISP_FAIL_OTHER = 287360,
+	PM_VSU1_DD_ISSUED = 45208,
+	PM_PTEG_FROM_L31_SHR = 180310,
+	PM_DATA_FROM_L21_SHR = 245838,
+	PM_LSU0_NCLD = 49292,
+	PM_VSU1_4FLOP = 41118,
+	PM_VSU1_8FLOP = 41122,
+	PM_VSU_8FLOP = 43168,
+	PM_LSU_LMQ_SRQ_EMPTY_CYC = 131134,
+	PM_DTLB_MISS_64K = 245854,
+	PM_THRD_CONC_RUN_INST = 196852,
+	PM_MRK_PTEG_FROM_L2 = 118864,
+	PM_PB_SYS_PUMP = 131201,
+	PM_VSU_FIN = 43196,
+	PM_MRK_DATA_FROM_L31_MOD = 118852,
+	PM_THRD_PRIO_0_1_CYC = 16560,
+	PM_DERAT_MISS_64K = 180316,
+	PM_PMC2_REWIND = 196640,
+	PM_INST_FROM_L2 = 81984,
+	PM_GRP_BR_MPRED_NONSPEC = 65546,
+	PM_INST_DISP = 131314,
+	PM_MEM0_RD_CANCEL_TOTAL = 196739,
+	PM_LSU0_DC_PREF_STREAM_CONFIRM = 53428,
+	PM_L1_DCACHE_RELOAD_VALID = 196854,
+	PM_VSU_SCALAR_DOUBLE_ISSUED = 47240,
+	PM_L3_PREF_HIT = 258176,
+	PM_MRK_PTEG_FROM_L31_MOD = 118868,
+	PM_CMPLU_STALL_STORE = 131146,
+	PM_MRK_FXU_FIN = 131128,
+	PM_PMC4_OVERFLOW = 65552,
+	PM_MRK_PTEG_FROM_L3 = 184400,
+	PM_LSU0_LMQ_LHR_MERGE = 53400,
+	PM_BTAC_HIT = 20618,
+	PM_L3_RD_BUSY = 323714,
+	PM_LSU0_L1_SW_PREF = 49308,
+	PM_INST_FROM_L2MISS = 278600,
+	PM_LSU0_DC_PREF_STREAM_ALLOC = 53416,
+	PM_L2_ST = 90242,
+	PM_VSU0_DENORM = 41132,
+	PM_MRK_DATA_FROM_DL2L3_SHR = 249924,
+	PM_BR_PRED_CR_TA = 18602,
+	PM_VSU0_FCONV = 41136,
+	PM_MRK_LSU_FLUSH_ULD = 53380,
+	PM_BTAC_MISS = 20616,
+	PM_MRK_LD_MISS_EXPOSED_CYC_COUNT = 65599,
+	PM_MRK_DATA_FROM_L2 = 118848,
+	PM_LSU_DCACHE_RELOAD_VALID = 53410,
+	PM_VSU_FMA = 43140,
+	PM_LSU0_FLUSH_SRQ = 49340,
+	PM_LSU1_L1_PREF = 53434,
+	PM_IOPS_CMPL = 65556,
+	PM_L2_SYS_PUMP = 222338,
+	PM_L2_RCLD_BUSY_RC_FULL = 287362,
+	PM_LSU_LMQ_S0_ALLOC = 53409,
+	PM_FLUSH_DISP_SYNC = 8328,
+	PM_MRK_DATA_FROM_DL2L3_MOD_CYC = 262186,
+	PM_L2_IC_INV = 156032,
+	PM_MRK_DATA_FROM_L21_MOD_CYC = 262180,
+	PM_L3_PREF_LDST = 55468,
+	PM_LSU_SRQ_EMPTY_CYC = 262152,
+	PM_LSU_LMQ_S0_VALID = 53408,
+	PM_FLUSH_PARTIAL = 8326,
+	PM_VSU1_FMA_DOUBLE = 41106,
+	PM_1PLUS_PPC_DISP = 262386,
+	PM_DATA_FROM_L2MISS = 131326,
+	PM_SUSPENDED = 0,
+	PM_VSU0_FMA = 41092,
+	PM_CMPLU_STALL_SCALAR = 262162,
+	PM_STCX_FAIL = 49306,
+	PM_VSU0_FSQRT_FDIV_DOUBLE = 41108,
+	PM_DC_PREF_DST = 53424,
+	PM_VSU1_SCAL_SINGLE_ISSUED = 45190,
+	PM_L3_HIT = 127104,
+	PM_L2_GLOB_GUESS_WRONG = 156802,
+	PM_MRK_DFU_FIN = 131122,
+	PM_INST_FROM_L1 = 16512,
+	PM_BRU_FIN = 65640,
+	PM_IC_DEMAND_REQ = 16520,
+	PM_VSU1_FSQRT_FDIV_DOUBLE = 41110,
+	PM_VSU1_FMA = 41094,
+	PM_MRK_LD_MISS_L1 = 131126,
+	PM_VSU0_2FLOP_DOUBLE = 41100,
+	PM_LSU_DC_PREF_STRIDED_STREAM_CONFIRM = 55484,
+	PM_INST_PTEG_FROM_L31_SHR = 188502,
+	PM_MRK_LSU_REJECT_ERAT_MISS = 196708,
+	PM_MRK_DATA_FROM_L2MISS = 315464,
+	PM_DATA_FROM_RL2L3_SHR = 114764,
+	PM_INST_FROM_PREF = 81990,
+	PM_VSU1_SQ = 45214,
+	PM_L2_LD_DISP = 221568,
+	PM_L2_DISP_ALL = 286848,
+	PM_THRD_GRP_CMPL_BOTH_CYC = 65554,
+	PM_VSU_FSQRT_FDIV_DOUBLE = 43156,
+	PM_BR_MPRED = 262390,
+	PM_INST_PTEG_FROM_DL2L3_SHR = 254036,
+	PM_VSU_1FLOP = 43136,
+	PM_HV_CYC = 131082,
+	PM_MRK_LSU_FIN = 262194,
+	PM_MRK_DATA_FROM_RL2L3_SHR = 118860,
+	PM_DTLB_MISS_16M = 311390,
+	PM_LSU1_LMQ_LHR_MERGE = 53402,
+	PM_IFU_FIN = 262246,
+	PM_1THRD_CON_RUN_INSTR = 196706,
+	PM_CMPLU_STALL_COUNT = 262155,
+	PM_MEM0_PB_RD_CL = 196739,
+	PM_THRD_1_RUN_CYC = 65632,
+	PM_THRD_2_CONC_RUN_INSTR = 262242,
+	PM_THRD_2_RUN_CYC = 131168,
+	PM_THRD_3_CONC_RUN_INST = 65634,
+	PM_THRD_3_RUN_CYC = 196704,
+	PM_THRD_4_CONC_RUN_INST = 131170,
+	PM_THRD_4_RUN_CYC = 262240,
+};
+
+enum perf_branch_sample_type {
+	PERF_SAMPLE_BRANCH_USER = 1,
+	PERF_SAMPLE_BRANCH_KERNEL = 2,
+	PERF_SAMPLE_BRANCH_HV = 4,
+	PERF_SAMPLE_BRANCH_ANY = 8,
+	PERF_SAMPLE_BRANCH_ANY_CALL = 16,
+	PERF_SAMPLE_BRANCH_ANY_RETURN = 32,
+	PERF_SAMPLE_BRANCH_IND_CALL = 64,
+	PERF_SAMPLE_BRANCH_ABORT_TX = 128,
+	PERF_SAMPLE_BRANCH_IN_TX = 256,
+	PERF_SAMPLE_BRANCH_NO_TX = 512,
+	PERF_SAMPLE_BRANCH_COND = 1024,
+	PERF_SAMPLE_BRANCH_CALL_STACK = 2048,
+	PERF_SAMPLE_BRANCH_IND_JUMP = 4096,
+	PERF_SAMPLE_BRANCH_CALL = 8192,
+	PERF_SAMPLE_BRANCH_NO_FLAGS = 16384,
+	PERF_SAMPLE_BRANCH_NO_CYCLES = 32768,
+	PERF_SAMPLE_BRANCH_TYPE_SAVE = 65536,
+	PERF_SAMPLE_BRANCH_HW_INDEX = 131072,
+	PERF_SAMPLE_BRANCH_MAX = 262144,
+};
+
+enum {
+	PM_CYC___2 = 30,
+	PM_GCT_NOSLOT_CYC___2 = 65784,
+	PM_CMPLU_STALL___2 = 262154,
+	PM_INST_CMPL___2 = 2,
+	PM_BRU_FIN___2 = 65640,
+	PM_BR_MPRED_CMPL = 262390,
+	PM_LD_REF_L1___2 = 65774,
+	PM_LD_MISS_L1___2 = 254036,
+	PM_ST_MISS_L1___2 = 196848,
+	PM_L1_PREF___2 = 55480,
+	PM_INST_FROM_L1___2 = 16512,
+	PM_L1_ICACHE_MISS___2 = 131325,
+	PM_L1_DEMAND_WRITE___2 = 16524,
+	PM_IC_PREF_WRITE___2 = 16526,
+	PM_DATA_FROM_L3___2 = 311362,
+	PM_DATA_FROM_L3MISS___2 = 196862,
+	PM_L2_ST___2 = 94336,
+	PM_L2_ST_MISS___2 = 94338,
+	PM_L3_PREF_ALL = 319570,
+	PM_DTLB_MISS___2 = 196860,
+	PM_ITLB_MISS___2 = 262396,
+	PM_RUN_INST_CMPL___2 = 327930,
+	PM_RUN_INST_CMPL_ALT = 262394,
+	PM_RUN_CYC___2 = 393460,
+	PM_RUN_CYC_ALT = 131316,
+	PM_MRK_ST_CMPL___2 = 65844,
+	PM_MRK_ST_CMPL_ALT = 197090,
+	PM_BR_MRK_2PATH = 65848,
+	PM_BR_MRK_2PATH_ALT = 262456,
+	PM_L3_CO_MEPF = 98434,
+	PM_L3_CO_MEPF_ALT = 254046,
+	PM_MRK_DATA_FROM_L2MISS___2 = 119118,
+	PM_MRK_DATA_FROM_L2MISS_ALT = 262632,
+	PM_CMPLU_STALL_ALT = 122964,
+	PM_BR_2PATH = 131126,
+	PM_BR_2PATH_ALT = 262198,
+	PM_INST_DISP___2 = 131314,
+	PM_INST_DISP_ALT = 196850,
+	PM_MRK_FILT_MATCH = 131388,
+	PM_MRK_FILT_MATCH_ALT = 196910,
+	PM_LD_MISS_L1_ALT = 262384,
+	MEM_ACCESS = 17039840,
+};
+
+enum {
+	PM_CYC___3 = 30,
+	PM_ICT_NOSLOT_CYC = 65784,
+	PM_CMPLU_STALL___3 = 122964,
+	PM_INST_CMPL___3 = 2,
+	PM_BR_CMPL = 315486,
+	PM_BR_MPRED_CMPL___2 = 262390,
+	PM_LD_REF_L1___3 = 65788,
+	PM_LD_MISS_L1_FIN = 180302,
+	PM_LD_MISS_L1___3 = 254036,
+	PM_LD_MISS_L1_ALT___2 = 262384,
+	PM_ST_MISS_L1___3 = 196848,
+	PM_L1_PREF___3 = 131156,
+	PM_INST_FROM_L1___3 = 16512,
+	PM_L1_ICACHE_MISS___3 = 131325,
+	PM_L1_DEMAND_WRITE___3 = 16524,
+	PM_IC_PREF_WRITE___3 = 18572,
+	PM_DATA_FROM_L3___3 = 311362,
+	PM_DATA_FROM_L3MISS___3 = 196862,
+	PM_L2_ST___3 = 92288,
+	PM_L2_ST_MISS___3 = 157824,
+	PM_L3_PREF_ALL___2 = 319570,
+	PM_DTLB_MISS___3 = 196860,
+	PM_ITLB_MISS___3 = 262396,
+	PM_RUN_INST_CMPL___3 = 327930,
+	PM_RUN_INST_CMPL_ALT___2 = 262394,
+	PM_RUN_CYC___3 = 393460,
+	PM_RUN_CYC_ALT___2 = 131316,
+	PM_INST_DISP___3 = 131314,
+	PM_INST_DISP_ALT___2 = 196850,
+	PM_BR_2PATH___2 = 131126,
+	PM_BR_2PATH_ALT___2 = 262198,
+	PM_MRK_ST_DONE_L2 = 65844,
+	PM_RADIX_PWC_L1_HIT = 127062,
+	PM_FLOP_CMPL = 65780,
+	PM_MRK_NTF_FIN = 131346,
+	PM_RADIX_PWC_L2_HIT = 184356,
+	PM_IFETCH_THROTTLE = 213086,
+	PM_MRK_L2_TM_ST_ABORT_SISTER = 254300,
+	PM_RADIX_PWC_L3_HIT = 258134,
+	PM_RUN_CYC_SMT2_MODE = 196716,
+	PM_TM_TX_PASS_RUN_INST = 319508,
+	PM_DISP_HELD_SYNC_HOLD = 262204,
+	PM_DTLB_MISS_16G___2 = 114776,
+	PM_DERAT_MISS_2M = 114778,
+	PM_DTLB_MISS_2M = 114780,
+	PM_MRK_DTLB_MISS_1G = 119132,
+	PM_DTLB_MISS_4K___2 = 180310,
+	PM_DERAT_MISS_1G = 180314,
+	PM_MRK_DERAT_MISS_2M = 184658,
+	PM_MRK_DTLB_MISS_4K___2 = 184662,
+	PM_MRK_DTLB_MISS_16G___2 = 184670,
+	PM_DTLB_MISS_64K___2 = 245846,
+	PM_MRK_DERAT_MISS_1G = 250194,
+	PM_MRK_DTLB_MISS_64K___2 = 250198,
+	PM_DTLB_MISS_16M___2 = 311382,
+	PM_DTLB_MISS_1G = 311386,
+	PM_MRK_DTLB_MISS_16M___2 = 311646,
+	MEM_LOADS = 872677856,
+	MEM_STORES = 1006895584,
+};
+
+enum {
+	PM_CYC_ALT = 65776,
+	PM_CYC_INST_CMPL = 65778,
+	PM_FLOP_CMPL___2 = 65780,
+	PM_L1_ITLB_MISS = 65782,
+	PM_NO_INST_AVAIL = 65784,
+	PM_LD_CMPL = 65788,
+	PM_INST_CMPL_ALT = 65790,
+	PM_ST_CMPL = 131312,
+	PM_INST_DISP___4 = 131314,
+	PM_RUN_CYC___4 = 131316,
+	PM_L1_DTLB_RELOAD = 131318,
+	PM_BR_TAKEN_CMPL = 131322,
+	PM_L1_ICACHE_MISS___4 = 131324,
+	PM_L1_RELOAD_FROM_MEM = 131326,
+	PM_ST_MISS_L1___4 = 196848,
+	PM_INST_DISP_ALT___3 = 196850,
+	PM_BR_MISPREDICT = 196854,
+	PM_DTLB_MISS___4 = 196860,
+	PM_DATA_FROM_L3MISS___4 = 196862,
+	PM_LD_MISS_L1___4 = 262384,
+	PM_CYC_INST_DISP = 262386,
+	PM_BR_MPRED_CMPL___3 = 262390,
+	PM_RUN_INST_CMPL___4 = 262394,
+	PM_ITLB_MISS___4 = 262396,
+	PM_LD_NOT_CACHED = 262398,
+	PM_INST_CMPL___4 = 327930,
+	PM_CYC___4 = 393460,
+};
+
+enum {
+	PM_CYC___5 = 393460,
+};
+
+enum {
+	PM_INST_CMPL___5 = 327930,
+};
+
+enum {
+	PM_BR_CMPL___2 = 315486,
+};
+
+enum {
+	PM_BR_MPRED_CMPL___4 = 262390,
+};
+
+enum {
+	PM_BR_FIN = 192586,
+};
+
+enum {
+	PM_MPRED_BR_FIN = 254104,
+};
+
+enum {
+	PM_LD_DEMAND_MISS_L1_FIN = 262384,
+};
+
+enum {
+	PM_LD_REF_L1___4 = 65788,
+};
+
+enum {
+	PM_LD_MISS_L1___5 = 254036,
+};
+
+enum {
+	PM_ST_MISS_L1___5 = 196848,
+};
+
+enum {
+	PM_LD_PREFETCH_CACHE_LINE_MISS = 65580,
+};
+
+enum {
+	PM_L1_ICACHE_MISS___5 = 131324,
+};
+
+enum {
+	PM_INST_FROM_L1___4 = 16512,
+};
+
+enum {
+	PM_INST_FROM_L1MISS = 114752,
+};
+
+enum {
+	PM_IC_PREF_REQ___2 = 16544,
+};
+
+enum {
+	PM_DATA_FROM_L3___4 = 114752,
+};
+
+enum {
+	PM_DATA_FROM_L3MISS___5 = 196862,
+};
+
+enum {
+	PM_L2_ST___4 = 286848,
+};
+
+enum {
+	PM_L2_ST_MISS___4 = 157824,
+};
+
+enum {
+	PM_L3_PF_MISS_L3 = 90240,
+};
+
+enum {
+	PM_DTLB_MISS___5 = 196860,
+};
+
+enum {
+	PM_ITLB_MISS___5 = 262396,
+};
+
+enum {
+	PM_CYC_ALT___2 = 30,
+};
+
+enum {
+	PM_INST_CMPL_ALT___2 = 2,
+};
+
+enum {
+	MEM_LOADS___2 = 872677856,
+};
+
+enum {
+	MEM_STORES___2 = 1006895584,
+};
+
+typedef void (*crash_shutdown_t)();
+
+union thread_union {
+	struct task_struct task;
+	long unsigned int stack[2048];
+};
+
+typedef struct elf64_phdr Elf64_Phdr;
+
+struct kexec_buf {
+	struct kimage *image;
+	void *buffer;
+	long unsigned int bufsz;
+	long unsigned int mem;
+	long unsigned int memsz;
+	long unsigned int buf_align;
+	long unsigned int buf_min;
+	long unsigned int buf_max;
+	bool top_down;
+};
+
+struct umem_info {
+	u64 *buf;
+	u32 size;
+	u32 max_entries;
+	u32 idx;
+	unsigned int nr_ranges;
+	const struct crash_mem_range *ranges;
+};
+
+struct kexec_elf_info {
+	const char *buffer;
+	const struct elf64_hdr *ehdr;
+	const struct elf64_phdr *proghdrs;
+};
+
+typedef long unsigned int vm_flags_t;
+
+struct clone_args {
+	__u64 flags;
+	__u64 pidfd;
+	__u64 child_tid;
+	__u64 parent_tid;
+	__u64 exit_signal;
+	__u64 stack;
+	__u64 stack_size;
+	__u64 tls;
+	__u64 set_tid;
+	__u64 set_tid_size;
+	__u64 cgroup;
+};
+
+struct fdtable {
+	unsigned int max_fds;
+	struct file **fd;
+	long unsigned int *close_on_exec;
+	long unsigned int *open_fds;
+	long unsigned int *full_fds_bits;
+	struct callback_head rcu;
+};
+
+struct files_struct {
+	atomic_t count;
+	bool resize_in_progress;
+	wait_queue_head_t resize_wait;
+	struct fdtable *fdt;
+	struct fdtable fdtab;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t file_lock;
+	unsigned int next_fd;
+	long unsigned int close_on_exec_init[1];
+	long unsigned int open_fds_init[1];
+	long unsigned int full_fds_bits_init[1];
+	struct file *fd_array[64];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct robust_list {
+	struct robust_list *next;
+};
+
+struct robust_list_head {
+	struct robust_list list;
+	long int futex_offset;
+	struct robust_list *list_op_pending;
+};
+
+struct kernel_clone_args {
+	u64 flags;
+	int *pidfd;
+	int *child_tid;
+	int *parent_tid;
+	int exit_signal;
+	long unsigned int stack;
+	long unsigned int stack_size;
+	long unsigned int tls;
+	pid_t *set_tid;
+	size_t set_tid_size;
+	int cgroup;
+	int io_thread;
+	int kthread;
+	struct cgroup *cgrp;
+	struct css_set *cset;
+};
+
+struct multiprocess_signals {
+	sigset_t signal;
+	struct hlist_node node;
+};
+
+typedef int (*proc_visitor)(struct task_struct *, void *);
+
+enum {
+	FUTEX_STATE_OK = 0,
+	FUTEX_STATE_EXITING = 1,
+	FUTEX_STATE_DEAD = 2,
+};
+
+enum proc_hidepid {
+	HIDEPID_OFF = 0,
+	HIDEPID_NO_ACCESS = 1,
+	HIDEPID_INVISIBLE = 2,
+	HIDEPID_NOT_PTRACEABLE = 4,
+};
+
+enum proc_pidonly {
+	PROC_PIDONLY_OFF = 0,
+	PROC_PIDONLY_ON = 1,
+};
+
+struct proc_fs_info {
+	struct pid_namespace *pid_ns;
+	struct dentry *proc_self;
+	struct dentry *proc_thread_self;
+	kgid_t pid_gid;
+	enum proc_hidepid hide_pid;
+	enum proc_pidonly pidonly;
+};
+
+enum bpf_type_flag {
+	PTR_MAYBE_NULL = 256,
+	MEM_RDONLY = 512,
+	MEM_ALLOC = 1024,
+	__BPF_TYPE_LAST_FLAG = 1024,
+};
+
+enum bpf_arg_type {
+	ARG_DONTCARE = 0,
+	ARG_CONST_MAP_PTR = 1,
+	ARG_PTR_TO_MAP_KEY = 2,
+	ARG_PTR_TO_MAP_VALUE = 3,
+	ARG_PTR_TO_UNINIT_MAP_VALUE = 4,
+	ARG_PTR_TO_MEM = 5,
+	ARG_PTR_TO_UNINIT_MEM = 6,
+	ARG_CONST_SIZE = 7,
+	ARG_CONST_SIZE_OR_ZERO = 8,
+	ARG_PTR_TO_CTX = 9,
+	ARG_ANYTHING = 10,
+	ARG_PTR_TO_SPIN_LOCK = 11,
+	ARG_PTR_TO_SOCK_COMMON = 12,
+	ARG_PTR_TO_INT = 13,
+	ARG_PTR_TO_LONG = 14,
+	ARG_PTR_TO_SOCKET = 15,
+	ARG_PTR_TO_BTF_ID = 16,
+	ARG_PTR_TO_ALLOC_MEM = 17,
+	ARG_CONST_ALLOC_SIZE_OR_ZERO = 18,
+	ARG_PTR_TO_BTF_ID_SOCK_COMMON = 19,
+	ARG_PTR_TO_PERCPU_BTF_ID = 20,
+	ARG_PTR_TO_FUNC = 21,
+	ARG_PTR_TO_STACK = 22,
+	ARG_PTR_TO_CONST_STR = 23,
+	ARG_PTR_TO_TIMER = 24,
+	__BPF_ARG_TYPE_MAX = 25,
+	ARG_PTR_TO_MAP_VALUE_OR_NULL = 259,
+	ARG_PTR_TO_MEM_OR_NULL = 261,
+	ARG_PTR_TO_CTX_OR_NULL = 265,
+	ARG_PTR_TO_SOCKET_OR_NULL = 271,
+	ARG_PTR_TO_ALLOC_MEM_OR_NULL = 273,
+	ARG_PTR_TO_STACK_OR_NULL = 278,
+	__BPF_ARG_TYPE_LIMIT = 2047,
+};
+
+enum bpf_return_type {
+	RET_INTEGER = 0,
+	RET_VOID = 1,
+	RET_PTR_TO_MAP_VALUE = 2,
+	RET_PTR_TO_SOCKET = 3,
+	RET_PTR_TO_TCP_SOCK = 4,
+	RET_PTR_TO_SOCK_COMMON = 5,
+	RET_PTR_TO_ALLOC_MEM = 6,
+	RET_PTR_TO_MEM_OR_BTF_ID = 7,
+	RET_PTR_TO_BTF_ID = 8,
+	__BPF_RET_TYPE_MAX = 9,
+	RET_PTR_TO_MAP_VALUE_OR_NULL = 258,
+	RET_PTR_TO_SOCKET_OR_NULL = 259,
+	RET_PTR_TO_TCP_SOCK_OR_NULL = 260,
+	RET_PTR_TO_SOCK_COMMON_OR_NULL = 261,
+	RET_PTR_TO_ALLOC_MEM_OR_NULL = 1286,
+	RET_PTR_TO_BTF_ID_OR_NULL = 264,
+	__BPF_RET_TYPE_LIMIT = 2047,
+};
+
+enum bpf_cgroup_storage_type {
+	BPF_CGROUP_STORAGE_SHARED = 0,
+	BPF_CGROUP_STORAGE_PERCPU = 1,
+	__BPF_CGROUP_STORAGE_MAX = 2,
+};
+
+enum bpf_tramp_prog_type {
+	BPF_TRAMP_FENTRY = 0,
+	BPF_TRAMP_FEXIT = 1,
+	BPF_TRAMP_MODIFY_RETURN = 2,
+	BPF_TRAMP_MAX = 3,
+	BPF_TRAMP_REPLACE = 4,
+};
+
+struct trace_event_raw_task_newtask {
+	struct trace_entry ent;
+	pid_t pid;
+	char comm[16];
+	long unsigned int clone_flags;
+	short int oom_score_adj;
+	char __data[0];
+};
+
+struct trace_event_raw_task_rename {
+	struct trace_entry ent;
+	pid_t pid;
+	char oldcomm[16];
+	char newcomm[16];
+	short int oom_score_adj;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_task_newtask {};
+
+struct trace_event_data_offsets_task_rename {};
+
+typedef void (*btf_trace_task_newtask)(void *, struct task_struct *, long unsigned int);
+
+typedef void (*btf_trace_task_rename)(void *, struct task_struct *, const char *);
+
+struct taint_flag {
+	char c_true;
+	char c_false;
+	bool module;
+};
+
+enum reboot_mode {
+	REBOOT_UNDEFINED = 4294967295,
+	REBOOT_COLD = 0,
+	REBOOT_WARM = 1,
+	REBOOT_HARD = 2,
+	REBOOT_SOFT = 3,
+	REBOOT_GPIO = 4,
+};
+
+struct warn_args {
+	const char *fmt;
+	va_list args;
+};
+
+enum hk_type {
+	HK_TYPE_TIMER = 0,
+	HK_TYPE_RCU = 1,
+	HK_TYPE_MISC = 2,
+	HK_TYPE_SCHED = 3,
+	HK_TYPE_TICK = 4,
+	HK_TYPE_DOMAIN = 5,
+	HK_TYPE_WQ = 6,
+	HK_TYPE_MANAGED_IRQ = 7,
+	HK_TYPE_KTHREAD = 8,
+	HK_TYPE_MAX = 9,
+};
+
+enum cpuhp_smt_control {
+	CPU_SMT_ENABLED = 0,
+	CPU_SMT_DISABLED = 1,
+	CPU_SMT_FORCE_DISABLED = 2,
+	CPU_SMT_NOT_SUPPORTED = 3,
+	CPU_SMT_NOT_IMPLEMENTED = 4,
+};
+
+struct smp_hotplug_thread {
+	struct task_struct **store;
+	struct list_head list;
+	int (*thread_should_run)(unsigned int);
+	void (*thread_fn)(unsigned int);
+	void (*create)(unsigned int);
+	void (*setup)(unsigned int);
+	void (*cleanup)(unsigned int, bool);
+	void (*park)(unsigned int);
+	void (*unpark)(unsigned int);
+	bool selfparking;
+	const char *thread_comm;
+};
+
+struct trace_event_raw_cpuhp_enter {
+	struct trace_entry ent;
+	unsigned int cpu;
+	int target;
+	int idx;
+	void *fun;
+	char __data[0];
+};
+
+struct trace_event_raw_cpuhp_multi_enter {
+	struct trace_entry ent;
+	unsigned int cpu;
+	int target;
+	int idx;
+	void *fun;
+	char __data[0];
+};
+
+struct trace_event_raw_cpuhp_exit {
+	struct trace_entry ent;
+	unsigned int cpu;
+	int state;
+	int idx;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_cpuhp_enter {};
+
+struct trace_event_data_offsets_cpuhp_multi_enter {};
+
+struct trace_event_data_offsets_cpuhp_exit {};
+
+typedef void (*btf_trace_cpuhp_enter)(void *, unsigned int, int, int, int (*)(unsigned int));
+
+typedef void (*btf_trace_cpuhp_multi_enter)(void *, unsigned int, int, int, int (*)(unsigned int, struct hlist_node *), struct hlist_node *);
+
+typedef void (*btf_trace_cpuhp_exit)(void *, unsigned int, int, int, int);
+
+struct cpuhp_cpu_state {
+	enum cpuhp_state state;
+	enum cpuhp_state target;
+	enum cpuhp_state fail;
+	struct task_struct *thread;
+	bool should_run;
+	bool rollback;
+	bool single;
+	bool bringup;
+	int cpu;
+	struct hlist_node *node;
+	struct hlist_node *last;
+	enum cpuhp_state cb_state;
+	int result;
+	struct completion done_up;
+	struct completion done_down;
+};
+
+struct cpuhp_step {
+	const char *name;
+	union {
+		int (*single)(unsigned int);
+		int (*multi)(unsigned int, struct hlist_node *);
+	} startup;
+	union {
+		int (*single)(unsigned int);
+		int (*multi)(unsigned int, struct hlist_node *);
+	} teardown;
+	struct hlist_head list;
+	bool cant_stop;
+	bool multi_instance;
+};
+
+enum cpu_mitigations {
+	CPU_MITIGATIONS_OFF = 0,
+	CPU_MITIGATIONS_AUTO = 1,
+	CPU_MITIGATIONS_AUTO_NOSMT = 2,
+};
+
+struct rusage {
+	struct __kernel_old_timeval ru_utime;
+	struct __kernel_old_timeval ru_stime;
+	__kernel_long_t ru_maxrss;
+	__kernel_long_t ru_ixrss;
+	__kernel_long_t ru_idrss;
+	__kernel_long_t ru_isrss;
+	__kernel_long_t ru_minflt;
+	__kernel_long_t ru_majflt;
+	__kernel_long_t ru_nswap;
+	__kernel_long_t ru_inblock;
+	__kernel_long_t ru_oublock;
+	__kernel_long_t ru_msgsnd;
+	__kernel_long_t ru_msgrcv;
+	__kernel_long_t ru_nsignals;
+	__kernel_long_t ru_nvcsw;
+	__kernel_long_t ru_nivcsw;
+};
+
+struct waitid_info {
+	pid_t pid;
+	uid_t uid;
+	int status;
+	int cause;
+};
+
+struct wait_opts {
+	enum pid_type wo_type;
+	int wo_flags;
+	struct pid *wo_pid;
+	struct waitid_info *wo_info;
+	int wo_stat;
+	struct rusage *wo_rusage;
+	wait_queue_entry_t child_wait;
+	int notask_error;
+};
+
+struct trace_print_flags {
+	long unsigned int mask;
+	const char *name;
+};
+
+struct wait_bit_key {
+	void *flags;
+	int bit_nr;
+	long unsigned int timeout;
+};
+
+struct wait_bit_queue_entry {
+	struct wait_bit_key key;
+	struct wait_queue_entry wq_entry;
+};
+
+struct softirq_action {
+	void (*action)(struct softirq_action *);
+};
+
+struct tasklet_struct {
+	struct tasklet_struct *next;
+	long unsigned int state;
+	atomic_t count;
+	bool use_callback;
+	union {
+		void (*func)(long unsigned int);
+		void (*callback)(struct tasklet_struct *);
+	};
+	long unsigned int data;
+};
+
+enum {
+	TASKLET_STATE_SCHED = 0,
+	TASKLET_STATE_RUN = 1,
+};
+
+struct kernel_stat {
+	long unsigned int irqs_sum;
+	unsigned int softirqs[10];
+};
+
+struct trace_event_raw_irq_handler_entry {
+	struct trace_entry ent;
+	int irq;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_irq_handler_exit {
+	struct trace_entry ent;
