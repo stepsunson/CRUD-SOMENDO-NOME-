@@ -28475,3 +28475,2133 @@ struct module_signature {
 	u8 algo;
 	u8 hash;
 	u8 id_type;
+	u8 signer_len;
+	u8 key_id_len;
+	u8 __pad[3];
+	__be32 sig_len;
+};
+
+enum pkey_id_type {
+	PKEY_ID_PGP = 0,
+	PKEY_ID_X509 = 1,
+	PKEY_ID_PKCS7 = 2,
+};
+
+struct kallsym_iter {
+	loff_t pos;
+	loff_t pos_arch_end;
+	loff_t pos_mod_end;
+	loff_t pos_ftrace_mod_end;
+	loff_t pos_bpf_end;
+	long unsigned int value;
+	unsigned int nameoff;
+	char type;
+	char name[128];
+	char module_name[56];
+	int exported;
+	int show_value;
+};
+
+typedef struct {
+	int val[2];
+} __kernel_fsid_t;
+
+struct kstatfs {
+	long int f_type;
+	long int f_bsize;
+	u64 f_blocks;
+	u64 f_bfree;
+	u64 f_bavail;
+	u64 f_files;
+	u64 f_ffree;
+	__kernel_fsid_t f_fsid;
+	long int f_namelen;
+	long int f_frsize;
+	long int f_flags;
+	long int f_spare[4];
+};
+
+typedef __u16 comp_t;
+
+struct acct_v3 {
+	char ac_flag;
+	char ac_version;
+	__u16 ac_tty;
+	__u32 ac_exitcode;
+	__u32 ac_uid;
+	__u32 ac_gid;
+	__u32 ac_pid;
+	__u32 ac_ppid;
+	__u32 ac_btime;
+	__u32 ac_etime;
+	comp_t ac_utime;
+	comp_t ac_stime;
+	comp_t ac_mem;
+	comp_t ac_io;
+	comp_t ac_rw;
+	comp_t ac_minflt;
+	comp_t ac_majflt;
+	comp_t ac_swaps;
+	char ac_comm[16];
+};
+
+typedef struct acct_v3 acct_t;
+
+struct fs_pin {
+	wait_queue_head_t wait;
+	int done;
+	struct hlist_node s_list;
+	struct hlist_node m_list;
+	void (*kill)(struct fs_pin *);
+};
+
+struct bsd_acct_struct {
+	struct fs_pin pin;
+	atomic_long_t count;
+	struct callback_head rcu;
+	struct mutex lock;
+	int active;
+	long unsigned int needcheck;
+	struct file *file;
+	struct pid_namespace *ns;
+	struct work_struct work;
+	struct completion done;
+};
+
+struct elf64_note {
+	Elf64_Word n_namesz;
+	Elf64_Word n_descsz;
+	Elf64_Word n_type;
+};
+
+typedef u32 note_buf_t[134];
+
+struct crypto_alg;
+
+struct crypto_tfm {
+	u32 crt_flags;
+	int node;
+	void (*exit)(struct crypto_tfm *);
+	struct crypto_alg *__crt_alg;
+	void *__crt_ctx[0];
+};
+
+struct cipher_alg {
+	unsigned int cia_min_keysize;
+	unsigned int cia_max_keysize;
+	int (*cia_setkey)(struct crypto_tfm *, const u8 *, unsigned int);
+	void (*cia_encrypt)(struct crypto_tfm *, u8 *, const u8 *);
+	void (*cia_decrypt)(struct crypto_tfm *, u8 *, const u8 *);
+};
+
+struct compress_alg {
+	int (*coa_compress)(struct crypto_tfm *, const u8 *, unsigned int, u8 *, unsigned int *);
+	int (*coa_decompress)(struct crypto_tfm *, const u8 *, unsigned int, u8 *, unsigned int *);
+};
+
+struct crypto_istat_aead {
+	atomic64_t encrypt_cnt;
+	atomic64_t encrypt_tlen;
+	atomic64_t decrypt_cnt;
+	atomic64_t decrypt_tlen;
+	atomic64_t err_cnt;
+};
+
+struct crypto_istat_akcipher {
+	atomic64_t encrypt_cnt;
+	atomic64_t encrypt_tlen;
+	atomic64_t decrypt_cnt;
+	atomic64_t decrypt_tlen;
+	atomic64_t verify_cnt;
+	atomic64_t sign_cnt;
+	atomic64_t err_cnt;
+};
+
+struct crypto_istat_cipher {
+	atomic64_t encrypt_cnt;
+	atomic64_t encrypt_tlen;
+	atomic64_t decrypt_cnt;
+	atomic64_t decrypt_tlen;
+	atomic64_t err_cnt;
+};
+
+struct crypto_istat_compress {
+	atomic64_t compress_cnt;
+	atomic64_t compress_tlen;
+	atomic64_t decompress_cnt;
+	atomic64_t decompress_tlen;
+	atomic64_t err_cnt;
+};
+
+struct crypto_istat_hash {
+	atomic64_t hash_cnt;
+	atomic64_t hash_tlen;
+	atomic64_t err_cnt;
+};
+
+struct crypto_istat_kpp {
+	atomic64_t setsecret_cnt;
+	atomic64_t generate_public_key_cnt;
+	atomic64_t compute_shared_secret_cnt;
+	atomic64_t err_cnt;
+};
+
+struct crypto_istat_rng {
+	atomic64_t generate_cnt;
+	atomic64_t generate_tlen;
+	atomic64_t seed_cnt;
+	atomic64_t err_cnt;
+};
+
+struct crypto_type;
+
+struct crypto_alg {
+	struct list_head cra_list;
+	struct list_head cra_users;
+	u32 cra_flags;
+	unsigned int cra_blocksize;
+	unsigned int cra_ctxsize;
+	unsigned int cra_alignmask;
+	int cra_priority;
+	refcount_t cra_refcnt;
+	char cra_name[128];
+	char cra_driver_name[128];
+	const struct crypto_type *cra_type;
+	union {
+		struct cipher_alg cipher;
+		struct compress_alg compress;
+	} cra_u;
+	int (*cra_init)(struct crypto_tfm *);
+	void (*cra_exit)(struct crypto_tfm *);
+	void (*cra_destroy)(struct crypto_alg *);
+	struct module *cra_module;
+	union {
+		struct crypto_istat_aead aead;
+		struct crypto_istat_akcipher akcipher;
+		struct crypto_istat_cipher cipher;
+		struct crypto_istat_compress compress;
+		struct crypto_istat_hash hash;
+		struct crypto_istat_rng rng;
+		struct crypto_istat_kpp kpp;
+	} stats;
+};
+
+struct crypto_instance;
+
+struct crypto_type {
+	unsigned int (*ctxsize)(struct crypto_alg *, u32, u32);
+	unsigned int (*extsize)(struct crypto_alg *);
+	int (*init)(struct crypto_tfm *, u32, u32);
+	int (*init_tfm)(struct crypto_tfm *);
+	void (*show)(struct seq_file *, struct crypto_alg *);
+	int (*report)(struct sk_buff *, struct crypto_alg *);
+	void (*free)(struct crypto_instance *);
+	unsigned int type;
+	unsigned int maskclear;
+	unsigned int maskset;
+	unsigned int tfmsize;
+};
+
+struct crypto_shash;
+
+struct shash_desc {
+	struct crypto_shash *tfm;
+	void *__ctx[0];
+};
+
+struct crypto_shash {
+	unsigned int descsize;
+	struct crypto_tfm base;
+};
+
+struct shash_alg {
+	int (*init)(struct shash_desc *);
+	int (*update)(struct shash_desc *, const u8 *, unsigned int);
+	int (*final)(struct shash_desc *, u8 *);
+	int (*finup)(struct shash_desc *, const u8 *, unsigned int, u8 *);
+	int (*digest)(struct shash_desc *, const u8 *, unsigned int, u8 *);
+	int (*export)(struct shash_desc *, void *);
+	int (*import)(struct shash_desc *, const void *);
+	int (*setkey)(struct crypto_shash *, const u8 *, unsigned int);
+	int (*init_tfm)(struct crypto_shash *);
+	void (*exit_tfm)(struct crypto_shash *);
+	unsigned int descsize;
+	int: 32;
+	unsigned int digestsize;
+	unsigned int statesize;
+	struct crypto_alg base;
+};
+
+struct kexec_sha_region {
+	long unsigned int start;
+	long unsigned int len;
+};
+
+typedef __u64 __le64;
+
+typedef __kernel_ulong_t ino_t;
+
+enum kernfs_node_type {
+	KERNFS_DIR = 1,
+	KERNFS_FILE = 2,
+	KERNFS_LINK = 4,
+};
+
+enum kernfs_root_flag {
+	KERNFS_ROOT_CREATE_DEACTIVATED = 1,
+	KERNFS_ROOT_EXTRA_OPEN_PERM_CHECK = 2,
+	KERNFS_ROOT_SUPPORT_EXPORTOP = 4,
+	KERNFS_ROOT_SUPPORT_USER_XATTR = 8,
+};
+
+struct kernfs_fs_context {
+	struct kernfs_root *root;
+	void *ns_tag;
+	long unsigned int magic;
+	bool new_sb_created;
+};
+
+enum {
+	CGRP_NOTIFY_ON_RELEASE = 0,
+	CGRP_CPUSET_CLONE_CHILDREN = 1,
+	CGRP_FREEZE = 2,
+	CGRP_FROZEN = 3,
+	CGRP_KILL = 4,
+};
+
+enum {
+	CGRP_ROOT_NOPREFIX = 2,
+	CGRP_ROOT_XATTR = 4,
+	CGRP_ROOT_NS_DELEGATE = 8,
+	CGRP_ROOT_CPUSET_V2_MODE = 16,
+	CGRP_ROOT_MEMORY_LOCAL_EVENTS = 32,
+	CGRP_ROOT_MEMORY_RECURSIVE_PROT = 64,
+};
+
+struct cgroup_taskset {
+	struct list_head src_csets;
+	struct list_head dst_csets;
+	int nr_tasks;
+	int ssid;
+	struct list_head *csets;
+	struct css_set *cur_cset;
+	struct task_struct *cur_task;
+};
+
+struct css_task_iter {
+	struct cgroup_subsys *ss;
+	unsigned int flags;
+	struct list_head *cset_pos;
+	struct list_head *cset_head;
+	struct list_head *tcset_pos;
+	struct list_head *tcset_head;
+	struct list_head *task_pos;
+	struct list_head *cur_tasks_head;
+	struct css_set *cur_cset;
+	struct css_set *cur_dcset;
+	struct task_struct *cur_task;
+	struct list_head iters_node;
+};
+
+struct cgroup_fs_context {
+	struct kernfs_fs_context kfc;
+	struct cgroup_root *root;
+	struct cgroup_namespace *ns;
+	unsigned int flags;
+	bool cpuset_clone_children;
+	bool none;
+	bool all_ss;
+	u16 subsys_mask;
+	char *name;
+	char *release_agent;
+};
+
+struct cgroup_pidlist;
+
+struct cgroup_file_ctx {
+	struct cgroup_namespace *ns;
+	struct {
+		void *trigger;
+	} psi;
+	struct {
+		bool started;
+		struct css_task_iter iter;
+	} procs;
+	struct {
+		struct cgroup_pidlist *pidlist;
+	} procs1;
+};
+
+struct cgrp_cset_link {
+	struct cgroup *cgrp;
+	struct css_set *cset;
+	struct list_head cset_link;
+	struct list_head cgrp_link;
+};
+
+struct cgroup_mgctx {
+	struct list_head preloaded_src_csets;
+	struct list_head preloaded_dst_csets;
+	struct cgroup_taskset tset;
+	u16 ss_mask;
+};
+
+struct bpf_cgroup_storage_key {
+	__u64 cgroup_inode_id;
+	__u32 attach_type;
+};
+
+struct bpf_storage_buffer;
+
+struct bpf_cgroup_storage_map;
+
+struct bpf_cgroup_storage {
+	union {
+		struct bpf_storage_buffer *buf;
+		void *percpu_buf;
+	};
+	struct bpf_cgroup_storage_map *map;
+	struct bpf_cgroup_storage_key key;
+	struct list_head list_map;
+	struct list_head list_cg;
+	struct rb_node node;
+	struct callback_head rcu;
+};
+
+struct bpf_storage_buffer {
+	struct callback_head rcu;
+	char data[0];
+};
+
+struct trace_event_raw_cgroup_root {
+	struct trace_entry ent;
+	int root;
+	u16 ss_mask;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_cgroup {
+	struct trace_entry ent;
+	int root;
+	int id;
+	int level;
+	u32 __data_loc_path;
+	char __data[0];
+};
+
+struct trace_event_raw_cgroup_migrate {
+	struct trace_entry ent;
+	int dst_root;
+	int dst_id;
+	int dst_level;
+	int pid;
+	u32 __data_loc_dst_path;
+	u32 __data_loc_comm;
+	char __data[0];
+};
+
+struct trace_event_raw_cgroup_event {
+	struct trace_entry ent;
+	int root;
+	int id;
+	int level;
+	u32 __data_loc_path;
+	int val;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_cgroup_root {
+	u32 name;
+};
+
+struct trace_event_data_offsets_cgroup {
+	u32 path;
+};
+
+struct trace_event_data_offsets_cgroup_migrate {
+	u32 dst_path;
+	u32 comm;
+};
+
+struct trace_event_data_offsets_cgroup_event {
+	u32 path;
+};
+
+typedef void (*btf_trace_cgroup_setup_root)(void *, struct cgroup_root *);
+
+typedef void (*btf_trace_cgroup_destroy_root)(void *, struct cgroup_root *);
+
+typedef void (*btf_trace_cgroup_remount)(void *, struct cgroup_root *);
+
+typedef void (*btf_trace_cgroup_mkdir)(void *, struct cgroup *, const char *);
+
+typedef void (*btf_trace_cgroup_rmdir)(void *, struct cgroup *, const char *);
+
+typedef void (*btf_trace_cgroup_release)(void *, struct cgroup *, const char *);
+
+typedef void (*btf_trace_cgroup_rename)(void *, struct cgroup *, const char *);
+
+typedef void (*btf_trace_cgroup_freeze)(void *, struct cgroup *, const char *);
+
+typedef void (*btf_trace_cgroup_unfreeze)(void *, struct cgroup *, const char *);
+
+typedef void (*btf_trace_cgroup_attach_task)(void *, struct cgroup *, const char *, struct task_struct *, bool);
+
+typedef void (*btf_trace_cgroup_transfer_tasks)(void *, struct cgroup *, const char *, struct task_struct *, bool);
+
+typedef void (*btf_trace_cgroup_notify_populated)(void *, struct cgroup *, const char *, int);
+
+typedef void (*btf_trace_cgroup_notify_frozen)(void *, struct cgroup *, const char *, int);
+
+enum cgroup_opt_features {
+	OPT_FEATURE_PRESSURE = 0,
+	OPT_FEATURE_COUNT = 1,
+};
+
+enum cgroup2_param {
+	Opt_nsdelegate = 0,
+	Opt_memory_localevents = 1,
+	Opt_memory_recursiveprot = 2,
+	nr__cgroup2_params = 3,
+};
+
+struct cgroupstats {
+	__u64 nr_sleeping;
+	__u64 nr_running;
+	__u64 nr_stopped;
+	__u64 nr_uninterruptible;
+	__u64 nr_io_wait;
+};
+
+enum cgroup_filetype {
+	CGROUP_FILE_PROCS = 0,
+	CGROUP_FILE_TASKS = 1,
+};
+
+struct cgroup_pidlist {
+	struct {
+		enum cgroup_filetype type;
+		struct pid_namespace *ns;
+	} key;
+	pid_t *list;
+	int length;
+	struct list_head links;
+	struct cgroup *owner;
+	struct delayed_work destroy_dwork;
+};
+
+enum cgroup1_param {
+	Opt_all = 0,
+	Opt_clone_children = 1,
+	Opt_cpuset_v2_mode = 2,
+	Opt_name = 3,
+	Opt_none = 4,
+	Opt_noprefix = 5,
+	Opt_release_agent = 6,
+	Opt_xattr = 7,
+};
+
+enum freezer_state_flags {
+	CGROUP_FREEZER_ONLINE = 1,
+	CGROUP_FREEZING_SELF = 2,
+	CGROUP_FREEZING_PARENT = 4,
+	CGROUP_FROZEN = 8,
+	CGROUP_FREEZING = 6,
+};
+
+struct freezer {
+	struct cgroup_subsys_state css;
+	unsigned int state;
+};
+
+struct pids_cgroup {
+	struct cgroup_subsys_state css;
+	atomic64_t counter;
+	atomic64_t limit;
+	struct cgroup_file events_file;
+	atomic64_t events_limit;
+};
+
+typedef struct {
+	char *from;
+	char *to;
+} substring_t;
+
+enum rdmacg_resource_type {
+	RDMACG_RESOURCE_HCA_HANDLE = 0,
+	RDMACG_RESOURCE_HCA_OBJECT = 1,
+	RDMACG_RESOURCE_MAX = 2,
+};
+
+struct rdma_cgroup {
+	struct cgroup_subsys_state css;
+	struct list_head rpools;
+};
+
+struct rdmacg_device {
+	struct list_head dev_node;
+	struct list_head rpools;
+	char *name;
+};
+
+enum rdmacg_file_type {
+	RDMACG_RESOURCE_TYPE_MAX = 0,
+	RDMACG_RESOURCE_TYPE_STAT = 1,
+};
+
+struct rdmacg_resource {
+	int max;
+	int usage;
+};
+
+struct rdmacg_resource_pool {
+	struct rdmacg_device *device;
+	struct rdmacg_resource resources[2];
+	struct list_head cg_node;
+	struct list_head dev_node;
+	u64 usage_sum;
+	int num_max_cnt;
+};
+
+struct root_domain___2;
+
+struct fmeter {
+	int cnt;
+	int val;
+	time64_t time;
+	spinlock_t lock;
+};
+
+enum prs_errcode {
+	PERR_NONE = 0,
+	PERR_INVCPUS = 1,
+	PERR_INVPARENT = 2,
+	PERR_NOTPART = 3,
+	PERR_NOTEXCL = 4,
+	PERR_NOCPUS = 5,
+	PERR_HOTPLUG = 6,
+	PERR_CPUSEMPTY = 7,
+};
+
+struct cpuset {
+	struct cgroup_subsys_state css;
+	long unsigned int flags;
+	cpumask_var_t cpus_allowed;
+	nodemask_t mems_allowed;
+	cpumask_var_t effective_cpus;
+	nodemask_t effective_mems;
+	cpumask_var_t subparts_cpus;
+	nodemask_t old_mems_allowed;
+	struct fmeter fmeter;
+	int attach_in_progress;
+	int pn;
+	int relax_domain_level;
+	int nr_subparts_cpus;
+	int partition_root_state;
+	int use_parent_ecpus;
+	int child_ecpus_count;
+	enum prs_errcode prs_err;
+	struct cgroup_file partition_file;
+};
+
+struct tmpmasks {
+	cpumask_var_t addmask;
+	cpumask_var_t delmask;
+	cpumask_var_t new_cpus;
+};
+
+typedef enum {
+	CS_ONLINE = 0,
+	CS_CPU_EXCLUSIVE = 1,
+	CS_MEM_EXCLUSIVE = 2,
+	CS_MEM_HARDWALL = 3,
+	CS_MEMORY_MIGRATE = 4,
+	CS_SCHED_LOAD_BALANCE = 5,
+	CS_SPREAD_PAGE = 6,
+	CS_SPREAD_SLAB = 7,
+} cpuset_flagbits_t;
+
+enum subparts_cmd {
+	partcmd_enable = 0,
+	partcmd_disable = 1,
+	partcmd_update = 2,
+	partcmd_invalidate = 3,
+};
+
+struct cpuset_migrate_mm_work {
+	struct work_struct work;
+	struct mm_struct *mm;
+	nodemask_t from;
+	nodemask_t to;
+};
+
+typedef enum {
+	FILE_MEMORY_MIGRATE = 0,
+	FILE_CPULIST = 1,
+	FILE_MEMLIST = 2,
+	FILE_EFFECTIVE_CPULIST = 3,
+	FILE_EFFECTIVE_MEMLIST = 4,
+	FILE_SUBPARTS_CPULIST = 5,
+	FILE_CPU_EXCLUSIVE = 6,
+	FILE_MEM_EXCLUSIVE = 7,
+	FILE_MEM_HARDWALL = 8,
+	FILE_SCHED_LOAD_BALANCE = 9,
+	FILE_PARTITION_ROOT = 10,
+	FILE_SCHED_RELAX_DOMAIN_LEVEL = 11,
+	FILE_MEMORY_PRESSURE_ENABLED = 12,
+	FILE_MEMORY_PRESSURE = 13,
+	FILE_SPREAD_PAGE = 14,
+	FILE_SPREAD_SLAB = 15,
+} cpuset_filetype_t;
+
+enum misc_res_type {
+	MISC_CG_RES_TYPES = 0,
+};
+
+struct misc_res {
+	long unsigned int max;
+	atomic_long_t usage;
+	bool failed;
+};
+
+struct misc_cg {
+	struct cgroup_subsys_state css;
+	struct misc_res res[0];
+};
+
+struct kernel_pkey_query {
+	__u32 supported_ops;
+	__u32 key_size;
+	__u16 max_data_size;
+	__u16 max_sig_size;
+	__u16 max_enc_size;
+	__u16 max_dec_size;
+};
+
+enum kernel_pkey_operation {
+	kernel_pkey_encrypt = 0,
+	kernel_pkey_decrypt = 1,
+	kernel_pkey_sign = 2,
+	kernel_pkey_verify = 3,
+};
+
+struct kernel_pkey_params {
+	struct key *key;
+	const char *encoding;
+	const char *hash_algo;
+	char *info;
+	__u32 in_len;
+	union {
+		__u32 out_len;
+		__u32 in2_len;
+	};
+	enum kernel_pkey_operation op: 8;
+};
+
+struct key_preparsed_payload {
+	const char *orig_description;
+	char *description;
+	union key_payload payload;
+	const void *data;
+	size_t datalen;
+	size_t quotalen;
+	time64_t expiry;
+};
+
+struct key_match_data {
+	bool (*cmp)(const struct key *, const struct key_match_data *);
+	const void *raw_data;
+	void *preparsed;
+	unsigned int lookup_type;
+};
+
+struct idmap_key {
+	bool map_up;
+	u32 id;
+	u32 count;
+};
+
+struct ctl_path {
+	const char *procname;
+};
+
+struct cpu_stop_done {
+	atomic_t nr_todo;
+	int ret;
+	struct completion completion;
+};
+
+struct cpu_stopper {
+	struct task_struct *thread;
+	raw_spinlock_t lock;
+	bool enabled;
+	struct list_head works;
+	struct cpu_stop_work stop_work;
+	long unsigned int caller;
+	cpu_stop_fn_t fn;
+};
+
+enum multi_stop_state {
+	MULTI_STOP_NONE = 0,
+	MULTI_STOP_PREPARE = 1,
+	MULTI_STOP_DISABLE_IRQ = 2,
+	MULTI_STOP_RUN = 3,
+	MULTI_STOP_EXIT = 4,
+};
+
+struct multi_stop_data {
+	cpu_stop_fn_t fn;
+	void *data;
+	unsigned int num_threads;
+	const struct cpumask *active_cpus;
+	enum multi_stop_state state;
+	atomic_t thread_ack;
+};
+
+typedef int __kernel_mqd_t;
+
+typedef __kernel_mqd_t mqd_t;
+
+enum audit_state {
+	AUDIT_STATE_DISABLED = 0,
+	AUDIT_STATE_BUILD = 1,
+	AUDIT_STATE_RECORD = 2,
+};
+
+struct audit_cap_data {
+	kernel_cap_t permitted;
+	kernel_cap_t inheritable;
+	union {
+		unsigned int fE;
+		kernel_cap_t effective;
+	};
+	kernel_cap_t ambient;
+	kuid_t rootid;
+};
+
+struct audit_names {
+	struct list_head list;
+	struct filename *name;
+	int name_len;
+	bool hidden;
+	long unsigned int ino;
+	dev_t dev;
+	umode_t mode;
+	kuid_t uid;
+	kgid_t gid;
+	dev_t rdev;
+	u32 osid;
+	struct audit_cap_data fcap;
+	unsigned int fcap_ver;
+	unsigned char type;
+	bool should_free;
+};
+
+struct mq_attr {
+	__kernel_long_t mq_flags;
+	__kernel_long_t mq_maxmsg;
+	__kernel_long_t mq_msgsize;
+	__kernel_long_t mq_curmsgs;
+	__kernel_long_t __reserved[4];
+};
+
+struct open_how {
+	__u64 flags;
+	__u64 mode;
+	__u64 resolve;
+};
+
+struct audit_proctitle {
+	int len;
+	char *value;
+};
+
+struct audit_aux_data;
+
+struct __kernel_sockaddr_storage;
+
+struct audit_tree_refs;
+
+struct audit_context {
+	int dummy;
+	enum {
+		AUDIT_CTX_UNUSED = 0,
+		AUDIT_CTX_SYSCALL = 1,
+		AUDIT_CTX_URING = 2,
+	} context;
+	enum audit_state state;
+	enum audit_state current_state;
+	unsigned int serial;
+	int major;
+	int uring_op;
+	struct timespec64 ctime;
+	long unsigned int argv[4];
+	long int return_code;
+	u64 prio;
+	int return_valid;
+	struct audit_names preallocated_names[5];
+	int name_count;
+	struct list_head names_list;
+	char *filterkey;
+	struct path pwd;
+	struct audit_aux_data *aux;
+	struct audit_aux_data *aux_pids;
+	struct __kernel_sockaddr_storage *sockaddr;
+	size_t sockaddr_len;
+	pid_t ppid;
+	kuid_t uid;
+	kuid_t euid;
+	kuid_t suid;
+	kuid_t fsuid;
+	kgid_t gid;
+	kgid_t egid;
+	kgid_t sgid;
+	kgid_t fsgid;
+	long unsigned int personality;
+	int arch;
+	pid_t target_pid;
+	kuid_t target_auid;
+	kuid_t target_uid;
+	unsigned int target_sessionid;
+	u32 target_sid;
+	char target_comm[16];
+	struct audit_tree_refs *trees;
+	struct audit_tree_refs *first_trees;
+	struct list_head killed_trees;
+	int tree_count;
+	int type;
+	union {
+		struct {
+			int nargs;
+			long int args[6];
+		} socketcall;
+		struct {
+			kuid_t uid;
+			kgid_t gid;
+			umode_t mode;
+			u32 osid;
+			int has_perm;
+			uid_t perm_uid;
+			gid_t perm_gid;
+			umode_t perm_mode;
+			long unsigned int qbytes;
+		} ipc;
+		struct {
+			mqd_t mqdes;
+			struct mq_attr mqstat;
+		} mq_getsetattr;
+		struct {
+			mqd_t mqdes;
+			int sigev_signo;
+		} mq_notify;
+		struct {
+			mqd_t mqdes;
+			size_t msg_len;
+			unsigned int msg_prio;
+			struct timespec64 abs_timeout;
+		} mq_sendrecv;
+		struct {
+			int oflag;
+			umode_t mode;
+			struct mq_attr attr;
+		} mq_open;
+		struct {
+			pid_t pid;
+			struct audit_cap_data cap;
+		} capset;
+		struct {
+			int fd;
+			int flags;
+		} mmap;
+		struct open_how openat2;
+		struct {
+			int argc;
+		} execve;
+		struct {
+			char *name;
+		} module;
+		struct {
+			struct audit_ntp_data ntp_data;
+			struct timespec64 tk_injoffset;
+		} time;
+	};
+	int fds[2];
+	struct audit_proctitle proctitle;
+};
+
+enum audit_nlgrps {
+	AUDIT_NLGRP_NONE = 0,
+	AUDIT_NLGRP_READLOG = 1,
+	__AUDIT_NLGRP_MAX = 2,
+};
+
+struct audit_status {
+	__u32 mask;
+	__u32 enabled;
+	__u32 failure;
+	__u32 pid;
+	__u32 rate_limit;
+	__u32 backlog_limit;
+	__u32 lost;
+	__u32 backlog;
+	union {
+		__u32 version;
+		__u32 feature_bitmap;
+	};
+	__u32 backlog_wait_time;
+	__u32 backlog_wait_time_actual;
+};
+
+struct audit_features {
+	__u32 vers;
+	__u32 mask;
+	__u32 features;
+	__u32 lock;
+};
+
+struct audit_tty_status {
+	__u32 enabled;
+	__u32 log_passwd;
+};
+
+struct audit_sig_info {
+	uid_t uid;
+	pid_t pid;
+	char ctx[0];
+};
+
+struct __kernel_sockaddr_storage {
+	union {
+		struct {
+			__kernel_sa_family_t ss_family;
+			char __data[126];
+		};
+		void *__align;
+	};
+};
+
+enum skb_drop_reason {
+	SKB_NOT_DROPPED_YET = 0,
+	SKB_DROP_REASON_NOT_SPECIFIED = 1,
+	SKB_DROP_REASON_NO_SOCKET = 2,
+	SKB_DROP_REASON_PKT_TOO_SMALL = 3,
+	SKB_DROP_REASON_TCP_CSUM = 4,
+	SKB_DROP_REASON_SOCKET_FILTER = 5,
+	SKB_DROP_REASON_UDP_CSUM = 6,
+	SKB_DROP_REASON_NETFILTER_DROP = 7,
+	SKB_DROP_REASON_OTHERHOST = 8,
+	SKB_DROP_REASON_IP_CSUM = 9,
+	SKB_DROP_REASON_IP_INHDR = 10,
+	SKB_DROP_REASON_IP_RPFILTER = 11,
+	SKB_DROP_REASON_UNICAST_IN_L2_MULTICAST = 12,
+	SKB_DROP_REASON_XFRM_POLICY = 13,
+	SKB_DROP_REASON_IP_NOPROTO = 14,
+	SKB_DROP_REASON_SOCKET_RCVBUFF = 15,
+	SKB_DROP_REASON_PROTO_MEM = 16,
+	SKB_DROP_REASON_TCP_MD5NOTFOUND = 17,
+	SKB_DROP_REASON_TCP_MD5UNEXPECTED = 18,
+	SKB_DROP_REASON_TCP_MD5FAILURE = 19,
+	SKB_DROP_REASON_SOCKET_BACKLOG = 20,
+	SKB_DROP_REASON_TCP_FLAGS = 21,
+	SKB_DROP_REASON_TCP_ZEROWINDOW = 22,
+	SKB_DROP_REASON_TCP_OLD_DATA = 23,
+	SKB_DROP_REASON_TCP_OVERWINDOW = 24,
+	SKB_DROP_REASON_TCP_OFOMERGE = 25,
+	SKB_DROP_REASON_TCP_RFC7323_PAWS = 26,
+	SKB_DROP_REASON_TCP_INVALID_SEQUENCE = 27,
+	SKB_DROP_REASON_TCP_RESET = 28,
+	SKB_DROP_REASON_TCP_INVALID_SYN = 29,
+	SKB_DROP_REASON_TCP_CLOSE = 30,
+	SKB_DROP_REASON_TCP_FASTOPEN = 31,
+	SKB_DROP_REASON_TCP_OLD_ACK = 32,
+	SKB_DROP_REASON_TCP_TOO_OLD_ACK = 33,
+	SKB_DROP_REASON_TCP_ACK_UNSENT_DATA = 34,
+	SKB_DROP_REASON_TCP_OFO_QUEUE_PRUNE = 35,
+	SKB_DROP_REASON_TCP_OFO_DROP = 36,
+	SKB_DROP_REASON_IP_OUTNOROUTES = 37,
+	SKB_DROP_REASON_BPF_CGROUP_EGRESS = 38,
+	SKB_DROP_REASON_IPV6DISABLED = 39,
+	SKB_DROP_REASON_NEIGH_CREATEFAIL = 40,
+	SKB_DROP_REASON_NEIGH_FAILED = 41,
+	SKB_DROP_REASON_NEIGH_QUEUEFULL = 42,
+	SKB_DROP_REASON_NEIGH_DEAD = 43,
+	SKB_DROP_REASON_TC_EGRESS = 44,
+	SKB_DROP_REASON_QDISC_DROP = 45,
+	SKB_DROP_REASON_CPU_BACKLOG = 46,
+	SKB_DROP_REASON_XDP = 47,
+	SKB_DROP_REASON_TC_INGRESS = 48,
+	SKB_DROP_REASON_UNHANDLED_PROTO = 49,
+	SKB_DROP_REASON_SKB_CSUM = 50,
+	SKB_DROP_REASON_SKB_GSO_SEG = 51,
+	SKB_DROP_REASON_SKB_UCOPY_FAULT = 52,
+	SKB_DROP_REASON_DEV_HDR = 53,
+	SKB_DROP_REASON_DEV_READY = 54,
+	SKB_DROP_REASON_FULL_RING = 55,
+	SKB_DROP_REASON_NOMEM = 56,
+	SKB_DROP_REASON_HDR_TRUNC = 57,
+	SKB_DROP_REASON_TAP_FILTER = 58,
+	SKB_DROP_REASON_TAP_TXFILTER = 59,
+	SKB_DROP_REASON_ICMP_CSUM = 60,
+	SKB_DROP_REASON_INVALID_PROTO = 61,
+	SKB_DROP_REASON_IP_INADDRERRORS = 62,
+	SKB_DROP_REASON_IP_INNOROUTES = 63,
+	SKB_DROP_REASON_PKT_TOO_BIG = 64,
+	SKB_DROP_REASON_MAX = 65,
+};
+
+struct net_generic {
+	union {
+		struct {
+			unsigned int len;
+			struct callback_head rcu;
+		} s;
+		void *ptr[0];
+	};
+};
+
+struct pernet_operations {
+	struct list_head list;
+	int (*init)(struct net *);
+	void (*pre_exit)(struct net *);
+	void (*exit)(struct net *);
+	void (*exit_batch)(struct list_head *);
+	unsigned int *id;
+	size_t size;
+};
+
+struct scm_creds {
+	u32 pid;
+	kuid_t uid;
+	kgid_t gid;
+};
+
+struct netlink_skb_parms {
+	struct scm_creds creds;
+	__u32 portid;
+	__u32 dst_group;
+	__u32 flags;
+	struct sock *sk;
+	bool nsid_is_set;
+	int nsid;
+};
+
+struct netlink_kernel_cfg {
+	unsigned int groups;
+	unsigned int flags;
+	void (*input)(struct sk_buff *);
+	struct mutex *cb_mutex;
+	int (*bind)(struct net *, int);
+	void (*unbind)(struct net *, int);
+	bool (*compare)(struct net *, struct sock *);
+};
+
+struct audit_netlink_list {
+	__u32 portid;
+	struct net *net;
+	struct sk_buff_head q;
+};
+
+struct audit_net {
+	struct sock *sk;
+};
+
+struct auditd_connection {
+	struct pid *pid;
+	u32 portid;
+	struct net *net;
+	struct callback_head rcu;
+};
+
+struct audit_ctl_mutex {
+	struct mutex lock;
+	void *owner;
+};
+
+struct audit_buffer {
+	struct sk_buff *skb;
+	struct audit_context *ctx;
+	gfp_t gfp_mask;
+};
+
+struct audit_reply {
+	__u32 portid;
+	struct net *net;
+	struct sk_buff *skb;
+};
+
+enum {
+	Audit_equal = 0,
+	Audit_not_equal = 1,
+	Audit_bitmask = 2,
+	Audit_bittest = 3,
+	Audit_lt = 4,
+	Audit_gt = 5,
+	Audit_le = 6,
+	Audit_ge = 7,
+	Audit_bad = 8,
+};
+
+struct audit_rule_data {
+	__u32 flags;
+	__u32 action;
+	__u32 field_count;
+	__u32 mask[64];
+	__u32 fields[64];
+	__u32 values[64];
+	__u32 fieldflags[64];
+	__u32 buflen;
+	char buf[0];
+};
+
+struct audit_field;
+
+struct audit_watch;
+
+struct audit_tree;
+
+struct audit_fsnotify_mark;
+
+struct audit_krule {
+	u32 pflags;
+	u32 flags;
+	u32 listnr;
+	u32 action;
+	u32 mask[64];
+	u32 buflen;
+	u32 field_count;
+	char *filterkey;
+	struct audit_field *fields;
+	struct audit_field *arch_f;
+	struct audit_field *inode_f;
+	struct audit_watch *watch;
+	struct audit_tree *tree;
+	struct audit_fsnotify_mark *exe;
+	struct list_head rlist;
+	struct list_head list;
+	u64 prio;
+};
+
+struct audit_field {
+	u32 type;
+	union {
+		u32 val;
+		kuid_t uid;
+		kgid_t gid;
+		struct {
+			char *lsm_str;
+			void *lsm_rule;
+		};
+	};
+	u32 op;
+};
+
+struct audit_entry {
+	struct list_head list;
+	struct callback_head rcu;
+	struct audit_krule rule;
+};
+
+struct audit_buffer___2;
+
+typedef int __kernel_key_t;
+
+typedef __kernel_key_t key_t;
+
+struct cpu_vfs_cap_data {
+	__u32 magic_etc;
+	kernel_cap_t permitted;
+	kernel_cap_t inheritable;
+	kuid_t rootid;
+};
+
+struct kern_ipc_perm {
+	spinlock_t lock;
+	bool deleted;
+	int id;
+	key_t key;
+	kuid_t uid;
+	kgid_t gid;
+	kuid_t cuid;
+	kgid_t cgid;
+	umode_t mode;
+	long unsigned int seq;
+	void *security;
+	struct rhash_head khtnode;
+	struct callback_head rcu;
+	refcount_t refcount;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+typedef struct fsnotify_mark_connector *fsnotify_connp_t;
+
+struct fsnotify_mark_connector {
+	spinlock_t lock;
+	short unsigned int type;
+	short unsigned int flags;
+	__kernel_fsid_t fsid;
+	union {
+		fsnotify_connp_t *obj;
+		struct fsnotify_mark_connector *destroy_next;
+	};
+	struct hlist_head list;
+};
+
+enum audit_nfcfgop {
+	AUDIT_XT_OP_REGISTER = 0,
+	AUDIT_XT_OP_REPLACE = 1,
+	AUDIT_XT_OP_UNREGISTER = 2,
+	AUDIT_NFT_OP_TABLE_REGISTER = 3,
+	AUDIT_NFT_OP_TABLE_UNREGISTER = 4,
+	AUDIT_NFT_OP_CHAIN_REGISTER = 5,
+	AUDIT_NFT_OP_CHAIN_UNREGISTER = 6,
+	AUDIT_NFT_OP_RULE_REGISTER = 7,
+	AUDIT_NFT_OP_RULE_UNREGISTER = 8,
+	AUDIT_NFT_OP_SET_REGISTER = 9,
+	AUDIT_NFT_OP_SET_UNREGISTER = 10,
+	AUDIT_NFT_OP_SETELEM_REGISTER = 11,
+	AUDIT_NFT_OP_SETELEM_UNREGISTER = 12,
+	AUDIT_NFT_OP_GEN_REGISTER = 13,
+	AUDIT_NFT_OP_OBJ_REGISTER = 14,
+	AUDIT_NFT_OP_OBJ_UNREGISTER = 15,
+	AUDIT_NFT_OP_OBJ_RESET = 16,
+	AUDIT_NFT_OP_FLOWTABLE_REGISTER = 17,
+	AUDIT_NFT_OP_FLOWTABLE_UNREGISTER = 18,
+	AUDIT_NFT_OP_INVALID = 19,
+};
+
+enum fsnotify_obj_type {
+	FSNOTIFY_OBJ_TYPE_INODE = 0,
+	FSNOTIFY_OBJ_TYPE_PARENT = 1,
+	FSNOTIFY_OBJ_TYPE_VFSMOUNT = 2,
+	FSNOTIFY_OBJ_TYPE_SB = 3,
+	FSNOTIFY_OBJ_TYPE_COUNT = 4,
+	FSNOTIFY_OBJ_TYPE_DETACHED = 4,
+};
+
+struct audit_aux_data {
+	struct audit_aux_data *next;
+	int type;
+};
+
+struct audit_chunk;
+
+struct audit_tree_refs {
+	struct audit_tree_refs *next;
+	struct audit_chunk *c[31];
+};
+
+struct audit_aux_data_pids {
+	struct audit_aux_data d;
+	pid_t target_pid[16];
+	kuid_t target_auid[16];
+	kuid_t target_uid[16];
+	unsigned int target_sessionid[16];
+	u32 target_sid[16];
+	char target_comm[256];
+	int pid_count;
+};
+
+struct audit_aux_data_bprm_fcaps {
+	struct audit_aux_data d;
+	struct audit_cap_data fcap;
+	unsigned int fcap_ver;
+	struct audit_cap_data old_pcap;
+	struct audit_cap_data new_pcap;
+};
+
+struct audit_nfcfgop_tab {
+	enum audit_nfcfgop op;
+	const char *s;
+};
+
+struct audit_parent;
+
+struct audit_watch {
+	refcount_t count;
+	dev_t dev;
+	char *path;
+	long unsigned int ino;
+	struct audit_parent *parent;
+	struct list_head wlist;
+	struct list_head rules;
+};
+
+struct fsnotify_group;
+
+struct fsnotify_iter_info;
+
+struct fsnotify_mark;
+
+struct fsnotify_event;
+
+struct fsnotify_ops {
+	int (*handle_event)(struct fsnotify_group *, u32, const void *, int, struct inode *, const struct qstr *, u32, struct fsnotify_iter_info *);
+	int (*handle_inode_event)(struct fsnotify_mark *, u32, struct inode *, struct inode *, const struct qstr *, u32);
+	void (*free_group_priv)(struct fsnotify_group *);
+	void (*freeing_mark)(struct fsnotify_mark *, struct fsnotify_group *);
+	void (*free_event)(struct fsnotify_event *);
+	void (*free_mark)(struct fsnotify_mark *);
+};
+
+struct inotify_group_private_data {
+	spinlock_t idr_lock;
+	struct idr idr;
+	struct ucounts *ucounts;
+};
+
+struct fanotify_group_private_data {
+	struct hlist_head *merge_hash;
+	struct list_head access_list;
+	wait_queue_head_t access_waitq;
+	int flags;
+	int f_flags;
+	struct ucounts *ucounts;
+};
+
+struct fsnotify_group {
+	const struct fsnotify_ops *ops;
+	refcount_t refcnt;
+	spinlock_t notification_lock;
+	struct list_head notification_list;
+	wait_queue_head_t notification_waitq;
+	unsigned int q_len;
+	unsigned int max_events;
+	unsigned int priority;
+	bool shutdown;
+	struct mutex mark_mutex;
+	atomic_t user_waits;
+	struct list_head marks_list;
+	struct fasync_struct *fsn_fa;
+	struct fsnotify_event *overflow_event;
+	struct mem_cgroup *memcg;
+	union {
+		void *private;
+		struct inotify_group_private_data inotify_data;
+		struct fanotify_group_private_data fanotify_data;
+	};
+};
+
+struct fsnotify_iter_info {
+	struct fsnotify_mark *marks[4];
+	unsigned int report_mask;
+	int srcu_idx;
+};
+
+struct fsnotify_mark {
+	__u32 mask;
+	refcount_t refcnt;
+	struct fsnotify_group *group;
+	struct list_head g_list;
+	spinlock_t lock;
+	struct hlist_node obj_list;
+	struct fsnotify_mark_connector *connector;
+	__u32 ignored_mask;
+	unsigned int flags;
+};
+
+struct fsnotify_event {
+	struct list_head list;
+};
+
+struct audit_parent {
+	struct list_head watches;
+	struct fsnotify_mark mark;
+};
+
+struct audit_fsnotify_mark {
+	dev_t dev;
+	long unsigned int ino;
+	char *path;
+	struct fsnotify_mark mark;
+	struct audit_krule *rule;
+};
+
+struct audit_chunk___2;
+
+struct audit_tree {
+	refcount_t count;
+	int goner;
+	struct audit_chunk___2 *root;
+	struct list_head chunks;
+	struct list_head rules;
+	struct list_head list;
+	struct list_head same_root;
+	struct callback_head head;
+	char pathname[0];
+};
+
+struct audit_node {
+	struct list_head list;
+	struct audit_tree *owner;
+	unsigned int index;
+};
+
+struct audit_chunk___2 {
+	struct list_head hash;
+	long unsigned int key;
+	struct fsnotify_mark *mark;
+	struct list_head trees;
+	int count;
+	atomic_long_t refs;
+	struct callback_head head;
+	struct audit_node owners[0];
+};
+
+struct audit_tree_mark {
+	struct fsnotify_mark mark;
+	struct audit_chunk___2 *chunk;
+};
+
+enum {
+	HASH_SIZE = 128,
+};
+
+struct kprobe_blacklist_entry {
+	struct list_head list;
+	long unsigned int start_addr;
+	long unsigned int end_addr;
+};
+
+enum perf_record_ksymbol_type {
+	PERF_RECORD_KSYMBOL_TYPE_UNKNOWN = 0,
+	PERF_RECORD_KSYMBOL_TYPE_BPF = 1,
+	PERF_RECORD_KSYMBOL_TYPE_OOL = 2,
+	PERF_RECORD_KSYMBOL_TYPE_MAX = 3,
+};
+
+struct kprobe_insn_page {
+	struct list_head list;
+	kprobe_opcode_t *insns;
+	struct kprobe_insn_cache *cache;
+	int nused;
+	int ngarbage;
+	char slot_used[0];
+};
+
+enum kprobe_slot_state {
+	SLOT_CLEAN = 0,
+	SLOT_DIRTY = 1,
+	SLOT_USED = 2,
+};
+
+struct kgdb_io {
+	const char *name;
+	int (*read_char)();
+	void (*write_char)(u8);
+	void (*flush)();
+	int (*init)();
+	void (*deinit)();
+	void (*pre_exception)();
+	void (*post_exception)();
+	struct console *cons;
+};
+
+enum {
+	KDB_NOT_INITIALIZED = 0,
+	KDB_INIT_EARLY = 1,
+	KDB_INIT_FULL = 2,
+};
+
+struct kgdb_state {
+	int ex_vector;
+	int signo;
+	int err_code;
+	int cpu;
+	int pass_exception;
+	long unsigned int thr_query;
+	long unsigned int threadid;
+	long int kgdb_usethreadid;
+	struct pt_regs *linux_regs;
+	atomic_t *send_ready;
+};
+
+struct debuggerinfo_struct {
+	void *debuggerinfo;
+	struct task_struct *task;
+	int exception_state;
+	int ret_state;
+	int irq_depth;
+	int enter_kgdb;
+	bool rounding_up;
+};
+
+typedef int (*get_char_func)();
+
+typedef enum {
+	KDB_ENABLE_ALL = 1,
+	KDB_ENABLE_MEM_READ = 2,
+	KDB_ENABLE_MEM_WRITE = 4,
+	KDB_ENABLE_REG_READ = 8,
+	KDB_ENABLE_REG_WRITE = 16,
+	KDB_ENABLE_INSPECT = 32,
+	KDB_ENABLE_FLOW_CTRL = 64,
+	KDB_ENABLE_SIGNAL = 128,
+	KDB_ENABLE_REBOOT = 256,
+	KDB_ENABLE_ALWAYS_SAFE = 512,
+	KDB_ENABLE_MASK = 1023,
+	KDB_ENABLE_ALL_NO_ARGS = 1024,
+	KDB_ENABLE_MEM_READ_NO_ARGS = 2048,
+	KDB_ENABLE_MEM_WRITE_NO_ARGS = 4096,
+	KDB_ENABLE_REG_READ_NO_ARGS = 8192,
+	KDB_ENABLE_REG_WRITE_NO_ARGS = 16384,
+	KDB_ENABLE_INSPECT_NO_ARGS = 32768,
+	KDB_ENABLE_FLOW_CTRL_NO_ARGS = 65536,
+	KDB_ENABLE_SIGNAL_NO_ARGS = 131072,
+	KDB_ENABLE_REBOOT_NO_ARGS = 262144,
+	KDB_ENABLE_ALWAYS_SAFE_NO_ARGS = 524288,
+	KDB_ENABLE_MASK_NO_ARGS = 1047552,
+	KDB_REPEAT_NO_ARGS = 1073741824,
+	KDB_REPEAT_WITH_ARGS = 2147483648,
+} kdb_cmdflags_t;
+
+typedef int (*kdb_func_t)(int, const char **);
+
+typedef enum {
+	KDB_REASON_ENTER = 1,
+	KDB_REASON_ENTER_SLAVE = 2,
+	KDB_REASON_BREAK = 3,
+	KDB_REASON_DEBUG = 4,
+	KDB_REASON_OOPS = 5,
+	KDB_REASON_SWITCH = 6,
+	KDB_REASON_KEYBOARD = 7,
+	KDB_REASON_NMI = 8,
+	KDB_REASON_RECURSE = 9,
+	KDB_REASON_SSTEP = 10,
+	KDB_REASON_SYSTEM_NMI = 11,
+} kdb_reason_t;
+
+struct __ksymtab {
+	long unsigned int value;
+	const char *mod_name;
+	long unsigned int mod_start;
+	long unsigned int mod_end;
+	const char *sec_name;
+	long unsigned int sec_start;
+	long unsigned int sec_end;
+	const char *sym_name;
+	long unsigned int sym_start;
+	long unsigned int sym_end;
+};
+
+typedef struct __ksymtab kdb_symtab_t;
+
+struct _kdbtab {
+	char *cmd_name;
+	kdb_func_t cmd_func;
+	char *cmd_usage;
+	char *cmd_help;
+	short int cmd_minlen;
+	kdb_cmdflags_t cmd_flags;
+	struct list_head list_node;
+	bool is_dynamic;
+};
+
+typedef struct _kdbtab kdbtab_t;
+
+typedef enum {
+	KDB_DB_BPT = 0,
+	KDB_DB_SS = 1,
+	KDB_DB_SSBPT = 2,
+	KDB_DB_NOBPT = 3,
+} kdb_dbtrap_t;
+
+struct _kdbmsg {
+	int km_diag;
+	char *km_msg;
+};
+
+typedef struct _kdbmsg kdbmsg_t;
+
+struct defcmd_set {
+	int count;
+	bool usable;
+	char *name;
+	char *usage;
+	char *help;
+	char **command;
+};
+
+struct debug_alloc_header {
+	u32 next;
+	u32 size;
+	void *caller;
+};
+
+struct _kdb_bp {
+	long unsigned int bp_addr;
+	unsigned int bp_free: 1;
+	unsigned int bp_enabled: 1;
+	unsigned int bp_type: 4;
+	unsigned int bp_installed: 1;
+	unsigned int bp_delay: 1;
+	unsigned int bp_delayed: 1;
+	unsigned int bph_length;
+};
+
+typedef struct _kdb_bp kdb_bp_t;
+
+typedef short unsigned int u_short;
+
+struct seccomp_notif_sizes {
+	__u16 seccomp_notif;
+	__u16 seccomp_notif_resp;
+	__u16 seccomp_data;
+};
+
+struct seccomp_notif {
+	__u64 id;
+	__u32 pid;
+	__u32 flags;
+	struct seccomp_data data;
+};
+
+struct seccomp_notif_resp {
+	__u64 id;
+	__s64 val;
+	__s32 error;
+	__u32 flags;
+};
+
+struct seccomp_notif_addfd {
+	__u64 id;
+	__u32 flags;
+	__u32 srcfd;
+	__u32 newfd;
+	__u32 newfd_flags;
+};
+
+struct action_cache {
+	long unsigned int allow_native[8];
+};
+
+struct notification;
+
+struct seccomp_filter {
+	refcount_t refs;
+	refcount_t users;
+	bool log;
+	struct action_cache cache;
+	struct seccomp_filter *prev;
+	struct bpf_prog *prog;
+	struct notification *notif;
+	struct mutex notify_lock;
+	wait_queue_head_t wqh;
+};
+
+struct seccomp_metadata {
+	__u64 filter_off;
+	__u64 flags;
+};
+
+struct sock_fprog {
+	short unsigned int len;
+	struct sock_filter *filter;
+};
+
+typedef unsigned int (*bpf_dispatcher_fn)(const void *, const struct bpf_insn *, unsigned int (*)(const void *, const struct bpf_insn *));
+
+typedef int (*bpf_aux_classic_check_t)(struct sock_filter *, unsigned int);
+
+enum notify_state {
+	SECCOMP_NOTIFY_INIT = 0,
+	SECCOMP_NOTIFY_SENT = 1,
+	SECCOMP_NOTIFY_REPLIED = 2,
+};
+
+struct seccomp_knotif {
+	struct task_struct *task;
+	u64 id;
+	const struct seccomp_data *data;
+	enum notify_state state;
+	int error;
+	long int val;
+	u32 flags;
+	struct completion ready;
+	struct list_head list;
+	struct list_head addfd;
+};
+
+struct seccomp_kaddfd {
+	struct file *file;
+	int fd;
+	unsigned int flags;
+	__u32 ioctl_flags;
+	union {
+		bool setfd;
+		int ret;
+	};
+	struct completion completion;
+	struct list_head list;
+};
+
+struct notification {
+	struct semaphore request;
+	u64 next_id;
+	struct list_head notifications;
+};
+
+struct seccomp_log_name {
+	u32 log;
+	const char *name;
+};
+
+struct rchan;
+
+struct rchan_buf {
+	void *start;
+	void *data;
+	size_t offset;
+	size_t subbufs_produced;
+	size_t subbufs_consumed;
+	struct rchan *chan;
+	wait_queue_head_t read_wait;
+	struct irq_work wakeup_work;
+	struct dentry *dentry;
+	struct kref kref;
+	struct page **page_array;
+	unsigned int page_count;
+	unsigned int finalized;
+	size_t *padding;
+	size_t prev_padding;
+	size_t bytes_consumed;
+	size_t early_bytes;
+	unsigned int cpu;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct rchan_callbacks;
+
+struct rchan {
+	u32 version;
+	size_t subbuf_size;
+	size_t n_subbufs;
+	size_t alloc_size;
+	const struct rchan_callbacks *cb;
+	struct kref kref;
+	void *private_data;
+	size_t last_toobig;
+	struct rchan_buf **buf;
+	int is_global;
+	struct list_head list;
+	struct dentry *parent;
+	int has_base_filename;
+	char base_filename[255];
+};
+
+struct rchan_callbacks {
+	int (*subbuf_start)(struct rchan_buf *, void *, void *, size_t);
+	struct dentry * (*create_buf_file)(const char *, struct dentry *, umode_t, struct rchan_buf *, int *);
+	int (*remove_buf_file)(struct dentry *);
+};
+
+struct partial_page {
+	unsigned int offset;
+	unsigned int len;
+	long unsigned int private;
+};
+
+struct splice_pipe_desc {
+	struct page **pages;
+	struct partial_page *partial;
+	int nr_pages;
+	unsigned int nr_pages_max;
+	const struct pipe_buf_operations *ops;
+	void (*spd_release)(struct splice_pipe_desc *, unsigned int);
+};
+
+struct rchan_percpu_buf_dispatcher {
+	struct rchan_buf *buf;
+	struct dentry *dentry;
+};
+
+enum {
+	TASKSTATS_TYPE_UNSPEC = 0,
+	TASKSTATS_TYPE_PID = 1,
+	TASKSTATS_TYPE_TGID = 2,
+	TASKSTATS_TYPE_STATS = 3,
+	TASKSTATS_TYPE_AGGR_PID = 4,
+	TASKSTATS_TYPE_AGGR_TGID = 5,
+	TASKSTATS_TYPE_NULL = 6,
+	__TASKSTATS_TYPE_MAX = 7,
+};
+
+enum {
+	TASKSTATS_CMD_ATTR_UNSPEC = 0,
+	TASKSTATS_CMD_ATTR_PID = 1,
+	TASKSTATS_CMD_ATTR_TGID = 2,
+	TASKSTATS_CMD_ATTR_REGISTER_CPUMASK = 3,
+	TASKSTATS_CMD_ATTR_DEREGISTER_CPUMASK = 4,
+	__TASKSTATS_CMD_ATTR_MAX = 5,
+};
+
+enum {
+	CGROUPSTATS_CMD_UNSPEC = 3,
+	CGROUPSTATS_CMD_GET = 4,
+	CGROUPSTATS_CMD_NEW = 5,
+	__CGROUPSTATS_CMD_MAX = 6,
+};
+
+enum {
+	CGROUPSTATS_TYPE_UNSPEC = 0,
+	CGROUPSTATS_TYPE_CGROUP_STATS = 1,
+	__CGROUPSTATS_TYPE_MAX = 2,
+};
+
+enum {
+	CGROUPSTATS_CMD_ATTR_UNSPEC = 0,
+	CGROUPSTATS_CMD_ATTR_FD = 1,
+	__CGROUPSTATS_CMD_ATTR_MAX = 2,
+};
+
+struct genlmsghdr {
+	__u8 cmd;
+	__u8 version;
+	__u16 reserved;
+};
+
+enum {
+	NLA_UNSPEC = 0,
+	NLA_U8 = 1,
+	NLA_U16 = 2,
+	NLA_U32 = 3,
+	NLA_U64 = 4,
+	NLA_STRING = 5,
+	NLA_FLAG = 6,
+	NLA_MSECS = 7,
+	NLA_NESTED = 8,
+	NLA_NESTED_ARRAY = 9,
+	NLA_NUL_STRING = 10,
+	NLA_BINARY = 11,
+	NLA_S8 = 12,
+	NLA_S16 = 13,
+	NLA_S32 = 14,
+	NLA_S64 = 15,
+	NLA_BITFIELD32 = 16,
+	NLA_REJECT = 17,
+	__NLA_TYPE_MAX = 18,
+};
+
+struct genl_multicast_group {
+	char name[16];
+	u8 flags;
+};
+
+struct genl_ops;
+
+struct genl_info;
+
+struct genl_small_ops;
+
+struct genl_family {
+	int id;
+	unsigned int hdrsize;
+	char name[16];
+	unsigned int version;
+	unsigned int maxattr;
+	unsigned int mcgrp_offset;
+	u8 netnsok: 1;
+	u8 parallel_ops: 1;
+	u8 n_ops;
+	u8 n_small_ops;
+	u8 n_mcgrps;
+	const struct nla_policy *policy;
+	int (*pre_doit)(const struct genl_ops *, struct sk_buff *, struct genl_info *);
+	void (*post_doit)(const struct genl_ops *, struct sk_buff *, struct genl_info *);
+	const struct genl_ops *ops;
+	const struct genl_small_ops *small_ops;
+	const struct genl_multicast_group *mcgrps;
+	struct module *module;
+};
+
+struct genl_ops {
+	int (*doit)(struct sk_buff *, struct genl_info *);
+	int (*start)(struct netlink_callback *);
+	int (*dumpit)(struct sk_buff *, struct netlink_callback *);
+	int (*done)(struct netlink_callback *);
+	const struct nla_policy *policy;
+	unsigned int maxattr;
+	u8 cmd;
+	u8 internal_flags;
+	u8 flags;
+	u8 validate;
+};
+
+struct genl_info {
+	u32 snd_seq;
+	u32 snd_portid;
+	struct nlmsghdr *nlhdr;
+	struct genlmsghdr *genlhdr;
+	void *userhdr;
+	struct nlattr **attrs;
+	possible_net_t _net;
+	void *user_ptr[2];
+	struct netlink_ext_ack *extack;
+};
+
+struct genl_small_ops {
+	int (*doit)(struct sk_buff *, struct genl_info *);
+	int (*dumpit)(struct sk_buff *, struct netlink_callback *);
+	u8 cmd;
+	u8 internal_flags;
+	u8 flags;
+	u8 validate;
+};
+
+enum genl_validate_flags {
+	GENL_DONT_VALIDATE_STRICT = 1,
+	GENL_DONT_VALIDATE_DUMP = 2,
+	GENL_DONT_VALIDATE_DUMP_STRICT = 4,
+};
+
+struct listener {
+	struct list_head list;
+	pid_t pid;
+	char valid;
+};
+
+struct listener_list {
+	struct rw_semaphore sem;
+	struct list_head list;
+};
+
+enum actions {
+	REGISTER = 0,
+	DEREGISTER = 1,
+	CPU_DONT_CARE = 2,
+};
+
+struct tp_module {
+	struct list_head list;
+	struct module *mod;
+};
+
+enum tp_func_state {
+	TP_FUNC_0 = 0,
+	TP_FUNC_1 = 1,
+	TP_FUNC_2 = 2,
+	TP_FUNC_N = 3,
+};
+
+enum tp_transition_sync {
+	TP_TRANSITION_SYNC_1_0_1 = 0,
+	TP_TRANSITION_SYNC_N_2_1 = 1,
+	_NR_TP_TRANSITION_SYNC = 2,
+};
+
+struct tp_transition_snapshot {
+	long unsigned int rcu;
+	long unsigned int srcu;
+	bool ongoing;
+};
+
+struct tp_probes {
+	struct callback_head rcu;
+	struct tracepoint_func probes[0];
+};
+
+struct ftrace_hash {
+	long unsigned int size_bits;
+	struct hlist_head *buckets;
+	long unsigned int count;
+	long unsigned int flags;
+	struct callback_head rcu;
+};
+
+struct ftrace_func_entry {
+	struct hlist_node hlist;
+	long unsigned int ip;
+	long unsigned int direct;
+};
+
+enum ftrace_bug_type {
+	FTRACE_BUG_UNKNOWN = 0,
+	FTRACE_BUG_INIT = 1,
+	FTRACE_BUG_NOP = 2,
+	FTRACE_BUG_CALL = 3,
+	FTRACE_BUG_UPDATE = 4,
+};
+
+enum {
+	FTRACE_UPDATE_CALLS = 1,
+	FTRACE_DISABLE_CALLS = 2,
+	FTRACE_UPDATE_TRACE_FUNC = 4,
+	FTRACE_START_FUNC_RET = 8,
+	FTRACE_STOP_FUNC_RET = 16,
+	FTRACE_MAY_SLEEP = 32,
+};
+
+enum {
+	FTRACE_UPDATE_IGNORE = 0,
+	FTRACE_UPDATE_MAKE_CALL = 1,
+	FTRACE_UPDATE_MODIFY_CALL = 2,
+	FTRACE_UPDATE_MAKE_NOP = 3,
+};
+
+enum {
+	FTRACE_ITER_FILTER = 1,
+	FTRACE_ITER_NOTRACE = 2,
+	FTRACE_ITER_PRINTALL = 4,
+	FTRACE_ITER_DO_PROBES = 8,
+	FTRACE_ITER_PROBE = 16,
+	FTRACE_ITER_MOD = 32,
+	FTRACE_ITER_ENABLED = 64,
+};
+
+struct ftrace_graph_ent {
+	long unsigned int func;
+	int depth;
+} __attribute__((packed));
+
+struct ftrace_graph_ret {
+	long unsigned int func;
+	int depth;
+	unsigned int overrun;
+	long long unsigned int calltime;
+	long long unsigned int rettime;
+};
+
+typedef void (*trace_func_graph_ret_t)(struct ftrace_graph_ret *);
+
+typedef int (*trace_func_graph_ent_t)(struct ftrace_graph_ent *);
+
+struct fgraph_ops {
+	trace_func_graph_ent_t entryfunc;
+	trace_func_graph_ret_t retfunc;
+};
+
+struct prog_entry;
+
+struct event_filter {
+	struct prog_entry *prog;
+	char *filter_string;
+};
+
+struct trace_array_cpu;
+
+struct array_buffer {
+	struct trace_array *tr;
+	struct trace_buffer *buffer;
+	struct trace_array_cpu *data;
+	u64 time_start;
+	int cpu;
+};
+
+struct trace_pid_list;
+
+struct trace_options;
+
+struct cond_snapshot;
+
+struct trace_func_repeats;
