@@ -66164,3 +66164,2187 @@ struct trace_event_raw_writeback_queue_io {
 	int reason;
 	ino_t cgroup_ino;
 	char __data[0];
+};
+
+struct trace_event_raw_global_dirty_state {
+	struct trace_entry ent;
+	long unsigned int nr_dirty;
+	long unsigned int nr_writeback;
+	long unsigned int background_thresh;
+	long unsigned int dirty_thresh;
+	long unsigned int dirty_limit;
+	long unsigned int nr_dirtied;
+	long unsigned int nr_written;
+	char __data[0];
+};
+
+struct trace_event_raw_bdi_dirty_ratelimit {
+	struct trace_entry ent;
+	char bdi[32];
+	long unsigned int write_bw;
+	long unsigned int avg_write_bw;
+	long unsigned int dirty_rate;
+	long unsigned int dirty_ratelimit;
+	long unsigned int task_ratelimit;
+	long unsigned int balanced_dirty_ratelimit;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_balance_dirty_pages {
+	struct trace_entry ent;
+	char bdi[32];
+	long unsigned int limit;
+	long unsigned int setpoint;
+	long unsigned int dirty;
+	long unsigned int bdi_setpoint;
+	long unsigned int bdi_dirty;
+	long unsigned int dirty_ratelimit;
+	long unsigned int task_ratelimit;
+	unsigned int dirtied;
+	unsigned int dirtied_pause;
+	long unsigned int paused;
+	long int pause;
+	long unsigned int period;
+	long int think;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_sb_inodes_requeue {
+	struct trace_entry ent;
+	char name[32];
+	ino_t ino;
+	long unsigned int state;
+	long unsigned int dirtied_when;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_congest_waited_template {
+	struct trace_entry ent;
+	unsigned int usec_timeout;
+	unsigned int usec_delayed;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_single_inode_template {
+	struct trace_entry ent;
+	char name[32];
+	ino_t ino;
+	long unsigned int state;
+	long unsigned int dirtied_when;
+	long unsigned int writeback_index;
+	long int nr_to_write;
+	long unsigned int wrote;
+	ino_t cgroup_ino;
+	char __data[0];
+};
+
+struct trace_event_raw_writeback_inode_template {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	long unsigned int state;
+	__u16 mode;
+	long unsigned int dirtied_when;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_writeback_folio_template {};
+
+struct trace_event_data_offsets_writeback_dirty_inode_template {};
+
+struct trace_event_data_offsets_inode_foreign_history {};
+
+struct trace_event_data_offsets_inode_switch_wbs {};
+
+struct trace_event_data_offsets_track_foreign_dirty {};
+
+struct trace_event_data_offsets_flush_foreign {};
+
+struct trace_event_data_offsets_writeback_write_inode_template {};
+
+struct trace_event_data_offsets_writeback_work_class {};
+
+struct trace_event_data_offsets_writeback_pages_written {};
+
+struct trace_event_data_offsets_writeback_class {};
+
+struct trace_event_data_offsets_writeback_bdi_register {};
+
+struct trace_event_data_offsets_wbc_class {};
+
+struct trace_event_data_offsets_writeback_queue_io {};
+
+struct trace_event_data_offsets_global_dirty_state {};
+
+struct trace_event_data_offsets_bdi_dirty_ratelimit {};
+
+struct trace_event_data_offsets_balance_dirty_pages {};
+
+struct trace_event_data_offsets_writeback_sb_inodes_requeue {};
+
+struct trace_event_data_offsets_writeback_congest_waited_template {};
+
+struct trace_event_data_offsets_writeback_single_inode_template {};
+
+struct trace_event_data_offsets_writeback_inode_template {};
+
+typedef void (*btf_trace_writeback_dirty_folio)(void *, struct folio *, struct address_space *);
+
+typedef void (*btf_trace_folio_wait_writeback)(void *, struct folio *, struct address_space *);
+
+typedef void (*btf_trace_writeback_mark_inode_dirty)(void *, struct inode *, int);
+
+typedef void (*btf_trace_writeback_dirty_inode_start)(void *, struct inode *, int);
+
+typedef void (*btf_trace_writeback_dirty_inode)(void *, struct inode *, int);
+
+typedef void (*btf_trace_inode_foreign_history)(void *, struct inode *, struct writeback_control *, unsigned int);
+
+typedef void (*btf_trace_inode_switch_wbs)(void *, struct inode *, struct bdi_writeback *, struct bdi_writeback *);
+
+typedef void (*btf_trace_track_foreign_dirty)(void *, struct folio *, struct bdi_writeback *);
+
+typedef void (*btf_trace_flush_foreign)(void *, struct bdi_writeback *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_writeback_write_inode_start)(void *, struct inode *, struct writeback_control *);
+
+typedef void (*btf_trace_writeback_write_inode)(void *, struct inode *, struct writeback_control *);
+
+typedef void (*btf_trace_writeback_queue)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_exec)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_start)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_written)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_wait)(void *, struct bdi_writeback *, struct wb_writeback_work *);
+
+typedef void (*btf_trace_writeback_pages_written)(void *, long int);
+
+typedef void (*btf_trace_writeback_wake_background)(void *, struct bdi_writeback *);
+
+typedef void (*btf_trace_writeback_bdi_register)(void *, struct backing_dev_info *);
+
+typedef void (*btf_trace_wbc_writepage)(void *, struct writeback_control *, struct backing_dev_info *);
+
+typedef void (*btf_trace_writeback_queue_io)(void *, struct bdi_writeback *, struct wb_writeback_work *, long unsigned int, int);
+
+typedef void (*btf_trace_global_dirty_state)(void *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_bdi_dirty_ratelimit)(void *, struct bdi_writeback *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_balance_dirty_pages)(void *, struct bdi_writeback *, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, long int, long unsigned int);
+
+typedef void (*btf_trace_writeback_sb_inodes_requeue)(void *, struct inode *);
+
+typedef void (*btf_trace_writeback_congestion_wait)(void *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_writeback_single_inode_start)(void *, struct inode *, struct writeback_control *, long unsigned int);
+
+typedef void (*btf_trace_writeback_single_inode)(void *, struct inode *, struct writeback_control *, long unsigned int);
+
+typedef void (*btf_trace_writeback_lazytime)(void *, struct inode *);
+
+typedef void (*btf_trace_writeback_lazytime_iput)(void *, struct inode *);
+
+typedef void (*btf_trace_writeback_dirty_inode_enqueue)(void *, struct inode *);
+
+typedef void (*btf_trace_sb_mark_inode_writeback)(void *, struct inode *);
+
+typedef void (*btf_trace_sb_clear_inode_writeback)(void *, struct inode *);
+
+struct inode_switch_wbs_context {
+	struct rcu_work work;
+	struct bdi_writeback *new_wb;
+	struct inode *inodes[0];
+};
+
+struct splice_desc {
+	size_t total_len;
+	unsigned int len;
+	unsigned int flags;
+	union {
+		void *userptr;
+		struct file *file;
+		void *data;
+	} u;
+	loff_t pos;
+	loff_t *opos;
+	size_t num_spliced;
+	bool need_wakeup;
+};
+
+typedef int splice_actor(struct pipe_inode_info *, struct pipe_buffer *, struct splice_desc *);
+
+typedef int splice_direct_actor(struct pipe_inode_info *, struct splice_desc *);
+
+struct old_utimbuf32 {
+	old_time32_t actime;
+	old_time32_t modtime;
+};
+
+struct utimbuf {
+	__kernel_old_time_t actime;
+	__kernel_old_time_t modtime;
+};
+
+struct prepend_buffer {
+	char *buf;
+	int len;
+};
+
+typedef int __kernel_daddr_t;
+
+struct ustat {
+	__kernel_daddr_t f_tfree;
+	long unsigned int f_tinode;
+	char f_fname[6];
+	char f_fpack[6];
+};
+
+struct statfs {
+	__kernel_long_t f_type;
+	__kernel_long_t f_bsize;
+	__kernel_long_t f_blocks;
+	__kernel_long_t f_bfree;
+	__kernel_long_t f_bavail;
+	__kernel_long_t f_files;
+	__kernel_long_t f_ffree;
+	__kernel_fsid_t f_fsid;
+	__kernel_long_t f_namelen;
+	__kernel_long_t f_frsize;
+	__kernel_long_t f_flags;
+	__kernel_long_t f_spare[4];
+};
+
+struct statfs64 {
+	__kernel_long_t f_type;
+	__kernel_long_t f_bsize;
+	__u64 f_blocks;
+	__u64 f_bfree;
+	__u64 f_bavail;
+	__u64 f_files;
+	__u64 f_ffree;
+	__kernel_fsid_t f_fsid;
+	__kernel_long_t f_namelen;
+	__kernel_long_t f_frsize;
+	__kernel_long_t f_flags;
+	__kernel_long_t f_spare[4];
+};
+
+struct ns_get_path_task_args {
+	const struct proc_ns_operations *ns_ops;
+	struct task_struct *task;
+};
+
+enum legacy_fs_param {
+	LEGACY_FS_UNSET_PARAMS = 0,
+	LEGACY_FS_MONOLITHIC_PARAMS = 1,
+	LEGACY_FS_INDIVIDUAL_PARAMS = 2,
+};
+
+struct legacy_fs_context {
+	char *legacy_data;
+	size_t data_size;
+	enum legacy_fs_param param_type;
+};
+
+enum fsconfig_command {
+	FSCONFIG_SET_FLAG = 0,
+	FSCONFIG_SET_STRING = 1,
+	FSCONFIG_SET_BINARY = 2,
+	FSCONFIG_SET_PATH = 3,
+	FSCONFIG_SET_PATH_EMPTY = 4,
+	FSCONFIG_SET_FD = 5,
+	FSCONFIG_CMD_CREATE = 6,
+	FSCONFIG_CMD_RECONFIGURE = 7,
+};
+
+typedef __u32 blk_mq_req_flags_t;
+
+struct dax_device;
+
+struct iomap_page_ops;
+
+struct iomap___2 {
+	u64 addr;
+	loff_t offset;
+	u64 length;
+	u16 type;
+	u16 flags;
+	struct block_device *bdev;
+	struct dax_device *dax_dev;
+	void *inline_data;
+	void *private;
+	const struct iomap_page_ops *page_ops;
+};
+
+struct iomap_page_ops {
+	int (*page_prepare)(struct inode *, loff_t, unsigned int);
+	void (*page_done)(struct inode *, loff_t, unsigned int, struct page *);
+};
+
+enum hctx_type {
+	HCTX_TYPE_DEFAULT = 0,
+	HCTX_TYPE_READ = 1,
+	HCTX_TYPE_POLL = 2,
+	HCTX_MAX_TYPES = 3,
+	RH_HCTX_MAX_TYPES = 6,
+};
+
+struct decrypt_bh_ctx {
+	struct work_struct work;
+	struct buffer_head *bh;
+};
+
+struct bh_lru {
+	struct buffer_head *bhs[16];
+};
+
+struct bh_accounting {
+	int nr;
+	int ratelimit;
+};
+
+typedef int dio_iodone_t(struct kiocb *, loff_t, ssize_t, void *);
+
+typedef void dio_submit_t(struct bio *, struct inode *, loff_t);
+
+enum {
+	DIO_LOCKING = 1,
+	DIO_SKIP_HOLES = 2,
+};
+
+struct dio_submit {
+	struct bio *bio;
+	unsigned int blkbits;
+	unsigned int blkfactor;
+	unsigned int start_zero_done;
+	int pages_in_io;
+	sector_t block_in_file;
+	unsigned int blocks_available;
+	int reap_counter;
+	sector_t final_block_in_request;
+	int boundary;
+	get_block_t *get_block;
+	dio_submit_t *submit_io;
+	loff_t logical_offset_in_bio;
+	sector_t final_block_in_bio;
+	sector_t next_block_for_io;
+	struct page *cur_page;
+	unsigned int cur_page_offset;
+	unsigned int cur_page_len;
+	sector_t cur_page_block;
+	loff_t cur_page_fs_offset;
+	struct iov_iter *iter;
+	unsigned int head;
+	unsigned int tail;
+	size_t from;
+	size_t to;
+};
+
+struct dio {
+	int flags;
+	blk_opf_t opf;
+	struct gendisk *bio_disk;
+	struct inode *inode;
+	loff_t i_size;
+	dio_iodone_t *end_io;
+	void *private;
+	spinlock_t bio_lock;
+	int page_errors;
+	int is_async;
+	bool defer_completion;
+	bool should_dirty;
+	int io_error;
+	long unsigned int refcount;
+	struct bio *bio_list;
+	struct task_struct *waiter;
+	struct kiocb *iocb;
+	ssize_t result;
+	union {
+		struct page *pages[64];
+		struct work_struct complete_work;
+	};
+	long: 64;
+	long: 64;
+};
+
+struct bvec_iter_all {
+	struct bio_vec bv;
+	int idx;
+	unsigned int done;
+};
+
+struct mpage_readpage_args {
+	struct bio *bio;
+	struct page *page;
+	unsigned int nr_pages;
+	bool is_readahead;
+	sector_t last_block_in_bio;
+	struct buffer_head map_bh;
+	long unsigned int first_logical_block;
+	get_block_t *get_block;
+};
+
+struct mpage_data {
+	struct bio *bio;
+	sector_t last_block_in_bio;
+	get_block_t *get_block;
+	unsigned int use_writepage;
+};
+
+typedef u32 nlink_t;
+
+typedef int (*proc_write_t)(struct file *, char *, size_t);
+
+struct proc_dir_entry {
+	atomic_t in_use;
+	refcount_t refcnt;
+	struct list_head pde_openers;
+	spinlock_t pde_unload_lock;
+	struct completion *pde_unload_completion;
+	const struct inode_operations *proc_iops;
+	union {
+		const struct proc_ops *proc_ops;
+		const struct file_operations *proc_dir_ops;
+	};
+	const struct dentry_operations *proc_dops;
+	union {
+		const struct seq_operations *seq_ops;
+		int (*single_show)(struct seq_file *, void *);
+	};
+	proc_write_t write;
+	void *data;
+	unsigned int state_size;
+	unsigned int low_ino;
+	nlink_t nlink;
+	kuid_t uid;
+	kgid_t gid;
+	loff_t size;
+	struct proc_dir_entry *parent;
+	struct rb_root subdir;
+	struct rb_node subdir_node;
+	char *name;
+	umode_t mode;
+	u8 flags;
+	u8 namelen;
+	char inline_name[0];
+};
+
+union proc_op {
+	int (*proc_get_link)(struct dentry *, struct path *);
+	int (*proc_show)(struct seq_file *, struct pid_namespace *, struct pid *, struct task_struct *);
+	const char *lsm;
+};
+
+struct proc_inode {
+	struct pid *pid;
+	unsigned int fd;
+	union proc_op op;
+	struct proc_dir_entry *pde;
+	struct ctl_table_header *sysctl;
+	struct ctl_table *sysctl_entry;
+	struct hlist_node sibling_inodes;
+	const struct proc_ns_operations *ns_ops;
+	struct inode vfs_inode;
+};
+
+struct proc_fs_opts {
+	int flag;
+	const char *str;
+};
+
+struct file_handle {
+	__u32 handle_bytes;
+	int handle_type;
+	unsigned char f_handle[0];
+};
+
+struct inotify_inode_mark {
+	struct fsnotify_mark fsn_mark;
+	int wd;
+};
+
+struct dnotify_struct {
+	struct dnotify_struct *dn_next;
+	__u32 dn_mask;
+	int dn_fd;
+	struct file *dn_filp;
+	fl_owner_t dn_owner;
+};
+
+struct dnotify_mark {
+	struct fsnotify_mark fsn_mark;
+	struct dnotify_struct *dn;
+};
+
+struct inotify_event_info {
+	struct fsnotify_event fse;
+	u32 mask;
+	int wd;
+	u32 sync_cookie;
+	int name_len;
+	char name[0];
+};
+
+struct inotify_event {
+	__s32 wd;
+	__u32 mask;
+	__u32 cookie;
+	__u32 len;
+	char name[0];
+};
+
+enum {
+	FAN_EVENT_INIT = 0,
+	FAN_EVENT_REPORTED = 1,
+	FAN_EVENT_ANSWERED = 2,
+	FAN_EVENT_CANCELED = 3,
+};
+
+struct fanotify_fh {
+	u8 type;
+	u8 len;
+	u8 flags;
+	u8 pad;
+	unsigned char buf[0];
+};
+
+struct fanotify_info {
+	u8 dir_fh_totlen;
+	u8 file_fh_totlen;
+	u8 name_len;
+	u8 pad;
+	unsigned char buf[0];
+};
+
+enum fanotify_event_type {
+	FANOTIFY_EVENT_TYPE_FID = 0,
+	FANOTIFY_EVENT_TYPE_FID_NAME = 1,
+	FANOTIFY_EVENT_TYPE_PATH = 2,
+	FANOTIFY_EVENT_TYPE_PATH_PERM = 3,
+	FANOTIFY_EVENT_TYPE_OVERFLOW = 4,
+	__FANOTIFY_EVENT_TYPE_NUM = 5,
+};
+
+struct fanotify_event {
+	struct fsnotify_event fse;
+	struct hlist_node merge_list;
+	u32 mask;
+	struct {
+		unsigned int type: 3;
+		unsigned int hash: 29;
+	};
+	struct pid *pid;
+};
+
+struct fanotify_fid_event {
+	struct fanotify_event fae;
+	__kernel_fsid_t fsid;
+	struct fanotify_fh object_fh;
+	unsigned char _inline_fh_buf[12];
+};
+
+struct fanotify_name_event {
+	struct fanotify_event fae;
+	__kernel_fsid_t fsid;
+	struct fanotify_info info;
+};
+
+struct fanotify_path_event {
+	struct fanotify_event fae;
+	struct path path;
+};
+
+struct fanotify_perm_event {
+	struct fanotify_event fae;
+	struct path path;
+	short unsigned int response;
+	short unsigned int state;
+	int fd;
+};
+
+struct fanotify_event_metadata {
+	__u32 event_len;
+	__u8 vers;
+	__u8 reserved;
+	__u16 metadata_len;
+	__u64 mask;
+	__s32 fd;
+	__s32 pid;
+};
+
+struct fanotify_event_info_header {
+	__u8 info_type;
+	__u8 pad;
+	__u16 len;
+};
+
+struct fanotify_event_info_fid {
+	struct fanotify_event_info_header hdr;
+	__kernel_fsid_t fsid;
+	unsigned char handle[0];
+};
+
+struct fanotify_response {
+	__s32 fd;
+	__u32 response;
+};
+
+struct epoll_event {
+	__poll_t events;
+	__u64 data;
+};
+
+struct epoll_filefd {
+	struct file *file;
+	int fd;
+} __attribute__((packed));
+
+struct epitem;
+
+struct eppoll_entry {
+	struct eppoll_entry *next;
+	struct epitem *base;
+	wait_queue_entry_t wait;
+	wait_queue_head_t *whead;
+};
+
+struct eventpoll;
+
+struct epitem {
+	union {
+		struct rb_node rbn;
+		struct callback_head rcu;
+	};
+	struct list_head rdllink;
+	struct epitem *next;
+	struct epoll_filefd ffd;
+	struct eppoll_entry *pwqlist;
+	struct eventpoll *ep;
+	struct hlist_node fllink;
+	struct wakeup_source *ws;
+	struct epoll_event event;
+};
+
+struct eventpoll {
+	struct mutex mtx;
+	wait_queue_head_t wq;
+	wait_queue_head_t poll_wait;
+	struct list_head rdllist;
+	rwlock_t lock;
+	struct rb_root_cached rbr;
+	struct epitem *ovflist;
+	struct wakeup_source *ws;
+	struct user_struct *user;
+	struct file *file;
+	u64 gen;
+	struct hlist_head refs;
+	unsigned int napi_id;
+};
+
+struct ep_pqueue {
+	poll_table pt;
+	struct epitem *epi;
+};
+
+struct epitems_head {
+	struct hlist_head epitems;
+	struct epitems_head *next;
+};
+
+struct signalfd_siginfo {
+	__u32 ssi_signo;
+	__s32 ssi_errno;
+	__s32 ssi_code;
+	__u32 ssi_pid;
+	__u32 ssi_uid;
+	__s32 ssi_fd;
+	__u32 ssi_tid;
+	__u32 ssi_band;
+	__u32 ssi_overrun;
+	__u32 ssi_trapno;
+	__s32 ssi_status;
+	__s32 ssi_int;
+	__u64 ssi_ptr;
+	__u64 ssi_utime;
+	__u64 ssi_stime;
+	__u64 ssi_addr;
+	__u16 ssi_addr_lsb;
+	__u16 __pad2;
+	__s32 ssi_syscall;
+	__u64 ssi_call_addr;
+	__u32 ssi_arch;
+	__u8 __pad[28];
+};
+
+struct signalfd_ctx {
+	sigset_t sigmask;
+};
+
+struct timerfd_ctx {
+	union {
+		struct hrtimer tmr;
+		struct alarm alarm;
+	} t;
+	ktime_t tintv;
+	ktime_t moffs;
+	wait_queue_head_t wqh;
+	u64 ticks;
+	int clockid;
+	short unsigned int expired;
+	short unsigned int settime_flags;
+	struct callback_head rcu;
+	struct list_head clist;
+	spinlock_t cancel_lock;
+	bool might_cancel;
+};
+
+struct eventfd_ctx___2 {
+	struct kref kref;
+	wait_queue_head_t wqh;
+	__u64 count;
+	unsigned int flags;
+	int id;
+};
+
+struct userfaultfd_ctx {
+	wait_queue_head_t fault_pending_wqh;
+	wait_queue_head_t fault_wqh;
+	wait_queue_head_t fd_wqh;
+	wait_queue_head_t event_wqh;
+	seqcount_spinlock_t refile_seq;
+	refcount_t refcount;
+	unsigned int flags;
+	unsigned int features;
+	bool released;
+	atomic_t mmap_changing;
+	struct mm_struct *mm;
+};
+
+struct uffd_msg {
+	__u8 event;
+	__u8 reserved1;
+	__u16 reserved2;
+	__u32 reserved3;
+	union {
+		struct {
+			__u64 flags;
+			__u64 address;
+			union {
+				__u32 ptid;
+			} feat;
+		} pagefault;
+		struct {
+			__u32 ufd;
+		} fork;
+		struct {
+			__u64 from;
+			__u64 to;
+			__u64 len;
+		} remap;
+		struct {
+			__u64 start;
+			__u64 end;
+		} remove;
+		struct {
+			__u64 reserved1;
+			__u64 reserved2;
+			__u64 reserved3;
+		} reserved;
+	} arg;
+};
+
+struct uffdio_api {
+	__u64 api;
+	__u64 features;
+	__u64 ioctls;
+};
+
+struct uffdio_range {
+	__u64 start;
+	__u64 len;
+};
+
+struct uffdio_register {
+	struct uffdio_range range;
+	__u64 mode;
+	__u64 ioctls;
+};
+
+struct uffdio_copy {
+	__u64 dst;
+	__u64 src;
+	__u64 len;
+	__u64 mode;
+	__s64 copy;
+};
+
+struct uffdio_zeropage {
+	struct uffdio_range range;
+	__u64 mode;
+	__s64 zeropage;
+};
+
+struct uffdio_writeprotect {
+	struct uffdio_range range;
+	__u64 mode;
+};
+
+struct uffdio_continue {
+	struct uffdio_range range;
+	__u64 mode;
+	__s64 mapped;
+};
+
+struct userfaultfd_fork_ctx {
+	struct userfaultfd_ctx *orig;
+	struct userfaultfd_ctx *new;
+	struct list_head list;
+};
+
+struct userfaultfd_unmap_ctx {
+	struct userfaultfd_ctx *ctx;
+	long unsigned int start;
+	long unsigned int end;
+	struct list_head list;
+};
+
+struct userfaultfd_wait_queue {
+	struct uffd_msg msg;
+	wait_queue_entry_t wq;
+	struct userfaultfd_ctx *ctx;
+	bool waken;
+};
+
+struct userfaultfd_wake_range {
+	long unsigned int start;
+	long unsigned int len;
+};
+
+struct kioctx;
+
+struct kioctx_table {
+	struct callback_head rcu;
+	unsigned int nr;
+	struct kioctx *table[0];
+};
+
+typedef __kernel_ulong_t aio_context_t;
+
+enum {
+	IOCB_CMD_PREAD = 0,
+	IOCB_CMD_PWRITE = 1,
+	IOCB_CMD_FSYNC = 2,
+	IOCB_CMD_FDSYNC = 3,
+	IOCB_CMD_POLL = 5,
+	IOCB_CMD_NOOP = 6,
+	IOCB_CMD_PREADV = 7,
+	IOCB_CMD_PWRITEV = 8,
+};
+
+struct io_event {
+	__u64 data;
+	__u64 obj;
+	__s64 res;
+	__s64 res2;
+};
+
+struct iocb {
+	__u64 aio_data;
+	__u32 aio_key;
+	__kernel_rwf_t aio_rw_flags;
+	__u16 aio_lio_opcode;
+	__s16 aio_reqprio;
+	__u32 aio_fildes;
+	__u64 aio_buf;
+	__u64 aio_nbytes;
+	__s64 aio_offset;
+	__u64 aio_reserved2;
+	__u32 aio_flags;
+	__u32 aio_resfd;
+};
+
+typedef int kiocb_cancel_fn(struct kiocb *);
+
+struct aio_ring {
+	unsigned int id;
+	unsigned int nr;
+	unsigned int head;
+	unsigned int tail;
+	unsigned int magic;
+	unsigned int compat_features;
+	unsigned int incompat_features;
+	unsigned int header_length;
+	struct io_event io_events[0];
+};
+
+struct kioctx_cpu;
+
+struct ctx_rq_wait;
+
+struct kioctx {
+	struct percpu_ref users;
+	atomic_t dead;
+	struct percpu_ref reqs;
+	long unsigned int user_id;
+	struct kioctx_cpu *cpu;
+	unsigned int req_batch;
+	unsigned int max_reqs;
+	unsigned int nr_events;
+	long unsigned int mmap_base;
+	long unsigned int mmap_size;
+	struct page **ring_pages;
+	long int nr_pages;
+	struct rcu_work free_rwork;
+	struct ctx_rq_wait *rq_wait;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct {
+		atomic_t reqs_available;
+		long: 32;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct {
+		spinlock_t ctx_lock;
+		struct list_head active_reqs;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct {
+		struct mutex ring_lock;
+		wait_queue_head_t wait;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct {
+		unsigned int tail;
+		unsigned int completed_events;
+		spinlock_t completion_lock;
+		long: 32;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct page *internal_pages[8];
+	struct file *aio_ring_file;
+	unsigned int id;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct kioctx_cpu {
+	unsigned int reqs_available;
+};
+
+struct ctx_rq_wait {
+	struct completion comp;
+	atomic_t count;
+};
+
+struct fsync_iocb {
+	struct file *file;
+	struct work_struct work;
+	bool datasync;
+	struct cred *creds;
+};
+
+struct poll_iocb {
+	struct file *file;
+	struct wait_queue_head *head;
+	__poll_t events;
+	bool done;
+	bool cancelled;
+	struct wait_queue_entry wait;
+	struct work_struct work;
+};
+
+struct aio_kiocb {
+	union {
+		struct file *ki_filp;
+		struct kiocb rw;
+		struct fsync_iocb fsync;
+		struct poll_iocb poll;
+	};
+	struct kioctx *ki_ctx;
+	kiocb_cancel_fn *ki_cancel;
+	struct io_event ki_res;
+	struct list_head ki_list;
+	refcount_t ki_refcnt;
+	struct eventfd_ctx *ki_eventfd;
+};
+
+struct aio_poll_table {
+	struct poll_table_struct pt;
+	struct aio_kiocb *iocb;
+	int error;
+};
+
+struct __aio_sigset {
+	const sigset_t *sigmask;
+	size_t sigsetsize;
+};
+
+struct iomap_ops {
+	int (*iomap_begin)(struct inode *, loff_t, loff_t, unsigned int, struct iomap___2 *, struct iomap___2 *);
+	int (*iomap_end)(struct inode *, loff_t, loff_t, ssize_t, unsigned int, struct iomap___2 *);
+};
+
+struct iomap_iter {
+	struct inode *inode;
+	loff_t pos;
+	u64 len;
+	s64 processed;
+	unsigned int flags;
+	struct iomap___2 iomap;
+	struct iomap___2 srcmap;
+};
+
+struct trace_event_raw_dax_pmd_fault_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_start;
+	long unsigned int vm_end;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	long unsigned int pgoff;
+	long unsigned int max_pgoff;
+	dev_t dev;
+	unsigned int flags;
+	int result;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_pmd_load_hole_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	struct page *zero_page;
+	void *radix_entry;
+	dev_t dev;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_pmd_insert_mapping_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	long int length;
+	u64 pfn_val;
+	void *radix_entry;
+	dev_t dev;
+	int write;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_pte_fault_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	long unsigned int pgoff;
+	dev_t dev;
+	unsigned int flags;
+	int result;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_insert_mapping {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int vm_flags;
+	long unsigned int address;
+	void *radix_entry;
+	dev_t dev;
+	int write;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_writeback_range_class {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int start_index;
+	long unsigned int end_index;
+	dev_t dev;
+	char __data[0];
+};
+
+struct trace_event_raw_dax_writeback_one {
+	struct trace_entry ent;
+	long unsigned int ino;
+	long unsigned int pgoff;
+	long unsigned int pglen;
+	dev_t dev;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_dax_pmd_fault_class {};
+
+struct trace_event_data_offsets_dax_pmd_load_hole_class {};
+
+struct trace_event_data_offsets_dax_pmd_insert_mapping_class {};
+
+struct trace_event_data_offsets_dax_pte_fault_class {};
+
+struct trace_event_data_offsets_dax_insert_mapping {};
+
+struct trace_event_data_offsets_dax_writeback_range_class {};
+
+struct trace_event_data_offsets_dax_writeback_one {};
+
+typedef void (*btf_trace_dax_pmd_fault)(void *, struct inode *, struct vm_fault *, long unsigned int, int);
+
+typedef void (*btf_trace_dax_pmd_fault_done)(void *, struct inode *, struct vm_fault *, long unsigned int, int);
+
+typedef void (*btf_trace_dax_pmd_load_hole)(void *, struct inode *, struct vm_fault *, struct page *, void *);
+
+typedef void (*btf_trace_dax_pmd_load_hole_fallback)(void *, struct inode *, struct vm_fault *, struct page *, void *);
+
+typedef void (*btf_trace_dax_pmd_insert_mapping)(void *, struct inode *, struct vm_fault *, long int, pfn_t, void *);
+
+typedef void (*btf_trace_dax_pte_fault)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_pte_fault_done)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_load_hole)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_insert_pfn_mkwrite_no_entry)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_insert_pfn_mkwrite)(void *, struct inode *, struct vm_fault *, int);
+
+typedef void (*btf_trace_dax_insert_mapping)(void *, struct inode *, struct vm_fault *, void *);
+
+typedef void (*btf_trace_dax_writeback_range)(void *, struct inode *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_dax_writeback_range_done)(void *, struct inode *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_dax_writeback_one)(void *, struct inode *, long unsigned int, long unsigned int);
+
+struct exceptional_entry_key {
+	struct xarray *xa;
+	long unsigned int entry_start;
+};
+
+struct wait_exceptional_entry_queue {
+	wait_queue_entry_t wait;
+	struct exceptional_entry_key key;
+};
+
+enum dax_wake_mode {
+	WAKE_ALL = 0,
+	WAKE_NEXT = 1,
+};
+
+struct flock64 {
+	short int l_type;
+	short int l_whence;
+	__kernel_loff_t l_start;
+	__kernel_loff_t l_len;
+	__kernel_pid_t l_pid;
+};
+
+struct trace_event_raw_locks_get_lock_context {
+	struct trace_entry ent;
+	long unsigned int i_ino;
+	dev_t s_dev;
+	unsigned char type;
+	struct file_lock_context *ctx;
+	char __data[0];
+};
+
+struct trace_event_raw_filelock_lock {
+	struct trace_entry ent;
+	struct file_lock *fl;
+	long unsigned int i_ino;
+	dev_t s_dev;
+	struct file_lock *fl_blocker;
+	fl_owner_t fl_owner;
+	unsigned int fl_pid;
+	unsigned int fl_flags;
+	unsigned char fl_type;
+	loff_t fl_start;
+	loff_t fl_end;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_filelock_lease {
+	struct trace_entry ent;
+	struct file_lock *fl;
+	long unsigned int i_ino;
+	dev_t s_dev;
+	struct file_lock *fl_blocker;
+	fl_owner_t fl_owner;
+	unsigned int fl_flags;
+	unsigned char fl_type;
+	long unsigned int fl_break_time;
+	long unsigned int fl_downgrade_time;
+	char __data[0];
+};
+
+struct trace_event_raw_generic_add_lease {
+	struct trace_entry ent;
+	long unsigned int i_ino;
+	int wcount;
+	int rcount;
+	int icount;
+	dev_t s_dev;
+	fl_owner_t fl_owner;
+	unsigned int fl_flags;
+	unsigned char fl_type;
+	char __data[0];
+};
+
+struct trace_event_raw_leases_conflict {
+	struct trace_entry ent;
+	void *lease;
+	void *breaker;
+	unsigned int l_fl_flags;
+	unsigned int b_fl_flags;
+	unsigned char l_fl_type;
+	unsigned char b_fl_type;
+	bool conflict;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_locks_get_lock_context {};
+
+struct trace_event_data_offsets_filelock_lock {};
+
+struct trace_event_data_offsets_filelock_lease {};
+
+struct trace_event_data_offsets_generic_add_lease {};
+
+struct trace_event_data_offsets_leases_conflict {};
+
+typedef void (*btf_trace_locks_get_lock_context)(void *, struct inode *, int, struct file_lock_context *);
+
+typedef void (*btf_trace_posix_lock_inode)(void *, struct inode *, struct file_lock *, int);
+
+typedef void (*btf_trace_fcntl_setlk)(void *, struct inode *, struct file_lock *, int);
+
+typedef void (*btf_trace_locks_remove_posix)(void *, struct inode *, struct file_lock *, int);
+
+typedef void (*btf_trace_flock_lock_inode)(void *, struct inode *, struct file_lock *, int);
+
+typedef void (*btf_trace_break_lease_noblock)(void *, struct inode *, struct file_lock *);
+
+typedef void (*btf_trace_break_lease_block)(void *, struct inode *, struct file_lock *);
+
+typedef void (*btf_trace_break_lease_unblock)(void *, struct inode *, struct file_lock *);
+
+typedef void (*btf_trace_generic_delete_lease)(void *, struct inode *, struct file_lock *);
+
+typedef void (*btf_trace_time_out_leases)(void *, struct inode *, struct file_lock *);
+
+typedef void (*btf_trace_generic_add_lease)(void *, struct inode *, struct file_lock *);
+
+typedef void (*btf_trace_leases_conflict)(void *, bool, struct file_lock *, struct file_lock *);
+
+struct file_lock_list_struct {
+	spinlock_t lock;
+	struct hlist_head hlist;
+};
+
+struct locks_iterator {
+	int li_cpu;
+	loff_t li_pos;
+};
+
+typedef unsigned int __kernel_uid_t;
+
+typedef unsigned int __kernel_gid_t;
+
+struct elf_prpsinfo {
+	char pr_state;
+	char pr_sname;
+	char pr_zomb;
+	char pr_nice;
+	long unsigned int pr_flag;
+	__kernel_uid_t pr_uid;
+	__kernel_gid_t pr_gid;
+	pid_t pr_pid;
+	pid_t pr_ppid;
+	pid_t pr_pgrp;
+	pid_t pr_sid;
+	char pr_fname[16];
+	char pr_psargs[80];
+};
+
+struct core_vma_metadata {
+	long unsigned int start;
+	long unsigned int end;
+	long unsigned int flags;
+	long unsigned int dump_size;
+};
+
+struct arch_elf_state {};
+
+struct memelfnote {
+	const char *name;
+	int type;
+	unsigned int datasz;
+	void *data;
+};
+
+struct elf_thread_core_info {
+	struct elf_thread_core_info *next;
+	struct task_struct *task;
+	struct elf_prstatus prstatus;
+	struct memelfnote notes[0];
+};
+
+struct elf_note_info {
+	struct elf_thread_core_info *thread;
+	struct memelfnote psinfo;
+	struct memelfnote signote;
+	struct memelfnote auxv;
+	struct memelfnote files;
+	siginfo_t csigdata;
+	size_t size;
+	int thread_notes;
+};
+
+struct posix_acl_xattr_entry {
+	__le16 e_tag;
+	__le16 e_perm;
+	__le32 e_id;
+};
+
+struct posix_acl_xattr_header {
+	__le32 a_version;
+};
+
+struct rpc_timer {
+	struct list_head list;
+	long unsigned int expires;
+	struct delayed_work dwork;
+};
+
+struct rpc_wait_queue {
+	spinlock_t lock;
+	struct list_head tasks[4];
+	unsigned char maxpriority;
+	unsigned char priority;
+	unsigned char nr;
+	short unsigned int qlen;
+	struct rpc_timer timer_list;
+	const char *name;
+};
+
+struct nfs_seqid_counter {
+	ktime_t create_time;
+	int owner_id;
+	int flags;
+	u32 counter;
+	spinlock_t lock;
+	struct list_head list;
+	struct rpc_wait_queue wait;
+};
+
+struct nfs4_stateid_struct {
+	union {
+		char data[16];
+		struct {
+			__be32 seqid;
+			char other[12];
+		};
+	};
+	enum {
+		NFS4_INVALID_STATEID_TYPE = 0,
+		NFS4_SPECIAL_STATEID_TYPE = 1,
+		NFS4_OPEN_STATEID_TYPE = 2,
+		NFS4_LOCK_STATEID_TYPE = 3,
+		NFS4_DELEGATION_STATEID_TYPE = 4,
+		NFS4_LAYOUT_STATEID_TYPE = 5,
+		NFS4_PNFS_DS_STATEID_TYPE = 6,
+		NFS4_REVOKED_STATEID_TYPE = 7,
+	} type;
+};
+
+typedef struct nfs4_stateid_struct nfs4_stateid;
+
+struct nfs4_state;
+
+struct nfs4_lock_state {
+	struct list_head ls_locks;
+	struct nfs4_state *ls_state;
+	long unsigned int ls_flags;
+	struct nfs_seqid_counter ls_seqid;
+	nfs4_stateid ls_stateid;
+	refcount_t ls_count;
+	fl_owner_t ls_owner;
+};
+
+struct xdr_netobj {
+	unsigned int len;
+	u8 *data;
+};
+
+struct xdr_buf {
+	struct kvec head[1];
+	struct kvec tail[1];
+	struct bio_vec *bvec;
+	struct page **pages;
+	unsigned int page_base;
+	unsigned int page_len;
+	unsigned int flags;
+	unsigned int buflen;
+	unsigned int len;
+};
+
+struct rpc_rqst;
+
+struct xdr_stream {
+	__be32 *p;
+	struct xdr_buf *buf;
+	__be32 *end;
+	struct kvec *iov;
+	struct kvec scratch;
+	struct page **page_ptr;
+	unsigned int nwords;
+	struct rpc_rqst *rqst;
+};
+
+struct rpc_xprt;
+
+struct rpc_task;
+
+struct rpc_cred;
+
+struct rpc_rqst {
+	struct rpc_xprt *rq_xprt;
+	struct xdr_buf rq_snd_buf;
+	struct xdr_buf rq_rcv_buf;
+	struct rpc_task *rq_task;
+	struct rpc_cred *rq_cred;
+	__be32 rq_xid;
+	int rq_cong;
+	u32 rq_seqno;
+	int rq_enc_pages_num;
+	struct page **rq_enc_pages;
+	void (*rq_release_snd_buf)(struct rpc_rqst *);
+	union {
+		struct list_head rq_list;
+		struct rb_node rq_recv;
+	};
+	struct list_head rq_xmit;
+	struct list_head rq_xmit2;
+	void *rq_buffer;
+	size_t rq_callsize;
+	void *rq_rbuffer;
+	size_t rq_rcvsize;
+	size_t rq_xmit_bytes_sent;
+	size_t rq_reply_bytes_recvd;
+	struct xdr_buf rq_private_buf;
+	long unsigned int rq_majortimeo;
+	long unsigned int rq_minortimeo;
+	long unsigned int rq_timeout;
+	ktime_t rq_rtt;
+	unsigned int rq_retries;
+	unsigned int rq_connect_cookie;
+	atomic_t rq_pin;
+	u32 rq_bytes_sent;
+	ktime_t rq_xtime;
+	int rq_ntrans;
+	struct list_head rq_bc_list;
+	long unsigned int rq_bc_pa_state;
+	struct list_head rq_bc_pa_list;
+};
+
+typedef void (*kxdreproc_t)(struct rpc_rqst *, struct xdr_stream *, const void *);
+
+typedef int (*kxdrdproc_t)(struct rpc_rqst *, struct xdr_stream *, void *);
+
+struct rpc_procinfo;
+
+struct rpc_message {
+	const struct rpc_procinfo *rpc_proc;
+	void *rpc_argp;
+	void *rpc_resp;
+	const struct cred *rpc_cred;
+};
+
+struct rpc_procinfo {
+	u32 p_proc;
+	kxdreproc_t p_encode;
+	kxdrdproc_t p_decode;
+	unsigned int p_arglen;
+	unsigned int p_replen;
+	unsigned int p_timer;
+	u32 p_statidx;
+	const char *p_name;
+};
+
+struct rpc_wait {
+	struct list_head list;
+	struct list_head links;
+	struct list_head timer_list;
+};
+
+struct rpc_call_ops;
+
+struct rpc_clnt;
+
+struct rpc_task {
+	atomic_t tk_count;
+	int tk_status;
+	struct list_head tk_task;
+	void (*tk_callback)(struct rpc_task *);
+	void (*tk_action)(struct rpc_task *);
+	long unsigned int tk_timeout;
+	long unsigned int tk_runstate;
+	struct rpc_wait_queue *tk_waitqueue;
+	union {
+		struct work_struct tk_work;
+		struct rpc_wait tk_wait;
+	} u;
+	int tk_rpc_status;
+	struct rpc_message tk_msg;
+	void *tk_calldata;
+	const struct rpc_call_ops *tk_ops;
+	struct rpc_clnt *tk_client;
+	struct rpc_xprt *tk_xprt;
+	struct rpc_cred *tk_op_cred;
+	struct rpc_rqst *tk_rqstp;
+	struct workqueue_struct *tk_workqueue;
+	ktime_t tk_start;
+	pid_t tk_owner;
+	short unsigned int tk_flags;
+	short unsigned int tk_timeouts;
+	short unsigned int tk_pid;
+	unsigned char tk_priority: 2;
+	unsigned char tk_garb_retry: 2;
+	unsigned char tk_cred_retry: 2;
+	unsigned char tk_rebind_retry: 2;
+};
+
+struct rpc_call_ops {
+	void (*rpc_call_prepare)(struct rpc_task *, void *);
+	void (*rpc_call_done)(struct rpc_task *, void *);
+	void (*rpc_count_stats)(struct rpc_task *, void *);
+	void (*rpc_release)(void *);
+};
+
+struct rpc_iostats;
+
+struct rpc_pipe_dir_head {
+	struct list_head pdh_entries;
+	struct dentry *pdh_dentry;
+};
+
+struct rpc_rtt {
+	long unsigned int timeo;
+	long unsigned int srtt[5];
+	long unsigned int sdrtt[5];
+	int ntimeouts[5];
+};
+
+struct rpc_timeout {
+	long unsigned int to_initval;
+	long unsigned int to_maxval;
+	long unsigned int to_increment;
+	unsigned int to_retries;
+	unsigned char to_exponential;
+};
+
+struct rpc_sysfs_client;
+
+struct rpc_xprt_switch;
+
+struct rpc_xprt_iter_ops;
+
+struct rpc_xprt_iter {
+	struct rpc_xprt_switch *xpi_xpswitch;
+	struct rpc_xprt *xpi_cursor;
+	const struct rpc_xprt_iter_ops *xpi_ops;
+};
+
+struct rpc_auth;
+
+struct rpc_stat;
+
+struct rpc_program;
+
+struct rpc_clnt {
+	refcount_t cl_count;
+	unsigned int cl_clid;
+	struct list_head cl_clients;
+	struct list_head cl_tasks;
+	atomic_t cl_pid;
+	spinlock_t cl_lock;
+	struct rpc_xprt *cl_xprt;
+	const struct rpc_procinfo *cl_procinfo;
+	u32 cl_prog;
+	u32 cl_vers;
+	u32 cl_maxproc;
+	struct rpc_auth *cl_auth;
+	struct rpc_stat *cl_stats;
+	struct rpc_iostats *cl_metrics;
+	unsigned int cl_softrtry: 1;
+	unsigned int cl_softerr: 1;
+	unsigned int cl_discrtry: 1;
+	unsigned int cl_noretranstimeo: 1;
+	unsigned int cl_autobind: 1;
+	unsigned int cl_chatty: 1;
+	struct rpc_rtt *cl_rtt;
+	const struct rpc_timeout *cl_timeout;
+	atomic_t cl_swapper;
+	int cl_nodelen;
+	char cl_nodename[65];
+	struct rpc_pipe_dir_head cl_pipedir_objects;
+	struct rpc_clnt *cl_parent;
+	struct rpc_rtt cl_rtt_default;
+	struct rpc_timeout cl_timeout_default;
+	const struct rpc_program *cl_program;
+	const char *cl_principal;
+	struct dentry *cl_debugfs;
+	struct rpc_sysfs_client *cl_sysfs;
+	union {
+		struct rpc_xprt_iter cl_xpi;
+		struct work_struct cl_work;
+	};
+	const struct cred *cl_cred;
+	unsigned int cl_max_connect;
+};
+
+struct svc_xprt;
+
+struct rpc_sysfs_xprt;
+
+struct rpc_xprt_ops;
+
+struct svc_serv;
+
+struct xprt_class;
+
+struct rpc_xprt {
+	struct kref kref;
+	const struct rpc_xprt_ops *ops;
+	unsigned int id;
+	const struct rpc_timeout *timeout;
+	struct __kernel_sockaddr_storage addr;
+	size_t addrlen;
+	int prot;
+	long unsigned int cong;
+	long unsigned int cwnd;
+	size_t max_payload;
+	struct rpc_wait_queue binding;
+	struct rpc_wait_queue sending;
+	struct rpc_wait_queue pending;
+	struct rpc_wait_queue backlog;
+	struct list_head free;
+	unsigned int max_reqs;
+	unsigned int min_reqs;
+	unsigned int num_reqs;
+	long unsigned int state;
+	unsigned char resvport: 1;
+	unsigned char reuseport: 1;
+	atomic_t swapper;
+	unsigned int bind_index;
+	struct list_head xprt_switch;
+	long unsigned int bind_timeout;
+	long unsigned int reestablish_timeout;
+	unsigned int connect_cookie;
+	struct work_struct task_cleanup;
+	struct timer_list timer;
+	long unsigned int last_used;
+	long unsigned int idle_timeout;
+	long unsigned int connect_timeout;
+	long unsigned int max_reconnect_timeout;
+	atomic_long_t queuelen;
+	spinlock_t transport_lock;
+	spinlock_t reserve_lock;
+	spinlock_t queue_lock;
+	u32 xid;
+	struct rpc_task *snd_task;
+	struct list_head xmit_queue;
+	atomic_long_t xmit_queuelen;
+	struct svc_xprt *bc_xprt;
+	struct svc_serv *bc_serv;
+	unsigned int bc_alloc_max;
+	unsigned int bc_alloc_count;
+	atomic_t bc_slot_count;
+	spinlock_t bc_pa_lock;
+	struct list_head bc_pa_list;
+	struct rb_root recv_queue;
+	struct {
+		long unsigned int bind_count;
+		long unsigned int connect_count;
+		long unsigned int connect_start;
+		long unsigned int connect_time;
+		long unsigned int sends;
+		long unsigned int recvs;
+		long unsigned int bad_xids;
+		long unsigned int max_slots;
+		long long unsigned int req_u;
+		long long unsigned int bklog_u;
+		long long unsigned int sending_u;
+		long long unsigned int pending_u;
+	} stat;
+	struct net *xprt_net;
+	netns_tracker ns_tracker;
+	const char *servername;
+	const char *address_strings[6];
+	struct dentry *debugfs;
+	struct callback_head rcu;
+	const struct xprt_class *xprt_class;
+	struct rpc_sysfs_xprt *xprt_sysfs;
+	bool main;
+};
+
+struct rpc_credops;
+
+struct rpc_cred {
+	struct hlist_node cr_hash;
+	struct list_head cr_lru;
+	struct callback_head cr_rcu;
+	struct rpc_auth *cr_auth;
+	const struct rpc_credops *cr_ops;
+	long unsigned int cr_expire;
+	long unsigned int cr_flags;
+	refcount_t cr_count;
+	const struct cred *cr_cred;
+};
+
+typedef u32 rpc_authflavor_t;
+
+struct auth_cred {
+	const struct cred *cred;
+	const char *principal;
+};
+
+struct rpc_cred_cache;
+
+struct rpc_authops;
+
+struct rpc_auth {
+	unsigned int au_cslack;
+	unsigned int au_rslack;
+	unsigned int au_verfsize;
+	unsigned int au_ralign;
+	long unsigned int au_flags;
+	const struct rpc_authops *au_ops;
+	rpc_authflavor_t au_flavor;
+	refcount_t au_count;
+	struct rpc_cred_cache *au_credcache;
+};
+
+struct rpc_credops {
+	const char *cr_name;
+	int (*cr_init)(struct rpc_auth *, struct rpc_cred *);
+	void (*crdestroy)(struct rpc_cred *);
+	int (*crmatch)(struct auth_cred *, struct rpc_cred *, int);
+	int (*crmarshal)(struct rpc_task *, struct xdr_stream *);
+	int (*crrefresh)(struct rpc_task *);
+	int (*crvalidate)(struct rpc_task *, struct xdr_stream *);
+	int (*crwrap_req)(struct rpc_task *, struct xdr_stream *);
+	int (*crunwrap_resp)(struct rpc_task *, struct xdr_stream *);
+	int (*crkey_timeout)(struct rpc_cred *);
+	char * (*crstringify_acceptor)(struct rpc_cred *);
+	bool (*crneed_reencode)(struct rpc_task *);
+};
+
+struct rpc_auth_create_args;
+
+struct rpcsec_gss_info;
+
+struct rpc_authops {
+	struct module *owner;
+	rpc_authflavor_t au_flavor;
+	char *au_name;
+	struct rpc_auth * (*create)(const struct rpc_auth_create_args *, struct rpc_clnt *);
+	void (*destroy)(struct rpc_auth *);
+	int (*hash_cred)(struct auth_cred *, unsigned int);
+	struct rpc_cred * (*lookup_cred)(struct rpc_auth *, struct auth_cred *, int);
+	struct rpc_cred * (*crcreate)(struct rpc_auth *, struct auth_cred *, int, gfp_t);
+	rpc_authflavor_t (*info2flavor)(struct rpcsec_gss_info *);
+	int (*flavor2info)(rpc_authflavor_t, struct rpcsec_gss_info *);
+	int (*key_timeout)(struct rpc_auth *, struct rpc_cred *);
+};
+
+struct rpc_auth_create_args {
+	rpc_authflavor_t pseudoflavor;
+	const char *target_name;
+};
+
+struct rpcsec_gss_oid {
+	unsigned int len;
+	u8 data[32];
+};
+
+struct rpcsec_gss_info {
+	struct rpcsec_gss_oid oid;
+	u32 qop;
+	u32 service;
+};
+
+struct rpc_xprt_ops {
+	void (*set_buffer_size)(struct rpc_xprt *, size_t, size_t);
+	int (*reserve_xprt)(struct rpc_xprt *, struct rpc_task *);
+	void (*release_xprt)(struct rpc_xprt *, struct rpc_task *);
+	void (*alloc_slot)(struct rpc_xprt *, struct rpc_task *);
+	void (*free_slot)(struct rpc_xprt *, struct rpc_rqst *);
+	void (*rpcbind)(struct rpc_task *);
+	void (*set_port)(struct rpc_xprt *, short unsigned int);
+	void (*connect)(struct rpc_xprt *, struct rpc_task *);
+	int (*get_srcaddr)(struct rpc_xprt *, char *, size_t);
+	short unsigned int (*get_srcport)(struct rpc_xprt *);
+	int (*buf_alloc)(struct rpc_task *);
+	void (*buf_free)(struct rpc_task *);
+	int (*prepare_request)(struct rpc_rqst *, struct xdr_buf *);
+	int (*send_request)(struct rpc_rqst *);
+	void (*wait_for_reply_request)(struct rpc_task *);
+	void (*timer)(struct rpc_xprt *, struct rpc_task *);
+	void (*release_request)(struct rpc_task *);
+	void (*close)(struct rpc_xprt *);
+	void (*destroy)(struct rpc_xprt *);
+	void (*set_connect_timeout)(struct rpc_xprt *, long unsigned int, long unsigned int);
+	void (*print_stats)(struct rpc_xprt *, struct seq_file *);
+	int (*enable_swap)(struct rpc_xprt *);
+	void (*disable_swap)(struct rpc_xprt *);
+	void (*inject_disconnect)(struct rpc_xprt *);
+	int (*bc_setup)(struct rpc_xprt *, unsigned int);
+	size_t (*bc_maxpayload)(struct rpc_xprt *);
+	unsigned int (*bc_num_slots)(struct rpc_xprt *);
+	void (*bc_free_rqst)(struct rpc_rqst *);
+	void (*bc_destroy)(struct rpc_xprt *, unsigned int);
+};
+
+struct svc_program;
+
+struct svc_stat;
+
+struct svc_pool;
+
+struct svc_serv {
+	struct svc_program *sv_program;
+	struct svc_stat *sv_stats;
+	spinlock_t sv_lock;
+	struct kref sv_refcnt;
+	unsigned int sv_nrthreads;
+	unsigned int sv_maxconn;
+	unsigned int sv_max_payload;
+	unsigned int sv_max_mesg;
+	unsigned int sv_xdrsize;
+	struct list_head sv_permsocks;
+	struct list_head sv_tempsocks;
+	int sv_tmpcnt;
+	struct timer_list sv_temptimer;
+	char *sv_name;
+	unsigned int sv_nrpools;
+	struct svc_pool *sv_pools;
+	int (*sv_threadfn)(void *);
+	struct list_head sv_cb_list;
+	spinlock_t sv_cb_lock;
+	wait_queue_head_t sv_cb_waitq;
+	bool sv_bc_enabled;
+};
+
+struct xprt_create;
+
+struct xprt_class {
+	struct list_head list;
+	int ident;
+	struct rpc_xprt * (*setup)(struct xprt_create *);
+	struct module *owner;
+	char name[32];
+	const char *netid[0];
+};
+
+struct xprt_create {
+	int ident;
+	struct net *net;
+	struct sockaddr *srcaddr;
+	struct sockaddr *dstaddr;
+	size_t addrlen;
+	const char *servername;
+	struct svc_xprt *bc_xprt;
+	struct rpc_xprt_switch *bc_xps;
+	unsigned int flags;
+};
+
+struct rpc_sysfs_xprt_switch;
+
+struct rpc_xprt_switch {
+	spinlock_t xps_lock;
+	struct kref xps_kref;
+	unsigned int xps_id;
+	unsigned int xps_nxprts;
+	unsigned int xps_nactive;
+	unsigned int xps_nunique_destaddr_xprts;
+	atomic_long_t xps_queuelen;
+	struct list_head xps_xprt_list;
+	struct net *xps_net;
+	const struct rpc_xprt_iter_ops *xps_iter_ops;
+	struct rpc_sysfs_xprt_switch *xps_sysfs;
+	struct callback_head xps_rcu;
+};
+
+struct rpc_stat {
+	const struct rpc_program *program;
+	unsigned int netcnt;
+	unsigned int netudpcnt;
+	unsigned int nettcpcnt;
+	unsigned int nettcpconn;
+	unsigned int netreconn;
+	unsigned int rpccnt;
+	unsigned int rpcretrans;
+	unsigned int rpcauthrefresh;
+	unsigned int rpcgarbage;
+};
+
+struct rpc_version;
+
+struct rpc_program {
+	const char *name;
+	u32 number;
+	unsigned int nrvers;
+	const struct rpc_version **version;
+	struct rpc_stat *stats;
+	const char *pipe_dir_name;
+};
+
+struct svc_stat {
+	struct svc_program *program;
+	unsigned int netcnt;
+	unsigned int netudpcnt;
+	unsigned int nettcpcnt;
+	unsigned int nettcpconn;
+	unsigned int rpccnt;
+	unsigned int rpcbadfmt;
+	unsigned int rpcbadauth;
+	unsigned int rpcbadclnt;
+};
+
+struct svc_version;
+
+struct svc_rqst;
+
+struct svc_process_info;
+
+struct svc_program {
+	struct svc_program *pg_next;
+	u32 pg_prog;
+	unsigned int pg_lovers;
+	unsigned int pg_hivers;
+	unsigned int pg_nvers;
+	const struct svc_version **pg_vers;
+	char *pg_name;
+	char *pg_class;
+	struct svc_stat *pg_stats;
+	int (*pg_authenticate)(struct svc_rqst *);
+	__be32 (*pg_init_request)(struct svc_rqst *, const struct svc_program *, struct svc_process_info *);
+	int (*pg_rpcbind_set)(struct net *, const struct svc_program *, u32, int, short unsigned int, short unsigned int);
+};
+
+struct rpc_xprt_iter_ops {
+	void (*xpi_rewind)(struct rpc_xprt_iter *);
+	struct rpc_xprt * (*xpi_xprt)(struct rpc_xprt_iter *);
+	struct rpc_xprt * (*xpi_next)(struct rpc_xprt_iter *);
+};
+
+struct rpc_version {
+	u32 number;
+	unsigned int nrprocs;
+	const struct rpc_procinfo *procs;
+	unsigned int *counts;
+};
+
+struct nfs_fh {
+	short unsigned int size;
+	unsigned char data[128];
+};
+
+enum nfs3_stable_how {
+	NFS_UNSTABLE = 0,
+	NFS_DATA_SYNC = 1,
+	NFS_FILE_SYNC = 2,
+	NFS_INVALID_STABLE_HOW = 4294967295,
+};
+
+struct nfs4_label {
+	uint32_t lfs;
+	uint32_t pi;
+	u32 len;
+	char *label;
+};
+
+typedef struct {
+	char data[8];
+} nfs4_verifier;
+
+enum nfs4_change_attr_type {
+	NFS4_CHANGE_TYPE_IS_MONOTONIC_INCR = 0,
+	NFS4_CHANGE_TYPE_IS_VERSION_COUNTER = 1,
+	NFS4_CHANGE_TYPE_IS_VERSION_COUNTER_NOPNFS = 2,
+	NFS4_CHANGE_TYPE_IS_TIME_METADATA = 3,
+	NFS4_CHANGE_TYPE_IS_UNDEFINED = 4,
+};
+
+struct gss_api_mech;
+
+struct gss_ctx {
+	struct gss_api_mech *mech_type;
+	void *internal_ctx_id;
+	unsigned int slack;
+	unsigned int align;
+};
+
+struct gss_api_ops;
+
+struct pf_desc;
+
+struct gss_api_mech {
+	struct list_head gm_list;
+	struct module *gm_owner;
+	struct rpcsec_gss_oid gm_oid;
+	char *gm_name;
+	const struct gss_api_ops *gm_ops;
+	int gm_pf_num;
+	struct pf_desc *gm_pfs;
+	const char *gm_upcall_enctypes;
+};
+
+struct auth_domain;
+
+struct pf_desc {
+	u32 pseudoflavor;
+	u32 qop;
+	u32 service;
+	char *name;
+	char *auth_domain_name;
+	struct auth_domain *domain;
+	bool datatouch;
+};
+
+struct auth_ops;
+
+struct auth_domain {
+	struct kref ref;
+	struct hlist_node hash;
+	char *name;
+	struct auth_ops *flavour;
+	struct callback_head callback_head;
+};
+
+struct gss_api_ops {
+	int (*gss_import_sec_context)(const void *, size_t, struct gss_ctx *, time64_t *, gfp_t);
+	u32 (*gss_get_mic)(struct gss_ctx *, struct xdr_buf *, struct xdr_netobj *);
+	u32 (*gss_verify_mic)(struct gss_ctx *, struct xdr_buf *, struct xdr_netobj *);
+	u32 (*gss_wrap)(struct gss_ctx *, int, struct xdr_buf *, struct page **);
+	u32 (*gss_unwrap)(struct gss_ctx *, int, int, struct xdr_buf *);
+	void (*gss_delete_sec_context)(void *);
+};
+
+struct nfs4_string {
+	unsigned int len;
+	char *data;
+};
+
+struct nfs_fsid {
+	uint64_t major;
+	uint64_t minor;
+};
+
+struct nfs4_threshold {
+	__u32 bm;
+	__u32 l_type;
+	__u64 rd_sz;
+	__u64 wr_sz;
+	__u64 rd_io_sz;
+	__u64 wr_io_sz;
+};
+
+struct nfs_fattr {
+	unsigned int valid;
+	umode_t mode;
+	__u32 nlink;
+	kuid_t uid;
+	kgid_t gid;
+	dev_t rdev;
+	__u64 size;
+	union {
+		struct {
+			__u32 blocksize;
+			__u32 blocks;
+		} nfs2;
+		struct {
+			__u64 used;
+		} nfs3;
+	} du;
+	struct nfs_fsid fsid;
+	__u64 fileid;
+	__u64 mounted_on_fileid;
+	struct timespec64 atime;
+	struct timespec64 mtime;
+	struct timespec64 ctime;
+	__u64 change_attr;
+	__u64 pre_change_attr;
+	__u64 pre_size;
+	struct timespec64 pre_mtime;
+	struct timespec64 pre_ctime;
