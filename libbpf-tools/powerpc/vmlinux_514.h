@@ -74455,3 +74455,2170 @@ struct sctp_chunk {
 	__u16 tsn_gap_acked: 1;
 	__u16 data_accepted: 1;
 	__u16 auth: 1;
+	__u16 has_asconf: 1;
+	__u16 pmtu_probe: 1;
+	__u16 tsn_missing_report: 2;
+	__u16 fast_retransmit: 2;
+};
+
+struct sctp_stream_interleave {
+	__u16 data_chunk_len;
+	__u16 ftsn_chunk_len;
+	struct sctp_chunk * (*make_datafrag)(const struct sctp_association *, const struct sctp_sndrcvinfo *, int, __u8, gfp_t);
+	void (*assign_number)(struct sctp_chunk *);
+	bool (*validate_data)(struct sctp_chunk *);
+	int (*ulpevent_data)(struct sctp_ulpq *, struct sctp_chunk *, gfp_t);
+	int (*enqueue_event)(struct sctp_ulpq *, struct sctp_ulpevent *);
+	void (*renege_events)(struct sctp_ulpq *, struct sctp_chunk *, gfp_t);
+	void (*start_pd)(struct sctp_ulpq *, gfp_t);
+	void (*abort_pd)(struct sctp_ulpq *, gfp_t);
+	void (*generate_ftsn)(struct sctp_outq *, __u32);
+	bool (*validate_ftsn)(struct sctp_chunk *);
+	void (*report_ftsn)(struct sctp_ulpq *, __u32);
+	void (*handle_ftsn)(struct sctp_ulpq *, struct sctp_chunk *);
+};
+
+struct sctp_bind_bucket {
+	short unsigned int port;
+	signed char fastreuse;
+	signed char fastreuseport;
+	kuid_t fastuid;
+	struct hlist_node node;
+	struct hlist_head owner;
+	struct net *net;
+};
+
+enum sctp_socket_type {
+	SCTP_SOCKET_UDP = 0,
+	SCTP_SOCKET_UDP_HIGH_BANDWIDTH = 1,
+	SCTP_SOCKET_TCP = 2,
+};
+
+struct crypto_shash___2;
+
+struct sctp_pf;
+
+struct sctp_sock {
+	struct inet_sock inet;
+	enum sctp_socket_type type;
+	int: 32;
+	struct sctp_pf *pf;
+	struct crypto_shash___2 *hmac;
+	char *sctp_hmac_alg;
+	struct sctp_endpoint *ep;
+	struct sctp_bind_bucket *bind_hash;
+	__u16 default_stream;
+	short: 16;
+	__u32 default_ppid;
+	__u16 default_flags;
+	short: 16;
+	__u32 default_context;
+	__u32 default_timetolive;
+	__u32 default_rcv_context;
+	int max_burst;
+	__u32 hbinterval;
+	__u32 probe_interval;
+	__be16 udp_port;
+	__be16 encap_port;
+	__u16 pathmaxrxt;
+	short: 16;
+	__u32 flowlabel;
+	__u8 dscp;
+	char: 8;
+	__u16 pf_retrans;
+	__u16 ps_retrans;
+	short: 16;
+	__u32 pathmtu;
+	__u32 sackdelay;
+	__u32 sackfreq;
+	__u32 param_flags;
+	__u32 default_ss;
+	struct sctp_rtoinfo rtoinfo;
+	struct sctp_paddrparams paddrparam;
+	struct sctp_assocparams assocparams;
+	__u16 subscribe;
+	struct sctp_initmsg initmsg;
+	short: 16;
+	int user_frag;
+	__u32 autoclose;
+	__u32 adaptation_ind;
+	__u32 pd_point;
+	__u16 nodelay: 1;
+	__u16 pf_expose: 2;
+	__u16 reuse: 1;
+	__u16 disable_fragments: 1;
+	__u16 v4mapped: 1;
+	__u16 frag_interleave: 1;
+	__u16 recvrcvinfo: 1;
+	__u16 recvnxtinfo: 1;
+	__u16 data_ready_signalled: 1;
+	int: 22;
+	atomic_t pd_mode;
+	struct sk_buff_head pd_lobby;
+	struct list_head auto_asconf_list;
+	int do_auto_asconf;
+	int: 32;
+} __attribute__((packed));
+
+struct sctp_af;
+
+struct sctp_pf {
+	void (*event_msgname)(struct sctp_ulpevent *, char *, int *);
+	void (*skb_msgname)(struct sk_buff *, char *, int *);
+	int (*af_supported)(sa_family_t, struct sctp_sock *);
+	int (*cmp_addr)(const union sctp_addr *, const union sctp_addr *, struct sctp_sock *);
+	int (*bind_verify)(struct sctp_sock *, union sctp_addr *);
+	int (*send_verify)(struct sctp_sock *, union sctp_addr *);
+	int (*supported_addrs)(const struct sctp_sock *, __be16 *);
+	struct sock * (*create_accept_sk)(struct sock *, struct sctp_association *, bool);
+	int (*addr_to_user)(struct sctp_sock *, union sctp_addr *);
+	void (*to_sk_saddr)(union sctp_addr *, struct sock *);
+	void (*to_sk_daddr)(union sctp_addr *, struct sock *);
+	void (*copy_ip_options)(struct sock *, struct sock *);
+	struct sctp_af *af;
+};
+
+struct sctp_endpoint {
+	struct sctp_ep_common base;
+	struct hlist_node node;
+	int hashent;
+	struct list_head asocs;
+	__u8 secret_key[32];
+	__u8 *digest;
+	__u32 sndbuf_policy;
+	__u32 rcvbuf_policy;
+	struct crypto_shash___2 **auth_hmacs;
+	struct sctp_hmac_algo_param *auth_hmacs_list;
+	struct sctp_chunks_param *auth_chunk_list;
+	struct list_head endpoint_shared_keys;
+	__u16 active_key_id;
+	__u8 ecn_enable: 1;
+	__u8 auth_enable: 1;
+	__u8 intl_enable: 1;
+	__u8 prsctp_enable: 1;
+	__u8 asconf_enable: 1;
+	__u8 reconf_enable: 1;
+	__u8 strreset_enable;
+	struct callback_head rcu;
+};
+
+struct sctp_signed_cookie {
+	__u8 signature[32];
+	__u32 __pad;
+	struct sctp_cookie c;
+} __attribute__((packed));
+
+union sctp_addr_param {
+	struct sctp_paramhdr p;
+	struct sctp_ipv4addr_param v4;
+	struct sctp_ipv6addr_param v6;
+};
+
+struct sctp_sender_hb_info {
+	struct sctp_paramhdr param_hdr;
+	union sctp_addr daddr;
+	long unsigned int sent_at;
+	__u64 hb_nonce;
+	__u32 probe_size;
+};
+
+struct sctp_af {
+	int (*sctp_xmit)(struct sk_buff *, struct sctp_transport *);
+	int (*setsockopt)(struct sock *, int, int, sockptr_t, unsigned int);
+	int (*getsockopt)(struct sock *, int, int, char *, int *);
+	void (*get_dst)(struct sctp_transport *, union sctp_addr *, struct flowi *, struct sock *);
+	void (*get_saddr)(struct sctp_sock *, struct sctp_transport *, struct flowi *);
+	void (*copy_addrlist)(struct list_head *, struct net_device *);
+	int (*cmp_addr)(const union sctp_addr *, const union sctp_addr *);
+	void (*addr_copy)(union sctp_addr *, union sctp_addr *);
+	void (*from_skb)(union sctp_addr *, struct sk_buff *, int);
+	void (*from_sk)(union sctp_addr *, struct sock *);
+	bool (*from_addr_param)(union sctp_addr *, union sctp_addr_param *, __be16, int);
+	int (*to_addr_param)(const union sctp_addr *, union sctp_addr_param *);
+	int (*addr_valid)(union sctp_addr *, struct sctp_sock *, const struct sk_buff *);
+	enum sctp_scope (*scope)(union sctp_addr *);
+	void (*inaddr_any)(union sctp_addr *, __be16);
+	int (*is_any)(const union sctp_addr *);
+	int (*available)(union sctp_addr *, struct sctp_sock *);
+	int (*skb_iif)(const struct sk_buff *);
+	int (*is_ce)(const struct sk_buff *);
+	void (*seq_dump_addr)(struct seq_file *, union sctp_addr *);
+	void (*ecn_capable)(struct sock *);
+	__u16 net_header_len;
+	int sockaddr_len;
+	int (*ip_options_len)(struct sock *);
+	sa_family_t sa_family;
+	struct list_head list;
+};
+
+struct sctp_packet {
+	__u16 source_port;
+	__u16 destination_port;
+	__u32 vtag;
+	struct list_head chunk_list;
+	size_t overhead;
+	size_t size;
+	size_t max_size;
+	struct sctp_transport *transport;
+	struct sctp_chunk *auth;
+	u8 has_cookie_echo: 1;
+	u8 has_sack: 1;
+	u8 has_auth: 1;
+	u8 has_data: 1;
+	u8 ipfragok: 1;
+};
+
+struct sctp_transport {
+	struct list_head transports;
+	struct rhlist_head node;
+	refcount_t refcnt;
+	__u32 rto_pending: 1;
+	__u32 hb_sent: 1;
+	__u32 pmtu_pending: 1;
+	__u32 dst_pending_confirm: 1;
+	__u32 sack_generation: 1;
+	u32 dst_cookie;
+	struct flowi fl;
+	union sctp_addr ipaddr;
+	struct sctp_af *af_specific;
+	struct sctp_association *asoc;
+	long unsigned int rto;
+	__u32 rtt;
+	__u32 rttvar;
+	__u32 srtt;
+	__u32 cwnd;
+	__u32 ssthresh;
+	__u32 partial_bytes_acked;
+	__u32 flight_size;
+	__u32 burst_limited;
+	struct dst_entry *dst;
+	union sctp_addr saddr;
+	long unsigned int hbinterval;
+	long unsigned int probe_interval;
+	long unsigned int sackdelay;
+	__u32 sackfreq;
+	atomic_t mtu_info;
+	ktime_t last_time_heard;
+	long unsigned int last_time_sent;
+	long unsigned int last_time_ecne_reduced;
+	__be16 encap_port;
+	__u16 pathmaxrxt;
+	__u32 flowlabel;
+	__u8 dscp;
+	__u16 pf_retrans;
+	__u16 ps_retrans;
+	__u32 pathmtu;
+	__u32 param_flags;
+	int init_sent_count;
+	int state;
+	short unsigned int error_count;
+	struct timer_list T3_rtx_timer;
+	struct timer_list hb_timer;
+	struct timer_list proto_unreach_timer;
+	struct timer_list reconf_timer;
+	struct timer_list probe_timer;
+	struct list_head transmitted;
+	struct sctp_packet packet;
+	struct list_head send_ready;
+	struct {
+		__u32 next_tsn_at_change;
+		char changeover_active;
+		char cycling_changeover;
+		char cacc_saw_newack;
+	} cacc;
+	struct {
+		__u16 pmtu;
+		__u16 probe_size;
+		__u16 probe_high;
+		__u8 probe_count;
+		__u8 state;
+	} pl;
+	__u64 hb_nonce;
+	struct callback_head rcu;
+};
+
+struct sctp_datamsg {
+	struct list_head chunks;
+	refcount_t refcnt;
+	long unsigned int expires_at;
+	int send_error;
+	u8 send_failed: 1;
+	u8 can_delay: 1;
+	u8 abandoned: 1;
+};
+
+struct sctp_stream_priorities {
+	struct list_head prio_sched;
+	struct list_head active;
+	struct sctp_stream_out_ext *next;
+	__u16 prio;
+};
+
+struct sctp_stream_out_ext {
+	__u64 abandoned_unsent[3];
+	__u64 abandoned_sent[3];
+	struct list_head outq;
+	union {
+		struct {
+			struct list_head prio_list;
+			struct sctp_stream_priorities *prio_head;
+		};
+		struct {
+			struct list_head rr_list;
+		};
+	};
+};
+
+struct task_security_struct {
+	u32 osid;
+	u32 sid;
+	u32 exec_sid;
+	u32 create_sid;
+	u32 keycreate_sid;
+	u32 sockcreate_sid;
+};
+
+enum label_initialized {
+	LABEL_INVALID = 0,
+	LABEL_INITIALIZED = 1,
+	LABEL_PENDING = 2,
+};
+
+struct inode_security_struct {
+	struct inode *inode;
+	struct list_head list;
+	u32 task_sid;
+	u32 sid;
+	u16 sclass;
+	unsigned char initialized;
+	spinlock_t lock;
+};
+
+struct file_security_struct {
+	u32 sid;
+	u32 fown_sid;
+	u32 isid;
+	u32 pseqno;
+};
+
+struct superblock_security_struct {
+	u32 sid;
+	u32 def_sid;
+	u32 mntpoint_sid;
+	short unsigned int behavior;
+	short unsigned int flags;
+	struct mutex lock;
+	struct list_head isec_head;
+	spinlock_t isec_lock;
+};
+
+struct msg_security_struct {
+	u32 sid;
+};
+
+struct ipc_security_struct {
+	u16 sclass;
+	u32 sid;
+};
+
+struct sk_security_struct {
+	enum {
+		NLBL_UNSET = 0,
+		NLBL_REQUIRE = 1,
+		NLBL_LABELED = 2,
+		NLBL_REQSKB = 3,
+		NLBL_CONNLABELED = 4,
+	} nlbl_state;
+	struct netlbl_lsm_secattr *nlbl_secattr;
+	u32 sid;
+	u32 peer_sid;
+	u16 sclass;
+	enum {
+		SCTP_ASSOC_UNSET = 0,
+		SCTP_ASSOC_SET = 1,
+	} sctp_assoc_state;
+};
+
+struct tun_security_struct {
+	u32 sid;
+};
+
+struct key_security_struct {
+	u32 sid;
+};
+
+struct ib_security_struct {
+	u32 sid;
+};
+
+struct bpf_security_struct {
+	u32 sid;
+};
+
+struct perf_event_security_struct {
+	u32 sid;
+};
+
+struct selinux_mnt_opts {
+	u32 fscontext_sid;
+	u32 context_sid;
+	u32 rootcontext_sid;
+	u32 defcontext_sid;
+};
+
+enum {
+	Opt_error___2 = 4294967295,
+	Opt_context = 0,
+	Opt_defcontext = 1,
+	Opt_fscontext = 2,
+	Opt_rootcontext = 3,
+	Opt_seclabel = 4,
+};
+
+struct selinux_policy_convert_data;
+
+struct selinux_load_state {
+	struct selinux_policy *policy;
+	struct selinux_policy_convert_data *convert_data;
+};
+
+enum sel_inos {
+	SEL_ROOT_INO = 2,
+	SEL_LOAD = 3,
+	SEL_ENFORCE = 4,
+	SEL_CONTEXT = 5,
+	SEL_ACCESS = 6,
+	SEL_CREATE = 7,
+	SEL_RELABEL = 8,
+	SEL_USER = 9,
+	SEL_POLICYVERS = 10,
+	SEL_COMMIT_BOOLS = 11,
+	SEL_MLS = 12,
+	SEL_DISABLE = 13,
+	SEL_MEMBER = 14,
+	SEL_CHECKREQPROT = 15,
+	SEL_COMPAT_NET = 16,
+	SEL_REJECT_UNKNOWN = 17,
+	SEL_DENY_UNKNOWN = 18,
+	SEL_STATUS = 19,
+	SEL_POLICY = 20,
+	SEL_VALIDATE_TRANS = 21,
+	SEL_INO_NEXT = 22,
+};
+
+struct selinux_fs_info {
+	struct dentry *bool_dir;
+	unsigned int bool_num;
+	char **bool_pending_names;
+	unsigned int *bool_pending_values;
+	struct dentry *class_dir;
+	long unsigned int last_class_ino;
+	bool policy_opened;
+	struct dentry *policycap_dir;
+	long unsigned int last_ino;
+	struct selinux_state *state;
+	struct super_block *sb;
+};
+
+struct policy_load_memory {
+	size_t len;
+	void *data;
+};
+
+enum {
+	SELNL_MSG_SETENFORCE = 16,
+	SELNL_MSG_POLICYLOAD = 17,
+	SELNL_MSG_MAX = 18,
+};
+
+enum selinux_nlgroups {
+	SELNLGRP_NONE = 0,
+	SELNLGRP_AVC = 1,
+	__SELNLGRP_MAX = 2,
+};
+
+struct selnl_msg_setenforce {
+	__s32 val;
+};
+
+struct selnl_msg_policyload {
+	__u32 seqno;
+};
+
+enum {
+	XFRM_MSG_BASE = 16,
+	XFRM_MSG_NEWSA = 16,
+	XFRM_MSG_DELSA = 17,
+	XFRM_MSG_GETSA = 18,
+	XFRM_MSG_NEWPOLICY = 19,
+	XFRM_MSG_DELPOLICY = 20,
+	XFRM_MSG_GETPOLICY = 21,
+	XFRM_MSG_ALLOCSPI = 22,
+	XFRM_MSG_ACQUIRE = 23,
+	XFRM_MSG_EXPIRE = 24,
+	XFRM_MSG_UPDPOLICY = 25,
+	XFRM_MSG_UPDSA = 26,
+	XFRM_MSG_POLEXPIRE = 27,
+	XFRM_MSG_FLUSHSA = 28,
+	XFRM_MSG_FLUSHPOLICY = 29,
+	XFRM_MSG_NEWAE = 30,
+	XFRM_MSG_GETAE = 31,
+	XFRM_MSG_REPORT = 32,
+	XFRM_MSG_MIGRATE = 33,
+	XFRM_MSG_NEWSADINFO = 34,
+	XFRM_MSG_GETSADINFO = 35,
+	XFRM_MSG_NEWSPDINFO = 36,
+	XFRM_MSG_GETSPDINFO = 37,
+	XFRM_MSG_MAPPING = 38,
+	__XFRM_MSG_MAX = 39,
+};
+
+enum {
+	RTM_BASE = 16,
+	RTM_NEWLINK = 16,
+	RTM_DELLINK = 17,
+	RTM_GETLINK = 18,
+	RTM_SETLINK = 19,
+	RTM_NEWADDR = 20,
+	RTM_DELADDR = 21,
+	RTM_GETADDR = 22,
+	RTM_NEWROUTE = 24,
+	RTM_DELROUTE = 25,
+	RTM_GETROUTE = 26,
+	RTM_NEWNEIGH = 28,
+	RTM_DELNEIGH = 29,
+	RTM_GETNEIGH = 30,
+	RTM_NEWRULE = 32,
+	RTM_DELRULE = 33,
+	RTM_GETRULE = 34,
+	RTM_NEWQDISC = 36,
+	RTM_DELQDISC = 37,
+	RTM_GETQDISC = 38,
+	RTM_NEWTCLASS = 40,
+	RTM_DELTCLASS = 41,
+	RTM_GETTCLASS = 42,
+	RTM_NEWTFILTER = 44,
+	RTM_DELTFILTER = 45,
+	RTM_GETTFILTER = 46,
+	RTM_NEWACTION = 48,
+	RTM_DELACTION = 49,
+	RTM_GETACTION = 50,
+	RTM_NEWPREFIX = 52,
+	RTM_GETMULTICAST = 58,
+	RTM_GETANYCAST = 62,
+	RTM_NEWNEIGHTBL = 64,
+	RTM_GETNEIGHTBL = 66,
+	RTM_SETNEIGHTBL = 67,
+	RTM_NEWNDUSEROPT = 68,
+	RTM_NEWADDRLABEL = 72,
+	RTM_DELADDRLABEL = 73,
+	RTM_GETADDRLABEL = 74,
+	RTM_GETDCB = 78,
+	RTM_SETDCB = 79,
+	RTM_NEWNETCONF = 80,
+	RTM_DELNETCONF = 81,
+	RTM_GETNETCONF = 82,
+	RTM_NEWMDB = 84,
+	RTM_DELMDB = 85,
+	RTM_GETMDB = 86,
+	RTM_NEWNSID = 88,
+	RTM_DELNSID = 89,
+	RTM_GETNSID = 90,
+	RTM_NEWSTATS = 92,
+	RTM_GETSTATS = 94,
+	RTM_SETSTATS = 95,
+	RTM_NEWCACHEREPORT = 96,
+	RTM_NEWCHAIN = 100,
+	RTM_DELCHAIN = 101,
+	RTM_GETCHAIN = 102,
+	RTM_NEWNEXTHOP = 104,
+	RTM_DELNEXTHOP = 105,
+	RTM_GETNEXTHOP = 106,
+	RTM_NEWLINKPROP = 108,
+	RTM_DELLINKPROP = 109,
+	RTM_GETLINKPROP = 110,
+	RTM_NEWVLAN = 112,
+	RTM_DELVLAN = 113,
+	RTM_GETVLAN = 114,
+	RTM_NEWNEXTHOPBUCKET = 116,
+	RTM_DELNEXTHOPBUCKET = 117,
+	RTM_GETNEXTHOPBUCKET = 118,
+	__RTM_MAX = 119,
+};
+
+enum {
+	INET_DIAG_REQ_NONE = 0,
+	INET_DIAG_REQ_BYTECODE = 1,
+	INET_DIAG_REQ_SK_BPF_STORAGES = 2,
+	INET_DIAG_REQ_PROTOCOL = 3,
+	__INET_DIAG_REQ_MAX = 4,
+};
+
+struct nlmsg_perm {
+	u16 nlmsg_type;
+	u32 perm;
+};
+
+struct netif_security_struct {
+	struct net *ns;
+	int ifindex;
+	u32 sid;
+};
+
+struct sel_netif {
+	struct list_head list;
+	struct netif_security_struct nsec;
+	struct callback_head callback_head;
+};
+
+struct netnode_security_struct {
+	union {
+		__be32 ipv4;
+		struct in6_addr ipv6;
+	} addr;
+	u32 sid;
+	u16 family;
+};
+
+struct sel_netnode_bkt {
+	unsigned int size;
+	struct list_head list;
+};
+
+struct sel_netnode {
+	struct netnode_security_struct nsec;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct netport_security_struct {
+	u32 sid;
+	u16 port;
+	u8 protocol;
+};
+
+struct sel_netport_bkt {
+	int size;
+	struct list_head list;
+};
+
+struct sel_netport {
+	struct netport_security_struct psec;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct selinux_kernel_status {
+	u32 version;
+	u32 sequence;
+	u32 enforcing;
+	u32 policyload;
+	u32 deny_unknown;
+};
+
+struct ebitmap_node {
+	struct ebitmap_node *next;
+	long unsigned int maps[6];
+	u32 startbit;
+};
+
+struct ebitmap {
+	struct ebitmap_node *node;
+	u32 highbit;
+};
+
+struct policy_file {
+	char *data;
+	size_t len;
+};
+
+struct hashtab_node {
+	void *key;
+	void *datum;
+	struct hashtab_node *next;
+};
+
+struct hashtab {
+	struct hashtab_node **htable;
+	u32 size;
+	u32 nel;
+};
+
+struct hashtab_info {
+	u32 slots_used;
+	u32 max_chain_len;
+};
+
+struct hashtab_key_params {
+	u32 (*hash)(const void *);
+	int (*cmp)(const void *, const void *);
+};
+
+struct symtab {
+	struct hashtab table;
+	u32 nprim;
+};
+
+struct mls_level {
+	u32 sens;
+	struct ebitmap cat;
+};
+
+struct mls_range {
+	struct mls_level level[2];
+};
+
+struct context {
+	u32 user;
+	u32 role;
+	u32 type;
+	u32 len;
+	struct mls_range range;
+	char *str;
+};
+
+struct sidtab_str_cache;
+
+struct sidtab_entry {
+	u32 sid;
+	u32 hash;
+	struct context context;
+	struct sidtab_str_cache *cache;
+	struct hlist_node list;
+};
+
+struct sidtab_str_cache {
+	struct callback_head rcu_member;
+	struct list_head lru_member;
+	struct sidtab_entry *parent;
+	u32 len;
+	char str[0];
+};
+
+struct sidtab_node_inner;
+
+struct sidtab_node_leaf;
+
+union sidtab_entry_inner {
+	struct sidtab_node_inner *ptr_inner;
+	struct sidtab_node_leaf *ptr_leaf;
+};
+
+struct sidtab_node_inner {
+	union sidtab_entry_inner entries[8192];
+};
+
+struct sidtab_node_leaf {
+	struct sidtab_entry entries[630];
+};
+
+struct sidtab_isid_entry {
+	int set;
+	struct sidtab_entry entry;
+};
+
+struct sidtab;
+
+struct sidtab_convert_params {
+	int (*func)(struct context *, struct context *, void *);
+	void *args;
+	struct sidtab *target;
+};
+
+struct sidtab {
+	union sidtab_entry_inner roots[3];
+	u32 count;
+	struct sidtab_convert_params *convert;
+	bool frozen;
+	spinlock_t lock;
+	u32 cache_free_slots;
+	struct list_head cache_lru_list;
+	spinlock_t cache_lock;
+	struct sidtab_isid_entry isids[27];
+	struct hlist_head context_to_sid[512];
+};
+
+struct avtab_key {
+	u16 source_type;
+	u16 target_type;
+	u16 target_class;
+	u16 specified;
+};
+
+struct avtab_extended_perms {
+	u8 specified;
+	u8 driver;
+	struct extended_perms_data perms;
+};
+
+struct avtab_datum {
+	union {
+		u32 data;
+		struct avtab_extended_perms *xperms;
+	} u;
+};
+
+struct avtab_node {
+	struct avtab_key key;
+	struct avtab_datum datum;
+	struct avtab_node *next;
+};
+
+struct avtab {
+	struct avtab_node **htable;
+	u32 nel;
+	u32 nslot;
+	u32 mask;
+};
+
+struct type_set;
+
+struct constraint_expr {
+	u32 expr_type;
+	u32 attr;
+	u32 op;
+	struct ebitmap names;
+	struct type_set *type_names;
+	struct constraint_expr *next;
+};
+
+struct type_set {
+	struct ebitmap types;
+	struct ebitmap negset;
+	u32 flags;
+};
+
+struct constraint_node {
+	u32 permissions;
+	struct constraint_expr *expr;
+	struct constraint_node *next;
+};
+
+struct common_datum {
+	u32 value;
+	struct symtab permissions;
+};
+
+struct class_datum {
+	u32 value;
+	char *comkey;
+	struct common_datum *comdatum;
+	struct symtab permissions;
+	struct constraint_node *constraints;
+	struct constraint_node *validatetrans;
+	char default_user;
+	char default_role;
+	char default_type;
+	char default_range;
+};
+
+struct role_datum {
+	u32 value;
+	u32 bounds;
+	struct ebitmap dominates;
+	struct ebitmap types;
+};
+
+struct role_allow {
+	u32 role;
+	u32 new_role;
+	struct role_allow *next;
+};
+
+struct type_datum {
+	u32 value;
+	u32 bounds;
+	unsigned char primary;
+	unsigned char attribute;
+};
+
+struct user_datum {
+	u32 value;
+	u32 bounds;
+	struct ebitmap roles;
+	struct mls_range range;
+	struct mls_level dfltlevel;
+};
+
+struct cond_bool_datum {
+	__u32 value;
+	int state;
+};
+
+struct ocontext {
+	union {
+		char *name;
+		struct {
+			u8 protocol;
+			u16 low_port;
+			u16 high_port;
+		} port;
+		struct {
+			u32 addr;
+			u32 mask;
+		} node;
+		struct {
+			u32 addr[4];
+			u32 mask[4];
+		} node6;
+		struct {
+			u64 subnet_prefix;
+			u16 low_pkey;
+			u16 high_pkey;
+		} ibpkey;
+		struct {
+			char *dev_name;
+			u8 port;
+		} ibendport;
+	} u;
+	union {
+		u32 sclass;
+		u32 behavior;
+	} v;
+	struct context context[2];
+	u32 sid[2];
+	struct ocontext *next;
+};
+
+struct genfs {
+	char *fstype;
+	struct ocontext *head;
+	struct genfs *next;
+};
+
+struct cond_node;
+
+struct policydb {
+	int mls_enabled;
+	struct symtab symtab[8];
+	char **sym_val_to_name[8];
+	struct class_datum **class_val_to_struct;
+	struct role_datum **role_val_to_struct;
+	struct user_datum **user_val_to_struct;
+	struct type_datum **type_val_to_struct;
+	struct avtab te_avtab;
+	struct hashtab role_tr;
+	struct ebitmap filename_trans_ttypes;
+	struct hashtab filename_trans;
+	u32 compat_filename_trans_count;
+	struct cond_bool_datum **bool_val_to_struct;
+	struct avtab te_cond_avtab;
+	struct cond_node *cond_list;
+	u32 cond_list_len;
+	struct role_allow *role_allow;
+	struct ocontext *ocontexts[9];
+	struct genfs *genfs;
+	struct hashtab range_tr;
+	struct ebitmap *type_attr_map_array;
+	struct ebitmap policycaps;
+	struct ebitmap permissive_map;
+	size_t len;
+	unsigned int policyvers;
+	unsigned int reject_unknown: 1;
+	unsigned int allow_unknown: 1;
+	u16 process_class;
+	u32 process_trans_perms;
+};
+
+struct perm_datum {
+	u32 value;
+};
+
+struct role_trans_key {
+	u32 role;
+	u32 type;
+	u32 tclass;
+};
+
+struct role_trans_datum {
+	u32 new_role;
+};
+
+struct filename_trans_key {
+	u32 ttype;
+	u16 tclass;
+	const char *name;
+};
+
+struct filename_trans_datum {
+	struct ebitmap stypes;
+	u32 otype;
+	struct filename_trans_datum *next;
+};
+
+struct level_datum {
+	struct mls_level *level;
+	unsigned char isalias;
+};
+
+struct cat_datum {
+	u32 value;
+	unsigned char isalias;
+};
+
+struct range_trans {
+	u32 source_type;
+	u32 target_type;
+	u32 target_class;
+};
+
+struct cond_expr_node;
+
+struct cond_expr {
+	struct cond_expr_node *nodes;
+	u32 len;
+};
+
+struct cond_av_list {
+	struct avtab_node **nodes;
+	u32 len;
+};
+
+struct cond_node {
+	int cur_state;
+	struct cond_expr expr;
+	struct cond_av_list true_list;
+	struct cond_av_list false_list;
+};
+
+struct policy_data {
+	struct policydb *p;
+	void *fp;
+};
+
+struct cond_expr_node {
+	u32 expr_type;
+	u32 bool;
+};
+
+struct policydb_compat_info {
+	int version;
+	int sym_num;
+	int ocon_num;
+};
+
+struct selinux_mapping;
+
+struct selinux_map {
+	struct selinux_mapping *mapping;
+	u16 size;
+};
+
+struct selinux_policy {
+	struct sidtab *sidtab;
+	struct policydb policydb;
+	struct selinux_map map;
+	u32 latest_granting;
+};
+
+struct convert_context_args {
+	struct selinux_state *state;
+	struct policydb *oldp;
+	struct policydb *newp;
+};
+
+struct selinux_policy_convert_data {
+	struct convert_context_args args;
+	struct sidtab_convert_params sidtab_params;
+};
+
+struct selinux_mapping {
+	u16 value;
+	unsigned int num_perms;
+	u32 perms[32];
+};
+
+struct selinux_audit_rule {
+	u32 au_seqno;
+	struct context au_ctxt;
+};
+
+struct cond_insertf_data {
+	struct policydb *p;
+	struct avtab_node **dst;
+	struct cond_av_list *other;
+};
+
+struct rt6key {
+	struct in6_addr addr;
+	int plen;
+};
+
+struct rtable;
+
+struct fnhe_hash_bucket;
+
+struct fib_nh_common {
+	struct net_device *nhc_dev;
+	netdevice_tracker nhc_dev_tracker;
+	int nhc_oif;
+	unsigned char nhc_scope;
+	u8 nhc_family;
+	u8 nhc_gw_family;
+	unsigned char nhc_flags;
+	struct lwtunnel_state *nhc_lwtstate;
+	union {
+		__be32 ipv4;
+		struct in6_addr ipv6;
+	} nhc_gw;
+	int nhc_weight;
+	atomic_t nhc_upper_bound;
+	struct rtable **nhc_pcpu_rth_output;
+	struct rtable *nhc_rth_input;
+	struct fnhe_hash_bucket *nhc_exceptions;
+};
+
+struct rt6_exception_bucket;
+
+struct fib6_nh {
+	struct fib_nh_common nh_common;
+	long unsigned int last_probe;
+	struct rt6_info **rt6i_pcpu;
+	struct rt6_exception_bucket *rt6i_exception_bucket;
+};
+
+struct fib6_node;
+
+struct dst_metrics;
+
+struct nexthop;
+
+struct fib6_info {
+	struct fib6_table *fib6_table;
+	struct fib6_info *fib6_next;
+	struct fib6_node *fib6_node;
+	union {
+		struct list_head fib6_siblings;
+		struct list_head nh_list;
+	};
+	unsigned int fib6_nsiblings;
+	refcount_t fib6_ref;
+	long unsigned int expires;
+	struct dst_metrics *fib6_metrics;
+	struct rt6key fib6_dst;
+	u32 fib6_flags;
+	struct rt6key fib6_src;
+	struct rt6key fib6_prefsrc;
+	u32 fib6_metric;
+	u8 fib6_protocol;
+	u8 fib6_type;
+	u8 offload;
+	u8 trap;
+	u8 offload_failed;
+	u8 should_flush: 1;
+	u8 dst_nocount: 1;
+	u8 dst_nopolicy: 1;
+	u8 fib6_destroying: 1;
+	u8 unused: 4;
+	struct callback_head rcu;
+	struct nexthop *nh;
+	struct fib6_nh fib6_nh[0];
+};
+
+struct uncached_list;
+
+struct rt6_info {
+	struct dst_entry dst;
+	struct fib6_info *from;
+	int sernum;
+	struct rt6key rt6i_dst;
+	struct rt6key rt6i_src;
+	struct in6_addr rt6i_gateway;
+	struct inet6_dev *rt6i_idev;
+	u32 rt6i_flags;
+	struct list_head rt6i_uncached;
+	struct uncached_list *rt6i_uncached_list;
+	short unsigned int rt6i_nfheader_len;
+};
+
+struct rt6_statistics {
+	__u32 fib_nodes;
+	__u32 fib_route_nodes;
+	__u32 fib_rt_entries;
+	__u32 fib_rt_cache;
+	__u32 fib_discarded_routes;
+	atomic_t fib_rt_alloc;
+	atomic_t fib_rt_uncache;
+};
+
+struct fib6_node {
+	struct fib6_node *parent;
+	struct fib6_node *left;
+	struct fib6_node *right;
+	struct fib6_info *leaf;
+	__u16 fn_bit;
+	__u16 fn_flags;
+	int fn_sernum;
+	struct fib6_info *rr_ptr;
+	struct callback_head rcu;
+};
+
+struct fib6_table {
+	struct hlist_node tb6_hlist;
+	u32 tb6_id;
+	spinlock_t tb6_lock;
+	struct fib6_node tb6_root;
+	struct inet_peer_base tb6_peers;
+	unsigned int flags;
+	unsigned int fib_seq;
+};
+
+typedef union {
+	__be32 a4;
+	__be32 a6[4];
+	struct in6_addr in6;
+} xfrm_address_t;
+
+struct xfrm_id {
+	xfrm_address_t daddr;
+	__be32 spi;
+	__u8 proto;
+};
+
+struct xfrm_selector {
+	xfrm_address_t daddr;
+	xfrm_address_t saddr;
+	__be16 dport;
+	__be16 dport_mask;
+	__be16 sport;
+	__be16 sport_mask;
+	__u16 family;
+	__u8 prefixlen_d;
+	__u8 prefixlen_s;
+	__u8 proto;
+	int ifindex;
+	__kernel_uid32_t user;
+};
+
+struct xfrm_lifetime_cfg {
+	__u64 soft_byte_limit;
+	__u64 hard_byte_limit;
+	__u64 soft_packet_limit;
+	__u64 hard_packet_limit;
+	__u64 soft_add_expires_seconds;
+	__u64 hard_add_expires_seconds;
+	__u64 soft_use_expires_seconds;
+	__u64 hard_use_expires_seconds;
+};
+
+struct xfrm_lifetime_cur {
+	__u64 bytes;
+	__u64 packets;
+	__u64 add_time;
+	__u64 use_time;
+};
+
+struct xfrm_replay_state {
+	__u32 oseq;
+	__u32 seq;
+	__u32 bitmap;
+};
+
+struct xfrm_replay_state_esn {
+	unsigned int bmp_len;
+	__u32 oseq;
+	__u32 seq;
+	__u32 oseq_hi;
+	__u32 seq_hi;
+	__u32 replay_window;
+	__u32 bmp[0];
+};
+
+struct xfrm_algo {
+	char alg_name[64];
+	unsigned int alg_key_len;
+	char alg_key[0];
+};
+
+struct xfrm_algo_auth {
+	char alg_name[64];
+	unsigned int alg_key_len;
+	unsigned int alg_trunc_len;
+	char alg_key[0];
+};
+
+struct xfrm_algo_aead {
+	char alg_name[64];
+	unsigned int alg_key_len;
+	unsigned int alg_icv_len;
+	char alg_key[0];
+};
+
+struct xfrm_stats {
+	__u32 replay_window;
+	__u32 replay;
+	__u32 integrity_failed;
+};
+
+enum {
+	XFRM_POLICY_TYPE_MAIN = 0,
+	XFRM_POLICY_TYPE_SUB = 1,
+	XFRM_POLICY_TYPE_MAX = 2,
+	XFRM_POLICY_TYPE_ANY = 255,
+};
+
+struct xfrm_encap_tmpl {
+	__u16 encap_type;
+	__be16 encap_sport;
+	__be16 encap_dport;
+	xfrm_address_t encap_oa;
+};
+
+enum xfrm_attr_type_t {
+	XFRMA_UNSPEC = 0,
+	XFRMA_ALG_AUTH = 1,
+	XFRMA_ALG_CRYPT = 2,
+	XFRMA_ALG_COMP = 3,
+	XFRMA_ENCAP = 4,
+	XFRMA_TMPL = 5,
+	XFRMA_SA = 6,
+	XFRMA_POLICY = 7,
+	XFRMA_SEC_CTX = 8,
+	XFRMA_LTIME_VAL = 9,
+	XFRMA_REPLAY_VAL = 10,
+	XFRMA_REPLAY_THRESH = 11,
+	XFRMA_ETIMER_THRESH = 12,
+	XFRMA_SRCADDR = 13,
+	XFRMA_COADDR = 14,
+	XFRMA_LASTUSED = 15,
+	XFRMA_POLICY_TYPE = 16,
+	XFRMA_MIGRATE = 17,
+	XFRMA_ALG_AEAD = 18,
+	XFRMA_KMADDRESS = 19,
+	XFRMA_ALG_AUTH_TRUNC = 20,
+	XFRMA_MARK = 21,
+	XFRMA_TFCPAD = 22,
+	XFRMA_REPLAY_ESN_VAL = 23,
+	XFRMA_SA_EXTRA_FLAGS = 24,
+	XFRMA_PROTO = 25,
+	XFRMA_ADDRESS_FILTER = 26,
+	XFRMA_PAD = 27,
+	XFRMA_OFFLOAD_DEV = 28,
+	XFRMA_SET_MARK = 29,
+	XFRMA_SET_MARK_MASK = 30,
+	XFRMA_IF_ID = 31,
+	__XFRMA_MAX = 32,
+};
+
+struct xfrm_mark {
+	__u32 v;
+	__u32 m;
+};
+
+struct xfrm_address_filter {
+	xfrm_address_t saddr;
+	xfrm_address_t daddr;
+	__u16 family;
+	__u8 splen;
+	__u8 dplen;
+};
+
+struct xfrm_state_walk {
+	struct list_head all;
+	u8 state;
+	u8 dying;
+	u8 proto;
+	u32 seq;
+	struct xfrm_address_filter *filter;
+};
+
+enum xfrm_replay_mode {
+	XFRM_REPLAY_MODE_LEGACY = 0,
+	XFRM_REPLAY_MODE_BMP = 1,
+	XFRM_REPLAY_MODE_ESN = 2,
+};
+
+struct xfrm_state_offload {
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	struct net_device *real_dev;
+	long unsigned int offload_handle;
+	unsigned int num_exthdrs;
+	u8 flags;
+};
+
+struct xfrm_mode {
+	u8 encap;
+	u8 family;
+	u8 flags;
+};
+
+struct xfrm_type;
+
+struct xfrm_type_offload;
+
+struct xfrm_state {
+	possible_net_t xs_net;
+	union {
+		struct hlist_node gclist;
+		struct hlist_node bydst;
+	};
+	struct hlist_node bysrc;
+	struct hlist_node byspi;
+	struct hlist_node byseq;
+	refcount_t refcnt;
+	spinlock_t lock;
+	struct xfrm_id id;
+	struct xfrm_selector sel;
+	struct xfrm_mark mark;
+	u32 if_id;
+	u32 tfcpad;
+	u32 genid;
+	struct xfrm_state_walk km;
+	struct {
+		u32 reqid;
+		u8 mode;
+		u8 replay_window;
+		u8 aalgo;
+		u8 ealgo;
+		u8 calgo;
+		u8 flags;
+		u16 family;
+		xfrm_address_t saddr;
+		int header_len;
+		int trailer_len;
+		u32 extra_flags;
+		struct xfrm_mark smark;
+	} props;
+	struct xfrm_lifetime_cfg lft;
+	struct xfrm_algo_auth *aalg;
+	struct xfrm_algo *ealg;
+	struct xfrm_algo *calg;
+	struct xfrm_algo_aead *aead;
+	const char *geniv;
+	struct xfrm_encap_tmpl *encap;
+	struct sock *encap_sk;
+	xfrm_address_t *coaddr;
+	struct xfrm_state *tunnel;
+	atomic_t tunnel_users;
+	struct xfrm_replay_state replay;
+	struct xfrm_replay_state_esn *replay_esn;
+	struct xfrm_replay_state preplay;
+	struct xfrm_replay_state_esn *preplay_esn;
+	enum xfrm_replay_mode repl_mode;
+	u32 xflags;
+	u32 replay_maxage;
+	u32 replay_maxdiff;
+	struct timer_list rtimer;
+	struct xfrm_stats stats;
+	struct xfrm_lifetime_cur curlft;
+	struct hrtimer mtimer;
+	struct xfrm_state_offload xso;
+	long int saved_tmo;
+	time64_t lastused;
+	struct page_frag xfrag;
+	const struct xfrm_type *type;
+	struct xfrm_mode inner_mode;
+	struct xfrm_mode inner_mode_iaf;
+	struct xfrm_mode outer_mode;
+	const struct xfrm_type_offload *type_offload;
+	struct xfrm_sec_ctx *security;
+	void *data;
+};
+
+struct dst_metrics {
+	u32 metrics[17];
+	refcount_t refcnt;
+};
+
+struct xfrm_policy_walk_entry {
+	struct list_head all;
+	u8 dead;
+};
+
+struct xfrm_policy_queue {
+	struct sk_buff_head hold_queue;
+	struct timer_list hold_timer;
+	long unsigned int timeout;
+};
+
+struct xfrm_tmpl {
+	struct xfrm_id id;
+	xfrm_address_t saddr;
+	short unsigned int encap_family;
+	u32 reqid;
+	u8 mode;
+	u8 share;
+	u8 optional;
+	u8 allalgs;
+	u32 aalgos;
+	u32 ealgos;
+	u32 calgos;
+};
+
+struct xfrm_policy {
+	possible_net_t xp_net;
+	struct hlist_node bydst;
+	struct hlist_node byidx;
+	rwlock_t lock;
+	refcount_t refcnt;
+	u32 pos;
+	struct timer_list timer;
+	atomic_t genid;
+	u32 priority;
+	u32 index;
+	u32 if_id;
+	struct xfrm_mark mark;
+	struct xfrm_selector selector;
+	struct xfrm_lifetime_cfg lft;
+	struct xfrm_lifetime_cur curlft;
+	struct xfrm_policy_walk_entry walk;
+	struct xfrm_policy_queue polq;
+	bool bydst_reinsert;
+	u8 type;
+	u8 action;
+	u8 flags;
+	u8 xfrm_nr;
+	u16 family;
+	struct xfrm_sec_ctx *security;
+	struct xfrm_tmpl xfrm_vec[6];
+	struct hlist_node bydst_inexact_list;
+	struct callback_head rcu;
+};
+
+struct udp_hslot;
+
+struct udp_table {
+	struct udp_hslot *hash;
+	struct udp_hslot *hash2;
+	unsigned int mask;
+	unsigned int log;
+};
+
+struct fib_nh_exception {
+	struct fib_nh_exception *fnhe_next;
+	int fnhe_genid;
+	__be32 fnhe_daddr;
+	u32 fnhe_pmtu;
+	bool fnhe_mtu_locked;
+	__be32 fnhe_gw;
+	long unsigned int fnhe_expires;
+	struct rtable *fnhe_rth_input;
+	struct rtable *fnhe_rth_output;
+	long unsigned int fnhe_stamp;
+	struct callback_head rcu;
+};
+
+struct rtable {
+	struct dst_entry dst;
+	int rt_genid;
+	unsigned int rt_flags;
+	__u16 rt_type;
+	__u8 rt_is_input;
+	__u8 rt_uses_gateway;
+	int rt_iif;
+	u8 rt_gw_family;
+	union {
+		__be32 rt_gw4;
+		struct in6_addr rt_gw6;
+	};
+	u32 rt_mtu_locked: 1;
+	u32 rt_pmtu: 31;
+	struct list_head rt_uncached;
+	struct uncached_list *rt_uncached_list;
+};
+
+struct fnhe_hash_bucket {
+	struct fib_nh_exception *chain;
+};
+
+struct rt6_exception_bucket {
+	struct hlist_head chain;
+	int depth;
+};
+
+struct xfrm_type {
+	struct module *owner;
+	u8 proto;
+	u8 flags;
+	int (*init_state)(struct xfrm_state *);
+	void (*destructor)(struct xfrm_state *);
+	int (*input)(struct xfrm_state *, struct sk_buff *);
+	int (*output)(struct xfrm_state *, struct sk_buff *);
+	int (*reject)(struct xfrm_state *, struct sk_buff *, const struct flowi *);
+};
+
+struct xfrm_type_offload {
+	struct module *owner;
+	u8 proto;
+	void (*encap)(struct xfrm_state *, struct sk_buff *);
+	int (*input_tail)(struct xfrm_state *, struct sk_buff *);
+	int (*xmit)(struct xfrm_state *, struct sk_buff *, netdev_features_t);
+};
+
+struct xfrm_dst {
+	union {
+		struct dst_entry dst;
+		struct rtable rt;
+		struct rt6_info rt6;
+	} u;
+	struct dst_entry *route;
+	struct dst_entry *child;
+	struct dst_entry *path;
+	struct xfrm_policy *pols[2];
+	int num_pols;
+	int num_xfrms;
+	u32 xfrm_genid;
+	u32 policy_genid;
+	u32 route_mtu_cached;
+	u32 child_mtu_cached;
+	u32 route_cookie;
+	u32 path_cookie;
+};
+
+struct xfrm_offload {
+	struct {
+		__u32 low;
+		__u32 hi;
+	} seq;
+	__u32 flags;
+	__u32 status;
+	__u8 proto;
+	__u8 inner_ipproto;
+};
+
+struct sec_path {
+	int len;
+	int olen;
+	struct xfrm_state *xvec[6];
+	struct xfrm_offload ovec[1];
+};
+
+struct udp_hslot {
+	struct hlist_head head;
+	int count;
+	spinlock_t lock;
+};
+
+struct pkey_security_struct {
+	u64 subnet_prefix;
+	u16 pkey;
+	u32 sid;
+};
+
+struct sel_ib_pkey_bkt {
+	int size;
+	struct list_head list;
+};
+
+struct sel_ib_pkey {
+	struct pkey_security_struct psec;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct sockaddr_un {
+	__kernel_sa_family_t sun_family;
+	char sun_path[108];
+};
+
+struct unix_address {
+	refcount_t refcnt;
+	int len;
+	unsigned int hash;
+	struct sockaddr_un name[0];
+};
+
+struct scm_stat {
+	atomic_t nr_fds;
+};
+
+struct unix_sock {
+	struct sock sk;
+	struct unix_address *addr;
+	struct path path;
+	struct mutex iolock;
+	struct mutex bindlock;
+	struct sock *peer;
+	struct list_head link;
+	atomic_long_t inflight;
+	spinlock_t lock;
+	long unsigned int gc_flags;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct socket_wq peer_wq;
+	wait_queue_entry_t peer_wake;
+	struct scm_stat scm_stat;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct ptrace_relation {
+	struct task_struct *tracer;
+	struct task_struct *tracee;
+	bool invalid;
+	struct list_head node;
+	struct callback_head rcu;
+};
+
+struct access_report_info {
+	struct callback_head work;
+	const char *access;
+	struct task_struct *target;
+	struct task_struct *agent;
+};
+
+enum devcg_behavior {
+	DEVCG_DEFAULT_NONE = 0,
+	DEVCG_DEFAULT_ALLOW = 1,
+	DEVCG_DEFAULT_DENY = 2,
+};
+
+struct dev_exception_item {
+	u32 major;
+	u32 minor;
+	short int type;
+	short int access;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct dev_cgroup {
+	struct cgroup_subsys_state css;
+	struct list_head exceptions;
+	enum devcg_behavior behavior;
+};
+
+enum integrity_status {
+	INTEGRITY_PASS = 0,
+	INTEGRITY_PASS_IMMUTABLE = 1,
+	INTEGRITY_FAIL = 2,
+	INTEGRITY_FAIL_IMMUTABLE = 3,
+	INTEGRITY_NOLABEL = 4,
+	INTEGRITY_NOXATTRS = 5,
+	INTEGRITY_UNKNOWN = 6,
+};
+
+struct ima_digest_data {
+	u8 algo;
+	u8 length;
+	union {
+		struct {
+			u8 unused;
+			u8 type;
+		} sha1;
+		struct {
+			u8 type;
+			u8 algo;
+		} ng;
+		u8 data[2];
+	} xattr;
+	u8 digest[0];
+};
+
+struct integrity_iint_cache {
+	struct rb_node rb_node;
+	struct mutex mutex;
+	struct inode *inode;
+	u64 version;
+	long unsigned int flags;
+	long unsigned int measured_pcrs;
+	long unsigned int atomic_flags;
+	enum integrity_status ima_file_status: 4;
+	enum integrity_status ima_mmap_status: 4;
+	enum integrity_status ima_bprm_status: 4;
+	enum integrity_status ima_read_status: 4;
+	enum integrity_status ima_creds_status: 4;
+	enum integrity_status evm_status: 4;
+	struct ima_digest_data *ima_hash;
+};
+
+struct modsig;
+
+struct public_key {
+	void *key;
+	u32 keylen;
+	enum OID algo;
+	void *params;
+	u32 paramlen;
+	bool key_is_private;
+	const char *id_type;
+	const char *pkey_algo;
+};
+
+struct asymmetric_key_id;
+
+struct public_key_signature {
+	struct asymmetric_key_id *auth_ids[2];
+	u8 *s;
+	u32 s_size;
+	u8 *digest;
+	u8 digest_size;
+	const char *pkey_algo;
+	const char *hash_algo;
+	const char *encoding;
+	const void *data;
+	unsigned int data_size;
+};
+
+struct asymmetric_key_id {
+	short unsigned int len;
+	unsigned char data[0];
+};
+
+enum asymmetric_payload_bits {
+	asym_crypto = 0,
+	asym_subtype = 1,
+	asym_key_ids = 2,
+	asym_auth = 3,
+};
+
+struct signature_v2_hdr {
+	uint8_t type;
+	uint8_t version;
+	uint8_t hash_algo;
+	__be32 keyid;
+	__be16 sig_size;
+	uint8_t sig[0];
+} __attribute__((packed));
+
+typedef struct {
+	__u8 b[16];
+} guid_t;
+
+typedef guid_t efi_guid_t;
+
+typedef struct {
+	efi_guid_t signature_owner;
+	u8 signature_data[0];
+} efi_signature_data_t;
+
+typedef struct {
+	efi_guid_t signature_type;
+	u32 signature_list_size;
+	u32 signature_header_size;
+	u32 signature_size;
+	u8 signature_header[0];
+} efi_signature_list_t;
+
+typedef void (*efi_element_handler_t)(const char *, const void *, size_t);
+
+struct evm_ima_xattr_data {
+	u8 type;
+	u8 data[0];
+};
+
+enum ima_show_type {
+	IMA_SHOW_BINARY = 0,
+	IMA_SHOW_BINARY_NO_FIELD_LEN = 1,
+	IMA_SHOW_BINARY_OLD_STRING_FMT = 2,
+	IMA_SHOW_ASCII = 3,
+};
+
+struct ima_event_data {
+	struct integrity_iint_cache *iint;
+	struct file *file;
+	const unsigned char *filename;
+	struct evm_ima_xattr_data *xattr_value;
+	int xattr_len;
+	const struct modsig *modsig;
+	const char *violation;
+	const void *buf;
+	int buf_len;
+};
+
+struct ima_field_data {
+	u8 *data;
+	u32 len;
+};
+
+struct ima_template_field {
+	const char field_id[16];
+	int (*field_init)(struct ima_event_data *, struct ima_field_data *);
+	void (*field_show)(struct seq_file *, enum ima_show_type, struct ima_field_data *);
+};
+
+struct ima_template_desc {
+	struct list_head list;
+	char *name;
+	char *fmt;
+	int num_fields;
+	const struct ima_template_field **fields;
+};
+
+struct ima_template_entry {
+	int pcr;
+	struct tpm_digest *digests;
+	struct ima_template_desc *template_desc;
+	u32 template_data_len;
+	struct ima_field_data template_data[0];
+};
+
+struct ima_queue_entry {
+	struct hlist_node hnext;
+	struct list_head later;
+	struct ima_template_entry *entry;
+};
+
+struct ima_h_table {
+	atomic_long_t len;
+	atomic_long_t violations;
+	struct hlist_head queue[1024];
+};
+
+enum ima_fs_flags {
+	IMA_FS_BUSY = 0,
+};
+
+enum evm_ima_xattr_type {
+	IMA_XATTR_DIGEST = 1,
+	EVM_XATTR_HMAC = 2,
+	EVM_IMA_XATTR_DIGSIG = 3,
+	IMA_XATTR_DIGEST_NG = 4,
+	EVM_XATTR_PORTABLE_DIGSIG = 5,
+	IMA_XATTR_LAST = 6,
+};
+
+enum ima_hooks {
+	NONE = 0,
+	FILE_CHECK = 1,
+	MMAP_CHECK = 2,
+	BPRM_CHECK = 3,
+	CREDS_CHECK = 4,
+	POST_SETATTR = 5,
+	MODULE_CHECK = 6,
+	FIRMWARE_CHECK = 7,
+	KEXEC_KERNEL_CHECK = 8,
+	KEXEC_INITRAMFS_CHECK = 9,
+	POLICY_CHECK = 10,
+	KEXEC_CMDLINE = 11,
+	KEY_CHECK = 12,
+	CRITICAL_DATA = 13,
+	SETXATTR_CHECK = 14,
+	MAX_CHECK = 15,
+};
+
+struct hash_alg_common {
+	unsigned int digestsize;
+	unsigned int statesize;
+	struct crypto_alg base;
+};
+
+struct ahash_request {
+	struct crypto_async_request base;
+	unsigned int nbytes;
+	struct scatterlist *src;
+	u8 *result;
+	void *priv;
+	void *__ctx[0];
+};
+
+struct crypto_ahash {
+	int (*init)(struct ahash_request *);
+	int (*update)(struct ahash_request *);
+	int (*final)(struct ahash_request *);
+	int (*finup)(struct ahash_request *);
+	int (*digest)(struct ahash_request *);
+	int (*export)(struct ahash_request *, void *);
+	int (*import)(struct ahash_request *, const void *);
+	int (*setkey)(struct crypto_ahash *, const u8 *, unsigned int);
+	unsigned int reqsize;
+	struct crypto_tfm base;
+};
+
+enum tpm_pcrs {
+	TPM_PCR0 = 0,
+	TPM_PCR8 = 8,
+	TPM_PCR10 = 10,
+};
+
+struct ima_algo_desc {
+	struct crypto_shash *tfm;
+	enum hash_algo algo;
+};
+
+enum lsm_rule_types {
+	LSM_OBJ_USER = 0,
+	LSM_OBJ_ROLE = 1,
+	LSM_OBJ_TYPE = 2,
+	LSM_SUBJ_USER = 3,
+	LSM_SUBJ_ROLE = 4,
+	LSM_SUBJ_TYPE = 5,
+};
+
+enum policy_types {
+	ORIGINAL_TCB = 1,
+	DEFAULT_TCB = 2,
+};
+
+enum policy_rule_list {
+	IMA_DEFAULT_POLICY = 1,
+	IMA_CUSTOM_POLICY = 2,
+};
+
+struct ima_rule_opt_list {
+	size_t count;
+	char *items[0];
+};
+
+struct ima_rule_entry {
+	struct list_head list;
+	int action;
+	unsigned int flags;
+	enum ima_hooks func;
+	int mask;
+	long unsigned int fsmagic;
+	uuid_t fsuuid;
+	kuid_t uid;
+	kuid_t fowner;
+	bool (*uid_op)(kuid_t, kuid_t);
+	bool (*fowner_op)(kuid_t, kuid_t);
+	int pcr;
+	unsigned int allowed_algos;
+	struct {
+		void *rule;
+		char *args_p;
+		int type;
+	} lsm[6];
+	char *fsname;
+	struct ima_rule_opt_list *keyrings;
+	struct ima_rule_opt_list *label;
+	struct ima_template_desc *template;
+};
+
+enum {
+	Opt_measure = 0,
+	Opt_dont_measure = 1,
+	Opt_appraise = 2,
+	Opt_dont_appraise = 3,
+	Opt_audit = 4,
+	Opt_hash___3 = 5,
+	Opt_dont_hash = 6,
+	Opt_obj_user = 7,
+	Opt_obj_role = 8,
+	Opt_obj_type = 9,
+	Opt_subj_user = 10,
+	Opt_subj_role = 11,
+	Opt_subj_type = 12,
+	Opt_func = 13,
+	Opt_mask = 14,
+	Opt_fsmagic = 15,
+	Opt_fsname = 16,
+	Opt_fsuuid = 17,
+	Opt_uid_eq = 18,
+	Opt_euid_eq = 19,
+	Opt_fowner_eq = 20,
+	Opt_uid_gt = 21,
+	Opt_euid_gt = 22,
+	Opt_fowner_gt = 23,
+	Opt_uid_lt = 24,
+	Opt_euid_lt = 25,
+	Opt_fowner_lt = 26,
+	Opt_appraise_type = 27,
+	Opt_appraise_flag = 28,
+	Opt_appraise_algos = 29,
+	Opt_permit_directio = 30,
+	Opt_pcr = 31,
+	Opt_template = 32,
+	Opt_keyrings = 33,
+	Opt_label = 34,
+	Opt_err___9 = 35,
+};
+
+enum {
+	mask_exec = 0,
+	mask_write = 1,
+	mask_read = 2,
+	mask_append = 3,
+};
+
+struct ima_kexec_hdr {
+	u16 version;
+	u16 _reserved0;
+	u32 _reserved1;
+	u64 buffer_size;
+	u64 count;
+};
+
+enum header_fields {
+	HDR_PCR = 0,
+	HDR_DIGEST = 1,
+	HDR_TEMPLATE_NAME = 2,
+	HDR_TEMPLATE_DATA = 3,
+	HDR__LAST = 4,
+};
+
+enum data_formats {
+	DATA_FMT_DIGEST = 0,
+	DATA_FMT_DIGEST_WITH_ALGO = 1,
+	DATA_FMT_STRING = 2,
+	DATA_FMT_HEX = 3,
+	DATA_FMT_UINT = 4,
+};
+
+struct modsig___2 {
+	struct pkcs7_message *pkcs7_msg;
+	enum hash_algo hash_algo;
+	const u8 *digest;
+	u32 digest_size;
+	int raw_pkcs7_len;
+	u8 raw_pkcs7[0];
+};
+
+struct ima_key_entry {
+	struct list_head list;
+	void *payload;
+	size_t payload_len;
+	char *keyring_name;
+};
+
+struct evm_xattr {
+	struct evm_ima_xattr_data data;
+	u8 digest[20];
+};
+
+struct xattr_list {
+	struct list_head list;
+	char *name;
+	bool enabled;
+};
+
+struct evm_digest {
+	struct ima_digest_data hdr;
+	char digest[64];
+};
+
+struct h_misc {
+	long unsigned int ino;
+	__u32 generation;
+	uid_t uid;
+	gid_t gid;
+	umode_t mode;
+};
+
+enum {
+	CRYPTO_MSG_ALG_REQUEST = 0,
+	CRYPTO_MSG_ALG_REGISTER = 1,
+	CRYPTO_MSG_ALG_LOADED = 2,
+};
+
+struct crypto_larval {
+	struct crypto_alg alg;
+	struct crypto_alg *adult;
+	struct completion completion;
+	u32 mask;
+	bool test_started;
+};
+
+struct crypto_cipher {
+	struct crypto_tfm base;
