@@ -87084,3 +87084,2024 @@ enum POS1064 {
 enum v4l2_ctrl_type {
 	V4L2_CTRL_TYPE_INTEGER = 1,
 	V4L2_CTRL_TYPE_BOOLEAN = 2,
+	V4L2_CTRL_TYPE_MENU = 3,
+	V4L2_CTRL_TYPE_BUTTON = 4,
+	V4L2_CTRL_TYPE_INTEGER64 = 5,
+	V4L2_CTRL_TYPE_CTRL_CLASS = 6,
+	V4L2_CTRL_TYPE_STRING = 7,
+	V4L2_CTRL_TYPE_BITMASK = 8,
+	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
+	V4L2_CTRL_COMPOUND_TYPES = 256,
+	V4L2_CTRL_TYPE_U8 = 256,
+	V4L2_CTRL_TYPE_U16 = 257,
+	V4L2_CTRL_TYPE_U32 = 258,
+	V4L2_CTRL_TYPE_AREA = 262,
+	V4L2_CTRL_TYPE_HDR10_CLL_INFO = 272,
+	V4L2_CTRL_TYPE_HDR10_MASTERING_DISPLAY = 273,
+	V4L2_CTRL_TYPE_H264_SPS = 512,
+	V4L2_CTRL_TYPE_H264_PPS = 513,
+	V4L2_CTRL_TYPE_H264_SCALING_MATRIX = 514,
+	V4L2_CTRL_TYPE_H264_SLICE_PARAMS = 515,
+	V4L2_CTRL_TYPE_H264_DECODE_PARAMS = 516,
+	V4L2_CTRL_TYPE_H264_PRED_WEIGHTS = 517,
+	V4L2_CTRL_TYPE_FWHT_PARAMS = 544,
+	V4L2_CTRL_TYPE_VP8_FRAME = 576,
+	V4L2_CTRL_TYPE_MPEG2_QUANTISATION = 592,
+	V4L2_CTRL_TYPE_MPEG2_SEQUENCE = 593,
+	V4L2_CTRL_TYPE_MPEG2_PICTURE = 594,
+};
+
+enum matroxfb_ctrl_id {
+	MATROXFB_CID_TESTOUT = 134217728,
+	MATROXFB_CID_DEFLICKER = 134217729,
+	MATROXFB_CID_LAST = 134217730,
+};
+
+struct mctl {
+	struct v4l2_queryctrl desc;
+	size_t control;
+};
+
+struct output_desc {
+	unsigned int h_vis;
+	unsigned int h_f_porch;
+	unsigned int h_sync;
+	unsigned int h_b_porch;
+	long long unsigned int chromasc;
+	unsigned int burst;
+	unsigned int v_total;
+};
+
+struct gxt4500_par {
+	void *regs;
+	int wc_cookie;
+	int pixfmt;
+	int refclk_ps;
+	int pll_m;
+	int pll_n;
+	int pll_pd1;
+	int pll_pd2;
+	u32 pseudo_palette[16];
+};
+
+enum gxt_cards {
+	GXT4500P = 0,
+	GXT6500P = 1,
+	GXT4000P = 2,
+	GXT6000P = 3,
+};
+
+struct cardinfo {
+	int refclk_ps;
+	const char *cardname;
+};
+
+enum {
+	cmap_unknown = 0,
+	cmap_simple = 1,
+	cmap_r128 = 2,
+	cmap_M3A = 3,
+	cmap_M3B = 4,
+	cmap_radeon = 5,
+	cmap_gxt2000 = 6,
+	cmap_avivo = 7,
+	cmap_qemu = 8,
+};
+
+struct offb_par {
+	volatile void *cmap_adr;
+	volatile void *cmap_data;
+	int cmap_type;
+	int blanked;
+};
+
+enum ipmi_addr_src {
+	SI_INVALID = 0,
+	SI_HOTMOD = 1,
+	SI_HARDCODED = 2,
+	SI_SPMI = 3,
+	SI_ACPI = 4,
+	SI_SMBIOS = 5,
+	SI_PCI = 6,
+	SI_DEVICETREE = 7,
+	SI_PLATFORM = 8,
+	SI_LAST = 9,
+};
+
+enum ipmi_plat_interface_type {
+	IPMI_PLAT_IF_SI = 0,
+	IPMI_PLAT_IF_SSIF = 1,
+};
+
+struct ipmi_plat_data {
+	enum ipmi_plat_interface_type iftype;
+	unsigned int type;
+	unsigned int space;
+	long unsigned int addr;
+	unsigned int regspacing;
+	unsigned int regsize;
+	unsigned int regshift;
+	unsigned int irq;
+	unsigned int slave_addr;
+	enum ipmi_addr_src addr_source;
+};
+
+enum si_type {
+	SI_TYPE_INVALID = 0,
+	SI_KCS = 1,
+	SI_SMIC = 2,
+	SI_BT = 3,
+	SI_TYPE_MAX = 4,
+};
+
+enum ipmi_addr_space {
+	IPMI_IO_ADDR_SPACE = 0,
+	IPMI_MEM_ADDR_SPACE = 1,
+};
+
+struct clk_bulk_data {
+	const char *id;
+	struct clk *clk;
+};
+
+struct clk_bulk_devres {
+	struct clk_bulk_data *clks;
+	int num_clks;
+};
+
+struct clk_hw;
+
+struct clk_lookup {
+	struct list_head node;
+	const char *dev_id;
+	const char *con_id;
+	struct clk *clk;
+	struct clk_hw *clk_hw;
+};
+
+struct clk_init_data;
+
+struct clk_hw {
+	struct clk_core *core;
+	struct clk *clk;
+	const struct clk_init_data *init;
+};
+
+struct clk_rate_request {
+	long unsigned int rate;
+	long unsigned int min_rate;
+	long unsigned int max_rate;
+	long unsigned int best_parent_rate;
+	struct clk_hw *best_parent_hw;
+};
+
+struct clk_duty {
+	unsigned int num;
+	unsigned int den;
+};
+
+struct clk_ops {
+	int (*prepare)(struct clk_hw *);
+	void (*unprepare)(struct clk_hw *);
+	int (*is_prepared)(struct clk_hw *);
+	void (*unprepare_unused)(struct clk_hw *);
+	int (*enable)(struct clk_hw *);
+	void (*disable)(struct clk_hw *);
+	int (*is_enabled)(struct clk_hw *);
+	void (*disable_unused)(struct clk_hw *);
+	int (*save_context)(struct clk_hw *);
+	void (*restore_context)(struct clk_hw *);
+	long unsigned int (*recalc_rate)(struct clk_hw *, long unsigned int);
+	long int (*round_rate)(struct clk_hw *, long unsigned int, long unsigned int *);
+	int (*determine_rate)(struct clk_hw *, struct clk_rate_request *);
+	int (*set_parent)(struct clk_hw *, u8);
+	u8 (*get_parent)(struct clk_hw *);
+	int (*set_rate)(struct clk_hw *, long unsigned int, long unsigned int);
+	int (*set_rate_and_parent)(struct clk_hw *, long unsigned int, long unsigned int, u8);
+	long unsigned int (*recalc_accuracy)(struct clk_hw *, long unsigned int);
+	int (*get_phase)(struct clk_hw *);
+	int (*set_phase)(struct clk_hw *, int);
+	int (*get_duty_cycle)(struct clk_hw *, struct clk_duty *);
+	int (*set_duty_cycle)(struct clk_hw *, struct clk_duty *);
+	int (*init)(struct clk_hw *);
+	void (*terminate)(struct clk_hw *);
+	void (*debug_init)(struct clk_hw *, struct dentry *);
+};
+
+struct clk_parent_data {
+	const struct clk_hw *hw;
+	const char *fw_name;
+	const char *name;
+	int index;
+};
+
+struct clk_init_data {
+	const char *name;
+	const struct clk_ops *ops;
+	const char * const *parent_names;
+	const struct clk_parent_data *parent_data;
+	const struct clk_hw **parent_hws;
+	u8 num_parents;
+	long unsigned int flags;
+};
+
+struct clk_lookup_alloc {
+	struct clk_lookup cl;
+	char dev_id[20];
+	char con_id[16];
+};
+
+struct clk_notifier {
+	struct clk *clk;
+	struct srcu_notifier_head notifier_head;
+	struct list_head node;
+};
+
+struct clk_notifier_data {
+	struct clk *clk;
+	long unsigned int old_rate;
+	long unsigned int new_rate;
+};
+
+struct clk_parent_map;
+
+struct clk_core {
+	const char *name;
+	const struct clk_ops *ops;
+	struct clk_hw *hw;
+	struct module *owner;
+	struct device *dev;
+	struct device_node *of_node;
+	struct clk_core *parent;
+	struct clk_parent_map *parents;
+	u8 num_parents;
+	u8 new_parent_index;
+	long unsigned int rate;
+	long unsigned int req_rate;
+	long unsigned int new_rate;
+	struct clk_core *new_parent;
+	struct clk_core *new_child;
+	long unsigned int flags;
+	bool orphan;
+	bool rpm_enabled;
+	unsigned int enable_count;
+	unsigned int prepare_count;
+	unsigned int protect_count;
+	long unsigned int min_rate;
+	long unsigned int max_rate;
+	long unsigned int accuracy;
+	int phase;
+	struct clk_duty duty;
+	struct hlist_head children;
+	struct hlist_node child_node;
+	struct hlist_head clks;
+	unsigned int notifier_count;
+	struct dentry *dentry;
+	struct hlist_node debug_node;
+	struct kref ref;
+};
+
+struct clk_onecell_data {
+	struct clk **clks;
+	unsigned int clk_num;
+};
+
+struct clk_hw_onecell_data {
+	unsigned int num;
+	struct clk_hw *hws[0];
+};
+
+struct clk_parent_map {
+	const struct clk_hw *hw;
+	struct clk_core *core;
+	const char *fw_name;
+	const char *name;
+	int index;
+};
+
+struct trace_event_raw_clk {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_rate {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	long unsigned int rate;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_rate_range {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	long unsigned int min;
+	long unsigned int max;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_parent {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u32 __data_loc_pname;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_phase {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	int phase;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_duty_cycle {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	unsigned int num;
+	unsigned int den;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_clk {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_rate {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_rate_range {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_parent {
+	u32 name;
+	u32 pname;
+};
+
+struct trace_event_data_offsets_clk_phase {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_duty_cycle {
+	u32 name;
+};
+
+typedef void (*btf_trace_clk_enable)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_enable_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_disable)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_disable_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_prepare)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_prepare_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_unprepare)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_unprepare_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_set_rate)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_rate_complete)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_min_rate)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_max_rate)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_rate_range)(void *, struct clk_core *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_clk_set_parent)(void *, struct clk_core *, struct clk_core *);
+
+typedef void (*btf_trace_clk_set_parent_complete)(void *, struct clk_core *, struct clk_core *);
+
+typedef void (*btf_trace_clk_set_phase)(void *, struct clk_core *, int);
+
+typedef void (*btf_trace_clk_set_phase_complete)(void *, struct clk_core *, int);
+
+typedef void (*btf_trace_clk_set_duty_cycle)(void *, struct clk_core *, struct clk_duty *);
+
+typedef void (*btf_trace_clk_set_duty_cycle_complete)(void *, struct clk_core *, struct clk_duty *);
+
+struct clk_notifier_devres {
+	struct clk *clk;
+	struct notifier_block *nb;
+};
+
+struct of_clk_provider {
+	struct list_head link;
+	struct device_node *node;
+	struct clk * (*get)(struct of_phandle_args *, void *);
+	struct clk_hw * (*get_hw)(struct of_phandle_args *, void *);
+	void *data;
+};
+
+struct clock_provider {
+	void (*clk_init_cb)(struct device_node *);
+	struct device_node *np;
+	struct list_head node;
+};
+
+struct clk_div_table {
+	unsigned int val;
+	unsigned int div;
+};
+
+struct clk_divider {
+	struct clk_hw hw;
+	void *reg;
+	u8 shift;
+	u8 width;
+	u8 flags;
+	const struct clk_div_table *table;
+	spinlock_t *lock;
+};
+
+typedef void (*of_init_fn_1)(struct device_node *);
+
+struct clk_fixed_factor {
+	struct clk_hw hw;
+	unsigned int mult;
+	unsigned int div;
+};
+
+struct clk_fixed_rate {
+	struct clk_hw hw;
+	long unsigned int fixed_rate;
+	long unsigned int fixed_accuracy;
+	long unsigned int flags;
+};
+
+struct clk_gate {
+	struct clk_hw hw;
+	void *reg;
+	u8 bit_idx;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct clk_multiplier {
+	struct clk_hw hw;
+	void *reg;
+	u8 shift;
+	u8 width;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct clk_mux {
+	struct clk_hw hw;
+	void *reg;
+	u32 *table;
+	u32 mask;
+	u8 shift;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct clk_composite {
+	struct clk_hw hw;
+	struct clk_ops ops;
+	struct clk_hw *mux_hw;
+	struct clk_hw *rate_hw;
+	struct clk_hw *gate_hw;
+	const struct clk_ops *mux_ops;
+	const struct clk_ops *rate_ops;
+	const struct clk_ops *gate_ops;
+};
+
+struct clk_fractional_divider {
+	struct clk_hw hw;
+	void *reg;
+	u8 mshift;
+	u8 mwidth;
+	u32 mmask;
+	u8 nshift;
+	u8 nwidth;
+	u32 nmask;
+	u8 flags;
+	void (*approximation)(struct clk_hw *, long unsigned int, long unsigned int *, long unsigned int *, long unsigned int *);
+	spinlock_t *lock;
+};
+
+struct clk_gpio {
+	struct clk_hw hw;
+	struct gpio_desc *gpiod;
+};
+
+struct clk_sp810;
+
+struct clk_sp810_timerclken {
+	struct clk_hw hw;
+	struct clk *clk;
+	struct clk_sp810 *sp810;
+	int channel;
+};
+
+struct clk_sp810 {
+	struct device_node *node;
+	void *base;
+	spinlock_t lock;
+	struct clk_sp810_timerclken timerclken[4];
+};
+
+typedef s32 dma_cookie_t;
+
+enum dma_status {
+	DMA_COMPLETE = 0,
+	DMA_IN_PROGRESS = 1,
+	DMA_PAUSED = 2,
+	DMA_ERROR = 3,
+	DMA_OUT_OF_ORDER = 4,
+};
+
+enum dma_transaction_type {
+	DMA_MEMCPY = 0,
+	DMA_XOR = 1,
+	DMA_PQ = 2,
+	DMA_XOR_VAL = 3,
+	DMA_PQ_VAL = 4,
+	DMA_MEMSET = 5,
+	DMA_MEMSET_SG = 6,
+	DMA_INTERRUPT = 7,
+	DMA_PRIVATE = 8,
+	DMA_ASYNC_TX = 9,
+	DMA_SLAVE = 10,
+	DMA_CYCLIC = 11,
+	DMA_INTERLEAVE = 12,
+	DMA_COMPLETION_NO_ORDER = 13,
+	DMA_REPEAT = 14,
+	DMA_LOAD_EOT = 15,
+	DMA_TX_TYPE_END = 16,
+};
+
+enum dma_transfer_direction {
+	DMA_MEM_TO_MEM = 0,
+	DMA_MEM_TO_DEV = 1,
+	DMA_DEV_TO_MEM = 2,
+	DMA_DEV_TO_DEV = 3,
+	DMA_TRANS_NONE = 4,
+};
+
+struct data_chunk {
+	size_t size;
+	size_t icg;
+	size_t dst_icg;
+	size_t src_icg;
+};
+
+struct dma_interleaved_template {
+	dma_addr_t src_start;
+	dma_addr_t dst_start;
+	enum dma_transfer_direction dir;
+	bool src_inc;
+	bool dst_inc;
+	bool src_sgl;
+	bool dst_sgl;
+	size_t numf;
+	size_t frame_size;
+	struct data_chunk sgl[0];
+};
+
+enum dma_ctrl_flags {
+	DMA_PREP_INTERRUPT = 1,
+	DMA_CTRL_ACK = 2,
+	DMA_PREP_PQ_DISABLE_P = 4,
+	DMA_PREP_PQ_DISABLE_Q = 8,
+	DMA_PREP_CONTINUE = 16,
+	DMA_PREP_FENCE = 32,
+	DMA_CTRL_REUSE = 64,
+	DMA_PREP_CMD = 128,
+	DMA_PREP_REPEAT = 256,
+	DMA_PREP_LOAD_EOT = 512,
+};
+
+enum sum_check_bits {
+	SUM_CHECK_P = 0,
+	SUM_CHECK_Q = 1,
+};
+
+enum sum_check_flags {
+	SUM_CHECK_P_RESULT = 1,
+	SUM_CHECK_Q_RESULT = 2,
+};
+
+typedef struct {
+	long unsigned int bits[1];
+} dma_cap_mask_t;
+
+enum dma_desc_metadata_mode {
+	DESC_METADATA_NONE = 0,
+	DESC_METADATA_CLIENT = 1,
+	DESC_METADATA_ENGINE = 2,
+};
+
+struct dma_chan_percpu {
+	long unsigned int memcpy_count;
+	long unsigned int bytes_transferred;
+};
+
+struct dma_router {
+	struct device *dev;
+	void (*route_free)(struct device *, void *);
+};
+
+struct dma_device;
+
+struct dma_chan_dev;
+
+struct dma_chan___2 {
+	struct dma_device *device;
+	struct device *slave;
+	dma_cookie_t cookie;
+	dma_cookie_t completed_cookie;
+	int chan_id;
+	struct dma_chan_dev *dev;
+	const char *name;
+	char *dbg_client_name;
+	struct list_head device_node;
+	struct dma_chan_percpu *local;
+	int client_count;
+	int table_count;
+	struct dma_router *router;
+	void *route_data;
+	void *private;
+};
+
+typedef bool (*dma_filter_fn)(struct dma_chan___2 *, void *);
+
+struct dma_slave_map;
+
+struct dma_filter {
+	dma_filter_fn fn;
+	int mapcnt;
+	const struct dma_slave_map *map;
+};
+
+enum dmaengine_alignment {
+	DMAENGINE_ALIGN_1_BYTE = 0,
+	DMAENGINE_ALIGN_2_BYTES = 1,
+	DMAENGINE_ALIGN_4_BYTES = 2,
+	DMAENGINE_ALIGN_8_BYTES = 3,
+	DMAENGINE_ALIGN_16_BYTES = 4,
+	DMAENGINE_ALIGN_32_BYTES = 5,
+	DMAENGINE_ALIGN_64_BYTES = 6,
+	DMAENGINE_ALIGN_128_BYTES = 7,
+	DMAENGINE_ALIGN_256_BYTES = 8,
+};
+
+enum dma_residue_granularity {
+	DMA_RESIDUE_GRANULARITY_DESCRIPTOR = 0,
+	DMA_RESIDUE_GRANULARITY_SEGMENT = 1,
+	DMA_RESIDUE_GRANULARITY_BURST = 2,
+};
+
+struct dma_async_tx_descriptor;
+
+struct dma_slave_caps;
+
+struct dma_slave_config;
+
+struct dma_tx_state;
+
+struct dma_device {
+	struct kref ref;
+	unsigned int chancnt;
+	unsigned int privatecnt;
+	struct list_head channels;
+	struct list_head global_node;
+	struct dma_filter filter;
+	dma_cap_mask_t cap_mask;
+	enum dma_desc_metadata_mode desc_metadata_modes;
+	short unsigned int max_xor;
+	short unsigned int max_pq;
+	enum dmaengine_alignment copy_align;
+	enum dmaengine_alignment xor_align;
+	enum dmaengine_alignment pq_align;
+	enum dmaengine_alignment fill_align;
+	int dev_id;
+	struct device *dev;
+	struct module *owner;
+	struct ida chan_ida;
+	u32 src_addr_widths;
+	u32 dst_addr_widths;
+	u32 directions;
+	u32 min_burst;
+	u32 max_burst;
+	u32 max_sg_burst;
+	bool descriptor_reuse;
+	enum dma_residue_granularity residue_granularity;
+	int (*device_alloc_chan_resources)(struct dma_chan___2 *);
+	int (*device_router_config)(struct dma_chan___2 *);
+	void (*device_free_chan_resources)(struct dma_chan___2 *);
+	struct dma_async_tx_descriptor * (*device_prep_dma_memcpy)(struct dma_chan___2 *, dma_addr_t, dma_addr_t, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_xor)(struct dma_chan___2 *, dma_addr_t, dma_addr_t *, unsigned int, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_xor_val)(struct dma_chan___2 *, dma_addr_t *, unsigned int, size_t, enum sum_check_flags *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_pq)(struct dma_chan___2 *, dma_addr_t *, dma_addr_t *, unsigned int, const unsigned char *, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_pq_val)(struct dma_chan___2 *, dma_addr_t *, dma_addr_t *, unsigned int, const unsigned char *, size_t, enum sum_check_flags *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_memset)(struct dma_chan___2 *, dma_addr_t, int, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_memset_sg)(struct dma_chan___2 *, struct scatterlist *, unsigned int, int, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_interrupt)(struct dma_chan___2 *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_slave_sg)(struct dma_chan___2 *, struct scatterlist *, unsigned int, enum dma_transfer_direction, long unsigned int, void *);
+	struct dma_async_tx_descriptor * (*device_prep_dma_cyclic)(struct dma_chan___2 *, dma_addr_t, size_t, size_t, enum dma_transfer_direction, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_interleaved_dma)(struct dma_chan___2 *, struct dma_interleaved_template *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_imm_data)(struct dma_chan___2 *, dma_addr_t, u64, long unsigned int);
+	void (*device_caps)(struct dma_chan___2 *, struct dma_slave_caps *);
+	int (*device_config)(struct dma_chan___2 *, struct dma_slave_config *);
+	int (*device_pause)(struct dma_chan___2 *);
+	int (*device_resume)(struct dma_chan___2 *);
+	int (*device_terminate_all)(struct dma_chan___2 *);
+	void (*device_synchronize)(struct dma_chan___2 *);
+	enum dma_status (*device_tx_status)(struct dma_chan___2 *, dma_cookie_t, struct dma_tx_state *);
+	void (*device_issue_pending)(struct dma_chan___2 *);
+	void (*device_release)(struct dma_device *);
+	void (*dbg_summary_show)(struct seq_file *, struct dma_device *);
+	struct dentry *dbg_dev_root;
+};
+
+struct dma_chan_dev {
+	struct dma_chan___2 *chan;
+	struct device device;
+	int dev_id;
+	bool chan_dma_dev;
+};
+
+enum dma_slave_buswidth {
+	DMA_SLAVE_BUSWIDTH_UNDEFINED = 0,
+	DMA_SLAVE_BUSWIDTH_1_BYTE = 1,
+	DMA_SLAVE_BUSWIDTH_2_BYTES = 2,
+	DMA_SLAVE_BUSWIDTH_3_BYTES = 3,
+	DMA_SLAVE_BUSWIDTH_4_BYTES = 4,
+	DMA_SLAVE_BUSWIDTH_8_BYTES = 8,
+	DMA_SLAVE_BUSWIDTH_16_BYTES = 16,
+	DMA_SLAVE_BUSWIDTH_32_BYTES = 32,
+	DMA_SLAVE_BUSWIDTH_64_BYTES = 64,
+	DMA_SLAVE_BUSWIDTH_128_BYTES = 128,
+};
+
+struct dma_slave_config {
+	enum dma_transfer_direction direction;
+	phys_addr_t src_addr;
+	phys_addr_t dst_addr;
+	enum dma_slave_buswidth src_addr_width;
+	enum dma_slave_buswidth dst_addr_width;
+	u32 src_maxburst;
+	u32 dst_maxburst;
+	u32 src_port_window_size;
+	u32 dst_port_window_size;
+	bool device_fc;
+	void *peripheral_config;
+	size_t peripheral_size;
+};
+
+struct dma_slave_caps {
+	u32 src_addr_widths;
+	u32 dst_addr_widths;
+	u32 directions;
+	u32 min_burst;
+	u32 max_burst;
+	u32 max_sg_burst;
+	bool cmd_pause;
+	bool cmd_resume;
+	bool cmd_terminate;
+	enum dma_residue_granularity residue_granularity;
+	bool descriptor_reuse;
+};
+
+typedef void (*dma_async_tx_callback)(void *);
+
+enum dmaengine_tx_result {
+	DMA_TRANS_NOERROR = 0,
+	DMA_TRANS_READ_FAILED = 1,
+	DMA_TRANS_WRITE_FAILED = 2,
+	DMA_TRANS_ABORTED = 3,
+};
+
+struct dmaengine_result {
+	enum dmaengine_tx_result result;
+	u32 residue;
+};
+
+typedef void (*dma_async_tx_callback_result)(void *, const struct dmaengine_result *);
+
+struct dmaengine_unmap_data {
+	u16 map_cnt;
+	u8 to_cnt;
+	u8 from_cnt;
+	u8 bidi_cnt;
+	struct device *dev;
+	struct kref kref;
+	size_t len;
+	dma_addr_t addr[0];
+};
+
+struct dma_descriptor_metadata_ops {
+	int (*attach)(struct dma_async_tx_descriptor *, void *, size_t);
+	void * (*get_ptr)(struct dma_async_tx_descriptor *, size_t *, size_t *);
+	int (*set_len)(struct dma_async_tx_descriptor *, size_t);
+};
+
+struct dma_async_tx_descriptor {
+	dma_cookie_t cookie;
+	enum dma_ctrl_flags flags;
+	dma_addr_t phys;
+	struct dma_chan___2 *chan;
+	dma_cookie_t (*tx_submit)(struct dma_async_tx_descriptor *);
+	int (*desc_free)(struct dma_async_tx_descriptor *);
+	dma_async_tx_callback callback;
+	dma_async_tx_callback_result callback_result;
+	void *callback_param;
+	struct dmaengine_unmap_data *unmap;
+	enum dma_desc_metadata_mode desc_metadata_mode;
+	struct dma_descriptor_metadata_ops *metadata_ops;
+};
+
+struct dma_tx_state {
+	dma_cookie_t last;
+	dma_cookie_t used;
+	u32 residue;
+	u32 in_flight_bytes;
+};
+
+struct dma_slave_map {
+	const char *devname;
+	const char *slave;
+	void *param;
+};
+
+struct dma_chan_tbl_ent {
+	struct dma_chan___2 *chan;
+};
+
+struct dmaengine_unmap_pool {
+	struct kmem_cache *cache;
+	const char *name;
+	mempool_t *pool;
+	size_t size;
+};
+
+struct of_dma {
+	struct list_head of_dma_controllers;
+	struct device_node *of_node;
+	struct dma_chan___2 * (*of_dma_xlate)(struct of_phandle_args *, struct of_dma *);
+	void * (*of_dma_route_allocate)(struct of_phandle_args *, struct of_dma *);
+	struct dma_router *dma_router;
+	void *of_dma_data;
+};
+
+struct of_dma_filter_info {
+	dma_cap_mask_t dma_cap;
+	dma_filter_fn filter_fn;
+};
+
+struct virtio_driver {
+	struct device_driver driver;
+	const struct virtio_device_id *id_table;
+	const unsigned int *feature_table;
+	unsigned int feature_table_size;
+	const unsigned int *feature_table_legacy;
+	unsigned int feature_table_size_legacy;
+	int (*validate)(struct virtio_device *);
+	int (*probe)(struct virtio_device *);
+	void (*scan)(struct virtio_device *);
+	void (*remove)(struct virtio_device *);
+	void (*config_changed)(struct virtio_device *);
+	int (*freeze)(struct virtio_device *);
+	int (*restore)(struct virtio_device *);
+};
+
+typedef __u16 __virtio16;
+
+typedef __u32 __virtio32;
+
+typedef __u64 __virtio64;
+
+struct vring_desc {
+	__virtio64 addr;
+	__virtio32 len;
+	__virtio16 flags;
+	__virtio16 next;
+};
+
+struct vring_avail {
+	__virtio16 flags;
+	__virtio16 idx;
+	__virtio16 ring[0];
+};
+
+struct vring_used_elem {
+	__virtio32 id;
+	__virtio32 len;
+};
+
+typedef struct vring_used_elem vring_used_elem_t;
+
+struct vring_used {
+	__virtio16 flags;
+	__virtio16 idx;
+	vring_used_elem_t ring[0];
+};
+
+typedef struct vring_desc vring_desc_t;
+
+typedef struct vring_avail vring_avail_t;
+
+typedef struct vring_used vring_used_t;
+
+struct vring {
+	unsigned int num;
+	vring_desc_t *desc;
+	vring_avail_t *avail;
+	vring_used_t *used;
+};
+
+struct vring_packed_desc_event {
+	__le16 off_wrap;
+	__le16 flags;
+};
+
+struct vring_packed_desc {
+	__le64 addr;
+	__le32 len;
+	__le16 id;
+	__le16 flags;
+};
+
+struct vring_desc_state_split {
+	void *data;
+	struct vring_desc *indir_desc;
+};
+
+struct vring_desc_state_packed {
+	void *data;
+	struct vring_packed_desc *indir_desc;
+	u16 num;
+	u16 last;
+};
+
+struct vring_desc_extra {
+	dma_addr_t addr;
+	u32 len;
+	u16 flags;
+	u16 next;
+};
+
+struct vring_virtqueue {
+	struct virtqueue vq;
+	bool packed_ring;
+	bool use_dma_api;
+	bool weak_barriers;
+	bool broken;
+	bool indirect;
+	bool event;
+	unsigned int free_head;
+	unsigned int num_added;
+	u16 last_used_idx;
+	bool event_triggered;
+	union {
+		struct {
+			struct vring vring;
+			u16 avail_flags_shadow;
+			u16 avail_idx_shadow;
+			struct vring_desc_state_split *desc_state;
+			struct vring_desc_extra *desc_extra;
+			dma_addr_t queue_dma_addr;
+			size_t queue_size_in_bytes;
+		} split;
+		struct {
+			struct {
+				unsigned int num;
+				struct vring_packed_desc *desc;
+				struct vring_packed_desc_event *driver;
+				struct vring_packed_desc_event *device;
+			} vring;
+			bool avail_wrap_counter;
+			bool used_wrap_counter;
+			u16 avail_used_flags;
+			u16 next_avail_idx;
+			u16 event_flags_shadow;
+			struct vring_desc_state_packed *desc_state;
+			struct vring_desc_extra *desc_extra;
+			dma_addr_t ring_dma_addr;
+			dma_addr_t driver_event_dma_addr;
+			dma_addr_t device_event_dma_addr;
+			size_t ring_size_in_bytes;
+			size_t event_size_in_bytes;
+		} packed;
+	};
+	bool (*notify)(struct virtqueue *);
+	bool we_own_ring;
+};
+
+struct virtio_pci_common_cfg {
+	__le32 device_feature_select;
+	__le32 device_feature;
+	__le32 guest_feature_select;
+	__le32 guest_feature;
+	__le16 msix_config;
+	__le16 num_queues;
+	__u8 device_status;
+	__u8 config_generation;
+	__le16 queue_select;
+	__le16 queue_size;
+	__le16 queue_msix_vector;
+	__le16 queue_enable;
+	__le16 queue_notify_off;
+	__le32 queue_desc_lo;
+	__le32 queue_desc_hi;
+	__le32 queue_avail_lo;
+	__le32 queue_avail_hi;
+	__le32 queue_used_lo;
+	__le32 queue_used_hi;
+};
+
+struct virtio_pci_modern_device {
+	struct pci_dev *pci_dev;
+	struct virtio_pci_common_cfg *common;
+	void *device;
+	void *notify_base;
+	resource_size_t notify_pa;
+	u8 *isr;
+	size_t notify_len;
+	size_t device_len;
+	int notify_map_cap;
+	u32 notify_offset_multiplier;
+	int modern_bars;
+	struct virtio_device_id id;
+};
+
+struct virtio_pci_vq_info {
+	struct virtqueue *vq;
+	struct list_head node;
+	unsigned int msix_vector;
+};
+
+struct virtio_pci_device {
+	struct virtio_device vdev;
+	struct pci_dev *pci_dev;
+	struct virtio_pci_modern_device mdev;
+	u8 *isr;
+	void *ioaddr;
+	spinlock_t lock;
+	struct list_head virtqueues;
+	struct virtio_pci_vq_info **vqs;
+	int msix_enabled;
+	int intx_enabled;
+	cpumask_var_t *msix_affinity_masks;
+	char (*msix_names)[256];
+	unsigned int msix_vectors;
+	unsigned int msix_used_vectors;
+	bool per_vq_vectors;
+	struct virtqueue * (*setup_vq)(struct virtio_pci_device *, struct virtio_pci_vq_info *, unsigned int, void (*)(struct virtqueue *), const char *, bool, u16);
+	void (*del_vq)(struct virtio_pci_vq_info *);
+	u16 (*config_vector)(struct virtio_pci_device *, u16);
+};
+
+enum {
+	VP_MSIX_CONFIG_VECTOR = 0,
+	VP_MSIX_VQ_VECTOR = 1,
+};
+
+struct n_tty_data {
+	size_t read_head;
+	size_t commit_head;
+	size_t canon_head;
+	size_t echo_head;
+	size_t echo_commit;
+	size_t echo_mark;
+	long unsigned int char_map[4];
+	long unsigned int overrun_time;
+	int num_overrun;
+	bool no_room;
+	unsigned char lnext: 1;
+	unsigned char erasing: 1;
+	unsigned char raw: 1;
+	unsigned char real_raw: 1;
+	unsigned char icanon: 1;
+	unsigned char push: 1;
+	char read_buf[4096];
+	long unsigned int read_flags[64];
+	unsigned char echo_buf[4096];
+	size_t read_tail;
+	size_t line_start;
+	unsigned int column;
+	unsigned int canon_column;
+	size_t echo_tail;
+	struct mutex atomic_read_lock;
+	struct mutex output_lock;
+};
+
+enum {
+	ERASE = 0,
+	WERASE = 1,
+	KILL = 2,
+};
+
+struct termios {
+	tcflag_t c_iflag;
+	tcflag_t c_oflag;
+	tcflag_t c_cflag;
+	tcflag_t c_lflag;
+	cc_t c_cc[19];
+	cc_t c_line;
+	speed_t c_ispeed;
+	speed_t c_ospeed;
+};
+
+struct sgttyb {
+	char sg_ispeed;
+	char sg_ospeed;
+	char sg_erase;
+	char sg_kill;
+	short int sg_flags;
+};
+
+struct tchars {
+	char t_intrc;
+	char t_quitc;
+	char t_startc;
+	char t_stopc;
+	char t_eofc;
+	char t_brkc;
+};
+
+struct ltchars {
+	char t_suspc;
+	char t_dsuspc;
+	char t_rprntc;
+	char t_flushc;
+	char t_werasc;
+	char t_lnextc;
+};
+
+struct termio {
+	short unsigned int c_iflag;
+	short unsigned int c_oflag;
+	short unsigned int c_cflag;
+	short unsigned int c_lflag;
+	unsigned char c_line;
+	unsigned char c_cc[10];
+};
+
+struct ldsem_waiter {
+	struct list_head list;
+	struct task_struct *task;
+};
+
+struct pts_fs_info___2;
+
+struct tty_audit_buf {
+	struct mutex mutex;
+	dev_t dev;
+	unsigned int icanon: 1;
+	size_t valid;
+	unsigned char *data;
+};
+
+struct input_id {
+	__u16 bustype;
+	__u16 vendor;
+	__u16 product;
+	__u16 version;
+};
+
+struct input_absinfo {
+	__s32 value;
+	__s32 minimum;
+	__s32 maximum;
+	__s32 fuzz;
+	__s32 flat;
+	__s32 resolution;
+};
+
+struct input_keymap_entry {
+	__u8 flags;
+	__u8 len;
+	__u16 index;
+	__u32 keycode;
+	__u8 scancode[32];
+};
+
+struct ff_replay {
+	__u16 length;
+	__u16 delay;
+};
+
+struct ff_trigger {
+	__u16 button;
+	__u16 interval;
+};
+
+struct ff_envelope {
+	__u16 attack_length;
+	__u16 attack_level;
+	__u16 fade_length;
+	__u16 fade_level;
+};
+
+struct ff_constant_effect {
+	__s16 level;
+	struct ff_envelope envelope;
+};
+
+struct ff_ramp_effect {
+	__s16 start_level;
+	__s16 end_level;
+	struct ff_envelope envelope;
+};
+
+struct ff_condition_effect {
+	__u16 right_saturation;
+	__u16 left_saturation;
+	__s16 right_coeff;
+	__s16 left_coeff;
+	__u16 deadband;
+	__s16 center;
+};
+
+struct ff_periodic_effect {
+	__u16 waveform;
+	__u16 period;
+	__s16 magnitude;
+	__s16 offset;
+	__u16 phase;
+	struct ff_envelope envelope;
+	__u32 custom_len;
+	__s16 *custom_data;
+};
+
+struct ff_rumble_effect {
+	__u16 strong_magnitude;
+	__u16 weak_magnitude;
+};
+
+struct ff_effect {
+	__u16 type;
+	__s16 id;
+	__u16 direction;
+	struct ff_trigger trigger;
+	struct ff_replay replay;
+	union {
+		struct ff_constant_effect constant;
+		struct ff_ramp_effect ramp;
+		struct ff_periodic_effect periodic;
+		struct ff_condition_effect condition[2];
+		struct ff_rumble_effect rumble;
+	} u;
+};
+
+struct input_device_id {
+	kernel_ulong_t flags;
+	__u16 bustype;
+	__u16 vendor;
+	__u16 product;
+	__u16 version;
+	kernel_ulong_t evbit[1];
+	kernel_ulong_t keybit[12];
+	kernel_ulong_t relbit[1];
+	kernel_ulong_t absbit[1];
+	kernel_ulong_t mscbit[1];
+	kernel_ulong_t ledbit[1];
+	kernel_ulong_t sndbit[1];
+	kernel_ulong_t ffbit[2];
+	kernel_ulong_t swbit[1];
+	kernel_ulong_t propbit[1];
+	kernel_ulong_t driver_info;
+};
+
+struct input_value {
+	__u16 type;
+	__u16 code;
+	__s32 value;
+};
+
+enum input_clock_type {
+	INPUT_CLK_REAL = 0,
+	INPUT_CLK_MONO = 1,
+	INPUT_CLK_BOOT = 2,
+	INPUT_CLK_MAX = 3,
+};
+
+struct ff_device;
+
+struct input_dev_poller;
+
+struct input_mt;
+
+struct input_handle;
+
+struct input_dev {
+	const char *name;
+	const char *phys;
+	const char *uniq;
+	struct input_id id;
+	long unsigned int propbit[1];
+	long unsigned int evbit[1];
+	long unsigned int keybit[12];
+	long unsigned int relbit[1];
+	long unsigned int absbit[1];
+	long unsigned int mscbit[1];
+	long unsigned int ledbit[1];
+	long unsigned int sndbit[1];
+	long unsigned int ffbit[2];
+	long unsigned int swbit[1];
+	unsigned int hint_events_per_packet;
+	unsigned int keycodemax;
+	unsigned int keycodesize;
+	void *keycode;
+	int (*setkeycode)(struct input_dev *, const struct input_keymap_entry *, unsigned int *);
+	int (*getkeycode)(struct input_dev *, struct input_keymap_entry *);
+	struct ff_device *ff;
+	struct input_dev_poller *poller;
+	unsigned int repeat_key;
+	struct timer_list timer;
+	int rep[2];
+	struct input_mt *mt;
+	struct input_absinfo *absinfo;
+	long unsigned int key[12];
+	long unsigned int led[1];
+	long unsigned int snd[1];
+	long unsigned int sw[1];
+	int (*open)(struct input_dev *);
+	void (*close)(struct input_dev *);
+	int (*flush)(struct input_dev *, struct file *);
+	int (*event)(struct input_dev *, unsigned int, unsigned int, int);
+	struct input_handle *grab;
+	spinlock_t event_lock;
+	struct mutex mutex;
+	unsigned int users;
+	bool going_away;
+	struct device dev;
+	struct list_head h_list;
+	struct list_head node;
+	unsigned int num_vals;
+	unsigned int max_vals;
+	struct input_value *vals;
+	bool devres_managed;
+	ktime_t timestamp[3];
+	bool inhibited;
+};
+
+struct ff_device {
+	int (*upload)(struct input_dev *, struct ff_effect *, struct ff_effect *);
+	int (*erase)(struct input_dev *, int);
+	int (*playback)(struct input_dev *, int, int);
+	void (*set_gain)(struct input_dev *, u16);
+	void (*set_autocenter)(struct input_dev *, u16);
+	void (*destroy)(struct ff_device *);
+	void *private;
+	long unsigned int ffbit[2];
+	struct mutex mutex;
+	int max_effects;
+	struct ff_effect *effects;
+	struct file *effect_owners[0];
+};
+
+struct input_handler;
+
+struct input_handle {
+	void *private;
+	int open;
+	const char *name;
+	struct input_dev *dev;
+	struct input_handler *handler;
+	struct list_head d_node;
+	struct list_head h_node;
+};
+
+struct input_handler {
+	void *private;
+	void (*event)(struct input_handle *, unsigned int, unsigned int, int);
+	void (*events)(struct input_handle *, const struct input_value *, unsigned int);
+	bool (*filter)(struct input_handle *, unsigned int, unsigned int, int);
+	bool (*match)(struct input_handler *, struct input_dev *);
+	int (*connect)(struct input_handler *, struct input_dev *, const struct input_device_id *);
+	void (*disconnect)(struct input_handle *);
+	void (*start)(struct input_handle *);
+	bool legacy_minors;
+	int minor;
+	const char *name;
+	const struct input_device_id *id_table;
+	struct list_head h_list;
+	struct list_head node;
+};
+
+struct sysrq_state {
+	struct input_handle handle;
+	struct work_struct reinject_work;
+	long unsigned int key_down[12];
+	unsigned int alt;
+	unsigned int alt_use;
+	unsigned int shift;
+	unsigned int shift_use;
+	bool active;
+	bool need_reinject;
+	bool reinjecting;
+	bool reset_canceled;
+	bool reset_requested;
+	long unsigned int reset_keybit[12];
+	int reset_seq_len;
+	int reset_seq_cnt;
+	int reset_seq_version;
+	struct timer_list keyreset_timer;
+};
+
+struct unipair {
+	short unsigned int unicode;
+	short unsigned int fontpos;
+};
+
+struct unimapdesc {
+	short unsigned int entry_ct;
+	struct unipair *entries;
+};
+
+struct kbentry {
+	unsigned char kb_table;
+	unsigned char kb_index;
+	short unsigned int kb_value;
+};
+
+struct kbsentry {
+	unsigned char kb_func;
+	unsigned char kb_string[512];
+};
+
+struct kbkeycode {
+	unsigned int scancode;
+	unsigned int keycode;
+};
+
+struct kbd_repeat {
+	int delay;
+	int period;
+};
+
+struct console_font_op {
+	unsigned int op;
+	unsigned int flags;
+	unsigned int width;
+	unsigned int height;
+	unsigned int charcount;
+	unsigned char *data;
+};
+
+struct vt_stat {
+	short unsigned int v_active;
+	short unsigned int v_signal;
+	short unsigned int v_state;
+};
+
+struct vt_sizes {
+	short unsigned int v_rows;
+	short unsigned int v_cols;
+	short unsigned int v_scrollsize;
+};
+
+struct vt_consize {
+	short unsigned int v_rows;
+	short unsigned int v_cols;
+	short unsigned int v_vlin;
+	short unsigned int v_clin;
+	short unsigned int v_vcol;
+	short unsigned int v_ccol;
+};
+
+struct vt_event {
+	unsigned int event;
+	unsigned int oldev;
+	unsigned int newev;
+	unsigned int pad[4];
+};
+
+struct vt_setactivate {
+	unsigned int console;
+	struct vt_mode mode;
+};
+
+struct vt_spawn_console {
+	spinlock_t lock;
+	struct pid *pid;
+	int sig;
+};
+
+struct vt_event_wait {
+	struct list_head list;
+	struct vt_event event;
+	int done;
+};
+
+struct vt_notifier_param {
+	struct vc_data *vc;
+	unsigned int c;
+};
+
+struct vcs_poll_data {
+	struct notifier_block notifier;
+	unsigned int cons_num;
+	int event;
+	wait_queue_head_t waitq;
+	struct fasync_struct *fasync;
+};
+
+struct tiocl_selection {
+	short unsigned int xs;
+	short unsigned int ys;
+	short unsigned int xe;
+	short unsigned int ye;
+	short unsigned int sel_mode;
+};
+
+struct vc_selection {
+	struct mutex lock;
+	struct vc_data *cons;
+	char *buffer;
+	unsigned int buf_len;
+	volatile int start;
+	int end;
+};
+
+struct kbdiacr {
+	unsigned char diacr;
+	unsigned char base;
+	unsigned char result;
+};
+
+struct kbdiacrs {
+	unsigned int kb_cnt;
+	struct kbdiacr kbdiacr[256];
+};
+
+struct kbdiacruc {
+	unsigned int diacr;
+	unsigned int base;
+	unsigned int result;
+};
+
+struct kbdiacrsuc {
+	unsigned int kb_cnt;
+	struct kbdiacruc kbdiacruc[256];
+};
+
+struct keyboard_notifier_param {
+	struct vc_data *vc;
+	int down;
+	int shift;
+	int ledstate;
+	unsigned int value;
+};
+
+struct kbd_struct {
+	unsigned char lockstate;
+	unsigned char slockstate;
+	unsigned char ledmode: 1;
+	unsigned char ledflagstate: 4;
+	char: 3;
+	unsigned char default_ledflagstate: 4;
+	unsigned char kbdmode: 3;
+	char: 1;
+	unsigned char modeflags: 5;
+};
+
+enum led_brightness {
+	LED_OFF = 0,
+	LED_ON = 1,
+	LED_HALF = 127,
+	LED_FULL = 255,
+};
+
+struct led_hw_trigger_type {
+	int dummy;
+};
+
+struct led_pattern;
+
+struct led_trigger;
+
+struct led_classdev {
+	const char *name;
+	unsigned int brightness;
+	unsigned int max_brightness;
+	int flags;
+	long unsigned int work_flags;
+	void (*brightness_set)(struct led_classdev *, enum led_brightness);
+	int (*brightness_set_blocking)(struct led_classdev *, enum led_brightness);
+	enum led_brightness (*brightness_get)(struct led_classdev *);
+	int (*blink_set)(struct led_classdev *, long unsigned int *, long unsigned int *);
+	int (*pattern_set)(struct led_classdev *, struct led_pattern *, u32, int);
+	int (*pattern_clear)(struct led_classdev *);
+	struct device *dev;
+	const struct attribute_group **groups;
+	struct list_head node;
+	const char *default_trigger;
+	long unsigned int blink_delay_on;
+	long unsigned int blink_delay_off;
+	struct timer_list blink_timer;
+	int blink_brightness;
+	int new_blink_brightness;
+	void (*flash_resume)(struct led_classdev *);
+	struct work_struct set_brightness_work;
+	int delayed_set_value;
+	struct rw_semaphore trigger_lock;
+	struct led_trigger *trigger;
+	struct list_head trig_list;
+	void *trigger_data;
+	bool activated;
+	struct led_hw_trigger_type *trigger_type;
+	int brightness_hw_changed;
+	struct kernfs_node *brightness_hw_changed_kn;
+	struct mutex led_access;
+};
+
+struct led_pattern {
+	u32 delta_t;
+	int brightness;
+};
+
+struct led_trigger {
+	const char *name;
+	int (*activate)(struct led_classdev *);
+	void (*deactivate)(struct led_classdev *);
+	struct led_hw_trigger_type *trigger_type;
+	rwlock_t leddev_list_lock;
+	struct list_head led_cdevs;
+	struct list_head next_trig;
+	const struct attribute_group **groups;
+};
+
+typedef void k_handler_fn(struct vc_data *, unsigned char, char);
+
+typedef void fn_handler_fn(struct vc_data *);
+
+struct getset_keycode_data {
+	struct input_keymap_entry ke;
+	int error;
+};
+
+struct kbd_led_trigger {
+	struct led_trigger trigger;
+	unsigned int mask;
+};
+
+struct uni_pagedir {
+	u16 **uni_pgdir[32];
+	long unsigned int refcount;
+	long unsigned int sum;
+	unsigned char *inverse_translations[4];
+	u16 *inverse_trans_unicode;
+};
+
+typedef uint32_t char32_t;
+
+struct uni_screen {
+	char32_t *lines[0];
+};
+
+struct con_driver {
+	const struct consw *con;
+	const char *desc;
+	struct device *dev;
+	int node;
+	int first;
+	int last;
+	int flag;
+};
+
+enum {
+	blank_off = 0,
+	blank_normal_wait = 1,
+	blank_vesa_wait = 2,
+};
+
+enum {
+	EPecma = 0,
+	EPdec = 1,
+	EPeq = 2,
+	EPgt = 3,
+	EPlt = 4,
+};
+
+struct rgb {
+	u8 r;
+	u8 g;
+	u8 b;
+};
+
+enum {
+	ESnormal = 0,
+	ESesc = 1,
+	ESsquare = 2,
+	ESgetpars = 3,
+	ESfunckey = 4,
+	EShash = 5,
+	ESsetG0 = 6,
+	ESsetG1 = 7,
+	ESpercent = 8,
+	EScsiignore = 9,
+	ESnonstd = 10,
+	ESpalette = 11,
+	ESosc = 12,
+};
+
+struct interval {
+	uint32_t first;
+	uint32_t last;
+};
+
+struct vc_draw_region {
+	long unsigned int from;
+	long unsigned int to;
+	int x;
+};
+
+struct hvsi_priv {
+	unsigned int inbuf_len;
+	unsigned char inbuf[255];
+	unsigned int inbuf_cur;
+	unsigned int inbuf_pktlen;
+	atomic_t seqno;
+	unsigned int opened: 1;
+	unsigned int established: 1;
+	unsigned int is_console: 1;
+	unsigned int mctrl_update: 1;
+	short unsigned int mctrl;
+	struct tty_struct *tty;
+	int (*get_chars)(uint32_t, char *, int);
+	int (*put_chars)(uint32_t, const char *, int);
+	uint32_t termno;
+};
+
+struct hv_ops;
+
+struct hvc_struct {
+	struct tty_port port;
+	spinlock_t lock;
+	int index;
+	int do_wakeup;
+	char *outbuf;
+	int outbuf_size;
+	int n_outbuf;
+	uint32_t vtermno;
+	const struct hv_ops *ops;
+	int irq_requested;
+	int data;
+	struct winsize ws;
+	struct work_struct tty_resize;
+	struct list_head next;
+	long unsigned int flags;
+};
+
+struct hv_ops {
+	int (*get_chars)(uint32_t, char *, int);
+	int (*put_chars)(uint32_t, const char *, int);
+	int (*flush)(uint32_t, bool);
+	int (*notifier_add)(struct hvc_struct *, int);
+	void (*notifier_del)(struct hvc_struct *, int);
+	void (*notifier_hangup)(struct hvc_struct *, int);
+	int (*tiocmget)(struct hvc_struct *);
+	int (*tiocmset)(struct hvc_struct *, unsigned int, unsigned int);
+	void (*dtr_rts)(struct hvc_struct *, int);
+};
+
+enum hv_protocol {
+	HV_PROTOCOL_RAW = 0,
+	HV_PROTOCOL_HVSI = 1,
+};
+
+typedef enum hv_protocol hv_protocol_t;
+
+struct hvterm_priv {
+	u32 termno;
+	hv_protocol_t proto;
+	struct hvsi_priv hvsi;
+	spinlock_t buf_lock;
+	char buf[16];
+	int left;
+	int offset;
+};
+
+struct hvsi_header {
+	uint8_t type;
+	uint8_t len;
+	__be16 seqno;
+};
+
+struct hvsi_data {
+	struct hvsi_header hdr;
+	uint8_t data[12];
+};
+
+struct hvsi_control {
+	struct hvsi_header hdr;
+	__be16 verb;
+	__be32 word;
+	__be32 mask;
+} __attribute__((packed));
+
+struct hvsi_query {
+	struct hvsi_header hdr;
+	__be16 verb;
+};
+
+struct hvsi_query_response {
+	struct hvsi_header hdr;
+	__be16 verb;
+	__be16 query_seqno;
+	union {
+		uint8_t version;
+		__be32 mctrl_word;
+	} u;
+};
+
+struct hvc_opal_priv {
+	hv_protocol_t proto;
+	struct hvsi_priv hvsi;
+};
+
+struct uart_driver {
+	struct module *owner;
+	const char *driver_name;
+	const char *dev_name;
+	int major;
+	int minor;
+	int nr;
+	struct console *cons;
+	struct uart_state *state;
+	struct tty_driver *tty_driver;
+};
+
+struct uart_match {
+	struct uart_port *port;
+	struct uart_driver *driver;
+};
+
+struct earlycon_device {
+	struct console *con;
+	struct uart_port port;
+	char options[16];
+	unsigned int baud;
+};
+
+struct earlycon_id {
+	char name[15];
+	char name_term;
+	char compatible[128];
+	int (*setup)(struct earlycon_device *, const char *);
+};
+
+enum hwparam_type {
+	hwparam_ioport = 0,
+	hwparam_iomem = 1,
+	hwparam_ioport_or_iomem = 2,
+	hwparam_irq = 3,
+	hwparam_dma = 4,
+	hwparam_dma_addr = 5,
+	hwparam_other = 6,
+};
+
+struct uart_8250_port;
+
+struct uart_8250_ops {
+	int (*setup_irq)(struct uart_8250_port *);
+	void (*release_irq)(struct uart_8250_port *);
+};
+
+struct mctrl_gpios;
+
+struct uart_8250_dma;
+
+struct uart_8250_em485;
+
+struct uart_8250_port {
+	struct uart_port port;
+	struct timer_list timer;
+	struct list_head list;
+	u32 capabilities;
+	short unsigned int bugs;
+	bool fifo_bug;
+	unsigned int tx_loadsz;
+	unsigned char acr;
+	unsigned char fcr;
+	unsigned char ier;
+	unsigned char lcr;
+	unsigned char mcr;
+	unsigned char mcr_mask;
+	unsigned char mcr_force;
+	unsigned char cur_iotype;
+	unsigned int rpm_tx_active;
+	unsigned char canary;
+	unsigned char probe;
+	struct mctrl_gpios *gpios;
+	unsigned char lsr_saved_flags;
+	unsigned char msr_saved_flags;
+	struct uart_8250_dma *dma;
+	const struct uart_8250_ops *ops;
+	int (*dl_read)(struct uart_8250_port *);
+	void (*dl_write)(struct uart_8250_port *, int);
+	struct uart_8250_em485 *em485;
+	void (*rs485_start_tx)(struct uart_8250_port *);
+	void (*rs485_stop_tx)(struct uart_8250_port *);
+	struct delayed_work overrun_backoff;
+	u32 overrun_backoff_time_ms;
+};
+
+struct uart_8250_em485 {
+	struct hrtimer start_tx_timer;
+	struct hrtimer stop_tx_timer;
+	struct hrtimer *active_timer;
+	struct uart_8250_port *port;
+	unsigned int tx_stopped: 1;
+};
+
+struct uart_8250_dma {
+	int (*tx_dma)(struct uart_8250_port *);
+	int (*rx_dma)(struct uart_8250_port *);
+	dma_filter_fn fn;
+	void *rx_param;
+	void *tx_param;
+	struct dma_slave_config rxconf;
+	struct dma_slave_config txconf;
+	struct dma_chan___2 *rxchan;
+	struct dma_chan___2 *txchan;
+	phys_addr_t rx_dma_addr;
+	phys_addr_t tx_dma_addr;
+	dma_addr_t rx_addr;
+	dma_addr_t tx_addr;
+	dma_cookie_t rx_cookie;
+	dma_cookie_t tx_cookie;
+	void *rx_buf;
+	size_t rx_size;
+	size_t tx_size;
+	unsigned char tx_running;
+	unsigned char tx_err;
+	unsigned char rx_running;
+};
+
+struct old_serial_port {
+	unsigned int uart;
+	unsigned int baud_base;
+	unsigned int port;
+	unsigned int irq;
+	upf_t flags;
+	unsigned char io_type;
+	unsigned char *iomem_base;
+	short unsigned int iomem_reg_shift;
+};
+
+struct irq_info {
+	struct hlist_node node;
+	int irq;
+	spinlock_t lock;
+	struct list_head *head;
+};
+
+struct serial8250_config {
+	const char *name;
+	short unsigned int fifo_size;
+	short unsigned int tx_loadsz;
+	unsigned char fcr;
+	unsigned char rxtrig_bytes[4];
+	unsigned int flags;
+};
+
+struct pciserial_board {
+	unsigned int flags;
+	unsigned int num_ports;
+	unsigned int base_baud;
+	unsigned int uart_offset;
+	unsigned int reg_shift;
+	unsigned int first_offset;
+};
+
+struct serial_private;
+
+struct pci_serial_quirk {
+	u32 vendor;
+	u32 device;
+	u32 subvendor;
+	u32 subdevice;
+	int (*probe)(struct pci_dev *);
+	int (*init)(struct pci_dev *);
+	int (*setup)(struct serial_private *, const struct pciserial_board *, struct uart_8250_port *, int);
+	void (*exit)(struct pci_dev *);
+};
+
+struct serial_private {
+	struct pci_dev *dev;
+	unsigned int nr;
+	struct pci_serial_quirk *quirk;
+	const struct pciserial_board *board;
+	int line[0];
+};
+
+struct f815xxa_data {
+	spinlock_t lock;
+	int idx;
+};
+
+struct timedia_struct {
+	int num;
+	const short unsigned int *ids;
+};
