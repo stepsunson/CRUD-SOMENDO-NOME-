@@ -99588,3 +99588,2099 @@ struct power_supply_resistance_temp_table {
 	int temp;
 	int resistance;
 };
+
+struct power_supply_battery_info {
+	int energy_full_design_uwh;
+	int charge_full_design_uah;
+	int voltage_min_design_uv;
+	int voltage_max_design_uv;
+	int tricklecharge_current_ua;
+	int precharge_current_ua;
+	int precharge_voltage_max_uv;
+	int charge_term_current_ua;
+	int charge_restart_voltage_uv;
+	int overvoltage_limit_uv;
+	int constant_charge_current_max_ua;
+	int constant_charge_voltage_max_uv;
+	int factory_internal_resistance_uohm;
+	int ocv_temp[20];
+	int temp_ambient_alert_min;
+	int temp_ambient_alert_max;
+	int temp_alert_min;
+	int temp_alert_max;
+	int temp_min;
+	int temp_max;
+	struct power_supply_battery_ocv_table *ocv_table[20];
+	int ocv_table_size[20];
+	struct power_supply_resistance_temp_table *resist_table;
+	int resist_table_size;
+};
+
+enum thermal_trip_type {
+	THERMAL_TRIP_ACTIVE = 0,
+	THERMAL_TRIP_PASSIVE = 1,
+	THERMAL_TRIP_HOT = 2,
+	THERMAL_TRIP_CRITICAL = 3,
+};
+
+enum thermal_trend {
+	THERMAL_TREND_STABLE = 0,
+	THERMAL_TREND_RAISING = 1,
+	THERMAL_TREND_DROPPING = 2,
+	THERMAL_TREND_RAISE_FULL = 3,
+	THERMAL_TREND_DROP_FULL = 4,
+};
+
+struct thermal_zone_device_ops {
+	int (*bind)(struct thermal_zone_device *, struct thermal_cooling_device *);
+	int (*unbind)(struct thermal_zone_device *, struct thermal_cooling_device *);
+	int (*get_temp)(struct thermal_zone_device *, int *);
+	int (*set_trips)(struct thermal_zone_device *, int, int);
+	int (*change_mode)(struct thermal_zone_device *, enum thermal_device_mode);
+	int (*get_trip_type)(struct thermal_zone_device *, int, enum thermal_trip_type *);
+	int (*get_trip_temp)(struct thermal_zone_device *, int, int *);
+	int (*set_trip_temp)(struct thermal_zone_device *, int, int);
+	int (*get_trip_hyst)(struct thermal_zone_device *, int, int *);
+	int (*set_trip_hyst)(struct thermal_zone_device *, int, int);
+	int (*get_crit_temp)(struct thermal_zone_device *, int *);
+	int (*set_emul_temp)(struct thermal_zone_device *, int);
+	int (*get_trend)(struct thermal_zone_device *, int, enum thermal_trend *);
+	void (*hot)(struct thermal_zone_device *);
+	void (*critical)(struct thermal_zone_device *);
+};
+
+struct thermal_cooling_device_ops {
+	int (*get_max_state)(struct thermal_cooling_device *, long unsigned int *);
+	int (*get_cur_state)(struct thermal_cooling_device *, long unsigned int *);
+	int (*set_cur_state)(struct thermal_cooling_device *, long unsigned int);
+	int (*get_requested_power)(struct thermal_cooling_device *, u32 *);
+	int (*state2power)(struct thermal_cooling_device *, long unsigned int, u32 *);
+	int (*power2state)(struct thermal_cooling_device *, u32, long unsigned int *);
+};
+
+struct thermal_bind_params;
+
+struct thermal_zone_params {
+	char governor_name[20];
+	bool no_hwmon;
+	int num_tbps;
+	struct thermal_bind_params *tbp;
+	u32 sustainable_power;
+	s32 k_po;
+	s32 k_pu;
+	s32 k_i;
+	s32 k_d;
+	s32 integral_cutoff;
+	int slope;
+	int offset;
+};
+
+struct thermal_governor {
+	char name[20];
+	int (*bind_to_tz)(struct thermal_zone_device *);
+	void (*unbind_from_tz)(struct thermal_zone_device *);
+	int (*throttle)(struct thermal_zone_device *, int);
+	struct list_head governor_list;
+};
+
+struct thermal_bind_params {
+	struct thermal_cooling_device *cdev;
+	int weight;
+	int trip_mask;
+	long unsigned int *binding_limits;
+	int (*match)(struct thermal_zone_device *, struct thermal_cooling_device *);
+};
+
+struct psy_am_i_supplied_data {
+	struct power_supply *psy;
+	unsigned int count;
+};
+
+enum {
+	POWER_SUPPLY_STATUS_UNKNOWN = 0,
+	POWER_SUPPLY_STATUS_CHARGING = 1,
+	POWER_SUPPLY_STATUS_DISCHARGING = 2,
+	POWER_SUPPLY_STATUS_NOT_CHARGING = 3,
+	POWER_SUPPLY_STATUS_FULL = 4,
+};
+
+enum {
+	POWER_SUPPLY_CHARGE_TYPE_UNKNOWN = 0,
+	POWER_SUPPLY_CHARGE_TYPE_NONE = 1,
+	POWER_SUPPLY_CHARGE_TYPE_TRICKLE = 2,
+	POWER_SUPPLY_CHARGE_TYPE_FAST = 3,
+	POWER_SUPPLY_CHARGE_TYPE_STANDARD = 4,
+	POWER_SUPPLY_CHARGE_TYPE_ADAPTIVE = 5,
+	POWER_SUPPLY_CHARGE_TYPE_CUSTOM = 6,
+	POWER_SUPPLY_CHARGE_TYPE_LONGLIFE = 7,
+};
+
+enum {
+	POWER_SUPPLY_HEALTH_UNKNOWN = 0,
+	POWER_SUPPLY_HEALTH_GOOD = 1,
+	POWER_SUPPLY_HEALTH_OVERHEAT = 2,
+	POWER_SUPPLY_HEALTH_DEAD = 3,
+	POWER_SUPPLY_HEALTH_OVERVOLTAGE = 4,
+	POWER_SUPPLY_HEALTH_UNSPEC_FAILURE = 5,
+	POWER_SUPPLY_HEALTH_COLD = 6,
+	POWER_SUPPLY_HEALTH_WATCHDOG_TIMER_EXPIRE = 7,
+	POWER_SUPPLY_HEALTH_SAFETY_TIMER_EXPIRE = 8,
+	POWER_SUPPLY_HEALTH_OVERCURRENT = 9,
+	POWER_SUPPLY_HEALTH_CALIBRATION_REQUIRED = 10,
+	POWER_SUPPLY_HEALTH_WARM = 11,
+	POWER_SUPPLY_HEALTH_COOL = 12,
+	POWER_SUPPLY_HEALTH_HOT = 13,
+};
+
+enum {
+	POWER_SUPPLY_TECHNOLOGY_UNKNOWN = 0,
+	POWER_SUPPLY_TECHNOLOGY_NiMH = 1,
+	POWER_SUPPLY_TECHNOLOGY_LION = 2,
+	POWER_SUPPLY_TECHNOLOGY_LIPO = 3,
+	POWER_SUPPLY_TECHNOLOGY_LiFe = 4,
+	POWER_SUPPLY_TECHNOLOGY_NiCd = 5,
+	POWER_SUPPLY_TECHNOLOGY_LiMn = 6,
+};
+
+enum {
+	POWER_SUPPLY_CAPACITY_LEVEL_UNKNOWN = 0,
+	POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL = 1,
+	POWER_SUPPLY_CAPACITY_LEVEL_LOW = 2,
+	POWER_SUPPLY_CAPACITY_LEVEL_NORMAL = 3,
+	POWER_SUPPLY_CAPACITY_LEVEL_HIGH = 4,
+	POWER_SUPPLY_CAPACITY_LEVEL_FULL = 5,
+};
+
+enum {
+	POWER_SUPPLY_SCOPE_UNKNOWN = 0,
+	POWER_SUPPLY_SCOPE_SYSTEM = 1,
+	POWER_SUPPLY_SCOPE_DEVICE = 2,
+};
+
+struct power_supply_attr {
+	const char *prop_name;
+	char attr_name[31];
+	struct device_attribute dev_attr;
+	const char * const *text_values;
+	int text_values_len;
+};
+
+enum hwmon_sensor_types {
+	hwmon_chip = 0,
+	hwmon_temp = 1,
+	hwmon_in = 2,
+	hwmon_curr = 3,
+	hwmon_power = 4,
+	hwmon_energy = 5,
+	hwmon_humidity = 6,
+	hwmon_fan = 7,
+	hwmon_pwm = 8,
+	hwmon_intrusion = 9,
+	hwmon_max = 10,
+};
+
+enum hwmon_temp_attributes {
+	hwmon_temp_enable = 0,
+	hwmon_temp_input = 1,
+	hwmon_temp_type = 2,
+	hwmon_temp_lcrit = 3,
+	hwmon_temp_lcrit_hyst = 4,
+	hwmon_temp_min = 5,
+	hwmon_temp_min_hyst = 6,
+	hwmon_temp_max = 7,
+	hwmon_temp_max_hyst = 8,
+	hwmon_temp_crit = 9,
+	hwmon_temp_crit_hyst = 10,
+	hwmon_temp_emergency = 11,
+	hwmon_temp_emergency_hyst = 12,
+	hwmon_temp_alarm = 13,
+	hwmon_temp_lcrit_alarm = 14,
+	hwmon_temp_min_alarm = 15,
+	hwmon_temp_max_alarm = 16,
+	hwmon_temp_crit_alarm = 17,
+	hwmon_temp_emergency_alarm = 18,
+	hwmon_temp_fault = 19,
+	hwmon_temp_offset = 20,
+	hwmon_temp_label = 21,
+	hwmon_temp_lowest = 22,
+	hwmon_temp_highest = 23,
+	hwmon_temp_reset_history = 24,
+	hwmon_temp_rated_min = 25,
+	hwmon_temp_rated_max = 26,
+};
+
+enum hwmon_in_attributes {
+	hwmon_in_enable = 0,
+	hwmon_in_input = 1,
+	hwmon_in_min = 2,
+	hwmon_in_max = 3,
+	hwmon_in_lcrit = 4,
+	hwmon_in_crit = 5,
+	hwmon_in_average = 6,
+	hwmon_in_lowest = 7,
+	hwmon_in_highest = 8,
+	hwmon_in_reset_history = 9,
+	hwmon_in_label = 10,
+	hwmon_in_alarm = 11,
+	hwmon_in_min_alarm = 12,
+	hwmon_in_max_alarm = 13,
+	hwmon_in_lcrit_alarm = 14,
+	hwmon_in_crit_alarm = 15,
+	hwmon_in_rated_min = 16,
+	hwmon_in_rated_max = 17,
+};
+
+enum hwmon_curr_attributes {
+	hwmon_curr_enable = 0,
+	hwmon_curr_input = 1,
+	hwmon_curr_min = 2,
+	hwmon_curr_max = 3,
+	hwmon_curr_lcrit = 4,
+	hwmon_curr_crit = 5,
+	hwmon_curr_average = 6,
+	hwmon_curr_lowest = 7,
+	hwmon_curr_highest = 8,
+	hwmon_curr_reset_history = 9,
+	hwmon_curr_label = 10,
+	hwmon_curr_alarm = 11,
+	hwmon_curr_min_alarm = 12,
+	hwmon_curr_max_alarm = 13,
+	hwmon_curr_lcrit_alarm = 14,
+	hwmon_curr_crit_alarm = 15,
+	hwmon_curr_rated_min = 16,
+	hwmon_curr_rated_max = 17,
+};
+
+struct hwmon_ops {
+	umode_t (*is_visible)(const void *, enum hwmon_sensor_types, u32, int);
+	int (*read)(struct device *, enum hwmon_sensor_types, u32, int, long int *);
+	int (*read_string)(struct device *, enum hwmon_sensor_types, u32, int, const char **);
+	int (*write)(struct device *, enum hwmon_sensor_types, u32, int, long int);
+};
+
+struct hwmon_channel_info {
+	enum hwmon_sensor_types type;
+	const u32 *config;
+};
+
+struct hwmon_chip_info {
+	const struct hwmon_ops *ops;
+	const struct hwmon_channel_info **info;
+};
+
+struct power_supply_hwmon {
+	struct power_supply *psy;
+	long unsigned int *props;
+};
+
+struct hwmon_type_attr_list {
+	const u32 *attrs;
+	size_t n_attrs;
+};
+
+enum hwmon_chip_attributes {
+	hwmon_chip_temp_reset_history = 0,
+	hwmon_chip_in_reset_history = 1,
+	hwmon_chip_curr_reset_history = 2,
+	hwmon_chip_power_reset_history = 3,
+	hwmon_chip_register_tz = 4,
+	hwmon_chip_update_interval = 5,
+	hwmon_chip_alarms = 6,
+	hwmon_chip_samples = 7,
+	hwmon_chip_curr_samples = 8,
+	hwmon_chip_in_samples = 9,
+	hwmon_chip_power_samples = 10,
+	hwmon_chip_temp_samples = 11,
+};
+
+enum hwmon_power_attributes {
+	hwmon_power_enable = 0,
+	hwmon_power_average = 1,
+	hwmon_power_average_interval = 2,
+	hwmon_power_average_interval_max = 3,
+	hwmon_power_average_interval_min = 4,
+	hwmon_power_average_highest = 5,
+	hwmon_power_average_lowest = 6,
+	hwmon_power_average_max = 7,
+	hwmon_power_average_min = 8,
+	hwmon_power_input = 9,
+	hwmon_power_input_highest = 10,
+	hwmon_power_input_lowest = 11,
+	hwmon_power_reset_history = 12,
+	hwmon_power_accuracy = 13,
+	hwmon_power_cap = 14,
+	hwmon_power_cap_hyst = 15,
+	hwmon_power_cap_max = 16,
+	hwmon_power_cap_min = 17,
+	hwmon_power_min = 18,
+	hwmon_power_max = 19,
+	hwmon_power_crit = 20,
+	hwmon_power_lcrit = 21,
+	hwmon_power_label = 22,
+	hwmon_power_alarm = 23,
+	hwmon_power_cap_alarm = 24,
+	hwmon_power_min_alarm = 25,
+	hwmon_power_max_alarm = 26,
+	hwmon_power_lcrit_alarm = 27,
+	hwmon_power_crit_alarm = 28,
+	hwmon_power_rated_min = 29,
+	hwmon_power_rated_max = 30,
+};
+
+enum hwmon_energy_attributes {
+	hwmon_energy_enable = 0,
+	hwmon_energy_input = 1,
+	hwmon_energy_label = 2,
+};
+
+enum hwmon_humidity_attributes {
+	hwmon_humidity_enable = 0,
+	hwmon_humidity_input = 1,
+	hwmon_humidity_label = 2,
+	hwmon_humidity_min = 3,
+	hwmon_humidity_min_hyst = 4,
+	hwmon_humidity_max = 5,
+	hwmon_humidity_max_hyst = 6,
+	hwmon_humidity_alarm = 7,
+	hwmon_humidity_fault = 8,
+	hwmon_humidity_rated_min = 9,
+	hwmon_humidity_rated_max = 10,
+};
+
+enum hwmon_fan_attributes {
+	hwmon_fan_enable = 0,
+	hwmon_fan_input = 1,
+	hwmon_fan_label = 2,
+	hwmon_fan_min = 3,
+	hwmon_fan_max = 4,
+	hwmon_fan_div = 5,
+	hwmon_fan_pulses = 6,
+	hwmon_fan_target = 7,
+	hwmon_fan_alarm = 8,
+	hwmon_fan_min_alarm = 9,
+	hwmon_fan_max_alarm = 10,
+	hwmon_fan_fault = 11,
+};
+
+enum hwmon_pwm_attributes {
+	hwmon_pwm_input = 0,
+	hwmon_pwm_enable = 1,
+	hwmon_pwm_mode = 2,
+	hwmon_pwm_freq = 3,
+};
+
+enum hwmon_intrusion_attributes {
+	hwmon_intrusion_alarm = 0,
+	hwmon_intrusion_beep = 1,
+};
+
+struct thermal_zone_of_device_ops {
+	int (*get_temp)(void *, int *);
+	int (*get_trend)(void *, int, enum thermal_trend *);
+	int (*set_trips)(void *, int, int);
+	int (*set_emul_temp)(void *, int);
+	int (*set_trip_temp)(void *, int, int);
+};
+
+struct trace_event_raw_hwmon_attr_class {
+	struct trace_entry ent;
+	int index;
+	u32 __data_loc_attr_name;
+	long int val;
+	char __data[0];
+};
+
+struct trace_event_raw_hwmon_attr_show_string {
+	struct trace_entry ent;
+	int index;
+	u32 __data_loc_attr_name;
+	u32 __data_loc_label;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_hwmon_attr_class {
+	u32 attr_name;
+};
+
+struct trace_event_data_offsets_hwmon_attr_show_string {
+	u32 attr_name;
+	u32 label;
+};
+
+typedef void (*btf_trace_hwmon_attr_show)(void *, int, const char *, long int);
+
+typedef void (*btf_trace_hwmon_attr_store)(void *, int, const char *, long int);
+
+typedef void (*btf_trace_hwmon_attr_show_string)(void *, int, const char *, const char *);
+
+struct hwmon_device {
+	const char *name;
+	struct device dev;
+	const struct hwmon_chip_info *chip;
+	struct list_head tzdata;
+	struct attribute_group group;
+	const struct attribute_group **groups;
+};
+
+struct hwmon_device_attribute {
+	struct device_attribute dev_attr;
+	const struct hwmon_ops *ops;
+	enum hwmon_sensor_types type;
+	u32 attr;
+	int index;
+	char name[32];
+};
+
+struct hwmon_thermal_data {
+	struct list_head node;
+	struct device *dev;
+	int index;
+	struct thermal_zone_device *tzd;
+};
+
+struct thermal_attr {
+	struct device_attribute attr;
+	char name[20];
+};
+
+struct trace_event_raw_thermal_temperature {
+	struct trace_entry ent;
+	u32 __data_loc_thermal_zone;
+	int id;
+	int temp_prev;
+	int temp;
+	char __data[0];
+};
+
+struct trace_event_raw_cdev_update {
+	struct trace_entry ent;
+	u32 __data_loc_type;
+	long unsigned int target;
+	char __data[0];
+};
+
+struct trace_event_raw_thermal_zone_trip {
+	struct trace_entry ent;
+	u32 __data_loc_thermal_zone;
+	int id;
+	int trip;
+	enum thermal_trip_type trip_type;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_thermal_temperature {
+	u32 thermal_zone;
+};
+
+struct trace_event_data_offsets_cdev_update {
+	u32 type;
+};
+
+struct trace_event_data_offsets_thermal_zone_trip {
+	u32 thermal_zone;
+};
+
+typedef void (*btf_trace_thermal_temperature)(void *, struct thermal_zone_device *);
+
+typedef void (*btf_trace_cdev_update)(void *, struct thermal_cooling_device *, long unsigned int);
+
+typedef void (*btf_trace_thermal_zone_trip)(void *, struct thermal_zone_device *, int, enum thermal_trip_type);
+
+struct thermal_instance {
+	int id;
+	char name[20];
+	struct thermal_zone_device *tz;
+	struct thermal_cooling_device *cdev;
+	int trip;
+	bool initialized;
+	long unsigned int upper;
+	long unsigned int lower;
+	long unsigned int target;
+	char attr_name[20];
+	struct device_attribute attr;
+	char weight_attr_name[20];
+	struct device_attribute weight_attr;
+	struct list_head tz_node;
+	struct list_head cdev_node;
+	unsigned int weight;
+};
+
+struct genl_dumpit_info {
+	const struct genl_family *family;
+	struct genl_ops op;
+	struct nlattr **attrs;
+};
+
+enum thermal_genl_attr {
+	THERMAL_GENL_ATTR_UNSPEC = 0,
+	THERMAL_GENL_ATTR_TZ = 1,
+	THERMAL_GENL_ATTR_TZ_ID = 2,
+	THERMAL_GENL_ATTR_TZ_TEMP = 3,
+	THERMAL_GENL_ATTR_TZ_TRIP = 4,
+	THERMAL_GENL_ATTR_TZ_TRIP_ID = 5,
+	THERMAL_GENL_ATTR_TZ_TRIP_TYPE = 6,
+	THERMAL_GENL_ATTR_TZ_TRIP_TEMP = 7,
+	THERMAL_GENL_ATTR_TZ_TRIP_HYST = 8,
+	THERMAL_GENL_ATTR_TZ_MODE = 9,
+	THERMAL_GENL_ATTR_TZ_NAME = 10,
+	THERMAL_GENL_ATTR_TZ_CDEV_WEIGHT = 11,
+	THERMAL_GENL_ATTR_TZ_GOV = 12,
+	THERMAL_GENL_ATTR_TZ_GOV_NAME = 13,
+	THERMAL_GENL_ATTR_CDEV = 14,
+	THERMAL_GENL_ATTR_CDEV_ID = 15,
+	THERMAL_GENL_ATTR_CDEV_CUR_STATE = 16,
+	THERMAL_GENL_ATTR_CDEV_MAX_STATE = 17,
+	THERMAL_GENL_ATTR_CDEV_NAME = 18,
+	THERMAL_GENL_ATTR_GOV_NAME = 19,
+	THERMAL_GENL_ATTR_CPU_CAPABILITY = 20,
+	THERMAL_GENL_ATTR_CPU_CAPABILITY_ID = 21,
+	THERMAL_GENL_ATTR_CPU_CAPABILITY_PERFORMANCE = 22,
+	THERMAL_GENL_ATTR_CPU_CAPABILITY_EFFICIENCY = 23,
+	__THERMAL_GENL_ATTR_MAX = 24,
+};
+
+enum thermal_genl_sampling {
+	THERMAL_GENL_SAMPLING_TEMP = 0,
+	__THERMAL_GENL_SAMPLING_MAX = 1,
+};
+
+enum thermal_genl_event {
+	THERMAL_GENL_EVENT_UNSPEC = 0,
+	THERMAL_GENL_EVENT_TZ_CREATE = 1,
+	THERMAL_GENL_EVENT_TZ_DELETE = 2,
+	THERMAL_GENL_EVENT_TZ_DISABLE = 3,
+	THERMAL_GENL_EVENT_TZ_ENABLE = 4,
+	THERMAL_GENL_EVENT_TZ_TRIP_UP = 5,
+	THERMAL_GENL_EVENT_TZ_TRIP_DOWN = 6,
+	THERMAL_GENL_EVENT_TZ_TRIP_CHANGE = 7,
+	THERMAL_GENL_EVENT_TZ_TRIP_ADD = 8,
+	THERMAL_GENL_EVENT_TZ_TRIP_DELETE = 9,
+	THERMAL_GENL_EVENT_CDEV_ADD = 10,
+	THERMAL_GENL_EVENT_CDEV_DELETE = 11,
+	THERMAL_GENL_EVENT_CDEV_STATE_UPDATE = 12,
+	THERMAL_GENL_EVENT_TZ_GOV_CHANGE = 13,
+	THERMAL_GENL_EVENT_CPU_CAPABILITY_CHANGE = 14,
+	__THERMAL_GENL_EVENT_MAX = 15,
+};
+
+enum thermal_genl_cmd {
+	THERMAL_GENL_CMD_UNSPEC = 0,
+	THERMAL_GENL_CMD_TZ_GET_ID = 1,
+	THERMAL_GENL_CMD_TZ_GET_TRIP = 2,
+	THERMAL_GENL_CMD_TZ_GET_TEMP = 3,
+	THERMAL_GENL_CMD_TZ_GET_GOV = 4,
+	THERMAL_GENL_CMD_TZ_GET_MODE = 5,
+	THERMAL_GENL_CMD_CDEV_GET = 6,
+	__THERMAL_GENL_CMD_MAX = 7,
+};
+
+struct thermal_genl_cpu_caps {
+	int cpu;
+	int performance;
+	int efficiency;
+};
+
+struct param {
+	struct nlattr **attrs;
+	struct sk_buff *msg;
+	const char *name;
+	int tz_id;
+	int cdev_id;
+	int trip_id;
+	int trip_temp;
+	int trip_type;
+	int trip_hyst;
+	int temp;
+	int cdev_state;
+	int cdev_max_state;
+	struct thermal_genl_cpu_caps *cpu_capabilities;
+	int cpu_capabilities_count;
+};
+
+typedef int (*cb_t)(struct param *);
+
+struct thermal_hwmon_device {
+	char type[20];
+	struct device *device;
+	int count;
+	struct list_head tz_list;
+	struct list_head node;
+};
+
+struct thermal_hwmon_attr {
+	struct device_attribute attr;
+	char name[16];
+};
+
+struct thermal_hwmon_temp {
+	struct list_head hwmon_node;
+	struct thermal_zone_device *tz;
+	struct thermal_hwmon_attr temp_input;
+	struct thermal_hwmon_attr temp_crit;
+};
+
+struct thermal_trip {
+	struct device_node *np;
+	int temperature;
+	int hysteresis;
+	enum thermal_trip_type type;
+};
+
+struct __thermal_cooling_bind_param {
+	struct device_node *cooling_device;
+	long unsigned int min;
+	long unsigned int max;
+};
+
+struct __thermal_bind_params {
+	struct __thermal_cooling_bind_param *tcbp;
+	unsigned int count;
+	unsigned int trip_id;
+	unsigned int usage;
+};
+
+struct __thermal_zone {
+	int passive_delay;
+	int polling_delay;
+	int slope;
+	int offset;
+	int ntrips;
+	struct thermal_trip *trips;
+	int num_tbps;
+	struct __thermal_bind_params *tbps;
+	void *sensor_data;
+	const struct thermal_zone_of_device_ops *ops;
+};
+
+struct watchdog_info {
+	__u32 options;
+	__u32 firmware_version;
+	__u8 identity[32];
+};
+
+struct watchdog_device;
+
+struct watchdog_ops {
+	struct module *owner;
+	int (*start)(struct watchdog_device *);
+	int (*stop)(struct watchdog_device *);
+	int (*ping)(struct watchdog_device *);
+	unsigned int (*status)(struct watchdog_device *);
+	int (*set_timeout)(struct watchdog_device *, unsigned int);
+	int (*set_pretimeout)(struct watchdog_device *, unsigned int);
+	unsigned int (*get_timeleft)(struct watchdog_device *);
+	int (*restart)(struct watchdog_device *, long unsigned int, void *);
+	long int (*ioctl)(struct watchdog_device *, unsigned int, long unsigned int);
+};
+
+struct watchdog_governor;
+
+struct watchdog_core_data;
+
+struct watchdog_device {
+	int id;
+	struct device *parent;
+	const struct attribute_group **groups;
+	const struct watchdog_info *info;
+	const struct watchdog_ops *ops;
+	const struct watchdog_governor *gov;
+	unsigned int bootstatus;
+	unsigned int timeout;
+	unsigned int pretimeout;
+	unsigned int min_timeout;
+	unsigned int max_timeout;
+	unsigned int min_hw_heartbeat_ms;
+	unsigned int max_hw_heartbeat_ms;
+	struct notifier_block reboot_nb;
+	struct notifier_block restart_nb;
+	void *driver_data;
+	struct watchdog_core_data *wd_data;
+	long unsigned int status;
+	struct list_head deferred;
+};
+
+struct watchdog_governor {
+	const char name[20];
+	void (*pretimeout)(struct watchdog_device *);
+};
+
+struct watchdog_core_data {
+	struct device dev;
+	struct cdev cdev;
+	struct watchdog_device *wdd;
+	struct mutex lock;
+	ktime_t last_keepalive;
+	ktime_t last_hw_keepalive;
+	ktime_t open_deadline;
+	struct hrtimer timer;
+	struct kthread_work work;
+	long unsigned int status;
+};
+
+struct mdp_device_descriptor_s {
+	__u32 number;
+	__u32 major;
+	__u32 minor;
+	__u32 raid_disk;
+	__u32 state;
+	__u32 reserved[27];
+};
+
+typedef struct mdp_device_descriptor_s mdp_disk_t;
+
+struct mdp_superblock_s {
+	__u32 md_magic;
+	__u32 major_version;
+	__u32 minor_version;
+	__u32 patch_version;
+	__u32 gvalid_words;
+	__u32 set_uuid0;
+	__u32 ctime;
+	__u32 level;
+	__u32 size;
+	__u32 nr_disks;
+	__u32 raid_disks;
+	__u32 md_minor;
+	__u32 not_persistent;
+	__u32 set_uuid1;
+	__u32 set_uuid2;
+	__u32 set_uuid3;
+	__u32 gstate_creserved[16];
+	__u32 utime;
+	__u32 state;
+	__u32 active_disks;
+	__u32 working_disks;
+	__u32 failed_disks;
+	__u32 spare_disks;
+	__u32 sb_csum;
+	__u32 events_lo;
+	__u32 events_hi;
+	__u32 cp_events_lo;
+	__u32 cp_events_hi;
+	__u32 recovery_cp;
+	__u64 reshape_position;
+	__u32 new_level;
+	__u32 delta_disks;
+	__u32 new_layout;
+	__u32 new_chunk;
+	__u32 gstate_sreserved[14];
+	__u32 layout;
+	__u32 chunk_size;
+	__u32 root_pv;
+	__u32 root_block;
+	__u32 pstate_reserved[60];
+	mdp_disk_t disks[27];
+	__u32 reserved[0];
+	mdp_disk_t this_disk;
+};
+
+typedef struct mdp_superblock_s mdp_super_t;
+
+struct mdp_superblock_1 {
+	__le32 magic;
+	__le32 major_version;
+	__le32 feature_map;
+	__le32 pad0;
+	__u8 set_uuid[16];
+	char set_name[32];
+	__le64 ctime;
+	__le32 level;
+	__le32 layout;
+	__le64 size;
+	__le32 chunksize;
+	__le32 raid_disks;
+	union {
+		__le32 bitmap_offset;
+		struct {
+			__le16 offset;
+			__le16 size;
+		} ppl;
+	};
+	__le32 new_level;
+	__le64 reshape_position;
+	__le32 delta_disks;
+	__le32 new_layout;
+	__le32 new_chunk;
+	__le32 new_offset;
+	__le64 data_offset;
+	__le64 data_size;
+	__le64 super_offset;
+	union {
+		__le64 recovery_offset;
+		__le64 journal_tail;
+	};
+	__le32 dev_number;
+	__le32 cnt_corrected_read;
+	__u8 device_uuid[16];
+	__u8 devflags;
+	__u8 bblog_shift;
+	__le16 bblog_size;
+	__le32 bblog_offset;
+	__le64 utime;
+	__le64 events;
+	__le64 resync_offset;
+	__le32 sb_csum;
+	__le32 max_dev;
+	__u8 pad3[32];
+	__le16 dev_roles[0];
+};
+
+struct mdu_version_s {
+	int major;
+	int minor;
+	int patchlevel;
+};
+
+typedef struct mdu_version_s mdu_version_t;
+
+struct mdu_array_info_s {
+	int major_version;
+	int minor_version;
+	int patch_version;
+	unsigned int ctime;
+	int level;
+	int size;
+	int nr_disks;
+	int raid_disks;
+	int md_minor;
+	int not_persistent;
+	unsigned int utime;
+	int state;
+	int active_disks;
+	int working_disks;
+	int failed_disks;
+	int spare_disks;
+	int layout;
+	int chunk_size;
+};
+
+typedef struct mdu_array_info_s mdu_array_info_t;
+
+struct mdu_disk_info_s {
+	int number;
+	int major;
+	int minor;
+	int raid_disk;
+	int state;
+};
+
+typedef struct mdu_disk_info_s mdu_disk_info_t;
+
+struct mdu_bitmap_file_s {
+	char pathname[4096];
+};
+
+typedef struct mdu_bitmap_file_s mdu_bitmap_file_t;
+
+struct mddev;
+
+struct md_rdev;
+
+struct md_cluster_operations {
+	int (*join)(struct mddev *, int);
+	int (*leave)(struct mddev *);
+	int (*slot_number)(struct mddev *);
+	int (*resync_info_update)(struct mddev *, sector_t, sector_t);
+	void (*resync_info_get)(struct mddev *, sector_t *, sector_t *);
+	int (*metadata_update_start)(struct mddev *);
+	int (*metadata_update_finish)(struct mddev *);
+	void (*metadata_update_cancel)(struct mddev *);
+	int (*resync_start)(struct mddev *);
+	int (*resync_finish)(struct mddev *);
+	int (*area_resyncing)(struct mddev *, int, sector_t, sector_t);
+	int (*add_new_disk)(struct mddev *, struct md_rdev *);
+	void (*add_new_disk_cancel)(struct mddev *);
+	int (*new_disk_ack)(struct mddev *, bool);
+	int (*remove_disk)(struct mddev *, struct md_rdev *);
+	void (*load_bitmaps)(struct mddev *, int);
+	int (*gather_bitmaps)(struct md_rdev *);
+	int (*resize_bitmaps)(struct mddev *, sector_t, sector_t);
+	int (*lock_all_bitmaps)(struct mddev *);
+	void (*unlock_all_bitmaps)(struct mddev *);
+	void (*update_size)(struct mddev *, sector_t);
+};
+
+struct md_cluster_info;
+
+struct md_personality;
+
+struct md_thread;
+
+struct bitmap;
+
+struct mddev {
+	void *private;
+	struct md_personality *pers;
+	dev_t unit;
+	int md_minor;
+	struct list_head disks;
+	long unsigned int flags;
+	long unsigned int sb_flags;
+	int suspended;
+	atomic_t active_io;
+	int ro;
+	int sysfs_active;
+	struct gendisk *gendisk;
+	struct kobject kobj;
+	int hold_active;
+	int major_version;
+	int minor_version;
+	int patch_version;
+	int persistent;
+	int external;
+	char metadata_type[17];
+	int chunk_sectors;
+	time64_t ctime;
+	time64_t utime;
+	int level;
+	int layout;
+	char clevel[16];
+	int raid_disks;
+	int max_disks;
+	sector_t dev_sectors;
+	sector_t array_sectors;
+	int external_size;
+	__u64 events;
+	int can_decrease_events;
+	char uuid[16];
+	sector_t reshape_position;
+	int delta_disks;
+	int new_level;
+	int new_layout;
+	int new_chunk_sectors;
+	int reshape_backwards;
+	struct md_thread *thread;
+	struct md_thread *sync_thread;
+	char *last_sync_action;
+	sector_t curr_resync;
+	sector_t curr_resync_completed;
+	long unsigned int resync_mark;
+	sector_t resync_mark_cnt;
+	sector_t curr_mark_cnt;
+	sector_t resync_max_sectors;
+	atomic64_t resync_mismatches;
+	sector_t suspend_lo;
+	sector_t suspend_hi;
+	int sync_speed_min;
+	int sync_speed_max;
+	int parallel_resync;
+	int ok_start_degraded;
+	long unsigned int recovery;
+	int recovery_disabled;
+	int in_sync;
+	struct mutex open_mutex;
+	struct mutex reconfig_mutex;
+	atomic_t active;
+	atomic_t openers;
+	int changed;
+	int degraded;
+	atomic_t recovery_active;
+	wait_queue_head_t recovery_wait;
+	sector_t recovery_cp;
+	sector_t resync_min;
+	sector_t resync_max;
+	struct kernfs_node *sysfs_state;
+	struct kernfs_node *sysfs_action;
+	struct kernfs_node *sysfs_completed;
+	struct kernfs_node *sysfs_degraded;
+	struct kernfs_node *sysfs_level;
+	struct work_struct del_work;
+	spinlock_t lock;
+	wait_queue_head_t sb_wait;
+	atomic_t pending_writes;
+	unsigned int safemode;
+	unsigned int safemode_delay;
+	struct timer_list safemode_timer;
+	struct percpu_ref writes_pending;
+	int sync_checkers;
+	struct request_queue *queue;
+	struct bitmap *bitmap;
+	struct {
+		struct file *file;
+		loff_t offset;
+		long unsigned int space;
+		loff_t default_offset;
+		long unsigned int default_space;
+		struct mutex mutex;
+		long unsigned int chunksize;
+		long unsigned int daemon_sleep;
+		long unsigned int max_write_behind;
+		int external;
+		int nodes;
+		char cluster_name[64];
+	} bitmap_info;
+	atomic_t max_corr_read_errors;
+	struct list_head all_mddevs;
+	const struct attribute_group *to_remove;
+	struct bio_set bio_set;
+	struct bio_set sync_set;
+	struct bio_set io_acct_set;
+	struct bio *flush_bio;
+	atomic_t flush_pending;
+	ktime_t start_flush;
+	ktime_t prev_flush_start;
+	struct work_struct flush_work;
+	struct work_struct event_work;
+	mempool_t *serial_info_pool;
+	void (*sync_super)(struct mddev *, struct md_rdev *);
+	struct md_cluster_info *cluster_info;
+	unsigned int good_device_nr;
+	unsigned int noio_flag;
+	bool has_superblocks: 1;
+	bool fail_last_dev: 1;
+	bool serialize_policy: 1;
+};
+
+struct serial_in_rdev;
+
+struct md_rdev {
+	struct list_head same_set;
+	sector_t sectors;
+	struct mddev *mddev;
+	int last_events;
+	struct block_device *meta_bdev;
+	struct block_device *bdev;
+	struct page *sb_page;
+	struct page *bb_page;
+	int sb_loaded;
+	__u64 sb_events;
+	sector_t data_offset;
+	sector_t new_data_offset;
+	sector_t sb_start;
+	int sb_size;
+	int preferred_minor;
+	struct kobject kobj;
+	long unsigned int flags;
+	wait_queue_head_t blocked_wait;
+	int desc_nr;
+	int raid_disk;
+	int new_raid_disk;
+	int saved_raid_disk;
+	union {
+		sector_t recovery_offset;
+		sector_t journal_tail;
+	};
+	atomic_t nr_pending;
+	atomic_t read_errors;
+	time64_t last_read_error;
+	atomic_t corrected_errors;
+	struct serial_in_rdev *serial;
+	struct work_struct del_work;
+	struct kernfs_node *sysfs_state;
+	struct kernfs_node *sysfs_unack_badblocks;
+	struct kernfs_node *sysfs_badblocks;
+	struct badblocks badblocks;
+	struct {
+		short int offset;
+		unsigned int size;
+		sector_t sector;
+	} ppl;
+};
+
+struct serial_in_rdev {
+	struct rb_root_cached serial_rb;
+	spinlock_t serial_lock;
+	wait_queue_head_t serial_io_wait;
+};
+
+enum flag_bits {
+	Faulty = 0,
+	In_sync = 1,
+	Bitmap_sync = 2,
+	WriteMostly = 3,
+	AutoDetected = 4,
+	Blocked = 5,
+	WriteErrorSeen = 6,
+	FaultRecorded = 7,
+	BlockedBadBlocks = 8,
+	WantReplacement = 9,
+	Replacement = 10,
+	Candidate = 11,
+	Journal = 12,
+	ClusterRemove = 13,
+	RemoveSynchronized = 14,
+	ExternalBbl = 15,
+	FailFast = 16,
+	LastDev = 17,
+	CollisionCheck = 18,
+};
+
+enum mddev_flags {
+	MD_ARRAY_FIRST_USE = 0,
+	MD_CLOSING = 1,
+	MD_JOURNAL_CLEAN = 2,
+	MD_HAS_JOURNAL = 3,
+	MD_CLUSTER_RESYNC_LOCKED = 4,
+	MD_FAILFAST_SUPPORTED = 5,
+	MD_HAS_PPL = 6,
+	MD_HAS_MULTIPLE_PPLS = 7,
+	MD_ALLOW_SB_UPDATE = 8,
+	MD_UPDATING_SB = 9,
+	MD_NOT_READY = 10,
+	MD_BROKEN = 11,
+	MD_DELETED = 12,
+};
+
+enum mddev_sb_flags {
+	MD_SB_CHANGE_DEVS = 0,
+	MD_SB_CHANGE_CLEAN = 1,
+	MD_SB_CHANGE_PENDING = 2,
+	MD_SB_NEED_REWRITE = 3,
+};
+
+enum {
+	MD_RESYNC_NONE = 0,
+	MD_RESYNC_YIELDED = 1,
+	MD_RESYNC_DELAYED = 2,
+	MD_RESYNC_ACTIVE = 3,
+};
+
+struct md_personality {
+	char *name;
+	int level;
+	struct list_head list;
+	struct module *owner;
+	bool (*make_request)(struct mddev *, struct bio *);
+	int (*run)(struct mddev *);
+	int (*start)(struct mddev *);
+	void (*free)(struct mddev *, void *);
+	void (*status)(struct seq_file *, struct mddev *);
+	void (*error_handler)(struct mddev *, struct md_rdev *);
+	int (*hot_add_disk)(struct mddev *, struct md_rdev *);
+	int (*hot_remove_disk)(struct mddev *, struct md_rdev *);
+	int (*spare_active)(struct mddev *);
+	sector_t (*sync_request)(struct mddev *, sector_t, int *);
+	int (*resize)(struct mddev *, sector_t);
+	sector_t (*size)(struct mddev *, sector_t, int);
+	int (*check_reshape)(struct mddev *);
+	int (*start_reshape)(struct mddev *);
+	void (*finish_reshape)(struct mddev *);
+	void (*update_reshape_pos)(struct mddev *);
+	void (*quiesce)(struct mddev *, int);
+	void * (*takeover)(struct mddev *);
+	int (*change_consistency_policy)(struct mddev *, const char *);
+};
+
+struct md_thread {
+	void (*run)(struct md_thread *);
+	struct mddev *mddev;
+	wait_queue_head_t wqueue;
+	long unsigned int flags;
+	struct task_struct *tsk;
+	long unsigned int timeout;
+	void *private;
+};
+
+struct bitmap_page;
+
+struct bitmap_counts {
+	spinlock_t lock;
+	struct bitmap_page *bp;
+	long unsigned int pages;
+	long unsigned int missing_pages;
+	long unsigned int chunkshift;
+	long unsigned int chunks;
+};
+
+struct bitmap_storage {
+	struct file *file;
+	struct page *sb_page;
+	struct page **filemap;
+	long unsigned int *filemap_attr;
+	long unsigned int file_pages;
+	long unsigned int bytes;
+};
+
+struct bitmap {
+	struct bitmap_counts counts;
+	struct mddev *mddev;
+	__u64 events_cleared;
+	int need_sync;
+	struct bitmap_storage storage;
+	long unsigned int flags;
+	int allclean;
+	atomic_t behind_writes;
+	long unsigned int behind_writes_used;
+	long unsigned int daemon_lastrun;
+	long unsigned int last_end_sync;
+	atomic_t pending_writes;
+	wait_queue_head_t write_wait;
+	wait_queue_head_t overflow_wait;
+	wait_queue_head_t behind_wait;
+	struct kernfs_node *sysfs_can_clear;
+	int cluster_slot;
+};
+
+enum recovery_flags {
+	MD_RECOVERY_RUNNING = 0,
+	MD_RECOVERY_SYNC = 1,
+	MD_RECOVERY_RECOVER = 2,
+	MD_RECOVERY_INTR = 3,
+	MD_RECOVERY_DONE = 4,
+	MD_RECOVERY_NEEDED = 5,
+	MD_RECOVERY_REQUESTED = 6,
+	MD_RECOVERY_CHECK = 7,
+	MD_RECOVERY_RESHAPE = 8,
+	MD_RECOVERY_FROZEN = 9,
+	MD_RECOVERY_ERROR = 10,
+	MD_RECOVERY_WAIT = 11,
+	MD_RESYNCING_REMOTE = 12,
+};
+
+struct md_sysfs_entry {
+	struct attribute attr;
+	ssize_t (*show)(struct mddev *, char *);
+	ssize_t (*store)(struct mddev *, const char *, size_t);
+};
+
+struct md_io_acct {
+	struct bio *orig_bio;
+	long unsigned int start_time;
+	struct bio bio_clone;
+};
+
+struct bitmap_page {
+	char *map;
+	unsigned int hijacked: 1;
+	unsigned int pending: 1;
+	unsigned int count: 30;
+};
+
+struct super_type {
+	char *name;
+	struct module *owner;
+	int (*load_super)(struct md_rdev *, struct md_rdev *, int);
+	int (*validate_super)(struct mddev *, struct md_rdev *);
+	void (*sync_super)(struct mddev *, struct md_rdev *);
+	long long unsigned int (*rdev_size_change)(struct md_rdev *, sector_t);
+	int (*allow_new_offset)(struct md_rdev *, long long unsigned int);
+};
+
+struct rdev_sysfs_entry {
+	struct attribute attr;
+	ssize_t (*show)(struct md_rdev *, char *);
+	ssize_t (*store)(struct md_rdev *, const char *, size_t);
+};
+
+enum array_state {
+	clear = 0,
+	inactive = 1,
+	suspended = 2,
+	readonly = 3,
+	read_auto = 4,
+	clean = 5,
+	active = 6,
+	write_pending = 7,
+	active_idle = 8,
+	broken = 9,
+	bad_word = 10,
+};
+
+struct detected_devices_node {
+	struct list_head list;
+	dev_t dev;
+};
+
+typedef __u16 bitmap_counter_t;
+
+enum bitmap_state {
+	BITMAP_STALE = 1,
+	BITMAP_WRITE_ERROR = 2,
+	BITMAP_HOSTENDIAN = 15,
+};
+
+struct bitmap_super_s {
+	__le32 magic;
+	__le32 version;
+	__u8 uuid[16];
+	__le64 events;
+	__le64 events_cleared;
+	__le64 sync_size;
+	__le32 state;
+	__le32 chunksize;
+	__le32 daemon_sleep;
+	__le32 write_behind;
+	__le32 sectors_reserved;
+	__le32 nodes;
+	__u8 cluster_name[64];
+	__u8 pad[120];
+};
+
+typedef struct bitmap_super_s bitmap_super_t;
+
+enum bitmap_page_attr {
+	BITMAP_PAGE_DIRTY = 0,
+	BITMAP_PAGE_PENDING = 1,
+	BITMAP_PAGE_NEEDWRITE = 2,
+};
+
+struct md_setup_args {
+	int minor;
+	int partitioned;
+	int level;
+	int chunk;
+	char *device_names;
+};
+
+enum blk_crypto_mode_num {
+	BLK_ENCRYPTION_MODE_INVALID = 0,
+	BLK_ENCRYPTION_MODE_AES_256_XTS = 1,
+	BLK_ENCRYPTION_MODE_AES_128_CBC_ESSIV = 2,
+	BLK_ENCRYPTION_MODE_ADIANTUM = 3,
+	BLK_ENCRYPTION_MODE_MAX = 4,
+};
+
+struct dm_kobject_holder {
+	struct kobject kobj;
+	struct completion completion;
+};
+
+enum dev_type {
+	DEV_UNKNOWN = 0,
+	DEV_X1 = 1,
+	DEV_X2 = 2,
+	DEV_X4 = 3,
+	DEV_X8 = 4,
+	DEV_X16 = 5,
+	DEV_X32 = 6,
+	DEV_X64 = 7,
+};
+
+enum hw_event_mc_err_type {
+	HW_EVENT_ERR_CORRECTED = 0,
+	HW_EVENT_ERR_UNCORRECTED = 1,
+	HW_EVENT_ERR_DEFERRED = 2,
+	HW_EVENT_ERR_FATAL = 3,
+	HW_EVENT_ERR_INFO = 4,
+};
+
+enum mem_type {
+	MEM_EMPTY = 0,
+	MEM_RESERVED = 1,
+	MEM_UNKNOWN = 2,
+	MEM_FPM = 3,
+	MEM_EDO = 4,
+	MEM_BEDO = 5,
+	MEM_SDR = 6,
+	MEM_RDR = 7,
+	MEM_DDR = 8,
+	MEM_RDDR = 9,
+	MEM_RMBS = 10,
+	MEM_DDR2 = 11,
+	MEM_FB_DDR2 = 12,
+	MEM_RDDR2 = 13,
+	MEM_XDR = 14,
+	MEM_DDR3 = 15,
+	MEM_RDDR3 = 16,
+	MEM_LRDDR3 = 17,
+	MEM_LPDDR3 = 18,
+	MEM_DDR4 = 19,
+	MEM_RDDR4 = 20,
+	MEM_LRDDR4 = 21,
+	MEM_LPDDR4 = 22,
+	MEM_DDR5 = 23,
+	MEM_RDDR5 = 24,
+	MEM_LRDDR5 = 25,
+	MEM_NVDIMM = 26,
+	MEM_WIO2 = 27,
+};
+
+enum edac_type {
+	EDAC_UNKNOWN = 0,
+	EDAC_NONE = 1,
+	EDAC_RESERVED = 2,
+	EDAC_PARITY = 3,
+	EDAC_EC = 4,
+	EDAC_SECDED = 5,
+	EDAC_S2ECD2ED = 6,
+	EDAC_S4ECD4ED = 7,
+	EDAC_S8ECD8ED = 8,
+	EDAC_S16ECD16ED = 9,
+};
+
+enum scrub_type {
+	SCRUB_UNKNOWN = 0,
+	SCRUB_NONE = 1,
+	SCRUB_SW_PROG = 2,
+	SCRUB_SW_SRC = 3,
+	SCRUB_SW_PROG_SRC = 4,
+	SCRUB_SW_TUNABLE = 5,
+	SCRUB_HW_PROG = 6,
+	SCRUB_HW_SRC = 7,
+	SCRUB_HW_PROG_SRC = 8,
+	SCRUB_HW_TUNABLE = 9,
+};
+
+enum edac_mc_layer_type {
+	EDAC_MC_LAYER_BRANCH = 0,
+	EDAC_MC_LAYER_CHANNEL = 1,
+	EDAC_MC_LAYER_SLOT = 2,
+	EDAC_MC_LAYER_CHIP_SELECT = 3,
+	EDAC_MC_LAYER_ALL_MEM = 4,
+};
+
+struct edac_mc_layer {
+	enum edac_mc_layer_type type;
+	unsigned int size;
+	bool is_virt_csrow;
+};
+
+struct mem_ctl_info;
+
+struct dimm_info {
+	struct device dev;
+	char label[32];
+	unsigned int location[3];
+	struct mem_ctl_info *mci;
+	unsigned int idx;
+	u32 grain;
+	enum dev_type dtype;
+	enum mem_type mtype;
+	enum edac_type edac_mode;
+	u32 nr_pages;
+	unsigned int csrow;
+	unsigned int cschannel;
+	u16 smbios_handle;
+	u32 ce_count;
+	u32 ue_count;
+};
+
+struct mcidev_sysfs_attribute;
+
+struct edac_raw_error_desc {
+	char location[256];
+	char label[296];
+	long int grain;
+	u16 error_count;
+	enum hw_event_mc_err_type type;
+	int top_layer;
+	int mid_layer;
+	int low_layer;
+	long unsigned int page_frame_number;
+	long unsigned int offset_in_page;
+	long unsigned int syndrome;
+	const char *msg;
+	const char *other_detail;
+};
+
+struct csrow_info;
+
+struct mem_ctl_info {
+	struct device dev;
+	struct bus_type *bus;
+	struct list_head link;
+	struct module *owner;
+	long unsigned int mtype_cap;
+	long unsigned int edac_ctl_cap;
+	long unsigned int edac_cap;
+	long unsigned int scrub_cap;
+	enum scrub_type scrub_mode;
+	int (*set_sdram_scrub_rate)(struct mem_ctl_info *, u32);
+	int (*get_sdram_scrub_rate)(struct mem_ctl_info *);
+	void (*edac_check)(struct mem_ctl_info *);
+	long unsigned int (*ctl_page_to_phys)(struct mem_ctl_info *, long unsigned int);
+	int mc_idx;
+	struct csrow_info **csrows;
+	unsigned int nr_csrows;
+	unsigned int num_cschannel;
+	unsigned int n_layers;
+	struct edac_mc_layer *layers;
+	bool csbased;
+	unsigned int tot_dimms;
+	struct dimm_info **dimms;
+	struct device *pdev;
+	const char *mod_name;
+	const char *ctl_name;
+	const char *dev_name;
+	void *pvt_info;
+	long unsigned int start_time;
+	u32 ce_noinfo_count;
+	u32 ue_noinfo_count;
+	u32 ue_mc;
+	u32 ce_mc;
+	struct completion complete;
+	const struct mcidev_sysfs_attribute *mc_driver_sysfs_attributes;
+	struct delayed_work work;
+	struct edac_raw_error_desc error_desc;
+	int op_state;
+	struct dentry *debugfs;
+	u8 fake_inject_layer[3];
+	bool fake_inject_ue;
+	u16 fake_inject_count;
+};
+
+struct rank_info {
+	int chan_idx;
+	struct csrow_info *csrow;
+	struct dimm_info *dimm;
+	u32 ce_count;
+};
+
+struct csrow_info {
+	struct device dev;
+	long unsigned int first_page;
+	long unsigned int last_page;
+	long unsigned int page_mask;
+	int csrow_idx;
+	u32 ue_count;
+	u32 ce_count;
+	struct mem_ctl_info *mci;
+	u32 nr_channels;
+	struct rank_info **channels;
+};
+
+struct edac_device_counter {
+	u32 ue_count;
+	u32 ce_count;
+};
+
+struct edac_device_ctl_info;
+
+struct edac_dev_sysfs_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct edac_device_ctl_info *, char *);
+	ssize_t (*store)(struct edac_device_ctl_info *, const char *, size_t);
+};
+
+struct edac_device_instance;
+
+struct edac_device_ctl_info {
+	struct list_head link;
+	struct module *owner;
+	int dev_idx;
+	int log_ue;
+	int log_ce;
+	int panic_on_ue;
+	unsigned int poll_msec;
+	long unsigned int delay;
+	struct edac_dev_sysfs_attribute *sysfs_attributes;
+	struct bus_type *edac_subsys;
+	int op_state;
+	struct delayed_work work;
+	void (*edac_check)(struct edac_device_ctl_info *);
+	struct device *dev;
+	const char *mod_name;
+	const char *ctl_name;
+	const char *dev_name;
+	void *pvt_info;
+	long unsigned int start_time;
+	struct completion removal_complete;
+	char name[32];
+	u32 nr_instances;
+	struct edac_device_instance *instances;
+	struct edac_device_counter counters;
+	struct kobject kobj;
+};
+
+struct edac_device_block;
+
+struct edac_dev_sysfs_block_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct kobject *, struct attribute *, char *);
+	ssize_t (*store)(struct kobject *, struct attribute *, const char *, size_t);
+	struct edac_device_block *block;
+	unsigned int value;
+};
+
+struct edac_device_block {
+	struct edac_device_instance *instance;
+	char name[32];
+	struct edac_device_counter counters;
+	int nr_attribs;
+	struct edac_dev_sysfs_block_attribute *block_attributes;
+	struct kobject kobj;
+};
+
+struct edac_device_instance {
+	struct edac_device_ctl_info *ctl;
+	char name[35];
+	struct edac_device_counter counters;
+	u32 nr_blocks;
+	struct edac_device_block *blocks;
+	struct kobject kobj;
+};
+
+struct dev_ch_attribute {
+	struct device_attribute attr;
+	unsigned int channel;
+};
+
+struct ctl_info_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct edac_device_ctl_info *, char *);
+	ssize_t (*store)(struct edac_device_ctl_info *, const char *, size_t);
+};
+
+struct instance_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct edac_device_instance *, char *);
+	ssize_t (*store)(struct edac_device_instance *, const char *, size_t);
+};
+
+struct edac_pci_counter {
+	atomic_t pe_count;
+	atomic_t npe_count;
+};
+
+struct edac_pci_ctl_info {
+	struct list_head link;
+	int pci_idx;
+	struct bus_type *edac_subsys;
+	int op_state;
+	struct delayed_work work;
+	void (*edac_check)(struct edac_pci_ctl_info *);
+	struct device *dev;
+	const char *mod_name;
+	const char *ctl_name;
+	const char *dev_name;
+	void *pvt_info;
+	long unsigned int start_time;
+	struct completion complete;
+	char name[32];
+	struct edac_pci_counter counters;
+	struct kobject kobj;
+};
+
+struct edac_pci_gen_data {
+	int edac_idx;
+};
+
+struct instance_attribute___2 {
+	struct attribute attr;
+	ssize_t (*show)(struct edac_pci_ctl_info *, char *);
+	ssize_t (*store)(struct edac_pci_ctl_info *, const char *, size_t);
+};
+
+struct edac_pci_dev_attribute {
+	struct attribute attr;
+	void *value;
+	ssize_t (*show)(void *, char *);
+	ssize_t (*store)(void *, const char *, size_t);
+};
+
+typedef void (*pci_parity_check_fn_t)(struct pci_dev *);
+
+struct cpufreq_policy_data {
+	struct cpufreq_cpuinfo cpuinfo;
+	struct cpufreq_frequency_table *freq_table;
+	unsigned int cpu;
+	unsigned int min;
+	unsigned int max;
+};
+
+struct cpufreq_freqs {
+	struct cpufreq_policy *policy;
+	unsigned int old;
+	unsigned int new;
+	u8 flags;
+};
+
+struct freq_attr {
+	struct attribute attr;
+	ssize_t (*show)(struct cpufreq_policy *, char *);
+	ssize_t (*store)(struct cpufreq_policy *, const char *, size_t);
+};
+
+struct cpufreq_driver {
+	char name[16];
+	u16 flags;
+	void *driver_data;
+	int (*init)(struct cpufreq_policy *);
+	int (*verify)(struct cpufreq_policy_data *);
+	int (*setpolicy)(struct cpufreq_policy *);
+	int (*target)(struct cpufreq_policy *, unsigned int, unsigned int);
+	int (*target_index)(struct cpufreq_policy *, unsigned int);
+	unsigned int (*fast_switch)(struct cpufreq_policy *, unsigned int);
+	void (*adjust_perf)(unsigned int, long unsigned int, long unsigned int, long unsigned int);
+	unsigned int (*get_intermediate)(struct cpufreq_policy *, unsigned int);
+	int (*target_intermediate)(struct cpufreq_policy *, unsigned int);
+	unsigned int (*get)(unsigned int);
+	void (*update_limits)(unsigned int);
+	int (*bios_limit)(int, unsigned int *);
+	int (*online)(struct cpufreq_policy *);
+	int (*offline)(struct cpufreq_policy *);
+	int (*exit)(struct cpufreq_policy *);
+	int (*suspend)(struct cpufreq_policy *);
+	int (*resume)(struct cpufreq_policy *);
+	void (*ready)(struct cpufreq_policy *);
+	struct freq_attr **attr;
+	bool boost_enabled;
+	int (*set_boost)(struct cpufreq_policy *, int);
+};
+
+struct cpufreq_stats {
+	unsigned int total_trans;
+	long long unsigned int last_time;
+	unsigned int max_state;
+	unsigned int state_num;
+	unsigned int last_index;
+	u64 *time_in_state;
+	unsigned int *freq_table;
+	unsigned int *trans_table;
+	unsigned int reset_pending;
+	long long unsigned int reset_time;
+};
+
+enum {
+	OD_NORMAL_SAMPLE = 0,
+	OD_SUB_SAMPLE = 1,
+};
+
+struct dbs_data {
+	struct gov_attr_set attr_set;
+	void *tuners;
+	unsigned int ignore_nice_load;
+	unsigned int sampling_rate;
+	unsigned int sampling_down_factor;
+	unsigned int up_threshold;
+	unsigned int io_is_busy;
+};
+
+struct policy_dbs_info {
+	struct cpufreq_policy *policy;
+	struct mutex update_mutex;
+	u64 last_sample_time;
+	s64 sample_delay_ns;
+	atomic_t work_count;
+	struct irq_work irq_work;
+	struct work_struct work;
+	struct dbs_data *dbs_data;
+	struct list_head list;
+	unsigned int rate_mult;
+	unsigned int idle_periods;
+	bool is_shared;
+	bool work_in_progress;
+};
+
+struct dbs_governor {
+	struct cpufreq_governor gov;
+	struct kobj_type kobj_type;
+	struct dbs_data *gdbs_data;
+	unsigned int (*gov_dbs_update)(struct cpufreq_policy *);
+	struct policy_dbs_info * (*alloc)();
+	void (*free)(struct policy_dbs_info *);
+	int (*init)(struct dbs_data *);
+	void (*exit)(struct dbs_data *);
+	void (*start)(struct cpufreq_policy *);
+};
+
+struct od_ops {
+	unsigned int (*powersave_bias_target)(struct cpufreq_policy *, unsigned int, unsigned int);
+};
+
+struct od_policy_dbs_info {
+	struct policy_dbs_info policy_dbs;
+	unsigned int freq_lo;
+	unsigned int freq_lo_delay_us;
+	unsigned int freq_hi_delay_us;
+	unsigned int sample_type: 1;
+};
+
+struct od_dbs_tuners {
+	unsigned int powersave_bias;
+};
+
+struct cs_policy_dbs_info {
+	struct policy_dbs_info policy_dbs;
+	unsigned int down_skip;
+	unsigned int requested_freq;
+};
+
+struct cs_dbs_tuners {
+	unsigned int down_threshold;
+	unsigned int freq_step;
+};
+
+struct cpu_dbs_info {
+	u64 prev_cpu_idle;
+	u64 prev_update_time;
+	u64 prev_cpu_nice;
+	unsigned int prev_load;
+	struct update_util_data update_util;
+	struct policy_dbs_info *policy_dbs;
+};
+
+struct opal_occ_msg {
+	__be64 type;
+	__be64 chip;
+	__be64 throttle_status;
+};
+
+struct global_pstate_info {
+	int highest_lpstate_idx;
+	unsigned int elapsed_time;
+	unsigned int last_sampled_time;
+	int last_lpstate_idx;
+	int last_gpstate_idx;
+	spinlock_t gpstate_lock;
+	struct timer_list timer;
+	struct cpufreq_policy *policy;
+};
+
+struct pstate_idx_revmap_data {
+	u8 pstate_id;
+	unsigned int cpufreq_table_idx;
+	struct hlist_node hentry;
+};
+
+enum throttle_reason_type {
+	NO_THROTTLE = 0,
+	POWERCAP = 1,
+	CPU_OVERTEMP = 2,
+	POWER_SUPPLY_FAILURE = 3,
+	OVERCURRENT = 4,
+	OCC_RESET_THROTTLE = 5,
+	OCC_MAX_REASON = 6,
+};
+
+struct chip {
+	unsigned int id;
+	bool throttled;
+	bool restore;
+	u8 throttle_reason;
+	cpumask_t mask;
+	struct work_struct throttle;
+	int throttle_turbo;
+	int throttle_sub_turbo;
+	int reason[6];
+};
+
+struct powernv_pstate_info {
+	unsigned int min;
+	unsigned int max;
+	unsigned int nominal;
+	unsigned int nr_pstates;
+	bool wof_enabled;
+};
+
+struct powernv_smp_call_data {
+	unsigned int freq;
+	u8 pstate_id;
+	u8 gpstate_id;
+};
+
+struct cpuidle_governor {
+	char name[16];
+	struct list_head governor_list;
+	unsigned int rating;
+	int (*enable)(struct cpuidle_driver *, struct cpuidle_device *);
+	void (*disable)(struct cpuidle_driver *, struct cpuidle_device *);
+	int (*select)(struct cpuidle_driver *, struct cpuidle_device *, bool *);
+	void (*reflect)(struct cpuidle_device *, int);
+};
+
+struct cpuidle_state_kobj {
+	struct cpuidle_state *state;
+	struct cpuidle_state_usage *state_usage;
+	struct completion kobj_unregister;
+	struct kobject kobj;
+	struct cpuidle_device *device;
+};
+
+struct cpuidle_device_kobj {
+	struct cpuidle_device *dev;
+	struct completion kobj_unregister;
+	struct kobject kobj;
+};
+
+struct cpuidle_attr {
+	struct attribute attr;
+	ssize_t (*show)(struct cpuidle_device *, char *);
+	ssize_t (*store)(struct cpuidle_device *, const char *, size_t);
+};
+
+struct cpuidle_state_attr {
+	struct attribute attr;
+	ssize_t (*show)(struct cpuidle_state *, struct cpuidle_state_usage *, char *);
+	ssize_t (*store)(struct cpuidle_state *, struct cpuidle_state_usage *, const char *, size_t);
+};
+
+struct menu_device {
+	int needs_update;
+	int tick_wakeup;
+	u64 next_timer_ns;
+	unsigned int bucket;
+	unsigned int correction_factor[12];
+	unsigned int intervals[8];
+	int interval_ptr;
+};
+
+struct xcede_latency_record {
+	u8 hint;
+	__be64 latency_ticks;
+	u8 wake_on_irqs;
+} __attribute__((packed));
+
+struct xcede_latency_payload {
+	u8 record_size;
+	struct xcede_latency_record records[16];
+} __attribute__((packed));
+
+struct xcede_latency_parameter {
+	__be16 payload_size;
+	struct xcede_latency_payload payload;
+	u8 null_char;
+} __attribute__((packed));
+
+struct stop_psscr_table {
+	u64 val;
+	u64 mask;
+};
+
+struct led_properties {
+	u32 color;
+	bool color_present;
+	const char *function;
+	u32 func_enum;
+	bool func_enum_present;
+	const char *label;
+};
+
+struct nx842_constraints {
+	int alignment;
+	int multiple;
+	int minimum;
+	int maximum;
+};
+
+struct nx842_driver {
+	char *name;
+	struct module *owner;
+	size_t workmem_size;
+	struct nx842_constraints *constraints;
+	int (*compress)(const unsigned char *, unsigned int, unsigned char *, unsigned int *, void *);
+	int (*decompress)(const unsigned char *, unsigned int, unsigned char *, unsigned int *, void *);
+};
+
+struct cop_symcpb_aes_ecb {
+	u8 key[32];
+	u8 __rsvd[80];
+};
+
+struct cop_symcpb_aes_cbc {
+	u8 iv[16];
+	u8 key[32];
+	u8 cv[16];
+	u32 spbc;
+	u8 __rsvd[44];
+};
+
+struct cop_symcpb_aes_gca {
+	u8 in_pat[16];
+	u8 key[32];
+	u8 out_pat[16];
+	u32 spbc;
+	u8 __rsvd[44];
+};
+
+struct cop_symcpb_aes_gcm {
+	u8 in_pat_or_aad[16];
+	u8 iv_or_cnt[16];
+	u64 bit_length_aad;
+	u64 bit_length_data;
+	u8 in_s0[16];
+	u8 key[32];
+	u8 __rsvd1[16];
+	u8 out_pat_or_mac[16];
+	u8 out_s0[16];
+	u8 out_cnt[16];
+	u32 spbc;
+	u8 __rsvd2[12];
+};
+
+struct cop_symcpb_aes_ctr {
+	u8 iv[16];
+	u8 key[32];
+	u8 cv[16];
+	u32 spbc;
+	u8 __rsvd2[44];
+};
+
+struct cop_symcpb_aes_cca {
+	u8 b0[16];
+	u8 b1[16];
+	u8 key[16];
+	u8 out_pat_or_b0[16];
+	u32 spbc;
+	u8 __rsvd[44];
+};
+
+struct cop_symcpb_aes_ccm {
+	u8 in_pat_or_b0[16];
+	u8 iv_or_ctr[16];
+	u8 in_s0[16];
+	u8 key[16];
+	u8 __rsvd1[48];
+	u8 out_pat_or_mac[16];
+	u8 out_s0[16];
+	u8 out_ctr[16];
+	u32 spbc;
+	u8 __rsvd2[12];
+};
+
+struct cop_symcpb_aes_xcbc {
+	u8 cv[16];
+	u8 key[16];
+	u8 __rsvd1[16];
+	u8 out_cv_mac[16];
+	u32 spbc;
+	u8 __rsvd2[44];
+};
+
+struct cop_symcpb_sha256 {
+	u64 message_bit_length;
+	u64 __rsvd1;
+	u8 input_partial_digest[32];
+	u8 message_digest[32];
+	u32 spbc;
+	u8 __rsvd2[44];
+};
+
+struct cop_symcpb_sha512 {
+	u64 message_bit_length_hi;
+	u64 message_bit_length_lo;
+	u8 input_partial_digest[64];
+	u8 __rsvd1[32];
+	u8 message_digest[64];
+	u32 spbc;
+	u8 __rsvd2[76];
+};
+
+struct cop_symcpb_header {
+	u8 mode;
+	u8 fdm;
+	u8 ks_ds;
+	u8 pad_byte;
+	u8 __rsvd[12];
+};
+
+struct cop_parameter_block {
+	struct cop_symcpb_header hdr;
+	union {
+		struct cop_symcpb_aes_ecb aes_ecb;
+		struct cop_symcpb_aes_cbc aes_cbc;
+		struct cop_symcpb_aes_gca aes_gca;
+		struct cop_symcpb_aes_gcm aes_gcm;
+		struct cop_symcpb_aes_cca aes_cca;
+		struct cop_symcpb_aes_ccm aes_ccm;
+		struct cop_symcpb_aes_ctr aes_ctr;
+		struct cop_symcpb_aes_xcbc aes_xcbc;
+		struct cop_symcpb_sha256 sha256;
+		struct cop_symcpb_sha512 sha512;
+	};
+};
+
+struct cop_status_block {
+	u8 valid;
+	u8 crb_seq_number;
+	u8 completion_code;
+	u8 completion_extension;
+	__be32 processed_byte_count;
+	__be64 address;
+};
+
+struct nx_csbcpb {
+	unsigned char __rsvd[112];
+	struct cop_status_block csb;
+	struct cop_parameter_block cpb;
+};
