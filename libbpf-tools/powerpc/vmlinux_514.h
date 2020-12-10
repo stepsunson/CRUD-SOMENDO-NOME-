@@ -101684,3 +101684,2136 @@ struct nx_csbcpb {
 	struct cop_status_block csb;
 	struct cop_parameter_block cpb;
 };
+
+struct hv_nx_cop_caps {
+	__be64 descriptor;
+	__be64 req_max_processed_len;
+	__be64 min_compress_len;
+	__be64 min_decompress_len;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct nx_cop_caps {
+	u64 descriptor;
+	u64 req_max_processed_len;
+	u64 min_compress_len;
+	u64 min_decompress_len;
+};
+
+struct nx842_workmem {
+	char slin[4096];
+	char slout[4096];
+	struct nx_csbcpb csbcpb;
+	char padding[256];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct ibm_nx842_counters {
+	atomic64_t comp_complete;
+	atomic64_t comp_failed;
+	atomic64_t decomp_complete;
+	atomic64_t decomp_failed;
+	atomic64_t swdecomp;
+	atomic64_t comp_times[32];
+	atomic64_t decomp_times[32];
+};
+
+struct nx842_devdata {
+	struct vio_dev *vdev;
+	struct device *dev;
+	struct ibm_nx842_counters *counters;
+	unsigned int max_sg_len;
+	unsigned int max_sync_size;
+	unsigned int max_sync_sg;
+};
+
+struct nx842_slentry {
+	__be64 ptr;
+	__be64 len;
+};
+
+struct nx842_scatterlist {
+	int entry_nr;
+	struct nx842_slentry *entries;
+};
+
+struct maxsynccop_t {
+	__be32 comp_elements;
+	__be32 comp_data_limit;
+	__be32 comp_sg_limit;
+	__be32 decomp_elements;
+	__be32 decomp_data_limit;
+	__be32 decomp_sg_limit;
+};
+
+struct nx842_crypto_header_group {
+	__be16 padding;
+	__be32 compressed_length;
+	__be32 uncompressed_length;
+} __attribute__((packed));
+
+struct nx842_crypto_header {
+	__be16 magic;
+	__be16 ignore;
+	u8 groups;
+	struct nx842_crypto_header_group group[0];
+} __attribute__((packed));
+
+struct nx842_crypto_ctx {
+	spinlock_t lock;
+	int: 32;
+	u8 *wmem;
+	u8 *sbounce;
+	u8 *dbounce;
+	struct nx842_crypto_header header;
+	struct nx842_crypto_header_group group[32];
+	int: 24;
+	struct nx842_driver *driver;
+} __attribute__((packed));
+
+struct nx842_crypto_param {
+	u8 *in;
+	unsigned int iremain;
+	u8 *out;
+	unsigned int oremain;
+	unsigned int ototal;
+};
+
+struct nx842_workmem___2 {
+	struct coprocessor_request_block crb;
+	struct data_descriptor_entry ddl_in[17];
+	struct data_descriptor_entry ddl_out[17];
+	ktime_t start;
+	char padding[256];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct nx_coproc {
+	unsigned int chip_id;
+	unsigned int ct;
+	unsigned int ci;
+	struct {
+		struct vas_window *rxwin;
+		int id;
+	} vas;
+	struct list_head list;
+};
+
+struct hid_device_id {
+	__u16 bus;
+	__u16 group;
+	__u32 vendor;
+	__u32 product;
+	kernel_ulong_t driver_data;
+};
+
+struct hid_item {
+	unsigned int format;
+	__u8 size;
+	__u8 type;
+	__u8 tag;
+	union {
+		__u8 u8;
+		__s8 s8;
+		__u16 u16;
+		__s16 s16;
+		__u32 u32;
+		__s32 s32;
+		__u8 *longdata;
+	} data;
+};
+
+struct hid_global {
+	unsigned int usage_page;
+	__s32 logical_minimum;
+	__s32 logical_maximum;
+	__s32 physical_minimum;
+	__s32 physical_maximum;
+	__s32 unit_exponent;
+	unsigned int unit;
+	unsigned int report_id;
+	unsigned int report_size;
+	unsigned int report_count;
+};
+
+struct hid_local {
+	unsigned int usage[12288];
+	u8 usage_size[12288];
+	unsigned int collection_index[12288];
+	unsigned int usage_index;
+	unsigned int usage_minimum;
+	unsigned int delimiter_depth;
+	unsigned int delimiter_branch;
+};
+
+struct hid_collection {
+	int parent_idx;
+	unsigned int type;
+	unsigned int usage;
+	unsigned int level;
+};
+
+struct hid_usage {
+	unsigned int hid;
+	unsigned int collection_index;
+	unsigned int usage_index;
+	__s8 resolution_multiplier;
+	__s8 wheel_factor;
+	__u16 code;
+	__u8 type;
+	__s8 hat_min;
+	__s8 hat_max;
+	__s8 hat_dir;
+	__s16 wheel_accumulated;
+};
+
+struct hid_report;
+
+struct hid_input;
+
+struct hid_field {
+	unsigned int physical;
+	unsigned int logical;
+	unsigned int application;
+	struct hid_usage *usage;
+	unsigned int maxusage;
+	unsigned int flags;
+	unsigned int report_offset;
+	unsigned int report_size;
+	unsigned int report_count;
+	unsigned int report_type;
+	__s32 *value;
+	__s32 *new_value;
+	__s32 *usages_priorities;
+	__s32 logical_minimum;
+	__s32 logical_maximum;
+	__s32 physical_minimum;
+	__s32 physical_maximum;
+	__s32 unit_exponent;
+	unsigned int unit;
+	bool ignored;
+	struct hid_report *report;
+	unsigned int index;
+	struct hid_input *hidinput;
+	__u16 dpad;
+	unsigned int slot_idx;
+};
+
+struct hid_field_entry;
+
+struct hid_device;
+
+struct hid_report {
+	struct list_head list;
+	struct list_head hidinput_list;
+	struct list_head field_entry_list;
+	unsigned int id;
+	unsigned int type;
+	unsigned int application;
+	struct hid_field *field[256];
+	struct hid_field_entry *field_entries;
+	unsigned int maxfield;
+	unsigned int size;
+	struct hid_device *device;
+	bool tool_active;
+	unsigned int tool;
+};
+
+struct hid_input {
+	struct list_head list;
+	struct hid_report *report;
+	struct input_dev *input;
+	const char *name;
+	bool registered;
+	struct list_head reports;
+	unsigned int application;
+};
+
+struct hid_field_entry {
+	struct list_head list;
+	struct hid_field *field;
+	unsigned int index;
+	__s32 priority;
+};
+
+enum hid_type {
+	HID_TYPE_OTHER = 0,
+	HID_TYPE_USBMOUSE = 1,
+	HID_TYPE_USBNONE = 2,
+};
+
+struct hid_report_enum {
+	unsigned int numbered;
+	struct list_head report_list;
+	struct hid_report *report_id_hash[256];
+};
+
+enum hid_battery_status {
+	HID_BATTERY_UNKNOWN = 0,
+	HID_BATTERY_QUERIED = 1,
+	HID_BATTERY_REPORTED = 2,
+};
+
+struct hid_driver;
+
+struct hid_ll_driver;
+
+struct hid_device {
+	__u8 *dev_rdesc;
+	unsigned int dev_rsize;
+	__u8 *rdesc;
+	unsigned int rsize;
+	struct hid_collection *collection;
+	unsigned int collection_size;
+	unsigned int maxcollection;
+	unsigned int maxapplication;
+	__u16 bus;
+	__u16 group;
+	__u32 vendor;
+	__u32 product;
+	__u32 version;
+	enum hid_type type;
+	unsigned int country;
+	struct hid_report_enum report_enum[3];
+	struct work_struct led_work;
+	struct semaphore driver_input_lock;
+	struct device dev;
+	struct hid_driver *driver;
+	struct hid_ll_driver *ll_driver;
+	struct mutex ll_open_lock;
+	unsigned int ll_open_count;
+	struct power_supply *battery;
+	__s32 battery_capacity;
+	__s32 battery_min;
+	__s32 battery_max;
+	__s32 battery_report_type;
+	__s32 battery_report_id;
+	enum hid_battery_status battery_status;
+	bool battery_avoid_query;
+	ktime_t battery_ratelimit_time;
+	long unsigned int status;
+	unsigned int claimed;
+	unsigned int quirks;
+	bool io_started;
+	struct list_head inputs;
+	void *hiddev;
+	void *hidraw;
+	char name[128];
+	char phys[64];
+	char uniq[64];
+	void *driver_data;
+	int (*ff_init)(struct hid_device *);
+	int (*hiddev_connect)(struct hid_device *, unsigned int);
+	void (*hiddev_disconnect)(struct hid_device *);
+	void (*hiddev_hid_event)(struct hid_device *, struct hid_field *, struct hid_usage *, __s32);
+	void (*hiddev_report_event)(struct hid_device *, struct hid_report *);
+	short unsigned int debug;
+	struct dentry *debug_dir;
+	struct dentry *debug_rdesc;
+	struct dentry *debug_events;
+	struct list_head debug_list;
+	spinlock_t debug_list_lock;
+	wait_queue_head_t debug_wait;
+};
+
+struct hid_report_id;
+
+struct hid_usage_id;
+
+struct hid_driver {
+	char *name;
+	const struct hid_device_id *id_table;
+	struct list_head dyn_list;
+	spinlock_t dyn_lock;
+	bool (*match)(struct hid_device *, bool);
+	int (*probe)(struct hid_device *, const struct hid_device_id *);
+	void (*remove)(struct hid_device *);
+	const struct hid_report_id *report_table;
+	int (*raw_event)(struct hid_device *, struct hid_report *, u8 *, int);
+	const struct hid_usage_id *usage_table;
+	int (*event)(struct hid_device *, struct hid_field *, struct hid_usage *, __s32);
+	void (*report)(struct hid_device *, struct hid_report *);
+	__u8 * (*report_fixup)(struct hid_device *, __u8 *, unsigned int *);
+	int (*input_mapping)(struct hid_device *, struct hid_input *, struct hid_field *, struct hid_usage *, long unsigned int **, int *);
+	int (*input_mapped)(struct hid_device *, struct hid_input *, struct hid_field *, struct hid_usage *, long unsigned int **, int *);
+	int (*input_configured)(struct hid_device *, struct hid_input *);
+	void (*feature_mapping)(struct hid_device *, struct hid_field *, struct hid_usage *);
+	int (*suspend)(struct hid_device *, pm_message_t);
+	int (*resume)(struct hid_device *);
+	int (*reset_resume)(struct hid_device *);
+	struct device_driver driver;
+};
+
+struct hid_ll_driver {
+	int (*start)(struct hid_device *);
+	void (*stop)(struct hid_device *);
+	int (*open)(struct hid_device *);
+	void (*close)(struct hid_device *);
+	int (*power)(struct hid_device *, int);
+	int (*parse)(struct hid_device *);
+	void (*request)(struct hid_device *, struct hid_report *, int);
+	int (*wait)(struct hid_device *);
+	int (*raw_request)(struct hid_device *, unsigned char, __u8 *, size_t, unsigned char, int);
+	int (*output_report)(struct hid_device *, __u8 *, size_t);
+	int (*idle)(struct hid_device *, int, int, int);
+	bool (*may_wakeup)(struct hid_device *);
+};
+
+struct hid_parser {
+	struct hid_global global;
+	struct hid_global global_stack[4];
+	unsigned int global_stack_ptr;
+	struct hid_local local;
+	unsigned int *collection_stack;
+	unsigned int collection_stack_ptr;
+	unsigned int collection_stack_size;
+	struct hid_device *device;
+	unsigned int scan_flags;
+};
+
+struct hid_report_id {
+	__u32 report_type;
+};
+
+struct hid_usage_id {
+	__u32 usage_hid;
+	__u32 usage_type;
+	__u32 usage_code;
+};
+
+struct hiddev {
+	int minor;
+	int exist;
+	int open;
+	struct mutex existancelock;
+	wait_queue_head_t wait;
+	struct hid_device *hid;
+	struct list_head list;
+	spinlock_t list_lock;
+	bool initialized;
+};
+
+struct hidraw {
+	unsigned int minor;
+	int exist;
+	int open;
+	wait_queue_head_t wait;
+	struct hid_device *hid;
+	struct device *dev;
+	spinlock_t list_lock;
+	struct list_head list;
+};
+
+struct hid_dynid {
+	struct list_head list;
+	struct hid_device_id id;
+};
+
+struct usage_priority {
+	__u32 usage;
+	bool global;
+	unsigned int slot_overwrite;
+};
+
+typedef bool (*hid_usage_cmp_t)(struct hid_usage *, unsigned int, unsigned int);
+
+struct quirks_list_struct {
+	struct hid_device_id hid_bl_item;
+	struct list_head node;
+};
+
+struct hid_debug_list {
+	struct {
+		union {
+			struct __kfifo kfifo;
+			char *type;
+			const char *const_type;
+			char (*rectype)[0];
+			char *ptr;
+			const char *ptr_const;
+		};
+		char buf[0];
+	} hid_debug_fifo;
+	struct fasync_struct *fasync;
+	struct hid_device *hdev;
+	struct list_head node;
+	struct mutex read_mutex;
+};
+
+struct hid_usage_entry {
+	unsigned int page;
+	unsigned int usage;
+	const char *description;
+};
+
+struct hidraw_devinfo {
+	__u32 bustype;
+	__s16 vendor;
+	__s16 product;
+};
+
+struct hidraw_report {
+	__u8 *value;
+	int len;
+};
+
+struct hidraw_list {
+	struct hidraw_report buffer[64];
+	int head;
+	int tail;
+	struct fasync_struct *fasync;
+	struct hidraw *hidraw;
+	struct list_head node;
+	struct mutex read_mutex;
+};
+
+struct magicmouse_sc {
+	struct input_dev *input;
+	long unsigned int quirks;
+	int ntouches;
+	int scroll_accel;
+	long unsigned int scroll_jiffies;
+	struct {
+		short int x;
+		short int y;
+		short int scroll_x;
+		short int scroll_y;
+		short int scroll_x_hr;
+		short int scroll_y_hr;
+		u8 size;
+		bool scroll_x_active;
+		bool scroll_y_active;
+	} touches[16];
+	int tracking_ids[16];
+	struct hid_device *hdev;
+	struct delayed_work work;
+	struct timer_list battery_timer;
+};
+
+struct ntrig_data {
+	__u16 x;
+	__u16 y;
+	__u16 w;
+	__u16 h;
+	__u16 id;
+	bool tipswitch;
+	bool confidence;
+	bool first_contact_touch;
+	bool reading_mt;
+	__u8 mt_footer[4];
+	__u8 mt_foot_count;
+	__s8 act_state;
+	__s8 deactivate_slack;
+	__s8 activate_slack;
+	__u16 min_width;
+	__u16 min_height;
+	__u16 activation_width;
+	__u16 activation_height;
+	__u16 sensor_logical_width;
+	__u16 sensor_logical_height;
+	__u16 sensor_physical_width;
+	__u16 sensor_physical_height;
+};
+
+struct hid_control_fifo {
+	unsigned char dir;
+	struct hid_report *report;
+	char *raw_report;
+};
+
+struct hid_output_fifo {
+	struct hid_report *report;
+	char *raw_report;
+};
+
+struct hid_class_descriptor {
+	__u8 bDescriptorType;
+	__le16 wDescriptorLength;
+} __attribute__((packed));
+
+struct hid_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 bcdHID;
+	__u8 bCountryCode;
+	__u8 bNumDescriptors;
+	struct hid_class_descriptor desc[1];
+} __attribute__((packed));
+
+struct usbhid_device {
+	struct hid_device *hid;
+	struct usb_interface *intf;
+	int ifnum;
+	unsigned int bufsize;
+	struct urb *urbin;
+	char *inbuf;
+	dma_addr_t inbuf_dma;
+	struct urb *urbctrl;
+	struct usb_ctrlrequest *cr;
+	struct hid_control_fifo ctrl[256];
+	unsigned char ctrlhead;
+	unsigned char ctrltail;
+	char *ctrlbuf;
+	dma_addr_t ctrlbuf_dma;
+	long unsigned int last_ctrl;
+	struct urb *urbout;
+	struct hid_output_fifo out[256];
+	unsigned char outhead;
+	unsigned char outtail;
+	char *outbuf;
+	dma_addr_t outbuf_dma;
+	long unsigned int last_out;
+	struct mutex mutex;
+	spinlock_t lock;
+	long unsigned int iofl;
+	struct timer_list io_retry;
+	long unsigned int stop_retry;
+	unsigned int retry_delay;
+	struct work_struct reset_work;
+	wait_queue_head_t wait;
+};
+
+struct hiddev_event {
+	unsigned int hid;
+	int value;
+};
+
+struct hiddev_devinfo {
+	__u32 bustype;
+	__u32 busnum;
+	__u32 devnum;
+	__u32 ifnum;
+	__s16 vendor;
+	__s16 product;
+	__s16 version;
+	__u32 num_applications;
+};
+
+struct hiddev_collection_info {
+	__u32 index;
+	__u32 type;
+	__u32 usage;
+	__u32 level;
+};
+
+struct hiddev_report_info {
+	__u32 report_type;
+	__u32 report_id;
+	__u32 num_fields;
+};
+
+struct hiddev_field_info {
+	__u32 report_type;
+	__u32 report_id;
+	__u32 field_index;
+	__u32 maxusage;
+	__u32 flags;
+	__u32 physical;
+	__u32 logical;
+	__u32 application;
+	__s32 logical_minimum;
+	__s32 logical_maximum;
+	__s32 physical_minimum;
+	__s32 physical_maximum;
+	__u32 unit_exponent;
+	__u32 unit;
+};
+
+struct hiddev_usage_ref {
+	__u32 report_type;
+	__u32 report_id;
+	__u32 field_index;
+	__u32 usage_index;
+	__u32 usage_code;
+	__s32 value;
+};
+
+struct hiddev_usage_ref_multi {
+	struct hiddev_usage_ref uref;
+	__u32 num_values;
+	__s32 values[1024];
+};
+
+struct hiddev_list {
+	struct hiddev_usage_ref buffer[2048];
+	int head;
+	int tail;
+	unsigned int flags;
+	struct fasync_struct *fasync;
+	struct hiddev *hiddev;
+	struct list_head node;
+	struct mutex thread_lock;
+};
+
+struct pidff_usage {
+	struct hid_field *field;
+	s32 *value;
+};
+
+struct pidff_device {
+	struct hid_device *hid;
+	struct hid_report *reports[13];
+	struct pidff_usage set_effect[7];
+	struct pidff_usage set_envelope[5];
+	struct pidff_usage set_condition[8];
+	struct pidff_usage set_periodic[5];
+	struct pidff_usage set_constant[2];
+	struct pidff_usage set_ramp[3];
+	struct pidff_usage device_gain[1];
+	struct pidff_usage block_load[2];
+	struct pidff_usage pool[3];
+	struct pidff_usage effect_operation[2];
+	struct pidff_usage block_free[1];
+	struct hid_field *create_new_effect_type;
+	struct hid_field *set_effect_type;
+	struct hid_field *effect_direction;
+	struct hid_field *device_control;
+	struct hid_field *block_load_status;
+	struct hid_field *effect_operation_status;
+	int control_id[2];
+	int type_id[11];
+	int status_id[2];
+	int operation_id[2];
+	int pid_id[64];
+};
+
+struct alias_prop {
+	struct list_head link;
+	const char *alias;
+	struct device_node *np;
+	int id;
+	char stem[0];
+};
+
+struct amba_cs_uci_id {
+	unsigned int devarch;
+	unsigned int devarch_mask;
+	unsigned int devtype;
+	void *data;
+};
+
+struct amba_device {
+	struct device dev;
+	struct resource res;
+	struct clk *pclk;
+	struct device_dma_parameters dma_parms;
+	unsigned int periphid;
+	unsigned int cid;
+	struct amba_cs_uci_id uci;
+	unsigned int irq[9];
+	char *driver_override;
+};
+
+struct of_dev_auxdata {
+	char *compatible;
+	resource_size_t phys_addr;
+	char *name;
+	void *platform_data;
+};
+
+struct of_endpoint {
+	unsigned int port;
+	unsigned int id;
+	const struct device_node *local_node;
+};
+
+struct supplier_bindings {
+	struct device_node * (*parse_prop)(struct device_node *, const char *, int);
+	bool optional;
+	bool node_not_dev;
+};
+
+struct of_changeset_entry {
+	struct list_head node;
+	long unsigned int action;
+	struct device_node *np;
+	struct property *prop;
+	struct property *old_prop;
+};
+
+struct of_bus___2 {
+	void (*count_cells)(const void *, int, int *, int *);
+	u64 (*map)(__be32 *, const __be32 *, int, int, int);
+	int (*translate)(__be32 *, u64, int);
+};
+
+struct of_bus {
+	const char *name;
+	const char *addresses;
+	int (*match)(struct device_node *);
+	void (*count_cells)(struct device_node *, int *, int *);
+	u64 (*map)(__be32 *, const __be32 *, int, int, int);
+	int (*translate)(__be32 *, u64, int);
+	bool has_flags;
+	unsigned int (*get_flags)(const __be32 *);
+};
+
+struct of_intc_desc {
+	struct list_head list;
+	of_irq_init_cb_t irq_init_cb;
+	struct device_node *dev;
+	struct device_node *interrupt_parent;
+};
+
+struct rmem_assigned_device {
+	struct device *dev;
+	struct reserved_mem *rmem;
+	struct list_head list;
+};
+
+struct hwspinlock___2;
+
+struct hwspinlock_ops {
+	int (*trylock)(struct hwspinlock___2 *);
+	void (*unlock)(struct hwspinlock___2 *);
+	void (*relax)(struct hwspinlock___2 *);
+};
+
+struct hwspinlock_device;
+
+struct hwspinlock___2 {
+	struct hwspinlock_device *bank;
+	spinlock_t lock;
+	void *priv;
+};
+
+struct hwspinlock_device {
+	struct device *dev;
+	const struct hwspinlock_ops *ops;
+	int base_id;
+	int num_locks;
+	struct hwspinlock___2 lock[0];
+};
+
+struct cper_sec_proc_arm {
+	u32 validation_bits;
+	u16 err_info_num;
+	u16 context_info_num;
+	u32 section_length;
+	u8 affinity_level;
+	u8 reserved[3];
+	u64 mpidr;
+	u64 midr;
+	u32 running_state;
+	u32 psci_state;
+};
+
+struct trace_event_raw_mc_event {
+	struct trace_entry ent;
+	unsigned int error_type;
+	u32 __data_loc_msg;
+	u32 __data_loc_label;
+	u16 error_count;
+	u8 mc_index;
+	s8 top_layer;
+	s8 middle_layer;
+	s8 lower_layer;
+	long int address;
+	u8 grain_bits;
+	long int syndrome;
+	u32 __data_loc_driver_detail;
+	char __data[0];
+};
+
+struct trace_event_raw_arm_event {
+	struct trace_entry ent;
+	u64 mpidr;
+	u64 midr;
+	u32 running_state;
+	u32 psci_state;
+	u8 affinity;
+	char __data[0];
+};
+
+struct trace_event_raw_non_standard_event {
+	struct trace_entry ent;
+	char sec_type[16];
+	char fru_id[16];
+	u32 __data_loc_fru_text;
+	u8 sev;
+	u32 len;
+	u32 __data_loc_buf;
+	char __data[0];
+};
+
+struct trace_event_raw_aer_event {
+	struct trace_entry ent;
+	u32 __data_loc_dev_name;
+	u32 status;
+	u8 severity;
+	u8 tlp_header_valid;
+	u32 tlp_header[4];
+	char __data[0];
+};
+
+struct trace_event_raw_memory_failure_event {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	int type;
+	int result;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mc_event {
+	u32 msg;
+	u32 label;
+	u32 driver_detail;
+};
+
+struct trace_event_data_offsets_arm_event {};
+
+struct trace_event_data_offsets_non_standard_event {
+	u32 fru_text;
+	u32 buf;
+};
+
+struct trace_event_data_offsets_aer_event {
+	u32 dev_name;
+};
+
+struct trace_event_data_offsets_memory_failure_event {};
+
+typedef void (*btf_trace_mc_event)(void *, const unsigned int, const char *, const char *, const int, const u8, const s8, const s8, const s8, long unsigned int, const u8, long unsigned int, const char *);
+
+typedef void (*btf_trace_arm_event)(void *, const struct cper_sec_proc_arm *);
+
+typedef void (*btf_trace_non_standard_event)(void *, const guid_t *, const guid_t *, const char *, const u8, const u8 *, const u32);
+
+typedef void (*btf_trace_aer_event)(void *, const char *, const u32, const u8, const u8, struct aer_header_log_regs *);
+
+typedef void (*btf_trace_memory_failure_event)(void *, long unsigned int, int, int);
+
+enum tb_cfg_pkg_type {
+	TB_CFG_PKG_READ = 1,
+	TB_CFG_PKG_WRITE = 2,
+	TB_CFG_PKG_ERROR = 3,
+	TB_CFG_PKG_NOTIFY_ACK = 4,
+	TB_CFG_PKG_EVENT = 5,
+	TB_CFG_PKG_XDOMAIN_REQ = 6,
+	TB_CFG_PKG_XDOMAIN_RESP = 7,
+	TB_CFG_PKG_OVERRIDE = 8,
+	TB_CFG_PKG_RESET = 9,
+	TB_CFG_PKG_ICM_EVENT = 10,
+	TB_CFG_PKG_ICM_CMD = 11,
+	TB_CFG_PKG_ICM_RESP = 12,
+	TB_CFG_PKG_PREPARE_TO_SLEEP = 13,
+};
+
+enum tb_security_level {
+	TB_SECURITY_NONE = 0,
+	TB_SECURITY_USER = 1,
+	TB_SECURITY_SECURE = 2,
+	TB_SECURITY_DPONLY = 3,
+	TB_SECURITY_USBONLY = 4,
+	TB_SECURITY_NOPCIE = 5,
+};
+
+struct tb_nhi;
+
+struct tb_ctl;
+
+struct tb_switch;
+
+struct tb_cm_ops;
+
+struct tb {
+	struct device dev;
+	struct mutex lock;
+	struct tb_nhi *nhi;
+	struct tb_ctl *ctl;
+	struct workqueue_struct *wq;
+	struct tb_switch *root_switch;
+	const struct tb_cm_ops *cm_ops;
+	int index;
+	enum tb_security_level security_level;
+	size_t nboot_acl;
+	long unsigned int privdata[0];
+};
+
+struct tb_nhi_ops;
+
+struct tb_ring;
+
+struct tb_nhi {
+	spinlock_t lock;
+	struct pci_dev *pdev;
+	const struct tb_nhi_ops *ops;
+	void *iobase;
+	struct tb_ring **tx_rings;
+	struct tb_ring **rx_rings;
+	struct ida msix_ida;
+	bool going_away;
+	bool iommu_dma_protection;
+	struct work_struct interrupt_work;
+	u32 hop_count;
+	long unsigned int quirks;
+};
+
+struct tb_regs_switch_header {
+	u16 vendor_id;
+	u16 device_id;
+	u32 first_cap_offset: 8;
+	u32 upstream_port_number: 6;
+	u32 max_port_number: 6;
+	u32 depth: 3;
+	u32 __unknown1: 1;
+	u32 revision: 8;
+	u32 route_lo;
+	u32 route_hi: 31;
+	bool enabled: 1;
+	u32 plug_events_delay: 8;
+	u32 cmuv: 8;
+	u32 __unknown4: 8;
+	u32 thunderbolt_version: 8;
+};
+
+enum tb_switch_tmu_rate {
+	TB_SWITCH_TMU_RATE_OFF = 0,
+	TB_SWITCH_TMU_RATE_HIFI = 16,
+	TB_SWITCH_TMU_RATE_NORMAL = 1000,
+};
+
+struct tb_switch_tmu {
+	int cap;
+	bool has_ucap;
+	enum tb_switch_tmu_rate rate;
+	bool unidirectional;
+	bool unidirectional_request;
+	enum tb_switch_tmu_rate rate_request;
+};
+
+enum tb_clx {
+	TB_CLX_DISABLE = 0,
+	TB_CL1 = 1,
+	TB_CL2 = 2,
+};
+
+struct tb_port;
+
+struct tb_dma_port;
+
+struct tb_nvm;
+
+struct tb_switch {
+	struct device dev;
+	struct tb_regs_switch_header config;
+	struct tb_port *ports;
+	struct tb_dma_port *dma_port;
+	struct tb_switch_tmu tmu;
+	struct tb *tb;
+	u64 uid;
+	uuid_t *uuid;
+	u16 vendor;
+	u16 device;
+	const char *vendor_name;
+	const char *device_name;
+	unsigned int link_speed;
+	unsigned int link_width;
+	bool link_usb4;
+	unsigned int generation;
+	int cap_plug_events;
+	int cap_vsec_tmu;
+	int cap_lc;
+	int cap_lp;
+	bool is_unplugged;
+	u8 *drom;
+	struct tb_nvm *nvm;
+	bool no_nvm_upgrade;
+	bool safe_mode;
+	bool boot;
+	bool rpm;
+	unsigned int authorized;
+	enum tb_security_level security_level;
+	struct dentry *debugfs_dir;
+	u8 *key;
+	u8 connection_id;
+	u8 connection_key;
+	u8 link;
+	u8 depth;
+	struct completion rpm_complete;
+	long unsigned int quirks;
+	bool credit_allocation;
+	unsigned int max_usb3_credits;
+	unsigned int min_dp_aux_credits;
+	unsigned int min_dp_main_credits;
+	unsigned int max_pcie_credits;
+	unsigned int max_dma_credits;
+	enum tb_clx clx;
+};
+
+struct tb_xdomain;
+
+struct tb_cm_ops {
+	int (*driver_ready)(struct tb *);
+	int (*start)(struct tb *);
+	void (*stop)(struct tb *);
+	int (*suspend_noirq)(struct tb *);
+	int (*resume_noirq)(struct tb *);
+	int (*suspend)(struct tb *);
+	int (*freeze_noirq)(struct tb *);
+	int (*thaw_noirq)(struct tb *);
+	void (*complete)(struct tb *);
+	int (*runtime_suspend)(struct tb *);
+	int (*runtime_resume)(struct tb *);
+	int (*runtime_suspend_switch)(struct tb_switch *);
+	int (*runtime_resume_switch)(struct tb_switch *);
+	void (*handle_event)(struct tb *, enum tb_cfg_pkg_type, const void *, size_t);
+	int (*get_boot_acl)(struct tb *, uuid_t *, size_t);
+	int (*set_boot_acl)(struct tb *, const uuid_t *, size_t);
+	int (*disapprove_switch)(struct tb *, struct tb_switch *);
+	int (*approve_switch)(struct tb *, struct tb_switch *);
+	int (*add_switch_key)(struct tb *, struct tb_switch *);
+	int (*challenge_switch_key)(struct tb *, struct tb_switch *, const u8 *, u8 *);
+	int (*disconnect_pcie_paths)(struct tb *);
+	int (*approve_xdomain_paths)(struct tb *, struct tb_xdomain *, int, int, int, int);
+	int (*disconnect_xdomain_paths)(struct tb *, struct tb_xdomain *, int, int, int, int);
+	int (*usb4_switch_op)(struct tb_switch *, u16, u32 *, u8 *, const void *, size_t, void *, size_t);
+	int (*usb4_switch_nvm_authenticate_status)(struct tb_switch *, u32 *);
+};
+
+struct tb_property_dir {
+	const uuid_t *uuid;
+	struct list_head properties;
+};
+
+struct tb_xdomain {
+	struct device dev;
+	struct tb *tb;
+	uuid_t *remote_uuid;
+	const uuid_t *local_uuid;
+	u64 route;
+	u16 vendor;
+	u16 device;
+	unsigned int local_max_hopid;
+	unsigned int remote_max_hopid;
+	struct mutex lock;
+	const char *vendor_name;
+	const char *device_name;
+	unsigned int link_speed;
+	unsigned int link_width;
+	bool is_unplugged;
+	bool needs_uuid;
+	struct ida service_ids;
+	struct ida in_hopids;
+	struct ida out_hopids;
+	u32 *local_property_block;
+	u32 local_property_block_gen;
+	u32 local_property_block_len;
+	struct tb_property_dir *remote_properties;
+	u32 remote_property_block_gen;
+	int state;
+	struct delayed_work state_work;
+	int state_retries;
+	struct delayed_work properties_changed_work;
+	int properties_changed_retries;
+	bool bonding_possible;
+	u8 target_link_width;
+	u8 link;
+	u8 depth;
+};
+
+struct tb_nhi_ops {
+	int (*init)(struct tb_nhi *);
+	int (*suspend_noirq)(struct tb_nhi *, bool);
+	int (*resume_noirq)(struct tb_nhi *);
+	int (*runtime_suspend)(struct tb_nhi *);
+	int (*runtime_resume)(struct tb_nhi *);
+	void (*shutdown)(struct tb_nhi *);
+};
+
+struct ring_desc;
+
+struct tb_ring {
+	spinlock_t lock;
+	struct tb_nhi *nhi;
+	int size;
+	int hop;
+	int head;
+	int tail;
+	struct ring_desc *descriptors;
+	dma_addr_t descriptors_dma;
+	struct list_head queue;
+	struct list_head in_flight;
+	struct work_struct work;
+	bool is_tx: 1;
+	bool running: 1;
+	int irq;
+	u8 vector;
+	unsigned int flags;
+	int e2e_tx_hop;
+	u16 sof_mask;
+	u16 eof_mask;
+	void (*start_poll)(void *);
+	void *poll_data;
+};
+
+enum ring_desc_flags {
+	RING_DESC_ISOCH = 1,
+	RING_DESC_CRC_ERROR = 1,
+	RING_DESC_COMPLETED = 2,
+	RING_DESC_POSTED = 4,
+	RING_DESC_BUFFER_OVERRUN = 4,
+	RING_DESC_INTERRUPT = 8,
+};
+
+struct ring_desc {
+	u64 phys;
+	u32 length: 12;
+	u32 eof: 4;
+	u32 sof: 4;
+	enum ring_desc_flags flags: 12;
+	u32 time;
+};
+
+struct ring_frame;
+
+typedef void (*ring_cb)(struct tb_ring *, struct ring_frame *, bool);
+
+struct ring_frame {
+	dma_addr_t buffer_phy;
+	ring_cb callback;
+	struct list_head list;
+	u32 size: 12;
+	u32 flags: 12;
+	u32 eof: 4;
+	u32 sof: 4;
+};
+
+enum nhi_fw_mode {
+	NHI_FW_SAFE_MODE = 0,
+	NHI_FW_AUTH_MODE = 1,
+	NHI_FW_EP_MODE = 2,
+	NHI_FW_CM_MODE = 3,
+};
+
+enum nhi_mailbox_cmd {
+	NHI_MAILBOX_SAVE_DEVS = 5,
+	NHI_MAILBOX_DISCONNECT_PCIE_PATHS = 6,
+	NHI_MAILBOX_DRV_UNLOADS = 7,
+	NHI_MAILBOX_DISCONNECT_PA = 16,
+	NHI_MAILBOX_DISCONNECT_PB = 17,
+	NHI_MAILBOX_ALLOW_ALL_DEVS = 35,
+};
+
+enum ring_flags {
+	RING_FLAG_ISOCH_ENABLE = 134217728,
+	RING_FLAG_E2E_FLOW_CONTROL = 268435456,
+	RING_FLAG_PCI_NO_SNOOP = 536870912,
+	RING_FLAG_RAW = 1073741824,
+	RING_FLAG_ENABLE = 2147483648,
+};
+
+enum tb_port_type {
+	TB_TYPE_INACTIVE = 0,
+	TB_TYPE_PORT = 1,
+	TB_TYPE_NHI = 2,
+	TB_TYPE_DP_HDMI_IN = 917761,
+	TB_TYPE_DP_HDMI_OUT = 917762,
+	TB_TYPE_PCIE_DOWN = 1048833,
+	TB_TYPE_PCIE_UP = 1048834,
+	TB_TYPE_USB3_DOWN = 2097409,
+	TB_TYPE_USB3_UP = 2097410,
+};
+
+struct tb_regs_port_header {
+	u16 vendor_id;
+	u16 device_id;
+	u32 first_cap_offset: 8;
+	u32 max_counters: 11;
+	u32 counters_support: 1;
+	u32 __unknown1: 4;
+	u32 revision: 8;
+	enum tb_port_type type: 24;
+	u32 thunderbolt_version: 8;
+	u32 __unknown2: 20;
+	u32 port_number: 6;
+	u32 __unknown3: 6;
+	u32 nfc_credits;
+	u32 max_in_hop_id: 11;
+	u32 max_out_hop_id: 11;
+	u32 __unknown4: 10;
+	u32 __unknown5;
+	u32 __unknown6;
+};
+
+struct tb_nvm {
+	struct device *dev;
+	u8 major;
+	u8 minor;
+	int id;
+	struct nvmem_device *active;
+	struct nvmem_device *non_active;
+	void *buf;
+	size_t buf_data_size;
+	bool authenticating;
+	bool flushed;
+};
+
+struct usb4_port;
+
+struct tb_port {
+	struct tb_regs_port_header config;
+	struct tb_switch *sw;
+	struct tb_port *remote;
+	struct tb_xdomain *xdomain;
+	int cap_phy;
+	int cap_tmu;
+	int cap_adap;
+	int cap_usb4;
+	struct usb4_port *usb4;
+	u8 port;
+	bool disabled;
+	bool bonded;
+	struct tb_port *dual_link_port;
+	u8 link_nr: 1;
+	struct ida in_hopids;
+	struct ida out_hopids;
+	struct list_head list;
+	unsigned int total_credits;
+	unsigned int ctl_credits;
+	unsigned int dma_credits;
+};
+
+struct usb4_port {
+	struct device dev;
+	struct tb_port *port;
+	bool can_offline;
+	bool offline;
+};
+
+enum icl_lc_mailbox_cmd {
+	ICL_LC_GO2SX = 2,
+	ICL_LC_GO2SX_NO_WAKE = 3,
+	ICL_LC_PREPARE_FOR_RESET = 33,
+};
+
+typedef bool (*event_cb)(void *, enum tb_cfg_pkg_type, const void *, size_t);
+
+struct ctl_pkg;
+
+struct tb_ctl {
+	struct tb_nhi *nhi;
+	struct tb_ring *tx;
+	struct tb_ring *rx;
+	struct dma_pool___2 *frame_pool;
+	struct ctl_pkg *rx_packets[10];
+	struct mutex request_queue_lock;
+	struct list_head request_queue;
+	bool running;
+	int timeout_msec;
+	event_cb callback;
+	void *callback_data;
+};
+
+enum tb_cfg_space {
+	TB_CFG_HOPS = 0,
+	TB_CFG_PORT = 1,
+	TB_CFG_SWITCH = 2,
+	TB_CFG_COUNTERS = 3,
+};
+
+enum tb_cfg_error {
+	TB_CFG_ERROR_PORT_NOT_CONNECTED = 0,
+	TB_CFG_ERROR_LINK_ERROR = 1,
+	TB_CFG_ERROR_INVALID_CONFIG_SPACE = 2,
+	TB_CFG_ERROR_NO_SUCH_PORT = 4,
+	TB_CFG_ERROR_ACK_PLUG_EVENT = 7,
+	TB_CFG_ERROR_LOOP = 8,
+	TB_CFG_ERROR_HEC_ERROR_DETECTED = 12,
+	TB_CFG_ERROR_FLOW_CONTROL_ERROR = 13,
+	TB_CFG_ERROR_LOCK = 15,
+};
+
+struct tb_cfg_header {
+	u32 route_hi: 22;
+	u32 unknown: 10;
+	u32 route_lo;
+};
+
+struct tb_cfg_address {
+	u32 offset: 13;
+	u32 length: 6;
+	u32 port: 6;
+	enum tb_cfg_space space: 2;
+	u32 seq: 2;
+	u32 zero: 3;
+};
+
+struct cfg_read_pkg {
+	struct tb_cfg_header header;
+	struct tb_cfg_address addr;
+};
+
+struct cfg_write_pkg {
+	struct tb_cfg_header header;
+	struct tb_cfg_address addr;
+	u32 data[64];
+};
+
+struct cfg_error_pkg {
+	struct tb_cfg_header header;
+	enum tb_cfg_error error: 4;
+	u32 zero1: 4;
+	u32 port: 6;
+	u32 zero2: 2;
+	u32 zero3: 14;
+	u32 pg: 2;
+};
+
+struct cfg_reset_pkg {
+	struct tb_cfg_header header;
+};
+
+struct tb_cfg_result {
+	u64 response_route;
+	u32 response_port;
+	int err;
+	enum tb_cfg_error tb_error;
+};
+
+struct ctl_pkg {
+	struct tb_ctl *ctl;
+	void *buffer;
+	struct ring_frame frame;
+};
+
+struct tb_cfg_request {
+	struct kref kref;
+	struct tb_ctl *ctl;
+	const void *request;
+	size_t request_size;
+	enum tb_cfg_pkg_type request_type;
+	void *response;
+	size_t response_size;
+	enum tb_cfg_pkg_type response_type;
+	size_t npackets;
+	bool (*match)(const struct tb_cfg_request *, const struct ctl_pkg *);
+	bool (*copy)(struct tb_cfg_request *, const struct ctl_pkg *);
+	void (*callback)(void *);
+	void *callback_data;
+	long unsigned int flags;
+	struct work_struct work;
+	struct tb_cfg_result result;
+	struct list_head list;
+};
+
+struct cfg_event_pkg {
+	struct tb_cfg_header header;
+	u32 port: 6;
+	u32 zero: 25;
+	bool unplug: 1;
+};
+
+struct tb_path_hop {
+	struct tb_port *in_port;
+	struct tb_port *out_port;
+	int in_hop_index;
+	int in_counter_index;
+	int next_hop_index;
+	unsigned int initial_credits;
+	unsigned int nfc_credits;
+};
+
+enum tb_path_port {
+	TB_PATH_NONE = 0,
+	TB_PATH_SOURCE = 1,
+	TB_PATH_INTERNAL = 2,
+	TB_PATH_DESTINATION = 4,
+	TB_PATH_ALL = 7,
+};
+
+struct tb_path {
+	struct tb *tb;
+	const char *name;
+	enum tb_path_port ingress_shared_buffer;
+	enum tb_path_port egress_shared_buffer;
+	enum tb_path_port ingress_fc_enable;
+	enum tb_path_port egress_fc_enable;
+	unsigned int priority: 3;
+	int weight: 4;
+	bool drop_packages;
+	bool activated;
+	bool clear_fc;
+	struct tb_path_hop *hops;
+	int path_length;
+	bool alloc_hopid;
+};
+
+enum tb_tunnel_type {
+	TB_TUNNEL_PCI = 0,
+	TB_TUNNEL_DP = 1,
+	TB_TUNNEL_DMA = 2,
+	TB_TUNNEL_USB3 = 3,
+};
+
+struct tb_tunnel {
+	struct tb *tb;
+	struct tb_port *src_port;
+	struct tb_port *dst_port;
+	struct tb_path **paths;
+	size_t npaths;
+	int (*init)(struct tb_tunnel *);
+	void (*deinit)(struct tb_tunnel *);
+	int (*activate)(struct tb_tunnel *, bool);
+	int (*consumed_bandwidth)(struct tb_tunnel *, int *, int *);
+	int (*release_unused_bandwidth)(struct tb_tunnel *);
+	void (*reclaim_available_bandwidth)(struct tb_tunnel *, int *, int *);
+	struct list_head list;
+	enum tb_tunnel_type type;
+	int max_up;
+	int max_down;
+	int allocated_up;
+	int allocated_down;
+};
+
+struct tb_cm {
+	struct list_head tunnel_list;
+	struct list_head dp_resources;
+	bool hotplug_active;
+	struct delayed_work remove_work;
+};
+
+struct tb_hotplug_event {
+	struct work_struct work;
+	struct tb *tb;
+	u64 route;
+	u8 port;
+	bool unplug;
+};
+
+enum tb_switch_vse_cap {
+	TB_VSE_CAP_PLUG_EVENTS = 1,
+	TB_VSE_CAP_TIME2 = 3,
+	TB_VSE_CAP_CP_LP = 4,
+	TB_VSE_CAP_LINK_CONTROLLER = 6,
+};
+
+enum tb_port_cap {
+	TB_PORT_CAP_PHY = 1,
+	TB_PORT_CAP_POWER = 2,
+	TB_PORT_CAP_TIME1 = 3,
+	TB_PORT_CAP_ADAP = 4,
+	TB_PORT_CAP_VSE = 5,
+	TB_PORT_CAP_USB4 = 6,
+};
+
+enum tb_port_state {
+	TB_PORT_DISABLED = 0,
+	TB_PORT_CONNECTING = 1,
+	TB_PORT_UP = 2,
+	TB_PORT_UNPLUGGED = 7,
+};
+
+struct tb_cap_basic {
+	u8 next;
+	u8 cap;
+};
+
+struct tb_cap_phy {
+	struct tb_cap_basic cap_header;
+	u32 unknown1: 16;
+	u32 unknown2: 14;
+	bool disable: 1;
+	u32 unknown3: 11;
+	enum tb_port_state state: 4;
+	u32 unknown4: 2;
+};
+
+struct tb_regs_hop {
+	u32 next_hop: 11;
+	u32 out_port: 6;
+	u32 initial_credits: 8;
+	u32 unknown1: 6;
+	bool enable: 1;
+	u32 weight: 4;
+	u32 unknown2: 4;
+	u32 priority: 3;
+	bool drop_packages: 1;
+	u32 counter: 11;
+	bool counter_enable: 1;
+	bool ingress_fc: 1;
+	bool egress_fc: 1;
+	bool ingress_shared_buffer: 1;
+	bool egress_shared_buffer: 1;
+	bool pending: 1;
+	u32 unknown3: 3;
+};
+
+enum tb_nvm_write_ops {
+	WRITE_AND_AUTHENTICATE = 1,
+	WRITE_ONLY = 2,
+	AUTHENTICATE_ONLY = 3,
+};
+
+struct nvm_auth_status {
+	struct list_head list;
+	uuid_t uuid;
+	u32 status;
+};
+
+struct tb_sw_lookup {
+	struct tb *tb;
+	u8 link;
+	u8 depth;
+	const uuid_t *uuid;
+	u64 route;
+};
+
+enum tb_switch_cap {
+	TB_SWITCH_CAP_TMU = 3,
+	TB_SWITCH_CAP_VSE = 5,
+};
+
+struct tb_cap_extended_short {
+	u8 next;
+	u8 cap;
+	u8 vsec_id;
+	u8 length;
+};
+
+struct tb_cap_extended_long {
+	u8 zero1;
+	u8 cap;
+	u8 vsec_id;
+	u8 zero2;
+	u16 next;
+	u16 length;
+};
+
+struct tb_cap_any {
+	union {
+		struct tb_cap_basic basic;
+		struct tb_cap_extended_short extended_short;
+		struct tb_cap_extended_long extended_long;
+	};
+};
