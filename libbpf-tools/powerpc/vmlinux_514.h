@@ -107994,3 +107994,2042 @@ struct bpf_fib_lookup {
 		__be32 ipv4_src;
 		__u32 ipv6_src[4];
 	};
+	union {
+		__be32 ipv4_dst;
+		__u32 ipv6_dst[4];
+	};
+	__be16 h_vlan_proto;
+	__be16 h_vlan_TCI;
+	__u8 smac[6];
+	__u8 dmac[6];
+};
+
+struct bpf_redir_neigh {
+	__u32 nh_family;
+	union {
+		__be32 ipv4_nh;
+		__u32 ipv6_nh[4];
+	};
+};
+
+enum bpf_check_mtu_flags {
+	BPF_MTU_CHK_SEGS = 1,
+};
+
+enum bpf_check_mtu_ret {
+	BPF_MTU_CHK_RET_SUCCESS = 0,
+	BPF_MTU_CHK_RET_FRAG_NEEDED = 1,
+	BPF_MTU_CHK_RET_SEGS_TOOBIG = 2,
+};
+
+struct compat_sock_fprog {
+	u16 len;
+	compat_uptr_t filter;
+};
+
+enum {
+	INET_ECN_NOT_ECT = 0,
+	INET_ECN_ECT_1 = 1,
+	INET_ECN_ECT_0 = 2,
+	INET_ECN_CE = 3,
+	INET_ECN_MASK = 3,
+};
+
+struct tcp_skb_cb {
+	__u32 seq;
+	__u32 end_seq;
+	union {
+		__u32 tcp_tw_isn;
+		struct {
+			u16 tcp_gso_segs;
+			u16 tcp_gso_size;
+		};
+	};
+	__u8 tcp_flags;
+	__u8 sacked;
+	__u8 ip_dsfield;
+	__u8 txstamp_ack: 1;
+	__u8 eor: 1;
+	__u8 has_rxtstamp: 1;
+	__u8 unused: 5;
+	__u32 ack_seq;
+	union {
+		struct {
+			__u32 in_flight: 30;
+			__u32 is_app_limited: 1;
+			__u32 unused: 1;
+			__u32 delivered;
+			u64 first_tx_mstamp;
+			u64 delivered_mstamp;
+		} tx;
+		union {
+			struct inet_skb_parm h4;
+			struct inet6_skb_parm h6;
+		} header;
+	};
+};
+
+struct strp_msg {
+	int full_len;
+	int offset;
+};
+
+struct _strp_msg {
+	struct strp_msg strp;
+	int accum_len;
+};
+
+struct sk_skb_cb {
+	unsigned char data[20];
+	struct _strp_msg strp;
+	u64 temp_reg;
+};
+
+struct xdp_umem {
+	void *addrs;
+	u64 size;
+	u32 headroom;
+	u32 chunk_size;
+	u32 chunks;
+	u32 npgs;
+	struct user_struct *user;
+	refcount_t users;
+	u8 flags;
+	bool zc;
+	struct page **pgs;
+	int id;
+	struct list_head xsk_dma_list;
+	struct work_struct work;
+};
+
+struct xsk_queue;
+
+struct xdp_sock {
+	struct sock sk;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct xsk_queue *rx;
+	struct net_device *dev;
+	struct xdp_umem *umem;
+	struct list_head flush_node;
+	struct xsk_buff_pool *pool;
+	u16 queue_id;
+	bool zc;
+	enum {
+		XSK_READY = 0,
+		XSK_BOUND = 1,
+		XSK_UNBOUND = 2,
+	} state;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct xsk_queue *tx;
+	struct list_head tx_list;
+	spinlock_t rx_lock;
+	u64 rx_dropped;
+	u64 rx_queue_full;
+	struct list_head map_list;
+	spinlock_t map_list_lock;
+	struct mutex mutex;
+	struct xsk_queue *fq_tmp;
+	struct xsk_queue *cq_tmp;
+	long: 64;
+};
+
+struct tls_crypto_info {
+	__u16 version;
+	__u16 cipher_type;
+};
+
+struct tls12_crypto_info_aes_gcm_128 {
+	struct tls_crypto_info info;
+	unsigned char iv[8];
+	unsigned char key[16];
+	unsigned char salt[4];
+	unsigned char rec_seq[8];
+};
+
+struct tls12_crypto_info_aes_gcm_256 {
+	struct tls_crypto_info info;
+	unsigned char iv[8];
+	unsigned char key[32];
+	unsigned char salt[4];
+	unsigned char rec_seq[8];
+};
+
+struct tls12_crypto_info_chacha20_poly1305 {
+	struct tls_crypto_info info;
+	unsigned char iv[12];
+	unsigned char key[32];
+	unsigned char salt[0];
+	unsigned char rec_seq[8];
+};
+
+struct tls_sw_context_rx {
+	struct crypto_aead *aead_recv;
+	struct crypto_wait async_wait;
+	struct strparser strp;
+	struct sk_buff_head rx_list;
+	void (*saved_data_ready)(struct sock *);
+	struct sk_buff *recv_pkt;
+	u8 control;
+	u8 async_capable: 1;
+	u8 decrypted: 1;
+	atomic_t decrypt_pending;
+	spinlock_t decrypt_compl_lock;
+	bool async_notify;
+};
+
+struct cipher_context {
+	char *iv;
+	char *rec_seq;
+};
+
+union tls_crypto_context {
+	struct tls_crypto_info info;
+	union {
+		struct tls12_crypto_info_aes_gcm_128 aes_gcm_128;
+		struct tls12_crypto_info_aes_gcm_256 aes_gcm_256;
+		struct tls12_crypto_info_chacha20_poly1305 chacha20_poly1305;
+	};
+};
+
+struct tls_prot_info {
+	u16 version;
+	u16 cipher_type;
+	u16 prepend_size;
+	u16 tag_size;
+	u16 overhead_size;
+	u16 iv_size;
+	u16 salt_size;
+	u16 rec_seq_size;
+	u16 aad_size;
+	u16 tail_size;
+};
+
+struct tls_context {
+	struct tls_prot_info prot_info;
+	u8 tx_conf: 3;
+	u8 rx_conf: 3;
+	int (*push_pending_record)(struct sock *, int);
+	void (*sk_write_space)(struct sock *);
+	void *priv_ctx_tx;
+	void *priv_ctx_rx;
+	struct net_device *netdev;
+	struct cipher_context tx;
+	struct cipher_context rx;
+	struct scatterlist *partially_sent_record;
+	u16 partially_sent_offset;
+	bool in_tcp_sendpages;
+	bool pending_open_record_frags;
+	struct mutex tx_lock;
+	long unsigned int flags;
+	struct proto *sk_proto;
+	struct sock *sk;
+	void (*sk_destruct)(struct sock *);
+	union tls_crypto_context crypto_send;
+	union tls_crypto_context crypto_recv;
+	struct list_head list;
+	refcount_t refcount;
+	struct callback_head rcu;
+};
+
+typedef u64 (*btf_bpf_skb_get_pay_offset)(struct sk_buff *);
+
+typedef u64 (*btf_bpf_skb_get_nlattr)(struct sk_buff *, u32, u32);
+
+typedef u64 (*btf_bpf_skb_get_nlattr_nest)(struct sk_buff *, u32, u32);
+
+typedef u64 (*btf_bpf_skb_load_helper_8)(const struct sk_buff *, const void *, int, int);
+
+typedef u64 (*btf_bpf_skb_load_helper_8_no_cache)(const struct sk_buff *, int);
+
+typedef u64 (*btf_bpf_skb_load_helper_16)(const struct sk_buff *, const void *, int, int);
+
+typedef u64 (*btf_bpf_skb_load_helper_16_no_cache)(const struct sk_buff *, int);
+
+typedef u64 (*btf_bpf_skb_load_helper_32)(const struct sk_buff *, const void *, int, int);
+
+typedef u64 (*btf_bpf_skb_load_helper_32_no_cache)(const struct sk_buff *, int);
+
+struct bpf_scratchpad {
+	union {
+		__be32 diff[128];
+		u8 buff[512];
+	};
+};
+
+typedef u64 (*btf_bpf_skb_store_bytes)(struct sk_buff *, u32, const void *, u32, u64);
+
+typedef u64 (*btf_bpf_skb_load_bytes)(const struct sk_buff *, u32, void *, u32);
+
+typedef u64 (*btf_bpf_flow_dissector_load_bytes)(const struct bpf_flow_dissector *, u32, void *, u32);
+
+typedef u64 (*btf_bpf_skb_load_bytes_relative)(const struct sk_buff *, u32, void *, u32, u32);
+
+typedef u64 (*btf_bpf_skb_pull_data)(struct sk_buff *, u32);
+
+typedef u64 (*btf_bpf_sk_fullsock)(struct sock *);
+
+typedef u64 (*btf_sk_skb_pull_data)(struct sk_buff *, u32);
+
+typedef u64 (*btf_bpf_l3_csum_replace)(struct sk_buff *, u32, u64, u64, u64);
+
+typedef u64 (*btf_bpf_l4_csum_replace)(struct sk_buff *, u32, u64, u64, u64);
+
+typedef u64 (*btf_bpf_csum_diff)(__be32 *, u32, __be32 *, u32, __wsum);
+
+typedef u64 (*btf_bpf_csum_update)(struct sk_buff *, __wsum);
+
+typedef u64 (*btf_bpf_csum_level)(struct sk_buff *, u64);
+
+enum {
+	BPF_F_NEIGH = 2,
+	BPF_F_PEER = 4,
+	BPF_F_NEXTHOP = 8,
+};
+
+typedef u64 (*btf_bpf_clone_redirect)(struct sk_buff *, u32, u64);
+
+typedef u64 (*btf_bpf_redirect)(u32, u64);
+
+typedef u64 (*btf_bpf_redirect_peer)(u32, u64);
+
+typedef u64 (*btf_bpf_redirect_neigh)(u32, struct bpf_redir_neigh *, int, u64);
+
+typedef u64 (*btf_bpf_msg_apply_bytes)(struct sk_msg *, u32);
+
+typedef u64 (*btf_bpf_msg_cork_bytes)(struct sk_msg *, u32);
+
+typedef u64 (*btf_bpf_msg_pull_data)(struct sk_msg *, u32, u32, u64);
+
+typedef u64 (*btf_bpf_msg_push_data)(struct sk_msg *, u32, u32, u64);
+
+typedef u64 (*btf_bpf_msg_pop_data)(struct sk_msg *, u32, u32, u64);
+
+typedef u64 (*btf_bpf_get_cgroup_classid_curr)();
+
+typedef u64 (*btf_bpf_skb_cgroup_classid)(const struct sk_buff *);
+
+typedef u64 (*btf_bpf_get_cgroup_classid)(const struct sk_buff *);
+
+typedef u64 (*btf_bpf_get_route_realm)(const struct sk_buff *);
+
+typedef u64 (*btf_bpf_get_hash_recalc)(struct sk_buff *);
+
+typedef u64 (*btf_bpf_set_hash_invalid)(struct sk_buff *);
+
+typedef u64 (*btf_bpf_set_hash)(struct sk_buff *, u32);
+
+typedef u64 (*btf_bpf_skb_vlan_push)(struct sk_buff *, __be16, u16);
+
+typedef u64 (*btf_bpf_skb_vlan_pop)(struct sk_buff *);
+
+typedef u64 (*btf_bpf_skb_change_proto)(struct sk_buff *, __be16, u64);
+
+typedef u64 (*btf_bpf_skb_change_type)(struct sk_buff *, u32);
+
+typedef u64 (*btf_sk_skb_adjust_room)(struct sk_buff *, s32, u32, u64);
+
+typedef u64 (*btf_bpf_skb_adjust_room)(struct sk_buff *, s32, u32, u64);
+
+typedef u64 (*btf_bpf_skb_change_tail)(struct sk_buff *, u32, u64);
+
+typedef u64 (*btf_sk_skb_change_tail)(struct sk_buff *, u32, u64);
+
+typedef u64 (*btf_bpf_skb_change_head)(struct sk_buff *, u32, u64);
+
+typedef u64 (*btf_sk_skb_change_head)(struct sk_buff *, u32, u64);
+
+typedef u64 (*btf_bpf_xdp_adjust_head)(struct xdp_buff *, int);
+
+typedef u64 (*btf_bpf_xdp_adjust_tail)(struct xdp_buff *, int);
+
+typedef u64 (*btf_bpf_xdp_adjust_meta)(struct xdp_buff *, int);
+
+typedef u64 (*btf_bpf_xdp_redirect)(u32, u64);
+
+typedef u64 (*btf_bpf_xdp_redirect_map)(struct bpf_map *, u32, u64);
+
+typedef u64 (*btf_bpf_skb_event_output)(struct sk_buff *, struct bpf_map *, u64, void *, u64);
+
+typedef u64 (*btf_bpf_skb_get_tunnel_key)(struct sk_buff *, struct bpf_tunnel_key *, u32, u64);
+
+typedef u64 (*btf_bpf_skb_get_tunnel_opt)(struct sk_buff *, u8 *, u32);
+
+typedef u64 (*btf_bpf_skb_set_tunnel_key)(struct sk_buff *, const struct bpf_tunnel_key *, u32, u64);
+
+typedef u64 (*btf_bpf_skb_set_tunnel_opt)(struct sk_buff *, const u8 *, u32);
+
+typedef u64 (*btf_bpf_skb_under_cgroup)(struct sk_buff *, struct bpf_map *, u32);
+
+typedef u64 (*btf_bpf_skb_cgroup_id)(const struct sk_buff *);
+
+typedef u64 (*btf_bpf_skb_ancestor_cgroup_id)(const struct sk_buff *, int);
+
+typedef u64 (*btf_bpf_sk_cgroup_id)(struct sock *);
+
+typedef u64 (*btf_bpf_sk_ancestor_cgroup_id)(struct sock *, int);
+
+typedef u64 (*btf_bpf_xdp_event_output)(struct xdp_buff *, struct bpf_map *, u64, void *, u64);
+
+typedef u64 (*btf_bpf_get_socket_cookie)(struct sk_buff *);
+
+typedef u64 (*btf_bpf_get_socket_cookie_sock_addr)(struct bpf_sock_addr_kern *);
+
+typedef u64 (*btf_bpf_get_socket_cookie_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_get_socket_ptr_cookie)(struct sock *);
+
+typedef u64 (*btf_bpf_get_socket_cookie_sock_ops)(struct bpf_sock_ops_kern *);
+
+typedef u64 (*btf_bpf_get_netns_cookie_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_get_netns_cookie_sock_addr)(struct bpf_sock_addr_kern *);
+
+typedef u64 (*btf_bpf_get_netns_cookie_sock_ops)(struct bpf_sock_ops_kern *);
+
+typedef u64 (*btf_bpf_get_netns_cookie_sk_msg)(struct sk_msg *);
+
+typedef u64 (*btf_bpf_get_socket_uid)(struct sk_buff *);
+
+typedef u64 (*btf_bpf_sk_setsockopt)(struct sock *, int, int, char *, int);
+
+typedef u64 (*btf_bpf_sk_getsockopt)(struct sock *, int, int, char *, int);
+
+typedef u64 (*btf_bpf_sock_addr_setsockopt)(struct bpf_sock_addr_kern *, int, int, char *, int);
+
+typedef u64 (*btf_bpf_sock_addr_getsockopt)(struct bpf_sock_addr_kern *, int, int, char *, int);
+
+typedef u64 (*btf_bpf_sock_ops_setsockopt)(struct bpf_sock_ops_kern *, int, int, char *, int);
+
+typedef u64 (*btf_bpf_sock_ops_getsockopt)(struct bpf_sock_ops_kern *, int, int, char *, int);
+
+typedef u64 (*btf_bpf_sock_ops_cb_flags_set)(struct bpf_sock_ops_kern *, int);
+
+typedef u64 (*btf_bpf_bind)(struct bpf_sock_addr_kern *, struct sockaddr *, int);
+
+typedef u64 (*btf_bpf_skb_get_xfrm_state)(struct sk_buff *, u32, struct bpf_xfrm_state *, u32, u64);
+
+typedef u64 (*btf_bpf_xdp_fib_lookup)(struct xdp_buff *, struct bpf_fib_lookup *, int, u32);
+
+typedef u64 (*btf_bpf_skb_fib_lookup)(struct sk_buff *, struct bpf_fib_lookup *, int, u32);
+
+typedef u64 (*btf_bpf_skb_check_mtu)(struct sk_buff *, u32, u32 *, s32, u64);
+
+typedef u64 (*btf_bpf_xdp_check_mtu)(struct xdp_buff *, u32, u32 *, s32, u64);
+
+typedef u64 (*btf_bpf_lwt_in_push_encap)(struct sk_buff *, u32, void *, u32);
+
+typedef u64 (*btf_bpf_lwt_xmit_push_encap)(struct sk_buff *, u32, void *, u32);
+
+typedef u64 (*btf_bpf_skc_lookup_tcp)(struct sk_buff *, struct bpf_sock_tuple *, u32, u64, u64);
+
+typedef u64 (*btf_bpf_sk_lookup_tcp)(struct sk_buff *, struct bpf_sock_tuple *, u32, u64, u64);
+
+typedef u64 (*btf_bpf_sk_lookup_udp)(struct sk_buff *, struct bpf_sock_tuple *, u32, u64, u64);
+
+typedef u64 (*btf_bpf_sk_release)(struct sock *);
+
+typedef u64 (*btf_bpf_xdp_sk_lookup_udp)(struct xdp_buff *, struct bpf_sock_tuple *, u32, u32, u64);
+
+typedef u64 (*btf_bpf_xdp_skc_lookup_tcp)(struct xdp_buff *, struct bpf_sock_tuple *, u32, u32, u64);
+
+typedef u64 (*btf_bpf_xdp_sk_lookup_tcp)(struct xdp_buff *, struct bpf_sock_tuple *, u32, u32, u64);
+
+typedef u64 (*btf_bpf_sock_addr_skc_lookup_tcp)(struct bpf_sock_addr_kern *, struct bpf_sock_tuple *, u32, u64, u64);
+
+typedef u64 (*btf_bpf_sock_addr_sk_lookup_tcp)(struct bpf_sock_addr_kern *, struct bpf_sock_tuple *, u32, u64, u64);
+
+typedef u64 (*btf_bpf_sock_addr_sk_lookup_udp)(struct bpf_sock_addr_kern *, struct bpf_sock_tuple *, u32, u64, u64);
+
+typedef u64 (*btf_bpf_tcp_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_get_listener_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_skb_ecn_set_ce)(struct sk_buff *);
+
+typedef u64 (*btf_bpf_tcp_check_syncookie)(struct sock *, void *, u32, struct tcphdr *, u32);
+
+typedef u64 (*btf_bpf_tcp_gen_syncookie)(struct sock *, void *, u32, struct tcphdr *, u32);
+
+typedef u64 (*btf_bpf_sk_assign)(struct sk_buff *, struct sock *, u64);
+
+typedef u64 (*btf_bpf_sock_ops_load_hdr_opt)(struct bpf_sock_ops_kern *, void *, u32, u64);
+
+typedef u64 (*btf_bpf_sock_ops_store_hdr_opt)(struct bpf_sock_ops_kern *, const void *, u32, u64);
+
+typedef u64 (*btf_bpf_sock_ops_reserve_hdr_opt)(struct bpf_sock_ops_kern *, u32, u64);
+
+typedef u64 (*btf_sk_select_reuseport)(struct sk_reuseport_kern *, struct bpf_map *, void *, u32);
+
+typedef u64 (*btf_sk_reuseport_load_bytes)(const struct sk_reuseport_kern *, u32, void *, u32);
+
+typedef u64 (*btf_sk_reuseport_load_bytes_relative)(const struct sk_reuseport_kern *, u32, void *, u32, u32);
+
+typedef u64 (*btf_bpf_sk_lookup_assign)(struct bpf_sk_lookup_kern *, struct sock *, u64);
+
+typedef u64 (*btf_bpf_skc_to_tcp6_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_skc_to_tcp_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_skc_to_tcp_timewait_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_skc_to_tcp_request_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_skc_to_udp6_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_skc_to_unix_sock)(struct sock *);
+
+typedef u64 (*btf_bpf_sock_from_file)(struct file *);
+
+struct bpf_cpu_map_entry___2;
+
+struct bpf_dtab_netdev___2;
+
+struct unix_sock___2;
+
+struct sock_diag_req {
+	__u8 sdiag_family;
+	__u8 sdiag_protocol;
+};
+
+struct sock_diag_handler {
+	__u8 family;
+	int (*dump)(struct sk_buff *, struct nlmsghdr *);
+	int (*get_info)(struct sk_buff *, struct sock *);
+	int (*destroy)(struct sk_buff *, struct nlmsghdr *);
+};
+
+struct broadcast_sk {
+	struct sock *sk;
+	struct work_struct work;
+};
+
+struct hwtstamp_config {
+	int flags;
+	int tx_type;
+	int rx_filter;
+};
+
+enum hwtstamp_flags {
+	HWTSTAMP_FLAG_BONDED_PHC_INDEX = 1,
+	HWTSTAMP_FLAG_LAST = 1,
+	HWTSTAMP_FLAG_MASK = 1,
+};
+
+enum hwtstamp_tx_types {
+	HWTSTAMP_TX_OFF = 0,
+	HWTSTAMP_TX_ON = 1,
+	HWTSTAMP_TX_ONESTEP_SYNC = 2,
+	HWTSTAMP_TX_ONESTEP_P2P = 3,
+	__HWTSTAMP_TX_CNT = 4,
+};
+
+enum hwtstamp_rx_filters {
+	HWTSTAMP_FILTER_NONE = 0,
+	HWTSTAMP_FILTER_ALL = 1,
+	HWTSTAMP_FILTER_SOME = 2,
+	HWTSTAMP_FILTER_PTP_V1_L4_EVENT = 3,
+	HWTSTAMP_FILTER_PTP_V1_L4_SYNC = 4,
+	HWTSTAMP_FILTER_PTP_V1_L4_DELAY_REQ = 5,
+	HWTSTAMP_FILTER_PTP_V2_L4_EVENT = 6,
+	HWTSTAMP_FILTER_PTP_V2_L4_SYNC = 7,
+	HWTSTAMP_FILTER_PTP_V2_L4_DELAY_REQ = 8,
+	HWTSTAMP_FILTER_PTP_V2_L2_EVENT = 9,
+	HWTSTAMP_FILTER_PTP_V2_L2_SYNC = 10,
+	HWTSTAMP_FILTER_PTP_V2_L2_DELAY_REQ = 11,
+	HWTSTAMP_FILTER_PTP_V2_EVENT = 12,
+	HWTSTAMP_FILTER_PTP_V2_SYNC = 13,
+	HWTSTAMP_FILTER_PTP_V2_DELAY_REQ = 14,
+	HWTSTAMP_FILTER_NTP_ALL = 15,
+	__HWTSTAMP_FILTER_CNT = 16,
+};
+
+struct compat_ifconf {
+	compat_int_t ifc_len;
+	compat_caddr_t ifcbuf;
+};
+
+struct tso_t {
+	int next_frag_idx;
+	int size;
+	void *data;
+	u16 ip_id;
+	u8 tlen;
+	bool ipv6;
+	u32 tcp_seq;
+};
+
+struct fib_notifier_info {
+	int family;
+	struct netlink_ext_ack *extack;
+};
+
+enum fib_event_type {
+	FIB_EVENT_ENTRY_REPLACE = 0,
+	FIB_EVENT_ENTRY_APPEND = 1,
+	FIB_EVENT_ENTRY_ADD = 2,
+	FIB_EVENT_ENTRY_DEL = 3,
+	FIB_EVENT_RULE_ADD = 4,
+	FIB_EVENT_RULE_DEL = 5,
+	FIB_EVENT_NH_ADD = 6,
+	FIB_EVENT_NH_DEL = 7,
+	FIB_EVENT_VIF_ADD = 8,
+	FIB_EVENT_VIF_DEL = 9,
+};
+
+struct fib_notifier_net {
+	struct list_head fib_notifier_ops;
+	struct atomic_notifier_head fib_chain;
+};
+
+struct xdp_frame_bulk {
+	int count;
+	void *xa;
+	void *q[16];
+};
+
+struct xdp_attachment_info {
+	struct bpf_prog *prog;
+	u32 flags;
+};
+
+struct xdp_buff_xsk;
+
+struct xdp_desc;
+
+struct xsk_buff_pool {
+	struct device *dev;
+	struct net_device *netdev;
+	struct list_head xsk_tx_list;
+	spinlock_t xsk_tx_list_lock;
+	refcount_t users;
+	struct xdp_umem *umem;
+	struct work_struct work;
+	struct list_head free_list;
+	u32 heads_cnt;
+	u16 queue_id;
+	long: 16;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct xsk_queue *fq;
+	struct xsk_queue *cq;
+	dma_addr_t *dma_pages;
+	struct xdp_buff_xsk *heads;
+	struct xdp_desc *tx_descs;
+	u64 chunk_mask;
+	u64 addrs_cnt;
+	u32 free_list_cnt;
+	u32 dma_pages_cnt;
+	u32 free_heads_cnt;
+	u32 headroom;
+	u32 chunk_size;
+	u32 chunk_shift;
+	u32 frame_len;
+	u8 cached_need_wakeup;
+	bool uses_need_wakeup;
+	bool dma_need_sync;
+	bool unaligned;
+	void *addrs;
+	spinlock_t cq_lock;
+	struct xdp_buff_xsk *free_heads[0];
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct xdp_desc {
+	__u64 addr;
+	__u32 len;
+	__u32 options;
+};
+
+struct xdp_buff_xsk {
+	struct xdp_buff xdp;
+	dma_addr_t dma;
+	dma_addr_t frame_dma;
+	struct xsk_buff_pool *pool;
+	u64 orig_addr;
+	struct list_head free_list_node;
+};
+
+struct flow_match {
+	struct flow_dissector *dissector;
+	void *mask;
+	void *key;
+};
+
+struct flow_match_meta {
+	struct flow_dissector_key_meta *key;
+	struct flow_dissector_key_meta *mask;
+};
+
+struct flow_match_basic {
+	struct flow_dissector_key_basic *key;
+	struct flow_dissector_key_basic *mask;
+};
+
+struct flow_match_control {
+	struct flow_dissector_key_control *key;
+	struct flow_dissector_key_control *mask;
+};
+
+struct flow_match_eth_addrs {
+	struct flow_dissector_key_eth_addrs *key;
+	struct flow_dissector_key_eth_addrs *mask;
+};
+
+struct flow_match_vlan {
+	struct flow_dissector_key_vlan *key;
+	struct flow_dissector_key_vlan *mask;
+};
+
+struct flow_match_ipv4_addrs {
+	struct flow_dissector_key_ipv4_addrs *key;
+	struct flow_dissector_key_ipv4_addrs *mask;
+};
+
+struct flow_match_ipv6_addrs {
+	struct flow_dissector_key_ipv6_addrs *key;
+	struct flow_dissector_key_ipv6_addrs *mask;
+};
+
+struct flow_match_ip {
+	struct flow_dissector_key_ip *key;
+	struct flow_dissector_key_ip *mask;
+};
+
+struct flow_match_ports {
+	struct flow_dissector_key_ports *key;
+	struct flow_dissector_key_ports *mask;
+};
+
+struct flow_match_icmp {
+	struct flow_dissector_key_icmp *key;
+	struct flow_dissector_key_icmp *mask;
+};
+
+struct flow_match_tcp {
+	struct flow_dissector_key_tcp *key;
+	struct flow_dissector_key_tcp *mask;
+};
+
+struct flow_match_mpls {
+	struct flow_dissector_key_mpls *key;
+	struct flow_dissector_key_mpls *mask;
+};
+
+struct flow_match_enc_keyid {
+	struct flow_dissector_key_keyid *key;
+	struct flow_dissector_key_keyid *mask;
+};
+
+struct flow_match_enc_opts {
+	struct flow_dissector_key_enc_opts *key;
+	struct flow_dissector_key_enc_opts *mask;
+};
+
+struct flow_match_ct {
+	struct flow_dissector_key_ct *key;
+	struct flow_dissector_key_ct *mask;
+};
+
+struct flow_match_pppoe {
+	struct flow_dissector_key_pppoe *key;
+	struct flow_dissector_key_pppoe *mask;
+};
+
+enum flow_action_id {
+	FLOW_ACTION_ACCEPT = 0,
+	FLOW_ACTION_DROP = 1,
+	FLOW_ACTION_TRAP = 2,
+	FLOW_ACTION_GOTO = 3,
+	FLOW_ACTION_REDIRECT = 4,
+	FLOW_ACTION_MIRRED = 5,
+	FLOW_ACTION_REDIRECT_INGRESS = 6,
+	FLOW_ACTION_MIRRED_INGRESS = 7,
+	FLOW_ACTION_VLAN_PUSH = 8,
+	FLOW_ACTION_VLAN_POP = 9,
+	FLOW_ACTION_VLAN_MANGLE = 10,
+	FLOW_ACTION_TUNNEL_ENCAP = 11,
+	FLOW_ACTION_TUNNEL_DECAP = 12,
+	FLOW_ACTION_MANGLE = 13,
+	FLOW_ACTION_ADD = 14,
+	FLOW_ACTION_CSUM = 15,
+	FLOW_ACTION_MARK = 16,
+	FLOW_ACTION_PTYPE = 17,
+	FLOW_ACTION_PRIORITY = 18,
+	FLOW_ACTION_WAKE = 19,
+	FLOW_ACTION_QUEUE = 20,
+	FLOW_ACTION_SAMPLE = 21,
+	FLOW_ACTION_POLICE = 22,
+	FLOW_ACTION_CT = 23,
+	FLOW_ACTION_CT_METADATA = 24,
+	FLOW_ACTION_MPLS_PUSH = 25,
+	FLOW_ACTION_MPLS_POP = 26,
+	FLOW_ACTION_MPLS_MANGLE = 27,
+	FLOW_ACTION_GATE = 28,
+	FLOW_ACTION_PPPOE_PUSH = 29,
+	FLOW_ACTION_JUMP = 30,
+	FLOW_ACTION_PIPE = 31,
+	FLOW_ACTION_VLAN_PUSH_ETH = 32,
+	FLOW_ACTION_VLAN_POP_ETH = 33,
+	FLOW_ACTION_CONTINUE = 34,
+	NUM_FLOW_ACTIONS = 35,
+};
+
+enum flow_action_mangle_base {
+	FLOW_ACT_MANGLE_UNSPEC = 0,
+	FLOW_ACT_MANGLE_HDR_TYPE_ETH = 1,
+	FLOW_ACT_MANGLE_HDR_TYPE_IP4 = 2,
+	FLOW_ACT_MANGLE_HDR_TYPE_IP6 = 3,
+	FLOW_ACT_MANGLE_HDR_TYPE_TCP = 4,
+	FLOW_ACT_MANGLE_HDR_TYPE_UDP = 5,
+};
+
+enum flow_action_hw_stats {
+	FLOW_ACTION_HW_STATS_IMMEDIATE = 1,
+	FLOW_ACTION_HW_STATS_DELAYED = 2,
+	FLOW_ACTION_HW_STATS_ANY = 3,
+	FLOW_ACTION_HW_STATS_DISABLED = 4,
+	FLOW_ACTION_HW_STATS_DONT_CARE = 7,
+};
+
+typedef void (*action_destr)(void *);
+
+struct flow_action_cookie {
+	u32 cookie_len;
+	u8 cookie[0];
+};
+
+struct nf_flowtable;
+
+struct psample_group;
+
+struct action_gate_entry;
+
+struct flow_action_entry {
+	enum flow_action_id id;
+	u32 hw_index;
+	enum flow_action_hw_stats hw_stats;
+	action_destr destructor;
+	void *destructor_priv;
+	union {
+		u32 chain_index;
+		struct net_device *dev;
+		struct {
+			u16 vid;
+			__be16 proto;
+			u8 prio;
+		} vlan;
+		struct {
+			unsigned char dst[6];
+			unsigned char src[6];
+		} vlan_push_eth;
+		struct {
+			enum flow_action_mangle_base htype;
+			u32 offset;
+			u32 mask;
+			u32 val;
+		} mangle;
+		struct ip_tunnel_info *tunnel;
+		u32 csum_flags;
+		u32 mark;
+		u16 ptype;
+		u32 priority;
+		struct {
+			u32 ctx;
+			u32 index;
+			u8 vf;
+		} queue;
+		struct {
+			struct psample_group *psample_group;
+			u32 rate;
+			u32 trunc_size;
+			bool truncate;
+		} sample;
+		struct {
+			u32 burst;
+			u64 rate_bytes_ps;
+			u64 peakrate_bytes_ps;
+			u32 avrate;
+			u16 overhead;
+			u64 burst_pkt;
+			u64 rate_pkt_ps;
+			u32 mtu;
+			struct {
+				enum flow_action_id act_id;
+				u32 extval;
+			} exceed;
+			struct {
+				enum flow_action_id act_id;
+				u32 extval;
+			} notexceed;
+		} police;
+		struct {
+			int action;
+			u16 zone;
+			struct nf_flowtable *flow_table;
+		} ct;
+		struct {
+			long unsigned int cookie;
+			u32 mark;
+			u32 labels[4];
+			bool orig_dir;
+		} ct_metadata;
+		struct {
+			u32 label;
+			__be16 proto;
+			u8 tc;
+			u8 bos;
+			u8 ttl;
+		} mpls_push;
+		struct {
+			__be16 proto;
+		} mpls_pop;
+		struct {
+			u32 label;
+			u8 tc;
+			u8 bos;
+			u8 ttl;
+		} mpls_mangle;
+		struct {
+			s32 prio;
+			u64 basetime;
+			u64 cycletime;
+			u64 cycletimeext;
+			u32 num_entries;
+			struct action_gate_entry *entries;
+		} gate;
+		struct {
+			u16 sid;
+		} pppoe;
+	};
+	struct flow_action_cookie *cookie;
+};
+
+struct flow_action {
+	unsigned int num_entries;
+	struct flow_action_entry entries[0];
+};
+
+struct flow_rule {
+	struct flow_match match;
+	struct flow_action action;
+};
+
+struct flow_stats {
+	u64 pkts;
+	u64 bytes;
+	u64 drops;
+	u64 lastused;
+	enum flow_action_hw_stats used_hw_stats;
+	bool used_hw_stats_valid;
+};
+
+enum flow_block_command {
+	FLOW_BLOCK_BIND = 0,
+	FLOW_BLOCK_UNBIND = 1,
+};
+
+enum flow_block_binder_type {
+	FLOW_BLOCK_BINDER_TYPE_UNSPEC = 0,
+	FLOW_BLOCK_BINDER_TYPE_CLSACT_INGRESS = 1,
+	FLOW_BLOCK_BINDER_TYPE_CLSACT_EGRESS = 2,
+	FLOW_BLOCK_BINDER_TYPE_RED_EARLY_DROP = 3,
+	FLOW_BLOCK_BINDER_TYPE_RED_MARK = 4,
+};
+
+struct flow_block_offload {
+	enum flow_block_command command;
+	enum flow_block_binder_type binder_type;
+	bool block_shared;
+	bool unlocked_driver_cb;
+	struct net *net;
+	struct flow_block *block;
+	struct list_head cb_list;
+	struct list_head *driver_block_list;
+	struct netlink_ext_ack *extack;
+	struct Qdisc *sch;
+	struct list_head *cb_list_head;
+};
+
+struct flow_block_cb;
+
+struct flow_block_indr {
+	struct list_head list;
+	struct net_device *dev;
+	struct Qdisc *sch;
+	enum flow_block_binder_type binder_type;
+	void *data;
+	void *cb_priv;
+	void (*cleanup)(struct flow_block_cb *);
+};
+
+struct flow_block_cb {
+	struct list_head driver_list;
+	struct list_head list;
+	flow_setup_cb_t *cb;
+	void *cb_ident;
+	void *cb_priv;
+	void (*release)(void *);
+	struct flow_block_indr indr;
+	unsigned int refcnt;
+};
+
+enum offload_act_command {
+	FLOW_ACT_REPLACE = 0,
+	FLOW_ACT_DESTROY = 1,
+	FLOW_ACT_STATS = 2,
+};
+
+struct flow_offload_action {
+	struct netlink_ext_ack *extack;
+	enum offload_act_command command;
+	enum flow_action_id id;
+	u32 index;
+	struct flow_stats stats;
+	struct flow_action action;
+};
+
+typedef int flow_indr_block_bind_cb_t(struct net_device *, struct Qdisc *, void *, enum tc_setup_type, void *, void *, void (*)(struct flow_block_cb *));
+
+struct flow_indr_dev {
+	struct list_head list;
+	flow_indr_block_bind_cb_t *cb;
+	void *cb_priv;
+	refcount_t refcnt;
+};
+
+struct flow_indir_dev_info {
+	void *data;
+	struct net_device *dev;
+	struct Qdisc *sch;
+	enum tc_setup_type type;
+	void (*cleanup)(struct flow_block_cb *);
+	struct list_head list;
+	enum flow_block_command command;
+	enum flow_block_binder_type binder_type;
+	struct list_head *cb_list;
+};
+
+struct tc_skb_ext {
+	__u32 chain;
+	__u16 mru;
+	__u16 zone;
+	u8 post_ct: 1;
+	u8 post_ct_snat: 1;
+	u8 post_ct_dnat: 1;
+};
+
+enum gro_result {
+	GRO_MERGED = 0,
+	GRO_MERGED_FREE = 1,
+	GRO_HELD = 2,
+	GRO_NORMAL = 3,
+	GRO_CONSUMED = 4,
+};
+
+typedef enum gro_result gro_result_t;
+
+struct offload_callbacks {
+	struct sk_buff * (*gso_segment)(struct sk_buff *, netdev_features_t);
+	struct sk_buff * (*gro_receive)(struct list_head *, struct sk_buff *);
+	int (*gro_complete)(struct sk_buff *, int);
+};
+
+struct packet_offload {
+	__be16 type;
+	u16 priority;
+	struct offload_callbacks callbacks;
+	struct list_head list;
+};
+
+struct napi_gro_cb {
+	void *frag0;
+	unsigned int frag0_len;
+	int data_offset;
+	u16 flush;
+	u16 flush_id;
+	u16 count;
+	u16 gro_remcsum_start;
+	long unsigned int age;
+	u16 proto;
+	u8 same_flow: 1;
+	u8 encap_mark: 1;
+	u8 csum_valid: 1;
+	u8 csum_cnt: 3;
+	u8 free: 2;
+	u8 is_ipv6: 1;
+	u8 is_fou: 1;
+	u8 is_atomic: 1;
+	u8 recursion_counter: 4;
+	u8 is_flist: 1;
+	__wsum csum;
+	struct sk_buff *last;
+};
+
+struct rx_queue_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct netdev_rx_queue *, char *);
+	ssize_t (*store)(struct netdev_rx_queue *, const char *, size_t);
+};
+
+struct netdev_queue_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct netdev_queue *, char *);
+	ssize_t (*store)(struct netdev_queue *, const char *, size_t);
+};
+
+struct inet6_ifaddr {
+	struct in6_addr addr;
+	__u32 prefix_len;
+	__u32 rt_priority;
+	__u32 valid_lft;
+	__u32 prefered_lft;
+	refcount_t refcnt;
+	spinlock_t lock;
+	int state;
+	__u32 flags;
+	__u8 dad_probes;
+	__u8 stable_privacy_retry;
+	__u16 scope;
+	__u64 dad_nonce;
+	long unsigned int cstamp;
+	long unsigned int tstamp;
+	struct delayed_work dad_work;
+	struct inet6_dev *idev;
+	struct fib6_info *rt;
+	struct hlist_node addr_lst;
+	struct list_head if_list;
+	struct list_head tmp_list;
+	struct inet6_ifaddr *ifpub;
+	int regen_count;
+	bool tokenized;
+	struct callback_head rcu;
+	struct in6_addr peer_addr;
+};
+
+struct fib_rule_uid_range {
+	__u32 start;
+	__u32 end;
+};
+
+enum {
+	FRA_UNSPEC = 0,
+	FRA_DST = 1,
+	FRA_SRC = 2,
+	FRA_IIFNAME = 3,
+	FRA_GOTO = 4,
+	FRA_UNUSED2 = 5,
+	FRA_PRIORITY = 6,
+	FRA_UNUSED3 = 7,
+	FRA_UNUSED4 = 8,
+	FRA_UNUSED5 = 9,
+	FRA_FWMARK = 10,
+	FRA_FLOW = 11,
+	FRA_TUN_ID = 12,
+	FRA_SUPPRESS_IFGROUP = 13,
+	FRA_SUPPRESS_PREFIXLEN = 14,
+	FRA_TABLE = 15,
+	FRA_FWMASK = 16,
+	FRA_OIFNAME = 17,
+	FRA_PAD = 18,
+	FRA_L3MDEV = 19,
+	FRA_UID_RANGE = 20,
+	FRA_PROTOCOL = 21,
+	FRA_IP_PROTO = 22,
+	FRA_SPORT_RANGE = 23,
+	FRA_DPORT_RANGE = 24,
+	__FRA_MAX = 25,
+};
+
+enum {
+	FR_ACT_UNSPEC = 0,
+	FR_ACT_TO_TBL = 1,
+	FR_ACT_GOTO = 2,
+	FR_ACT_NOP = 3,
+	FR_ACT_RES3 = 4,
+	FR_ACT_RES4 = 5,
+	FR_ACT_BLACKHOLE = 6,
+	FR_ACT_UNREACHABLE = 7,
+	FR_ACT_PROHIBIT = 8,
+	__FR_ACT_MAX = 9,
+};
+
+struct fib_rule_notifier_info {
+	struct fib_notifier_info info;
+	struct fib_rule *rule;
+};
+
+struct trace_event_raw_kfree_skb {
+	struct trace_entry ent;
+	void *skbaddr;
+	void *location;
+	short unsigned int protocol;
+	enum skb_drop_reason reason;
+	char __data[0];
+};
+
+struct trace_event_raw_consume_skb {
+	struct trace_entry ent;
+	void *skbaddr;
+	char __data[0];
+};
+
+struct trace_event_raw_skb_copy_datagram_iovec {
+	struct trace_entry ent;
+	const void *skbaddr;
+	int len;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_kfree_skb {};
+
+struct trace_event_data_offsets_consume_skb {};
+
+struct trace_event_data_offsets_skb_copy_datagram_iovec {};
+
+typedef void (*btf_trace_kfree_skb)(void *, struct sk_buff *, void *, enum skb_drop_reason);
+
+typedef void (*btf_trace_consume_skb)(void *, struct sk_buff *);
+
+typedef void (*btf_trace_skb_copy_datagram_iovec)(void *, const struct sk_buff *, int);
+
+struct trace_event_raw_net_dev_start_xmit {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u16 queue_mapping;
+	const void *skbaddr;
+	bool vlan_tagged;
+	u16 vlan_proto;
+	u16 vlan_tci;
+	u16 protocol;
+	u8 ip_summed;
+	unsigned int len;
+	unsigned int data_len;
+	int network_offset;
+	bool transport_offset_valid;
+	int transport_offset;
+	u8 tx_flags;
+	u16 gso_size;
+	u16 gso_segs;
+	u16 gso_type;
+	char __data[0];
+};
+
+struct trace_event_raw_net_dev_xmit {
+	struct trace_entry ent;
+	void *skbaddr;
+	unsigned int len;
+	int rc;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_net_dev_xmit_timeout {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u32 __data_loc_driver;
+	int queue_index;
+	char __data[0];
+};
+
+struct trace_event_raw_net_dev_template {
+	struct trace_entry ent;
+	void *skbaddr;
+	unsigned int len;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_net_dev_rx_verbose_template {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	unsigned int napi_id;
+	u16 queue_mapping;
+	const void *skbaddr;
+	bool vlan_tagged;
+	u16 vlan_proto;
+	u16 vlan_tci;
+	u16 protocol;
+	u8 ip_summed;
+	u32 hash;
+	bool l4_hash;
+	unsigned int len;
+	unsigned int data_len;
+	unsigned int truesize;
+	bool mac_header_valid;
+	int mac_header;
+	unsigned char nr_frags;
+	u16 gso_size;
+	u16 gso_type;
+	char __data[0];
+};
+
+struct trace_event_raw_net_dev_rx_exit_template {
+	struct trace_entry ent;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_net_dev_start_xmit {
+	u32 name;
+};
+
+struct trace_event_data_offsets_net_dev_xmit {
+	u32 name;
+};
+
+struct trace_event_data_offsets_net_dev_xmit_timeout {
+	u32 name;
+	u32 driver;
+};
+
+struct trace_event_data_offsets_net_dev_template {
+	u32 name;
+};
+
+struct trace_event_data_offsets_net_dev_rx_verbose_template {
+	u32 name;
+};
+
+struct trace_event_data_offsets_net_dev_rx_exit_template {};
+
+typedef void (*btf_trace_net_dev_start_xmit)(void *, const struct sk_buff *, const struct net_device *);
+
+typedef void (*btf_trace_net_dev_xmit)(void *, struct sk_buff *, int, struct net_device *, unsigned int);
+
+typedef void (*btf_trace_net_dev_xmit_timeout)(void *, struct net_device *, int);
+
+typedef void (*btf_trace_net_dev_queue)(void *, struct sk_buff *);
+
+typedef void (*btf_trace_netif_receive_skb)(void *, struct sk_buff *);
+
+typedef void (*btf_trace_netif_rx)(void *, struct sk_buff *);
+
+typedef void (*btf_trace_napi_gro_frags_entry)(void *, const struct sk_buff *);
+
+typedef void (*btf_trace_napi_gro_receive_entry)(void *, const struct sk_buff *);
+
+typedef void (*btf_trace_netif_receive_skb_entry)(void *, const struct sk_buff *);
+
+typedef void (*btf_trace_netif_receive_skb_list_entry)(void *, const struct sk_buff *);
+
+typedef void (*btf_trace_netif_rx_entry)(void *, const struct sk_buff *);
+
+typedef void (*btf_trace_napi_gro_frags_exit)(void *, int);
+
+typedef void (*btf_trace_napi_gro_receive_exit)(void *, int);
+
+typedef void (*btf_trace_netif_receive_skb_exit)(void *, int);
+
+typedef void (*btf_trace_netif_rx_exit)(void *, int);
+
+typedef void (*btf_trace_netif_receive_skb_list_exit)(void *, int);
+
+struct trace_event_raw_napi_poll {
+	struct trace_entry ent;
+	struct napi_struct *napi;
+	u32 __data_loc_dev_name;
+	int work;
+	int budget;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_napi_poll {
+	u32 dev_name;
+};
+
+typedef void (*btf_trace_napi_poll)(void *, struct napi_struct *, int, int);
+
+enum tcp_ca_state {
+	TCP_CA_Open = 0,
+	TCP_CA_Disorder = 1,
+	TCP_CA_CWR = 2,
+	TCP_CA_Recovery = 3,
+	TCP_CA_Loss = 4,
+};
+
+struct trace_event_raw_sock_rcvqueue_full {
+	struct trace_entry ent;
+	int rmem_alloc;
+	unsigned int truesize;
+	int sk_rcvbuf;
+	char __data[0];
+};
+
+struct trace_event_raw_sock_exceed_buf_limit {
+	struct trace_entry ent;
+	char name[32];
+	long int *sysctl_mem;
+	long int allocated;
+	int sysctl_rmem;
+	int rmem_alloc;
+	int sysctl_wmem;
+	int wmem_alloc;
+	int wmem_queued;
+	int kind;
+	char __data[0];
+};
+
+struct trace_event_raw_inet_sock_set_state {
+	struct trace_entry ent;
+	const void *skaddr;
+	int oldstate;
+	int newstate;
+	__u16 sport;
+	__u16 dport;
+	__u16 family;
+	__u16 protocol;
+	__u8 saddr[4];
+	__u8 daddr[4];
+	__u8 saddr_v6[16];
+	__u8 daddr_v6[16];
+	char __data[0];
+};
+
+struct trace_event_raw_inet_sk_error_report {
+	struct trace_entry ent;
+	int error;
+	__u16 sport;
+	__u16 dport;
+	__u16 family;
+	__u16 protocol;
+	__u8 saddr[4];
+	__u8 daddr[4];
+	__u8 saddr_v6[16];
+	__u8 daddr_v6[16];
+	char __data[0];
+};
+
+struct trace_event_data_offsets_sock_rcvqueue_full {};
+
+struct trace_event_data_offsets_sock_exceed_buf_limit {};
+
+struct trace_event_data_offsets_inet_sock_set_state {};
+
+struct trace_event_data_offsets_inet_sk_error_report {};
+
+typedef void (*btf_trace_sock_rcvqueue_full)(void *, struct sock *, struct sk_buff *);
+
+typedef void (*btf_trace_sock_exceed_buf_limit)(void *, struct sock *, struct proto *, long int, int);
+
+typedef void (*btf_trace_inet_sock_set_state)(void *, const struct sock *, const int, const int);
+
+typedef void (*btf_trace_inet_sk_error_report)(void *, const struct sock *);
+
+struct trace_event_raw_udp_fail_queue_rcv_skb {
+	struct trace_entry ent;
+	int rc;
+	__u16 lport;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_udp_fail_queue_rcv_skb {};
+
+typedef void (*btf_trace_udp_fail_queue_rcv_skb)(void *, int, struct sock *);
+
+struct trace_event_raw_tcp_event_sk_skb {
+	struct trace_entry ent;
+	const void *skbaddr;
+	const void *skaddr;
+	int state;
+	__u16 sport;
+	__u16 dport;
+	__u16 family;
+	__u8 saddr[4];
+	__u8 daddr[4];
+	__u8 saddr_v6[16];
+	__u8 daddr_v6[16];
+	char __data[0];
+};
+
+struct trace_event_raw_tcp_event_sk {
+	struct trace_entry ent;
+	const void *skaddr;
+	__u16 sport;
+	__u16 dport;
+	__u16 family;
+	__u8 saddr[4];
+	__u8 daddr[4];
+	__u8 saddr_v6[16];
+	__u8 daddr_v6[16];
+	__u64 sock_cookie;
+	char __data[0];
+};
+
+struct trace_event_raw_tcp_retransmit_synack {
+	struct trace_entry ent;
+	const void *skaddr;
+	const void *req;
+	__u16 sport;
+	__u16 dport;
+	__u16 family;
+	__u8 saddr[4];
+	__u8 daddr[4];
+	__u8 saddr_v6[16];
+	__u8 daddr_v6[16];
+	char __data[0];
+};
+
+struct trace_event_raw_tcp_probe {
+	struct trace_entry ent;
+	__u8 saddr[28];
+	__u8 daddr[28];
+	__u16 sport;
+	__u16 dport;
+	__u16 family;
+	__u32 mark;
+	__u16 data_len;
+	__u32 snd_nxt;
+	__u32 snd_una;
+	__u32 snd_cwnd;
+	__u32 ssthresh;
+	__u32 snd_wnd;
+	__u32 srtt;
+	__u32 rcv_wnd;
+	__u64 sock_cookie;
+	char __data[0];
+};
+
+struct trace_event_raw_tcp_event_skb {
+	struct trace_entry ent;
+	const void *skbaddr;
+	__u8 saddr[28];
+	__u8 daddr[28];
+	char __data[0];
+};
+
+struct trace_event_data_offsets_tcp_event_sk_skb {};
+
+struct trace_event_data_offsets_tcp_event_sk {};
+
+struct trace_event_data_offsets_tcp_retransmit_synack {};
+
+struct trace_event_data_offsets_tcp_probe {};
+
+struct trace_event_data_offsets_tcp_event_skb {};
+
+typedef void (*btf_trace_tcp_retransmit_skb)(void *, const struct sock *, const struct sk_buff *);
+
+typedef void (*btf_trace_tcp_send_reset)(void *, const struct sock *, const struct sk_buff *);
+
+typedef void (*btf_trace_tcp_receive_reset)(void *, struct sock *);
+
+typedef void (*btf_trace_tcp_destroy_sock)(void *, struct sock *);
+
+typedef void (*btf_trace_tcp_rcv_space_adjust)(void *, struct sock *);
+
+typedef void (*btf_trace_tcp_retransmit_synack)(void *, const struct sock *, const struct request_sock *);
+
+typedef void (*btf_trace_tcp_probe)(void *, struct sock *, struct sk_buff *);
+
+typedef void (*btf_trace_tcp_bad_csum)(void *, const struct sk_buff *);
+
+struct trace_event_raw_fib_table_lookup {
+	struct trace_entry ent;
+	u32 tb_id;
+	int err;
+	int oif;
+	int iif;
+	u8 proto;
+	__u8 tos;
+	__u8 scope;
+	__u8 flags;
+	__u8 src[4];
+	__u8 dst[4];
+	__u8 gw4[4];
+	__u8 gw6[16];
+	u16 sport;
+	u16 dport;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_fib_table_lookup {
+	u32 name;
+};
+
+typedef void (*btf_trace_fib_table_lookup)(void *, u32, const struct flowi4 *, const struct fib_nh_common *, int);
+
+struct trace_event_raw_qdisc_dequeue {
+	struct trace_entry ent;
+	struct Qdisc *qdisc;
+	const struct netdev_queue *txq;
+	int packets;
+	void *skbaddr;
+	int ifindex;
+	u32 handle;
+	u32 parent;
+	long unsigned int txq_state;
+	char __data[0];
+};
+
+struct trace_event_raw_qdisc_enqueue {
+	struct trace_entry ent;
+	struct Qdisc *qdisc;
+	const struct netdev_queue *txq;
+	void *skbaddr;
+	int ifindex;
+	u32 handle;
+	u32 parent;
+	char __data[0];
+};
+
+struct trace_event_raw_qdisc_reset {
+	struct trace_entry ent;
+	u32 __data_loc_dev;
+	u32 __data_loc_kind;
+	u32 parent;
+	u32 handle;
+	char __data[0];
+};
+
+struct trace_event_raw_qdisc_destroy {
+	struct trace_entry ent;
+	u32 __data_loc_dev;
+	u32 __data_loc_kind;
+	u32 parent;
+	u32 handle;
+	char __data[0];
+};
+
+struct trace_event_raw_qdisc_create {
+	struct trace_entry ent;
+	u32 __data_loc_dev;
+	u32 __data_loc_kind;
+	u32 parent;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_qdisc_dequeue {};
+
+struct trace_event_data_offsets_qdisc_enqueue {};
+
+struct trace_event_data_offsets_qdisc_reset {
+	u32 dev;
+	u32 kind;
+};
+
+struct trace_event_data_offsets_qdisc_destroy {
+	u32 dev;
+	u32 kind;
+};
+
+struct trace_event_data_offsets_qdisc_create {
+	u32 dev;
+	u32 kind;
+};
+
+typedef void (*btf_trace_qdisc_dequeue)(void *, struct Qdisc *, const struct netdev_queue *, int, struct sk_buff *);
+
+typedef void (*btf_trace_qdisc_enqueue)(void *, struct Qdisc *, const struct netdev_queue *, struct sk_buff *);
+
+typedef void (*btf_trace_qdisc_reset)(void *, struct Qdisc *);
+
+typedef void (*btf_trace_qdisc_destroy)(void *, struct Qdisc *);
+
+typedef void (*btf_trace_qdisc_create)(void *, const struct Qdisc_ops *, struct net_device *, u32);
+
+struct bridge_stp_xstats {
+	__u64 transition_blk;
+	__u64 transition_fwd;
+	__u64 rx_bpdu;
+	__u64 tx_bpdu;
+	__u64 rx_tcn;
+	__u64 tx_tcn;
+};
+
+struct br_mcast_stats {
+	__u64 igmp_v1queries[2];
+	__u64 igmp_v2queries[2];
+	__u64 igmp_v3queries[2];
+	__u64 igmp_leaves[2];
+	__u64 igmp_v1reports[2];
+	__u64 igmp_v2reports[2];
+	__u64 igmp_v3reports[2];
+	__u64 igmp_parse_errors;
+	__u64 mld_v1queries[2];
+	__u64 mld_v2queries[2];
+	__u64 mld_leaves[2];
+	__u64 mld_v1reports[2];
+	__u64 mld_v2reports[2];
+	__u64 mld_parse_errors;
+	__u64 mcast_bytes[2];
+	__u64 mcast_packets[2];
+};
+
+struct br_ip {
+	union {
+		__be32 ip4;
+		struct in6_addr ip6;
+	} src;
+	union {
+		__be32 ip4;
+		struct in6_addr ip6;
+		unsigned char mac_addr[6];
+	} dst;
+	__be16 proto;
+	__u16 vid;
+};
+
+struct bridge_id {
+	unsigned char prio[2];
+	unsigned char addr[6];
+};
+
+typedef struct bridge_id bridge_id;
+
+struct mac_addr {
+	unsigned char addr[6];
+};
+
+typedef struct mac_addr mac_addr;
+
+typedef __u16 port_id;
+
+struct bridge_mcast_own_query {
+	struct timer_list timer;
+	u32 startup_sent;
+};
+
+struct bridge_mcast_other_query {
+	struct timer_list timer;
+	long unsigned int delay_time;
+};
+
+struct bridge_mcast_querier {
+	struct br_ip addr;
+	int port_ifidx;
+	seqcount_spinlock_t seq;
+};
+
+struct bridge_mcast_stats {
+	struct br_mcast_stats mstats;
+	struct u64_stats_sync syncp;
+};
+
+struct net_bridge_port;
+
+struct net_bridge_vlan;
+
+struct net_bridge_mcast_port {
+	struct net_bridge_port *port;
+	struct net_bridge_vlan *vlan;
+	struct bridge_mcast_own_query ip4_own_query;
+	struct timer_list ip4_mc_router_timer;
+	struct hlist_node ip4_rlist;
+	struct bridge_mcast_own_query ip6_own_query;
+	struct timer_list ip6_mc_router_timer;
+	struct hlist_node ip6_rlist;
+	unsigned char multicast_router;
+};
+
+struct net_bridge___2;
+
+struct net_bridge_vlan_group;
+
+struct net_bridge_port {
+	struct net_bridge___2 *br;
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	struct list_head list;
+	long unsigned int flags;
+	struct net_bridge_vlan_group *vlgrp;
+	struct net_bridge_port *backup_port;
+	u8 priority;
+	u8 state;
+	u16 port_no;
+	unsigned char topology_change_ack;
+	unsigned char config_pending;
+	port_id port_id;
+	port_id designated_port;
+	bridge_id designated_root;
+	bridge_id designated_bridge;
+	u32 path_cost;
+	u32 designated_cost;
+	long unsigned int designated_age;
+	struct timer_list forward_delay_timer;
+	struct timer_list hold_timer;
+	struct timer_list message_age_timer;
+	struct kobject kobj;
+	struct callback_head rcu;
+	struct net_bridge_mcast_port multicast_ctx;
+	struct bridge_mcast_stats *mcast_stats;
+	u32 multicast_eht_hosts_limit;
+	u32 multicast_eht_hosts_cnt;
+	struct hlist_head mglist;
+	char sysfs_name[16];
+	struct netpoll *np;
+	int hwdom;
+	int offload_count;
+	struct netdev_phys_item_id ppid;
+	u16 group_fwd_mask;
+	u16 backup_redirected_cnt;
+	struct bridge_stp_xstats stp_xstats;
+};
+
+struct metadata_dst___2;
+
+struct br_tunnel_info {
+	__be64 tunnel_id;
+	struct metadata_dst___2 *tunnel_dst;
+};
+
+struct net_bridge_mcast {
+	struct net_bridge___2 *br;
+	struct net_bridge_vlan *vlan;
+	u32 multicast_last_member_count;
+	u32 multicast_startup_query_count;
+	u8 multicast_querier;
+	u8 multicast_igmp_version;
+	u8 multicast_router;
+	u8 multicast_mld_version;
+	long unsigned int multicast_last_member_interval;
+	long unsigned int multicast_membership_interval;
+	long unsigned int multicast_querier_interval;
+	long unsigned int multicast_query_interval;
+	long unsigned int multicast_query_response_interval;
+	long unsigned int multicast_startup_query_interval;
+	struct hlist_head ip4_mc_router_list;
+	struct timer_list ip4_mc_router_timer;
+	struct bridge_mcast_other_query ip4_other_query;
+	struct bridge_mcast_own_query ip4_own_query;
+	struct bridge_mcast_querier ip4_querier;
+	struct hlist_head ip6_mc_router_list;
+	struct timer_list ip6_mc_router_timer;
+	struct bridge_mcast_other_query ip6_other_query;
+	struct bridge_mcast_own_query ip6_own_query;
+	struct bridge_mcast_querier ip6_querier;
+};
+
+struct net_bridge_vlan {
+	struct rhash_head vnode;
+	struct rhash_head tnode;
+	u16 vid;
+	u16 flags;
+	u16 priv_flags;
+	u8 state;
+	struct pcpu_sw_netstats *stats;
+	union {
+		struct net_bridge___2 *br;
+		struct net_bridge_port *port;
+	};
+	union {
+		refcount_t refcnt;
+		struct net_bridge_vlan *brvlan;
+	};
+	struct br_tunnel_info tinfo;
+	union {
+		struct net_bridge_mcast br_mcast_ctx;
+		struct net_bridge_mcast_port port_mcast_ctx;
+	};
+	u16 msti;
+	struct list_head vlist;
+	struct callback_head rcu;
+};
+
+struct net_bridge___2 {
+	spinlock_t lock;
+	spinlock_t hash_lock;
+	struct hlist_head frame_type_list;
+	struct net_device *dev;
+	long unsigned int options;
+	__be16 vlan_proto;
+	u16 default_pvid;
+	struct net_bridge_vlan_group *vlgrp;
+	struct rhashtable fdb_hash_tbl;
+	struct list_head port_list;
+	union {
+		struct rtable fake_rtable;
+		struct rt6_info fake_rt6_info;
+	};
+	u16 group_fwd_mask;
+	u16 group_fwd_mask_required;
+	bridge_id designated_root;
+	bridge_id bridge_id;
+	unsigned char topology_change;
+	unsigned char topology_change_detected;
+	u16 root_port;
+	long unsigned int max_age;
+	long unsigned int hello_time;
+	long unsigned int forward_delay;
+	long unsigned int ageing_time;
+	long unsigned int bridge_max_age;
+	long unsigned int bridge_hello_time;
+	long unsigned int bridge_forward_delay;
+	long unsigned int bridge_ageing_time;
+	u32 root_path_cost;
+	u8 group_addr[6];
+	enum {
+		BR_NO_STP = 0,
+		BR_KERNEL_STP = 1,
+		BR_USER_STP = 2,
+	} stp_enabled;
+	struct net_bridge_mcast multicast_ctx;
+	struct bridge_mcast_stats *mcast_stats;
+	u32 hash_max;
+	spinlock_t multicast_lock;
+	struct rhashtable mdb_hash_tbl;
+	struct rhashtable sg_port_tbl;
+	struct hlist_head mcast_gc_list;
+	struct hlist_head mdb_list;
+	struct work_struct mcast_gc_work;
+	struct timer_list hello_timer;
+	struct timer_list tcn_timer;
+	struct timer_list topology_change_timer;
+	struct delayed_work gc_work;
+	struct kobject *ifobj;
+	u32 auto_cnt;
+	int last_hwdom;
+	long unsigned int busy_hwdoms;
+	struct hlist_head fdb_list;
+};
+
+struct net_bridge_vlan_group {
+	struct rhashtable vlan_hash;
+	struct rhashtable tunnel_hash;
+	struct list_head vlan_list;
+	u16 num_vlans;
+	u16 pvid;
+	u8 pvid_state;
+};
+
+struct net_bridge_fdb_key {
+	mac_addr addr;
+	u16 vlan_id;
+};
+
+struct net_bridge_fdb_entry {
+	struct rhash_head rhnode;
+	struct net_bridge_port *dst;
+	struct net_bridge_fdb_key key;
+	struct hlist_node fdb_node;
+	long unsigned int flags;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long unsigned int updated;
+	long unsigned int used;
+	struct callback_head rcu;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct trace_event_raw_br_fdb_add {
+	struct trace_entry ent;
+	u8 ndm_flags;
+	u32 __data_loc_dev;
+	unsigned char addr[6];
+	u16 vid;
+	u16 nlh_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_br_fdb_external_learn_add {
+	struct trace_entry ent;
+	u32 __data_loc_br_dev;
+	u32 __data_loc_dev;
+	unsigned char addr[6];
+	u16 vid;
+	char __data[0];
+};
+
+struct trace_event_raw_fdb_delete {
+	struct trace_entry ent;
+	u32 __data_loc_br_dev;
+	u32 __data_loc_dev;
+	unsigned char addr[6];
+	u16 vid;
+	char __data[0];
+};
+
+struct trace_event_raw_br_fdb_update {
+	struct trace_entry ent;
+	u32 __data_loc_br_dev;
+	u32 __data_loc_dev;
+	unsigned char addr[6];
+	u16 vid;
+	long unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_br_fdb_add {
+	u32 dev;
+};
+
+struct trace_event_data_offsets_br_fdb_external_learn_add {
+	u32 br_dev;
+	u32 dev;
+};
+
+struct trace_event_data_offsets_fdb_delete {
+	u32 br_dev;
+	u32 dev;
+};
+
+struct trace_event_data_offsets_br_fdb_update {
+	u32 br_dev;
+	u32 dev;
+};
+
+typedef void (*btf_trace_br_fdb_add)(void *, struct ndmsg *, struct net_device *, const unsigned char *, u16, u16);
+
+typedef void (*btf_trace_br_fdb_external_learn_add)(void *, struct net_bridge___2 *, struct net_bridge_port *, const unsigned char *, u16);
+
+typedef void (*btf_trace_fdb_delete)(void *, struct net_bridge___2 *, struct net_bridge_fdb_entry *);
+
+typedef void (*btf_trace_br_fdb_update)(void *, struct net_bridge___2 *, struct net_bridge_port *, const unsigned char *, u16, long unsigned int);
+
+struct trace_event_raw_page_pool_release {
+	struct trace_entry ent;
+	const struct page_pool *pool;
+	s32 inflight;
+	u32 hold;
+	u32 release;
+	u64 cnt;
+	char __data[0];
+};
+
+struct trace_event_raw_page_pool_state_release {
+	struct trace_entry ent;
+	const struct page_pool *pool;
+	const struct page *page;
