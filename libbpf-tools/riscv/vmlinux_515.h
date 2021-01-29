@@ -23833,3 +23833,2115 @@ enum bpf_func_id {
 	BPF_FUNC_skb_change_tail = 38,
 	BPF_FUNC_skb_pull_data = 39,
 	BPF_FUNC_csum_update = 40,
+	BPF_FUNC_set_hash_invalid = 41,
+	BPF_FUNC_get_numa_node_id = 42,
+	BPF_FUNC_skb_change_head = 43,
+	BPF_FUNC_xdp_adjust_head = 44,
+	BPF_FUNC_probe_read_str = 45,
+	BPF_FUNC_get_socket_cookie = 46,
+	BPF_FUNC_get_socket_uid = 47,
+	BPF_FUNC_set_hash = 48,
+	BPF_FUNC_setsockopt = 49,
+	BPF_FUNC_skb_adjust_room = 50,
+	BPF_FUNC_redirect_map = 51,
+	BPF_FUNC_sk_redirect_map = 52,
+	BPF_FUNC_sock_map_update = 53,
+	BPF_FUNC_xdp_adjust_meta = 54,
+	BPF_FUNC_perf_event_read_value = 55,
+	BPF_FUNC_perf_prog_read_value = 56,
+	BPF_FUNC_getsockopt = 57,
+	BPF_FUNC_override_return = 58,
+	BPF_FUNC_sock_ops_cb_flags_set = 59,
+	BPF_FUNC_msg_redirect_map = 60,
+	BPF_FUNC_msg_apply_bytes = 61,
+	BPF_FUNC_msg_cork_bytes = 62,
+	BPF_FUNC_msg_pull_data = 63,
+	BPF_FUNC_bind = 64,
+	BPF_FUNC_xdp_adjust_tail = 65,
+	BPF_FUNC_skb_get_xfrm_state = 66,
+	BPF_FUNC_get_stack = 67,
+	BPF_FUNC_skb_load_bytes_relative = 68,
+	BPF_FUNC_fib_lookup = 69,
+	BPF_FUNC_sock_hash_update = 70,
+	BPF_FUNC_msg_redirect_hash = 71,
+	BPF_FUNC_sk_redirect_hash = 72,
+	BPF_FUNC_lwt_push_encap = 73,
+	BPF_FUNC_lwt_seg6_store_bytes = 74,
+	BPF_FUNC_lwt_seg6_adjust_srh = 75,
+	BPF_FUNC_lwt_seg6_action = 76,
+	BPF_FUNC_rc_repeat = 77,
+	BPF_FUNC_rc_keydown = 78,
+	BPF_FUNC_skb_cgroup_id = 79,
+	BPF_FUNC_get_current_cgroup_id = 80,
+	BPF_FUNC_get_local_storage = 81,
+	BPF_FUNC_sk_select_reuseport = 82,
+	BPF_FUNC_skb_ancestor_cgroup_id = 83,
+	BPF_FUNC_sk_lookup_tcp = 84,
+	BPF_FUNC_sk_lookup_udp = 85,
+	BPF_FUNC_sk_release = 86,
+	BPF_FUNC_map_push_elem = 87,
+	BPF_FUNC_map_pop_elem = 88,
+	BPF_FUNC_map_peek_elem = 89,
+	BPF_FUNC_msg_push_data = 90,
+	BPF_FUNC_msg_pop_data = 91,
+	BPF_FUNC_rc_pointer_rel = 92,
+	BPF_FUNC_spin_lock = 93,
+	BPF_FUNC_spin_unlock = 94,
+	BPF_FUNC_sk_fullsock = 95,
+	BPF_FUNC_tcp_sock = 96,
+	BPF_FUNC_skb_ecn_set_ce = 97,
+	BPF_FUNC_get_listener_sock = 98,
+	BPF_FUNC_skc_lookup_tcp = 99,
+	BPF_FUNC_tcp_check_syncookie = 100,
+	BPF_FUNC_sysctl_get_name = 101,
+	BPF_FUNC_sysctl_get_current_value = 102,
+	BPF_FUNC_sysctl_get_new_value = 103,
+	BPF_FUNC_sysctl_set_new_value = 104,
+	BPF_FUNC_strtol = 105,
+	BPF_FUNC_strtoul = 106,
+	BPF_FUNC_sk_storage_get = 107,
+	BPF_FUNC_sk_storage_delete = 108,
+	BPF_FUNC_send_signal = 109,
+	BPF_FUNC_tcp_gen_syncookie = 110,
+	BPF_FUNC_skb_output = 111,
+	BPF_FUNC_probe_read_user = 112,
+	BPF_FUNC_probe_read_kernel = 113,
+	BPF_FUNC_probe_read_user_str = 114,
+	BPF_FUNC_probe_read_kernel_str = 115,
+	BPF_FUNC_tcp_send_ack = 116,
+	BPF_FUNC_send_signal_thread = 117,
+	BPF_FUNC_jiffies64 = 118,
+	BPF_FUNC_read_branch_records = 119,
+	BPF_FUNC_get_ns_current_pid_tgid = 120,
+	BPF_FUNC_xdp_output = 121,
+	BPF_FUNC_get_netns_cookie = 122,
+	BPF_FUNC_get_current_ancestor_cgroup_id = 123,
+	BPF_FUNC_sk_assign = 124,
+	BPF_FUNC_ktime_get_boot_ns = 125,
+	BPF_FUNC_seq_printf = 126,
+	BPF_FUNC_seq_write = 127,
+	BPF_FUNC_sk_cgroup_id = 128,
+	BPF_FUNC_sk_ancestor_cgroup_id = 129,
+	BPF_FUNC_ringbuf_output = 130,
+	BPF_FUNC_ringbuf_reserve = 131,
+	BPF_FUNC_ringbuf_submit = 132,
+	BPF_FUNC_ringbuf_discard = 133,
+	BPF_FUNC_ringbuf_query = 134,
+	BPF_FUNC_csum_level = 135,
+	BPF_FUNC_skc_to_tcp6_sock = 136,
+	BPF_FUNC_skc_to_tcp_sock = 137,
+	BPF_FUNC_skc_to_tcp_timewait_sock = 138,
+	BPF_FUNC_skc_to_tcp_request_sock = 139,
+	BPF_FUNC_skc_to_udp6_sock = 140,
+	BPF_FUNC_get_task_stack = 141,
+	BPF_FUNC_load_hdr_opt = 142,
+	BPF_FUNC_store_hdr_opt = 143,
+	BPF_FUNC_reserve_hdr_opt = 144,
+	BPF_FUNC_inode_storage_get = 145,
+	BPF_FUNC_inode_storage_delete = 146,
+	BPF_FUNC_d_path = 147,
+	BPF_FUNC_copy_from_user = 148,
+	BPF_FUNC_snprintf_btf = 149,
+	BPF_FUNC_seq_printf_btf = 150,
+	BPF_FUNC_skb_cgroup_classid = 151,
+	BPF_FUNC_redirect_neigh = 152,
+	BPF_FUNC_per_cpu_ptr = 153,
+	BPF_FUNC_this_cpu_ptr = 154,
+	BPF_FUNC_redirect_peer = 155,
+	BPF_FUNC_task_storage_get = 156,
+	BPF_FUNC_task_storage_delete = 157,
+	BPF_FUNC_get_current_task_btf = 158,
+	BPF_FUNC_bprm_opts_set = 159,
+	BPF_FUNC_ktime_get_coarse_ns = 160,
+	BPF_FUNC_ima_inode_hash = 161,
+	BPF_FUNC_sock_from_file = 162,
+	BPF_FUNC_check_mtu = 163,
+	BPF_FUNC_for_each_map_elem = 164,
+	BPF_FUNC_snprintf = 165,
+	BPF_FUNC_sys_bpf = 166,
+	BPF_FUNC_btf_find_by_name_kind = 167,
+	BPF_FUNC_sys_close = 168,
+	BPF_FUNC_timer_init = 169,
+	BPF_FUNC_timer_set_callback = 170,
+	BPF_FUNC_timer_start = 171,
+	BPF_FUNC_timer_cancel = 172,
+	BPF_FUNC_get_func_ip = 173,
+	BPF_FUNC_get_attach_cookie = 174,
+	BPF_FUNC_task_pt_regs = 175,
+	__BPF_FUNC_MAX_ID = 176,
+};
+
+enum {
+	BPF_F_INDEX_MASK = 4294967295,
+	BPF_F_CURRENT_CPU = 4294967295,
+	BPF_F_CTXLEN_MASK = 0,
+};
+
+enum {
+	BPF_F_GET_BRANCH_RECORDS_SIZE = 1,
+};
+
+struct bpf_perf_event_value {
+	__u64 counter;
+	__u64 enabled;
+	__u64 running;
+};
+
+struct bpf_raw_tracepoint_args {
+	__u64 args[0];
+};
+
+enum bpf_task_fd_type {
+	BPF_FD_TYPE_RAW_TRACEPOINT = 0,
+	BPF_FD_TYPE_TRACEPOINT = 1,
+	BPF_FD_TYPE_KPROBE = 2,
+	BPF_FD_TYPE_KRETPROBE = 3,
+	BPF_FD_TYPE_UPROBE = 4,
+	BPF_FD_TYPE_URETPROBE = 5,
+};
+
+struct btf_ptr {
+	void *ptr;
+	__u32 type_id;
+	__u32 flags;
+};
+
+enum {
+	BTF_F_COMPACT = 1,
+	BTF_F_NONAME = 2,
+	BTF_F_PTR_RAW = 4,
+	BTF_F_ZERO = 8,
+};
+
+struct bpf_local_storage_data;
+
+struct bpf_local_storage {
+	struct bpf_local_storage_data *cache[16];
+	struct hlist_head list;
+	void *owner;
+	struct callback_head rcu;
+	raw_spinlock_t lock;
+};
+
+struct bpf_local_storage_map_bucket;
+
+struct bpf_local_storage_map {
+	struct bpf_map map;
+	struct bpf_local_storage_map_bucket *buckets;
+	u32 bucket_log;
+	u16 elem_size;
+	u16 cache_idx;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+enum bpf_arg_type {
+	ARG_DONTCARE = 0,
+	ARG_CONST_MAP_PTR = 1,
+	ARG_PTR_TO_MAP_KEY = 2,
+	ARG_PTR_TO_MAP_VALUE = 3,
+	ARG_PTR_TO_UNINIT_MAP_VALUE = 4,
+	ARG_PTR_TO_MAP_VALUE_OR_NULL = 5,
+	ARG_PTR_TO_MEM = 6,
+	ARG_PTR_TO_MEM_OR_NULL = 7,
+	ARG_PTR_TO_UNINIT_MEM = 8,
+	ARG_CONST_SIZE = 9,
+	ARG_CONST_SIZE_OR_ZERO = 10,
+	ARG_PTR_TO_CTX = 11,
+	ARG_PTR_TO_CTX_OR_NULL = 12,
+	ARG_ANYTHING = 13,
+	ARG_PTR_TO_SPIN_LOCK = 14,
+	ARG_PTR_TO_SOCK_COMMON = 15,
+	ARG_PTR_TO_INT = 16,
+	ARG_PTR_TO_LONG = 17,
+	ARG_PTR_TO_SOCKET = 18,
+	ARG_PTR_TO_SOCKET_OR_NULL = 19,
+	ARG_PTR_TO_BTF_ID = 20,
+	ARG_PTR_TO_ALLOC_MEM = 21,
+	ARG_PTR_TO_ALLOC_MEM_OR_NULL = 22,
+	ARG_CONST_ALLOC_SIZE_OR_ZERO = 23,
+	ARG_PTR_TO_BTF_ID_SOCK_COMMON = 24,
+	ARG_PTR_TO_PERCPU_BTF_ID = 25,
+	ARG_PTR_TO_FUNC = 26,
+	ARG_PTR_TO_STACK_OR_NULL = 27,
+	ARG_PTR_TO_CONST_STR = 28,
+	ARG_PTR_TO_TIMER = 29,
+	__BPF_ARG_TYPE_MAX = 30,
+};
+
+enum bpf_return_type {
+	RET_INTEGER = 0,
+	RET_VOID = 1,
+	RET_PTR_TO_MAP_VALUE = 2,
+	RET_PTR_TO_MAP_VALUE_OR_NULL = 3,
+	RET_PTR_TO_SOCKET_OR_NULL = 4,
+	RET_PTR_TO_TCP_SOCK_OR_NULL = 5,
+	RET_PTR_TO_SOCK_COMMON_OR_NULL = 6,
+	RET_PTR_TO_ALLOC_MEM_OR_NULL = 7,
+	RET_PTR_TO_BTF_ID_OR_NULL = 8,
+	RET_PTR_TO_MEM_OR_BTF_ID_OR_NULL = 9,
+	RET_PTR_TO_MEM_OR_BTF_ID = 10,
+	RET_PTR_TO_BTF_ID = 11,
+};
+
+struct bpf_func_proto {
+	u64 (*func)(u64, u64, u64, u64, u64);
+	bool gpl_only;
+	bool pkt_access;
+	enum bpf_return_type ret_type;
+	union {
+		struct {
+			enum bpf_arg_type arg1_type;
+			enum bpf_arg_type arg2_type;
+			enum bpf_arg_type arg3_type;
+			enum bpf_arg_type arg4_type;
+			enum bpf_arg_type arg5_type;
+		};
+		enum bpf_arg_type arg_type[5];
+	};
+	union {
+		struct {
+			u32 *arg1_btf_id;
+			u32 *arg2_btf_id;
+			u32 *arg3_btf_id;
+			u32 *arg4_btf_id;
+			u32 *arg5_btf_id;
+		};
+		u32 *arg_btf_id[5];
+	};
+	int *ret_btf_id;
+	bool (*allowed)(const struct bpf_prog *);
+};
+
+enum bpf_access_type {
+	BPF_READ = 1,
+	BPF_WRITE = 2,
+};
+
+struct bpf_verifier_log;
+
+struct bpf_insn_access_aux {
+	enum bpf_reg_type reg_type;
+	union {
+		int ctx_field_size;
+		struct {
+			struct btf *btf;
+			u32 btf_id;
+		};
+	};
+	struct bpf_verifier_log *log;
+};
+
+struct bpf_verifier_ops {
+	const struct bpf_func_proto * (*get_func_proto)(enum bpf_func_id, const struct bpf_prog *);
+	bool (*is_valid_access)(int, int, enum bpf_access_type, const struct bpf_prog *, struct bpf_insn_access_aux *);
+	int (*gen_prologue)(struct bpf_insn *, bool, const struct bpf_prog *);
+	int (*gen_ld_abs)(const struct bpf_insn *, struct bpf_insn *);
+	u32 (*convert_ctx_access)(enum bpf_access_type, const struct bpf_insn *, struct bpf_insn *, struct bpf_prog *, u32 *);
+	int (*btf_struct_access)(struct bpf_verifier_log *, const struct btf *, const struct btf_type *, int, int, enum bpf_access_type, u32 *);
+	bool (*check_kfunc_call)(u32);
+};
+
+struct bpf_array_aux {
+	struct {
+		spinlock_t lock;
+		enum bpf_prog_type type;
+		bool jited;
+	} owner;
+	struct list_head poke_progs;
+	struct bpf_map *map;
+	struct mutex poke_mutex;
+	struct work_struct work;
+};
+
+struct bpf_array {
+	struct bpf_map map;
+	u32 elem_size;
+	u32 index_mask;
+	struct bpf_array_aux *aux;
+	union {
+		char value[0];
+		void *ptrs[0];
+		void *pptrs[0];
+	};
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_event_entry {
+	struct perf_event *event;
+	struct file *perf_file;
+	struct file *map_file;
+	struct callback_head rcu;
+};
+
+typedef long unsigned int (*bpf_ctx_copy_t)(void *, const void *, long unsigned int, long unsigned int);
+
+struct bpf_trace_run_ctx {
+	struct bpf_run_ctx run_ctx;
+	u64 bpf_cookie;
+};
+
+typedef u32 (*bpf_prog_run_fn)(const struct bpf_prog *, const void *);
+
+typedef struct user_regs_struct bpf_user_pt_regs_t;
+
+struct bpf_perf_event_data {
+	bpf_user_pt_regs_t regs;
+	__u64 sample_period;
+	__u64 addr;
+};
+
+struct perf_event_query_bpf {
+	__u32 ids_len;
+	__u32 prog_cnt;
+	__u32 ids[0];
+};
+
+struct bpf_perf_event_data_kern {
+	bpf_user_pt_regs_t *regs;
+	struct perf_sample_data *data;
+	struct perf_event *event;
+};
+
+struct btf_id_set {
+	u32 cnt;
+	u32 ids[0];
+};
+
+struct bpf_local_storage_map_bucket {
+	struct hlist_head list;
+	raw_spinlock_t lock;
+};
+
+struct bpf_local_storage_data {
+	struct bpf_local_storage_map *smap;
+	u8 data[0];
+};
+
+struct trace_event_raw_bpf_trace_printk {
+	struct trace_entry ent;
+	u32 __data_loc_bpf_string;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_bpf_trace_printk {
+	u32 bpf_string;
+};
+
+typedef void (*btf_trace_bpf_trace_printk)(void *, const char *);
+
+struct bpf_trace_module {
+	struct module *module;
+	struct list_head list;
+};
+
+typedef u64 (*btf_bpf_probe_read_user)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_user_str)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_kernel)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_kernel_str)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_write_user)(void *, const void *, u32);
+
+typedef u64 (*btf_bpf_trace_printk)(char *, u32, u64, u64, u64);
+
+typedef u64 (*btf_bpf_seq_printf)(struct seq_file *, char *, u32, const void *, u32);
+
+typedef u64 (*btf_bpf_seq_write)(struct seq_file *, const void *, u32);
+
+typedef u64 (*btf_bpf_seq_printf_btf)(struct seq_file *, struct btf_ptr *, u32, u64);
+
+typedef u64 (*btf_bpf_perf_event_read)(struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_perf_event_read_value)(struct bpf_map *, u64, struct bpf_perf_event_value *, u32);
+
+struct bpf_trace_sample_data {
+	struct perf_sample_data sds[3];
+};
+
+typedef u64 (*btf_bpf_perf_event_output)(struct pt_regs *, struct bpf_map *, u64, void *, u64);
+
+struct bpf_nested_pt_regs {
+	struct pt_regs regs[3];
+};
+
+typedef u64 (*btf_bpf_get_current_task)();
+
+typedef u64 (*btf_bpf_get_current_task_btf)();
+
+typedef u64 (*btf_bpf_task_pt_regs)(struct task_struct *);
+
+typedef u64 (*btf_bpf_current_task_under_cgroup)(struct bpf_map *, u32);
+
+struct send_signal_irq_work {
+	struct irq_work irq_work;
+	struct task_struct *task;
+	u32 sig;
+	enum pid_type type;
+};
+
+typedef u64 (*btf_bpf_send_signal)(u32);
+
+typedef u64 (*btf_bpf_send_signal_thread)(u32);
+
+typedef u64 (*btf_bpf_d_path)(struct path *, char *, u32);
+
+typedef u64 (*btf_bpf_snprintf_btf)(char *, u32, struct btf_ptr *, u32, u64);
+
+typedef u64 (*btf_bpf_get_func_ip_tracing)(void *);
+
+typedef u64 (*btf_bpf_get_func_ip_kprobe)(struct pt_regs *);
+
+typedef u64 (*btf_bpf_get_attach_cookie_trace)(void *);
+
+typedef u64 (*btf_bpf_get_attach_cookie_pe)(struct bpf_perf_event_data_kern *);
+
+typedef u64 (*btf_bpf_perf_event_output_tp)(void *, struct bpf_map *, u64, void *, u64);
+
+typedef u64 (*btf_bpf_get_stackid_tp)(void *, struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_get_stack_tp)(void *, void *, u32, u64);
+
+typedef u64 (*btf_bpf_perf_prog_read_value)(struct bpf_perf_event_data_kern *, struct bpf_perf_event_value *, u32);
+
+typedef u64 (*btf_bpf_read_branch_records)(struct bpf_perf_event_data_kern *, void *, u32, u64);
+
+struct bpf_raw_tp_regs {
+	struct pt_regs regs[3];
+};
+
+typedef u64 (*btf_bpf_perf_event_output_raw_tp)(struct bpf_raw_tracepoint_args *, struct bpf_map *, u64, void *, u64);
+
+typedef u64 (*btf_bpf_get_stackid_raw_tp)(struct bpf_raw_tracepoint_args *, struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_get_stack_raw_tp)(struct bpf_raw_tracepoint_args *, void *, u32, u64);
+
+struct kprobe_trace_entry_head {
+	struct trace_entry ent;
+	long unsigned int ip;
+};
+
+struct kretprobe_trace_entry_head {
+	struct trace_entry ent;
+	long unsigned int func;
+	long unsigned int ret_ip;
+};
+
+struct trace_kprobe {
+	struct dyn_event devent;
+	struct kretprobe rp;
+	long unsigned int *nhit;
+	const char *symbol;
+	struct trace_probe tp;
+};
+
+enum error_detector {
+	ERROR_DETECTOR_KFENCE = 0,
+	ERROR_DETECTOR_KASAN = 1,
+};
+
+struct trace_event_raw_error_report_template {
+	struct trace_entry ent;
+	enum error_detector error_detector;
+	long unsigned int id;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_error_report_template {};
+
+typedef void (*btf_trace_error_report_end)(void *, enum error_detector, long unsigned int);
+
+enum cpufreq_table_sorting {
+	CPUFREQ_TABLE_UNSORTED = 0,
+	CPUFREQ_TABLE_SORTED_ASCENDING = 1,
+	CPUFREQ_TABLE_SORTED_DESCENDING = 2,
+};
+
+struct cpufreq_cpuinfo {
+	unsigned int max_freq;
+	unsigned int min_freq;
+	unsigned int transition_latency;
+};
+
+struct cpufreq_stats;
+
+struct clk;
+
+struct cpufreq_governor;
+
+struct cpufreq_frequency_table;
+
+struct thermal_cooling_device;
+
+struct cpufreq_policy {
+	cpumask_var_t cpus;
+	cpumask_var_t related_cpus;
+	cpumask_var_t real_cpus;
+	unsigned int shared_type;
+	unsigned int cpu;
+	struct clk *clk;
+	struct cpufreq_cpuinfo cpuinfo;
+	unsigned int min;
+	unsigned int max;
+	unsigned int cur;
+	unsigned int suspend_freq;
+	unsigned int policy;
+	unsigned int last_policy;
+	struct cpufreq_governor *governor;
+	void *governor_data;
+	char last_governor[16];
+	struct work_struct update;
+	struct freq_constraints constraints;
+	struct freq_qos_request *min_freq_req;
+	struct freq_qos_request *max_freq_req;
+	struct cpufreq_frequency_table *freq_table;
+	enum cpufreq_table_sorting freq_table_sorted;
+	struct list_head policy_list;
+	struct kobject kobj;
+	struct completion kobj_unregister;
+	struct rw_semaphore rwsem;
+	bool fast_switch_possible;
+	bool fast_switch_enabled;
+	bool strict_target;
+	unsigned int transition_delay_us;
+	bool dvfs_possible_from_any_cpu;
+	unsigned int cached_target_freq;
+	unsigned int cached_resolved_idx;
+	bool transition_ongoing;
+	spinlock_t transition_lock;
+	wait_queue_head_t transition_wait;
+	struct task_struct *transition_task;
+	struct cpufreq_stats *stats;
+	void *driver_data;
+	struct thermal_cooling_device *cdev;
+	struct notifier_block nb_min;
+	struct notifier_block nb_max;
+};
+
+struct cpufreq_governor {
+	char name[16];
+	int (*init)(struct cpufreq_policy *);
+	void (*exit)(struct cpufreq_policy *);
+	int (*start)(struct cpufreq_policy *);
+	void (*stop)(struct cpufreq_policy *);
+	void (*limits)(struct cpufreq_policy *);
+	ssize_t (*show_setspeed)(struct cpufreq_policy *, char *);
+	int (*store_setspeed)(struct cpufreq_policy *, unsigned int);
+	struct list_head governor_list;
+	struct module *owner;
+	u8 flags;
+};
+
+struct cpufreq_frequency_table {
+	unsigned int flags;
+	unsigned int driver_data;
+	unsigned int frequency;
+};
+
+struct trace_event_raw_cpu {
+	struct trace_entry ent;
+	u32 state;
+	u32 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_powernv_throttle {
+	struct trace_entry ent;
+	int chip_id;
+	u32 __data_loc_reason;
+	int pmax;
+	char __data[0];
+};
+
+struct trace_event_raw_pstate_sample {
+	struct trace_entry ent;
+	u32 core_busy;
+	u32 scaled_busy;
+	u32 from;
+	u32 to;
+	u64 mperf;
+	u64 aperf;
+	u64 tsc;
+	u32 freq;
+	u32 io_boost;
+	char __data[0];
+};
+
+struct trace_event_raw_cpu_frequency_limits {
+	struct trace_entry ent;
+	u32 min_freq;
+	u32 max_freq;
+	u32 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_device_pm_callback_start {
+	struct trace_entry ent;
+	u32 __data_loc_device;
+	u32 __data_loc_driver;
+	u32 __data_loc_parent;
+	u32 __data_loc_pm_ops;
+	int event;
+	char __data[0];
+};
+
+struct trace_event_raw_device_pm_callback_end {
+	struct trace_entry ent;
+	u32 __data_loc_device;
+	u32 __data_loc_driver;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_suspend_resume {
+	struct trace_entry ent;
+	const char *action;
+	int val;
+	bool start;
+	char __data[0];
+};
+
+struct trace_event_raw_wakeup_source {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u64 state;
+	char __data[0];
+};
+
+struct trace_event_raw_clock {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u64 state;
+	u64 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_power_domain {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u64 state;
+	u64 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_cpu_latency_qos_request {
+	struct trace_entry ent;
+	s32 value;
+	char __data[0];
+};
+
+struct trace_event_raw_pm_qos_update {
+	struct trace_entry ent;
+	enum pm_qos_req_action action;
+	int prev_value;
+	int curr_value;
+	char __data[0];
+};
+
+struct trace_event_raw_dev_pm_qos_request {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	enum dev_pm_qos_req_type type;
+	s32 new_value;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_cpu {};
+
+struct trace_event_data_offsets_powernv_throttle {
+	u32 reason;
+};
+
+struct trace_event_data_offsets_pstate_sample {};
+
+struct trace_event_data_offsets_cpu_frequency_limits {};
+
+struct trace_event_data_offsets_device_pm_callback_start {
+	u32 device;
+	u32 driver;
+	u32 parent;
+	u32 pm_ops;
+};
+
+struct trace_event_data_offsets_device_pm_callback_end {
+	u32 device;
+	u32 driver;
+};
+
+struct trace_event_data_offsets_suspend_resume {};
+
+struct trace_event_data_offsets_wakeup_source {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clock {
+	u32 name;
+};
+
+struct trace_event_data_offsets_power_domain {
+	u32 name;
+};
+
+struct trace_event_data_offsets_cpu_latency_qos_request {};
+
+struct trace_event_data_offsets_pm_qos_update {};
+
+struct trace_event_data_offsets_dev_pm_qos_request {
+	u32 name;
+};
+
+typedef void (*btf_trace_cpu_idle)(void *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_powernv_throttle)(void *, int, const char *, int);
+
+typedef void (*btf_trace_pstate_sample)(void *, u32, u32, u32, u32, u64, u64, u64, u32, u32);
+
+typedef void (*btf_trace_cpu_frequency)(void *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_cpu_frequency_limits)(void *, struct cpufreq_policy *);
+
+typedef void (*btf_trace_device_pm_callback_start)(void *, struct device *, const char *, int);
+
+typedef void (*btf_trace_device_pm_callback_end)(void *, struct device *, int);
+
+typedef void (*btf_trace_suspend_resume)(void *, const char *, int, bool);
+
+typedef void (*btf_trace_wakeup_source_activate)(void *, const char *, unsigned int);
+
+typedef void (*btf_trace_wakeup_source_deactivate)(void *, const char *, unsigned int);
+
+typedef void (*btf_trace_clock_enable)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_clock_disable)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_clock_set_rate)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_power_domain_target)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_pm_qos_add_request)(void *, s32);
+
+typedef void (*btf_trace_pm_qos_update_request)(void *, s32);
+
+typedef void (*btf_trace_pm_qos_remove_request)(void *, s32);
+
+typedef void (*btf_trace_pm_qos_update_target)(void *, enum pm_qos_req_action, int, int);
+
+typedef void (*btf_trace_pm_qos_update_flags)(void *, enum pm_qos_req_action, int, int);
+
+typedef void (*btf_trace_dev_pm_qos_add_request)(void *, const char *, enum dev_pm_qos_req_type, s32);
+
+typedef void (*btf_trace_dev_pm_qos_update_request)(void *, const char *, enum dev_pm_qos_req_type, s32);
+
+typedef void (*btf_trace_dev_pm_qos_remove_request)(void *, const char *, enum dev_pm_qos_req_type, s32);
+
+struct trace_probe_log {
+	const char *subsystem;
+	const char **argv;
+	int argc;
+	int index;
+};
+
+enum uprobe_filter_ctx {
+	UPROBE_FILTER_REGISTER = 0,
+	UPROBE_FILTER_UNREGISTER = 1,
+	UPROBE_FILTER_MMAP = 2,
+};
+
+struct uprobe_consumer {
+	int (*handler)(struct uprobe_consumer *, struct pt_regs *);
+	int (*ret_handler)(struct uprobe_consumer *, long unsigned int, struct pt_regs *);
+	bool (*filter)(struct uprobe_consumer *, enum uprobe_filter_ctx, struct mm_struct *);
+	struct uprobe_consumer *next;
+};
+
+struct uprobe_trace_entry_head {
+	struct trace_entry ent;
+	long unsigned int vaddr[0];
+};
+
+struct trace_uprobe {
+	struct dyn_event devent;
+	struct uprobe_consumer consumer;
+	struct path path;
+	struct inode *inode;
+	char *filename;
+	long unsigned int offset;
+	long unsigned int ref_ctr_offset;
+	long unsigned int nhit;
+	struct trace_probe tp;
+};
+
+struct uprobe_dispatch_data {
+	struct trace_uprobe *tu;
+	long unsigned int bp_addr;
+};
+
+struct uprobe_cpu_buffer {
+	struct mutex mutex;
+	void *buf;
+};
+
+typedef bool (*filter_func_t)(struct uprobe_consumer *, enum uprobe_filter_ctx, struct mm_struct *);
+
+struct rhash_lock_head;
+
+struct bucket_table {
+	unsigned int size;
+	unsigned int nest;
+	u32 hash_rnd;
+	struct list_head walkers;
+	struct callback_head rcu;
+	struct bucket_table *future_tbl;
+	struct lockdep_map dep_map;
+	long: 64;
+	struct rhash_lock_head *buckets[0];
+};
+
+struct rnd_state {
+	__u32 s1;
+	__u32 s2;
+	__u32 s3;
+	__u32 s4;
+};
+
+enum xdp_action {
+	XDP_ABORTED = 0,
+	XDP_DROP = 1,
+	XDP_PASS = 2,
+	XDP_TX = 3,
+	XDP_REDIRECT = 4,
+};
+
+enum bpf_jit_poke_reason {
+	BPF_POKE_REASON_TAIL_CALL = 0,
+};
+
+enum bpf_text_poke_type {
+	BPF_MOD_CALL = 0,
+	BPF_MOD_JUMP = 1,
+};
+
+enum xdp_mem_type {
+	MEM_TYPE_PAGE_SHARED = 0,
+	MEM_TYPE_PAGE_ORDER0 = 1,
+	MEM_TYPE_PAGE_POOL = 2,
+	MEM_TYPE_XSK_BUFF_POOL = 3,
+	MEM_TYPE_MAX = 4,
+};
+
+struct xdp_cpumap_stats {
+	unsigned int redirect;
+	unsigned int pass;
+	unsigned int drop;
+};
+
+struct bpf_prog_dummy {
+	struct bpf_prog prog;
+};
+
+typedef u64 (*btf_bpf_user_rnd_u32)();
+
+typedef u64 (*btf_bpf_get_raw_cpu_id)();
+
+struct _bpf_dtab_netdev {
+	struct net_device *dev;
+};
+
+struct rhash_lock_head {};
+
+struct zero_copy_allocator;
+
+struct xdp_mem_allocator {
+	struct xdp_mem_info mem;
+	union {
+		void *allocator;
+		struct page_pool *page_pool;
+		struct zero_copy_allocator *zc_alloc;
+	};
+	struct rhash_head node;
+	struct callback_head rcu;
+};
+
+struct trace_event_raw_xdp_exception {
+	struct trace_entry ent;
+	int prog_id;
+	u32 act;
+	int ifindex;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_bulk_tx {
+	struct trace_entry ent;
+	int ifindex;
+	u32 act;
+	int drops;
+	int sent;
+	int err;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_redirect_template {
+	struct trace_entry ent;
+	int prog_id;
+	u32 act;
+	int ifindex;
+	int err;
+	int to_ifindex;
+	u32 map_id;
+	int map_index;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_cpumap_kthread {
+	struct trace_entry ent;
+	int map_id;
+	u32 act;
+	int cpu;
+	unsigned int drops;
+	unsigned int processed;
+	int sched;
+	unsigned int xdp_pass;
+	unsigned int xdp_drop;
+	unsigned int xdp_redirect;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_cpumap_enqueue {
+	struct trace_entry ent;
+	int map_id;
+	u32 act;
+	int cpu;
+	unsigned int drops;
+	unsigned int processed;
+	int to_cpu;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_devmap_xmit {
+	struct trace_entry ent;
+	int from_ifindex;
+	u32 act;
+	int to_ifindex;
+	int drops;
+	int sent;
+	int err;
+	char __data[0];
+};
+
+struct trace_event_raw_mem_disconnect {
+	struct trace_entry ent;
+	const struct xdp_mem_allocator *xa;
+	u32 mem_id;
+	u32 mem_type;
+	const void *allocator;
+	char __data[0];
+};
+
+struct trace_event_raw_mem_connect {
+	struct trace_entry ent;
+	const struct xdp_mem_allocator *xa;
+	u32 mem_id;
+	u32 mem_type;
+	const void *allocator;
+	const struct xdp_rxq_info *rxq;
+	int ifindex;
+	char __data[0];
+};
+
+struct trace_event_raw_mem_return_failed {
+	struct trace_entry ent;
+	const struct page *page;
+	u32 mem_id;
+	u32 mem_type;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_xdp_exception {};
+
+struct trace_event_data_offsets_xdp_bulk_tx {};
+
+struct trace_event_data_offsets_xdp_redirect_template {};
+
+struct trace_event_data_offsets_xdp_cpumap_kthread {};
+
+struct trace_event_data_offsets_xdp_cpumap_enqueue {};
+
+struct trace_event_data_offsets_xdp_devmap_xmit {};
+
+struct trace_event_data_offsets_mem_disconnect {};
+
+struct trace_event_data_offsets_mem_connect {};
+
+struct trace_event_data_offsets_mem_return_failed {};
+
+typedef void (*btf_trace_xdp_exception)(void *, const struct net_device *, const struct bpf_prog *, u32);
+
+typedef void (*btf_trace_xdp_bulk_tx)(void *, const struct net_device *, int, int, int);
+
+typedef void (*btf_trace_xdp_redirect)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_redirect_err)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_redirect_map)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_redirect_map_err)(void *, const struct net_device *, const struct bpf_prog *, const void *, int, enum bpf_map_type, u32, u32);
+
+typedef void (*btf_trace_xdp_cpumap_kthread)(void *, int, unsigned int, unsigned int, int, struct xdp_cpumap_stats *);
+
+typedef void (*btf_trace_xdp_cpumap_enqueue)(void *, int, unsigned int, unsigned int, int);
+
+typedef void (*btf_trace_xdp_devmap_xmit)(void *, const struct net_device *, const struct net_device *, int, int, int);
+
+typedef void (*btf_trace_mem_disconnect)(void *, const struct xdp_mem_allocator *);
+
+typedef void (*btf_trace_mem_connect)(void *, const struct xdp_mem_allocator *, const struct xdp_rxq_info *);
+
+typedef void (*btf_trace_mem_return_failed)(void *, const struct xdp_mem_info *, const struct page *);
+
+enum bpf_cmd {
+	BPF_MAP_CREATE = 0,
+	BPF_MAP_LOOKUP_ELEM = 1,
+	BPF_MAP_UPDATE_ELEM = 2,
+	BPF_MAP_DELETE_ELEM = 3,
+	BPF_MAP_GET_NEXT_KEY = 4,
+	BPF_PROG_LOAD = 5,
+	BPF_OBJ_PIN = 6,
+	BPF_OBJ_GET = 7,
+	BPF_PROG_ATTACH = 8,
+	BPF_PROG_DETACH = 9,
+	BPF_PROG_TEST_RUN = 10,
+	BPF_PROG_RUN = 10,
+	BPF_PROG_GET_NEXT_ID = 11,
+	BPF_MAP_GET_NEXT_ID = 12,
+	BPF_PROG_GET_FD_BY_ID = 13,
+	BPF_MAP_GET_FD_BY_ID = 14,
+	BPF_OBJ_GET_INFO_BY_FD = 15,
+	BPF_PROG_QUERY = 16,
+	BPF_RAW_TRACEPOINT_OPEN = 17,
+	BPF_BTF_LOAD = 18,
+	BPF_BTF_GET_FD_BY_ID = 19,
+	BPF_TASK_FD_QUERY = 20,
+	BPF_MAP_LOOKUP_AND_DELETE_ELEM = 21,
+	BPF_MAP_FREEZE = 22,
+	BPF_BTF_GET_NEXT_ID = 23,
+	BPF_MAP_LOOKUP_BATCH = 24,
+	BPF_MAP_LOOKUP_AND_DELETE_BATCH = 25,
+	BPF_MAP_UPDATE_BATCH = 26,
+	BPF_MAP_DELETE_BATCH = 27,
+	BPF_LINK_CREATE = 28,
+	BPF_LINK_UPDATE = 29,
+	BPF_LINK_GET_FD_BY_ID = 30,
+	BPF_LINK_GET_NEXT_ID = 31,
+	BPF_ENABLE_STATS = 32,
+	BPF_ITER_CREATE = 33,
+	BPF_LINK_DETACH = 34,
+	BPF_PROG_BIND_MAP = 35,
+};
+
+enum {
+	BPF_ANY = 0,
+	BPF_NOEXIST = 1,
+	BPF_EXIST = 2,
+	BPF_F_LOCK = 4,
+};
+
+enum {
+	BPF_F_NO_PREALLOC = 1,
+	BPF_F_NO_COMMON_LRU = 2,
+	BPF_F_NUMA_NODE = 4,
+	BPF_F_RDONLY = 8,
+	BPF_F_WRONLY = 16,
+	BPF_F_STACK_BUILD_ID = 32,
+	BPF_F_ZERO_SEED = 64,
+	BPF_F_RDONLY_PROG = 128,
+	BPF_F_WRONLY_PROG = 256,
+	BPF_F_CLONE = 512,
+	BPF_F_MMAPABLE = 1024,
+	BPF_F_PRESERVE_ELEMS = 2048,
+	BPF_F_INNER_MAP = 4096,
+};
+
+enum bpf_stats_type {
+	BPF_STATS_RUN_TIME = 0,
+};
+
+struct bpf_prog_info {
+	__u32 type;
+	__u32 id;
+	__u8 tag[8];
+	__u32 jited_prog_len;
+	__u32 xlated_prog_len;
+	__u64 jited_prog_insns;
+	__u64 xlated_prog_insns;
+	__u64 load_time;
+	__u32 created_by_uid;
+	__u32 nr_map_ids;
+	__u64 map_ids;
+	char name[16];
+	__u32 ifindex;
+	__u32 gpl_compatible: 1;
+	__u64 netns_dev;
+	__u64 netns_ino;
+	__u32 nr_jited_ksyms;
+	__u32 nr_jited_func_lens;
+	__u64 jited_ksyms;
+	__u64 jited_func_lens;
+	__u32 btf_id;
+	__u32 func_info_rec_size;
+	__u64 func_info;
+	__u32 nr_func_info;
+	__u32 nr_line_info;
+	__u64 line_info;
+	__u64 jited_line_info;
+	__u32 nr_jited_line_info;
+	__u32 line_info_rec_size;
+	__u32 jited_line_info_rec_size;
+	__u32 nr_prog_tags;
+	__u64 prog_tags;
+	__u64 run_time_ns;
+	__u64 run_cnt;
+	__u64 recursion_misses;
+};
+
+struct bpf_map_info {
+	__u32 type;
+	__u32 id;
+	__u32 key_size;
+	__u32 value_size;
+	__u32 max_entries;
+	__u32 map_flags;
+	char name[16];
+	__u32 ifindex;
+	__u32 btf_vmlinux_value_type_id;
+	__u64 netns_dev;
+	__u64 netns_ino;
+	__u32 btf_id;
+	__u32 btf_key_type_id;
+	__u32 btf_value_type_id;
+};
+
+struct bpf_btf_info {
+	__u64 btf;
+	__u32 btf_size;
+	__u32 id;
+	__u64 name;
+	__u32 name_len;
+	__u32 kernel_btf;
+};
+
+typedef sockptr_t bpfptr_t;
+
+struct bpf_verifier_log {
+	u32 level;
+	char kbuf[1024];
+	char *ubuf;
+	u32 len_used;
+	u32 len_total;
+};
+
+struct bpf_subprog_info {
+	u32 start;
+	u32 linfo_idx;
+	u16 stack_depth;
+	bool has_tail_call;
+	bool tail_call_reachable;
+	bool has_ld_abs;
+	bool is_async_cb;
+};
+
+struct bpf_id_pair {
+	u32 old;
+	u32 cur;
+};
+
+struct bpf_verifier_stack_elem;
+
+struct bpf_verifier_state;
+
+struct bpf_verifier_state_list;
+
+struct bpf_insn_aux_data;
+
+struct bpf_verifier_env {
+	u32 insn_idx;
+	u32 prev_insn_idx;
+	struct bpf_prog *prog;
+	const struct bpf_verifier_ops *ops;
+	struct bpf_verifier_stack_elem *head;
+	int stack_size;
+	bool strict_alignment;
+	bool test_state_freq;
+	struct bpf_verifier_state *cur_state;
+	struct bpf_verifier_state_list **explored_states;
+	struct bpf_verifier_state_list *free_list;
+	struct bpf_map *used_maps[64];
+	struct btf_mod_pair used_btfs[64];
+	u32 used_map_cnt;
+	u32 used_btf_cnt;
+	u32 id_gen;
+	bool explore_alu_limits;
+	bool allow_ptr_leaks;
+	bool allow_uninit_stack;
+	bool allow_ptr_to_map_access;
+	bool bpf_capable;
+	bool bypass_spec_v1;
+	bool bypass_spec_v4;
+	bool seen_direct_write;
+	struct bpf_insn_aux_data *insn_aux_data;
+	const struct bpf_line_info *prev_linfo;
+	struct bpf_verifier_log log;
+	struct bpf_subprog_info subprog_info[257];
+	struct bpf_id_pair idmap_scratch[75];
+	struct {
+		int *insn_state;
+		int *insn_stack;
+		int cur_stack;
+	} cfg;
+	u32 pass_cnt;
+	u32 subprog_cnt;
+	u32 prev_insn_processed;
+	u32 insn_processed;
+	u32 prev_jmps_processed;
+	u32 jmps_processed;
+	u64 verification_time;
+	u32 max_states_per_insn;
+	u32 total_states;
+	u32 peak_states;
+	u32 longest_mark_read_walk;
+	bpfptr_t fd_array;
+};
+
+struct tnum {
+	u64 value;
+	u64 mask;
+};
+
+enum bpf_reg_liveness {
+	REG_LIVE_NONE = 0,
+	REG_LIVE_READ32 = 1,
+	REG_LIVE_READ64 = 2,
+	REG_LIVE_READ = 3,
+	REG_LIVE_WRITTEN = 4,
+	REG_LIVE_DONE = 8,
+};
+
+struct bpf_reg_state {
+	enum bpf_reg_type type;
+	s32 off;
+	union {
+		int range;
+		struct {
+			struct bpf_map *map_ptr;
+			u32 map_uid;
+		};
+		struct {
+			struct btf *btf;
+			u32 btf_id;
+		};
+		u32 mem_size;
+		struct {
+			long unsigned int raw1;
+			long unsigned int raw2;
+		} raw;
+		u32 subprogno;
+	};
+	u32 id;
+	u32 ref_obj_id;
+	struct tnum var_off;
+	s64 smin_value;
+	s64 smax_value;
+	u64 umin_value;
+	u64 umax_value;
+	s32 s32_min_value;
+	s32 s32_max_value;
+	u32 u32_min_value;
+	u32 u32_max_value;
+	struct bpf_reg_state *parent;
+	u32 frameno;
+	s32 subreg_def;
+	enum bpf_reg_liveness live;
+	bool precise;
+};
+
+struct bpf_reference_state;
+
+struct bpf_stack_state;
+
+struct bpf_func_state {
+	struct bpf_reg_state regs[11];
+	int callsite;
+	u32 frameno;
+	u32 subprogno;
+	u32 async_entry_cnt;
+	bool in_callback_fn;
+	bool in_async_callback_fn;
+	int acquired_refs;
+	struct bpf_reference_state *refs;
+	int allocated_stack;
+	struct bpf_stack_state *stack;
+};
+
+struct bpf_attach_target_info {
+	struct btf_func_model fmodel;
+	long int tgt_addr;
+	const char *tgt_name;
+	const struct btf_type *tgt_type;
+};
+
+struct bpf_link_primer {
+	struct bpf_link *link;
+	struct file *file;
+	int fd;
+	u32 id;
+};
+
+struct bpf_stack_state {
+	struct bpf_reg_state spilled_ptr;
+	u8 slot_type[8];
+};
+
+struct bpf_reference_state {
+	int id;
+	int insn_idx;
+};
+
+struct bpf_idx_pair {
+	u32 prev_idx;
+	u32 idx;
+};
+
+struct bpf_verifier_state {
+	struct bpf_func_state *frame[8];
+	struct bpf_verifier_state *parent;
+	u32 branches;
+	u32 insn_idx;
+	u32 curframe;
+	u32 active_spin_lock;
+	bool speculative;
+	u32 first_insn_idx;
+	u32 last_insn_idx;
+	struct bpf_idx_pair *jmp_history;
+	u32 jmp_history_cnt;
+};
+
+struct bpf_verifier_state_list {
+	struct bpf_verifier_state state;
+	struct bpf_verifier_state_list *next;
+	int miss_cnt;
+	int hit_cnt;
+};
+
+struct bpf_insn_aux_data {
+	union {
+		enum bpf_reg_type ptr_type;
+		long unsigned int map_ptr_state;
+		s32 call_imm;
+		u32 alu_limit;
+		struct {
+			u32 map_index;
+			u32 map_off;
+		};
+		struct {
+			enum bpf_reg_type reg_type;
+			union {
+				struct {
+					struct btf *btf;
+					u32 btf_id;
+				};
+				u32 mem_size;
+			};
+		} btf_var;
+	};
+	u64 map_key_state;
+	int ctx_field_size;
+	u32 seen;
+	bool sanitize_stack_spill;
+	bool zext_dst;
+	u8 alu_state;
+	unsigned int orig_idx;
+	bool prune_point;
+};
+
+enum perf_bpf_event_type {
+	PERF_BPF_EVENT_UNKNOWN = 0,
+	PERF_BPF_EVENT_PROG_LOAD = 1,
+	PERF_BPF_EVENT_PROG_UNLOAD = 2,
+	PERF_BPF_EVENT_MAX = 3,
+};
+
+enum bpf_audit {
+	BPF_AUDIT_LOAD = 0,
+	BPF_AUDIT_UNLOAD = 1,
+	BPF_AUDIT_MAX = 2,
+};
+
+struct bpf_prog_kstats {
+	u64 nsecs;
+	u64 cnt;
+	u64 misses;
+};
+
+struct bpf_tracing_link {
+	struct bpf_link link;
+	enum bpf_attach_type attach_type;
+	struct bpf_trampoline *trampoline;
+	struct bpf_prog *tgt_prog;
+};
+
+struct bpf_raw_tp_link {
+	struct bpf_link link;
+	struct bpf_raw_event_map *btp;
+};
+
+struct bpf_perf_link {
+	struct bpf_link link;
+	struct file *perf_file;
+};
+
+typedef u64 (*btf_bpf_sys_bpf)(int, void *, u32);
+
+typedef u64 (*btf_bpf_sys_close)(u32);
+
+struct btf_member {
+	__u32 name_off;
+	__u32 type;
+	__u32 offset;
+};
+
+struct btf_param {
+	__u32 name_off;
+	__u32 type;
+};
+
+enum btf_func_linkage {
+	BTF_FUNC_STATIC = 0,
+	BTF_FUNC_GLOBAL = 1,
+	BTF_FUNC_EXTERN = 2,
+};
+
+struct btf_var_secinfo {
+	__u32 type;
+	__u32 offset;
+	__u32 size;
+};
+
+enum sk_action {
+	SK_DROP = 0,
+	SK_PASS = 1,
+};
+
+struct bpf_kfunc_desc {
+	struct btf_func_model func_model;
+	u32 func_id;
+	s32 imm;
+};
+
+struct bpf_kfunc_desc_tab {
+	struct bpf_kfunc_desc descs[256];
+	u32 nr_descs;
+};
+
+struct bpf_struct_ops {
+	const struct bpf_verifier_ops *verifier_ops;
+	int (*init)(struct btf *);
+	int (*check_member)(const struct btf_type *, const struct btf_member *);
+	int (*init_member)(const struct btf_type *, const struct btf_member *, void *, const void *);
+	int (*reg)(void *);
+	void (*unreg)(void *);
+	const struct btf_type *type;
+	const struct btf_type *value_type;
+	const char *name;
+	struct btf_func_model func_models[64];
+	u32 type_id;
+	u32 value_id;
+};
+
+typedef u32 (*bpf_convert_ctx_access_t)(enum bpf_access_type, const struct bpf_insn *, struct bpf_insn *, struct bpf_prog *, u32 *);
+
+enum bpf_stack_slot_type {
+	STACK_INVALID = 0,
+	STACK_SPILL = 1,
+	STACK_MISC = 2,
+	STACK_ZERO = 3,
+};
+
+struct bpf_verifier_stack_elem {
+	struct bpf_verifier_state st;
+	int insn_idx;
+	int prev_insn_idx;
+	struct bpf_verifier_stack_elem *next;
+	u32 log_pos;
+};
+
+enum {
+	BTF_SOCK_TYPE_INET = 0,
+	BTF_SOCK_TYPE_INET_CONN = 1,
+	BTF_SOCK_TYPE_INET_REQ = 2,
+	BTF_SOCK_TYPE_INET_TW = 3,
+	BTF_SOCK_TYPE_REQ = 4,
+	BTF_SOCK_TYPE_SOCK = 5,
+	BTF_SOCK_TYPE_SOCK_COMMON = 6,
+	BTF_SOCK_TYPE_TCP = 7,
+	BTF_SOCK_TYPE_TCP_REQ = 8,
+	BTF_SOCK_TYPE_TCP_TW = 9,
+	BTF_SOCK_TYPE_TCP6 = 10,
+	BTF_SOCK_TYPE_UDP = 11,
+	BTF_SOCK_TYPE_UDP6 = 12,
+	BTF_SOCK_TYPE_UNIX = 13,
+	MAX_BTF_SOCK_TYPE = 14,
+};
+
+typedef void (*bpf_insn_print_t)(void *, const char *, ...);
+
+typedef const char * (*bpf_insn_revmap_call_t)(void *, const struct bpf_insn *);
+
+typedef const char * (*bpf_insn_print_imm_t)(void *, const struct bpf_insn *, __u64);
+
+struct bpf_insn_cbs {
+	bpf_insn_print_t cb_print;
+	bpf_insn_revmap_call_t cb_call;
+	bpf_insn_print_imm_t cb_imm;
+	void *private_data;
+};
+
+struct bpf_call_arg_meta {
+	struct bpf_map *map_ptr;
+	bool raw_mode;
+	bool pkt_access;
+	int regno;
+	int access_size;
+	int mem_size;
+	u64 msize_max_value;
+	int ref_obj_id;
+	int map_uid;
+	int func_id;
+	struct btf *btf;
+	u32 btf_id;
+	struct btf *ret_btf;
+	u32 ret_btf_id;
+	u32 subprogno;
+};
+
+enum reg_arg_type {
+	SRC_OP = 0,
+	DST_OP = 1,
+	DST_OP_NO_MARK = 2,
+};
+
+enum stack_access_src {
+	ACCESS_DIRECT = 1,
+	ACCESS_HELPER = 2,
+};
+
+struct bpf_reg_types {
+	const enum bpf_reg_type types[10];
+	u32 *btf_id;
+};
+
+enum {
+	AT_PKT_END = 4294967295,
+	BEYOND_PKT_END = 4294967294,
+};
+
+typedef int (*set_callee_state_fn)(struct bpf_verifier_env *, struct bpf_func_state *, struct bpf_func_state *, int);
+
+enum {
+	REASON_BOUNDS = 4294967295,
+	REASON_TYPE = 4294967294,
+	REASON_PATHS = 4294967293,
+	REASON_LIMIT = 4294967292,
+	REASON_STACK = 4294967291,
+};
+
+struct bpf_sanitize_info {
+	struct bpf_insn_aux_data aux;
+	bool mask_to_left;
+};
+
+enum {
+	DISCOVERED = 16,
+	EXPLORED = 32,
+	FALLTHROUGH = 1,
+	BRANCH = 2,
+};
+
+enum {
+	DONE_EXPLORING = 0,
+	KEEP_EXPLORING = 1,
+};
+
+struct tree_descr {
+	const char *name;
+	const struct file_operations *ops;
+	int mode;
+};
+
+struct bpf_preload_info {
+	char link_name[16];
+	int link_id;
+};
+
+struct bpf_preload_ops {
+	struct umd_info info;
+	int (*preload)(struct bpf_preload_info *);
+	int (*finish)();
+	struct module *owner;
+};
+
+enum bpf_type {
+	BPF_TYPE_UNSPEC = 0,
+	BPF_TYPE_PROG = 1,
+	BPF_TYPE_MAP = 2,
+	BPF_TYPE_LINK = 3,
+};
+
+struct map_iter {
+	void *key;
+	bool done;
+};
+
+enum {
+	OPT_MODE = 0,
+};
+
+struct bpf_mount_opts {
+	umode_t mode;
+};
+
+struct bpf_spin_lock {
+	__u32 val;
+};
+
+struct bpf_pidns_info {
+	__u32 pid;
+	__u32 tgid;
+};
+
+struct bpf_cg_run_ctx {
+	struct bpf_run_ctx run_ctx;
+	const struct bpf_prog_array_item *prog_item;
+};
+
+typedef u64 (*btf_bpf_map_lookup_elem)(struct bpf_map *, void *);
+
+typedef u64 (*btf_bpf_map_update_elem)(struct bpf_map *, void *, void *, u64);
+
+typedef u64 (*btf_bpf_map_delete_elem)(struct bpf_map *, void *);
+
+typedef u64 (*btf_bpf_map_push_elem)(struct bpf_map *, void *, u64);
+
+typedef u64 (*btf_bpf_map_pop_elem)(struct bpf_map *, void *);
+
+typedef u64 (*btf_bpf_map_peek_elem)(struct bpf_map *, void *);
+
+typedef u64 (*btf_bpf_get_smp_processor_id)();
+
+typedef u64 (*btf_bpf_get_numa_node_id)();
+
+typedef u64 (*btf_bpf_ktime_get_ns)();
+
+typedef u64 (*btf_bpf_ktime_get_boot_ns)();
+
+typedef u64 (*btf_bpf_ktime_get_coarse_ns)();
+
+typedef u64 (*btf_bpf_get_current_pid_tgid)();
+
+typedef u64 (*btf_bpf_get_current_uid_gid)();
+
+typedef u64 (*btf_bpf_get_current_comm)(char *, u32);
+
+typedef u64 (*btf_bpf_spin_lock)(struct bpf_spin_lock *);
+
+typedef u64 (*btf_bpf_spin_unlock)(struct bpf_spin_lock *);
+
+typedef u64 (*btf_bpf_jiffies64)();
+
+typedef u64 (*btf_bpf_get_current_cgroup_id)();
+
+typedef u64 (*btf_bpf_get_current_ancestor_cgroup_id)(int);
+
+typedef u64 (*btf_bpf_get_local_storage)(struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_strtol)(const char *, size_t, u64, long int *);
+
+typedef u64 (*btf_bpf_strtoul)(const char *, size_t, u64, long unsigned int *);
+
+typedef u64 (*btf_bpf_get_ns_current_pid_tgid)(u64, u64, struct bpf_pidns_info *, u32);
+
+typedef u64 (*btf_bpf_event_output_data)(void *, struct bpf_map *, u64, void *, u64);
+
+typedef u64 (*btf_bpf_copy_from_user)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_per_cpu_ptr)(const void *, u32);
+
+typedef u64 (*btf_bpf_this_cpu_ptr)(const void *);
+
+struct bpf_bprintf_buffers {
+	char tmp_bufs[1536];
+};
+
+typedef u64 (*btf_bpf_snprintf)(char *, u32, char *, const void *, u32);
+
+struct bpf_hrtimer {
+	struct hrtimer timer;
+	struct bpf_map *map;
+	struct bpf_prog *prog;
+	void *callback_fn;
+	void *value;
+};
+
+struct bpf_timer_kern {
+	struct bpf_hrtimer *timer;
+	struct bpf_spin_lock lock;
+};
+
+typedef u64 (*btf_bpf_timer_init)(struct bpf_timer_kern *, struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_timer_set_callback)(struct bpf_timer_kern *, void *, struct bpf_prog_aux *);
+
+typedef u64 (*btf_bpf_timer_start)(struct bpf_timer_kern *, u64, u64);
+
+typedef u64 (*btf_bpf_timer_cancel)(struct bpf_timer_kern *);
+
+union bpf_iter_link_info {
+	struct {
+		__u32 map_fd;
+	} map;
+};
+
+typedef int (*bpf_iter_attach_target_t)(struct bpf_prog *, union bpf_iter_link_info *, struct bpf_iter_aux_info *);
+
+typedef void (*bpf_iter_detach_target_t)(struct bpf_iter_aux_info *);
+
+typedef void (*bpf_iter_show_fdinfo_t)(const struct bpf_iter_aux_info *, struct seq_file *);
+
+typedef int (*bpf_iter_fill_link_info_t)(const struct bpf_iter_aux_info *, struct bpf_link_info *);
+
+typedef const struct bpf_func_proto * (*bpf_iter_get_func_proto_t)(enum bpf_func_id, const struct bpf_prog *);
+
+enum bpf_iter_feature {
+	BPF_ITER_RESCHED = 1,
+};
+
+struct bpf_iter_reg {
+	const char *target;
+	bpf_iter_attach_target_t attach_target;
+	bpf_iter_detach_target_t detach_target;
+	bpf_iter_show_fdinfo_t show_fdinfo;
+	bpf_iter_fill_link_info_t fill_link_info;
+	bpf_iter_get_func_proto_t get_func_proto;
+	u32 ctx_arg_info_size;
+	u32 feature;
+	struct bpf_ctx_arg_aux ctx_arg_info[2];
+	const struct bpf_iter_seq_info *seq_info;
+};
+
+struct bpf_iter_meta {
+	union {
+		struct seq_file *seq;
+	};
+	u64 session_id;
+	u64 seq_num;
+};
+
+struct bpf_iter_target_info {
+	struct list_head list;
+	const struct bpf_iter_reg *reg_info;
+	u32 btf_id;
+};
+
+struct bpf_iter_link {
+	struct bpf_link link;
+	struct bpf_iter_aux_info aux;
+	struct bpf_iter_target_info *tinfo;
+};
+
+struct bpf_iter_priv_data {
+	struct bpf_iter_target_info *tinfo;
+	const struct bpf_iter_seq_info *seq_info;
+	struct bpf_prog *prog;
+	u64 session_id;
+	u64 seq_num;
+	bool done_stop;
+	long: 56;
+	u8 target_private[0];
+};
+
+typedef u64 (*btf_bpf_for_each_map_elem)(struct bpf_map *, void *, void *, u64);
+
+struct bpf_iter_seq_map_info {
+	u32 map_id;
+};
+
+struct bpf_iter__bpf_map {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct bpf_map *map;
+	};
+};
+
+struct bpf_iter_seq_task_common {
+	struct pid_namespace *ns;
+};
+
+struct bpf_iter_seq_task_info {
+	struct bpf_iter_seq_task_common common;
+	u32 tid;
+};
+
+struct bpf_iter__task {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct task_struct *task;
+	};
+};
+
+struct bpf_iter_seq_task_file_info {
+	struct bpf_iter_seq_task_common common;
+	struct task_struct *task;
+	u32 tid;
+	u32 fd;
+};
+
+struct bpf_iter__task_file {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct task_struct *task;
+	};
+	u32 fd;
+	union {
+		struct file *file;
+	};
+};
+
+struct bpf_iter_seq_task_vma_info {
+	struct bpf_iter_seq_task_common common;
+	struct task_struct *task;
+	struct vm_area_struct *vma;
+	u32 tid;
+	long unsigned int prev_vm_start;
+	long unsigned int prev_vm_end;
+};
+
+enum bpf_task_vma_iter_find_op {
+	task_vma_iter_first_vma = 0,
+	task_vma_iter_next_vma = 1,
+	task_vma_iter_find_vma = 2,
+};
+
+struct bpf_iter__task_vma {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct task_struct *task;
+	};
+	union {
+		struct vm_area_struct *vma;
+	};
+};
+
+struct bpf_iter_seq_prog_info {
+	u32 prog_id;
+};
+
+struct bpf_iter__bpf_prog {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct bpf_prog *prog;
+	};
+};
+
+struct bpf_iter__bpf_map_elem {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct bpf_map *map;
+	};
+	union {
+		void *key;
+	};
+	union {
+		void *value;
+	};
+};
+
+struct pcpu_freelist_node;
+
+struct pcpu_freelist_head {
+	struct pcpu_freelist_node *first;
+	raw_spinlock_t lock;
+};
+
+struct pcpu_freelist_node {
+	struct pcpu_freelist_node *next;
+};
+
+struct pcpu_freelist {
+	struct pcpu_freelist_head *freelist;
+	struct pcpu_freelist_head extralist;
+};
+
+struct bpf_lru_node {
+	struct list_head list;
+	u16 cpu;
+	u8 type;
+	u8 ref;
+};
+
+struct bpf_lru_list {
+	struct list_head lists[3];
+	unsigned int counts[2];
+	struct list_head *next_inactive_rotation;
+	raw_spinlock_t lock;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_lru_locallist {
+	struct list_head lists[2];
+	u16 next_steal;
+	raw_spinlock_t lock;
+};
+
+struct bpf_common_lru {
+	struct bpf_lru_list lru_list;
+	struct bpf_lru_locallist *local_list;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+typedef bool (*del_from_htab_func)(void *, struct bpf_lru_node *);
+
+struct bpf_lru {
+	union {
+		struct bpf_common_lru common_lru;
+		struct bpf_lru_list *percpu_lru;
+	};
+	del_from_htab_func del_from_htab;
+	void *del_arg;
+	unsigned int hash_offset;
+	unsigned int nr_scans;
+	bool percpu;
+	long: 56;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bucket {
+	struct hlist_nulls_head head;
+	union {
+		raw_spinlock_t raw_lock;
+		spinlock_t lock;
+	};
+};
+
+struct htab_elem;
+
+struct bpf_htab {
+	struct bpf_map map;
+	struct bucket *buckets;
+	void *elems;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	union {
+		struct pcpu_freelist freelist;
+		struct bpf_lru lru;
+	};
+	struct htab_elem **extra_elems;
+	atomic_t count;
+	u32 n_buckets;
+	u32 elem_size;
+	u32 hashrnd;
+	struct lock_class_key lockdep_key;
+	int *map_locked[8];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct htab_elem {
+	union {
+		struct hlist_nulls_node hash_node;
+		struct {
+			void *padding;
+			union {
+				struct bpf_htab *htab;
+				struct pcpu_freelist_node fnode;
+				struct htab_elem *batch_flink;
+			};
+		};
+	};
+	union {
+		struct callback_head rcu;
+		struct bpf_lru_node lru_node;
+	};
+	u32 hash;
+	int: 32;
+	char key[0];
+};
+
+struct bpf_iter_seq_hash_map_info {
+	struct bpf_map *map;
+	struct bpf_htab *htab;
+	void *percpu_value_buf;
+	u32 bucket_id;
+	u32 skip_elems;
+};
+
+struct bpf_iter_seq_array_map_info {
+	struct bpf_map *map;
+	void *percpu_value_buf;
+	u32 index;
+};
+
+struct prog_poke_elem {
+	struct list_head list;
+	struct bpf_prog_aux *aux;
+};
+
+enum bpf_lru_list_type {
+	BPF_LRU_LIST_T_ACTIVE = 0,
+	BPF_LRU_LIST_T_INACTIVE = 1,
+	BPF_LRU_LIST_T_FREE = 2,
+	BPF_LRU_LOCAL_LIST_T_FREE = 3,
+	BPF_LRU_LOCAL_LIST_T_PENDING = 4,
