@@ -40368,3 +40368,2178 @@ struct fake_dirent {
 	__le16 rec_len;
 	u8 name_len;
 	u8 file_type;
+};
+
+struct dx_countlimit {
+	__le16 limit;
+	__le16 count;
+};
+
+struct dx_entry {
+	__le32 hash;
+	__le32 block;
+};
+
+struct dx_root_info {
+	__le32 reserved_zero;
+	u8 hash_version;
+	u8 info_length;
+	u8 indirect_levels;
+	u8 unused_flags;
+};
+
+struct dx_root {
+	struct fake_dirent dot;
+	char dot_name[4];
+	struct fake_dirent dotdot;
+	char dotdot_name[4];
+	struct dx_root_info info;
+	struct dx_entry entries[0];
+};
+
+struct dx_node {
+	struct fake_dirent fake;
+	struct dx_entry entries[0];
+};
+
+struct dx_frame {
+	struct buffer_head *bh;
+	struct dx_entry *entries;
+	struct dx_entry *at;
+};
+
+struct dx_map_entry {
+	u32 hash;
+	u16 offs;
+	u16 size;
+};
+
+struct dx_tail {
+	u32 dt_reserved;
+	__le32 dt_checksum;
+};
+
+struct ext4_renament {
+	struct inode *dir;
+	struct dentry *dentry;
+	struct inode *inode;
+	bool is_dir;
+	int dir_nlink_delta;
+	struct buffer_head *bh;
+	struct ext4_dir_entry_2 *de;
+	int inlined;
+	struct buffer_head *dir_bh;
+	struct ext4_dir_entry_2 *parent_de;
+	int dir_inlined;
+};
+
+enum bio_post_read_step {
+	STEP_INITIAL = 0,
+	STEP_DECRYPT = 1,
+	STEP_VERITY = 2,
+	STEP_MAX = 3,
+};
+
+struct bio_post_read_ctx {
+	struct bio *bio;
+	struct work_struct work;
+	unsigned int cur_step;
+	unsigned int enabled_steps;
+};
+
+enum {
+	BLOCK_BITMAP = 0,
+	INODE_BITMAP = 1,
+	INODE_TABLE = 2,
+	GROUP_TABLE_COUNT = 3,
+};
+
+struct ext4_rcu_ptr {
+	struct callback_head rcu;
+	void *ptr;
+};
+
+struct ext4_new_flex_group_data {
+	struct ext4_new_group_data *groups;
+	__u16 *bg_flags;
+	ext4_group_t count;
+};
+
+enum stat_group {
+	STAT_READ = 0,
+	STAT_WRITE = 1,
+	STAT_DISCARD = 2,
+	STAT_FLUSH = 3,
+	NR_STAT_GROUPS = 4,
+};
+
+enum {
+	I_DATA_SEM_NORMAL = 0,
+	I_DATA_SEM_OTHER = 1,
+	I_DATA_SEM_QUOTA = 2,
+};
+
+struct ext4_lazy_init {
+	long unsigned int li_state;
+	struct list_head li_request_list;
+	struct mutex li_list_mtx;
+};
+
+struct ext4_journal_cb_entry {
+	struct list_head jce_list;
+	void (*jce_func)(struct super_block *, struct ext4_journal_cb_entry *, int);
+};
+
+struct trace_event_raw_ext4_other_inode_update_time {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ino_t orig_ino;
+	uid_t uid;
+	gid_t gid;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_free_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	uid_t uid;
+	gid_t gid;
+	__u64 blocks;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_request_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t dir;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_allocate_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ino_t dir;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_evict_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	int nlink;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_drop_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	int drop;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_nfs_commit_metadata {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_mark_inode_dirty {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	long unsigned int ip;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_begin_ordered_truncate {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t new_size;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__write_begin {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t pos;
+	unsigned int len;
+	unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__write_end {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t pos;
+	unsigned int len;
+	unsigned int copied;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_writepages {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	long int nr_to_write;
+	long int pages_skipped;
+	loff_t range_start;
+	loff_t range_end;
+	long unsigned int writeback_index;
+	int sync_mode;
+	char for_kupdate;
+	char range_cyclic;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_da_write_pages {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	long unsigned int first_page;
+	long int nr_to_write;
+	int sync_mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_da_write_pages_extent {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 lblk;
+	__u32 len;
+	__u32 flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_writepages_result {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	int ret;
+	int pages_written;
+	long int pages_skipped;
+	long unsigned int writeback_index;
+	int sync_mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__page_op {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	long unsigned int index;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_invalidatepage_op {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	long unsigned int index;
+	unsigned int offset;
+	unsigned int length;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_discard_blocks {
+	struct trace_entry ent;
+	dev_t dev;
+	__u64 blk;
+	__u64 count;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__mb_new_pa {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 pa_pstart;
+	__u64 pa_lstart;
+	__u32 pa_len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_mb_release_inode_pa {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 block;
+	__u32 count;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_mb_release_group_pa {
+	struct trace_entry ent;
+	dev_t dev;
+	__u64 pa_pstart;
+	__u32 pa_len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_discard_preallocations {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	unsigned int len;
+	unsigned int needed;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_mb_discard_preallocations {
+	struct trace_entry ent;
+	dev_t dev;
+	int needed;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_request_blocks {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	unsigned int len;
+	__u32 logical;
+	__u32 lleft;
+	__u32 lright;
+	__u64 goal;
+	__u64 pleft;
+	__u64 pright;
+	unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_allocate_blocks {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 block;
+	unsigned int len;
+	__u32 logical;
+	__u32 lleft;
+	__u32 lright;
+	__u64 goal;
+	__u64 pleft;
+	__u64 pright;
+	unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_free_blocks {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 block;
+	long unsigned int count;
+	int flags;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_sync_file_enter {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ino_t parent;
+	int datasync;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_sync_file_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_sync_fs {
+	struct trace_entry ent;
+	dev_t dev;
+	int wait;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_alloc_da_blocks {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	unsigned int data_blocks;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_mballoc_alloc {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u32 orig_logical;
+	int orig_start;
+	__u32 orig_group;
+	int orig_len;
+	__u32 goal_logical;
+	int goal_start;
+	__u32 goal_group;
+	int goal_len;
+	__u32 result_logical;
+	int result_start;
+	__u32 result_group;
+	int result_len;
+	__u16 found;
+	__u16 groups;
+	__u16 buddy;
+	__u16 flags;
+	__u16 tail;
+	__u8 cr;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_mballoc_prealloc {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u32 orig_logical;
+	int orig_start;
+	__u32 orig_group;
+	int orig_len;
+	__u32 result_logical;
+	int result_start;
+	__u32 result_group;
+	int result_len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__mballoc {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	int result_start;
+	__u32 result_group;
+	int result_len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_forget {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 block;
+	int is_metadata;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_da_update_reserve_space {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 i_blocks;
+	int used_blocks;
+	int reserved_data_blocks;
+	int quota_claim;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_da_reserve_space {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 i_blocks;
+	int reserved_data_blocks;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_da_release_space {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 i_blocks;
+	int freed_blocks;
+	int reserved_data_blocks;
+	__u16 mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__bitmap_load {
+	struct trace_entry ent;
+	dev_t dev;
+	__u32 group;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_read_block_bitmap_load {
+	struct trace_entry ent;
+	dev_t dev;
+	__u32 group;
+	bool prefetch;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__fallocate_mode {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t offset;
+	loff_t len;
+	int mode;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fallocate_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t pos;
+	unsigned int blocks;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_unlink_enter {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ino_t parent;
+	loff_t size;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_unlink_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__truncate {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	__u64 blocks;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_convert_to_initialized_enter {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t m_lblk;
+	unsigned int m_len;
+	ext4_lblk_t u_lblk;
+	unsigned int u_len;
+	ext4_fsblk_t u_pblk;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_convert_to_initialized_fastpath {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t m_lblk;
+	unsigned int m_len;
+	ext4_lblk_t u_lblk;
+	unsigned int u_len;
+	ext4_fsblk_t u_pblk;
+	ext4_lblk_t i_lblk;
+	unsigned int i_len;
+	ext4_fsblk_t i_pblk;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__map_blocks_enter {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	unsigned int len;
+	unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__map_blocks_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	unsigned int flags;
+	ext4_fsblk_t pblk;
+	ext4_lblk_t lblk;
+	unsigned int len;
+	unsigned int mflags;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_load_extent {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_fsblk_t pblk;
+	ext4_lblk_t lblk;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_load_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_journal_start {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int ip;
+	int blocks;
+	int rsv_blocks;
+	int revoke_creds;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_journal_start_reserved {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int ip;
+	int blocks;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__trim {
+	struct trace_entry ent;
+	int dev_major;
+	int dev_minor;
+	__u32 group;
+	int start;
+	int len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_handle_unwritten_extents {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	int flags;
+	ext4_lblk_t lblk;
+	ext4_fsblk_t pblk;
+	unsigned int len;
+	unsigned int allocated;
+	ext4_fsblk_t newblk;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_get_implied_cluster_alloc_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	unsigned int flags;
+	ext4_lblk_t lblk;
+	ext4_fsblk_t pblk;
+	unsigned int len;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_show_extent {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_fsblk_t pblk;
+	ext4_lblk_t lblk;
+	short unsigned int len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_remove_blocks {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t from;
+	ext4_lblk_t to;
+	ext4_fsblk_t ee_pblk;
+	ext4_lblk_t ee_lblk;
+	short unsigned int ee_len;
+	ext4_fsblk_t pc_pclu;
+	ext4_lblk_t pc_lblk;
+	int pc_state;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_rm_leaf {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t start;
+	ext4_lblk_t ee_lblk;
+	ext4_fsblk_t ee_pblk;
+	short int ee_len;
+	ext4_fsblk_t pc_pclu;
+	ext4_lblk_t pc_lblk;
+	int pc_state;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_rm_idx {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_fsblk_t pblk;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_remove_space {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t start;
+	ext4_lblk_t end;
+	int depth;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_ext_remove_space_done {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t start;
+	ext4_lblk_t end;
+	int depth;
+	ext4_fsblk_t pc_pclu;
+	ext4_lblk_t pc_lblk;
+	int pc_state;
+	short unsigned int eh_entries;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__es_extent {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	ext4_lblk_t len;
+	ext4_fsblk_t pblk;
+	char status;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_remove_extent {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t lblk;
+	loff_t len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_find_extent_range_enter {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_find_extent_range_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	ext4_lblk_t len;
+	ext4_fsblk_t pblk;
+	char status;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_lookup_extent_enter {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_lookup_extent_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	ext4_lblk_t len;
+	ext4_fsblk_t pblk;
+	char status;
+	int found;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4__es_shrink_enter {
+	struct trace_entry ent;
+	dev_t dev;
+	int nr_to_scan;
+	int cache_cnt;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_shrink_scan_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	int nr_shrunk;
+	int cache_cnt;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_collapse_range {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t offset;
+	loff_t len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_insert_range {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	loff_t offset;
+	loff_t len;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_shrink {
+	struct trace_entry ent;
+	dev_t dev;
+	int nr_shrunk;
+	long long unsigned int scan_time;
+	int nr_skipped;
+	int retried;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_es_insert_delayed_block {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	ext4_lblk_t lblk;
+	ext4_lblk_t len;
+	ext4_fsblk_t pblk;
+	char status;
+	bool allocated;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fsmap_class {
+	struct trace_entry ent;
+	dev_t dev;
+	dev_t keydev;
+	u32 agno;
+	u64 bno;
+	u64 len;
+	u64 owner;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_getfsmap_class {
+	struct trace_entry ent;
+	dev_t dev;
+	dev_t keydev;
+	u64 block;
+	u64 len;
+	u64 owner;
+	u64 flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_shutdown {
+	struct trace_entry ent;
+	dev_t dev;
+	unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_error {
+	struct trace_entry ent;
+	dev_t dev;
+	const char *function;
+	unsigned int line;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_prefetch_bitmaps {
+	struct trace_entry ent;
+	dev_t dev;
+	__u32 group;
+	__u32 next;
+	__u32 ios;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_lazy_itable_init {
+	struct trace_entry ent;
+	dev_t dev;
+	__u32 group;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_replay_scan {
+	struct trace_entry ent;
+	dev_t dev;
+	int error;
+	int off;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_replay {
+	struct trace_entry ent;
+	dev_t dev;
+	int tag;
+	int ino;
+	int priv1;
+	int priv2;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_commit_start {
+	struct trace_entry ent;
+	dev_t dev;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_commit_stop {
+	struct trace_entry ent;
+	dev_t dev;
+	int nblks;
+	int reason;
+	int num_fc;
+	int num_fc_ineligible;
+	int nblks_agg;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_stats {
+	struct trace_entry ent;
+	dev_t dev;
+	struct ext4_sb_info *sbi;
+	int count;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_create {
+	struct trace_entry ent;
+	dev_t dev;
+	int ino;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_link {
+	struct trace_entry ent;
+	dev_t dev;
+	int ino;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_unlink {
+	struct trace_entry ent;
+	dev_t dev;
+	int ino;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_inode {
+	struct trace_entry ent;
+	dev_t dev;
+	int ino;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_ext4_fc_track_range {
+	struct trace_entry ent;
+	dev_t dev;
+	int ino;
+	long int start;
+	long int end;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_ext4_other_inode_update_time {};
+
+struct trace_event_data_offsets_ext4_free_inode {};
+
+struct trace_event_data_offsets_ext4_request_inode {};
+
+struct trace_event_data_offsets_ext4_allocate_inode {};
+
+struct trace_event_data_offsets_ext4_evict_inode {};
+
+struct trace_event_data_offsets_ext4_drop_inode {};
+
+struct trace_event_data_offsets_ext4_nfs_commit_metadata {};
+
+struct trace_event_data_offsets_ext4_mark_inode_dirty {};
+
+struct trace_event_data_offsets_ext4_begin_ordered_truncate {};
+
+struct trace_event_data_offsets_ext4__write_begin {};
+
+struct trace_event_data_offsets_ext4__write_end {};
+
+struct trace_event_data_offsets_ext4_writepages {};
+
+struct trace_event_data_offsets_ext4_da_write_pages {};
+
+struct trace_event_data_offsets_ext4_da_write_pages_extent {};
+
+struct trace_event_data_offsets_ext4_writepages_result {};
+
+struct trace_event_data_offsets_ext4__page_op {};
+
+struct trace_event_data_offsets_ext4_invalidatepage_op {};
+
+struct trace_event_data_offsets_ext4_discard_blocks {};
+
+struct trace_event_data_offsets_ext4__mb_new_pa {};
+
+struct trace_event_data_offsets_ext4_mb_release_inode_pa {};
+
+struct trace_event_data_offsets_ext4_mb_release_group_pa {};
+
+struct trace_event_data_offsets_ext4_discard_preallocations {};
+
+struct trace_event_data_offsets_ext4_mb_discard_preallocations {};
+
+struct trace_event_data_offsets_ext4_request_blocks {};
+
+struct trace_event_data_offsets_ext4_allocate_blocks {};
+
+struct trace_event_data_offsets_ext4_free_blocks {};
+
+struct trace_event_data_offsets_ext4_sync_file_enter {};
+
+struct trace_event_data_offsets_ext4_sync_file_exit {};
+
+struct trace_event_data_offsets_ext4_sync_fs {};
+
+struct trace_event_data_offsets_ext4_alloc_da_blocks {};
+
+struct trace_event_data_offsets_ext4_mballoc_alloc {};
+
+struct trace_event_data_offsets_ext4_mballoc_prealloc {};
+
+struct trace_event_data_offsets_ext4__mballoc {};
+
+struct trace_event_data_offsets_ext4_forget {};
+
+struct trace_event_data_offsets_ext4_da_update_reserve_space {};
+
+struct trace_event_data_offsets_ext4_da_reserve_space {};
+
+struct trace_event_data_offsets_ext4_da_release_space {};
+
+struct trace_event_data_offsets_ext4__bitmap_load {};
+
+struct trace_event_data_offsets_ext4_read_block_bitmap_load {};
+
+struct trace_event_data_offsets_ext4__fallocate_mode {};
+
+struct trace_event_data_offsets_ext4_fallocate_exit {};
+
+struct trace_event_data_offsets_ext4_unlink_enter {};
+
+struct trace_event_data_offsets_ext4_unlink_exit {};
+
+struct trace_event_data_offsets_ext4__truncate {};
+
+struct trace_event_data_offsets_ext4_ext_convert_to_initialized_enter {};
+
+struct trace_event_data_offsets_ext4_ext_convert_to_initialized_fastpath {};
+
+struct trace_event_data_offsets_ext4__map_blocks_enter {};
+
+struct trace_event_data_offsets_ext4__map_blocks_exit {};
+
+struct trace_event_data_offsets_ext4_ext_load_extent {};
+
+struct trace_event_data_offsets_ext4_load_inode {};
+
+struct trace_event_data_offsets_ext4_journal_start {};
+
+struct trace_event_data_offsets_ext4_journal_start_reserved {};
+
+struct trace_event_data_offsets_ext4__trim {};
+
+struct trace_event_data_offsets_ext4_ext_handle_unwritten_extents {};
+
+struct trace_event_data_offsets_ext4_get_implied_cluster_alloc_exit {};
+
+struct trace_event_data_offsets_ext4_ext_show_extent {};
+
+struct trace_event_data_offsets_ext4_remove_blocks {};
+
+struct trace_event_data_offsets_ext4_ext_rm_leaf {};
+
+struct trace_event_data_offsets_ext4_ext_rm_idx {};
+
+struct trace_event_data_offsets_ext4_ext_remove_space {};
+
+struct trace_event_data_offsets_ext4_ext_remove_space_done {};
+
+struct trace_event_data_offsets_ext4__es_extent {};
+
+struct trace_event_data_offsets_ext4_es_remove_extent {};
+
+struct trace_event_data_offsets_ext4_es_find_extent_range_enter {};
+
+struct trace_event_data_offsets_ext4_es_find_extent_range_exit {};
+
+struct trace_event_data_offsets_ext4_es_lookup_extent_enter {};
+
+struct trace_event_data_offsets_ext4_es_lookup_extent_exit {};
+
+struct trace_event_data_offsets_ext4__es_shrink_enter {};
+
+struct trace_event_data_offsets_ext4_es_shrink_scan_exit {};
+
+struct trace_event_data_offsets_ext4_collapse_range {};
+
+struct trace_event_data_offsets_ext4_insert_range {};
+
+struct trace_event_data_offsets_ext4_es_shrink {};
+
+struct trace_event_data_offsets_ext4_es_insert_delayed_block {};
+
+struct trace_event_data_offsets_ext4_fsmap_class {};
+
+struct trace_event_data_offsets_ext4_getfsmap_class {};
+
+struct trace_event_data_offsets_ext4_shutdown {};
+
+struct trace_event_data_offsets_ext4_error {};
+
+struct trace_event_data_offsets_ext4_prefetch_bitmaps {};
+
+struct trace_event_data_offsets_ext4_lazy_itable_init {};
+
+struct trace_event_data_offsets_ext4_fc_replay_scan {};
+
+struct trace_event_data_offsets_ext4_fc_replay {};
+
+struct trace_event_data_offsets_ext4_fc_commit_start {};
+
+struct trace_event_data_offsets_ext4_fc_commit_stop {};
+
+struct trace_event_data_offsets_ext4_fc_stats {};
+
+struct trace_event_data_offsets_ext4_fc_track_create {};
+
+struct trace_event_data_offsets_ext4_fc_track_link {};
+
+struct trace_event_data_offsets_ext4_fc_track_unlink {};
+
+struct trace_event_data_offsets_ext4_fc_track_inode {};
+
+struct trace_event_data_offsets_ext4_fc_track_range {};
+
+typedef void (*btf_trace_ext4_other_inode_update_time)(void *, struct inode *, ino_t);
+
+typedef void (*btf_trace_ext4_free_inode)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_request_inode)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_allocate_inode)(void *, struct inode *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_evict_inode)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_drop_inode)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_nfs_commit_metadata)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_mark_inode_dirty)(void *, struct inode *, long unsigned int);
+
+typedef void (*btf_trace_ext4_begin_ordered_truncate)(void *, struct inode *, loff_t);
+
+typedef void (*btf_trace_ext4_write_begin)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_da_write_begin)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_write_end)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_journalled_write_end)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_da_write_end)(void *, struct inode *, loff_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_writepages)(void *, struct inode *, struct writeback_control *);
+
+typedef void (*btf_trace_ext4_da_write_pages)(void *, struct inode *, long unsigned int, struct writeback_control *);
+
+typedef void (*btf_trace_ext4_da_write_pages_extent)(void *, struct inode *, struct ext4_map_blocks *);
+
+typedef void (*btf_trace_ext4_writepages_result)(void *, struct inode *, struct writeback_control *, int, int);
+
+typedef void (*btf_trace_ext4_writepage)(void *, struct page *);
+
+typedef void (*btf_trace_ext4_readpage)(void *, struct page *);
+
+typedef void (*btf_trace_ext4_releasepage)(void *, struct page *);
+
+typedef void (*btf_trace_ext4_invalidatepage)(void *, struct page *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_journalled_invalidatepage)(void *, struct page *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_discard_blocks)(void *, struct super_block *, long long unsigned int, long long unsigned int);
+
+typedef void (*btf_trace_ext4_mb_new_inode_pa)(void *, struct ext4_allocation_context *, struct ext4_prealloc_space *);
+
+typedef void (*btf_trace_ext4_mb_new_group_pa)(void *, struct ext4_allocation_context *, struct ext4_prealloc_space *);
+
+typedef void (*btf_trace_ext4_mb_release_inode_pa)(void *, struct ext4_prealloc_space *, long long unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_mb_release_group_pa)(void *, struct super_block *, struct ext4_prealloc_space *);
+
+typedef void (*btf_trace_ext4_discard_preallocations)(void *, struct inode *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_mb_discard_preallocations)(void *, struct super_block *, int);
+
+typedef void (*btf_trace_ext4_request_blocks)(void *, struct ext4_allocation_request *);
+
+typedef void (*btf_trace_ext4_allocate_blocks)(void *, struct ext4_allocation_request *, long long unsigned int);
+
+typedef void (*btf_trace_ext4_free_blocks)(void *, struct inode *, __u64, long unsigned int, int);
+
+typedef void (*btf_trace_ext4_sync_file_enter)(void *, struct file *, int);
+
+typedef void (*btf_trace_ext4_sync_file_exit)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_sync_fs)(void *, struct super_block *, int);
+
+typedef void (*btf_trace_ext4_alloc_da_blocks)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_mballoc_alloc)(void *, struct ext4_allocation_context *);
+
+typedef void (*btf_trace_ext4_mballoc_prealloc)(void *, struct ext4_allocation_context *);
+
+typedef void (*btf_trace_ext4_mballoc_discard)(void *, struct super_block *, struct inode *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_mballoc_free)(void *, struct super_block *, struct inode *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_forget)(void *, struct inode *, int, __u64);
+
+typedef void (*btf_trace_ext4_da_update_reserve_space)(void *, struct inode *, int, int);
+
+typedef void (*btf_trace_ext4_da_reserve_space)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_da_release_space)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_mb_bitmap_load)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_mb_buddy_bitmap_load)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_load_inode_bitmap)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_read_block_bitmap_load)(void *, struct super_block *, long unsigned int, bool);
+
+typedef void (*btf_trace_ext4_fallocate_enter)(void *, struct inode *, loff_t, loff_t, int);
+
+typedef void (*btf_trace_ext4_punch_hole)(void *, struct inode *, loff_t, loff_t, int);
+
+typedef void (*btf_trace_ext4_zero_range)(void *, struct inode *, loff_t, loff_t, int);
+
+typedef void (*btf_trace_ext4_fallocate_exit)(void *, struct inode *, loff_t, unsigned int, int);
+
+typedef void (*btf_trace_ext4_unlink_enter)(void *, struct inode *, struct dentry *);
+
+typedef void (*btf_trace_ext4_unlink_exit)(void *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_truncate_enter)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_truncate_exit)(void *, struct inode *);
+
+typedef void (*btf_trace_ext4_ext_convert_to_initialized_enter)(void *, struct inode *, struct ext4_map_blocks *, struct ext4_extent *);
+
+typedef void (*btf_trace_ext4_ext_convert_to_initialized_fastpath)(void *, struct inode *, struct ext4_map_blocks *, struct ext4_extent *, struct ext4_extent *);
+
+typedef void (*btf_trace_ext4_ext_map_blocks_enter)(void *, struct inode *, ext4_lblk_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_ind_map_blocks_enter)(void *, struct inode *, ext4_lblk_t, unsigned int, unsigned int);
+
+typedef void (*btf_trace_ext4_ext_map_blocks_exit)(void *, struct inode *, unsigned int, struct ext4_map_blocks *, int);
+
+typedef void (*btf_trace_ext4_ind_map_blocks_exit)(void *, struct inode *, unsigned int, struct ext4_map_blocks *, int);
+
+typedef void (*btf_trace_ext4_ext_load_extent)(void *, struct inode *, ext4_lblk_t, ext4_fsblk_t);
+
+typedef void (*btf_trace_ext4_load_inode)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_journal_start)(void *, struct super_block *, int, int, int, long unsigned int);
+
+typedef void (*btf_trace_ext4_journal_start_reserved)(void *, struct super_block *, int, long unsigned int);
+
+typedef void (*btf_trace_ext4_trim_extent)(void *, struct super_block *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_trim_all_free)(void *, struct super_block *, ext4_group_t, ext4_grpblk_t, ext4_grpblk_t);
+
+typedef void (*btf_trace_ext4_ext_handle_unwritten_extents)(void *, struct inode *, struct ext4_map_blocks *, int, unsigned int, ext4_fsblk_t);
+
+typedef void (*btf_trace_ext4_get_implied_cluster_alloc_exit)(void *, struct super_block *, struct ext4_map_blocks *, int);
+
+typedef void (*btf_trace_ext4_ext_show_extent)(void *, struct inode *, ext4_lblk_t, ext4_fsblk_t, short unsigned int);
+
+typedef void (*btf_trace_ext4_remove_blocks)(void *, struct inode *, struct ext4_extent *, ext4_lblk_t, ext4_fsblk_t, struct partial_cluster *);
+
+typedef void (*btf_trace_ext4_ext_rm_leaf)(void *, struct inode *, ext4_lblk_t, struct ext4_extent *, struct partial_cluster *);
+
+typedef void (*btf_trace_ext4_ext_rm_idx)(void *, struct inode *, ext4_fsblk_t);
+
+typedef void (*btf_trace_ext4_ext_remove_space)(void *, struct inode *, ext4_lblk_t, ext4_lblk_t, int);
+
+typedef void (*btf_trace_ext4_ext_remove_space_done)(void *, struct inode *, ext4_lblk_t, ext4_lblk_t, int, struct partial_cluster *, __le16);
+
+typedef void (*btf_trace_ext4_es_insert_extent)(void *, struct inode *, struct extent_status *);
+
+typedef void (*btf_trace_ext4_es_cache_extent)(void *, struct inode *, struct extent_status *);
+
+typedef void (*btf_trace_ext4_es_remove_extent)(void *, struct inode *, ext4_lblk_t, ext4_lblk_t);
+
+typedef void (*btf_trace_ext4_es_find_extent_range_enter)(void *, struct inode *, ext4_lblk_t);
+
+typedef void (*btf_trace_ext4_es_find_extent_range_exit)(void *, struct inode *, struct extent_status *);
+
+typedef void (*btf_trace_ext4_es_lookup_extent_enter)(void *, struct inode *, ext4_lblk_t);
+
+typedef void (*btf_trace_ext4_es_lookup_extent_exit)(void *, struct inode *, struct extent_status *, int);
+
+typedef void (*btf_trace_ext4_es_shrink_count)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_es_shrink_scan_enter)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_es_shrink_scan_exit)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_collapse_range)(void *, struct inode *, loff_t, loff_t);
+
+typedef void (*btf_trace_ext4_insert_range)(void *, struct inode *, loff_t, loff_t);
+
+typedef void (*btf_trace_ext4_es_shrink)(void *, struct super_block *, int, u64, int, int);
+
+typedef void (*btf_trace_ext4_es_insert_delayed_block)(void *, struct inode *, struct extent_status *, bool);
+
+typedef void (*btf_trace_ext4_fsmap_low_key)(void *, struct super_block *, u32, u32, u64, u64, u64);
+
+typedef void (*btf_trace_ext4_fsmap_high_key)(void *, struct super_block *, u32, u32, u64, u64, u64);
+
+typedef void (*btf_trace_ext4_fsmap_mapping)(void *, struct super_block *, u32, u32, u64, u64, u64);
+
+typedef void (*btf_trace_ext4_getfsmap_low_key)(void *, struct super_block *, struct ext4_fsmap *);
+
+typedef void (*btf_trace_ext4_getfsmap_high_key)(void *, struct super_block *, struct ext4_fsmap *);
+
+typedef void (*btf_trace_ext4_getfsmap_mapping)(void *, struct super_block *, struct ext4_fsmap *);
+
+typedef void (*btf_trace_ext4_shutdown)(void *, struct super_block *, long unsigned int);
+
+typedef void (*btf_trace_ext4_error)(void *, struct super_block *, const char *, unsigned int);
+
+typedef void (*btf_trace_ext4_prefetch_bitmaps)(void *, struct super_block *, ext4_group_t, ext4_group_t, unsigned int);
+
+typedef void (*btf_trace_ext4_lazy_itable_init)(void *, struct super_block *, ext4_group_t);
+
+typedef void (*btf_trace_ext4_fc_replay_scan)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_fc_replay)(void *, struct super_block *, int, int, int, int);
+
+typedef void (*btf_trace_ext4_fc_commit_start)(void *, struct super_block *);
+
+typedef void (*btf_trace_ext4_fc_commit_stop)(void *, struct super_block *, int, int);
+
+typedef void (*btf_trace_ext4_fc_stats)(void *, struct super_block *);
+
+typedef void (*btf_trace_ext4_fc_track_create)(void *, struct inode *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_fc_track_link)(void *, struct inode *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_fc_track_unlink)(void *, struct inode *, struct dentry *, int);
+
+typedef void (*btf_trace_ext4_fc_track_inode)(void *, struct inode *, int);
+
+typedef void (*btf_trace_ext4_fc_track_range)(void *, struct inode *, long int, long int, int);
+
+struct ext4_err_translation {
+	int code;
+	int errno;
+};
+
+enum {
+	Opt_bsd_df = 0,
+	Opt_minix_df = 1,
+	Opt_grpid = 2,
+	Opt_nogrpid = 3,
+	Opt_resgid = 4,
+	Opt_resuid = 5,
+	Opt_sb = 6,
+	Opt_err_cont = 7,
+	Opt_err_panic = 8,
+	Opt_err_ro = 9,
+	Opt_nouid32 = 10,
+	Opt_debug = 11,
+	Opt_removed = 12,
+	Opt_user_xattr = 13,
+	Opt_nouser_xattr = 14,
+	Opt_acl = 15,
+	Opt_noacl = 16,
+	Opt_auto_da_alloc = 17,
+	Opt_noauto_da_alloc = 18,
+	Opt_noload = 19,
+	Opt_commit = 20,
+	Opt_min_batch_time = 21,
+	Opt_max_batch_time = 22,
+	Opt_journal_dev = 23,
+	Opt_journal_path = 24,
+	Opt_journal_checksum = 25,
+	Opt_journal_async_commit = 26,
+	Opt_abort = 27,
+	Opt_data_journal = 28,
+	Opt_data_ordered = 29,
+	Opt_data_writeback = 30,
+	Opt_data_err_abort = 31,
+	Opt_data_err_ignore = 32,
+	Opt_test_dummy_encryption = 33,
+	Opt_inlinecrypt = 34,
+	Opt_usrjquota = 35,
+	Opt_grpjquota = 36,
+	Opt_offusrjquota = 37,
+	Opt_offgrpjquota = 38,
+	Opt_jqfmt_vfsold = 39,
+	Opt_jqfmt_vfsv0 = 40,
+	Opt_jqfmt_vfsv1 = 41,
+	Opt_quota = 42,
+	Opt_noquota = 43,
+	Opt_barrier = 44,
+	Opt_nobarrier = 45,
+	Opt_err___2 = 46,
+	Opt_usrquota = 47,
+	Opt_grpquota = 48,
+	Opt_prjquota = 49,
+	Opt_i_version = 50,
+	Opt_dax = 51,
+	Opt_dax_always = 52,
+	Opt_dax_inode = 53,
+	Opt_dax_never = 54,
+	Opt_stripe = 55,
+	Opt_delalloc = 56,
+	Opt_nodelalloc = 57,
+	Opt_warn_on_error = 58,
+	Opt_nowarn_on_error = 59,
+	Opt_mblk_io_submit = 60,
+	Opt_lazytime = 61,
+	Opt_nolazytime = 62,
+	Opt_debug_want_extra_isize = 63,
+	Opt_nomblk_io_submit = 64,
+	Opt_block_validity = 65,
+	Opt_noblock_validity = 66,
+	Opt_inode_readahead_blks = 67,
+	Opt_journal_ioprio = 68,
+	Opt_dioread_nolock = 69,
+	Opt_dioread_lock = 70,
+	Opt_discard = 71,
+	Opt_nodiscard = 72,
+	Opt_init_itable = 73,
+	Opt_noinit_itable = 74,
+	Opt_max_dir_size_kb = 75,
+	Opt_nojournal_checksum = 76,
+	Opt_nombcache = 77,
+	Opt_no_prefetch_block_bitmaps = 78,
+	Opt_mb_optimize_scan = 79,
+};
+
+struct mount_opts {
+	int token;
+	int mount_opt;
+	int flags;
+};
+
+struct ext4_sb_encodings {
+	__u16 magic;
+	char *name;
+	char *version;
+};
+
+struct ext4_parsed_options {
+	long unsigned int journal_devnum;
+	unsigned int journal_ioprio;
+	int mb_optimize_scan;
+};
+
+struct ext4_mount_options {
+	long unsigned int s_mount_opt;
+	long unsigned int s_mount_opt2;
+	kuid_t s_resuid;
+	kgid_t s_resgid;
+	long unsigned int s_commit_interval;
+	u32 s_min_batch_time;
+	u32 s_max_batch_time;
+	int s_jquota_fmt;
+	char *s_qf_names[3];
+};
+
+enum {
+	attr_noop = 0,
+	attr_delayed_allocation_blocks = 1,
+	attr_session_write_kbytes = 2,
+	attr_lifetime_write_kbytes = 3,
+	attr_reserved_clusters = 4,
+	attr_sra_exceeded_retry_limit = 5,
+	attr_inode_readahead = 6,
+	attr_trigger_test_error = 7,
+	attr_first_error_time = 8,
+	attr_last_error_time = 9,
+	attr_feature = 10,
+	attr_pointer_ui = 11,
+	attr_pointer_ul = 12,
+	attr_pointer_u64 = 13,
+	attr_pointer_u8 = 14,
+	attr_pointer_string = 15,
+	attr_pointer_atomic = 16,
+	attr_journal_task = 17,
+};
+
+enum {
+	ptr_explicit = 0,
+	ptr_ext4_sb_info_offset = 1,
+	ptr_ext4_super_block_offset = 2,
+};
+
+struct ext4_attr {
+	struct attribute attr;
+	short int attr_id;
+	short int attr_ptr;
+	short unsigned int attr_size;
+	union {
+		int offset;
+		void *explicit_ptr;
+	} u;
+};
+
+struct ext4_xattr_header {
+	__le32 h_magic;
+	__le32 h_refcount;
+	__le32 h_blocks;
+	__le32 h_hash;
+	__le32 h_checksum;
+	__u32 h_reserved[3];
+};
+
+struct ext4_xattr_block_find {
+	struct ext4_xattr_search s;
+	struct buffer_head *bh;
+};
+
+struct ext4_fc_tl {
+	__le16 fc_tag;
+	__le16 fc_len;
+};
+
+struct ext4_fc_head {
+	__le32 fc_features;
+	__le32 fc_tid;
+};
+
+struct ext4_fc_add_range {
+	__le32 fc_ino;
+	__u8 fc_ex[12];
+};
+
+struct ext4_fc_del_range {
+	__le32 fc_ino;
+	__le32 fc_lblk;
+	__le32 fc_len;
+};
+
+struct ext4_fc_dentry_info {
+	__le32 fc_parent_ino;
+	__le32 fc_ino;
+	__u8 fc_dname[0];
+};
+
+struct ext4_fc_inode {
+	__le32 fc_ino;
+	__u8 fc_raw_inode[0];
+};
+
+struct ext4_fc_tail {
+	__le32 fc_tid;
+	__le32 fc_crc;
+};
+
+enum {
+	EXT4_FC_STATUS_OK = 0,
+	EXT4_FC_STATUS_INELIGIBLE = 1,
+	EXT4_FC_STATUS_SKIPPED = 2,
+	EXT4_FC_STATUS_FAILED = 3,
+};
+
+struct ext4_fc_dentry_update {
+	int fcd_op;
+	int fcd_parent;
+	int fcd_ino;
+	struct qstr fcd_name;
+	unsigned char fcd_iname[32];
+	struct list_head fcd_list;
+};
+
+struct __track_dentry_update_args {
+	struct dentry *dentry;
+	int op;
+};
+
+struct __track_range_args {
+	ext4_lblk_t start;
+	ext4_lblk_t end;
+};
+
+struct dentry_info_args {
+	int parent_ino;
+	int dname_len;
+	int ino;
+	int inode_len;
+	char *dname;
+};
+
+struct ext4_orphan_block_tail {
+	__le32 ob_magic;
+	__le32 ob_checksum;
+};
+
+typedef struct {
+	__le16 e_tag;
+	__le16 e_perm;
+	__le32 e_id;
+} ext4_acl_entry;
+
+typedef struct {
+	__le32 a_version;
+} ext4_acl_header;
+
+struct commit_header {
+	__be32 h_magic;
+	__be32 h_blocktype;
+	__be32 h_sequence;
+	unsigned char h_chksum_type;
+	unsigned char h_chksum_size;
+	unsigned char h_padding[2];
+	__be32 h_chksum[8];
+	__be64 h_commit_sec;
+	__be32 h_commit_nsec;
+};
+
+struct journal_block_tag3_s {
+	__be32 t_blocknr;
+	__be32 t_flags;
+	__be32 t_blocknr_high;
+	__be32 t_checksum;
+};
+
+typedef struct journal_block_tag3_s journal_block_tag3_t;
+
+struct journal_block_tag_s {
+	__be32 t_blocknr;
+	__be16 t_checksum;
+	__be16 t_flags;
+	__be32 t_blocknr_high;
+};
+
+typedef struct journal_block_tag_s journal_block_tag_t;
+
+struct jbd2_journal_block_tail {
+	__be32 t_checksum;
+};
+
+struct jbd2_journal_revoke_header_s {
+	journal_header_t r_header;
+	__be32 r_count;
+};
+
+typedef struct jbd2_journal_revoke_header_s jbd2_journal_revoke_header_t;
+
+struct recovery_info {
+	tid_t start_transaction;
+	tid_t end_transaction;
+	int nr_replays;
+	int nr_revokes;
+	int nr_revoke_hits;
+};
+
+struct jbd2_revoke_table_s {
+	int hash_size;
+	int hash_shift;
+	struct list_head *hash_table;
+};
+
+struct jbd2_revoke_record_s {
+	struct list_head hash;
+	tid_t sequence;
+	long long unsigned int blocknr;
+};
+
+struct trace_event_raw_jbd2_checkpoint {
+	struct trace_entry ent;
+	dev_t dev;
+	int result;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_commit {
+	struct trace_entry ent;
+	dev_t dev;
+	char sync_commit;
+	int transaction;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_end_commit {
+	struct trace_entry ent;
+	dev_t dev;
+	char sync_commit;
+	int transaction;
+	int head;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_submit_inode_data {
+	struct trace_entry ent;
+	dev_t dev;
+	ino_t ino;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_handle_start_class {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int tid;
+	unsigned int type;
+	unsigned int line_no;
+	int requested_blocks;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_handle_extend {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int tid;
+	unsigned int type;
+	unsigned int line_no;
+	int buffer_credits;
+	int requested_blocks;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_handle_stats {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int tid;
+	unsigned int type;
+	unsigned int line_no;
+	int interval;
+	int sync;
+	int requested_blocks;
+	int dirtied_blocks;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_run_stats {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int tid;
+	long unsigned int wait;
+	long unsigned int request_delay;
+	long unsigned int running;
+	long unsigned int locked;
+	long unsigned int flushing;
+	long unsigned int logging;
+	__u32 handle_count;
+	__u32 blocks;
+	__u32 blocks_logged;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_checkpoint_stats {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int tid;
+	long unsigned int chp_time;
+	__u32 forced_to_close;
+	__u32 written;
+	__u32 dropped;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_update_log_tail {
+	struct trace_entry ent;
+	dev_t dev;
+	tid_t tail_sequence;
+	tid_t first_tid;
+	long unsigned int block_nr;
+	long unsigned int freed;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_write_superblock {
+	struct trace_entry ent;
+	dev_t dev;
+	int write_op;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_lock_buffer_stall {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int stall_ms;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_journal_shrink {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int nr_to_scan;
+	long unsigned int count;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_shrink_scan_exit {
+	struct trace_entry ent;
+	dev_t dev;
+	long unsigned int nr_to_scan;
+	long unsigned int nr_shrunk;
+	long unsigned int count;
+	char __data[0];
+};
+
+struct trace_event_raw_jbd2_shrink_checkpoint_list {
+	struct trace_entry ent;
+	dev_t dev;
+	tid_t first_tid;
+	tid_t tid;
+	tid_t last_tid;
+	long unsigned int nr_freed;
+	long unsigned int nr_scanned;
+	tid_t next_tid;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_jbd2_checkpoint {};
+
+struct trace_event_data_offsets_jbd2_commit {};
+
+struct trace_event_data_offsets_jbd2_end_commit {};
+
+struct trace_event_data_offsets_jbd2_submit_inode_data {};
+
+struct trace_event_data_offsets_jbd2_handle_start_class {};
+
+struct trace_event_data_offsets_jbd2_handle_extend {};
+
+struct trace_event_data_offsets_jbd2_handle_stats {};
+
+struct trace_event_data_offsets_jbd2_run_stats {};
+
+struct trace_event_data_offsets_jbd2_checkpoint_stats {};
+
+struct trace_event_data_offsets_jbd2_update_log_tail {};
+
+struct trace_event_data_offsets_jbd2_write_superblock {};
+
+struct trace_event_data_offsets_jbd2_lock_buffer_stall {};
+
+struct trace_event_data_offsets_jbd2_journal_shrink {};
+
+struct trace_event_data_offsets_jbd2_shrink_scan_exit {};
+
+struct trace_event_data_offsets_jbd2_shrink_checkpoint_list {};
+
+typedef void (*btf_trace_jbd2_checkpoint)(void *, journal_t *, int);
+
+typedef void (*btf_trace_jbd2_start_commit)(void *, journal_t *, transaction_t *);
+
+typedef void (*btf_trace_jbd2_commit_locking)(void *, journal_t *, transaction_t *);
+
+typedef void (*btf_trace_jbd2_commit_flushing)(void *, journal_t *, transaction_t *);
+
+typedef void (*btf_trace_jbd2_commit_logging)(void *, journal_t *, transaction_t *);
+
+typedef void (*btf_trace_jbd2_drop_transaction)(void *, journal_t *, transaction_t *);
+
+typedef void (*btf_trace_jbd2_end_commit)(void *, journal_t *, transaction_t *);
+
+typedef void (*btf_trace_jbd2_submit_inode_data)(void *, struct inode *);
+
+typedef void (*btf_trace_jbd2_handle_start)(void *, dev_t, long unsigned int, unsigned int, unsigned int, int);
+
+typedef void (*btf_trace_jbd2_handle_restart)(void *, dev_t, long unsigned int, unsigned int, unsigned int, int);
+
+typedef void (*btf_trace_jbd2_handle_extend)(void *, dev_t, long unsigned int, unsigned int, unsigned int, int, int);
+
+typedef void (*btf_trace_jbd2_handle_stats)(void *, dev_t, long unsigned int, unsigned int, unsigned int, int, int, int, int);
+
+typedef void (*btf_trace_jbd2_run_stats)(void *, dev_t, long unsigned int, struct transaction_run_stats_s *);
+
+typedef void (*btf_trace_jbd2_checkpoint_stats)(void *, dev_t, long unsigned int, struct transaction_chp_stats_s *);
+
+typedef void (*btf_trace_jbd2_update_log_tail)(void *, journal_t *, tid_t, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_jbd2_write_superblock)(void *, journal_t *, int);
+
+typedef void (*btf_trace_jbd2_lock_buffer_stall)(void *, dev_t, long unsigned int);
+
+typedef void (*btf_trace_jbd2_shrink_count)(void *, journal_t *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_jbd2_shrink_scan_enter)(void *, journal_t *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_jbd2_shrink_scan_exit)(void *, journal_t *, long unsigned int, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_jbd2_shrink_checkpoint_list)(void *, journal_t *, tid_t, tid_t, tid_t, long unsigned int, long unsigned int, tid_t);
+
+struct jbd2_stats_proc_session {
+	journal_t *journal;
+	struct transaction_stats_s *stats;
+	int start;
+	int max;
+};
+
+struct meta_entry {
+	u64 data_block;
+	unsigned int index_block;
+	short unsigned int offset;
+	short unsigned int pad;
+};
+
+struct meta_index {
+	unsigned int inode_number;
+	unsigned int offset;
+	short unsigned int entries;
+	short unsigned int skip;
+	short unsigned int locked;
+	short unsigned int pad;
+	struct meta_entry meta_entry[127];
+};
+
+struct squashfs_cache_entry;
+
+struct squashfs_cache {
+	char *name;
+	int entries;
+	int curr_blk;
+	int next_blk;
+	int num_waiters;
+	int unused;
+	int block_size;
+	int pages;
+	spinlock_t lock;
+	wait_queue_head_t wait_queue;
+	struct squashfs_cache_entry *entry;
+};
+
+struct squashfs_page_actor;
+
+struct squashfs_cache_entry {
+	u64 block;
+	int length;
+	int refcount;
+	u64 next_index;
+	int pending;
+	int error;
+	int num_waiters;
+	wait_queue_head_t wait_queue;
+	struct squashfs_cache *cache;
+	void **data;
+	struct squashfs_page_actor *actor;
+};
+
+struct squashfs_page_actor {
+	union {
+		void **buffer;
+		struct page **page;
+	};
+	void *pageaddr;
+	void * (*squashfs_first_page)(struct squashfs_page_actor *);
+	void * (*squashfs_next_page)(struct squashfs_page_actor *);
+	void (*squashfs_finish_page)(struct squashfs_page_actor *);
+	int pages;
+	int length;
+	int next_page;
+};
+
+struct squashfs_decompressor;
+
+struct squashfs_stream;
+
+struct squashfs_sb_info {
+	const struct squashfs_decompressor *decompressor;
+	int devblksize;
+	int devblksize_log2;
+	struct squashfs_cache *block_cache;
+	struct squashfs_cache *fragment_cache;
+	struct squashfs_cache *read_page;
+	int next_meta_index;
+	__le64 *id_table;
+	__le64 *fragment_index;
+	__le64 *xattr_id_table;
+	struct mutex meta_index_mutex;
+	struct meta_index *meta_index;
+	struct squashfs_stream *stream;
+	__le64 *inode_lookup_table;
+	u64 inode_table;
+	u64 directory_table;
+	u64 xattr_table;
+	unsigned int block_size;
+	short unsigned int block_log;
+	long long int bytes_used;
+	unsigned int inodes;
+	unsigned int fragments;
+	int xattr_ids;
+	unsigned int ids;
+	bool panic_on_errors;
+};
+
+struct squashfs_decompressor {
+	void * (*init)(struct squashfs_sb_info *, void *);
+	void * (*comp_opts)(struct squashfs_sb_info *, void *, int);
+	void (*free)(void *);
+	int (*decompress)(struct squashfs_sb_info *, void *, struct bio *, int, int, struct squashfs_page_actor *);
+	int id;
+	char *name;
+	int supported;
+};
+
+struct squashfs_dir_index {
+	__le32 index;
+	__le32 start_block;
+	__le32 size;
+	unsigned char name[0];
+};
+
+struct squashfs_dir_entry {
+	__le16 offset;
+	__le16 inode_number;
+	__le16 type;
+	__le16 size;
+	char name[0];
+};
+
+struct squashfs_dir_header {
+	__le32 count;
+	__le32 start_block;
+	__le32 inode_number;
+};
+
+struct squashfs_inode_info {
+	u64 start;
+	int offset;
+	u64 xattr;
+	unsigned int xattr_size;
+	int xattr_count;
+	union {
+		struct {
+			u64 fragment_block;
+			int fragment_size;
+			int fragment_offset;
+			u64 block_list_start;
+		};
+		struct {
+			u64 dir_idx_start;
+			int dir_idx_offset;
+			int dir_idx_cnt;
+			int parent;
+		};
+	};
+	struct inode vfs_inode;
+};
+
+struct squashfs_fragment_entry {
+	__le64 start_block;
+	__le32 size;
+	unsigned int unused;
+};
+
+struct squashfs_base_inode {
+	__le16 inode_type;
+	__le16 mode;
+	__le16 uid;
+	__le16 guid;
+	__le32 mtime;
+	__le32 inode_number;
+};
+
+struct squashfs_ipc_inode {
+	__le16 inode_type;
+	__le16 mode;
+	__le16 uid;
+	__le16 guid;
+	__le32 mtime;
+	__le32 inode_number;
+	__le32 nlink;
+};
+
+struct squashfs_lipc_inode {
+	__le16 inode_type;
+	__le16 mode;
+	__le16 uid;
+	__le16 guid;
+	__le32 mtime;
+	__le32 inode_number;
+	__le32 nlink;
+	__le32 xattr;
+};
+
+struct squashfs_dev_inode {
+	__le16 inode_type;
+	__le16 mode;
+	__le16 uid;
+	__le16 guid;
+	__le32 mtime;
+	__le32 inode_number;
+	__le32 nlink;
+	__le32 rdev;
+};
+
+struct squashfs_ldev_inode {
+	__le16 inode_type;
+	__le16 mode;
+	__le16 uid;
+	__le16 guid;
+	__le32 mtime;
+	__le32 inode_number;
+	__le32 nlink;
+	__le32 rdev;
+	__le32 xattr;
+};
+
+struct squashfs_symlink_inode {
+	__le16 inode_type;
+	__le16 mode;
+	__le16 uid;
+	__le16 guid;
+	__le32 mtime;
+	__le32 inode_number;
+	__le32 nlink;
+	__le32 symlink_size;
+	char symlink[0];
+};
+
+struct squashfs_reg_inode {
+	__le16 inode_type;
+	__le16 mode;
+	__le16 uid;
+	__le16 guid;
+	__le32 mtime;
+	__le32 inode_number;
+	__le32 start_block;
+	__le32 fragment;
