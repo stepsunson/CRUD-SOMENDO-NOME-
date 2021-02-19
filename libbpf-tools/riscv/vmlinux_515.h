@@ -48889,3 +48889,2099 @@ enum {
 };
 
 struct nlmsg_perm {
+	u16 nlmsg_type;
+	u32 perm;
+};
+
+struct netif_security_struct {
+	struct net *ns;
+	int ifindex;
+	u32 sid;
+};
+
+struct sel_netif {
+	struct list_head list;
+	struct netif_security_struct nsec;
+	struct callback_head callback_head;
+};
+
+struct netnode_security_struct {
+	union {
+		__be32 ipv4;
+		struct in6_addr ipv6;
+	} addr;
+	u32 sid;
+	u16 family;
+};
+
+struct sel_netnode_bkt {
+	unsigned int size;
+	struct list_head list;
+};
+
+struct sel_netnode {
+	struct netnode_security_struct nsec;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct netport_security_struct {
+	u32 sid;
+	u16 port;
+	u8 protocol;
+};
+
+struct sel_netport_bkt {
+	int size;
+	struct list_head list;
+};
+
+struct sel_netport {
+	struct netport_security_struct psec;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct selinux_kernel_status {
+	u32 version;
+	u32 sequence;
+	u32 enforcing;
+	u32 policyload;
+	u32 deny_unknown;
+};
+
+struct ebitmap_node {
+	struct ebitmap_node *next;
+	long unsigned int maps[6];
+	u32 startbit;
+};
+
+struct ebitmap {
+	struct ebitmap_node *node;
+	u32 highbit;
+};
+
+struct policy_file {
+	char *data;
+	size_t len;
+};
+
+struct hashtab_node {
+	void *key;
+	void *datum;
+	struct hashtab_node *next;
+};
+
+struct hashtab {
+	struct hashtab_node **htable;
+	u32 size;
+	u32 nel;
+};
+
+struct hashtab_info {
+	u32 slots_used;
+	u32 max_chain_len;
+};
+
+struct hashtab_key_params {
+	u32 (*hash)(const void *);
+	int (*cmp)(const void *, const void *);
+};
+
+struct symtab {
+	struct hashtab table;
+	u32 nprim;
+};
+
+struct mls_level {
+	u32 sens;
+	struct ebitmap cat;
+};
+
+struct mls_range {
+	struct mls_level level[2];
+};
+
+struct context {
+	u32 user;
+	u32 role;
+	u32 type;
+	u32 len;
+	struct mls_range range;
+	char *str;
+};
+
+struct sidtab_str_cache;
+
+struct sidtab_entry {
+	u32 sid;
+	u32 hash;
+	struct context context;
+	struct sidtab_str_cache *cache;
+	struct hlist_node list;
+};
+
+struct sidtab_str_cache {
+	struct callback_head rcu_member;
+	struct list_head lru_member;
+	struct sidtab_entry *parent;
+	u32 len;
+	char str[0];
+};
+
+struct sidtab_node_inner;
+
+struct sidtab_node_leaf;
+
+union sidtab_entry_inner {
+	struct sidtab_node_inner *ptr_inner;
+	struct sidtab_node_leaf *ptr_leaf;
+};
+
+struct sidtab_node_inner {
+	union sidtab_entry_inner entries[512];
+};
+
+struct sidtab_node_leaf {
+	struct sidtab_entry entries[39];
+};
+
+struct sidtab_isid_entry {
+	int set;
+	struct sidtab_entry entry;
+};
+
+struct sidtab;
+
+struct sidtab_convert_params {
+	int (*func)(struct context *, struct context *, void *);
+	void *args;
+	struct sidtab *target;
+};
+
+struct sidtab {
+	union sidtab_entry_inner roots[4];
+	u32 count;
+	struct sidtab_convert_params *convert;
+	bool frozen;
+	spinlock_t lock;
+	u32 cache_free_slots;
+	struct list_head cache_lru_list;
+	spinlock_t cache_lock;
+	struct sidtab_isid_entry isids[27];
+	struct hlist_head context_to_sid[512];
+};
+
+struct avtab_key {
+	u16 source_type;
+	u16 target_type;
+	u16 target_class;
+	u16 specified;
+};
+
+struct avtab_extended_perms {
+	u8 specified;
+	u8 driver;
+	struct extended_perms_data perms;
+};
+
+struct avtab_datum {
+	union {
+		u32 data;
+		struct avtab_extended_perms *xperms;
+	} u;
+};
+
+struct avtab_node {
+	struct avtab_key key;
+	struct avtab_datum datum;
+	struct avtab_node *next;
+};
+
+struct avtab {
+	struct avtab_node **htable;
+	u32 nel;
+	u32 nslot;
+	u32 mask;
+};
+
+struct type_set;
+
+struct constraint_expr {
+	u32 expr_type;
+	u32 attr;
+	u32 op;
+	struct ebitmap names;
+	struct type_set *type_names;
+	struct constraint_expr *next;
+};
+
+struct type_set {
+	struct ebitmap types;
+	struct ebitmap negset;
+	u32 flags;
+};
+
+struct constraint_node {
+	u32 permissions;
+	struct constraint_expr *expr;
+	struct constraint_node *next;
+};
+
+struct common_datum {
+	u32 value;
+	struct symtab permissions;
+};
+
+struct class_datum {
+	u32 value;
+	char *comkey;
+	struct common_datum *comdatum;
+	struct symtab permissions;
+	struct constraint_node *constraints;
+	struct constraint_node *validatetrans;
+	char default_user;
+	char default_role;
+	char default_type;
+	char default_range;
+};
+
+struct role_datum {
+	u32 value;
+	u32 bounds;
+	struct ebitmap dominates;
+	struct ebitmap types;
+};
+
+struct role_allow {
+	u32 role;
+	u32 new_role;
+	struct role_allow *next;
+};
+
+struct type_datum {
+	u32 value;
+	u32 bounds;
+	unsigned char primary;
+	unsigned char attribute;
+};
+
+struct user_datum {
+	u32 value;
+	u32 bounds;
+	struct ebitmap roles;
+	struct mls_range range;
+	struct mls_level dfltlevel;
+};
+
+struct cond_bool_datum {
+	__u32 value;
+	int state;
+};
+
+struct ocontext {
+	union {
+		char *name;
+		struct {
+			u8 protocol;
+			u16 low_port;
+			u16 high_port;
+		} port;
+		struct {
+			u32 addr;
+			u32 mask;
+		} node;
+		struct {
+			u32 addr[4];
+			u32 mask[4];
+		} node6;
+		struct {
+			u64 subnet_prefix;
+			u16 low_pkey;
+			u16 high_pkey;
+		} ibpkey;
+		struct {
+			char *dev_name;
+			u8 port;
+		} ibendport;
+	} u;
+	union {
+		u32 sclass;
+		u32 behavior;
+	} v;
+	struct context context[2];
+	u32 sid[2];
+	struct ocontext *next;
+};
+
+struct genfs {
+	char *fstype;
+	struct ocontext *head;
+	struct genfs *next;
+};
+
+struct cond_node;
+
+struct policydb {
+	int mls_enabled;
+	struct symtab symtab[8];
+	char **sym_val_to_name[8];
+	struct class_datum **class_val_to_struct;
+	struct role_datum **role_val_to_struct;
+	struct user_datum **user_val_to_struct;
+	struct type_datum **type_val_to_struct;
+	struct avtab te_avtab;
+	struct hashtab role_tr;
+	struct ebitmap filename_trans_ttypes;
+	struct hashtab filename_trans;
+	u32 compat_filename_trans_count;
+	struct cond_bool_datum **bool_val_to_struct;
+	struct avtab te_cond_avtab;
+	struct cond_node *cond_list;
+	u32 cond_list_len;
+	struct role_allow *role_allow;
+	struct ocontext *ocontexts[9];
+	struct genfs *genfs;
+	struct hashtab range_tr;
+	struct ebitmap *type_attr_map_array;
+	struct ebitmap policycaps;
+	struct ebitmap permissive_map;
+	size_t len;
+	unsigned int policyvers;
+	unsigned int reject_unknown: 1;
+	unsigned int allow_unknown: 1;
+	u16 process_class;
+	u32 process_trans_perms;
+};
+
+struct perm_datum {
+	u32 value;
+};
+
+struct role_trans_key {
+	u32 role;
+	u32 type;
+	u32 tclass;
+};
+
+struct role_trans_datum {
+	u32 new_role;
+};
+
+struct filename_trans_key {
+	u32 ttype;
+	u16 tclass;
+	const char *name;
+};
+
+struct filename_trans_datum {
+	struct ebitmap stypes;
+	u32 otype;
+	struct filename_trans_datum *next;
+};
+
+struct level_datum {
+	struct mls_level *level;
+	unsigned char isalias;
+};
+
+struct cat_datum {
+	u32 value;
+	unsigned char isalias;
+};
+
+struct range_trans {
+	u32 source_type;
+	u32 target_type;
+	u32 target_class;
+};
+
+struct cond_expr_node;
+
+struct cond_expr {
+	struct cond_expr_node *nodes;
+	u32 len;
+};
+
+struct cond_av_list {
+	struct avtab_node **nodes;
+	u32 len;
+};
+
+struct cond_node {
+	int cur_state;
+	struct cond_expr expr;
+	struct cond_av_list true_list;
+	struct cond_av_list false_list;
+};
+
+struct policy_data {
+	struct policydb *p;
+	void *fp;
+};
+
+struct cond_expr_node {
+	u32 expr_type;
+	u32 bool;
+};
+
+struct policydb_compat_info {
+	int version;
+	int sym_num;
+	int ocon_num;
+};
+
+struct selinux_mapping;
+
+struct selinux_map {
+	struct selinux_mapping *mapping;
+	u16 size;
+};
+
+struct selinux_policy {
+	struct sidtab *sidtab;
+	struct policydb policydb;
+	struct selinux_map map;
+	u32 latest_granting;
+};
+
+struct convert_context_args {
+	struct selinux_state *state;
+	struct policydb *oldp;
+	struct policydb *newp;
+};
+
+struct selinux_policy_convert_data {
+	struct convert_context_args args;
+	struct sidtab_convert_params sidtab_params;
+};
+
+struct selinux_mapping {
+	u16 value;
+	unsigned int num_perms;
+	u32 perms[32];
+};
+
+struct selinux_audit_rule {
+	u32 au_seqno;
+	struct context au_ctxt;
+};
+
+struct cond_insertf_data {
+	struct policydb *p;
+	struct avtab_node **dst;
+	struct cond_av_list *other;
+};
+
+struct rt6key {
+	struct in6_addr addr;
+	int plen;
+};
+
+struct rtable;
+
+struct fnhe_hash_bucket;
+
+struct fib_nh_common {
+	struct net_device *nhc_dev;
+	int nhc_oif;
+	unsigned char nhc_scope;
+	u8 nhc_family;
+	u8 nhc_gw_family;
+	unsigned char nhc_flags;
+	struct lwtunnel_state *nhc_lwtstate;
+	union {
+		__be32 ipv4;
+		struct in6_addr ipv6;
+	} nhc_gw;
+	int nhc_weight;
+	atomic_t nhc_upper_bound;
+	struct rtable **nhc_pcpu_rth_output;
+	struct rtable *nhc_rth_input;
+	struct fnhe_hash_bucket *nhc_exceptions;
+};
+
+struct rt6_exception_bucket;
+
+struct fib6_nh {
+	struct fib_nh_common nh_common;
+	long unsigned int last_probe;
+	struct rt6_info **rt6i_pcpu;
+	struct rt6_exception_bucket *rt6i_exception_bucket;
+};
+
+struct fib6_node;
+
+struct dst_metrics;
+
+struct nexthop;
+
+struct fib6_info {
+	struct fib6_table *fib6_table;
+	struct fib6_info *fib6_next;
+	struct fib6_node *fib6_node;
+	union {
+		struct list_head fib6_siblings;
+		struct list_head nh_list;
+	};
+	unsigned int fib6_nsiblings;
+	refcount_t fib6_ref;
+	long unsigned int expires;
+	struct dst_metrics *fib6_metrics;
+	struct rt6key fib6_dst;
+	u32 fib6_flags;
+	struct rt6key fib6_src;
+	struct rt6key fib6_prefsrc;
+	u32 fib6_metric;
+	u8 fib6_protocol;
+	u8 fib6_type;
+	u8 offload;
+	u8 trap;
+	u8 offload_failed;
+	u8 should_flush: 1;
+	u8 dst_nocount: 1;
+	u8 dst_nopolicy: 1;
+	u8 fib6_destroying: 1;
+	u8 unused: 4;
+	struct callback_head rcu;
+	struct nexthop *nh;
+	struct fib6_nh fib6_nh[0];
+};
+
+struct uncached_list;
+
+struct rt6_info {
+	struct dst_entry dst;
+	struct fib6_info *from;
+	int sernum;
+	struct rt6key rt6i_dst;
+	struct rt6key rt6i_src;
+	struct in6_addr rt6i_gateway;
+	struct inet6_dev *rt6i_idev;
+	u32 rt6i_flags;
+	struct list_head rt6i_uncached;
+	struct uncached_list *rt6i_uncached_list;
+	short unsigned int rt6i_nfheader_len;
+};
+
+struct rt6_statistics {
+	__u32 fib_nodes;
+	__u32 fib_route_nodes;
+	__u32 fib_rt_entries;
+	__u32 fib_rt_cache;
+	__u32 fib_discarded_routes;
+	atomic_t fib_rt_alloc;
+	atomic_t fib_rt_uncache;
+};
+
+struct fib6_node {
+	struct fib6_node *parent;
+	struct fib6_node *left;
+	struct fib6_node *right;
+	struct fib6_node *subtree;
+	struct fib6_info *leaf;
+	__u16 fn_bit;
+	__u16 fn_flags;
+	int fn_sernum;
+	struct fib6_info *rr_ptr;
+	struct callback_head rcu;
+};
+
+struct fib6_table {
+	struct hlist_node tb6_hlist;
+	u32 tb6_id;
+	spinlock_t tb6_lock;
+	struct fib6_node tb6_root;
+	struct inet_peer_base tb6_peers;
+	unsigned int flags;
+	unsigned int fib_seq;
+};
+
+typedef union {
+	__be32 a4;
+	__be32 a6[4];
+	struct in6_addr in6;
+} xfrm_address_t;
+
+struct xfrm_id {
+	xfrm_address_t daddr;
+	__be32 spi;
+	__u8 proto;
+};
+
+struct xfrm_selector {
+	xfrm_address_t daddr;
+	xfrm_address_t saddr;
+	__be16 dport;
+	__be16 dport_mask;
+	__be16 sport;
+	__be16 sport_mask;
+	__u16 family;
+	__u8 prefixlen_d;
+	__u8 prefixlen_s;
+	__u8 proto;
+	int ifindex;
+	__kernel_uid32_t user;
+};
+
+struct xfrm_lifetime_cfg {
+	__u64 soft_byte_limit;
+	__u64 hard_byte_limit;
+	__u64 soft_packet_limit;
+	__u64 hard_packet_limit;
+	__u64 soft_add_expires_seconds;
+	__u64 hard_add_expires_seconds;
+	__u64 soft_use_expires_seconds;
+	__u64 hard_use_expires_seconds;
+};
+
+struct xfrm_lifetime_cur {
+	__u64 bytes;
+	__u64 packets;
+	__u64 add_time;
+	__u64 use_time;
+};
+
+struct xfrm_replay_state {
+	__u32 oseq;
+	__u32 seq;
+	__u32 bitmap;
+};
+
+struct xfrm_replay_state_esn {
+	unsigned int bmp_len;
+	__u32 oseq;
+	__u32 seq;
+	__u32 oseq_hi;
+	__u32 seq_hi;
+	__u32 replay_window;
+	__u32 bmp[0];
+};
+
+struct xfrm_algo {
+	char alg_name[64];
+	unsigned int alg_key_len;
+	char alg_key[0];
+};
+
+struct xfrm_algo_auth {
+	char alg_name[64];
+	unsigned int alg_key_len;
+	unsigned int alg_trunc_len;
+	char alg_key[0];
+};
+
+struct xfrm_algo_aead {
+	char alg_name[64];
+	unsigned int alg_key_len;
+	unsigned int alg_icv_len;
+	char alg_key[0];
+};
+
+struct xfrm_stats {
+	__u32 replay_window;
+	__u32 replay;
+	__u32 integrity_failed;
+};
+
+enum {
+	XFRM_POLICY_TYPE_MAIN = 0,
+	XFRM_POLICY_TYPE_SUB = 1,
+	XFRM_POLICY_TYPE_MAX = 2,
+	XFRM_POLICY_TYPE_ANY = 255,
+};
+
+struct xfrm_encap_tmpl {
+	__u16 encap_type;
+	__be16 encap_sport;
+	__be16 encap_dport;
+	xfrm_address_t encap_oa;
+};
+
+enum xfrm_attr_type_t {
+	XFRMA_UNSPEC = 0,
+	XFRMA_ALG_AUTH = 1,
+	XFRMA_ALG_CRYPT = 2,
+	XFRMA_ALG_COMP = 3,
+	XFRMA_ENCAP = 4,
+	XFRMA_TMPL = 5,
+	XFRMA_SA = 6,
+	XFRMA_POLICY = 7,
+	XFRMA_SEC_CTX = 8,
+	XFRMA_LTIME_VAL = 9,
+	XFRMA_REPLAY_VAL = 10,
+	XFRMA_REPLAY_THRESH = 11,
+	XFRMA_ETIMER_THRESH = 12,
+	XFRMA_SRCADDR = 13,
+	XFRMA_COADDR = 14,
+	XFRMA_LASTUSED = 15,
+	XFRMA_POLICY_TYPE = 16,
+	XFRMA_MIGRATE = 17,
+	XFRMA_ALG_AEAD = 18,
+	XFRMA_KMADDRESS = 19,
+	XFRMA_ALG_AUTH_TRUNC = 20,
+	XFRMA_MARK = 21,
+	XFRMA_TFCPAD = 22,
+	XFRMA_REPLAY_ESN_VAL = 23,
+	XFRMA_SA_EXTRA_FLAGS = 24,
+	XFRMA_PROTO = 25,
+	XFRMA_ADDRESS_FILTER = 26,
+	XFRMA_PAD = 27,
+	XFRMA_OFFLOAD_DEV = 28,
+	XFRMA_SET_MARK = 29,
+	XFRMA_SET_MARK_MASK = 30,
+	XFRMA_IF_ID = 31,
+	XFRMA_MTIMER_THRESH = 32,
+	__XFRMA_MAX = 33,
+};
+
+struct xfrm_mark {
+	__u32 v;
+	__u32 m;
+};
+
+struct xfrm_address_filter {
+	xfrm_address_t saddr;
+	xfrm_address_t daddr;
+	__u16 family;
+	__u8 splen;
+	__u8 dplen;
+};
+
+struct xfrm_state_walk {
+	struct list_head all;
+	u8 state;
+	u8 dying;
+	u8 proto;
+	u32 seq;
+	struct xfrm_address_filter *filter;
+};
+
+enum xfrm_replay_mode {
+	XFRM_REPLAY_MODE_LEGACY = 0,
+	XFRM_REPLAY_MODE_BMP = 1,
+	XFRM_REPLAY_MODE_ESN = 2,
+};
+
+struct xfrm_state_offload {
+	struct net_device *dev;
+	struct net_device *real_dev;
+	long unsigned int offload_handle;
+	unsigned int num_exthdrs;
+	u8 flags;
+};
+
+struct xfrm_mode {
+	u8 encap;
+	u8 family;
+	u8 flags;
+};
+
+struct xfrm_type;
+
+struct xfrm_type_offload;
+
+struct xfrm_state {
+	possible_net_t xs_net;
+	union {
+		struct hlist_node gclist;
+		struct hlist_node bydst;
+	};
+	struct hlist_node bysrc;
+	struct hlist_node byspi;
+	struct hlist_node byseq;
+	refcount_t refcnt;
+	spinlock_t lock;
+	struct xfrm_id id;
+	struct xfrm_selector sel;
+	struct xfrm_mark mark;
+	u32 if_id;
+	u32 tfcpad;
+	u32 genid;
+	struct xfrm_state_walk km;
+	struct {
+		u32 reqid;
+		u8 mode;
+		u8 replay_window;
+		u8 aalgo;
+		u8 ealgo;
+		u8 calgo;
+		u8 flags;
+		u16 family;
+		xfrm_address_t saddr;
+		int header_len;
+		int trailer_len;
+		u32 extra_flags;
+		struct xfrm_mark smark;
+	} props;
+	struct xfrm_lifetime_cfg lft;
+	struct xfrm_algo_auth *aalg;
+	struct xfrm_algo *ealg;
+	struct xfrm_algo *calg;
+	struct xfrm_algo_aead *aead;
+	const char *geniv;
+	__be16 new_mapping_sport;
+	u32 new_mapping;
+	u32 mapping_maxage;
+	struct xfrm_encap_tmpl *encap;
+	struct sock *encap_sk;
+	xfrm_address_t *coaddr;
+	struct xfrm_state *tunnel;
+	atomic_t tunnel_users;
+	struct xfrm_replay_state replay;
+	struct xfrm_replay_state_esn *replay_esn;
+	struct xfrm_replay_state preplay;
+	struct xfrm_replay_state_esn *preplay_esn;
+	enum xfrm_replay_mode repl_mode;
+	u32 xflags;
+	u32 replay_maxage;
+	u32 replay_maxdiff;
+	struct timer_list rtimer;
+	struct xfrm_stats stats;
+	struct xfrm_lifetime_cur curlft;
+	struct hrtimer mtimer;
+	struct xfrm_state_offload xso;
+	long int saved_tmo;
+	time64_t lastused;
+	struct page_frag xfrag;
+	const struct xfrm_type *type;
+	struct xfrm_mode inner_mode;
+	struct xfrm_mode inner_mode_iaf;
+	struct xfrm_mode outer_mode;
+	const struct xfrm_type_offload *type_offload;
+	struct xfrm_sec_ctx *security;
+	void *data;
+};
+
+struct dst_metrics {
+	u32 metrics[17];
+	refcount_t refcnt;
+};
+
+struct xfrm_policy_walk_entry {
+	struct list_head all;
+	u8 dead;
+};
+
+struct xfrm_policy_queue {
+	struct sk_buff_head hold_queue;
+	struct timer_list hold_timer;
+	long unsigned int timeout;
+};
+
+struct xfrm_tmpl {
+	struct xfrm_id id;
+	xfrm_address_t saddr;
+	short unsigned int encap_family;
+	u32 reqid;
+	u8 mode;
+	u8 share;
+	u8 optional;
+	u8 allalgs;
+	u32 aalgos;
+	u32 ealgos;
+	u32 calgos;
+};
+
+struct xfrm_policy {
+	possible_net_t xp_net;
+	struct hlist_node bydst;
+	struct hlist_node byidx;
+	rwlock_t lock;
+	refcount_t refcnt;
+	u32 pos;
+	struct timer_list timer;
+	atomic_t genid;
+	u32 priority;
+	u32 index;
+	u32 if_id;
+	struct xfrm_mark mark;
+	struct xfrm_selector selector;
+	struct xfrm_lifetime_cfg lft;
+	struct xfrm_lifetime_cur curlft;
+	struct xfrm_policy_walk_entry walk;
+	struct xfrm_policy_queue polq;
+	bool bydst_reinsert;
+	u8 type;
+	u8 action;
+	u8 flags;
+	u8 xfrm_nr;
+	u16 family;
+	struct xfrm_sec_ctx *security;
+	struct xfrm_tmpl xfrm_vec[6];
+	struct hlist_node bydst_inexact_list;
+	struct callback_head rcu;
+};
+
+struct udp_hslot;
+
+struct udp_table {
+	struct udp_hslot *hash;
+	struct udp_hslot *hash2;
+	unsigned int mask;
+	unsigned int log;
+};
+
+struct fib_nh_exception {
+	struct fib_nh_exception *fnhe_next;
+	int fnhe_genid;
+	__be32 fnhe_daddr;
+	u32 fnhe_pmtu;
+	bool fnhe_mtu_locked;
+	__be32 fnhe_gw;
+	long unsigned int fnhe_expires;
+	struct rtable *fnhe_rth_input;
+	struct rtable *fnhe_rth_output;
+	long unsigned int fnhe_stamp;
+	struct callback_head rcu;
+};
+
+struct rtable {
+	struct dst_entry dst;
+	int rt_genid;
+	unsigned int rt_flags;
+	__u16 rt_type;
+	__u8 rt_is_input;
+	__u8 rt_uses_gateway;
+	int rt_iif;
+	u8 rt_gw_family;
+	union {
+		__be32 rt_gw4;
+		struct in6_addr rt_gw6;
+	};
+	u32 rt_mtu_locked: 1;
+	u32 rt_pmtu: 31;
+	struct list_head rt_uncached;
+	struct uncached_list *rt_uncached_list;
+};
+
+struct fnhe_hash_bucket {
+	struct fib_nh_exception *chain;
+};
+
+struct rt6_exception_bucket {
+	struct hlist_head chain;
+	int depth;
+};
+
+struct xfrm_type {
+	struct module *owner;
+	u8 proto;
+	u8 flags;
+	int (*init_state)(struct xfrm_state *);
+	void (*destructor)(struct xfrm_state *);
+	int (*input)(struct xfrm_state *, struct sk_buff *);
+	int (*output)(struct xfrm_state *, struct sk_buff *);
+	int (*reject)(struct xfrm_state *, struct sk_buff *, const struct flowi *);
+};
+
+struct xfrm_type_offload {
+	struct module *owner;
+	u8 proto;
+	void (*encap)(struct xfrm_state *, struct sk_buff *);
+	int (*input_tail)(struct xfrm_state *, struct sk_buff *);
+	int (*xmit)(struct xfrm_state *, struct sk_buff *, netdev_features_t);
+};
+
+struct xfrm_dst {
+	union {
+		struct dst_entry dst;
+		struct rtable rt;
+		struct rt6_info rt6;
+	} u;
+	struct dst_entry *route;
+	struct dst_entry *child;
+	struct dst_entry *path;
+	struct xfrm_policy *pols[2];
+	int num_pols;
+	int num_xfrms;
+	u32 xfrm_genid;
+	u32 policy_genid;
+	u32 route_mtu_cached;
+	u32 child_mtu_cached;
+	u32 route_cookie;
+	u32 path_cookie;
+};
+
+struct xfrm_offload {
+	struct {
+		__u32 low;
+		__u32 hi;
+	} seq;
+	__u32 flags;
+	__u32 status;
+	__u8 proto;
+	__u8 inner_ipproto;
+};
+
+struct sec_path {
+	int len;
+	int olen;
+	struct xfrm_state *xvec[6];
+	struct xfrm_offload ovec[1];
+};
+
+struct udp_hslot {
+	struct hlist_head head;
+	int count;
+	spinlock_t lock;
+};
+
+struct pkey_security_struct {
+	u64 subnet_prefix;
+	u16 pkey;
+	u32 sid;
+};
+
+struct sel_ib_pkey_bkt {
+	int size;
+	struct list_head list;
+};
+
+struct sel_ib_pkey {
+	struct pkey_security_struct psec;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct smack_audit_data {
+	const char *function;
+	char *subject;
+	char *object;
+	char *request;
+	int result;
+};
+
+struct smack_known {
+	struct list_head list;
+	struct hlist_node smk_hashed;
+	char *smk_known;
+	u32 smk_secid;
+	struct netlbl_lsm_secattr smk_netlabel;
+	struct list_head smk_rules;
+	struct mutex smk_rules_lock;
+};
+
+struct superblock_smack {
+	struct smack_known *smk_root;
+	struct smack_known *smk_floor;
+	struct smack_known *smk_hat;
+	struct smack_known *smk_default;
+	int smk_flags;
+};
+
+struct socket_smack {
+	struct smack_known *smk_out;
+	struct smack_known *smk_in;
+	struct smack_known *smk_packet;
+	int smk_state;
+};
+
+struct inode_smack {
+	struct smack_known *smk_inode;
+	struct smack_known *smk_task;
+	struct smack_known *smk_mmap;
+	int smk_flags;
+};
+
+struct task_smack {
+	struct smack_known *smk_task;
+	struct smack_known *smk_forked;
+	struct list_head smk_rules;
+	struct mutex smk_rules_lock;
+	struct list_head smk_relabel;
+};
+
+struct smack_rule {
+	struct list_head list;
+	struct smack_known *smk_subject;
+	struct smack_known *smk_object;
+	int smk_access;
+};
+
+struct smk_net4addr {
+	struct list_head list;
+	struct in_addr smk_host;
+	struct in_addr smk_mask;
+	int smk_masks;
+	struct smack_known *smk_label;
+};
+
+struct smk_net6addr {
+	struct list_head list;
+	struct in6_addr smk_host;
+	struct in6_addr smk_mask;
+	int smk_masks;
+	struct smack_known *smk_label;
+};
+
+struct smack_known_list_elem {
+	struct list_head list;
+	struct smack_known *smk_label;
+};
+
+enum {
+	Opt_error___3 = 4294967295,
+	Opt_fsdefault = 0,
+	Opt_fsfloor = 1,
+	Opt_fshat = 2,
+	Opt_fsroot = 3,
+	Opt_fstransmute = 4,
+};
+
+struct smk_audit_info {
+	struct common_audit_data a;
+	struct smack_audit_data sad;
+};
+
+struct smack_mnt_opts {
+	const char *fsdefault;
+	const char *fsfloor;
+	const char *fshat;
+	const char *fsroot;
+	const char *fstransmute;
+};
+
+struct netlbl_audit {
+	struct lsmblob lsmdata;
+	kuid_t loginuid;
+	unsigned int sessionid;
+};
+
+struct cipso_v4_std_map_tbl {
+	struct {
+		u32 *cipso;
+		u32 *local;
+		u32 cipso_size;
+		u32 local_size;
+	} lvl;
+	struct {
+		u32 *cipso;
+		u32 *local;
+		u32 cipso_size;
+		u32 local_size;
+	} cat;
+};
+
+struct cipso_v4_doi {
+	u32 doi;
+	u32 type;
+	union {
+		struct cipso_v4_std_map_tbl *std;
+	} map;
+	u8 tags[5];
+	refcount_t refcount;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+enum smk_inos {
+	SMK_ROOT_INO = 2,
+	SMK_LOAD = 3,
+	SMK_CIPSO = 4,
+	SMK_DOI = 5,
+	SMK_DIRECT = 6,
+	SMK_AMBIENT = 7,
+	SMK_NET4ADDR = 8,
+	SMK_ONLYCAP = 9,
+	SMK_LOGGING = 10,
+	SMK_LOAD_SELF = 11,
+	SMK_ACCESSES = 12,
+	SMK_MAPPED = 13,
+	SMK_LOAD2 = 14,
+	SMK_LOAD_SELF2 = 15,
+	SMK_ACCESS2 = 16,
+	SMK_CIPSO2 = 17,
+	SMK_REVOKE_SUBJ = 18,
+	SMK_CHANGE_RULE = 19,
+	SMK_SYSLOG = 20,
+	SMK_PTRACE = 21,
+	SMK_NET6ADDR = 23,
+	SMK_RELABEL_SELF = 24,
+};
+
+struct smack_parsed_rule {
+	struct smack_known *smk_subject;
+	struct smack_known *smk_object;
+	int smk_access1;
+	int smk_access2;
+};
+
+struct sockaddr_un {
+	__kernel_sa_family_t sun_family;
+	char sun_path[108];
+};
+
+struct unix_address {
+	refcount_t refcnt;
+	int len;
+	unsigned int hash;
+	struct sockaddr_un name[0];
+};
+
+struct scm_stat {
+	atomic_t nr_fds;
+};
+
+struct unix_sock {
+	struct sock sk;
+	struct unix_address *addr;
+	struct path path;
+	struct mutex iolock;
+	struct mutex bindlock;
+	struct sock *peer;
+	struct list_head link;
+	atomic_long_t inflight;
+	spinlock_t lock;
+	long unsigned int gc_flags;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct socket_wq peer_wq;
+	wait_queue_entry_t peer_wake;
+	struct scm_stat scm_stat;
+	struct sk_buff *oob_skb;
+	long: 64;
+};
+
+enum tomoyo_conditions_index {
+	TOMOYO_TASK_UID = 0,
+	TOMOYO_TASK_EUID = 1,
+	TOMOYO_TASK_SUID = 2,
+	TOMOYO_TASK_FSUID = 3,
+	TOMOYO_TASK_GID = 4,
+	TOMOYO_TASK_EGID = 5,
+	TOMOYO_TASK_SGID = 6,
+	TOMOYO_TASK_FSGID = 7,
+	TOMOYO_TASK_PID = 8,
+	TOMOYO_TASK_PPID = 9,
+	TOMOYO_EXEC_ARGC = 10,
+	TOMOYO_EXEC_ENVC = 11,
+	TOMOYO_TYPE_IS_SOCKET = 12,
+	TOMOYO_TYPE_IS_SYMLINK = 13,
+	TOMOYO_TYPE_IS_FILE = 14,
+	TOMOYO_TYPE_IS_BLOCK_DEV = 15,
+	TOMOYO_TYPE_IS_DIRECTORY = 16,
+	TOMOYO_TYPE_IS_CHAR_DEV = 17,
+	TOMOYO_TYPE_IS_FIFO = 18,
+	TOMOYO_MODE_SETUID = 19,
+	TOMOYO_MODE_SETGID = 20,
+	TOMOYO_MODE_STICKY = 21,
+	TOMOYO_MODE_OWNER_READ = 22,
+	TOMOYO_MODE_OWNER_WRITE = 23,
+	TOMOYO_MODE_OWNER_EXECUTE = 24,
+	TOMOYO_MODE_GROUP_READ = 25,
+	TOMOYO_MODE_GROUP_WRITE = 26,
+	TOMOYO_MODE_GROUP_EXECUTE = 27,
+	TOMOYO_MODE_OTHERS_READ = 28,
+	TOMOYO_MODE_OTHERS_WRITE = 29,
+	TOMOYO_MODE_OTHERS_EXECUTE = 30,
+	TOMOYO_EXEC_REALPATH = 31,
+	TOMOYO_SYMLINK_TARGET = 32,
+	TOMOYO_PATH1_UID = 33,
+	TOMOYO_PATH1_GID = 34,
+	TOMOYO_PATH1_INO = 35,
+	TOMOYO_PATH1_MAJOR = 36,
+	TOMOYO_PATH1_MINOR = 37,
+	TOMOYO_PATH1_PERM = 38,
+	TOMOYO_PATH1_TYPE = 39,
+	TOMOYO_PATH1_DEV_MAJOR = 40,
+	TOMOYO_PATH1_DEV_MINOR = 41,
+	TOMOYO_PATH2_UID = 42,
+	TOMOYO_PATH2_GID = 43,
+	TOMOYO_PATH2_INO = 44,
+	TOMOYO_PATH2_MAJOR = 45,
+	TOMOYO_PATH2_MINOR = 46,
+	TOMOYO_PATH2_PERM = 47,
+	TOMOYO_PATH2_TYPE = 48,
+	TOMOYO_PATH2_DEV_MAJOR = 49,
+	TOMOYO_PATH2_DEV_MINOR = 50,
+	TOMOYO_PATH1_PARENT_UID = 51,
+	TOMOYO_PATH1_PARENT_GID = 52,
+	TOMOYO_PATH1_PARENT_INO = 53,
+	TOMOYO_PATH1_PARENT_PERM = 54,
+	TOMOYO_PATH2_PARENT_UID = 55,
+	TOMOYO_PATH2_PARENT_GID = 56,
+	TOMOYO_PATH2_PARENT_INO = 57,
+	TOMOYO_PATH2_PARENT_PERM = 58,
+	TOMOYO_MAX_CONDITION_KEYWORD = 59,
+	TOMOYO_NUMBER_UNION = 60,
+	TOMOYO_NAME_UNION = 61,
+	TOMOYO_ARGV_ENTRY = 62,
+	TOMOYO_ENVP_ENTRY = 63,
+};
+
+enum tomoyo_path_stat_index {
+	TOMOYO_PATH1 = 0,
+	TOMOYO_PATH1_PARENT = 1,
+	TOMOYO_PATH2 = 2,
+	TOMOYO_PATH2_PARENT = 3,
+	TOMOYO_MAX_PATH_STAT = 4,
+};
+
+enum tomoyo_mode_index {
+	TOMOYO_CONFIG_DISABLED = 0,
+	TOMOYO_CONFIG_LEARNING = 1,
+	TOMOYO_CONFIG_PERMISSIVE = 2,
+	TOMOYO_CONFIG_ENFORCING = 3,
+	TOMOYO_CONFIG_MAX_MODE = 4,
+	TOMOYO_CONFIG_WANT_REJECT_LOG = 64,
+	TOMOYO_CONFIG_WANT_GRANT_LOG = 128,
+	TOMOYO_CONFIG_USE_DEFAULT = 255,
+};
+
+enum tomoyo_policy_id {
+	TOMOYO_ID_GROUP = 0,
+	TOMOYO_ID_ADDRESS_GROUP = 1,
+	TOMOYO_ID_PATH_GROUP = 2,
+	TOMOYO_ID_NUMBER_GROUP = 3,
+	TOMOYO_ID_TRANSITION_CONTROL = 4,
+	TOMOYO_ID_AGGREGATOR = 5,
+	TOMOYO_ID_MANAGER = 6,
+	TOMOYO_ID_CONDITION = 7,
+	TOMOYO_ID_NAME = 8,
+	TOMOYO_ID_ACL = 9,
+	TOMOYO_ID_DOMAIN = 10,
+	TOMOYO_MAX_POLICY = 11,
+};
+
+enum tomoyo_domain_info_flags_index {
+	TOMOYO_DIF_QUOTA_WARNED = 0,
+	TOMOYO_DIF_TRANSITION_FAILED = 1,
+	TOMOYO_MAX_DOMAIN_INFO_FLAGS = 2,
+};
+
+enum tomoyo_grant_log {
+	TOMOYO_GRANTLOG_AUTO = 0,
+	TOMOYO_GRANTLOG_NO = 1,
+	TOMOYO_GRANTLOG_YES = 2,
+};
+
+enum tomoyo_group_id {
+	TOMOYO_PATH_GROUP = 0,
+	TOMOYO_NUMBER_GROUP = 1,
+	TOMOYO_ADDRESS_GROUP = 2,
+	TOMOYO_MAX_GROUP = 3,
+};
+
+enum tomoyo_path_acl_index {
+	TOMOYO_TYPE_EXECUTE = 0,
+	TOMOYO_TYPE_READ = 1,
+	TOMOYO_TYPE_WRITE = 2,
+	TOMOYO_TYPE_APPEND = 3,
+	TOMOYO_TYPE_UNLINK = 4,
+	TOMOYO_TYPE_GETATTR = 5,
+	TOMOYO_TYPE_RMDIR = 6,
+	TOMOYO_TYPE_TRUNCATE = 7,
+	TOMOYO_TYPE_SYMLINK = 8,
+	TOMOYO_TYPE_CHROOT = 9,
+	TOMOYO_TYPE_UMOUNT = 10,
+	TOMOYO_MAX_PATH_OPERATION = 11,
+};
+
+enum tomoyo_memory_stat_type {
+	TOMOYO_MEMORY_POLICY = 0,
+	TOMOYO_MEMORY_AUDIT = 1,
+	TOMOYO_MEMORY_QUERY = 2,
+	TOMOYO_MAX_MEMORY_STAT = 3,
+};
+
+enum tomoyo_mkdev_acl_index {
+	TOMOYO_TYPE_MKBLOCK = 0,
+	TOMOYO_TYPE_MKCHAR = 1,
+	TOMOYO_MAX_MKDEV_OPERATION = 2,
+};
+
+enum tomoyo_network_acl_index {
+	TOMOYO_NETWORK_BIND = 0,
+	TOMOYO_NETWORK_LISTEN = 1,
+	TOMOYO_NETWORK_CONNECT = 2,
+	TOMOYO_NETWORK_SEND = 3,
+	TOMOYO_MAX_NETWORK_OPERATION = 4,
+};
+
+enum tomoyo_path2_acl_index {
+	TOMOYO_TYPE_LINK = 0,
+	TOMOYO_TYPE_RENAME = 1,
+	TOMOYO_TYPE_PIVOT_ROOT = 2,
+	TOMOYO_MAX_PATH2_OPERATION = 3,
+};
+
+enum tomoyo_path_number_acl_index {
+	TOMOYO_TYPE_CREATE = 0,
+	TOMOYO_TYPE_MKDIR = 1,
+	TOMOYO_TYPE_MKFIFO = 2,
+	TOMOYO_TYPE_MKSOCK = 3,
+	TOMOYO_TYPE_IOCTL = 4,
+	TOMOYO_TYPE_CHMOD = 5,
+	TOMOYO_TYPE_CHOWN = 6,
+	TOMOYO_TYPE_CHGRP = 7,
+	TOMOYO_MAX_PATH_NUMBER_OPERATION = 8,
+};
+
+enum tomoyo_securityfs_interface_index {
+	TOMOYO_DOMAINPOLICY = 0,
+	TOMOYO_EXCEPTIONPOLICY = 1,
+	TOMOYO_PROCESS_STATUS = 2,
+	TOMOYO_STAT = 3,
+	TOMOYO_AUDIT = 4,
+	TOMOYO_VERSION = 5,
+	TOMOYO_PROFILE = 6,
+	TOMOYO_QUERY = 7,
+	TOMOYO_MANAGER = 8,
+};
+
+enum tomoyo_mac_index {
+	TOMOYO_MAC_FILE_EXECUTE = 0,
+	TOMOYO_MAC_FILE_OPEN = 1,
+	TOMOYO_MAC_FILE_CREATE = 2,
+	TOMOYO_MAC_FILE_UNLINK = 3,
+	TOMOYO_MAC_FILE_GETATTR = 4,
+	TOMOYO_MAC_FILE_MKDIR = 5,
+	TOMOYO_MAC_FILE_RMDIR = 6,
+	TOMOYO_MAC_FILE_MKFIFO = 7,
+	TOMOYO_MAC_FILE_MKSOCK = 8,
+	TOMOYO_MAC_FILE_TRUNCATE = 9,
+	TOMOYO_MAC_FILE_SYMLINK = 10,
+	TOMOYO_MAC_FILE_MKBLOCK = 11,
+	TOMOYO_MAC_FILE_MKCHAR = 12,
+	TOMOYO_MAC_FILE_LINK = 13,
+	TOMOYO_MAC_FILE_RENAME = 14,
+	TOMOYO_MAC_FILE_CHMOD = 15,
+	TOMOYO_MAC_FILE_CHOWN = 16,
+	TOMOYO_MAC_FILE_CHGRP = 17,
+	TOMOYO_MAC_FILE_IOCTL = 18,
+	TOMOYO_MAC_FILE_CHROOT = 19,
+	TOMOYO_MAC_FILE_MOUNT = 20,
+	TOMOYO_MAC_FILE_UMOUNT = 21,
+	TOMOYO_MAC_FILE_PIVOT_ROOT = 22,
+	TOMOYO_MAC_NETWORK_INET_STREAM_BIND = 23,
+	TOMOYO_MAC_NETWORK_INET_STREAM_LISTEN = 24,
+	TOMOYO_MAC_NETWORK_INET_STREAM_CONNECT = 25,
+	TOMOYO_MAC_NETWORK_INET_DGRAM_BIND = 26,
+	TOMOYO_MAC_NETWORK_INET_DGRAM_SEND = 27,
+	TOMOYO_MAC_NETWORK_INET_RAW_BIND = 28,
+	TOMOYO_MAC_NETWORK_INET_RAW_SEND = 29,
+	TOMOYO_MAC_NETWORK_UNIX_STREAM_BIND = 30,
+	TOMOYO_MAC_NETWORK_UNIX_STREAM_LISTEN = 31,
+	TOMOYO_MAC_NETWORK_UNIX_STREAM_CONNECT = 32,
+	TOMOYO_MAC_NETWORK_UNIX_DGRAM_BIND = 33,
+	TOMOYO_MAC_NETWORK_UNIX_DGRAM_SEND = 34,
+	TOMOYO_MAC_NETWORK_UNIX_SEQPACKET_BIND = 35,
+	TOMOYO_MAC_NETWORK_UNIX_SEQPACKET_LISTEN = 36,
+	TOMOYO_MAC_NETWORK_UNIX_SEQPACKET_CONNECT = 37,
+	TOMOYO_MAC_ENVIRON = 38,
+	TOMOYO_MAX_MAC_INDEX = 39,
+};
+
+enum tomoyo_mac_category_index {
+	TOMOYO_MAC_CATEGORY_FILE = 0,
+	TOMOYO_MAC_CATEGORY_NETWORK = 1,
+	TOMOYO_MAC_CATEGORY_MISC = 2,
+	TOMOYO_MAX_MAC_CATEGORY_INDEX = 3,
+};
+
+enum tomoyo_pref_index {
+	TOMOYO_PREF_MAX_AUDIT_LOG = 0,
+	TOMOYO_PREF_MAX_LEARNING_ENTRY = 1,
+	TOMOYO_MAX_PREF = 2,
+};
+
+struct tomoyo_shared_acl_head {
+	struct list_head list;
+	atomic_t users;
+} __attribute__((packed));
+
+struct tomoyo_path_info {
+	const char *name;
+	u32 hash;
+	u16 const_len;
+	bool is_dir;
+	bool is_patterned;
+};
+
+struct tomoyo_obj_info;
+
+struct tomoyo_execve;
+
+struct tomoyo_domain_info;
+
+struct tomoyo_acl_info;
+
+struct tomoyo_request_info {
+	struct tomoyo_obj_info *obj;
+	struct tomoyo_execve *ee;
+	struct tomoyo_domain_info *domain;
+	union {
+		struct {
+			const struct tomoyo_path_info *filename;
+			const struct tomoyo_path_info *matched_path;
+			u8 operation;
+		} path;
+		struct {
+			const struct tomoyo_path_info *filename1;
+			const struct tomoyo_path_info *filename2;
+			u8 operation;
+		} path2;
+		struct {
+			const struct tomoyo_path_info *filename;
+			unsigned int mode;
+			unsigned int major;
+			unsigned int minor;
+			u8 operation;
+		} mkdev;
+		struct {
+			const struct tomoyo_path_info *filename;
+			long unsigned int number;
+			u8 operation;
+		} path_number;
+		struct {
+			const struct tomoyo_path_info *name;
+		} environ;
+		struct {
+			const __be32 *address;
+			u16 port;
+			u8 protocol;
+			u8 operation;
+			bool is_ipv6;
+		} inet_network;
+		struct {
+			const struct tomoyo_path_info *address;
+			u8 protocol;
+			u8 operation;
+		} unix_network;
+		struct {
+			const struct tomoyo_path_info *type;
+			const struct tomoyo_path_info *dir;
+			const struct tomoyo_path_info *dev;
+			long unsigned int flags;
+			int need_dev;
+		} mount;
+		struct {
+			const struct tomoyo_path_info *domainname;
+		} task;
+	} param;
+	struct tomoyo_acl_info *matched_acl;
+	u8 param_type;
+	bool granted;
+	u8 retry;
+	u8 profile;
+	u8 mode;
+	u8 type;
+};
+
+struct tomoyo_mini_stat {
+	kuid_t uid;
+	kgid_t gid;
+	ino_t ino;
+	umode_t mode;
+	dev_t dev;
+	dev_t rdev;
+};
+
+struct tomoyo_obj_info {
+	bool validate_done;
+	bool stat_valid[4];
+	struct path path1;
+	struct path path2;
+	struct tomoyo_mini_stat stat[4];
+	struct tomoyo_path_info *symlink_target;
+};
+
+struct tomoyo_page_dump {
+	struct page *page;
+	char *data;
+};
+
+struct tomoyo_execve {
+	struct tomoyo_request_info r;
+	struct tomoyo_obj_info obj;
+	struct linux_binprm *bprm;
+	const struct tomoyo_path_info *transition;
+	struct tomoyo_page_dump dump;
+	char *tmp;
+};
+
+struct tomoyo_policy_namespace;
+
+struct tomoyo_domain_info {
+	struct list_head list;
+	struct list_head acl_info_list;
+	const struct tomoyo_path_info *domainname;
+	struct tomoyo_policy_namespace *ns;
+	long unsigned int group[4];
+	u8 profile;
+	bool is_deleted;
+	bool flags[2];
+	atomic_t users;
+};
+
+struct tomoyo_condition;
+
+struct tomoyo_acl_info {
+	struct list_head list;
+	struct tomoyo_condition *cond;
+	s8 is_deleted;
+	u8 type;
+} __attribute__((packed));
+
+struct tomoyo_condition {
+	struct tomoyo_shared_acl_head head;
+	u32 size;
+	u16 condc;
+	u16 numbers_count;
+	u16 names_count;
+	u16 argc;
+	u16 envc;
+	u8 grant_log;
+	const struct tomoyo_path_info *transit;
+};
+
+struct tomoyo_profile;
+
+struct tomoyo_policy_namespace {
+	struct tomoyo_profile *profile_ptr[256];
+	struct list_head group_list[3];
+	struct list_head policy_list[11];
+	struct list_head acl_group[256];
+	struct list_head namespace_list;
+	unsigned int profile_version;
+	const char *name;
+};
+
+struct tomoyo_io_buffer {
+	void (*read)(struct tomoyo_io_buffer *);
+	int (*write)(struct tomoyo_io_buffer *);
+	__poll_t (*poll)(struct file *, poll_table *);
+	struct mutex io_sem;
+	char *read_user_buf;
+	size_t read_user_buf_avail;
+	struct {
+		struct list_head *ns;
+		struct list_head *domain;
+		struct list_head *group;
+		struct list_head *acl;
+		size_t avail;
+		unsigned int step;
+		unsigned int query_index;
+		u16 index;
+		u16 cond_index;
+		u8 acl_group_index;
+		u8 cond_step;
+		u8 bit;
+		u8 w_pos;
+		bool eof;
+		bool print_this_domain_only;
+		bool print_transition_related_only;
+		bool print_cond_part;
+		const char *w[64];
+	} r;
+	struct {
+		struct tomoyo_policy_namespace *ns;
+		struct tomoyo_domain_info *domain;
+		size_t avail;
+		bool is_delete;
+	} w;
+	char *read_buf;
+	size_t readbuf_size;
+	char *write_buf;
+	size_t writebuf_size;
+	enum tomoyo_securityfs_interface_index type;
+	u8 users;
+	struct list_head list;
+};
+
+struct tomoyo_preference {
+	unsigned int learning_max_entry;
+	bool enforcing_verbose;
+	bool learning_verbose;
+	bool permissive_verbose;
+};
+
+struct tomoyo_profile {
+	const struct tomoyo_path_info *comment;
+	struct tomoyo_preference *learning;
+	struct tomoyo_preference *permissive;
+	struct tomoyo_preference *enforcing;
+	struct tomoyo_preference preference;
+	u8 default_config;
+	u8 config[42];
+	unsigned int pref[2];
+};
+
+struct tomoyo_time {
+	u16 year;
+	u8 month;
+	u8 day;
+	u8 hour;
+	u8 min;
+	u8 sec;
+};
+
+struct tomoyo_log {
+	struct list_head list;
+	char *log;
+	int size;
+};
+
+enum tomoyo_value_type {
+	TOMOYO_VALUE_TYPE_INVALID = 0,
+	TOMOYO_VALUE_TYPE_DECIMAL = 1,
+	TOMOYO_VALUE_TYPE_OCTAL = 2,
+	TOMOYO_VALUE_TYPE_HEXADECIMAL = 3,
+};
+
+enum tomoyo_transition_type {
+	TOMOYO_TRANSITION_CONTROL_NO_RESET = 0,
+	TOMOYO_TRANSITION_CONTROL_RESET = 1,
+	TOMOYO_TRANSITION_CONTROL_NO_INITIALIZE = 2,
+	TOMOYO_TRANSITION_CONTROL_INITIALIZE = 3,
+	TOMOYO_TRANSITION_CONTROL_NO_KEEP = 4,
+	TOMOYO_TRANSITION_CONTROL_KEEP = 5,
+	TOMOYO_MAX_TRANSITION_TYPE = 6,
+};
+
+enum tomoyo_acl_entry_type_index {
+	TOMOYO_TYPE_PATH_ACL = 0,
+	TOMOYO_TYPE_PATH2_ACL = 1,
+	TOMOYO_TYPE_PATH_NUMBER_ACL = 2,
+	TOMOYO_TYPE_MKDEV_ACL = 3,
+	TOMOYO_TYPE_MOUNT_ACL = 4,
+	TOMOYO_TYPE_INET_ACL = 5,
+	TOMOYO_TYPE_UNIX_ACL = 6,
+	TOMOYO_TYPE_ENV_ACL = 7,
+	TOMOYO_TYPE_MANUAL_TASK_ACL = 8,
+};
+
+enum tomoyo_policy_stat_type {
+	TOMOYO_STAT_POLICY_UPDATES = 0,
+	TOMOYO_STAT_POLICY_LEARNING = 1,
+	TOMOYO_STAT_POLICY_PERMISSIVE = 2,
+	TOMOYO_STAT_POLICY_ENFORCING = 3,
+	TOMOYO_MAX_POLICY_STAT = 4,
+};
+
+struct tomoyo_acl_head {
+	struct list_head list;
+	s8 is_deleted;
+} __attribute__((packed));
+
+struct tomoyo_name {
+	struct tomoyo_shared_acl_head head;
+	struct tomoyo_path_info entry;
+};
+
+struct tomoyo_group;
+
+struct tomoyo_name_union {
+	const struct tomoyo_path_info *filename;
+	struct tomoyo_group *group;
+};
+
+struct tomoyo_group {
+	struct tomoyo_shared_acl_head head;
+	const struct tomoyo_path_info *group_name;
+	struct list_head member_list;
+};
+
+struct tomoyo_number_union {
+	long unsigned int values[2];
+	struct tomoyo_group *group;
+	u8 value_type[2];
+};
+
+struct tomoyo_ipaddr_union {
+	struct in6_addr ip[2];
+	struct tomoyo_group *group;
+	bool is_ipv6;
+};
+
+struct tomoyo_path_group {
+	struct tomoyo_acl_head head;
+	const struct tomoyo_path_info *member_name;
+};
+
+struct tomoyo_number_group {
+	struct tomoyo_acl_head head;
+	struct tomoyo_number_union number;
+};
+
+struct tomoyo_address_group {
+	struct tomoyo_acl_head head;
+	struct tomoyo_ipaddr_union address;
+};
+
+struct tomoyo_argv {
+	long unsigned int index;
+	const struct tomoyo_path_info *value;
+	bool is_not;
+};
+
+struct tomoyo_envp {
+	const struct tomoyo_path_info *name;
+	const struct tomoyo_path_info *value;
+	bool is_not;
+};
+
+struct tomoyo_condition_element {
+	u8 left;
+	u8 right;
+	bool equals;
+};
+
+struct tomoyo_task_acl {
+	struct tomoyo_acl_info head;
+	const struct tomoyo_path_info *domainname;
+};
+
+struct tomoyo_path_acl {
+	struct tomoyo_acl_info head;
+	u16 perm;
+	struct tomoyo_name_union name;
+};
+
+struct tomoyo_path_number_acl {
+	struct tomoyo_acl_info head;
+	u8 perm;
+	struct tomoyo_name_union name;
+	struct tomoyo_number_union number;
+};
+
+struct tomoyo_mkdev_acl {
+	struct tomoyo_acl_info head;
+	u8 perm;
+	struct tomoyo_name_union name;
+	struct tomoyo_number_union mode;
+	struct tomoyo_number_union major;
+	struct tomoyo_number_union minor;
+};
+
+struct tomoyo_path2_acl {
+	struct tomoyo_acl_info head;
+	u8 perm;
+	struct tomoyo_name_union name1;
+	struct tomoyo_name_union name2;
+};
+
+struct tomoyo_mount_acl {
+	struct tomoyo_acl_info head;
+	struct tomoyo_name_union dev_name;
+	struct tomoyo_name_union dir_name;
+	struct tomoyo_name_union fs_type;
+	struct tomoyo_number_union flags;
+};
+
+struct tomoyo_env_acl {
+	struct tomoyo_acl_info head;
+	const struct tomoyo_path_info *env;
+};
+
+struct tomoyo_inet_acl {
+	struct tomoyo_acl_info head;
+	u8 protocol;
+	u8 perm;
+	struct tomoyo_ipaddr_union address;
+	struct tomoyo_number_union port;
+};
+
+struct tomoyo_unix_acl {
+	struct tomoyo_acl_info head;
+	u8 protocol;
+	u8 perm;
+	struct tomoyo_name_union name;
+};
+
+struct tomoyo_acl_param {
+	char *data;
+	struct list_head *list;
+	struct tomoyo_policy_namespace *ns;
+	bool is_delete;
+};
+
+struct tomoyo_transition_control {
+	struct tomoyo_acl_head head;
+	u8 type;
+	bool is_last_name;
+	const struct tomoyo_path_info *domainname;
+	const struct tomoyo_path_info *program;
+};
+
+struct tomoyo_aggregator {
+	struct tomoyo_acl_head head;
+	const struct tomoyo_path_info *original_name;
+	const struct tomoyo_path_info *aggregated_name;
+};
+
+struct tomoyo_manager {
+	struct tomoyo_acl_head head;
+	const struct tomoyo_path_info *manager;
+};
+
+struct tomoyo_task {
+	struct tomoyo_domain_info *domain_info;
+	struct tomoyo_domain_info *old_domain_info;
+};
+
+struct tomoyo_query {
+	struct list_head list;
+	struct tomoyo_domain_info *domain;
+	char *query;
+	size_t query_len;
+	unsigned int serial;
+	u8 timer;
+	u8 answer;
+	u8 retry;
+};
+
+enum tomoyo_special_mount {
+	TOMOYO_MOUNT_BIND = 0,
+	TOMOYO_MOUNT_MOVE = 1,
+	TOMOYO_MOUNT_REMOUNT = 2,
+	TOMOYO_MOUNT_MAKE_UNBINDABLE = 3,
+	TOMOYO_MOUNT_MAKE_PRIVATE = 4,
+	TOMOYO_MOUNT_MAKE_SLAVE = 5,
+	TOMOYO_MOUNT_MAKE_SHARED = 6,
+	TOMOYO_MAX_SPECIAL_MOUNT = 7,
+};
+
+struct tomoyo_inet_addr_info {
+	__be16 port;
+	const __be32 *address;
+	bool is_ipv6;
+};
+
+struct tomoyo_unix_addr_info {
+	u8 *addr;
+	unsigned int addr_len;
+};
+
+struct tomoyo_addr_info {
+	u8 protocol;
+	u8 operation;
+	struct tomoyo_inet_addr_info inet;
+	struct tomoyo_unix_addr_info unix0;
+};
+
+enum audit_mode {
+	AUDIT_NORMAL = 0,
+	AUDIT_QUIET_DENIED = 1,
+	AUDIT_QUIET = 2,
+	AUDIT_NOQUIET = 3,
+	AUDIT_ALL = 4,
+};
+
+enum aa_sfs_type {
+	AA_SFS_TYPE_BOOLEAN = 0,
+	AA_SFS_TYPE_STRING = 1,
+	AA_SFS_TYPE_U64 = 2,
+	AA_SFS_TYPE_FOPS = 3,
+	AA_SFS_TYPE_DIR = 4,
+};
+
+struct aa_sfs_entry {
+	const char *name;
+	struct dentry *dentry;
+	umode_t mode;
+	enum aa_sfs_type v_type;
+	union {
+		bool boolean;
+		char *string;
+		long unsigned int u64;
+		struct aa_sfs_entry *files;
+	} v;
+	const struct file_operations *file_ops;
+};
+
+enum aafs_ns_type {
+	AAFS_NS_DIR = 0,
+	AAFS_NS_PROFS = 1,
+	AAFS_NS_NS = 2,
+	AAFS_NS_RAW_DATA = 3,
+	AAFS_NS_LOAD = 4,
+	AAFS_NS_REPLACE = 5,
+	AAFS_NS_REMOVE = 6,
+	AAFS_NS_REVISION = 7,
+	AAFS_NS_COUNT = 8,
+	AAFS_NS_MAX_COUNT = 9,
+	AAFS_NS_SIZE = 10,
+	AAFS_NS_MAX_SIZE = 11,
+	AAFS_NS_OWNER = 12,
+	AAFS_NS_SIZEOF = 13,
+};
+
+enum aafs_prof_type {
+	AAFS_PROF_DIR = 0,
+	AAFS_PROF_PROFS = 1,
+	AAFS_PROF_NAME = 2,
+	AAFS_PROF_MODE = 3,
+	AAFS_PROF_ATTACH = 4,
+	AAFS_PROF_HASH = 5,
+	AAFS_PROF_RAW_DATA = 6,
+	AAFS_PROF_RAW_HASH = 7,
+	AAFS_PROF_RAW_ABI = 8,
+	AAFS_PROF_SIZEOF = 9,
+};
+
+struct table_header {
+	u16 td_id;
+	u16 td_flags;
+	u32 td_hilen;
+	u32 td_lolen;
+	char td_data[0];
+};
+
+struct aa_dfa {
+	struct kref count;
+	u16 flags;
+	u32 max_oob;
+	struct table_header *tables[8];
+};
+
+struct aa_policy {
+	const char *name;
+	char *hname;
+	struct list_head list;
+	struct list_head profiles;
+};
+
+struct aa_labelset {
+	rwlock_t lock;
+	struct rb_root root;
+};
+
+enum label_flags {
+	FLAG_HAT = 1,
+	FLAG_UNCONFINED = 2,
+	FLAG_NULL = 4,
+	FLAG_IX_ON_NAME_ERROR = 8,
+	FLAG_IMMUTIBLE = 16,
+	FLAG_USER_DEFINED = 32,
+	FLAG_NO_LIST_REF = 64,
+	FLAG_NS_COUNT = 128,
+	FLAG_IN_TREE = 256,
+	FLAG_PROFILE = 512,
+	FLAG_EXPLICIT = 1024,
+	FLAG_STALE = 2048,
+	FLAG_RENAMED = 4096,
+	FLAG_REVOKED = 8192,
+};
+
+struct aa_label;
+
+struct aa_proxy {
+	struct kref count;
+	struct aa_label *label;
+};
+
+struct aa_profile;
+
+struct aa_label {
+	struct kref count;
+	struct rb_node node;
+	struct callback_head rcu;
+	struct aa_proxy *proxy;
+	char *hname;
+	long int flags;
+	u32 secid;
