@@ -50985,3 +50985,2134 @@ struct aa_label {
 	char *hname;
 	long int flags;
 	u32 secid;
+	int size;
+	struct aa_profile *vec[0];
+};
+
+struct label_it {
+	int i;
+	int j;
+};
+
+struct aa_policydb {
+	struct aa_dfa *dfa;
+	unsigned int start[18];
+};
+
+struct aa_domain {
+	int size;
+	char **table;
+};
+
+struct aa_file_rules {
+	unsigned int start;
+	struct aa_dfa *dfa;
+	struct aa_domain trans;
+};
+
+struct aa_caps {
+	kernel_cap_t allow;
+	kernel_cap_t audit;
+	kernel_cap_t denied;
+	kernel_cap_t quiet;
+	kernel_cap_t kill;
+	kernel_cap_t extended;
+};
+
+struct aa_rlimit {
+	unsigned int mask;
+	struct rlimit limits[16];
+};
+
+struct aa_ns;
+
+struct aa_net_compat;
+
+struct aa_secmark;
+
+struct aa_loaddata;
+
+struct aa_profile {
+	struct aa_policy base;
+	struct aa_profile *parent;
+	struct aa_ns *ns;
+	const char *rename;
+	const char *attach;
+	struct aa_dfa *xmatch;
+	int xmatch_len;
+	enum audit_mode audit;
+	long int mode;
+	u32 path_flags;
+	const char *disconnected;
+	int size;
+	struct aa_policydb policy;
+	struct aa_file_rules file;
+	struct aa_caps caps;
+	struct aa_net_compat *net_compat;
+	int xattr_count;
+	char **xattrs;
+	struct aa_rlimit rlimits;
+	int secmark_count;
+	struct aa_secmark *secmark;
+	struct aa_loaddata *rawdata;
+	unsigned char *hash;
+	char *dirname;
+	struct dentry *dents[9];
+	struct rhashtable *data;
+	struct aa_label label;
+};
+
+struct aa_perms {
+	u32 allow;
+	u32 audit;
+	u32 deny;
+	u32 quiet;
+	u32 kill;
+	u32 stop;
+	u32 complain;
+	u32 cond;
+	u32 hide;
+	u32 prompt;
+	u16 xindex;
+};
+
+struct path_cond {
+	kuid_t uid;
+	umode_t mode;
+};
+
+struct aa_net_compat {
+	u16 allow[46];
+	u16 audit[46];
+	u16 quiet[46];
+};
+
+struct aa_secmark {
+	u8 audit;
+	u8 deny;
+	u32 secid;
+	char *label;
+};
+
+enum profile_mode {
+	APPARMOR_ENFORCE = 0,
+	APPARMOR_COMPLAIN = 1,
+	APPARMOR_KILL = 2,
+	APPARMOR_UNCONFINED = 3,
+};
+
+struct aa_data {
+	char *key;
+	u32 size;
+	char *data;
+	struct rhash_head head;
+};
+
+struct aa_ns_acct {
+	int max_size;
+	int max_count;
+	int size;
+	int count;
+};
+
+struct aa_ns {
+	struct aa_policy base;
+	struct aa_ns *parent;
+	struct mutex lock;
+	struct aa_ns_acct acct;
+	struct aa_profile *unconfined;
+	struct list_head sub_ns;
+	atomic_t uniq_null;
+	long int uniq_id;
+	int level;
+	long int revision;
+	wait_queue_head_t wait;
+	struct aa_labelset labels;
+	struct list_head rawdata_list;
+	struct dentry *dents[13];
+};
+
+struct aa_loaddata {
+	struct kref count;
+	struct list_head list;
+	struct work_struct work;
+	struct dentry *dents[6];
+	struct aa_ns *ns;
+	char *name;
+	size_t size;
+	size_t compressed_size;
+	long int revision;
+	int abi;
+	unsigned char *hash;
+	char *data;
+};
+
+enum {
+	AAFS_LOADDATA_ABI = 0,
+	AAFS_LOADDATA_REVISION = 1,
+	AAFS_LOADDATA_HASH = 2,
+	AAFS_LOADDATA_DATA = 3,
+	AAFS_LOADDATA_COMPRESSED_SIZE = 4,
+	AAFS_LOADDATA_DIR = 5,
+	AAFS_LOADDATA_NDENTS = 6,
+};
+
+struct rawdata_f_data {
+	struct aa_loaddata *loaddata;
+};
+
+struct aa_revision {
+	struct aa_ns *ns;
+	long int last_read;
+};
+
+struct multi_transaction {
+	struct kref count;
+	ssize_t size;
+	char data[0];
+};
+
+struct apparmor_audit_data {
+	int error;
+	int type;
+	const char *op;
+	struct aa_label *label;
+	const char *name;
+	const char *info;
+	u32 request;
+	u32 denied;
+	union {
+		struct {
+			struct aa_label *peer;
+			union {
+				struct {
+					const char *target;
+					kuid_t ouid;
+				} fs;
+				struct {
+					int rlim;
+					long unsigned int max;
+				} rlim;
+				struct {
+					int signal;
+					int unmappedsig;
+				};
+				struct {
+					int type;
+					int protocol;
+					struct sock *peer_sk;
+					void *addr;
+					int addrlen;
+				} net;
+			};
+		};
+		struct {
+			struct aa_profile *profile;
+			const char *ns;
+			long int pos;
+		} iface;
+		struct {
+			const char *src_name;
+			const char *type;
+			const char *trans;
+			const char *data;
+			long unsigned int flags;
+		} mnt;
+	};
+};
+
+enum audit_type {
+	AUDIT_APPARMOR_AUDIT = 0,
+	AUDIT_APPARMOR_ALLOWED = 1,
+	AUDIT_APPARMOR_DENIED = 2,
+	AUDIT_APPARMOR_HINT = 3,
+	AUDIT_APPARMOR_STATUS = 4,
+	AUDIT_APPARMOR_ERROR = 5,
+	AUDIT_APPARMOR_KILL = 6,
+	AUDIT_APPARMOR_AUTO = 7,
+};
+
+struct aa_audit_rule {
+	struct aa_label *label;
+};
+
+struct audit_cache {
+	struct aa_profile *profile;
+	kernel_cap_t caps;
+};
+
+struct aa_task_ctx {
+	struct aa_label *nnp;
+	struct aa_label *onexec;
+	struct aa_label *previous;
+	u64 token;
+};
+
+struct counted_str {
+	struct kref count;
+	char name[0];
+};
+
+struct match_workbuf {
+	unsigned int count;
+	unsigned int pos;
+	unsigned int len;
+	unsigned int size;
+	unsigned int history[24];
+};
+
+enum path_flags {
+	PATH_IS_DIR = 1,
+	PATH_SOCK_COND = 2,
+	PATH_CONNECT_PATH = 4,
+	PATH_CHROOT_REL = 8,
+	PATH_CHROOT_NSCONNECT = 16,
+	PATH_DELEGATE_DELETED = 32768,
+	PATH_MEDIATE_DELETED = 65536,
+};
+
+struct aa_load_ent {
+	struct list_head list;
+	struct aa_profile *new;
+	struct aa_profile *old;
+	struct aa_profile *rename;
+	const char *ns_name;
+};
+
+enum aa_code {
+	AA_U8 = 0,
+	AA_U16 = 1,
+	AA_U32 = 2,
+	AA_U64 = 3,
+	AA_NAME = 4,
+	AA_STRING = 5,
+	AA_BLOB = 6,
+	AA_STRUCT = 7,
+	AA_STRUCTEND = 8,
+	AA_LIST = 9,
+	AA_LISTEND = 10,
+	AA_ARRAY = 11,
+	AA_ARRAYEND = 12,
+};
+
+struct aa_ext {
+	void *start;
+	void *end;
+	void *pos;
+	u32 version;
+};
+
+struct aa_file_ctx {
+	spinlock_t lock;
+	struct aa_label *label;
+	u32 allow;
+};
+
+struct aa_sk_ctx {
+	struct aa_label *label;
+	struct aa_label *peer;
+	struct path path;
+};
+
+union aa_buffer {
+	struct list_head list;
+	char buffer[1];
+};
+
+struct ptrace_relation {
+	struct task_struct *tracer;
+	struct task_struct *tracee;
+	bool invalid;
+	struct list_head node;
+	struct callback_head rcu;
+};
+
+struct access_report_info {
+	struct callback_head work;
+	const char *access;
+	struct task_struct *target;
+	struct task_struct *agent;
+};
+
+enum sid_policy_type {
+	SIDPOL_DEFAULT = 0,
+	SIDPOL_CONSTRAINED = 1,
+	SIDPOL_ALLOWED = 2,
+};
+
+typedef union {
+	kuid_t uid;
+	kgid_t gid;
+} kid_t;
+
+enum setid_type {
+	UID = 0,
+	GID = 1,
+};
+
+struct setid_rule {
+	struct hlist_node next;
+	kid_t src_id;
+	kid_t dst_id;
+	enum setid_type type;
+};
+
+struct setid_ruleset {
+	struct hlist_head rules[256];
+	char *policy_str;
+	struct callback_head rcu;
+	enum setid_type type;
+};
+
+enum devcg_behavior {
+	DEVCG_DEFAULT_NONE = 0,
+	DEVCG_DEFAULT_ALLOW = 1,
+	DEVCG_DEFAULT_DENY = 2,
+};
+
+struct dev_exception_item {
+	u32 major;
+	u32 minor;
+	short int type;
+	short int access;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct dev_cgroup {
+	struct cgroup_subsys_state css;
+	struct list_head exceptions;
+	enum devcg_behavior behavior;
+};
+
+struct landlock_ruleset_attr {
+	__u64 handled_access_fs;
+};
+
+enum landlock_rule_type {
+	LANDLOCK_RULE_PATH_BENEATH = 1,
+};
+
+struct landlock_path_beneath_attr {
+	__u64 allowed_access;
+	__s32 parent_fd;
+} __attribute__((packed));
+
+struct landlock_hierarchy {
+	struct landlock_hierarchy *parent;
+	refcount_t usage;
+};
+
+struct landlock_ruleset {
+	struct rb_root root;
+	struct landlock_hierarchy *hierarchy;
+	union {
+		struct work_struct work_free;
+		struct {
+			struct mutex lock;
+			refcount_t usage;
+			u32 num_rules;
+			u32 num_layers;
+			u16 fs_access_masks[0];
+		};
+	};
+};
+
+struct landlock_cred_security {
+	struct landlock_ruleset *domain;
+};
+
+struct landlock_object;
+
+struct landlock_object_underops {
+	void (*release)(struct landlock_object * const);
+};
+
+struct landlock_object {
+	refcount_t usage;
+	spinlock_t lock;
+	void *underobj;
+	union {
+		struct callback_head rcu_free;
+		const struct landlock_object_underops *underops;
+	};
+};
+
+struct landlock_layer {
+	u16 level;
+	u16 access;
+};
+
+struct landlock_rule {
+	struct rb_node node;
+	struct landlock_object *object;
+	u32 num_layers;
+	struct landlock_layer layers[0];
+};
+
+struct landlock_inode_security {
+	struct landlock_object *object;
+};
+
+struct landlock_superblock_security {
+	atomic_long_t inode_refs;
+};
+
+enum integrity_status {
+	INTEGRITY_PASS = 0,
+	INTEGRITY_PASS_IMMUTABLE = 1,
+	INTEGRITY_FAIL = 2,
+	INTEGRITY_FAIL_IMMUTABLE = 3,
+	INTEGRITY_NOLABEL = 4,
+	INTEGRITY_NOXATTRS = 5,
+	INTEGRITY_UNKNOWN = 6,
+};
+
+struct ima_digest_data {
+	u8 algo;
+	u8 length;
+	union {
+		struct {
+			u8 unused;
+			u8 type;
+		} sha1;
+		struct {
+			u8 type;
+			u8 algo;
+		} ng;
+		u8 data[2];
+	} xattr;
+	u8 digest[0];
+};
+
+struct integrity_iint_cache {
+	struct rb_node rb_node;
+	struct mutex mutex;
+	struct inode *inode;
+	u64 version;
+	long unsigned int flags;
+	long unsigned int measured_pcrs;
+	long unsigned int atomic_flags;
+	enum integrity_status ima_file_status: 4;
+	enum integrity_status ima_mmap_status: 4;
+	enum integrity_status ima_bprm_status: 4;
+	enum integrity_status ima_read_status: 4;
+	enum integrity_status ima_creds_status: 4;
+	enum integrity_status evm_status: 4;
+	struct ima_digest_data *ima_hash;
+};
+
+struct modsig;
+
+struct public_key {
+	void *key;
+	u32 keylen;
+	enum OID algo;
+	void *params;
+	u32 paramlen;
+	bool key_is_private;
+	const char *id_type;
+	const char *pkey_algo;
+};
+
+struct asymmetric_key_id;
+
+struct public_key_signature {
+	struct asymmetric_key_id *auth_ids[2];
+	u8 *s;
+	u8 *digest;
+	u32 s_size;
+	u32 digest_size;
+	const char *pkey_algo;
+	const char *hash_algo;
+	const char *encoding;
+	const void *data;
+	unsigned int data_size;
+};
+
+struct asymmetric_key_id {
+	short unsigned int len;
+	unsigned char data[0];
+};
+
+enum asymmetric_payload_bits {
+	asym_crypto = 0,
+	asym_subtype = 1,
+	asym_key_ids = 2,
+	asym_auth = 3,
+};
+
+struct signature_v2_hdr {
+	uint8_t type;
+	uint8_t version;
+	uint8_t hash_algo;
+	__be32 keyid;
+	__be16 sig_size;
+	uint8_t sig[0];
+} __attribute__((packed));
+
+typedef struct {
+	efi_guid_t signature_owner;
+	u8 signature_data[0];
+} efi_signature_data_t;
+
+typedef struct {
+	efi_guid_t signature_type;
+	u32 signature_list_size;
+	u32 signature_header_size;
+	u32 signature_size;
+	u8 signature_header[0];
+} efi_signature_list_t;
+
+typedef void (*efi_element_handler_t)(const char *, const void *, size_t);
+
+struct efi_mokvar_table_entry {
+	char name[256];
+	u64 data_size;
+	u8 data[0];
+};
+
+struct evm_ima_xattr_data {
+	u8 type;
+	u8 data[0];
+};
+
+enum ima_show_type {
+	IMA_SHOW_BINARY = 0,
+	IMA_SHOW_BINARY_NO_FIELD_LEN = 1,
+	IMA_SHOW_BINARY_OLD_STRING_FMT = 2,
+	IMA_SHOW_ASCII = 3,
+};
+
+struct ima_event_data {
+	struct integrity_iint_cache *iint;
+	struct file *file;
+	const unsigned char *filename;
+	struct evm_ima_xattr_data *xattr_value;
+	int xattr_len;
+	const struct modsig *modsig;
+	const char *violation;
+	const void *buf;
+	int buf_len;
+};
+
+struct ima_field_data {
+	u8 *data;
+	u32 len;
+};
+
+struct ima_template_field {
+	const char field_id[16];
+	int (*field_init)(struct ima_event_data *, struct ima_field_data *);
+	void (*field_show)(struct seq_file *, enum ima_show_type, struct ima_field_data *);
+};
+
+struct ima_template_desc {
+	struct list_head list;
+	char *name;
+	char *fmt;
+	int num_fields;
+	const struct ima_template_field **fields;
+};
+
+struct ima_template_entry {
+	int pcr;
+	struct tpm_digest *digests;
+	struct ima_template_desc *template_desc;
+	u32 template_data_len;
+	struct ima_field_data template_data[0];
+};
+
+struct ima_queue_entry {
+	struct hlist_node hnext;
+	struct list_head later;
+	struct ima_template_entry *entry;
+};
+
+struct ima_h_table {
+	atomic_long_t len;
+	atomic_long_t violations;
+	struct hlist_head queue[1024];
+};
+
+enum ima_fs_flags {
+	IMA_FS_BUSY = 0,
+};
+
+enum evm_ima_xattr_type {
+	IMA_XATTR_DIGEST = 1,
+	EVM_XATTR_HMAC = 2,
+	EVM_IMA_XATTR_DIGSIG = 3,
+	IMA_XATTR_DIGEST_NG = 4,
+	EVM_XATTR_PORTABLE_DIGSIG = 5,
+	IMA_XATTR_LAST = 6,
+};
+
+enum ima_hooks {
+	NONE = 0,
+	FILE_CHECK = 1,
+	MMAP_CHECK = 2,
+	BPRM_CHECK = 3,
+	CREDS_CHECK = 4,
+	POST_SETATTR = 5,
+	MODULE_CHECK = 6,
+	FIRMWARE_CHECK = 7,
+	KEXEC_KERNEL_CHECK = 8,
+	KEXEC_INITRAMFS_CHECK = 9,
+	POLICY_CHECK = 10,
+	KEXEC_CMDLINE = 11,
+	KEY_CHECK = 12,
+	CRITICAL_DATA = 13,
+	SETXATTR_CHECK = 14,
+	MAX_CHECK = 15,
+};
+
+enum tpm_pcrs {
+	TPM_PCR0 = 0,
+	TPM_PCR8 = 8,
+	TPM_PCR10 = 10,
+};
+
+struct ima_algo_desc {
+	struct crypto_shash *tfm;
+	enum hash_algo algo;
+};
+
+enum lsm_rule_types {
+	LSM_OBJ_USER = 0,
+	LSM_OBJ_ROLE = 1,
+	LSM_OBJ_TYPE = 2,
+	LSM_SUBJ_USER = 3,
+	LSM_SUBJ_ROLE = 4,
+	LSM_SUBJ_TYPE = 5,
+};
+
+enum policy_types {
+	ORIGINAL_TCB = 1,
+	DEFAULT_TCB = 2,
+};
+
+enum policy_rule_list {
+	IMA_DEFAULT_POLICY = 1,
+	IMA_CUSTOM_POLICY = 2,
+};
+
+struct ima_rule_opt_list {
+	size_t count;
+	char *items[0];
+};
+
+struct ima_rule_entry {
+	struct list_head list;
+	int action;
+	unsigned int flags;
+	enum ima_hooks func;
+	int mask;
+	long unsigned int fsmagic;
+	uuid_t fsuuid;
+	kuid_t uid;
+	kuid_t fowner;
+	bool (*uid_op)(kuid_t, kuid_t);
+	bool (*fowner_op)(kuid_t, kuid_t);
+	int pcr;
+	unsigned int allowed_algos;
+	struct {
+		void *rules[4];
+		char *args_p;
+		int type;
+	} lsm[6];
+	char *fsname;
+	struct ima_rule_opt_list *keyrings;
+	struct ima_rule_opt_list *label;
+	struct ima_template_desc *template;
+};
+
+enum {
+	Opt_measure = 0,
+	Opt_dont_measure = 1,
+	Opt_appraise = 2,
+	Opt_dont_appraise = 3,
+	Opt_audit = 4,
+	Opt_hash___3 = 5,
+	Opt_dont_hash = 6,
+	Opt_obj_user = 7,
+	Opt_obj_role = 8,
+	Opt_obj_type = 9,
+	Opt_subj_user = 10,
+	Opt_subj_role = 11,
+	Opt_subj_type = 12,
+	Opt_func = 13,
+	Opt_mask = 14,
+	Opt_fsmagic = 15,
+	Opt_fsname = 16,
+	Opt_fsuuid = 17,
+	Opt_uid_eq = 18,
+	Opt_euid_eq = 19,
+	Opt_fowner_eq = 20,
+	Opt_uid_gt = 21,
+	Opt_euid_gt = 22,
+	Opt_fowner_gt = 23,
+	Opt_uid_lt = 24,
+	Opt_euid_lt = 25,
+	Opt_fowner_lt = 26,
+	Opt_appraise_type = 27,
+	Opt_appraise_flag = 28,
+	Opt_appraise_algos = 29,
+	Opt_permit_directio = 30,
+	Opt_pcr = 31,
+	Opt_template = 32,
+	Opt_keyrings = 33,
+	Opt_label = 34,
+	Opt_err___10 = 35,
+};
+
+struct ima_kexec_hdr {
+	u16 version;
+	u16 _reserved0;
+	u32 _reserved1;
+	u64 buffer_size;
+	u64 count;
+};
+
+enum header_fields {
+	HDR_PCR = 0,
+	HDR_DIGEST = 1,
+	HDR_TEMPLATE_NAME = 2,
+	HDR_TEMPLATE_DATA = 3,
+	HDR__LAST = 4,
+};
+
+enum data_formats {
+	DATA_FMT_DIGEST = 0,
+	DATA_FMT_DIGEST_WITH_ALGO = 1,
+	DATA_FMT_STRING = 2,
+	DATA_FMT_HEX = 3,
+	DATA_FMT_UINT = 4,
+};
+
+struct modsig {
+	struct pkcs7_message *pkcs7_msg;
+	enum hash_algo hash_algo;
+	const u8 *digest;
+	u32 digest_size;
+	int raw_pkcs7_len;
+	u8 raw_pkcs7[0];
+};
+
+struct ima_key_entry {
+	struct list_head list;
+	void *payload;
+	size_t payload_len;
+	char *keyring_name;
+};
+
+struct evm_xattr {
+	struct evm_ima_xattr_data data;
+	u8 digest[20];
+};
+
+struct xattr_list {
+	struct list_head list;
+	char *name;
+	bool enabled;
+};
+
+struct evm_digest {
+	struct ima_digest_data hdr;
+	char digest[64];
+};
+
+struct h_misc {
+	long unsigned int ino;
+	__u32 generation;
+	uid_t uid;
+	gid_t gid;
+	umode_t mode;
+};
+
+enum {
+	CRYPTO_MSG_ALG_REQUEST = 0,
+	CRYPTO_MSG_ALG_REGISTER = 1,
+	CRYPTO_MSG_ALG_LOADED = 2,
+};
+
+struct crypto_larval {
+	struct crypto_alg alg;
+	struct crypto_alg *adult;
+	struct completion completion;
+	u32 mask;
+};
+
+struct crypto_cipher {
+	struct crypto_tfm base;
+};
+
+struct rtattr {
+	short unsigned int rta_len;
+	short unsigned int rta_type;
+};
+
+struct crypto_queue {
+	struct list_head list;
+	struct list_head *backlog;
+	unsigned int qlen;
+	unsigned int max_qlen;
+};
+
+struct crypto_attr_alg {
+	char name[128];
+};
+
+struct crypto_attr_type {
+	u32 type;
+	u32 mask;
+};
+
+enum {
+	NAPI_STATE_SCHED = 0,
+	NAPI_STATE_MISSED = 1,
+	NAPI_STATE_DISABLE = 2,
+	NAPI_STATE_NPSVC = 3,
+	NAPI_STATE_LISTED = 4,
+	NAPI_STATE_NO_BUSY_POLL = 5,
+	NAPI_STATE_IN_BUSY_POLL = 6,
+	NAPI_STATE_PREFER_BUSY_POLL = 7,
+	NAPI_STATE_THREADED = 8,
+	NAPI_STATE_SCHED_THREADED = 9,
+};
+
+enum xps_map_type {
+	XPS_CPUS = 0,
+	XPS_RXQS = 1,
+	XPS_MAPS_MAX = 2,
+};
+
+enum bpf_xdp_mode {
+	XDP_MODE_SKB = 0,
+	XDP_MODE_DRV = 1,
+	XDP_MODE_HW = 2,
+	__MAX_XDP_MODE = 3,
+};
+
+enum {
+	NETIF_MSG_DRV_BIT = 0,
+	NETIF_MSG_PROBE_BIT = 1,
+	NETIF_MSG_LINK_BIT = 2,
+	NETIF_MSG_TIMER_BIT = 3,
+	NETIF_MSG_IFDOWN_BIT = 4,
+	NETIF_MSG_IFUP_BIT = 5,
+	NETIF_MSG_RX_ERR_BIT = 6,
+	NETIF_MSG_TX_ERR_BIT = 7,
+	NETIF_MSG_TX_QUEUED_BIT = 8,
+	NETIF_MSG_INTR_BIT = 9,
+	NETIF_MSG_TX_DONE_BIT = 10,
+	NETIF_MSG_RX_STATUS_BIT = 11,
+	NETIF_MSG_PKTDATA_BIT = 12,
+	NETIF_MSG_HW_BIT = 13,
+	NETIF_MSG_WOL_BIT = 14,
+	NETIF_MSG_CLASS_COUNT = 15,
+};
+
+enum {
+	CRYPTOA_UNSPEC = 0,
+	CRYPTOA_ALG = 1,
+	CRYPTOA_TYPE = 2,
+	__CRYPTOA_MAX = 3,
+};
+
+struct scatter_walk {
+	struct scatterlist *sg;
+	unsigned int offset;
+};
+
+struct aead_request {
+	struct crypto_async_request base;
+	unsigned int assoclen;
+	unsigned int cryptlen;
+	u8 *iv;
+	struct scatterlist *src;
+	struct scatterlist *dst;
+	void *__ctx[0];
+};
+
+struct crypto_aead;
+
+struct aead_alg {
+	int (*setkey)(struct crypto_aead *, const u8 *, unsigned int);
+	int (*setauthsize)(struct crypto_aead *, unsigned int);
+	int (*encrypt)(struct aead_request *);
+	int (*decrypt)(struct aead_request *);
+	int (*init)(struct crypto_aead *);
+	void (*exit)(struct crypto_aead *);
+	unsigned int ivsize;
+	unsigned int maxauthsize;
+	unsigned int chunksize;
+	struct crypto_alg base;
+};
+
+struct crypto_aead {
+	unsigned int authsize;
+	unsigned int reqsize;
+	struct crypto_tfm base;
+};
+
+struct aead_instance {
+	void (*free)(struct aead_instance *);
+	union {
+		struct {
+			char head[64];
+			struct crypto_instance base;
+		} s;
+		struct aead_alg alg;
+	};
+};
+
+struct crypto_aead_spawn {
+	struct crypto_spawn base;
+};
+
+enum crypto_attr_type_t {
+	CRYPTOCFGA_UNSPEC = 0,
+	CRYPTOCFGA_PRIORITY_VAL = 1,
+	CRYPTOCFGA_REPORT_LARVAL = 2,
+	CRYPTOCFGA_REPORT_HASH = 3,
+	CRYPTOCFGA_REPORT_BLKCIPHER = 4,
+	CRYPTOCFGA_REPORT_AEAD = 5,
+	CRYPTOCFGA_REPORT_COMPRESS = 6,
+	CRYPTOCFGA_REPORT_RNG = 7,
+	CRYPTOCFGA_REPORT_CIPHER = 8,
+	CRYPTOCFGA_REPORT_AKCIPHER = 9,
+	CRYPTOCFGA_REPORT_KPP = 10,
+	CRYPTOCFGA_REPORT_ACOMP = 11,
+	CRYPTOCFGA_STAT_LARVAL = 12,
+	CRYPTOCFGA_STAT_HASH = 13,
+	CRYPTOCFGA_STAT_BLKCIPHER = 14,
+	CRYPTOCFGA_STAT_AEAD = 15,
+	CRYPTOCFGA_STAT_COMPRESS = 16,
+	CRYPTOCFGA_STAT_RNG = 17,
+	CRYPTOCFGA_STAT_CIPHER = 18,
+	CRYPTOCFGA_STAT_AKCIPHER = 19,
+	CRYPTOCFGA_STAT_KPP = 20,
+	CRYPTOCFGA_STAT_ACOMP = 21,
+	__CRYPTOCFGA_MAX = 22,
+};
+
+struct crypto_report_aead {
+	char type[64];
+	char geniv[64];
+	unsigned int blocksize;
+	unsigned int maxauthsize;
+	unsigned int ivsize;
+};
+
+struct crypto_sync_skcipher;
+
+struct aead_geniv_ctx {
+	spinlock_t lock;
+	struct crypto_aead *child;
+	struct crypto_sync_skcipher *sknull;
+	u8 salt[0];
+};
+
+struct crypto_rng;
+
+struct rng_alg {
+	int (*generate)(struct crypto_rng *, const u8 *, unsigned int, u8 *, unsigned int);
+	int (*seed)(struct crypto_rng *, const u8 *, unsigned int);
+	void (*set_ent)(struct crypto_rng *, const u8 *, unsigned int);
+	unsigned int seedsize;
+	struct crypto_alg base;
+};
+
+struct crypto_rng {
+	struct crypto_tfm base;
+};
+
+struct crypto_cipher_spawn {
+	struct crypto_spawn base;
+};
+
+struct crypto_sync_skcipher {
+	struct crypto_skcipher base;
+};
+
+struct skcipher_instance {
+	void (*free)(struct skcipher_instance *);
+	union {
+		struct {
+			char head[64];
+			struct crypto_instance base;
+		} s;
+		struct skcipher_alg alg;
+	};
+};
+
+struct crypto_skcipher_spawn {
+	struct crypto_spawn base;
+};
+
+struct skcipher_walk {
+	union {
+		struct {
+			struct page *page;
+			long unsigned int offset;
+		} phys;
+		struct {
+			u8 *page;
+			void *addr;
+		} virt;
+	} src;
+	union {
+		struct {
+			struct page *page;
+			long unsigned int offset;
+		} phys;
+		struct {
+			u8 *page;
+			void *addr;
+		} virt;
+	} dst;
+	struct scatter_walk in;
+	unsigned int nbytes;
+	struct scatter_walk out;
+	unsigned int total;
+	struct list_head buffers;
+	u8 *page;
+	u8 *buffer;
+	u8 *oiv;
+	void *iv;
+	unsigned int ivsize;
+	int flags;
+	unsigned int blocksize;
+	unsigned int stride;
+	unsigned int alignmask;
+};
+
+struct skcipher_ctx_simple {
+	struct crypto_cipher *cipher;
+};
+
+struct crypto_report_blkcipher {
+	char type[64];
+	char geniv[64];
+	unsigned int blocksize;
+	unsigned int min_keysize;
+	unsigned int max_keysize;
+	unsigned int ivsize;
+};
+
+enum {
+	SKCIPHER_WALK_PHYS = 1,
+	SKCIPHER_WALK_SLOW = 2,
+	SKCIPHER_WALK_COPY = 4,
+	SKCIPHER_WALK_DIFF = 8,
+	SKCIPHER_WALK_SLEEP = 16,
+};
+
+struct skcipher_walk_buffer {
+	struct list_head entry;
+	struct scatter_walk dst;
+	unsigned int len;
+	u8 *data;
+	u8 buffer[0];
+};
+
+struct ahash_alg {
+	int (*init)(struct ahash_request *);
+	int (*update)(struct ahash_request *);
+	int (*final)(struct ahash_request *);
+	int (*finup)(struct ahash_request *);
+	int (*digest)(struct ahash_request *);
+	int (*export)(struct ahash_request *, void *);
+	int (*import)(struct ahash_request *, const void *);
+	int (*setkey)(struct crypto_ahash *, const u8 *, unsigned int);
+	int (*init_tfm)(struct crypto_ahash *);
+	void (*exit_tfm)(struct crypto_ahash *);
+	struct hash_alg_common halg;
+};
+
+struct crypto_hash_walk {
+	char *data;
+	unsigned int offset;
+	unsigned int alignmask;
+	struct page *pg;
+	unsigned int entrylen;
+	unsigned int total;
+	struct scatterlist *sg;
+	unsigned int flags;
+};
+
+struct ahash_instance {
+	void (*free)(struct ahash_instance *);
+	union {
+		struct {
+			char head[88];
+			struct crypto_instance base;
+		} s;
+		struct ahash_alg alg;
+	};
+};
+
+struct crypto_ahash_spawn {
+	struct crypto_spawn base;
+};
+
+struct crypto_report_hash {
+	char type[64];
+	unsigned int blocksize;
+	unsigned int digestsize;
+};
+
+struct ahash_request_priv {
+	crypto_completion_t complete;
+	void *data;
+	u8 *result;
+	u32 flags;
+	void *ubuf[0];
+};
+
+struct shash_instance {
+	void (*free)(struct shash_instance *);
+	union {
+		struct {
+			char head[96];
+			struct crypto_instance base;
+		} s;
+		struct shash_alg alg;
+	};
+};
+
+struct crypto_shash_spawn {
+	struct crypto_spawn base;
+};
+
+struct crypto_report_akcipher {
+	char type[64];
+};
+
+struct akcipher_request {
+	struct crypto_async_request base;
+	struct scatterlist *src;
+	struct scatterlist *dst;
+	unsigned int src_len;
+	unsigned int dst_len;
+	void *__ctx[0];
+};
+
+struct crypto_akcipher {
+	struct crypto_tfm base;
+};
+
+struct akcipher_alg {
+	int (*sign)(struct akcipher_request *);
+	int (*verify)(struct akcipher_request *);
+	int (*encrypt)(struct akcipher_request *);
+	int (*decrypt)(struct akcipher_request *);
+	int (*set_pub_key)(struct crypto_akcipher *, const void *, unsigned int);
+	int (*set_priv_key)(struct crypto_akcipher *, const void *, unsigned int);
+	unsigned int (*max_size)(struct crypto_akcipher *);
+	int (*init)(struct crypto_akcipher *);
+	void (*exit)(struct crypto_akcipher *);
+	unsigned int reqsize;
+	struct crypto_alg base;
+};
+
+struct akcipher_instance {
+	void (*free)(struct akcipher_instance *);
+	union {
+		struct {
+			char head[80];
+			struct crypto_instance base;
+		} s;
+		struct akcipher_alg alg;
+	};
+};
+
+struct crypto_akcipher_spawn {
+	struct crypto_spawn base;
+};
+
+struct crypto_report_kpp {
+	char type[64];
+};
+
+typedef long unsigned int mpi_limb_t;
+
+struct gcry_mpi {
+	int alloced;
+	int nlimbs;
+	int nbits;
+	int sign;
+	unsigned int flags;
+	mpi_limb_t *d;
+};
+
+typedef struct gcry_mpi *MPI;
+
+struct dh_ctx {
+	MPI p;
+	MPI q;
+	MPI g;
+	MPI xa;
+};
+
+enum {
+	CRYPTO_KPP_SECRET_TYPE_UNKNOWN = 0,
+	CRYPTO_KPP_SECRET_TYPE_DH = 1,
+	CRYPTO_KPP_SECRET_TYPE_ECDH = 2,
+};
+
+struct kpp_secret {
+	short unsigned int type;
+	short unsigned int len;
+};
+
+enum rsapubkey_actions {
+	ACT_rsa_get_e = 0,
+	ACT_rsa_get_n = 1,
+	NR__rsapubkey_actions = 2,
+};
+
+enum rsaprivkey_actions {
+	ACT_rsa_get_d = 0,
+	ACT_rsa_get_dp = 1,
+	ACT_rsa_get_dq = 2,
+	ACT_rsa_get_e___2 = 3,
+	ACT_rsa_get_n___2 = 4,
+	ACT_rsa_get_p = 5,
+	ACT_rsa_get_q = 6,
+	ACT_rsa_get_qinv = 7,
+	NR__rsaprivkey_actions = 8,
+};
+
+struct rsa_key {
+	const u8 *n;
+	const u8 *e;
+	const u8 *d;
+	const u8 *p;
+	const u8 *q;
+	const u8 *dp;
+	const u8 *dq;
+	const u8 *qinv;
+	size_t n_sz;
+	size_t e_sz;
+	size_t d_sz;
+	size_t p_sz;
+	size_t q_sz;
+	size_t dp_sz;
+	size_t dq_sz;
+	size_t qinv_sz;
+};
+
+struct rsa_mpi_key {
+	MPI n;
+	MPI e;
+	MPI d;
+};
+
+struct asn1_decoder;
+
+struct rsa_asn1_template {
+	const char *name;
+	const u8 *data;
+	size_t size;
+};
+
+struct pkcs1pad_ctx {
+	struct crypto_akcipher *child;
+	unsigned int key_size;
+};
+
+struct pkcs1pad_inst_ctx {
+	struct crypto_akcipher_spawn spawn;
+	const struct rsa_asn1_template *digest_info;
+};
+
+struct pkcs1pad_request {
+	struct scatterlist in_sg[2];
+	struct scatterlist out_sg[1];
+	uint8_t *in_buf;
+	uint8_t *out_buf;
+	struct akcipher_request child_req;
+};
+
+struct crypto_report_acomp {
+	char type[64];
+};
+
+struct acomp_alg {
+	int (*compress)(struct acomp_req *);
+	int (*decompress)(struct acomp_req *);
+	void (*dst_free)(struct scatterlist *);
+	int (*init)(struct crypto_acomp *);
+	void (*exit)(struct crypto_acomp *);
+	unsigned int reqsize;
+	struct crypto_alg base;
+};
+
+struct crypto_report_comp {
+	char type[64];
+};
+
+struct crypto_scomp {
+	struct crypto_tfm base;
+};
+
+struct scomp_alg {
+	void * (*alloc_ctx)(struct crypto_scomp *);
+	void (*free_ctx)(struct crypto_scomp *, void *);
+	int (*compress)(struct crypto_scomp *, const u8 *, unsigned int, u8 *, unsigned int *, void *);
+	int (*decompress)(struct crypto_scomp *, const u8 *, unsigned int, u8 *, unsigned int *, void *);
+	struct crypto_alg base;
+};
+
+struct scomp_scratch {
+	spinlock_t lock;
+	void *src;
+	void *dst;
+};
+
+struct cryptomgr_param {
+	struct rtattr *tb[34];
+	struct {
+		struct rtattr attr;
+		struct crypto_attr_type data;
+	} type;
+	struct {
+		struct rtattr attr;
+		struct crypto_attr_alg data;
+	} attrs[32];
+	char template[128];
+	struct crypto_larval *larval;
+	u32 otype;
+	u32 omask;
+};
+
+struct crypto_test_param {
+	char driver[128];
+	char alg[128];
+	u32 type;
+};
+
+struct hmac_ctx {
+	struct crypto_shash *hash;
+};
+
+struct md5_state {
+	u32 hash[4];
+	u32 block[16];
+	u64 byte_count;
+};
+
+struct sha1_state {
+	u32 state[5];
+	u64 count;
+	u8 buffer[64];
+};
+
+typedef void sha1_block_fn(struct sha1_state *, const u8 *, int);
+
+struct sha256_state {
+	u32 state[8];
+	u64 count;
+	u8 buf[64];
+};
+
+struct sha512_state {
+	u64 state[8];
+	u64 count[2];
+	u8 buf[128];
+};
+
+typedef void sha512_block_fn(struct sha512_state *, const u8 *, int);
+
+typedef struct {
+	u64 a;
+	u64 b;
+} u128;
+
+typedef struct {
+	__be64 a;
+	__be64 b;
+} be128;
+
+typedef struct {
+	__le64 b;
+	__le64 a;
+} le128;
+
+struct gf128mul_4k {
+	be128 t[256];
+};
+
+struct gf128mul_64k {
+	struct gf128mul_4k *t[16];
+};
+
+struct crypto_cts_ctx {
+	struct crypto_skcipher *child;
+};
+
+struct crypto_cts_reqctx {
+	struct scatterlist sg[2];
+	unsigned int offset;
+	struct skcipher_request subreq;
+};
+
+struct xts_tfm_ctx {
+	struct crypto_skcipher *child;
+	struct crypto_cipher *tweak;
+};
+
+struct xts_instance_ctx {
+	struct crypto_skcipher_spawn spawn;
+	char name[128];
+};
+
+struct xts_request_ctx {
+	le128 t;
+	struct scatterlist *tail;
+	struct scatterlist sg[2];
+	struct skcipher_request subreq;
+};
+
+struct crypto_rfc3686_ctx {
+	struct crypto_skcipher *child;
+	u8 nonce[4];
+};
+
+struct crypto_rfc3686_req_ctx {
+	u8 iv[16];
+	struct skcipher_request subreq;
+};
+
+struct gcm_instance_ctx {
+	struct crypto_skcipher_spawn ctr;
+	struct crypto_ahash_spawn ghash;
+};
+
+struct crypto_gcm_ctx {
+	struct crypto_skcipher *ctr;
+	struct crypto_ahash *ghash;
+};
+
+struct crypto_rfc4106_ctx {
+	struct crypto_aead *child;
+	u8 nonce[4];
+};
+
+struct crypto_rfc4106_req_ctx {
+	struct scatterlist src[3];
+	struct scatterlist dst[3];
+	struct aead_request subreq;
+};
+
+struct crypto_rfc4543_instance_ctx {
+	struct crypto_aead_spawn aead;
+};
+
+struct crypto_rfc4543_ctx {
+	struct crypto_aead *child;
+	struct crypto_sync_skcipher *null;
+	u8 nonce[4];
+};
+
+struct crypto_rfc4543_req_ctx {
+	struct aead_request subreq;
+};
+
+struct crypto_gcm_ghash_ctx {
+	unsigned int cryptlen;
+	struct scatterlist *src;
+	int (*complete)(struct aead_request *, u32);
+};
+
+struct crypto_gcm_req_priv_ctx {
+	u8 iv[16];
+	u8 auth_tag[16];
+	u8 iauth_tag[16];
+	struct scatterlist src[3];
+	struct scatterlist dst[3];
+	struct scatterlist sg;
+	struct crypto_gcm_ghash_ctx ghash_ctx;
+	union {
+		struct ahash_request ahreq;
+		struct skcipher_request skreq;
+	} u;
+};
+
+struct crypto_aes_ctx {
+	u32 key_enc[60];
+	u32 key_dec[60];
+	u32 key_length;
+};
+
+struct deflate_ctx {
+	struct z_stream_s comp_stream;
+	struct z_stream_s decomp_stream;
+};
+
+struct chksum_ctx {
+	u32 key;
+};
+
+struct chksum_desc_ctx {
+	u32 crc;
+};
+
+struct chksum_desc_ctx___2 {
+	__u16 crc;
+};
+
+struct lzo_ctx {
+	void *lzo_comp_mem;
+};
+
+struct lzorle_ctx {
+	void *lzorle_comp_mem;
+};
+
+struct crypto_report_rng {
+	char type[64];
+	unsigned int seedsize;
+};
+
+struct random_ready_callback {
+	struct list_head list;
+	void (*func)(struct random_ready_callback *);
+	struct module *owner;
+};
+
+struct drbg_string {
+	const unsigned char *buf;
+	size_t len;
+	struct list_head list;
+};
+
+typedef uint32_t drbg_flag_t;
+
+struct drbg_core {
+	drbg_flag_t flags;
+	__u8 statelen;
+	__u8 blocklen_bytes;
+	char cra_name[128];
+	char backend_cra_name[128];
+};
+
+struct drbg_state;
+
+struct drbg_state_ops {
+	int (*update)(struct drbg_state *, struct list_head *, int);
+	int (*generate)(struct drbg_state *, unsigned char *, unsigned int, struct list_head *);
+	int (*crypto_init)(struct drbg_state *);
+	int (*crypto_fini)(struct drbg_state *);
+};
+
+struct drbg_state {
+	struct mutex drbg_mutex;
+	unsigned char *V;
+	unsigned char *Vbuf;
+	unsigned char *C;
+	unsigned char *Cbuf;
+	size_t reseed_ctr;
+	size_t reseed_threshold;
+	unsigned char *scratchpad;
+	unsigned char *scratchpadbuf;
+	void *priv_data;
+	struct crypto_skcipher *ctr_handle;
+	struct skcipher_request *ctr_req;
+	__u8 *outscratchpadbuf;
+	__u8 *outscratchpad;
+	struct crypto_wait ctr_wait;
+	struct scatterlist sg_in;
+	struct scatterlist sg_out;
+	bool seeded;
+	bool pr;
+	bool fips_primed;
+	unsigned char *prev;
+	struct work_struct seed_work;
+	struct crypto_rng *jent;
+	const struct drbg_state_ops *d_ops;
+	const struct drbg_core *core;
+	struct drbg_string test_data;
+	struct random_ready_callback random_ready;
+};
+
+enum drbg_prefixes {
+	DRBG_PREFIX0 = 0,
+	DRBG_PREFIX1 = 1,
+	DRBG_PREFIX2 = 2,
+	DRBG_PREFIX3 = 3,
+};
+
+struct s {
+	__be32 conv;
+};
+
+struct rand_data {
+	__u64 data;
+	__u64 old_data;
+	__u64 prev_time;
+	__u64 last_delta;
+	__s64 last_delta2;
+	unsigned int osr;
+	unsigned char *mem;
+	unsigned int memlocation;
+	unsigned int memblocks;
+	unsigned int memblocksize;
+	unsigned int memaccessloops;
+	int rct_count;
+	unsigned int apt_observations;
+	unsigned int apt_count;
+	unsigned int apt_base;
+	unsigned int apt_base_set: 1;
+	unsigned int health_failure: 1;
+};
+
+struct rand_data;
+
+struct jitterentropy {
+	spinlock_t jent_lock;
+	struct rand_data *entropy_collector;
+	unsigned int reset_cnt;
+};
+
+struct ghash_ctx {
+	struct gf128mul_4k *gf128;
+};
+
+struct ghash_desc_ctx {
+	u8 buffer[16];
+	u32 bytes;
+};
+
+struct asymmetric_key_ids {
+	void *id[2];
+};
+
+struct asymmetric_key_subtype {
+	struct module *owner;
+	const char *name;
+	short unsigned int name_len;
+	void (*describe)(const struct key *, struct seq_file *);
+	void (*destroy)(void *, void *);
+	int (*query)(const struct kernel_pkey_params *, struct kernel_pkey_query *);
+	int (*eds_op)(struct kernel_pkey_params *, const void *, void *);
+	int (*verify_signature)(const struct key *, const struct public_key_signature *);
+};
+
+struct asymmetric_key_parser {
+	struct list_head link;
+	struct module *owner;
+	const char *name;
+	int (*parse)(struct key_preparsed_payload *);
+};
+
+enum x509_actions {
+	ACT_x509_extract_key_data = 0,
+	ACT_x509_extract_name_segment = 1,
+	ACT_x509_note_OID = 2,
+	ACT_x509_note_issuer = 3,
+	ACT_x509_note_not_after = 4,
+	ACT_x509_note_not_before = 5,
+	ACT_x509_note_params = 6,
+	ACT_x509_note_pkey_algo = 7,
+	ACT_x509_note_serial = 8,
+	ACT_x509_note_signature = 9,
+	ACT_x509_note_subject = 10,
+	ACT_x509_note_tbs_certificate = 11,
+	ACT_x509_process_extension = 12,
+	NR__x509_actions = 13,
+};
+
+enum x509_akid_actions {
+	ACT_x509_akid_note_kid = 0,
+	ACT_x509_akid_note_name = 1,
+	ACT_x509_akid_note_serial = 2,
+	ACT_x509_extract_name_segment___2 = 3,
+	ACT_x509_note_OID___2 = 4,
+	NR__x509_akid_actions = 5,
+};
+
+struct x509_certificate {
+	struct x509_certificate *next;
+	struct x509_certificate *signer;
+	struct public_key *pub;
+	struct public_key_signature *sig;
+	char *issuer;
+	char *subject;
+	struct asymmetric_key_id *id;
+	struct asymmetric_key_id *skid;
+	time64_t valid_from;
+	time64_t valid_to;
+	const void *tbs;
+	unsigned int tbs_size;
+	unsigned int raw_sig_size;
+	const void *raw_sig;
+	const void *raw_serial;
+	unsigned int raw_serial_size;
+	unsigned int raw_issuer_size;
+	const void *raw_issuer;
+	const void *raw_subject;
+	unsigned int raw_subject_size;
+	unsigned int raw_skid_size;
+	const void *raw_skid;
+	unsigned int index;
+	bool seen;
+	bool verified;
+	bool self_signed;
+	bool unsupported_key;
+	bool unsupported_sig;
+	bool blacklisted;
+};
+
+struct x509_parse_context {
+	struct x509_certificate *cert;
+	long unsigned int data;
+	const void *cert_start;
+	const void *key;
+	size_t key_size;
+	const void *params;
+	size_t params_size;
+	enum OID key_algo;
+	enum OID last_oid;
+	enum OID algo_oid;
+	unsigned char nr_mpi;
+	u8 o_size;
+	u8 cn_size;
+	u8 email_size;
+	u16 o_offset;
+	u16 cn_offset;
+	u16 email_offset;
+	unsigned int raw_akid_size;
+	const void *raw_akid;
+	const void *akid_raw_issuer;
+	unsigned int akid_raw_issuer_size;
+};
+
+enum pkcs7_actions {
+	ACT_pkcs7_check_content_type = 0,
+	ACT_pkcs7_extract_cert = 1,
+	ACT_pkcs7_note_OID = 2,
+	ACT_pkcs7_note_certificate_list = 3,
+	ACT_pkcs7_note_content = 4,
+	ACT_pkcs7_note_data = 5,
+	ACT_pkcs7_note_signed_info = 6,
+	ACT_pkcs7_note_signeddata_version = 7,
+	ACT_pkcs7_note_signerinfo_version = 8,
+	ACT_pkcs7_sig_note_authenticated_attr = 9,
+	ACT_pkcs7_sig_note_digest_algo = 10,
+	ACT_pkcs7_sig_note_issuer = 11,
+	ACT_pkcs7_sig_note_pkey_algo = 12,
+	ACT_pkcs7_sig_note_serial = 13,
+	ACT_pkcs7_sig_note_set_of_authattrs = 14,
+	ACT_pkcs7_sig_note_signature = 15,
+	ACT_pkcs7_sig_note_skid = 16,
+	NR__pkcs7_actions = 17,
+};
+
+struct pkcs7_signed_info {
+	struct pkcs7_signed_info *next;
+	struct x509_certificate *signer;
+	unsigned int index;
+	bool unsupported_crypto;
+	bool blacklisted;
+	const void *msgdigest;
+	unsigned int msgdigest_len;
+	unsigned int authattrs_len;
+	const void *authattrs;
+	long unsigned int aa_set;
+	time64_t signing_time;
+	struct public_key_signature *sig;
+};
+
+struct pkcs7_message {
+	struct x509_certificate *certs;
+	struct x509_certificate *crl;
+	struct pkcs7_signed_info *signed_infos;
+	u8 version;
+	bool have_authattrs;
+	enum OID data_type;
+	size_t data_len;
+	size_t data_hdrlen;
+	const void *data;
+};
+
+struct pkcs7_parse_context {
+	struct pkcs7_message *msg;
+	struct pkcs7_signed_info *sinfo;
+	struct pkcs7_signed_info **ppsinfo;
+	struct x509_certificate *certs;
+	struct x509_certificate **ppcerts;
+	long unsigned int data;
+	enum OID last_oid;
+	unsigned int x509_index;
+	unsigned int sinfo_index;
+	const void *raw_serial;
+	unsigned int raw_serial_size;
+	unsigned int raw_issuer_size;
+	const void *raw_issuer;
+	const void *raw_skid;
+	unsigned int raw_skid_size;
+	bool expect_skid;
+};
+
+struct mz_hdr {
+	uint16_t magic;
+	uint16_t lbsize;
+	uint16_t blocks;
+	uint16_t relocs;
+	uint16_t hdrsize;
+	uint16_t min_extra_pps;
+	uint16_t max_extra_pps;
+	uint16_t ss;
+	uint16_t sp;
+	uint16_t checksum;
+	uint16_t ip;
+	uint16_t cs;
+	uint16_t reloc_table_offset;
+	uint16_t overlay_num;
+	uint16_t reserved0[4];
+	uint16_t oem_id;
+	uint16_t oem_info;
+	uint16_t reserved1[10];
+	uint32_t peaddr;
+	char message[0];
+};
+
+struct pe_hdr {
+	uint32_t magic;
+	uint16_t machine;
+	uint16_t sections;
+	uint32_t timestamp;
+	uint32_t symbol_table;
+	uint32_t symbols;
+	uint16_t opt_hdr_size;
+	uint16_t flags;
+};
+
+struct pe32_opt_hdr {
+	uint16_t magic;
+	uint8_t ld_major;
+	uint8_t ld_minor;
+	uint32_t text_size;
+	uint32_t data_size;
+	uint32_t bss_size;
+	uint32_t entry_point;
+	uint32_t code_base;
+	uint32_t data_base;
+	uint32_t image_base;
+	uint32_t section_align;
+	uint32_t file_align;
+	uint16_t os_major;
+	uint16_t os_minor;
+	uint16_t image_major;
+	uint16_t image_minor;
+	uint16_t subsys_major;
+	uint16_t subsys_minor;
+	uint32_t win32_version;
+	uint32_t image_size;
+	uint32_t header_size;
+	uint32_t csum;
+	uint16_t subsys;
+	uint16_t dll_flags;
+	uint32_t stack_size_req;
+	uint32_t stack_size;
+	uint32_t heap_size_req;
+	uint32_t heap_size;
+	uint32_t loader_flags;
+	uint32_t data_dirs;
+};
+
+struct pe32plus_opt_hdr {
+	uint16_t magic;
+	uint8_t ld_major;
+	uint8_t ld_minor;
+	uint32_t text_size;
+	uint32_t data_size;
+	uint32_t bss_size;
+	uint32_t entry_point;
+	uint32_t code_base;
+	uint64_t image_base;
+	uint32_t section_align;
+	uint32_t file_align;
+	uint16_t os_major;
+	uint16_t os_minor;
+	uint16_t image_major;
+	uint16_t image_minor;
+	uint16_t subsys_major;
+	uint16_t subsys_minor;
+	uint32_t win32_version;
+	uint32_t image_size;
+	uint32_t header_size;
+	uint32_t csum;
+	uint16_t subsys;
+	uint16_t dll_flags;
+	uint64_t stack_size_req;
+	uint64_t stack_size;
+	uint64_t heap_size_req;
+	uint64_t heap_size;
+	uint32_t loader_flags;
+	uint32_t data_dirs;
+};
+
+struct data_dirent {
+	uint32_t virtual_address;
+	uint32_t size;
+};
+
+struct data_directory {
+	struct data_dirent exports;
+	struct data_dirent imports;
+	struct data_dirent resources;
+	struct data_dirent exceptions;
+	struct data_dirent certs;
+	struct data_dirent base_relocations;
+	struct data_dirent debug;
+	struct data_dirent arch;
+	struct data_dirent global_ptr;
+	struct data_dirent tls;
+	struct data_dirent load_config;
+	struct data_dirent bound_imports;
+	struct data_dirent import_addrs;
+	struct data_dirent delay_imports;
+	struct data_dirent clr_runtime_hdr;
+	struct data_dirent reserved;
+};
+
+struct section_header {
+	char name[8];
+	uint32_t virtual_size;
+	uint32_t virtual_address;
+	uint32_t raw_data_size;
+	uint32_t data_addr;
+	uint32_t relocs;
+	uint32_t line_numbers;
+	uint16_t num_relocs;
+	uint16_t num_lin_numbers;
+	uint32_t flags;
+};
+
+struct win_certificate {
+	uint32_t length;
+	uint16_t revision;
+	uint16_t cert_type;
+};
+
+struct pefile_context {
+	unsigned int header_size;
+	unsigned int image_checksum_offset;
+	unsigned int cert_dirent_offset;
+	unsigned int n_data_dirents;
+	unsigned int n_sections;
+	unsigned int certs_size;
+	unsigned int sig_offset;
+	unsigned int sig_len;
+	const struct section_header *secs;
+	const void *digest;
+	unsigned int digest_len;
+	const char *digest_algo;
+};
+
+enum mscode_actions {
+	ACT_mscode_note_content_type = 0,
+	ACT_mscode_note_digest = 1,
+	ACT_mscode_note_digest_algo = 2,
+	NR__mscode_actions = 3,
+};
+
+enum {
+	DISK_EVENT_MEDIA_CHANGE = 1,
+	DISK_EVENT_EJECT_REQUEST = 2,
+};
+
+enum hctx_type {
+	HCTX_TYPE_DEFAULT = 0,
+	HCTX_TYPE_READ = 1,
+	HCTX_TYPE_POLL = 2,
+	HCTX_MAX_TYPES = 3,
+};
+
+struct bdev_inode {
+	struct block_device bdev;
+	struct inode vfs_inode;
+};
+
+struct blkdev_dio {
+	union {
+		struct kiocb *iocb;
+		struct task_struct *waiter;
+	};
+	size_t size;
+	atomic_t ref;
+	bool multi_bio: 1;
+	bool should_dirty: 1;
+	bool is_sync: 1;
+	struct bio bio;
+};
+
+struct bio_alloc_cache {
+	struct bio_list free_list;
+	unsigned int nr;
+};
+
+enum rq_qos_id {
+	RQ_QOS_WBT = 0,
+	RQ_QOS_LATENCY = 1,
+	RQ_QOS_COST = 2,
+	RQ_QOS_IOPRIO = 3,
+};
+
+struct rq_qos_ops;
+
+struct rq_qos {
+	struct rq_qos_ops *ops;
+	struct request_queue *q;
+	enum rq_qos_id id;
+	struct rq_qos *next;
+	struct dentry *debugfs_dir;
+};
+
+enum xen_domain_type {
+	XEN_NATIVE = 0,
+	XEN_PV_DOMAIN = 1,
+	XEN_HVM_DOMAIN = 2,
+};
+
+struct rq_qos_ops {
+	void (*throttle)(struct rq_qos *, struct bio *);
+	void (*track)(struct rq_qos *, struct request *, struct bio *);
+	void (*merge)(struct rq_qos *, struct request *, struct bio *);
+	void (*issue)(struct rq_qos *, struct request *);
+	void (*requeue)(struct rq_qos *, struct request *);
+	void (*done)(struct rq_qos *, struct request *);
+	void (*done_bio)(struct rq_qos *, struct bio *);
+	void (*cleanup)(struct rq_qos *, struct bio *);
+	void (*queue_depth_changed)(struct rq_qos *);
+	void (*exit)(struct rq_qos *);
+	const struct blk_mq_debugfs_attr *debugfs_attrs;
+};
+
+struct biovec_slab {
+	int nr_vecs;
+	char *name;
+	struct kmem_cache *slab;
+};
+
+struct bio_slab {
+	struct kmem_cache *slab;
+	unsigned int slab_ref;
+	unsigned int slab_size;
+	char name[8];
+};
+
+enum {
+	BLK_MQ_F_SHOULD_MERGE = 1,
+	BLK_MQ_F_TAG_QUEUE_SHARED = 2,
+	BLK_MQ_F_STACKING = 4,
+	BLK_MQ_F_TAG_HCTX_SHARED = 8,
+	BLK_MQ_F_BLOCKING = 32,
+	BLK_MQ_F_NO_SCHED = 64,
+	BLK_MQ_F_NO_SCHED_BY_DEFAULT = 128,
+	BLK_MQ_F_ALLOC_POLICY_START_BIT = 8,
+	BLK_MQ_F_ALLOC_POLICY_BITS = 1,
