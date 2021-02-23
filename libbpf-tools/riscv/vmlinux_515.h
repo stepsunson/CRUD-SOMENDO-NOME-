@@ -59557,3 +59557,2114 @@ struct pinctrl_dev {
 
 enum pinctrl_map_type {
 	PIN_MAP_TYPE_INVALID = 0,
+	PIN_MAP_TYPE_DUMMY_STATE = 1,
+	PIN_MAP_TYPE_MUX_GROUP = 2,
+	PIN_MAP_TYPE_CONFIGS_PIN = 3,
+	PIN_MAP_TYPE_CONFIGS_GROUP = 4,
+};
+
+struct pinctrl_map_mux {
+	const char *group;
+	const char *function;
+};
+
+struct pinctrl_map_configs {
+	const char *group_or_pin;
+	long unsigned int *configs;
+	unsigned int num_configs;
+};
+
+struct pinctrl_map {
+	const char *dev_name;
+	const char *name;
+	enum pinctrl_map_type type;
+	const char *ctrl_dev_name;
+	union {
+		struct pinctrl_map_mux mux;
+		struct pinctrl_map_configs configs;
+	} data;
+};
+
+struct pinmux_ops;
+
+struct pinconf_ops;
+
+struct pinconf_generic_params;
+
+struct pin_config_item;
+
+struct pinctrl_desc {
+	const char *name;
+	const struct pinctrl_pin_desc *pins;
+	unsigned int npins;
+	const struct pinctrl_ops *pctlops;
+	const struct pinmux_ops *pmxops;
+	const struct pinconf_ops *confops;
+	struct module *owner;
+	unsigned int num_custom_params;
+	const struct pinconf_generic_params *custom_params;
+	const struct pin_config_item *custom_conf_items;
+	bool link_consumers;
+};
+
+struct pinmux_ops {
+	int (*request)(struct pinctrl_dev *, unsigned int);
+	int (*free)(struct pinctrl_dev *, unsigned int);
+	int (*get_functions_count)(struct pinctrl_dev *);
+	const char * (*get_function_name)(struct pinctrl_dev *, unsigned int);
+	int (*get_function_groups)(struct pinctrl_dev *, unsigned int, const char * const **, unsigned int *);
+	int (*set_mux)(struct pinctrl_dev *, unsigned int, unsigned int);
+	int (*gpio_request_enable)(struct pinctrl_dev *, struct pinctrl_gpio_range *, unsigned int);
+	void (*gpio_disable_free)(struct pinctrl_dev *, struct pinctrl_gpio_range *, unsigned int);
+	int (*gpio_set_direction)(struct pinctrl_dev *, struct pinctrl_gpio_range *, unsigned int, bool);
+	bool strict;
+};
+
+struct pinconf_ops {
+	bool is_generic;
+	int (*pin_config_get)(struct pinctrl_dev *, unsigned int, long unsigned int *);
+	int (*pin_config_set)(struct pinctrl_dev *, unsigned int, long unsigned int *, unsigned int);
+	int (*pin_config_group_get)(struct pinctrl_dev *, unsigned int, long unsigned int *);
+	int (*pin_config_group_set)(struct pinctrl_dev *, unsigned int, long unsigned int *, unsigned int);
+	void (*pin_config_dbg_show)(struct pinctrl_dev *, struct seq_file *, unsigned int);
+	void (*pin_config_group_dbg_show)(struct pinctrl_dev *, struct seq_file *, unsigned int);
+	void (*pin_config_config_dbg_show)(struct pinctrl_dev *, struct seq_file *, long unsigned int);
+};
+
+enum pin_config_param {
+	PIN_CONFIG_BIAS_BUS_HOLD = 0,
+	PIN_CONFIG_BIAS_DISABLE = 1,
+	PIN_CONFIG_BIAS_HIGH_IMPEDANCE = 2,
+	PIN_CONFIG_BIAS_PULL_DOWN = 3,
+	PIN_CONFIG_BIAS_PULL_PIN_DEFAULT = 4,
+	PIN_CONFIG_BIAS_PULL_UP = 5,
+	PIN_CONFIG_DRIVE_OPEN_DRAIN = 6,
+	PIN_CONFIG_DRIVE_OPEN_SOURCE = 7,
+	PIN_CONFIG_DRIVE_PUSH_PULL = 8,
+	PIN_CONFIG_DRIVE_STRENGTH = 9,
+	PIN_CONFIG_DRIVE_STRENGTH_UA = 10,
+	PIN_CONFIG_INPUT_DEBOUNCE = 11,
+	PIN_CONFIG_INPUT_ENABLE = 12,
+	PIN_CONFIG_INPUT_SCHMITT = 13,
+	PIN_CONFIG_INPUT_SCHMITT_ENABLE = 14,
+	PIN_CONFIG_MODE_LOW_POWER = 15,
+	PIN_CONFIG_MODE_PWM = 16,
+	PIN_CONFIG_OUTPUT = 17,
+	PIN_CONFIG_OUTPUT_ENABLE = 18,
+	PIN_CONFIG_PERSIST_STATE = 19,
+	PIN_CONFIG_POWER_SOURCE = 20,
+	PIN_CONFIG_SKEW_DELAY = 21,
+	PIN_CONFIG_SLEEP_HARDWARE_STATE = 22,
+	PIN_CONFIG_SLEW_RATE = 23,
+	PIN_CONFIG_END = 127,
+	PIN_CONFIG_MAX = 255,
+};
+
+struct pinconf_generic_params {
+	const char * const property;
+	enum pin_config_param param;
+	u32 default_value;
+};
+
+struct pin_config_item {
+	const enum pin_config_param param;
+	const char * const display;
+	const char * const format;
+	bool has_arg;
+};
+
+struct gpio_desc;
+
+struct gpio_device {
+	int id;
+	struct device dev;
+	struct cdev chrdev;
+	struct device *mockdev;
+	struct module *owner;
+	struct gpio_chip *chip;
+	struct gpio_desc *descs;
+	int base;
+	u16 ngpio;
+	const char *label;
+	void *data;
+	struct list_head list;
+	struct blocking_notifier_head notifier;
+	struct list_head pin_ranges;
+};
+
+struct gpio_desc {
+	struct gpio_device *gdev;
+	long unsigned int flags;
+	const char *label;
+	const char *name;
+	struct device_node *hog;
+	unsigned int debounce_period_us;
+};
+
+struct pinctrl_setting_mux {
+	unsigned int group;
+	unsigned int func;
+};
+
+struct pinctrl_setting_configs {
+	unsigned int group_or_pin;
+	long unsigned int *configs;
+	unsigned int num_configs;
+};
+
+struct pinctrl_setting {
+	struct list_head node;
+	enum pinctrl_map_type type;
+	struct pinctrl_dev *pctldev;
+	const char *dev_name;
+	union {
+		struct pinctrl_setting_mux mux;
+		struct pinctrl_setting_configs configs;
+	} data;
+};
+
+struct pin_desc {
+	struct pinctrl_dev *pctldev;
+	const char *name;
+	bool dynamic_name;
+	void *drv_data;
+	unsigned int mux_usecount;
+	const char *mux_owner;
+	const struct pinctrl_setting_mux *mux_setting;
+	const char *gpio_owner;
+};
+
+struct pinctrl_maps {
+	struct list_head node;
+	const struct pinctrl_map *maps;
+	unsigned int num_maps;
+};
+
+struct group_desc {
+	const char *name;
+	int *pins;
+	int num_pins;
+	void *data;
+};
+
+struct pctldev;
+
+struct function_desc {
+	const char *name;
+	const char **group_names;
+	int num_group_names;
+	void *data;
+};
+
+struct pinctrl_dt_map {
+	struct list_head node;
+	struct pinctrl_dev *pctldev;
+	struct pinctrl_map *map;
+	unsigned int num_maps;
+};
+
+struct regmap;
+
+struct regmap_irq_chip_data;
+
+struct as3722 {
+	struct device *dev;
+	struct regmap *regmap;
+	int chip_irq;
+	long unsigned int irq_flags;
+	bool en_intern_int_pullup;
+	bool en_intern_i2c_pullup;
+	bool en_ac_ok_pwr_on;
+	struct regmap_irq_chip_data *irq_data;
+};
+
+struct as3722_pin_function {
+	const char *name;
+	const char * const *groups;
+	unsigned int ngroups;
+	int mux_option;
+};
+
+struct as3722_gpio_pin_control {
+	unsigned int mode_prop;
+	int io_function;
+};
+
+struct as3722_pingroup {
+	const char *name;
+	const unsigned int pins[1];
+	unsigned int npins;
+};
+
+struct as3722_pctrl_info {
+	struct device *dev;
+	struct pinctrl_dev *pctl;
+	struct as3722 *as3722;
+	struct gpio_chip gpio_chip;
+	int pins_current_opt[8];
+	const struct as3722_pin_function *functions;
+	unsigned int num_functions;
+	const struct as3722_pingroup *pin_groups;
+	int num_pin_groups;
+	const struct pinctrl_pin_desc *pins;
+	unsigned int num_pins;
+	struct as3722_gpio_pin_control gpio_control[8];
+};
+
+enum as3722_pinmux_option {
+	AS3722_PINMUX_GPIO = 0,
+	AS3722_PINMUX_INTERRUPT_OUT = 1,
+	AS3722_PINMUX_VSUB_VBAT_UNDEB_LOW_OUT = 2,
+	AS3722_PINMUX_GPIO_INTERRUPT = 3,
+	AS3722_PINMUX_PWM_INPUT = 4,
+	AS3722_PINMUX_VOLTAGE_IN_STBY = 5,
+	AS3722_PINMUX_OC_PG_SD0 = 6,
+	AS3722_PINMUX_PG_OUT = 7,
+	AS3722_PINMUX_CLK32K_OUT = 8,
+	AS3722_PINMUX_WATCHDOG_INPUT = 9,
+	AS3722_PINMUX_SOFT_RESET_IN = 11,
+	AS3722_PINMUX_PWM_OUTPUT = 12,
+	AS3722_PINMUX_VSUB_VBAT_LOW_DEB_OUT = 13,
+	AS3722_PINMUX_OC_PG_SD6 = 14,
+};
+
+struct extcon_dev;
+
+struct gpio_desc;
+
+struct regulator_dev;
+
+struct regulator_ops {
+	int (*list_voltage)(struct regulator_dev *, unsigned int);
+	int (*set_voltage)(struct regulator_dev *, int, int, unsigned int *);
+	int (*map_voltage)(struct regulator_dev *, int, int);
+	int (*set_voltage_sel)(struct regulator_dev *, unsigned int);
+	int (*get_voltage)(struct regulator_dev *);
+	int (*get_voltage_sel)(struct regulator_dev *);
+	int (*set_current_limit)(struct regulator_dev *, int, int);
+	int (*get_current_limit)(struct regulator_dev *);
+	int (*set_input_current_limit)(struct regulator_dev *, int);
+	int (*set_over_current_protection)(struct regulator_dev *, int, int, bool);
+	int (*set_over_voltage_protection)(struct regulator_dev *, int, int, bool);
+	int (*set_under_voltage_protection)(struct regulator_dev *, int, int, bool);
+	int (*set_thermal_protection)(struct regulator_dev *, int, int, bool);
+	int (*set_active_discharge)(struct regulator_dev *, bool);
+	int (*enable)(struct regulator_dev *);
+	int (*disable)(struct regulator_dev *);
+	int (*is_enabled)(struct regulator_dev *);
+	int (*set_mode)(struct regulator_dev *, unsigned int);
+	unsigned int (*get_mode)(struct regulator_dev *);
+	int (*get_error_flags)(struct regulator_dev *, unsigned int *);
+	int (*enable_time)(struct regulator_dev *);
+	int (*set_ramp_delay)(struct regulator_dev *, int);
+	int (*set_voltage_time)(struct regulator_dev *, int, int);
+	int (*set_voltage_time_sel)(struct regulator_dev *, unsigned int, unsigned int);
+	int (*set_soft_start)(struct regulator_dev *);
+	int (*get_status)(struct regulator_dev *);
+	unsigned int (*get_optimum_mode)(struct regulator_dev *, int, int, int);
+	int (*set_load)(struct regulator_dev *, int);
+	int (*set_bypass)(struct regulator_dev *, bool);
+	int (*get_bypass)(struct regulator_dev *, bool *);
+	int (*set_suspend_voltage)(struct regulator_dev *, int);
+	int (*set_suspend_enable)(struct regulator_dev *);
+	int (*set_suspend_disable)(struct regulator_dev *);
+	int (*set_suspend_mode)(struct regulator_dev *, unsigned int);
+	int (*resume)(struct regulator_dev *);
+	int (*set_pull_down)(struct regulator_dev *);
+};
+
+struct regulator_coupler;
+
+struct coupling_desc {
+	struct regulator_dev **coupled_rdevs;
+	struct regulator_coupler *coupler;
+	int n_resolved;
+	int n_coupled;
+};
+
+struct regulator_desc;
+
+struct regulation_constraints;
+
+struct regulator_enable_gpio;
+
+struct regulator_dev {
+	const struct regulator_desc *desc;
+	int exclusive;
+	u32 use_count;
+	u32 open_count;
+	u32 bypass_count;
+	struct list_head list;
+	struct list_head consumer_list;
+	struct coupling_desc coupling_desc;
+	struct blocking_notifier_head notifier;
+	struct ww_mutex mutex;
+	struct task_struct *mutex_owner;
+	int ref_cnt;
+	struct module *owner;
+	struct device dev;
+	struct regulation_constraints *constraints;
+	struct regulator *supply;
+	const char *supply_name;
+	struct regmap *regmap;
+	struct delayed_work disable_work;
+	void *reg_data;
+	struct dentry *debugfs;
+	struct regulator_enable_gpio *ena_pin;
+	unsigned int ena_gpio_state: 1;
+	unsigned int is_switch: 1;
+	ktime_t last_off;
+	int cached_err;
+	bool use_cached_err;
+	spinlock_t err_lock;
+};
+
+enum regulator_type {
+	REGULATOR_VOLTAGE = 0,
+	REGULATOR_CURRENT = 1,
+};
+
+struct regulator_config;
+
+struct regulator_desc {
+	const char *name;
+	const char *supply_name;
+	const char *of_match;
+	bool of_match_full_name;
+	const char *regulators_node;
+	int (*of_parse_cb)(struct device_node *, const struct regulator_desc *, struct regulator_config *);
+	int id;
+	unsigned int continuous_voltage_range: 1;
+	unsigned int n_voltages;
+	unsigned int n_current_limits;
+	const struct regulator_ops *ops;
+	int irq;
+	enum regulator_type type;
+	struct module *owner;
+	unsigned int min_uV;
+	unsigned int uV_step;
+	unsigned int linear_min_sel;
+	int fixed_uV;
+	unsigned int ramp_delay;
+	int min_dropout_uV;
+	const struct linear_range *linear_ranges;
+	const unsigned int *linear_range_selectors;
+	int n_linear_ranges;
+	const unsigned int *volt_table;
+	const unsigned int *curr_table;
+	unsigned int vsel_range_reg;
+	unsigned int vsel_range_mask;
+	unsigned int vsel_reg;
+	unsigned int vsel_mask;
+	unsigned int vsel_step;
+	unsigned int csel_reg;
+	unsigned int csel_mask;
+	unsigned int apply_reg;
+	unsigned int apply_bit;
+	unsigned int enable_reg;
+	unsigned int enable_mask;
+	unsigned int enable_val;
+	unsigned int disable_val;
+	bool enable_is_inverted;
+	unsigned int bypass_reg;
+	unsigned int bypass_mask;
+	unsigned int bypass_val_on;
+	unsigned int bypass_val_off;
+	unsigned int active_discharge_on;
+	unsigned int active_discharge_off;
+	unsigned int active_discharge_mask;
+	unsigned int active_discharge_reg;
+	unsigned int soft_start_reg;
+	unsigned int soft_start_mask;
+	unsigned int soft_start_val_on;
+	unsigned int pull_down_reg;
+	unsigned int pull_down_mask;
+	unsigned int pull_down_val_on;
+	unsigned int ramp_reg;
+	unsigned int ramp_mask;
+	const unsigned int *ramp_delay_table;
+	unsigned int n_ramp_values;
+	unsigned int enable_time;
+	unsigned int off_on_delay;
+	unsigned int poll_enabled_time;
+	unsigned int (*of_map_mode)(unsigned int);
+};
+
+struct regulator_init_data;
+
+struct regulator_config {
+	struct device *dev;
+	const struct regulator_init_data *init_data;
+	void *driver_data;
+	struct device_node *of_node;
+	struct regmap *regmap;
+	struct gpio_desc *ena_gpiod;
+};
+
+struct regulator_state {
+	int uV;
+	int min_uV;
+	int max_uV;
+	unsigned int mode;
+	int enabled;
+	bool changeable;
+};
+
+struct notification_limit {
+	int prot;
+	int err;
+	int warn;
+};
+
+typedef int suspend_state_t;
+
+struct regulation_constraints {
+	const char *name;
+	int min_uV;
+	int max_uV;
+	int uV_offset;
+	int min_uA;
+	int max_uA;
+	int ilim_uA;
+	int system_load;
+	u32 *max_spread;
+	int max_uV_step;
+	unsigned int valid_modes_mask;
+	unsigned int valid_ops_mask;
+	int input_uV;
+	struct regulator_state state_disk;
+	struct regulator_state state_mem;
+	struct regulator_state state_standby;
+	struct notification_limit over_curr_limits;
+	struct notification_limit over_voltage_limits;
+	struct notification_limit under_voltage_limits;
+	struct notification_limit temp_limits;
+	suspend_state_t initial_state;
+	unsigned int initial_mode;
+	unsigned int ramp_delay;
+	unsigned int settling_time;
+	unsigned int settling_time_up;
+	unsigned int settling_time_down;
+	unsigned int enable_time;
+	unsigned int active_discharge;
+	unsigned int always_on: 1;
+	unsigned int boot_on: 1;
+	unsigned int apply_uV: 1;
+	unsigned int ramp_disable: 1;
+	unsigned int soft_start: 1;
+	unsigned int pull_down: 1;
+	unsigned int over_current_protection: 1;
+	unsigned int over_current_detection: 1;
+	unsigned int over_voltage_detection: 1;
+	unsigned int under_voltage_detection: 1;
+	unsigned int over_temp_detection: 1;
+};
+
+struct regulator_consumer_supply;
+
+struct regulator_init_data {
+	const char *supply_regulator;
+	struct regulation_constraints constraints;
+	int num_consumer_supplies;
+	struct regulator_consumer_supply *consumer_supplies;
+	int (*regulator_init)(void *);
+	void *driver_data;
+};
+
+enum palmas_usb_state {
+	PALMAS_USB_STATE_DISCONNECT = 0,
+	PALMAS_USB_STATE_VBUS = 1,
+	PALMAS_USB_STATE_ID = 2,
+};
+
+struct palmas_gpadc;
+
+struct i2c_client;
+
+struct palmas_pmic_driver_data;
+
+struct palmas_pmic;
+
+struct palmas_resource;
+
+struct palmas_usb;
+
+struct palmas {
+	struct device *dev;
+	struct i2c_client *i2c_clients[3];
+	struct regmap *regmap[3];
+	int id;
+	unsigned int features;
+	int irq;
+	u32 irq_mask;
+	struct mutex irq_lock;
+	struct regmap_irq_chip_data *irq_data;
+	struct palmas_pmic_driver_data *pmic_ddata;
+	struct palmas_pmic *pmic;
+	struct palmas_gpadc *gpadc;
+	struct palmas_resource *resource;
+	struct palmas_usb *usb;
+	u8 gpio_muxed;
+	u8 led_muxed;
+	u8 pwm_muxed;
+};
+
+struct of_regulator_match;
+
+struct palmas_regs_info;
+
+struct palmas_sleep_requestor_info;
+
+struct palmas_pmic_platform_data;
+
+struct palmas_pmic_driver_data {
+	int smps_start;
+	int smps_end;
+	int ldo_begin;
+	int ldo_end;
+	int max_reg;
+	bool has_regen3;
+	struct palmas_regs_info *palmas_regs_info;
+	struct of_regulator_match *palmas_matches;
+	struct palmas_sleep_requestor_info *sleep_req_info;
+	int (*smps_register)(struct palmas_pmic *, struct palmas_pmic_driver_data *, struct palmas_pmic_platform_data *, const char *, struct regulator_config);
+	int (*ldo_register)(struct palmas_pmic *, struct palmas_pmic_driver_data *, struct palmas_pmic_platform_data *, const char *, struct regulator_config);
+};
+
+struct palmas_pmic {
+	struct palmas *palmas;
+	struct device *dev;
+	struct regulator_desc desc[27];
+	struct mutex mutex;
+	int smps123;
+	int smps457;
+	int smps12;
+	int range[10];
+	unsigned int ramp_delay[10];
+	unsigned int current_reg_mode[10];
+};
+
+struct palmas_resource {
+	struct palmas *palmas;
+	struct device *dev;
+};
+
+struct palmas_usb {
+	struct palmas *palmas;
+	struct device *dev;
+	struct extcon_dev *edev;
+	int id_otg_irq;
+	int id_irq;
+	int vbus_otg_irq;
+	int vbus_irq;
+	int gpio_id_irq;
+	int gpio_vbus_irq;
+	struct gpio_desc *id_gpiod;
+	struct gpio_desc *vbus_gpiod;
+	long unsigned int sw_debounce_jiffies;
+	struct delayed_work wq_detectid;
+	enum palmas_usb_state linkstat;
+	int wakeup;
+	bool enable_vbus_detection;
+	bool enable_id_detection;
+	bool enable_gpio_id_detection;
+	bool enable_gpio_vbus_detection;
+};
+
+struct palmas_sleep_requestor_info {
+	int id;
+	int reg_offset;
+	int bit_pos;
+};
+
+struct palmas_regs_info {
+	char *name;
+	char *sname;
+	u8 vsel_addr;
+	u8 ctrl_addr;
+	u8 tstep_addr;
+	int sleep_id;
+};
+
+struct palmas_reg_init;
+
+struct palmas_pmic_platform_data {
+	struct regulator_init_data *reg_data[27];
+	struct palmas_reg_init *reg_init[27];
+	int ldo6_vibrator;
+	bool enable_ldo8_tracking;
+};
+
+struct palmas_reg_init {
+	int warm_reset;
+	int roof_floor;
+	int mode_sleep;
+	u8 vsel;
+};
+
+enum palmas_regulators {
+	PALMAS_REG_SMPS12 = 0,
+	PALMAS_REG_SMPS123 = 1,
+	PALMAS_REG_SMPS3 = 2,
+	PALMAS_REG_SMPS45 = 3,
+	PALMAS_REG_SMPS457 = 4,
+	PALMAS_REG_SMPS6 = 5,
+	PALMAS_REG_SMPS7 = 6,
+	PALMAS_REG_SMPS8 = 7,
+	PALMAS_REG_SMPS9 = 8,
+	PALMAS_REG_SMPS10_OUT2 = 9,
+	PALMAS_REG_SMPS10_OUT1 = 10,
+	PALMAS_REG_LDO1 = 11,
+	PALMAS_REG_LDO2 = 12,
+	PALMAS_REG_LDO3 = 13,
+	PALMAS_REG_LDO4 = 14,
+	PALMAS_REG_LDO5 = 15,
+	PALMAS_REG_LDO6 = 16,
+	PALMAS_REG_LDO7 = 17,
+	PALMAS_REG_LDO8 = 18,
+	PALMAS_REG_LDO9 = 19,
+	PALMAS_REG_LDOLN = 20,
+	PALMAS_REG_LDOUSB = 21,
+	PALMAS_REG_REGEN1 = 22,
+	PALMAS_REG_REGEN2 = 23,
+	PALMAS_REG_REGEN3 = 24,
+	PALMAS_REG_SYSEN1 = 25,
+	PALMAS_REG_SYSEN2 = 26,
+	PALMAS_NUM_REGS = 27,
+};
+
+struct palmas_pin_function {
+	const char *name;
+	const char * const *groups;
+	unsigned int ngroups;
+};
+
+struct palmas_pingroup;
+
+struct palmas_pctrl_chip_info {
+	struct device *dev;
+	struct pinctrl_dev *pctl;
+	struct palmas *palmas;
+	int pins_current_opt[26];
+	const struct palmas_pin_function *functions;
+	unsigned int num_functions;
+	const struct palmas_pingroup *pin_groups;
+	int num_pin_groups;
+	const struct pinctrl_pin_desc *pins;
+	unsigned int num_pins;
+};
+
+struct palmas_pin_info;
+
+struct palmas_pingroup {
+	const char *name;
+	const unsigned int pins[1];
+	unsigned int npins;
+	unsigned int mux_reg_base;
+	unsigned int mux_reg_add;
+	unsigned int mux_reg_mask;
+	unsigned int mux_bit_shift;
+	const struct palmas_pin_info *opt[4];
+};
+
+enum palmas_pinmux {
+	PALMAS_PINMUX_OPTION0 = 0,
+	PALMAS_PINMUX_OPTION1 = 1,
+	PALMAS_PINMUX_OPTION2 = 2,
+	PALMAS_PINMUX_OPTION3 = 3,
+	PALMAS_PINMUX_GPIO = 4,
+	PALMAS_PINMUX_LED = 5,
+	PALMAS_PINMUX_PWM = 6,
+	PALMAS_PINMUX_REGEN = 7,
+	PALMAS_PINMUX_SYSEN = 8,
+	PALMAS_PINMUX_CLK32KGAUDIO = 9,
+	PALMAS_PINMUX_ID = 10,
+	PALMAS_PINMUX_VBUS_DET = 11,
+	PALMAS_PINMUX_CHRG_DET = 12,
+	PALMAS_PINMUX_VAC = 13,
+	PALMAS_PINMUX_VACOK = 14,
+	PALMAS_PINMUX_POWERGOOD = 15,
+	PALMAS_PINMUX_USB_PSEL = 16,
+	PALMAS_PINMUX_MSECURE = 17,
+	PALMAS_PINMUX_PWRHOLD = 18,
+	PALMAS_PINMUX_INT = 19,
+	PALMAS_PINMUX_NRESWARM = 20,
+	PALMAS_PINMUX_SIMRSTO = 21,
+	PALMAS_PINMUX_SIMRSTI = 22,
+	PALMAS_PINMUX_LOW_VBAT = 23,
+	PALMAS_PINMUX_WIRELESS_CHRG1 = 24,
+	PALMAS_PINMUX_RCM = 25,
+	PALMAS_PINMUX_PWRDOWN = 26,
+	PALMAS_PINMUX_GPADC_START = 27,
+	PALMAS_PINMUX_RESET_IN = 28,
+	PALMAS_PINMUX_NSLEEP = 29,
+	PALMAS_PINMUX_ENABLE = 30,
+	PALMAS_PINMUX_NA = 65535,
+};
+
+struct palmas_pins_pullup_dn_info {
+	int pullup_dn_reg_base;
+	int pullup_dn_reg_add;
+	int pullup_dn_mask;
+	int normal_val;
+	int pull_up_val;
+	int pull_dn_val;
+};
+
+struct palmas_pins_od_info {
+	int od_reg_base;
+	int od_reg_add;
+	int od_mask;
+	int od_enable;
+	int od_disable;
+};
+
+struct palmas_pin_info {
+	enum palmas_pinmux mux_opt;
+	const struct palmas_pins_pullup_dn_info *pud_info;
+	const struct palmas_pins_od_info *od_info;
+};
+
+struct palmas_pinctrl_data {
+	const struct palmas_pingroup *pin_groups;
+	int num_pin_groups;
+};
+
+struct pcs_pdata {
+	int irq;
+	void (*rearm)();
+};
+
+struct pcs_func_vals {
+	void *reg;
+	unsigned int val;
+	unsigned int mask;
+};
+
+struct pcs_conf_vals {
+	enum pin_config_param param;
+	unsigned int val;
+	unsigned int enable;
+	unsigned int disable;
+	unsigned int mask;
+};
+
+struct pcs_conf_type {
+	const char *name;
+	enum pin_config_param param;
+};
+
+struct pcs_function {
+	const char *name;
+	struct pcs_func_vals *vals;
+	unsigned int nvals;
+	const char **pgnames;
+	int npgnames;
+	struct pcs_conf_vals *conf;
+	int nconfs;
+	struct list_head node;
+};
+
+struct pcs_gpiofunc_range {
+	unsigned int offset;
+	unsigned int npins;
+	unsigned int gpiofunc;
+	struct list_head node;
+};
+
+struct pcs_data {
+	struct pinctrl_pin_desc *pa;
+	int cur;
+};
+
+struct pcs_soc_data {
+	unsigned int flags;
+	int irq;
+	unsigned int irq_enable_mask;
+	unsigned int irq_status_mask;
+	void (*rearm)();
+};
+
+struct pcs_device {
+	struct resource *res;
+	void *base;
+	void *saved_vals;
+	unsigned int size;
+	struct device *dev;
+	struct device_node *np;
+	struct pinctrl_dev *pctl;
+	unsigned int flags;
+	struct property *missing_nr_pinctrl_cells;
+	struct pcs_soc_data socdata;
+	raw_spinlock_t lock;
+	struct mutex mutex;
+	unsigned int width;
+	unsigned int fmask;
+	unsigned int fshift;
+	unsigned int foff;
+	unsigned int fmax;
+	bool bits_per_mux;
+	unsigned int bits_per_pin;
+	struct pcs_data pins;
+	struct list_head gpiofuncs;
+	struct list_head irqs;
+	struct irq_chip chip;
+	struct irq_domain *domain;
+	struct pinctrl_desc desc;
+	unsigned int (*read)(void *);
+	void (*write)(unsigned int, void *);
+};
+
+struct pcs_interrupt {
+	void *reg;
+	irq_hw_number_t hwirq;
+	unsigned int irq;
+	struct list_head node;
+};
+
+enum regcache_type {
+	REGCACHE_NONE = 0,
+	REGCACHE_RBTREE = 1,
+	REGCACHE_COMPRESSED = 2,
+	REGCACHE_FLAT = 3,
+};
+
+struct reg_default {
+	unsigned int reg;
+	unsigned int def;
+};
+
+enum regmap_endian {
+	REGMAP_ENDIAN_DEFAULT = 0,
+	REGMAP_ENDIAN_BIG = 1,
+	REGMAP_ENDIAN_LITTLE = 2,
+	REGMAP_ENDIAN_NATIVE = 3,
+};
+
+struct regmap_range {
+	unsigned int range_min;
+	unsigned int range_max;
+};
+
+struct regmap_access_table {
+	const struct regmap_range *yes_ranges;
+	unsigned int n_yes_ranges;
+	const struct regmap_range *no_ranges;
+	unsigned int n_no_ranges;
+};
+
+typedef void (*regmap_lock)(void *);
+
+typedef void (*regmap_unlock)(void *);
+
+struct regmap_range_cfg;
+
+struct regmap_config {
+	const char *name;
+	int reg_bits;
+	int reg_stride;
+	int pad_bits;
+	int val_bits;
+	bool (*writeable_reg)(struct device *, unsigned int);
+	bool (*readable_reg)(struct device *, unsigned int);
+	bool (*volatile_reg)(struct device *, unsigned int);
+	bool (*precious_reg)(struct device *, unsigned int);
+	bool (*writeable_noinc_reg)(struct device *, unsigned int);
+	bool (*readable_noinc_reg)(struct device *, unsigned int);
+	bool disable_locking;
+	regmap_lock lock;
+	regmap_unlock unlock;
+	void *lock_arg;
+	int (*reg_read)(void *, unsigned int, unsigned int *);
+	int (*reg_write)(void *, unsigned int, unsigned int);
+	bool fast_io;
+	unsigned int max_register;
+	const struct regmap_access_table *wr_table;
+	const struct regmap_access_table *rd_table;
+	const struct regmap_access_table *volatile_table;
+	const struct regmap_access_table *precious_table;
+	const struct regmap_access_table *wr_noinc_table;
+	const struct regmap_access_table *rd_noinc_table;
+	const struct reg_default *reg_defaults;
+	unsigned int num_reg_defaults;
+	enum regcache_type cache_type;
+	const void *reg_defaults_raw;
+	unsigned int num_reg_defaults_raw;
+	long unsigned int read_flag_mask;
+	long unsigned int write_flag_mask;
+	bool zero_flag_mask;
+	bool use_single_read;
+	bool use_single_write;
+	bool use_relaxed_mmio;
+	bool can_multi_write;
+	enum regmap_endian reg_format_endian;
+	enum regmap_endian val_format_endian;
+	const struct regmap_range_cfg *ranges;
+	unsigned int num_ranges;
+	bool use_hwlock;
+	bool use_raw_spinlock;
+	unsigned int hwlock_id;
+	unsigned int hwlock_mode;
+	bool can_sleep;
+};
+
+struct regmap_range_cfg {
+	const char *name;
+	unsigned int range_min;
+	unsigned int range_max;
+	unsigned int selector_reg;
+	unsigned int selector_mask;
+	int selector_shift;
+	unsigned int window_start;
+	unsigned int window_len;
+};
+
+typedef int (*regmap_hw_write)(void *, const void *, size_t);
+
+typedef int (*regmap_hw_gather_write)(void *, const void *, size_t, const void *, size_t);
+
+struct regmap_async;
+
+typedef int (*regmap_hw_async_write)(void *, const void *, size_t, const void *, size_t, struct regmap_async *);
+
+typedef int (*regmap_hw_read)(void *, const void *, size_t, void *, size_t);
+
+typedef int (*regmap_hw_reg_read)(void *, unsigned int, unsigned int *);
+
+typedef int (*regmap_hw_reg_write)(void *, unsigned int, unsigned int);
+
+typedef int (*regmap_hw_reg_update_bits)(void *, unsigned int, unsigned int, unsigned int);
+
+typedef struct regmap_async * (*regmap_hw_async_alloc)();
+
+typedef void (*regmap_hw_free_context)(void *);
+
+struct regmap_bus {
+	bool fast_io;
+	regmap_hw_write write;
+	regmap_hw_gather_write gather_write;
+	regmap_hw_async_write async_write;
+	regmap_hw_reg_write reg_write;
+	regmap_hw_reg_update_bits reg_update_bits;
+	regmap_hw_read read;
+	regmap_hw_reg_read reg_read;
+	regmap_hw_free_context free_context;
+	regmap_hw_async_alloc async_alloc;
+	u8 read_flag_mask;
+	enum regmap_endian reg_format_endian_default;
+	enum regmap_endian val_format_endian_default;
+	size_t max_raw_read;
+	size_t max_raw_write;
+	bool free_on_exit;
+};
+
+struct i2c_device_id {
+	char name[20];
+	kernel_ulong_t driver_data;
+};
+
+struct software_node {
+	const char *name;
+	const struct software_node *parent;
+	const struct property_entry *properties;
+};
+
+struct i2c_msg {
+	__u16 addr;
+	__u16 flags;
+	__u16 len;
+	__u8 *buf;
+};
+
+union i2c_smbus_data {
+	__u8 byte;
+	__u16 word;
+	__u8 block[34];
+};
+
+struct i2c_adapter;
+
+struct i2c_client {
+	short unsigned int flags;
+	short unsigned int addr;
+	char name[20];
+	struct i2c_adapter *adapter;
+	struct device dev;
+	int init_irq;
+	int irq;
+	struct list_head detected;
+	void *devres_group_id;
+};
+
+enum i2c_alert_protocol {
+	I2C_PROTOCOL_SMBUS_ALERT = 0,
+	I2C_PROTOCOL_SMBUS_HOST_NOTIFY = 1,
+};
+
+struct i2c_board_info;
+
+struct i2c_driver {
+	unsigned int class;
+	int (*probe)(struct i2c_client *, const struct i2c_device_id *);
+	int (*remove)(struct i2c_client *);
+	int (*probe_new)(struct i2c_client *);
+	void (*shutdown)(struct i2c_client *);
+	void (*alert)(struct i2c_client *, enum i2c_alert_protocol, unsigned int);
+	int (*command)(struct i2c_client *, unsigned int, void *);
+	struct device_driver driver;
+	const struct i2c_device_id *id_table;
+	int (*detect)(struct i2c_client *, struct i2c_board_info *);
+	const short unsigned int *address_list;
+	struct list_head clients;
+};
+
+struct i2c_board_info {
+	char type[20];
+	short unsigned int flags;
+	short unsigned int addr;
+	const char *dev_name;
+	void *platform_data;
+	struct device_node *of_node;
+	struct fwnode_handle *fwnode;
+	const struct software_node *swnode;
+	const struct resource *resources;
+	unsigned int num_resources;
+	int irq;
+};
+
+struct i2c_algorithm;
+
+struct i2c_lock_operations;
+
+struct i2c_bus_recovery_info;
+
+struct i2c_adapter_quirks;
+
+struct i2c_adapter {
+	struct module *owner;
+	unsigned int class;
+	const struct i2c_algorithm *algo;
+	void *algo_data;
+	const struct i2c_lock_operations *lock_ops;
+	struct rt_mutex bus_lock;
+	struct rt_mutex mux_lock;
+	int timeout;
+	int retries;
+	struct device dev;
+	long unsigned int locked_flags;
+	int nr;
+	char name[48];
+	struct completion dev_released;
+	struct mutex userspace_clients_lock;
+	struct list_head userspace_clients;
+	struct i2c_bus_recovery_info *bus_recovery_info;
+	const struct i2c_adapter_quirks *quirks;
+	struct irq_domain *host_notify_domain;
+	struct regulator *bus_regulator;
+};
+
+struct i2c_algorithm {
+	int (*master_xfer)(struct i2c_adapter *, struct i2c_msg *, int);
+	int (*master_xfer_atomic)(struct i2c_adapter *, struct i2c_msg *, int);
+	int (*smbus_xfer)(struct i2c_adapter *, u16, short unsigned int, char, u8, int, union i2c_smbus_data *);
+	int (*smbus_xfer_atomic)(struct i2c_adapter *, u16, short unsigned int, char, u8, int, union i2c_smbus_data *);
+	u32 (*functionality)(struct i2c_adapter *);
+};
+
+struct i2c_lock_operations {
+	void (*lock_bus)(struct i2c_adapter *, unsigned int);
+	int (*trylock_bus)(struct i2c_adapter *, unsigned int);
+	void (*unlock_bus)(struct i2c_adapter *, unsigned int);
+};
+
+struct i2c_bus_recovery_info {
+	int (*recover_bus)(struct i2c_adapter *);
+	int (*get_scl)(struct i2c_adapter *);
+	void (*set_scl)(struct i2c_adapter *, int);
+	int (*get_sda)(struct i2c_adapter *);
+	void (*set_sda)(struct i2c_adapter *, int);
+	int (*get_bus_free)(struct i2c_adapter *);
+	void (*prepare_recovery)(struct i2c_adapter *);
+	void (*unprepare_recovery)(struct i2c_adapter *);
+	struct gpio_desc *scl_gpiod;
+	struct gpio_desc *sda_gpiod;
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *pins_default;
+	struct pinctrl_state *pins_gpio;
+};
+
+struct i2c_adapter_quirks {
+	u64 flags;
+	int max_num_msgs;
+	u16 max_write_len;
+	u16 max_read_len;
+	u16 max_comb_1st_msg_len;
+	u16 max_comb_2nd_msg_len;
+};
+
+enum {
+	SX150X_123 = 0,
+	SX150X_456 = 1,
+	SX150X_789 = 2,
+};
+
+enum {
+	SX150X_789_REG_MISC_AUTOCLEAR_OFF = 1,
+	SX150X_MAX_REGISTER = 173,
+	SX150X_IRQ_TYPE_EDGE_RISING = 1,
+	SX150X_IRQ_TYPE_EDGE_FALLING = 2,
+	SX150X_789_RESET_KEY1 = 18,
+	SX150X_789_RESET_KEY2 = 52,
+};
+
+struct sx150x_123_pri {
+	u8 reg_pld_mode;
+	u8 reg_pld_table0;
+	u8 reg_pld_table1;
+	u8 reg_pld_table2;
+	u8 reg_pld_table3;
+	u8 reg_pld_table4;
+	u8 reg_advanced;
+};
+
+struct sx150x_456_pri {
+	u8 reg_pld_mode;
+	u8 reg_pld_table0;
+	u8 reg_pld_table1;
+	u8 reg_pld_table2;
+	u8 reg_pld_table3;
+	u8 reg_pld_table4;
+	u8 reg_advanced;
+};
+
+struct sx150x_789_pri {
+	u8 reg_drain;
+	u8 reg_polarity;
+	u8 reg_clock;
+	u8 reg_misc;
+	u8 reg_reset;
+	u8 ngpios;
+};
+
+struct sx150x_device_data {
+	u8 model;
+	u8 reg_pullup;
+	u8 reg_pulldn;
+	u8 reg_dir;
+	u8 reg_data;
+	u8 reg_irq_mask;
+	u8 reg_irq_src;
+	u8 reg_sense;
+	u8 ngpios;
+	union {
+		struct sx150x_123_pri x123;
+		struct sx150x_456_pri x456;
+		struct sx150x_789_pri x789;
+	} pri;
+	const struct pinctrl_pin_desc *pins;
+	unsigned int npins;
+};
+
+struct sx150x_pinctrl {
+	struct device *dev;
+	struct i2c_client *client;
+	struct pinctrl_dev *pctldev;
+	struct pinctrl_desc pinctrl_desc;
+	struct gpio_chip gpio;
+	struct irq_chip irq_chip;
+	struct regmap *regmap;
+	struct {
+		u32 sense;
+		u32 masked;
+	} irq;
+	struct mutex lock;
+	const struct sx150x_device_data *data;
+};
+
+enum {
+	PINCONF_BIAS = 0,
+	PINCONF_SCHMITT = 1,
+	PINCONF_DRIVE_STRENGTH = 2,
+};
+
+enum {
+	FUNC_NONE = 0,
+	FUNC_GPIO = 1,
+	FUNC_IRQ0 = 2,
+	FUNC_IRQ0_IN = 3,
+	FUNC_IRQ0_OUT = 4,
+	FUNC_IRQ1 = 5,
+	FUNC_IRQ1_IN = 6,
+	FUNC_IRQ1_OUT = 7,
+	FUNC_EXT_IRQ = 8,
+	FUNC_MIIM = 9,
+	FUNC_PHY_LED = 10,
+	FUNC_PCI_WAKE = 11,
+	FUNC_MD = 12,
+	FUNC_PTP0 = 13,
+	FUNC_PTP1 = 14,
+	FUNC_PTP2 = 15,
+	FUNC_PTP3 = 16,
+	FUNC_PWM = 17,
+	FUNC_RECO_CLK = 18,
+	FUNC_SFP = 19,
+	FUNC_SG0 = 20,
+	FUNC_SG1 = 21,
+	FUNC_SG2 = 22,
+	FUNC_SI = 23,
+	FUNC_SI2 = 24,
+	FUNC_TACHO = 25,
+	FUNC_TWI = 26,
+	FUNC_TWI2 = 27,
+	FUNC_TWI3 = 28,
+	FUNC_TWI_SCL_M = 29,
+	FUNC_UART = 30,
+	FUNC_UART2 = 31,
+	FUNC_UART3 = 32,
+	FUNC_PLL_STAT = 33,
+	FUNC_EMMC = 34,
+	FUNC_REF_CLK = 35,
+	FUNC_RCVRD_CLK = 36,
+	FUNC_MAX = 37,
+};
+
+struct ocelot_pmx_func {
+	const char **groups;
+	unsigned int ngroups;
+};
+
+struct ocelot_pin_caps {
+	unsigned int pin;
+	unsigned char functions[4];
+};
+
+struct ocelot_pinctrl {
+	struct device *dev;
+	struct pinctrl_dev *pctl;
+	struct gpio_chip gpio_chip;
+	struct regmap *map;
+	void *pincfg;
+	struct pinctrl_desc *desc;
+	struct ocelot_pmx_func func[37];
+	u8 stride;
+};
+
+enum {
+	REG_INPUT_DATA = 0,
+	REG_PORT_CONFIG = 1,
+	REG_PORT_ENABLE = 2,
+	REG_SIO_CONFIG = 3,
+	REG_SIO_CLOCK = 4,
+	REG_INT_POLARITY = 5,
+	REG_INT_TRIGGER = 6,
+	REG_INT_ACK = 7,
+	REG_INT_ENABLE = 8,
+	REG_INT_IDENT = 9,
+	MAXREG = 10,
+};
+
+enum {
+	SGPIO_ARCH_LUTON = 0,
+	SGPIO_ARCH_OCELOT = 1,
+	SGPIO_ARCH_SPARX5 = 2,
+};
+
+enum {
+	SGPIO_FLAGS_HAS_IRQ = 1,
+};
+
+struct sgpio_properties {
+	int arch;
+	int flags;
+	u8 regoff[10];
+};
+
+struct sgpio_priv;
+
+struct sgpio_bank {
+	struct sgpio_priv *priv;
+	bool is_input;
+	struct gpio_chip gpio;
+	struct pinctrl_desc pctl_desc;
+};
+
+struct sgpio_priv {
+	struct device *dev;
+	struct sgpio_bank in;
+	struct sgpio_bank out;
+	u32 bitcount;
+	u32 ports;
+	u32 clock;
+	u32 *regs;
+	const struct sgpio_properties *properties;
+};
+
+struct sgpio_port_addr {
+	u8 port;
+	u8 bit;
+};
+
+struct pinctrl_dev;
+
+struct gpio_pin_range {
+	struct list_head node;
+	struct pinctrl_dev *pctldev;
+	struct pinctrl_gpio_range range;
+};
+
+struct gpio_array;
+
+struct gpio_descs {
+	struct gpio_array *info;
+	unsigned int ndescs;
+	struct gpio_desc *desc[0];
+};
+
+struct gpio_array {
+	struct gpio_desc **desc;
+	unsigned int size;
+	struct gpio_chip *chip;
+	long unsigned int *get_mask;
+	long unsigned int *set_mask;
+	long unsigned int invert_mask[0];
+};
+
+enum gpiod_flags {
+	GPIOD_ASIS = 0,
+	GPIOD_IN = 1,
+	GPIOD_OUT_LOW = 3,
+	GPIOD_OUT_HIGH = 7,
+	GPIOD_OUT_LOW_OPEN_DRAIN = 11,
+	GPIOD_OUT_HIGH_OPEN_DRAIN = 15,
+};
+
+enum gpio_lookup_flags {
+	GPIO_ACTIVE_HIGH = 0,
+	GPIO_ACTIVE_LOW = 1,
+	GPIO_OPEN_DRAIN = 2,
+	GPIO_OPEN_SOURCE = 4,
+	GPIO_PERSISTENT = 0,
+	GPIO_TRANSITORY = 8,
+	GPIO_PULL_UP = 16,
+	GPIO_PULL_DOWN = 32,
+	GPIO_LOOKUP_FLAGS_DEFAULT = 0,
+};
+
+struct gpiod_lookup {
+	const char *key;
+	u16 chip_hwnum;
+	const char *con_id;
+	unsigned int idx;
+	long unsigned int flags;
+};
+
+struct gpiod_lookup_table {
+	struct list_head list;
+	const char *dev_id;
+	struct gpiod_lookup table[0];
+};
+
+struct gpiod_hog {
+	struct list_head list;
+	const char *chip_label;
+	u16 chip_hwnum;
+	const char *line_name;
+	long unsigned int lflags;
+	int dflags;
+};
+
+enum {
+	GPIOLINE_CHANGED_REQUESTED = 1,
+	GPIOLINE_CHANGED_RELEASED = 2,
+	GPIOLINE_CHANGED_CONFIG = 3,
+};
+
+struct acpi_device;
+
+struct acpi_gpio_info {
+	struct acpi_device *adev;
+	enum gpiod_flags flags;
+	bool gpioint;
+	int pin_config;
+	int polarity;
+	int triggering;
+	unsigned int debounce;
+	unsigned int quirks;
+};
+
+struct trace_event_raw_gpio_direction {
+	struct trace_entry ent;
+	unsigned int gpio;
+	int in;
+	int err;
+	char __data[0];
+};
+
+struct trace_event_raw_gpio_value {
+	struct trace_entry ent;
+	unsigned int gpio;
+	int get;
+	int value;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_gpio_direction {};
+
+struct trace_event_data_offsets_gpio_value {};
+
+typedef void (*btf_trace_gpio_direction)(void *, unsigned int, int, int);
+
+typedef void (*btf_trace_gpio_value)(void *, unsigned int, int, int);
+
+struct devres;
+
+struct gpio {
+	unsigned int gpio;
+	long unsigned int flags;
+	const char *label;
+};
+
+struct of_reconfig_data {
+	struct device_node *dn;
+	struct property *prop;
+	struct property *old_prop;
+};
+
+enum of_reconfig_change {
+	OF_RECONFIG_NO_CHANGE = 0,
+	OF_RECONFIG_CHANGE_ADD = 1,
+	OF_RECONFIG_CHANGE_REMOVE = 2,
+};
+
+enum of_gpio_flags {
+	OF_GPIO_ACTIVE_LOW = 1,
+	OF_GPIO_SINGLE_ENDED = 2,
+	OF_GPIO_OPEN_DRAIN = 4,
+	OF_GPIO_TRANSITORY = 8,
+	OF_GPIO_PULL_UP = 16,
+	OF_GPIO_PULL_DOWN = 32,
+};
+
+struct of_mm_gpio_chip {
+	struct gpio_chip gc;
+	void (*save_regs)(struct of_mm_gpio_chip *);
+	void *regs;
+};
+
+struct gpiochip_info {
+	char name[32];
+	char label[32];
+	__u32 lines;
+};
+
+enum gpio_v2_line_flag {
+	GPIO_V2_LINE_FLAG_USED = 1,
+	GPIO_V2_LINE_FLAG_ACTIVE_LOW = 2,
+	GPIO_V2_LINE_FLAG_INPUT = 4,
+	GPIO_V2_LINE_FLAG_OUTPUT = 8,
+	GPIO_V2_LINE_FLAG_EDGE_RISING = 16,
+	GPIO_V2_LINE_FLAG_EDGE_FALLING = 32,
+	GPIO_V2_LINE_FLAG_OPEN_DRAIN = 64,
+	GPIO_V2_LINE_FLAG_OPEN_SOURCE = 128,
+	GPIO_V2_LINE_FLAG_BIAS_PULL_UP = 256,
+	GPIO_V2_LINE_FLAG_BIAS_PULL_DOWN = 512,
+	GPIO_V2_LINE_FLAG_BIAS_DISABLED = 1024,
+	GPIO_V2_LINE_FLAG_EVENT_CLOCK_REALTIME = 2048,
+};
+
+struct gpio_v2_line_values {
+	__u64 bits;
+	__u64 mask;
+};
+
+enum gpio_v2_line_attr_id {
+	GPIO_V2_LINE_ATTR_ID_FLAGS = 1,
+	GPIO_V2_LINE_ATTR_ID_OUTPUT_VALUES = 2,
+	GPIO_V2_LINE_ATTR_ID_DEBOUNCE = 3,
+};
+
+struct gpio_v2_line_attribute {
+	__u32 id;
+	__u32 padding;
+	union {
+		__u64 flags;
+		__u64 values;
+		__u32 debounce_period_us;
+	};
+};
+
+struct gpio_v2_line_config_attribute {
+	struct gpio_v2_line_attribute attr;
+	__u64 mask;
+};
+
+struct gpio_v2_line_config {
+	__u64 flags;
+	__u32 num_attrs;
+	__u32 padding[5];
+	struct gpio_v2_line_config_attribute attrs[10];
+};
+
+struct gpio_v2_line_request {
+	__u32 offsets[64];
+	char consumer[32];
+	struct gpio_v2_line_config config;
+	__u32 num_lines;
+	__u32 event_buffer_size;
+	__u32 padding[5];
+	__s32 fd;
+};
+
+struct gpio_v2_line_info {
+	char name[32];
+	char consumer[32];
+	__u32 offset;
+	__u32 num_attrs;
+	__u64 flags;
+	struct gpio_v2_line_attribute attrs[10];
+	__u32 padding[4];
+};
+
+enum gpio_v2_line_changed_type {
+	GPIO_V2_LINE_CHANGED_REQUESTED = 1,
+	GPIO_V2_LINE_CHANGED_RELEASED = 2,
+	GPIO_V2_LINE_CHANGED_CONFIG = 3,
+};
+
+struct gpio_v2_line_info_changed {
+	struct gpio_v2_line_info info;
+	__u64 timestamp_ns;
+	__u32 event_type;
+	__u32 padding[5];
+};
+
+enum gpio_v2_line_event_id {
+	GPIO_V2_LINE_EVENT_RISING_EDGE = 1,
+	GPIO_V2_LINE_EVENT_FALLING_EDGE = 2,
+};
+
+struct gpio_v2_line_event {
+	__u64 timestamp_ns;
+	__u32 id;
+	__u32 offset;
+	__u32 seqno;
+	__u32 line_seqno;
+	__u32 padding[6];
+};
+
+struct linereq;
+
+struct line {
+	struct gpio_desc *desc;
+	struct linereq *req;
+	unsigned int irq;
+	u64 eflags;
+	u64 timestamp_ns;
+	u32 req_seqno;
+	u32 line_seqno;
+	struct delayed_work work;
+	unsigned int sw_debounced;
+	unsigned int level;
+};
+
+struct linereq {
+	struct gpio_device *gdev;
+	const char *label;
+	u32 num_lines;
+	wait_queue_head_t wait;
+	u32 event_buffer_size;
+	struct {
+		union {
+			struct __kfifo kfifo;
+			struct gpio_v2_line_event *type;
+			const struct gpio_v2_line_event *const_type;
+			char (*rectype)[0];
+			struct gpio_v2_line_event *ptr;
+			const struct gpio_v2_line_event *ptr_const;
+		};
+		struct gpio_v2_line_event buf[0];
+	} events;
+	atomic_t seqno;
+	struct mutex config_mutex;
+	struct line lines[0];
+};
+
+struct gpio_chardev_data {
+	struct gpio_device *gdev;
+	wait_queue_head_t wait;
+	struct {
+		union {
+			struct __kfifo kfifo;
+			struct gpio_v2_line_info_changed *type;
+			const struct gpio_v2_line_info_changed *const_type;
+			char (*rectype)[0];
+			struct gpio_v2_line_info_changed *ptr;
+			const struct gpio_v2_line_info_changed *ptr_const;
+		};
+		struct gpio_v2_line_info_changed buf[32];
+	} events;
+	struct notifier_block lineinfo_changed_nb;
+	long unsigned int *watched_lines;
+};
+
+struct class_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct class *, struct class_attribute *, char *);
+	ssize_t (*store)(struct class *, struct class_attribute *, const char *, size_t);
+};
+
+struct gpiod_data {
+	struct gpio_desc *desc;
+	struct mutex mutex;
+	struct kernfs_node *value_kn;
+	int irq;
+	unsigned char irq_flags;
+	bool direction_can_change;
+};
+
+struct bgpio_pdata {
+	const char *label;
+	int base;
+	int ngpio;
+};
+
+struct ftgpio_gpio {
+	struct device *dev;
+	struct gpio_chip gc;
+	struct irq_chip irq;
+	void *base;
+	struct clk *clk;
+};
+
+struct palmas_adc_wakeup_property {
+	int adc_channel_number;
+	int adc_high_threshold;
+	int adc_low_threshold;
+};
+
+struct palmas_gpadc_platform_data {
+	int ch3_current;
+	int ch0_current;
+	bool extended_delay;
+	int bat_removal;
+	int start_polarity;
+	int auto_conversion_period_ms;
+	struct palmas_adc_wakeup_property *adc_wakeup1_data;
+	struct palmas_adc_wakeup_property *adc_wakeup2_data;
+};
+
+struct palmas_usb_platform_data {
+	int wakeup;
+};
+
+struct palmas_resource_platform_data {
+	int regen1_mode_sleep;
+	int regen2_mode_sleep;
+	int sysen1_mode_sleep;
+	int sysen2_mode_sleep;
+	u8 nsleep_res;
+	u8 nsleep_smps;
+	u8 nsleep_ldo1;
+	u8 nsleep_ldo2;
+	u8 enable1_res;
+	u8 enable1_smps;
+	u8 enable1_ldo1;
+	u8 enable1_ldo2;
+	u8 enable2_res;
+	u8 enable2_smps;
+	u8 enable2_ldo1;
+	u8 enable2_ldo2;
+};
+
+struct palmas_clk_platform_data {
+	int clk32kg_mode_sleep;
+	int clk32kgaudio_mode_sleep;
+};
+
+struct palmas_platform_data {
+	int irq_flags;
+	int gpio_base;
+	u8 power_ctrl;
+	int mux_from_pdata;
+	u8 pad1;
+	u8 pad2;
+	bool pm_off;
+	struct palmas_pmic_platform_data *pmic_pdata;
+	struct palmas_gpadc_platform_data *gpadc_pdata;
+	struct palmas_usb_platform_data *usb_pdata;
+	struct palmas_resource_platform_data *resource_pdata;
+	struct palmas_clk_platform_data *clk_pdata;
+};
+
+enum palmas_irqs {
+	PALMAS_CHARG_DET_N_VBUS_OVV_IRQ = 0,
+	PALMAS_PWRON_IRQ = 1,
+	PALMAS_LONG_PRESS_KEY_IRQ = 2,
+	PALMAS_RPWRON_IRQ = 3,
+	PALMAS_PWRDOWN_IRQ = 4,
+	PALMAS_HOTDIE_IRQ = 5,
+	PALMAS_VSYS_MON_IRQ = 6,
+	PALMAS_VBAT_MON_IRQ = 7,
+	PALMAS_RTC_ALARM_IRQ = 8,
+	PALMAS_RTC_TIMER_IRQ = 9,
+	PALMAS_WDT_IRQ = 10,
+	PALMAS_BATREMOVAL_IRQ = 11,
+	PALMAS_RESET_IN_IRQ = 12,
+	PALMAS_FBI_BB_IRQ = 13,
+	PALMAS_SHORT_IRQ = 14,
+	PALMAS_VAC_ACOK_IRQ = 15,
+	PALMAS_GPADC_AUTO_0_IRQ = 16,
+	PALMAS_GPADC_AUTO_1_IRQ = 17,
+	PALMAS_GPADC_EOC_SW_IRQ = 18,
+	PALMAS_GPADC_EOC_RT_IRQ = 19,
+	PALMAS_ID_OTG_IRQ = 20,
+	PALMAS_ID_IRQ = 21,
+	PALMAS_VBUS_OTG_IRQ = 22,
+	PALMAS_VBUS_IRQ = 23,
+	PALMAS_GPIO_0_IRQ = 24,
+	PALMAS_GPIO_1_IRQ = 25,
+	PALMAS_GPIO_2_IRQ = 26,
+	PALMAS_GPIO_3_IRQ = 27,
+	PALMAS_GPIO_4_IRQ = 28,
+	PALMAS_GPIO_5_IRQ = 29,
+	PALMAS_GPIO_6_IRQ = 30,
+	PALMAS_GPIO_7_IRQ = 31,
+	PALMAS_NUM_IRQ = 32,
+};
+
+struct palmas_gpio {
+	struct gpio_chip gpio_chip;
+	struct palmas *palmas;
+};
+
+struct palmas_device_data {
+	int ngpio;
+};
+
+enum {
+	RC5T583_IRQ_ONKEY = 0,
+	RC5T583_IRQ_ACOK = 1,
+	RC5T583_IRQ_LIDOPEN = 2,
+	RC5T583_IRQ_PREOT = 3,
+	RC5T583_IRQ_CLKSTP = 4,
+	RC5T583_IRQ_ONKEY_OFF = 5,
+	RC5T583_IRQ_WD = 6,
+	RC5T583_IRQ_EN_PWRREQ1 = 7,
+	RC5T583_IRQ_EN_PWRREQ2 = 8,
+	RC5T583_IRQ_PRE_VINDET = 9,
+	RC5T583_IRQ_DC0LIM = 10,
+	RC5T583_IRQ_DC1LIM = 11,
+	RC5T583_IRQ_DC2LIM = 12,
+	RC5T583_IRQ_DC3LIM = 13,
+	RC5T583_IRQ_CTC = 14,
+	RC5T583_IRQ_YALE = 15,
+	RC5T583_IRQ_DALE = 16,
+	RC5T583_IRQ_WALE = 17,
+	RC5T583_IRQ_AIN1L = 18,
+	RC5T583_IRQ_AIN2L = 19,
+	RC5T583_IRQ_AIN3L = 20,
+	RC5T583_IRQ_VBATL = 21,
+	RC5T583_IRQ_VIN3L = 22,
+	RC5T583_IRQ_VIN8L = 23,
+	RC5T583_IRQ_AIN1H = 24,
+	RC5T583_IRQ_AIN2H = 25,
+	RC5T583_IRQ_AIN3H = 26,
+	RC5T583_IRQ_VBATH = 27,
+	RC5T583_IRQ_VIN3H = 28,
+	RC5T583_IRQ_VIN8H = 29,
+	RC5T583_IRQ_ADCEND = 30,
+	RC5T583_IRQ_GPIO0 = 31,
+	RC5T583_IRQ_GPIO1 = 32,
+	RC5T583_IRQ_GPIO2 = 33,
+	RC5T583_IRQ_GPIO3 = 34,
+	RC5T583_IRQ_GPIO4 = 35,
+	RC5T583_IRQ_GPIO5 = 36,
+	RC5T583_IRQ_GPIO6 = 37,
+	RC5T583_IRQ_GPIO7 = 38,
+	RC5T583_MAX_IRQS = 39,
+};
+
+enum {
+	RC5T583_GPIO0 = 0,
+	RC5T583_GPIO1 = 1,
+	RC5T583_GPIO2 = 2,
+	RC5T583_GPIO3 = 3,
+	RC5T583_GPIO4 = 4,
+	RC5T583_GPIO5 = 5,
+	RC5T583_GPIO6 = 6,
+	RC5T583_GPIO7 = 7,
+	RC5T583_MAX_GPIO = 8,
+};
+
+enum {
+	RC5T583_REGULATOR_DC0 = 0,
+	RC5T583_REGULATOR_DC1 = 1,
+	RC5T583_REGULATOR_DC2 = 2,
+	RC5T583_REGULATOR_DC3 = 3,
+	RC5T583_REGULATOR_LDO0 = 4,
+	RC5T583_REGULATOR_LDO1 = 5,
+	RC5T583_REGULATOR_LDO2 = 6,
+	RC5T583_REGULATOR_LDO3 = 7,
+	RC5T583_REGULATOR_LDO4 = 8,
+	RC5T583_REGULATOR_LDO5 = 9,
+	RC5T583_REGULATOR_LDO6 = 10,
+	RC5T583_REGULATOR_LDO7 = 11,
+	RC5T583_REGULATOR_LDO8 = 12,
+	RC5T583_REGULATOR_LDO9 = 13,
+	RC5T583_REGULATOR_MAX = 14,
+};
+
+struct rc5t583 {
+	struct device *dev;
+	struct regmap *regmap;
+	int chip_irq;
+	int irq_base;
+	struct mutex irq_lock;
+	long unsigned int group_irq_en[5];
+	uint8_t intc_inten_reg;
+	uint8_t irq_en_reg[8];
+	uint8_t gpedge_reg[2];
+};
+
+struct rc5t583_platform_data {
+	int irq_base;
+	int gpio_base;
+	bool enable_shutdown;
+	int regulator_deepsleep_slot[14];
+	long unsigned int regulator_ext_pwr_control[14];
+	struct regulator_init_data *reg_init_data[14];
+};
+
+struct rc5t583_gpio {
+	struct gpio_chip gpio_chip;
+	struct rc5t583 *rc5t583;
+};
+
+struct sifive_gpio {
+	void *base;
+	struct gpio_chip gc;
+	struct regmap *regs;
+	long unsigned int irq_state;
+	unsigned int trigger[32];
+	unsigned int irq_number[32];
+};
+
+enum stmpe_block {
+	STMPE_BLOCK_GPIO = 1,
+	STMPE_BLOCK_KEYPAD = 2,
+	STMPE_BLOCK_TOUCHSCREEN = 4,
+	STMPE_BLOCK_ADC = 8,
+	STMPE_BLOCK_PWM = 16,
+	STMPE_BLOCK_ROTATOR = 32,
+};
+
+enum stmpe_partnum {
+	STMPE610 = 0,
+	STMPE801 = 1,
+	STMPE811 = 2,
+	STMPE1600 = 3,
+	STMPE1601 = 4,
+	STMPE1801 = 5,
+	STMPE2401 = 6,
+	STMPE2403 = 7,
+	STMPE_NBR_PARTS = 8,
+};
+
+enum {
+	STMPE_IDX_CHIP_ID = 0,
+	STMPE_IDX_SYS_CTRL = 1,
+	STMPE_IDX_SYS_CTRL2 = 2,
+	STMPE_IDX_ICR_LSB = 3,
+	STMPE_IDX_IER_LSB = 4,
+	STMPE_IDX_IER_MSB = 5,
+	STMPE_IDX_ISR_LSB = 6,
+	STMPE_IDX_ISR_MSB = 7,
+	STMPE_IDX_GPMR_LSB = 8,
+	STMPE_IDX_GPMR_CSB = 9,
+	STMPE_IDX_GPMR_MSB = 10,
+	STMPE_IDX_GPSR_LSB = 11,
+	STMPE_IDX_GPSR_CSB = 12,
+	STMPE_IDX_GPSR_MSB = 13,
+	STMPE_IDX_GPCR_LSB = 14,
+	STMPE_IDX_GPCR_CSB = 15,
+	STMPE_IDX_GPCR_MSB = 16,
+	STMPE_IDX_GPDR_LSB = 17,
+	STMPE_IDX_GPDR_CSB = 18,
+	STMPE_IDX_GPDR_MSB = 19,
+	STMPE_IDX_GPEDR_LSB = 20,
+	STMPE_IDX_GPEDR_CSB = 21,
+	STMPE_IDX_GPEDR_MSB = 22,
+	STMPE_IDX_GPRER_LSB = 23,
+	STMPE_IDX_GPRER_CSB = 24,
+	STMPE_IDX_GPRER_MSB = 25,
+	STMPE_IDX_GPFER_LSB = 26,
+	STMPE_IDX_GPFER_CSB = 27,
+	STMPE_IDX_GPFER_MSB = 28,
+	STMPE_IDX_GPPUR_LSB = 29,
+	STMPE_IDX_GPPDR_LSB = 30,
+	STMPE_IDX_GPAFR_U_MSB = 31,
+	STMPE_IDX_IEGPIOR_LSB = 32,
+	STMPE_IDX_IEGPIOR_CSB = 33,
+	STMPE_IDX_IEGPIOR_MSB = 34,
+	STMPE_IDX_ISGPIOR_LSB = 35,
+	STMPE_IDX_ISGPIOR_CSB = 36,
+	STMPE_IDX_ISGPIOR_MSB = 37,
+	STMPE_IDX_MAX = 38,
+};
+
+struct stmpe_client_info;
+
+struct stmpe_variant_info;
+
+struct stmpe_platform_data;
+
+struct stmpe {
+	struct regulator *vcc;
+	struct regulator *vio;
+	struct mutex lock;
+	struct mutex irq_lock;
+	struct device *dev;
+	struct irq_domain *domain;
+	void *client;
+	struct stmpe_client_info *ci;
+	enum stmpe_partnum partnum;
+	struct stmpe_variant_info *variant;
+	const u8 *regs;
+	int irq;
+	int num_gpios;
+	u8 ier[2];
+	u8 oldier[2];
+	struct stmpe_platform_data *pdata;
+	u8 sample_time;
+	u8 mod_12b;
+	u8 ref_sel;
+	u8 adc_freq;
+};
+
+enum {
+	REG_RE = 0,
+	REG_FE = 1,
+	REG_IE = 2,
+};
+
+enum {
+	LSB = 0,
+	CSB = 1,
+	MSB = 2,
+};
+
+struct stmpe_gpio {
+	struct gpio_chip chip;
+	struct stmpe *stmpe;
+	struct device *dev;
+	struct mutex irq_lock;
+	u32 norequest_mask;
+	u8 regs[9];
+	u8 oldregs[9];
+};
+
+struct tc3589x_platform_data;
+
+struct tc3589x {
+	struct mutex lock;
+	struct device *dev;
+	struct i2c_client *i2c;
+	struct irq_domain *domain;
+	int irq_base;
+	int num_gpio;
+	struct tc3589x_platform_data *pdata;
+};
+
+struct tc3589x_platform_data {
+	unsigned int block;
+};
+
+enum {
+	REG_IBE = 0,
+	REG_IEV = 1,
+	REG_IS = 2,
+	REG_IE___2 = 3,
+	REG_DIRECT = 4,
+};
+
+struct tc3589x_gpio {
+	struct gpio_chip chip;
+	struct tc3589x *tc3589x;
+	struct device *dev;
+	struct mutex irq_lock;
+	u8 regs[15];
+	u8 oldregs[15];
+};
+
+enum {
+	TPS6586X_ID_SYS = 0,
+	TPS6586X_ID_SM_0 = 1,
+	TPS6586X_ID_SM_1 = 2,
+	TPS6586X_ID_SM_2 = 3,
+	TPS6586X_ID_LDO_0 = 4,
+	TPS6586X_ID_LDO_1 = 5,
+	TPS6586X_ID_LDO_2 = 6,
+	TPS6586X_ID_LDO_3 = 7,
+	TPS6586X_ID_LDO_4 = 8,
+	TPS6586X_ID_LDO_5 = 9,
+	TPS6586X_ID_LDO_6 = 10,
+	TPS6586X_ID_LDO_7 = 11,
+	TPS6586X_ID_LDO_8 = 12,
+	TPS6586X_ID_LDO_9 = 13,
+	TPS6586X_ID_LDO_RTC = 14,
+	TPS6586X_ID_MAX_REGULATOR = 15,
+};
+
+enum {
+	TPS6586X_INT_PLDO_0 = 0,
+	TPS6586X_INT_PLDO_1 = 1,
+	TPS6586X_INT_PLDO_2 = 2,
+	TPS6586X_INT_PLDO_3 = 3,
+	TPS6586X_INT_PLDO_4 = 4,
+	TPS6586X_INT_PLDO_5 = 5,
+	TPS6586X_INT_PLDO_6 = 6,
+	TPS6586X_INT_PLDO_7 = 7,
+	TPS6586X_INT_COMP_DET = 8,
+	TPS6586X_INT_ADC = 9,
+	TPS6586X_INT_PLDO_8 = 10,
+	TPS6586X_INT_PLDO_9 = 11,
+	TPS6586X_INT_PSM_0 = 12,
+	TPS6586X_INT_PSM_1 = 13,
+	TPS6586X_INT_PSM_2 = 14,
+	TPS6586X_INT_PSM_3 = 15,
+	TPS6586X_INT_RTC_ALM1 = 16,
+	TPS6586X_INT_ACUSB_OVP = 17,
+	TPS6586X_INT_USB_DET = 18,
+	TPS6586X_INT_AC_DET = 19,
+	TPS6586X_INT_BAT_DET = 20,
+	TPS6586X_INT_CHG_STAT = 21,
+	TPS6586X_INT_CHG_TEMP = 22,
+	TPS6586X_INT_PP = 23,
+	TPS6586X_INT_RESUME = 24,
+	TPS6586X_INT_LOW_SYS = 25,
+	TPS6586X_INT_RTC_ALM2 = 26,
+};
+
+struct tps6586x_subdev_info {
+	int id;
+	const char *name;
+	void *platform_data;
+	struct device_node *of_node;
+};
+
+struct tps6586x_platform_data {
+	int num_subdevs;
+	struct tps6586x_subdev_info *subdevs;
+	int gpio_base;
+	int irq_base;
+	bool pm_off;
+	struct regulator_init_data *reg_init_data[15];
+};
+
+struct tps6586x_gpio {
+	struct gpio_chip gpio_chip;
+	struct device *parent;
+};
+
+struct tps65910_sleep_keepon_data {
+	unsigned int therm_keepon: 1;
