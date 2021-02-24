@@ -63718,3 +63718,2105 @@ struct rio_dma_data {
 	u8 rio_addr_u;
 	enum rio_write_type wr_type;
 };
+
+struct rio_scan_node {
+	int mport_id;
+	struct list_head node;
+	struct rio_scan *ops;
+};
+
+struct rio_pwrite {
+	struct list_head node;
+	int (*pwcback)(struct rio_mport *, void *, union rio_pw_msg *, int);
+	void *context;
+};
+
+struct rio_disc_work {
+	struct work_struct work;
+	struct rio_mport *mport;
+};
+
+enum hdmi_infoframe_type {
+	HDMI_INFOFRAME_TYPE_VENDOR = 129,
+	HDMI_INFOFRAME_TYPE_AVI = 130,
+	HDMI_INFOFRAME_TYPE_SPD = 131,
+	HDMI_INFOFRAME_TYPE_AUDIO = 132,
+	HDMI_INFOFRAME_TYPE_DRM = 135,
+};
+
+struct hdmi_any_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+};
+
+enum hdmi_colorspace {
+	HDMI_COLORSPACE_RGB = 0,
+	HDMI_COLORSPACE_YUV422 = 1,
+	HDMI_COLORSPACE_YUV444 = 2,
+	HDMI_COLORSPACE_YUV420 = 3,
+	HDMI_COLORSPACE_RESERVED4 = 4,
+	HDMI_COLORSPACE_RESERVED5 = 5,
+	HDMI_COLORSPACE_RESERVED6 = 6,
+	HDMI_COLORSPACE_IDO_DEFINED = 7,
+};
+
+enum hdmi_scan_mode {
+	HDMI_SCAN_MODE_NONE = 0,
+	HDMI_SCAN_MODE_OVERSCAN = 1,
+	HDMI_SCAN_MODE_UNDERSCAN = 2,
+	HDMI_SCAN_MODE_RESERVED = 3,
+};
+
+enum hdmi_colorimetry {
+	HDMI_COLORIMETRY_NONE = 0,
+	HDMI_COLORIMETRY_ITU_601 = 1,
+	HDMI_COLORIMETRY_ITU_709 = 2,
+	HDMI_COLORIMETRY_EXTENDED = 3,
+};
+
+enum hdmi_picture_aspect {
+	HDMI_PICTURE_ASPECT_NONE = 0,
+	HDMI_PICTURE_ASPECT_4_3 = 1,
+	HDMI_PICTURE_ASPECT_16_9 = 2,
+	HDMI_PICTURE_ASPECT_64_27 = 3,
+	HDMI_PICTURE_ASPECT_256_135 = 4,
+	HDMI_PICTURE_ASPECT_RESERVED = 5,
+};
+
+enum hdmi_active_aspect {
+	HDMI_ACTIVE_ASPECT_16_9_TOP = 2,
+	HDMI_ACTIVE_ASPECT_14_9_TOP = 3,
+	HDMI_ACTIVE_ASPECT_16_9_CENTER = 4,
+	HDMI_ACTIVE_ASPECT_PICTURE = 8,
+	HDMI_ACTIVE_ASPECT_4_3 = 9,
+	HDMI_ACTIVE_ASPECT_16_9 = 10,
+	HDMI_ACTIVE_ASPECT_14_9 = 11,
+	HDMI_ACTIVE_ASPECT_4_3_SP_14_9 = 13,
+	HDMI_ACTIVE_ASPECT_16_9_SP_14_9 = 14,
+	HDMI_ACTIVE_ASPECT_16_9_SP_4_3 = 15,
+};
+
+enum hdmi_extended_colorimetry {
+	HDMI_EXTENDED_COLORIMETRY_XV_YCC_601 = 0,
+	HDMI_EXTENDED_COLORIMETRY_XV_YCC_709 = 1,
+	HDMI_EXTENDED_COLORIMETRY_S_YCC_601 = 2,
+	HDMI_EXTENDED_COLORIMETRY_OPYCC_601 = 3,
+	HDMI_EXTENDED_COLORIMETRY_OPRGB = 4,
+	HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM = 5,
+	HDMI_EXTENDED_COLORIMETRY_BT2020 = 6,
+	HDMI_EXTENDED_COLORIMETRY_RESERVED = 7,
+};
+
+enum hdmi_quantization_range {
+	HDMI_QUANTIZATION_RANGE_DEFAULT = 0,
+	HDMI_QUANTIZATION_RANGE_LIMITED = 1,
+	HDMI_QUANTIZATION_RANGE_FULL = 2,
+	HDMI_QUANTIZATION_RANGE_RESERVED = 3,
+};
+
+enum hdmi_nups {
+	HDMI_NUPS_UNKNOWN = 0,
+	HDMI_NUPS_HORIZONTAL = 1,
+	HDMI_NUPS_VERTICAL = 2,
+	HDMI_NUPS_BOTH = 3,
+};
+
+enum hdmi_ycc_quantization_range {
+	HDMI_YCC_QUANTIZATION_RANGE_LIMITED = 0,
+	HDMI_YCC_QUANTIZATION_RANGE_FULL = 1,
+};
+
+enum hdmi_content_type {
+	HDMI_CONTENT_TYPE_GRAPHICS = 0,
+	HDMI_CONTENT_TYPE_PHOTO = 1,
+	HDMI_CONTENT_TYPE_CINEMA = 2,
+	HDMI_CONTENT_TYPE_GAME = 3,
+};
+
+enum hdmi_metadata_type {
+	HDMI_STATIC_METADATA_TYPE1 = 0,
+};
+
+enum hdmi_eotf {
+	HDMI_EOTF_TRADITIONAL_GAMMA_SDR = 0,
+	HDMI_EOTF_TRADITIONAL_GAMMA_HDR = 1,
+	HDMI_EOTF_SMPTE_ST2084 = 2,
+	HDMI_EOTF_BT_2100_HLG = 3,
+};
+
+struct hdmi_avi_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	enum hdmi_colorspace colorspace;
+	enum hdmi_scan_mode scan_mode;
+	enum hdmi_colorimetry colorimetry;
+	enum hdmi_picture_aspect picture_aspect;
+	enum hdmi_active_aspect active_aspect;
+	bool itc;
+	enum hdmi_extended_colorimetry extended_colorimetry;
+	enum hdmi_quantization_range quantization_range;
+	enum hdmi_nups nups;
+	unsigned char video_code;
+	enum hdmi_ycc_quantization_range ycc_quantization_range;
+	enum hdmi_content_type content_type;
+	unsigned char pixel_repeat;
+	short unsigned int top_bar;
+	short unsigned int bottom_bar;
+	short unsigned int left_bar;
+	short unsigned int right_bar;
+};
+
+struct hdmi_drm_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	enum hdmi_eotf eotf;
+	enum hdmi_metadata_type metadata_type;
+	struct {
+		u16 x;
+		u16 y;
+	} display_primaries[3];
+	struct {
+		u16 x;
+		u16 y;
+	} white_point;
+	u16 max_display_mastering_luminance;
+	u16 min_display_mastering_luminance;
+	u16 max_cll;
+	u16 max_fall;
+};
+
+enum hdmi_spd_sdi {
+	HDMI_SPD_SDI_UNKNOWN = 0,
+	HDMI_SPD_SDI_DSTB = 1,
+	HDMI_SPD_SDI_DVDP = 2,
+	HDMI_SPD_SDI_DVHS = 3,
+	HDMI_SPD_SDI_HDDVR = 4,
+	HDMI_SPD_SDI_DVC = 5,
+	HDMI_SPD_SDI_DSC = 6,
+	HDMI_SPD_SDI_VCD = 7,
+	HDMI_SPD_SDI_GAME = 8,
+	HDMI_SPD_SDI_PC = 9,
+	HDMI_SPD_SDI_BD = 10,
+	HDMI_SPD_SDI_SACD = 11,
+	HDMI_SPD_SDI_HDDVD = 12,
+	HDMI_SPD_SDI_PMP = 13,
+};
+
+struct hdmi_spd_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	char vendor[8];
+	char product[16];
+	enum hdmi_spd_sdi sdi;
+};
+
+enum hdmi_audio_coding_type {
+	HDMI_AUDIO_CODING_TYPE_STREAM = 0,
+	HDMI_AUDIO_CODING_TYPE_PCM = 1,
+	HDMI_AUDIO_CODING_TYPE_AC3 = 2,
+	HDMI_AUDIO_CODING_TYPE_MPEG1 = 3,
+	HDMI_AUDIO_CODING_TYPE_MP3 = 4,
+	HDMI_AUDIO_CODING_TYPE_MPEG2 = 5,
+	HDMI_AUDIO_CODING_TYPE_AAC_LC = 6,
+	HDMI_AUDIO_CODING_TYPE_DTS = 7,
+	HDMI_AUDIO_CODING_TYPE_ATRAC = 8,
+	HDMI_AUDIO_CODING_TYPE_DSD = 9,
+	HDMI_AUDIO_CODING_TYPE_EAC3 = 10,
+	HDMI_AUDIO_CODING_TYPE_DTS_HD = 11,
+	HDMI_AUDIO_CODING_TYPE_MLP = 12,
+	HDMI_AUDIO_CODING_TYPE_DST = 13,
+	HDMI_AUDIO_CODING_TYPE_WMA_PRO = 14,
+	HDMI_AUDIO_CODING_TYPE_CXT = 15,
+};
+
+enum hdmi_audio_sample_size {
+	HDMI_AUDIO_SAMPLE_SIZE_STREAM = 0,
+	HDMI_AUDIO_SAMPLE_SIZE_16 = 1,
+	HDMI_AUDIO_SAMPLE_SIZE_20 = 2,
+	HDMI_AUDIO_SAMPLE_SIZE_24 = 3,
+};
+
+enum hdmi_audio_sample_frequency {
+	HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM = 0,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_32000 = 1,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_44100 = 2,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_48000 = 3,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_88200 = 4,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_96000 = 5,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_176400 = 6,
+	HDMI_AUDIO_SAMPLE_FREQUENCY_192000 = 7,
+};
+
+enum hdmi_audio_coding_type_ext {
+	HDMI_AUDIO_CODING_TYPE_EXT_CT = 0,
+	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC = 1,
+	HDMI_AUDIO_CODING_TYPE_EXT_HE_AAC_V2 = 2,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG_SURROUND = 3,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC = 4,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_V2 = 5,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC = 6,
+	HDMI_AUDIO_CODING_TYPE_EXT_DRA = 7,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_HE_AAC_SURROUND = 8,
+	HDMI_AUDIO_CODING_TYPE_EXT_MPEG4_AAC_LC_SURROUND = 10,
+};
+
+struct hdmi_audio_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	unsigned char channels;
+	enum hdmi_audio_coding_type coding_type;
+	enum hdmi_audio_sample_size sample_size;
+	enum hdmi_audio_sample_frequency sample_frequency;
+	enum hdmi_audio_coding_type_ext coding_type_ext;
+	unsigned char channel_allocation;
+	unsigned char level_shift_value;
+	bool downmix_inhibit;
+};
+
+enum hdmi_3d_structure {
+	HDMI_3D_STRUCTURE_INVALID = 4294967295,
+	HDMI_3D_STRUCTURE_FRAME_PACKING = 0,
+	HDMI_3D_STRUCTURE_FIELD_ALTERNATIVE = 1,
+	HDMI_3D_STRUCTURE_LINE_ALTERNATIVE = 2,
+	HDMI_3D_STRUCTURE_SIDE_BY_SIDE_FULL = 3,
+	HDMI_3D_STRUCTURE_L_DEPTH = 4,
+	HDMI_3D_STRUCTURE_L_DEPTH_GFX_GFX_DEPTH = 5,
+	HDMI_3D_STRUCTURE_TOP_AND_BOTTOM = 6,
+	HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF = 8,
+};
+
+struct hdmi_vendor_infoframe {
+	enum hdmi_infoframe_type type;
+	unsigned char version;
+	unsigned char length;
+	unsigned int oui;
+	u8 vic;
+	enum hdmi_3d_structure s3d_struct;
+	unsigned int s3d_ext_data;
+};
+
+union hdmi_vendor_any_infoframe {
+	struct {
+		enum hdmi_infoframe_type type;
+		unsigned char version;
+		unsigned char length;
+		unsigned int oui;
+	} any;
+	struct hdmi_vendor_infoframe hdmi;
+};
+
+union hdmi_infoframe {
+	struct hdmi_any_infoframe any;
+	struct hdmi_avi_infoframe avi;
+	struct hdmi_spd_infoframe spd;
+	union hdmi_vendor_any_infoframe vendor;
+	struct hdmi_audio_infoframe audio;
+	struct hdmi_drm_infoframe drm;
+};
+
+enum con_scroll {
+	SM_UP = 0,
+	SM_DOWN = 1,
+};
+
+enum vc_intensity {
+	VCI_HALF_BRIGHT = 0,
+	VCI_NORMAL = 1,
+	VCI_BOLD = 2,
+	VCI_MASK = 3,
+};
+
+struct vc_data;
+
+struct console_font;
+
+struct consw {
+	struct module *owner;
+	const char * (*con_startup)();
+	void (*con_init)(struct vc_data *, int);
+	void (*con_deinit)(struct vc_data *);
+	void (*con_clear)(struct vc_data *, int, int, int, int);
+	void (*con_putc)(struct vc_data *, int, int, int);
+	void (*con_putcs)(struct vc_data *, const short unsigned int *, int, int, int);
+	void (*con_cursor)(struct vc_data *, int);
+	bool (*con_scroll)(struct vc_data *, unsigned int, unsigned int, enum con_scroll, unsigned int);
+	int (*con_switch)(struct vc_data *);
+	int (*con_blank)(struct vc_data *, int, int);
+	int (*con_font_set)(struct vc_data *, struct console_font *, unsigned int);
+	int (*con_font_get)(struct vc_data *, struct console_font *);
+	int (*con_font_default)(struct vc_data *, struct console_font *, char *);
+	int (*con_resize)(struct vc_data *, unsigned int, unsigned int, unsigned int);
+	void (*con_set_palette)(struct vc_data *, const unsigned char *);
+	void (*con_scrolldelta)(struct vc_data *, int);
+	int (*con_set_origin)(struct vc_data *);
+	void (*con_save_screen)(struct vc_data *);
+	u8 (*con_build_attr)(struct vc_data *, u8, enum vc_intensity, bool, bool, bool, bool);
+	void (*con_invert_region)(struct vc_data *, u16 *, int);
+	u16 * (*con_screen_pos)(const struct vc_data *, int);
+	long unsigned int (*con_getxy)(struct vc_data *, long unsigned int, int *, int *);
+	void (*con_flush_scrollback)(struct vc_data *);
+	int (*con_debug_enter)(struct vc_data *);
+	int (*con_debug_leave)(struct vc_data *);
+};
+
+struct vc_state {
+	unsigned int x;
+	unsigned int y;
+	unsigned char color;
+	unsigned char Gx_charset[2];
+	unsigned int charset: 1;
+	enum vc_intensity intensity;
+	bool italic;
+	bool underline;
+	bool blink;
+	bool reverse;
+};
+
+struct console_font {
+	unsigned int width;
+	unsigned int height;
+	unsigned int charcount;
+	unsigned char *data;
+};
+
+struct vt_mode {
+	char mode;
+	char waitv;
+	short int relsig;
+	short int acqsig;
+	short int frsig;
+};
+
+struct uni_pagedir;
+
+struct uni_screen;
+
+struct vc_data {
+	struct tty_port port;
+	struct vc_state state;
+	struct vc_state saved_state;
+	short unsigned int vc_num;
+	unsigned int vc_cols;
+	unsigned int vc_rows;
+	unsigned int vc_size_row;
+	unsigned int vc_scan_lines;
+	unsigned int vc_cell_height;
+	long unsigned int vc_origin;
+	long unsigned int vc_scr_end;
+	long unsigned int vc_visible_origin;
+	unsigned int vc_top;
+	unsigned int vc_bottom;
+	const struct consw *vc_sw;
+	short unsigned int *vc_screenbuf;
+	unsigned int vc_screenbuf_size;
+	unsigned char vc_mode;
+	unsigned char vc_attr;
+	unsigned char vc_def_color;
+	unsigned char vc_ulcolor;
+	unsigned char vc_itcolor;
+	unsigned char vc_halfcolor;
+	unsigned int vc_cursor_type;
+	short unsigned int vc_complement_mask;
+	short unsigned int vc_s_complement_mask;
+	long unsigned int vc_pos;
+	short unsigned int vc_hi_font_mask;
+	struct console_font vc_font;
+	short unsigned int vc_video_erase_char;
+	unsigned int vc_state;
+	unsigned int vc_npar;
+	unsigned int vc_par[16];
+	struct vt_mode vt_mode;
+	struct pid *vt_pid;
+	int vt_newvt;
+	wait_queue_head_t paste_wait;
+	unsigned int vc_disp_ctrl: 1;
+	unsigned int vc_toggle_meta: 1;
+	unsigned int vc_decscnm: 1;
+	unsigned int vc_decom: 1;
+	unsigned int vc_decawm: 1;
+	unsigned int vc_deccm: 1;
+	unsigned int vc_decim: 1;
+	unsigned int vc_priv: 3;
+	unsigned int vc_need_wrap: 1;
+	unsigned int vc_can_do_color: 1;
+	unsigned int vc_report_mouse: 2;
+	unsigned char vc_utf: 1;
+	unsigned char vc_utf_count;
+	int vc_utf_char;
+	long unsigned int vc_tab_stop[4];
+	unsigned char vc_palette[48];
+	short unsigned int *vc_translate;
+	unsigned int vc_resize_user;
+	unsigned int vc_bell_pitch;
+	unsigned int vc_bell_duration;
+	short unsigned int vc_cur_blink_ms;
+	struct vc_data **vc_display_fg;
+	struct uni_pagedir *vc_uni_pagedir;
+	struct uni_pagedir **vc_uni_pagedir_loc;
+	struct uni_screen *vc_uni_screen;
+};
+
+struct vc {
+	struct vc_data *d;
+	struct work_struct SAK_work;
+};
+
+struct vgastate {
+	void *vgabase;
+	long unsigned int membase;
+	__u32 memsize;
+	__u32 flags;
+	__u32 depth;
+	__u32 num_attr;
+	__u32 num_crtc;
+	__u32 num_gfx;
+	__u32 num_seq;
+	void *vidstate;
+};
+
+struct fb_fix_screeninfo {
+	char id[16];
+	long unsigned int smem_start;
+	__u32 smem_len;
+	__u32 type;
+	__u32 type_aux;
+	__u32 visual;
+	__u16 xpanstep;
+	__u16 ypanstep;
+	__u16 ywrapstep;
+	__u32 line_length;
+	long unsigned int mmio_start;
+	__u32 mmio_len;
+	__u32 accel;
+	__u16 capabilities;
+	__u16 reserved[2];
+};
+
+struct fb_bitfield {
+	__u32 offset;
+	__u32 length;
+	__u32 msb_right;
+};
+
+struct fb_var_screeninfo {
+	__u32 xres;
+	__u32 yres;
+	__u32 xres_virtual;
+	__u32 yres_virtual;
+	__u32 xoffset;
+	__u32 yoffset;
+	__u32 bits_per_pixel;
+	__u32 grayscale;
+	struct fb_bitfield red;
+	struct fb_bitfield green;
+	struct fb_bitfield blue;
+	struct fb_bitfield transp;
+	__u32 nonstd;
+	__u32 activate;
+	__u32 height;
+	__u32 width;
+	__u32 accel_flags;
+	__u32 pixclock;
+	__u32 left_margin;
+	__u32 right_margin;
+	__u32 upper_margin;
+	__u32 lower_margin;
+	__u32 hsync_len;
+	__u32 vsync_len;
+	__u32 sync;
+	__u32 vmode;
+	__u32 rotate;
+	__u32 colorspace;
+	__u32 reserved[4];
+};
+
+struct fb_cmap {
+	__u32 start;
+	__u32 len;
+	__u16 *red;
+	__u16 *green;
+	__u16 *blue;
+	__u16 *transp;
+};
+
+enum {
+	FB_BLANK_UNBLANK = 0,
+	FB_BLANK_NORMAL = 1,
+	FB_BLANK_VSYNC_SUSPEND = 2,
+	FB_BLANK_HSYNC_SUSPEND = 3,
+	FB_BLANK_POWERDOWN = 4,
+};
+
+struct fb_copyarea {
+	__u32 dx;
+	__u32 dy;
+	__u32 width;
+	__u32 height;
+	__u32 sx;
+	__u32 sy;
+};
+
+struct fb_fillrect {
+	__u32 dx;
+	__u32 dy;
+	__u32 width;
+	__u32 height;
+	__u32 color;
+	__u32 rop;
+};
+
+struct fb_image {
+	__u32 dx;
+	__u32 dy;
+	__u32 width;
+	__u32 height;
+	__u32 fg_color;
+	__u32 bg_color;
+	__u8 depth;
+	const char *data;
+	struct fb_cmap cmap;
+};
+
+struct fbcurpos {
+	__u16 x;
+	__u16 y;
+};
+
+struct fb_cursor {
+	__u16 set;
+	__u16 enable;
+	__u16 rop;
+	const char *mask;
+	struct fbcurpos hot;
+	struct fb_image image;
+};
+
+enum backlight_type {
+	BACKLIGHT_RAW = 1,
+	BACKLIGHT_PLATFORM = 2,
+	BACKLIGHT_FIRMWARE = 3,
+	BACKLIGHT_TYPE_MAX = 4,
+};
+
+enum backlight_scale {
+	BACKLIGHT_SCALE_UNKNOWN = 0,
+	BACKLIGHT_SCALE_LINEAR = 1,
+	BACKLIGHT_SCALE_NON_LINEAR = 2,
+};
+
+struct backlight_device;
+
+struct fb_info;
+
+struct backlight_ops {
+	unsigned int options;
+	int (*update_status)(struct backlight_device *);
+	int (*get_brightness)(struct backlight_device *);
+	int (*check_fb)(struct backlight_device *, struct fb_info *);
+};
+
+struct backlight_properties {
+	int brightness;
+	int max_brightness;
+	int power;
+	int fb_blank;
+	enum backlight_type type;
+	unsigned int state;
+	enum backlight_scale scale;
+};
+
+struct backlight_device {
+	struct backlight_properties props;
+	struct mutex update_lock;
+	struct mutex ops_lock;
+	const struct backlight_ops *ops;
+	struct notifier_block fb_notif;
+	struct list_head entry;
+	struct device dev;
+	bool fb_bl_on[32];
+	int use_count;
+};
+
+struct fb_chroma {
+	__u32 redx;
+	__u32 greenx;
+	__u32 bluex;
+	__u32 whitex;
+	__u32 redy;
+	__u32 greeny;
+	__u32 bluey;
+	__u32 whitey;
+};
+
+struct fb_videomode;
+
+struct fb_monspecs {
+	struct fb_chroma chroma;
+	struct fb_videomode *modedb;
+	__u8 manufacturer[4];
+	__u8 monitor[14];
+	__u8 serial_no[14];
+	__u8 ascii[14];
+	__u32 modedb_len;
+	__u32 model;
+	__u32 serial;
+	__u32 year;
+	__u32 week;
+	__u32 hfmin;
+	__u32 hfmax;
+	__u32 dclkmin;
+	__u32 dclkmax;
+	__u16 input;
+	__u16 dpms;
+	__u16 signal;
+	__u16 vfmin;
+	__u16 vfmax;
+	__u16 gamma;
+	__u16 gtf: 1;
+	__u16 misc;
+	__u8 version;
+	__u8 revision;
+	__u8 max_x;
+	__u8 max_y;
+};
+
+struct fb_pixmap {
+	u8 *addr;
+	u32 size;
+	u32 offset;
+	u32 buf_align;
+	u32 scan_align;
+	u32 access_align;
+	u32 flags;
+	u32 blit_x;
+	u32 blit_y;
+	void (*writeio)(struct fb_info *, void *, void *, unsigned int);
+	void (*readio)(struct fb_info *, void *, void *, unsigned int);
+};
+
+struct fb_deferred_io;
+
+struct fb_ops;
+
+struct fb_tile_ops;
+
+struct apertures_struct;
+
+struct fb_info {
+	refcount_t count;
+	int node;
+	int flags;
+	int fbcon_rotate_hint;
+	struct mutex lock;
+	struct mutex mm_lock;
+	struct fb_var_screeninfo var;
+	struct fb_fix_screeninfo fix;
+	struct fb_monspecs monspecs;
+	struct work_struct queue;
+	struct fb_pixmap pixmap;
+	struct fb_pixmap sprite;
+	struct fb_cmap cmap;
+	struct list_head modelist;
+	struct fb_videomode *mode;
+	struct backlight_device *bl_dev;
+	struct mutex bl_curve_mutex;
+	u8 bl_curve[128];
+	struct delayed_work deferred_work;
+	struct fb_deferred_io *fbdefio;
+	const struct fb_ops *fbops;
+	struct device *device;
+	struct device *dev;
+	int class_flag;
+	struct fb_tile_ops *tileops;
+	union {
+		char *screen_base;
+		char *screen_buffer;
+	};
+	long unsigned int screen_size;
+	void *pseudo_palette;
+	u32 state;
+	void *fbcon_par;
+	void *par;
+	struct apertures_struct *apertures;
+	bool skip_vt_switch;
+};
+
+struct fb_videomode {
+	const char *name;
+	u32 refresh;
+	u32 xres;
+	u32 yres;
+	u32 pixclock;
+	u32 left_margin;
+	u32 right_margin;
+	u32 upper_margin;
+	u32 lower_margin;
+	u32 hsync_len;
+	u32 vsync_len;
+	u32 sync;
+	u32 vmode;
+	u32 flag;
+};
+
+struct fb_cmap_user {
+	__u32 start;
+	__u32 len;
+	__u16 *red;
+	__u16 *green;
+	__u16 *blue;
+	__u16 *transp;
+};
+
+struct fb_event {
+	struct fb_info *info;
+	void *data;
+};
+
+struct fb_blit_caps {
+	u32 x;
+	u32 y;
+	u32 len;
+	u32 flags;
+};
+
+struct fb_deferred_io {
+	long unsigned int delay;
+	struct mutex lock;
+	struct list_head pagelist;
+	void (*first_io)(struct fb_info *);
+	void (*deferred_io)(struct fb_info *, struct list_head *);
+};
+
+struct fb_ops {
+	struct module *owner;
+	int (*fb_open)(struct fb_info *, int);
+	int (*fb_release)(struct fb_info *, int);
+	ssize_t (*fb_read)(struct fb_info *, char *, size_t, loff_t *);
+	ssize_t (*fb_write)(struct fb_info *, const char *, size_t, loff_t *);
+	int (*fb_check_var)(struct fb_var_screeninfo *, struct fb_info *);
+	int (*fb_set_par)(struct fb_info *);
+	int (*fb_setcolreg)(unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, struct fb_info *);
+	int (*fb_setcmap)(struct fb_cmap *, struct fb_info *);
+	int (*fb_blank)(int, struct fb_info *);
+	int (*fb_pan_display)(struct fb_var_screeninfo *, struct fb_info *);
+	void (*fb_fillrect)(struct fb_info *, const struct fb_fillrect *);
+	void (*fb_copyarea)(struct fb_info *, const struct fb_copyarea *);
+	void (*fb_imageblit)(struct fb_info *, const struct fb_image *);
+	int (*fb_cursor)(struct fb_info *, struct fb_cursor *);
+	int (*fb_sync)(struct fb_info *);
+	int (*fb_ioctl)(struct fb_info *, unsigned int, long unsigned int);
+	int (*fb_compat_ioctl)(struct fb_info *, unsigned int, long unsigned int);
+	int (*fb_mmap)(struct fb_info *, struct vm_area_struct *);
+	void (*fb_get_caps)(struct fb_info *, struct fb_blit_caps *, struct fb_var_screeninfo *);
+	void (*fb_destroy)(struct fb_info *);
+	int (*fb_debug_enter)(struct fb_info *);
+	int (*fb_debug_leave)(struct fb_info *);
+};
+
+struct fb_tilemap {
+	__u32 width;
+	__u32 height;
+	__u32 depth;
+	__u32 length;
+	const __u8 *data;
+};
+
+struct fb_tilerect {
+	__u32 sx;
+	__u32 sy;
+	__u32 width;
+	__u32 height;
+	__u32 index;
+	__u32 fg;
+	__u32 bg;
+	__u32 rop;
+};
+
+struct fb_tilearea {
+	__u32 sx;
+	__u32 sy;
+	__u32 dx;
+	__u32 dy;
+	__u32 width;
+	__u32 height;
+};
+
+struct fb_tileblit {
+	__u32 sx;
+	__u32 sy;
+	__u32 width;
+	__u32 height;
+	__u32 fg;
+	__u32 bg;
+	__u32 length;
+	__u32 *indices;
+};
+
+struct fb_tilecursor {
+	__u32 sx;
+	__u32 sy;
+	__u32 mode;
+	__u32 shape;
+	__u32 fg;
+	__u32 bg;
+};
+
+struct fb_tile_ops {
+	void (*fb_settile)(struct fb_info *, struct fb_tilemap *);
+	void (*fb_tilecopy)(struct fb_info *, struct fb_tilearea *);
+	void (*fb_tilefill)(struct fb_info *, struct fb_tilerect *);
+	void (*fb_tileblit)(struct fb_info *, struct fb_tileblit *);
+	void (*fb_tilecursor)(struct fb_info *, struct fb_tilecursor *);
+	int (*fb_get_tilemax)(struct fb_info *);
+};
+
+struct aperture {
+	resource_size_t base;
+	resource_size_t size;
+};
+
+struct apertures_struct {
+	unsigned int count;
+	struct aperture ranges[0];
+};
+
+struct fb_modelist {
+	struct list_head list;
+	struct fb_videomode mode;
+};
+
+struct dmt_videomode {
+	u32 dmt_id;
+	u32 std_2byte_code;
+	u32 cvt_3byte_code;
+	const struct fb_videomode *mode;
+};
+
+enum display_flags {
+	DISPLAY_FLAGS_HSYNC_LOW = 1,
+	DISPLAY_FLAGS_HSYNC_HIGH = 2,
+	DISPLAY_FLAGS_VSYNC_LOW = 4,
+	DISPLAY_FLAGS_VSYNC_HIGH = 8,
+	DISPLAY_FLAGS_DE_LOW = 16,
+	DISPLAY_FLAGS_DE_HIGH = 32,
+	DISPLAY_FLAGS_PIXDATA_POSEDGE = 64,
+	DISPLAY_FLAGS_PIXDATA_NEGEDGE = 128,
+	DISPLAY_FLAGS_INTERLACED = 256,
+	DISPLAY_FLAGS_DOUBLESCAN = 512,
+	DISPLAY_FLAGS_DOUBLECLK = 1024,
+	DISPLAY_FLAGS_SYNC_POSEDGE = 2048,
+	DISPLAY_FLAGS_SYNC_NEGEDGE = 4096,
+};
+
+struct videomode {
+	long unsigned int pixelclock;
+	u32 hactive;
+	u32 hfront_porch;
+	u32 hback_porch;
+	u32 hsync_len;
+	u32 vactive;
+	u32 vfront_porch;
+	u32 vback_porch;
+	u32 vsync_len;
+	enum display_flags flags;
+};
+
+struct broken_edid {
+	u8 manufacturer[4];
+	u32 model;
+	u32 fix;
+};
+
+struct __fb_timings {
+	u32 dclk;
+	u32 hfreq;
+	u32 vfreq;
+	u32 hactive;
+	u32 vactive;
+	u32 hblank;
+	u32 vblank;
+	u32 htotal;
+	u32 vtotal;
+};
+
+typedef unsigned int u_int;
+
+struct fb_cvt_data {
+	u32 xres;
+	u32 yres;
+	u32 refresh;
+	u32 f_refresh;
+	u32 pixclock;
+	u32 hperiod;
+	u32 hblank;
+	u32 hfreq;
+	u32 htotal;
+	u32 vtotal;
+	u32 vsync;
+	u32 hsync;
+	u32 h_front_porch;
+	u32 h_back_porch;
+	u32 v_front_porch;
+	u32 v_back_porch;
+	u32 h_margin;
+	u32 v_margin;
+	u32 interlace;
+	u32 aspect_ratio;
+	u32 active_pixels;
+	u32 flags;
+	u32 status;
+};
+
+typedef unsigned char u_char;
+
+struct fb_con2fbmap {
+	__u32 console;
+	__u32 framebuffer;
+};
+
+struct fbcon_display {
+	const u_char *fontdata;
+	int userfont;
+	u_short inverse;
+	short int yscroll;
+	int vrows;
+	int cursor_shape;
+	int con_rotate;
+	u32 xres_virtual;
+	u32 yres_virtual;
+	u32 height;
+	u32 width;
+	u32 bits_per_pixel;
+	u32 grayscale;
+	u32 nonstd;
+	u32 accel_flags;
+	u32 rotate;
+	struct fb_bitfield red;
+	struct fb_bitfield green;
+	struct fb_bitfield blue;
+	struct fb_bitfield transp;
+	const struct fb_videomode *mode;
+};
+
+struct fbcon_ops {
+	void (*bmove)(struct vc_data *, struct fb_info *, int, int, int, int, int, int);
+	void (*clear)(struct vc_data *, struct fb_info *, int, int, int, int);
+	void (*putcs)(struct vc_data *, struct fb_info *, const short unsigned int *, int, int, int, int, int);
+	void (*clear_margins)(struct vc_data *, struct fb_info *, int, int);
+	void (*cursor)(struct vc_data *, struct fb_info *, int, int, int);
+	int (*update_start)(struct fb_info *);
+	int (*rotate_font)(struct fb_info *, struct vc_data *);
+	struct fb_var_screeninfo var;
+	struct timer_list cursor_timer;
+	struct fb_cursor cursor_state;
+	struct fbcon_display *p;
+	struct fb_info *info;
+	int currcon;
+	int cur_blink_jiffies;
+	int cursor_flash;
+	int cursor_reset;
+	int blank_state;
+	int graphics;
+	int save_graphics;
+	int flags;
+	int rotate;
+	int cur_rotate;
+	char *cursor_data;
+	u8 *fontbuffer;
+	u8 *fontdata;
+	u8 *cursor_src;
+	u32 cursor_size;
+	u32 fd_size;
+};
+
+enum {
+	FBCON_LOGO_CANSHOW = 4294967295,
+	FBCON_LOGO_DRAW = 4294967294,
+	FBCON_LOGO_DONTSHOW = 4294967293,
+};
+
+typedef long unsigned int u_long;
+
+enum {
+	S1SA = 0,
+	S2SA = 1,
+	SP = 2,
+	DSA = 3,
+	CNT = 4,
+	DP_OCTL = 5,
+	CLR = 6,
+	BI = 8,
+	MBC = 9,
+	BLTCTL = 10,
+	HES = 12,
+	HEB = 13,
+	HSB = 14,
+	HT = 15,
+	VES = 16,
+	VEB = 17,
+	VSB = 18,
+	VT = 19,
+	HCIV = 20,
+	VCIV = 21,
+	TCDR = 22,
+	VIL = 23,
+	STGCTL = 24,
+	SSR = 25,
+	HRIR = 26,
+	SPR = 27,
+	CMR = 28,
+	SRGCTL = 29,
+	RRCIV = 30,
+	RRSC = 31,
+	RRCR = 34,
+	GIOE = 32,
+	GIO = 33,
+	SCR = 35,
+	SSTATUS = 36,
+	PRC = 37,
+};
+
+enum {
+	PADDRW = 0,
+	PDATA = 4,
+	PPMASK = 8,
+	PADDRR = 12,
+	PIDXLO = 16,
+	PIDXHI = 20,
+	PIDXDATA = 24,
+	PIDXCTL = 28,
+};
+
+enum {
+	CLKCTL = 2,
+	SYNCCTL = 3,
+	HSYNCPOS = 4,
+	PWRMNGMT = 5,
+	DACOP = 6,
+	PALETCTL = 7,
+	SYSCLKCTL = 8,
+	PIXFMT = 10,
+	BPP8 = 11,
+	BPP16 = 12,
+	BPP24 = 13,
+	BPP32 = 14,
+	PIXCTL1 = 16,
+	PIXCTL2 = 17,
+	SYSCLKN = 21,
+	SYSCLKM = 22,
+	SYSCLKP = 23,
+	SYSCLKC = 24,
+	PIXM0 = 32,
+	PIXN0 = 33,
+	PIXP0 = 34,
+	PIXC0 = 35,
+	CURSCTL = 48,
+	CURSXLO = 49,
+	CURSXHI = 50,
+	CURSYLO = 51,
+	CURSYHI = 52,
+	CURSHOTX = 53,
+	CURSHOTY = 54,
+	CURSACCTL = 55,
+	CURSACATTR = 56,
+	CURS1R = 64,
+	CURS1G = 65,
+	CURS1B = 66,
+	CURS2R = 67,
+	CURS2G = 68,
+	CURS2B = 69,
+	CURS3R = 70,
+	CURS3G = 71,
+	CURS3B = 72,
+	BORDR = 96,
+	BORDG = 97,
+	BORDB = 98,
+	MISCTL1 = 112,
+	MISCTL2 = 113,
+	MISCTL3 = 114,
+	KEYCTL = 120,
+};
+
+enum {
+	TVPADDRW = 0,
+	TVPPDATA = 4,
+	TVPPMASK = 8,
+	TVPPADRR = 12,
+	TVPCADRW = 16,
+	TVPCDATA = 20,
+	TVPCADRR = 28,
+	TVPDCCTL = 36,
+	TVPIDATA = 40,
+	TVPCRDAT = 44,
+	TVPCXPOL = 48,
+	TVPCXPOH = 52,
+	TVPCYPOL = 56,
+	TVPCYPOH = 60,
+};
+
+enum {
+	TVPIRREV = 1,
+	TVPIRICC = 6,
+	TVPIRBRC = 7,
+	TVPIRLAC = 15,
+	TVPIRTCC = 24,
+	TVPIRMXC = 25,
+	TVPIRCLS = 26,
+	TVPIRPPG = 28,
+	TVPIRGEC = 29,
+	TVPIRMIC = 30,
+	TVPIRPLA = 44,
+	TVPIRPPD = 45,
+	TVPIRMPD = 46,
+	TVPIRLPD = 47,
+	TVPIRCKL = 48,
+	TVPIRCKH = 49,
+	TVPIRCRL = 50,
+	TVPIRCRH = 51,
+	TVPIRCGL = 52,
+	TVPIRCGH = 53,
+	TVPIRCBL = 54,
+	TVPIRCBH = 55,
+	TVPIRCKC = 56,
+	TVPIRMLC = 57,
+	TVPIRSEN = 58,
+	TVPIRTMD = 59,
+	TVPIRRML = 60,
+	TVPIRRMM = 61,
+	TVPIRRMS = 62,
+	TVPIRDID = 63,
+	TVPIRRES = 255,
+};
+
+struct initvalues {
+	__u8 addr;
+	__u8 value;
+};
+
+struct imstt_regvals {
+	__u32 pitch;
+	__u16 hes;
+	__u16 heb;
+	__u16 hsb;
+	__u16 ht;
+	__u16 ves;
+	__u16 veb;
+	__u16 vsb;
+	__u16 vt;
+	__u16 vil;
+	__u8 pclk_m;
+	__u8 pclk_n;
+	__u8 pclk_p;
+	__u8 mlc[3];
+	__u8 lckl_p[3];
+};
+
+struct imstt_par {
+	struct imstt_regvals init;
+	__u32 *dc_regs;
+	long unsigned int cmap_regs_phys;
+	__u8 *cmap_regs;
+	__u32 ramdac;
+	__u32 palette[16];
+};
+
+enum {
+	IBM = 0,
+	TVP = 1,
+};
+
+struct chips_init_reg {
+	unsigned char addr;
+	unsigned char data;
+};
+
+enum drm_panel_orientation {
+	DRM_MODE_PANEL_ORIENTATION_UNKNOWN = 4294967295,
+	DRM_MODE_PANEL_ORIENTATION_NORMAL = 0,
+	DRM_MODE_PANEL_ORIENTATION_BOTTOM_UP = 1,
+	DRM_MODE_PANEL_ORIENTATION_LEFT_UP = 2,
+	DRM_MODE_PANEL_ORIENTATION_RIGHT_UP = 3,
+};
+
+struct timing_entry {
+	u32 min;
+	u32 typ;
+	u32 max;
+};
+
+struct display_timing {
+	struct timing_entry pixelclock;
+	struct timing_entry hactive;
+	struct timing_entry hfront_porch;
+	struct timing_entry hback_porch;
+	struct timing_entry hsync_len;
+	struct timing_entry vactive;
+	struct timing_entry vfront_porch;
+	struct timing_entry vback_porch;
+	struct timing_entry vsync_len;
+	enum display_flags flags;
+};
+
+struct display_timings {
+	unsigned int num_timings;
+	unsigned int native_mode;
+	struct display_timing **timings;
+};
+
+enum ipmi_addr_src {
+	SI_INVALID = 0,
+	SI_HOTMOD = 1,
+	SI_HARDCODED = 2,
+	SI_SPMI = 3,
+	SI_ACPI = 4,
+	SI_SMBIOS = 5,
+	SI_PCI = 6,
+	SI_DEVICETREE = 7,
+	SI_PLATFORM = 8,
+	SI_LAST = 9,
+};
+
+enum ipmi_plat_interface_type {
+	IPMI_PLAT_IF_SI = 0,
+	IPMI_PLAT_IF_SSIF = 1,
+};
+
+struct ipmi_plat_data {
+	enum ipmi_plat_interface_type iftype;
+	unsigned int type;
+	unsigned int space;
+	long unsigned int addr;
+	unsigned int regspacing;
+	unsigned int regsize;
+	unsigned int regshift;
+	unsigned int irq;
+	unsigned int slave_addr;
+	enum ipmi_addr_src addr_source;
+};
+
+enum si_type {
+	SI_TYPE_INVALID = 0,
+	SI_KCS = 1,
+	SI_SMIC = 2,
+	SI_BT = 3,
+	SI_TYPE_MAX = 4,
+};
+
+enum ipmi_addr_space {
+	IPMI_IO_ADDR_SPACE = 0,
+	IPMI_MEM_ADDR_SPACE = 1,
+};
+
+struct clk_bulk_data {
+	const char *id;
+	struct clk *clk;
+};
+
+struct clk_bulk_devres {
+	struct clk_bulk_data *clks;
+	int num_clks;
+};
+
+struct clk_hw;
+
+struct clk_lookup {
+	struct list_head node;
+	const char *dev_id;
+	const char *con_id;
+	struct clk *clk;
+	struct clk_hw *clk_hw;
+};
+
+struct clk_init_data;
+
+struct clk_hw {
+	struct clk_core *core;
+	struct clk *clk;
+	const struct clk_init_data *init;
+};
+
+struct clk_rate_request {
+	long unsigned int rate;
+	long unsigned int min_rate;
+	long unsigned int max_rate;
+	long unsigned int best_parent_rate;
+	struct clk_hw *best_parent_hw;
+};
+
+struct clk_duty {
+	unsigned int num;
+	unsigned int den;
+};
+
+struct clk_ops {
+	int (*prepare)(struct clk_hw *);
+	void (*unprepare)(struct clk_hw *);
+	int (*is_prepared)(struct clk_hw *);
+	void (*unprepare_unused)(struct clk_hw *);
+	int (*enable)(struct clk_hw *);
+	void (*disable)(struct clk_hw *);
+	int (*is_enabled)(struct clk_hw *);
+	void (*disable_unused)(struct clk_hw *);
+	int (*save_context)(struct clk_hw *);
+	void (*restore_context)(struct clk_hw *);
+	long unsigned int (*recalc_rate)(struct clk_hw *, long unsigned int);
+	long int (*round_rate)(struct clk_hw *, long unsigned int, long unsigned int *);
+	int (*determine_rate)(struct clk_hw *, struct clk_rate_request *);
+	int (*set_parent)(struct clk_hw *, u8);
+	u8 (*get_parent)(struct clk_hw *);
+	int (*set_rate)(struct clk_hw *, long unsigned int, long unsigned int);
+	int (*set_rate_and_parent)(struct clk_hw *, long unsigned int, long unsigned int, u8);
+	long unsigned int (*recalc_accuracy)(struct clk_hw *, long unsigned int);
+	int (*get_phase)(struct clk_hw *);
+	int (*set_phase)(struct clk_hw *, int);
+	int (*get_duty_cycle)(struct clk_hw *, struct clk_duty *);
+	int (*set_duty_cycle)(struct clk_hw *, struct clk_duty *);
+	int (*init)(struct clk_hw *);
+	void (*terminate)(struct clk_hw *);
+	void (*debug_init)(struct clk_hw *, struct dentry *);
+};
+
+struct clk_parent_data {
+	const struct clk_hw *hw;
+	const char *fw_name;
+	const char *name;
+	int index;
+};
+
+struct clk_init_data {
+	const char *name;
+	const struct clk_ops *ops;
+	const char * const *parent_names;
+	const struct clk_parent_data *parent_data;
+	const struct clk_hw **parent_hws;
+	u8 num_parents;
+	long unsigned int flags;
+};
+
+struct clk_lookup_alloc {
+	struct clk_lookup cl;
+	char dev_id[20];
+	char con_id[16];
+};
+
+struct clk_notifier {
+	struct clk *clk;
+	struct srcu_notifier_head notifier_head;
+	struct list_head node;
+};
+
+struct clk_parent_map;
+
+struct clk_core {
+	const char *name;
+	const struct clk_ops *ops;
+	struct clk_hw *hw;
+	struct module *owner;
+	struct device *dev;
+	struct device_node *of_node;
+	struct clk_core *parent;
+	struct clk_parent_map *parents;
+	u8 num_parents;
+	u8 new_parent_index;
+	long unsigned int rate;
+	long unsigned int req_rate;
+	long unsigned int new_rate;
+	struct clk_core *new_parent;
+	struct clk_core *new_child;
+	long unsigned int flags;
+	bool orphan;
+	bool rpm_enabled;
+	unsigned int enable_count;
+	unsigned int prepare_count;
+	unsigned int protect_count;
+	long unsigned int min_rate;
+	long unsigned int max_rate;
+	long unsigned int accuracy;
+	int phase;
+	struct clk_duty duty;
+	struct hlist_head children;
+	struct hlist_node child_node;
+	struct hlist_head clks;
+	unsigned int notifier_count;
+	struct dentry *dentry;
+	struct hlist_node debug_node;
+	struct kref ref;
+};
+
+struct clk_onecell_data {
+	struct clk **clks;
+	unsigned int clk_num;
+};
+
+struct clk_hw_onecell_data {
+	unsigned int num;
+	struct clk_hw *hws[0];
+};
+
+struct clk_parent_map {
+	const struct clk_hw *hw;
+	struct clk_core *core;
+	const char *fw_name;
+	const char *name;
+	int index;
+};
+
+struct trace_event_raw_clk {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_rate {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	long unsigned int rate;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_rate_range {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	long unsigned int min;
+	long unsigned int max;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_parent {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u32 __data_loc_pname;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_phase {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	int phase;
+	char __data[0];
+};
+
+struct trace_event_raw_clk_duty_cycle {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	unsigned int num;
+	unsigned int den;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_clk {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_rate {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_rate_range {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_parent {
+	u32 name;
+	u32 pname;
+};
+
+struct trace_event_data_offsets_clk_phase {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clk_duty_cycle {
+	u32 name;
+};
+
+typedef void (*btf_trace_clk_enable)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_enable_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_disable)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_disable_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_prepare)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_prepare_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_unprepare)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_unprepare_complete)(void *, struct clk_core *);
+
+typedef void (*btf_trace_clk_set_rate)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_rate_complete)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_min_rate)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_max_rate)(void *, struct clk_core *, long unsigned int);
+
+typedef void (*btf_trace_clk_set_rate_range)(void *, struct clk_core *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_clk_set_parent)(void *, struct clk_core *, struct clk_core *);
+
+typedef void (*btf_trace_clk_set_parent_complete)(void *, struct clk_core *, struct clk_core *);
+
+typedef void (*btf_trace_clk_set_phase)(void *, struct clk_core *, int);
+
+typedef void (*btf_trace_clk_set_phase_complete)(void *, struct clk_core *, int);
+
+typedef void (*btf_trace_clk_set_duty_cycle)(void *, struct clk_core *, struct clk_duty *);
+
+typedef void (*btf_trace_clk_set_duty_cycle_complete)(void *, struct clk_core *, struct clk_duty *);
+
+struct clk_notifier_devres {
+	struct clk *clk;
+	struct notifier_block *nb;
+};
+
+struct of_clk_provider {
+	struct list_head link;
+	struct device_node *node;
+	struct clk * (*get)(struct of_phandle_args *, void *);
+	struct clk_hw * (*get_hw)(struct of_phandle_args *, void *);
+	void *data;
+};
+
+struct clock_provider {
+	void (*clk_init_cb)(struct device_node *);
+	struct device_node *np;
+	struct list_head node;
+};
+
+struct clk_div_table {
+	unsigned int val;
+	unsigned int div;
+};
+
+struct clk_divider {
+	struct clk_hw hw;
+	void *reg;
+	u8 shift;
+	u8 width;
+	u8 flags;
+	const struct clk_div_table *table;
+	spinlock_t *lock;
+};
+
+typedef void (*of_init_fn_1)(struct device_node *);
+
+struct clk_fixed_factor {
+	struct clk_hw hw;
+	unsigned int mult;
+	unsigned int div;
+};
+
+struct clk_fixed_rate {
+	struct clk_hw hw;
+	long unsigned int fixed_rate;
+	long unsigned int fixed_accuracy;
+	long unsigned int flags;
+};
+
+struct clk_gate {
+	struct clk_hw hw;
+	void *reg;
+	u8 bit_idx;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct clk_multiplier {
+	struct clk_hw hw;
+	void *reg;
+	u8 shift;
+	u8 width;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct clk_mux {
+	struct clk_hw hw;
+	void *reg;
+	u32 *table;
+	u32 mask;
+	u8 shift;
+	u8 flags;
+	spinlock_t *lock;
+};
+
+struct clk_composite {
+	struct clk_hw hw;
+	struct clk_ops ops;
+	struct clk_hw *mux_hw;
+	struct clk_hw *rate_hw;
+	struct clk_hw *gate_hw;
+	const struct clk_ops *mux_ops;
+	const struct clk_ops *rate_ops;
+	const struct clk_ops *gate_ops;
+};
+
+struct clk_fractional_divider {
+	struct clk_hw hw;
+	void *reg;
+	u8 mshift;
+	u8 mwidth;
+	u32 mmask;
+	u8 nshift;
+	u8 nwidth;
+	u32 nmask;
+	u8 flags;
+	void (*approximation)(struct clk_hw *, long unsigned int, long unsigned int *, long unsigned int *, long unsigned int *);
+	spinlock_t *lock;
+};
+
+struct clk_gpio {
+	struct clk_hw hw;
+	struct gpio_desc *gpiod;
+};
+
+struct wrpll_cfg {
+	u8 divr;
+	u8 divq;
+	u8 range;
+	u8 flags;
+	u16 divf;
+	u32 output_rate_cache[6];
+	long unsigned int parent_rate;
+	u8 max_r;
+	u8 init_r;
+};
+
+struct reset_controller_dev;
+
+struct reset_control_ops {
+	int (*reset)(struct reset_controller_dev *, long unsigned int);
+	int (*assert)(struct reset_controller_dev *, long unsigned int);
+	int (*deassert)(struct reset_controller_dev *, long unsigned int);
+	int (*status)(struct reset_controller_dev *, long unsigned int);
+};
+
+struct reset_controller_dev {
+	const struct reset_control_ops *ops;
+	struct module *owner;
+	struct list_head list;
+	struct list_head reset_control_head;
+	struct device *dev;
+	struct device_node *of_node;
+	int of_reset_n_cells;
+	int (*of_xlate)(struct reset_controller_dev *, const struct of_phandle_args *);
+	unsigned int nr_resets;
+};
+
+struct reset_simple_data {
+	spinlock_t lock;
+	void *membase;
+	struct reset_controller_dev rcdev;
+	bool active_low;
+	bool status_active_low;
+	unsigned int reset_us;
+};
+
+struct __prci_data {
+	void *va;
+	struct reset_simple_data reset;
+	struct clk_hw_onecell_data hw_clks;
+};
+
+struct __prci_wrpll_data {
+	struct wrpll_cfg c;
+	void (*enable_bypass)(struct __prci_data *);
+	void (*disable_bypass)(struct __prci_data *);
+	u8 cfg0_offs;
+	u8 cfg1_offs;
+};
+
+struct __prci_clock {
+	const char *name;
+	const char *parent_name;
+	const struct clk_ops *ops;
+	struct clk_hw hw;
+	struct __prci_wrpll_data *pwd;
+	struct __prci_data *pd;
+};
+
+struct prci_clk_desc {
+	struct __prci_clock *clks;
+	size_t num_clks;
+};
+
+struct icst_params {
+	long unsigned int ref;
+	long unsigned int vco_max;
+	long unsigned int vco_min;
+	short unsigned int vd_min;
+	short unsigned int vd_max;
+	unsigned char rd_min;
+	unsigned char rd_max;
+	const unsigned char *s2div;
+	const unsigned char *idx2s;
+};
+
+struct icst_vco {
+	short unsigned int v;
+	unsigned char r;
+	unsigned char s;
+};
+
+enum icst_control_type {
+	ICST_VERSATILE = 0,
+	ICST_INTEGRATOR_AP_CM = 1,
+	ICST_INTEGRATOR_AP_SYS = 2,
+	ICST_INTEGRATOR_AP_PCI = 3,
+	ICST_INTEGRATOR_CP_CM_CORE = 4,
+	ICST_INTEGRATOR_CP_CM_MEM = 5,
+	ICST_INTEGRATOR_IM_PD1 = 6,
+};
+
+struct clk_icst_desc {
+	const struct icst_params *params;
+	u32 vco_offset;
+	u32 lock_offset;
+};
+
+struct clk_icst {
+	struct clk_hw hw;
+	struct regmap *map;
+	u32 vcoreg_off;
+	u32 lockreg_off;
+	struct icst_params *params;
+	long unsigned int rate;
+	enum icst_control_type ctype;
+};
+
+struct clk_sp810;
+
+struct clk_sp810_timerclken {
+	struct clk_hw hw;
+	struct clk *clk;
+	struct clk_sp810 *sp810;
+	int channel;
+};
+
+struct clk_sp810 {
+	struct device_node *node;
+	void *base;
+	spinlock_t lock;
+	struct clk_sp810_timerclken timerclken[4];
+};
+
+struct dma_chan_tbl_ent {
+	struct dma_chan *chan;
+};
+
+struct dmaengine_unmap_pool {
+	struct kmem_cache *cache;
+	const char *name;
+	mempool_t *pool;
+	size_t size;
+};
+
+struct of_dma {
+	struct list_head of_dma_controllers;
+	struct device_node *of_node;
+	struct dma_chan * (*of_dma_xlate)(struct of_phandle_args *, struct of_dma *);
+	void * (*of_dma_route_allocate)(struct of_phandle_args *, struct of_dma *);
+	struct dma_router *dma_router;
+	void *of_dma_data;
+};
+
+struct of_dma_filter_info {
+	dma_cap_mask_t dma_cap;
+	dma_filter_fn filter_fn;
+};
+
+enum {
+	DIR_CORR = 0,
+	DATA_CORR = 1,
+	DATA_UNCORR = 2,
+	DIR_UNCORR = 3,
+};
+
+struct virtio_driver {
+	struct device_driver driver;
+	const struct virtio_device_id *id_table;
+	const unsigned int *feature_table;
+	unsigned int feature_table_size;
+	const unsigned int *feature_table_legacy;
+	unsigned int feature_table_size_legacy;
+	int (*validate)(struct virtio_device *);
+	int (*probe)(struct virtio_device *);
+	void (*scan)(struct virtio_device *);
+	void (*remove)(struct virtio_device *);
+	void (*config_changed)(struct virtio_device *);
+};
+
+typedef __u16 __virtio16;
+
+typedef __u32 __virtio32;
+
+typedef __u64 __virtio64;
+
+struct vring_desc {
+	__virtio64 addr;
+	__virtio32 len;
+	__virtio16 flags;
+	__virtio16 next;
+};
+
+struct vring_avail {
+	__virtio16 flags;
+	__virtio16 idx;
+	__virtio16 ring[0];
+};
+
+struct vring_used_elem {
+	__virtio32 id;
+	__virtio32 len;
+};
+
+typedef struct vring_used_elem vring_used_elem_t;
+
+struct vring_used {
+	__virtio16 flags;
+	__virtio16 idx;
+	vring_used_elem_t ring[0];
+};
+
+typedef struct vring_desc vring_desc_t;
+
+typedef struct vring_avail vring_avail_t;
+
+typedef struct vring_used vring_used_t;
+
+struct vring {
+	unsigned int num;
+	vring_desc_t *desc;
+	vring_avail_t *avail;
+	vring_used_t *used;
+};
+
+struct vring_packed_desc_event {
+	__le16 off_wrap;
+	__le16 flags;
+};
+
+struct vring_packed_desc {
+	__le64 addr;
+	__le32 len;
+	__le16 id;
+	__le16 flags;
+};
+
+struct vring_desc_state_split {
+	void *data;
+	struct vring_desc *indir_desc;
+};
+
+struct vring_desc_state_packed {
+	void *data;
+	struct vring_packed_desc *indir_desc;
+	u16 num;
+	u16 last;
+};
+
+struct vring_desc_extra {
+	dma_addr_t addr;
+	u32 len;
+	u16 flags;
+	u16 next;
+};
+
+struct vring_virtqueue {
+	struct virtqueue vq;
+	bool packed_ring;
+	bool use_dma_api;
+	bool weak_barriers;
+	bool broken;
+	bool indirect;
+	bool event;
+	unsigned int free_head;
+	unsigned int num_added;
+	u16 last_used_idx;
+	bool event_triggered;
+	union {
+		struct {
+			struct vring vring;
+			u16 avail_flags_shadow;
+			u16 avail_idx_shadow;
+			struct vring_desc_state_split *desc_state;
+			struct vring_desc_extra *desc_extra;
+			dma_addr_t queue_dma_addr;
+			size_t queue_size_in_bytes;
+		} split;
+		struct {
+			struct {
+				unsigned int num;
+				struct vring_packed_desc *desc;
+				struct vring_packed_desc_event *driver;
+				struct vring_packed_desc_event *device;
+			} vring;
+			bool avail_wrap_counter;
+			bool used_wrap_counter;
+			u16 avail_used_flags;
+			u16 next_avail_idx;
+			u16 event_flags_shadow;
+			struct vring_desc_state_packed *desc_state;
+			struct vring_desc_extra *desc_extra;
+			dma_addr_t ring_dma_addr;
+			dma_addr_t driver_event_dma_addr;
+			dma_addr_t device_event_dma_addr;
+			size_t ring_size_in_bytes;
+			size_t event_size_in_bytes;
+		} packed;
+	};
+	bool (*notify)(struct virtqueue *);
+	bool we_own_ring;
+};
+
+struct virtio_pci_common_cfg {
+	__le32 device_feature_select;
+	__le32 device_feature;
+	__le32 guest_feature_select;
+	__le32 guest_feature;
+	__le16 msix_config;
+	__le16 num_queues;
+	__u8 device_status;
+	__u8 config_generation;
+	__le16 queue_select;
+	__le16 queue_size;
+	__le16 queue_msix_vector;
+	__le16 queue_enable;
+	__le16 queue_notify_off;
+	__le32 queue_desc_lo;
+	__le32 queue_desc_hi;
+	__le32 queue_avail_lo;
+	__le32 queue_avail_hi;
+	__le32 queue_used_lo;
+	__le32 queue_used_hi;
+};
+
+struct virtio_pci_modern_device {
+	struct pci_dev *pci_dev;
+	struct virtio_pci_common_cfg *common;
+	void *device;
+	void *notify_base;
+	resource_size_t notify_pa;
+	u8 *isr;
+	size_t notify_len;
+	size_t device_len;
+	int notify_map_cap;
+	u32 notify_offset_multiplier;
+	int modern_bars;
+	struct virtio_device_id id;
+};
+
+struct virtio_mmio_device {
+	struct virtio_device vdev;
+	struct platform_device *pdev;
+	void *base;
+	long unsigned int version;
+	spinlock_t lock;
+	struct list_head virtqueues;
+};
+
+struct virtio_mmio_vq_info {
+	struct virtqueue *vq;
+	struct list_head node;
+};
+
+struct virtio_pci_vq_info {
+	struct virtqueue *vq;
+	struct list_head node;
+	unsigned int msix_vector;
+};
+
+struct virtio_pci_device {
+	struct virtio_device vdev;
+	struct pci_dev *pci_dev;
+	struct virtio_pci_modern_device mdev;
+	u8 *isr;
+	void *ioaddr;
+	spinlock_t lock;
+	struct list_head virtqueues;
+	struct virtio_pci_vq_info **vqs;
+	int msix_enabled;
+	int intx_enabled;
+	cpumask_var_t *msix_affinity_masks;
+	char (*msix_names)[256];
+	unsigned int msix_vectors;
+	unsigned int msix_used_vectors;
+	bool per_vq_vectors;
+	struct virtqueue * (*setup_vq)(struct virtio_pci_device *, struct virtio_pci_vq_info *, unsigned int, void (*)(struct virtqueue *), const char *, bool, u16);
+	void (*del_vq)(struct virtio_pci_vq_info *);
+	u16 (*config_vector)(struct virtio_pci_device *, u16);
+};
+
+enum {
+	VP_MSIX_CONFIG_VECTOR = 0,
+	VP_MSIX_VQ_VECTOR = 1,
+};
+
+struct virtio_balloon_config {
+	__le32 num_pages;
+	__le32 actual;
+	union {
+		__le32 free_page_hint_cmd_id;
+		__le32 free_page_report_cmd_id;
+	};
+	__le32 poison_val;
+};
+
+struct virtio_balloon_stat {
+	__virtio16 tag;
+	__virtio64 val;
+} __attribute__((packed));
+
+enum virtio_balloon_vq {
+	VIRTIO_BALLOON_VQ_INFLATE = 0,
+	VIRTIO_BALLOON_VQ_DEFLATE = 1,
+	VIRTIO_BALLOON_VQ_STATS = 2,
+	VIRTIO_BALLOON_VQ_FREE_PAGE = 3,
+	VIRTIO_BALLOON_VQ_REPORTING = 4,
+	VIRTIO_BALLOON_VQ_MAX = 5,
+};
+
+enum virtio_balloon_config_read {
+	VIRTIO_BALLOON_CONFIG_READ_CMD_ID = 0,
+};
+
+struct virtio_balloon {
+	struct virtio_device *vdev;
+	struct virtqueue *inflate_vq;
+	struct virtqueue *deflate_vq;
+	struct virtqueue *stats_vq;
+	struct virtqueue *free_page_vq;
+	struct workqueue_struct *balloon_wq;
+	struct work_struct report_free_page_work;
+	struct work_struct update_balloon_stats_work;
+	struct work_struct update_balloon_size_work;
+	spinlock_t stop_update_lock;
+	bool stop_update;
+	int: 24;
+	long unsigned int config_read_bitmap;
+	struct list_head free_page_list;
+	spinlock_t free_page_list_lock;
+	int: 32;
+	long unsigned int num_free_page_blocks;
+	u32 cmd_id_received_cache;
+	__virtio32 cmd_id_active;
+	__virtio32 cmd_id_stop;
+	int: 32;
+	wait_queue_head_t acked;
+	unsigned int num_pages;
+	int: 32;
+	struct balloon_dev_info vb_dev_info;
+	struct mutex balloon_lock;
+	unsigned int num_pfns;
+	__virtio32 pfns[256];
+	struct virtio_balloon_stat stats[10];
+	struct shrinker shrinker;
+	struct notifier_block oom_nb;
