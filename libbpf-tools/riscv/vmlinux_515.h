@@ -61668,3 +61668,2053 @@ struct tps6586x_gpio {
 
 struct tps65910_sleep_keepon_data {
 	unsigned int therm_keepon: 1;
+	unsigned int clkout32k_keepon: 1;
+	unsigned int i2chs_keepon: 1;
+};
+
+struct tps65910_board {
+	int gpio_base;
+	int irq;
+	int irq_base;
+	int vmbch_threshold;
+	int vmbch2_threshold;
+	bool en_ck32k_xtal;
+	bool en_dev_slp;
+	bool pm_off;
+	struct tps65910_sleep_keepon_data slp_keepon;
+	bool en_gpio_sleep[9];
+	long unsigned int regulator_ext_sleep_control[14];
+	struct regulator_init_data *tps65910_pmic_init_data[14];
+};
+
+struct tps65910 {
+	struct device *dev;
+	struct i2c_client *i2c_client;
+	struct regmap *regmap;
+	long unsigned int id;
+	struct tps65910_board *of_plat_data;
+	int chip_irq;
+	struct regmap_irq_chip_data *irq_data;
+};
+
+struct tps65910_gpio {
+	struct gpio_chip gpio_chip;
+	struct tps65910 *tps65910;
+};
+
+enum pwm_polarity {
+	PWM_POLARITY_NORMAL = 0,
+	PWM_POLARITY_INVERSED = 1,
+};
+
+struct pwm_args {
+	u64 period;
+	enum pwm_polarity polarity;
+};
+
+enum {
+	PWMF_REQUESTED = 1,
+	PWMF_EXPORTED = 2,
+};
+
+struct pwm_state {
+	u64 period;
+	u64 duty_cycle;
+	enum pwm_polarity polarity;
+	bool enabled;
+	bool usage_power;
+};
+
+struct pwm_chip;
+
+struct pwm_device {
+	const char *label;
+	long unsigned int flags;
+	unsigned int hwpwm;
+	unsigned int pwm;
+	struct pwm_chip *chip;
+	void *chip_data;
+	struct pwm_args args;
+	struct pwm_state state;
+	struct pwm_state last;
+};
+
+struct pwm_ops;
+
+struct pwm_chip {
+	struct device *dev;
+	const struct pwm_ops *ops;
+	int base;
+	unsigned int npwm;
+	struct pwm_device * (*of_xlate)(struct pwm_chip *, const struct of_phandle_args *);
+	unsigned int of_pwm_n_cells;
+	struct list_head list;
+	struct pwm_device *pwms;
+};
+
+struct pwm_capture;
+
+struct pwm_ops {
+	int (*request)(struct pwm_chip *, struct pwm_device *);
+	void (*free)(struct pwm_chip *, struct pwm_device *);
+	int (*capture)(struct pwm_chip *, struct pwm_device *, struct pwm_capture *, long unsigned int);
+	int (*apply)(struct pwm_chip *, struct pwm_device *, const struct pwm_state *);
+	void (*get_state)(struct pwm_chip *, struct pwm_device *, struct pwm_state *);
+	struct module *owner;
+	int (*config)(struct pwm_chip *, struct pwm_device *, int, int);
+	int (*set_polarity)(struct pwm_chip *, struct pwm_device *, enum pwm_polarity);
+	int (*enable)(struct pwm_chip *, struct pwm_device *);
+	void (*disable)(struct pwm_chip *, struct pwm_device *);
+};
+
+struct pwm_capture {
+	unsigned int period;
+	unsigned int duty_cycle;
+};
+
+struct pwm_lookup {
+	struct list_head list;
+	const char *provider;
+	unsigned int index;
+	const char *dev_id;
+	const char *con_id;
+	unsigned int period;
+	enum pwm_polarity polarity;
+	const char *module;
+};
+
+struct trace_event_raw_pwm {
+	struct trace_entry ent;
+	struct pwm_device *pwm;
+	u64 period;
+	u64 duty_cycle;
+	enum pwm_polarity polarity;
+	bool enabled;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_pwm {};
+
+typedef void (*btf_trace_pwm_apply)(void *, struct pwm_device *, const struct pwm_state *);
+
+typedef void (*btf_trace_pwm_get)(void *, struct pwm_device *, const struct pwm_state *);
+
+struct pwm_export {
+	struct device child;
+	struct pwm_device *pwm;
+	struct mutex lock;
+	struct pwm_state suspend;
+};
+
+struct clk_notifier_data {
+	struct clk *clk;
+	long unsigned int old_rate;
+	long unsigned int new_rate;
+};
+
+struct pwm_sifive_ddata {
+	struct pwm_chip chip;
+	struct mutex lock;
+	struct notifier_block notifier;
+	struct clk *clk;
+	void *regs;
+	unsigned int real_period;
+	unsigned int approx_period;
+	int user_count;
+};
+
+struct stmpe_pwm {
+	struct stmpe *stmpe;
+	struct pwm_chip chip;
+	u8 last_duty;
+};
+
+enum {
+	pci_channel_io_normal = 1,
+	pci_channel_io_frozen = 2,
+	pci_channel_io_perm_failure = 3,
+};
+
+struct pci_sriov {
+	int pos;
+	int nres;
+	u32 cap;
+	u16 ctrl;
+	u16 total_VFs;
+	u16 initial_VFs;
+	u16 num_VFs;
+	u16 offset;
+	u16 stride;
+	u16 vf_device;
+	u32 pgsz;
+	u8 link;
+	u8 max_VF_buses;
+	u16 driver_max_VFs;
+	struct pci_dev *dev;
+	struct pci_dev *self;
+	u32 class;
+	u8 hdr_type;
+	u16 subsystem_vendor;
+	u16 subsystem_device;
+	resource_size_t barsz[6];
+	bool drivers_autoprobe;
+};
+
+struct rcec_ea {
+	u8 nextbusn;
+	u8 lastbusn;
+	u32 bitmap;
+};
+
+struct pci_bus_resource {
+	struct list_head list;
+	struct resource *res;
+	unsigned int flags;
+};
+
+typedef u64 pci_bus_addr_t;
+
+struct pci_bus_region {
+	pci_bus_addr_t start;
+	pci_bus_addr_t end;
+};
+
+enum pci_fixup_pass {
+	pci_fixup_early = 0,
+	pci_fixup_header = 1,
+	pci_fixup_final = 2,
+	pci_fixup_enable = 3,
+	pci_fixup_resume = 4,
+	pci_fixup_suspend = 5,
+	pci_fixup_resume_early = 6,
+	pci_fixup_suspend_late = 7,
+};
+
+struct hotplug_slot_ops;
+
+struct hotplug_slot {
+	const struct hotplug_slot_ops *ops;
+	struct list_head slot_list;
+	struct pci_slot *pci_slot;
+	struct module *owner;
+	const char *mod_name;
+};
+
+enum pci_dev_flags {
+	PCI_DEV_FLAGS_MSI_INTX_DISABLE_BUG = 1,
+	PCI_DEV_FLAGS_NO_D3 = 2,
+	PCI_DEV_FLAGS_ASSIGNED = 4,
+	PCI_DEV_FLAGS_ACS_ENABLED_QUIRK = 8,
+	PCI_DEV_FLAG_PCIE_BRIDGE_ALIAS = 32,
+	PCI_DEV_FLAGS_NO_BUS_RESET = 64,
+	PCI_DEV_FLAGS_NO_PM_RESET = 128,
+	PCI_DEV_FLAGS_VPD_REF_F0 = 256,
+	PCI_DEV_FLAGS_BRIDGE_XLATE_ROOT = 512,
+	PCI_DEV_FLAGS_NO_FLR_RESET = 1024,
+	PCI_DEV_FLAGS_NO_RELAXED_ORDERING = 2048,
+	PCI_DEV_FLAGS_ENABLE_ASPM = 4096,
+	PCI_DEV_FLAGS_HAS_MSI_MASKING = 8192,
+};
+
+enum pci_bus_flags {
+	PCI_BUS_FLAGS_NO_MSI = 1,
+	PCI_BUS_FLAGS_NO_MMRBC = 2,
+	PCI_BUS_FLAGS_NO_AERSID = 4,
+	PCI_BUS_FLAGS_NO_EXTCFG = 8,
+};
+
+enum pci_bus_speed {
+	PCI_SPEED_33MHz = 0,
+	PCI_SPEED_66MHz = 1,
+	PCI_SPEED_66MHz_PCIX = 2,
+	PCI_SPEED_100MHz_PCIX = 3,
+	PCI_SPEED_133MHz_PCIX = 4,
+	PCI_SPEED_66MHz_PCIX_ECC = 5,
+	PCI_SPEED_100MHz_PCIX_ECC = 6,
+	PCI_SPEED_133MHz_PCIX_ECC = 7,
+	PCI_SPEED_66MHz_PCIX_266 = 9,
+	PCI_SPEED_100MHz_PCIX_266 = 10,
+	PCI_SPEED_133MHz_PCIX_266 = 11,
+	AGP_UNKNOWN = 12,
+	AGP_1X = 13,
+	AGP_2X = 14,
+	AGP_4X = 15,
+	AGP_8X = 16,
+	PCI_SPEED_66MHz_PCIX_533 = 17,
+	PCI_SPEED_100MHz_PCIX_533 = 18,
+	PCI_SPEED_133MHz_PCIX_533 = 19,
+	PCIE_SPEED_2_5GT = 20,
+	PCIE_SPEED_5_0GT = 21,
+	PCIE_SPEED_8_0GT = 22,
+	PCIE_SPEED_16_0GT = 23,
+	PCIE_SPEED_32_0GT = 24,
+	PCIE_SPEED_64_0GT = 25,
+	PCI_SPEED_UNKNOWN = 255,
+};
+
+struct pci_host_bridge {
+	struct device dev;
+	struct pci_bus *bus;
+	struct pci_ops *ops;
+	struct pci_ops *child_ops;
+	void *sysdata;
+	int busnr;
+	int domain_nr;
+	struct list_head windows;
+	struct list_head dma_ranges;
+	u8 (*swizzle_irq)(struct pci_dev *, u8 *);
+	int (*map_irq)(const struct pci_dev *, u8, u8);
+	void (*release_fn)(struct pci_host_bridge *);
+	void *release_data;
+	unsigned int ignore_reset_delay: 1;
+	unsigned int no_ext_tags: 1;
+	unsigned int native_aer: 1;
+	unsigned int native_pcie_hotplug: 1;
+	unsigned int native_shpc_hotplug: 1;
+	unsigned int native_pme: 1;
+	unsigned int native_ltr: 1;
+	unsigned int native_dpc: 1;
+	unsigned int preserve_config: 1;
+	unsigned int size_windows: 1;
+	unsigned int msi_domain: 1;
+	resource_size_t (*align_resource)(struct pci_dev *, const struct resource *, resource_size_t, resource_size_t, resource_size_t);
+	long: 64;
+	long: 64;
+	long: 64;
+	long unsigned int private[0];
+};
+
+enum {
+	PCI_REASSIGN_ALL_RSRC = 1,
+	PCI_REASSIGN_ALL_BUS = 2,
+	PCI_PROBE_ONLY = 4,
+	PCI_CAN_SKIP_ISA_ALIGN = 8,
+	PCI_ENABLE_PROC_DOMAINS = 16,
+	PCI_COMPAT_DOMAIN_0 = 32,
+	PCI_SCAN_ALL_PCIE_DEVS = 64,
+};
+
+enum pcie_bus_config_types {
+	PCIE_BUS_TUNE_OFF = 0,
+	PCIE_BUS_DEFAULT = 1,
+	PCIE_BUS_SAFE = 2,
+	PCIE_BUS_PERFORMANCE = 3,
+	PCIE_BUS_PEER2PEER = 4,
+};
+
+struct hotplug_slot_ops {
+	int (*enable_slot)(struct hotplug_slot *);
+	int (*disable_slot)(struct hotplug_slot *);
+	int (*set_attention_status)(struct hotplug_slot *, u8);
+	int (*hardware_test)(struct hotplug_slot *, u32);
+	int (*get_power_status)(struct hotplug_slot *, u8 *);
+	int (*get_attention_status)(struct hotplug_slot *, u8 *);
+	int (*get_latch_status)(struct hotplug_slot *, u8 *);
+	int (*get_adapter_status)(struct hotplug_slot *, u8 *);
+	int (*reset_slot)(struct hotplug_slot *, bool);
+};
+
+enum pci_bar_type {
+	pci_bar_unknown = 0,
+	pci_bar_io = 1,
+	pci_bar_mem32 = 2,
+	pci_bar_mem64 = 3,
+};
+
+struct pci_domain_busn_res {
+	struct list_head list;
+	struct resource res;
+	int domain_nr;
+};
+
+struct dmi_strmatch {
+	unsigned char slot: 7;
+	unsigned char exact_match: 1;
+	char substr[79];
+};
+
+struct dmi_system_id {
+	int (*callback)(const struct dmi_system_id *);
+	const char *ident;
+	struct dmi_strmatch matches[4];
+	void *driver_data;
+};
+
+struct bus_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct bus_type *, char *);
+	ssize_t (*store)(struct bus_type *, const char *, size_t);
+};
+
+enum pcie_reset_state {
+	pcie_deassert_reset = 1,
+	pcie_warm_reset = 2,
+	pcie_hot_reset = 3,
+};
+
+enum pcie_link_width {
+	PCIE_LNK_WIDTH_RESRV = 0,
+	PCIE_LNK_X1 = 1,
+	PCIE_LNK_X2 = 2,
+	PCIE_LNK_X4 = 4,
+	PCIE_LNK_X8 = 8,
+	PCIE_LNK_X12 = 12,
+	PCIE_LNK_X16 = 16,
+	PCIE_LNK_X32 = 32,
+	PCIE_LNK_WIDTH_UNKNOWN = 255,
+};
+
+typedef int (*arch_set_vga_state_t)(struct pci_dev *, bool, unsigned int, u32);
+
+struct pci_cap_saved_data {
+	u16 cap_nr;
+	bool cap_extended;
+	unsigned int size;
+	u32 data[0];
+};
+
+struct pci_cap_saved_state {
+	struct hlist_node next;
+	struct pci_cap_saved_data cap;
+};
+
+struct pci_platform_pm_ops {
+	bool (*bridge_d3)(struct pci_dev *);
+	bool (*is_manageable)(struct pci_dev *);
+	int (*set_state)(struct pci_dev *, pci_power_t);
+	pci_power_t (*get_state)(struct pci_dev *);
+	void (*refresh_state)(struct pci_dev *);
+	pci_power_t (*choose_state)(struct pci_dev *);
+	int (*set_wakeup)(struct pci_dev *, bool);
+	bool (*need_resume)(struct pci_dev *);
+};
+
+struct pci_reset_fn_method {
+	int (*reset_fn)(struct pci_dev *, bool);
+	char *name;
+};
+
+struct pci_pme_device {
+	struct list_head list;
+	struct pci_dev *dev;
+};
+
+struct pci_saved_state {
+	u32 config_space[16];
+	struct pci_cap_saved_data cap[0];
+};
+
+struct pci_devres {
+	unsigned int enabled: 1;
+	unsigned int pinned: 1;
+	unsigned int orig_intx: 1;
+	unsigned int restore_intx: 1;
+	unsigned int mwi: 1;
+	u32 region_mask;
+};
+
+struct driver_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct device_driver *, char *);
+	ssize_t (*store)(struct device_driver *, const char *, size_t);
+};
+
+enum pci_ers_result {
+	PCI_ERS_RESULT_NONE = 1,
+	PCI_ERS_RESULT_CAN_RECOVER = 2,
+	PCI_ERS_RESULT_NEED_RESET = 3,
+	PCI_ERS_RESULT_DISCONNECT = 4,
+	PCI_ERS_RESULT_RECOVERED = 5,
+	PCI_ERS_RESULT_NO_AER_DRIVER = 6,
+};
+
+enum dev_dma_attr {
+	DEV_DMA_NOT_SUPPORTED = 0,
+	DEV_DMA_NON_COHERENT = 1,
+	DEV_DMA_COHERENT = 2,
+};
+
+struct pcie_device {
+	int irq;
+	struct pci_dev *port;
+	u32 service;
+	void *priv_data;
+	struct device device;
+};
+
+struct pcie_port_service_driver {
+	const char *name;
+	int (*probe)(struct pcie_device *);
+	void (*remove)(struct pcie_device *);
+	int (*suspend)(struct pcie_device *);
+	int (*resume_noirq)(struct pcie_device *);
+	int (*resume)(struct pcie_device *);
+	int (*runtime_suspend)(struct pcie_device *);
+	int (*runtime_resume)(struct pcie_device *);
+	void (*error_resume)(struct pci_dev *);
+	int port_type;
+	u32 service;
+	struct device_driver driver;
+};
+
+struct pci_dynid {
+	struct list_head node;
+	struct pci_device_id id;
+};
+
+struct drv_dev_and_id {
+	struct pci_driver *drv;
+	struct pci_dev *dev;
+	const struct pci_device_id *id;
+};
+
+enum pci_mmap_state {
+	pci_mmap_io = 0,
+	pci_mmap_mem = 1,
+};
+
+enum pci_mmap_api {
+	PCI_MMAP_SYSFS = 0,
+	PCI_MMAP_PROCFS = 1,
+};
+
+struct pci_fixup {
+	u16 vendor;
+	u16 device;
+	u32 class;
+	unsigned int class_shift;
+	void (*hook)(struct pci_dev *);
+};
+
+struct pci_dev_resource {
+	struct list_head list;
+	struct resource *res;
+	struct pci_dev *dev;
+	resource_size_t start;
+	resource_size_t end;
+	resource_size_t add_size;
+	resource_size_t min_align;
+	long unsigned int flags;
+};
+
+enum release_type {
+	leaf_only = 0,
+	whole_subtree = 1,
+};
+
+enum enable_type {
+	undefined = 4294967295,
+	user_disabled = 0,
+	auto_disabled = 1,
+	user_enabled = 2,
+	auto_enabled = 3,
+};
+
+struct msix_entry {
+	u32 vector;
+	u16 entry;
+};
+
+struct portdrv_service_data {
+	struct pcie_port_service_driver *drv;
+	struct device *dev;
+	u32 service;
+};
+
+enum dmi_field {
+	DMI_NONE = 0,
+	DMI_BIOS_VENDOR = 1,
+	DMI_BIOS_VERSION = 2,
+	DMI_BIOS_DATE = 3,
+	DMI_BIOS_RELEASE = 4,
+	DMI_EC_FIRMWARE_RELEASE = 5,
+	DMI_SYS_VENDOR = 6,
+	DMI_PRODUCT_NAME = 7,
+	DMI_PRODUCT_VERSION = 8,
+	DMI_PRODUCT_SERIAL = 9,
+	DMI_PRODUCT_UUID = 10,
+	DMI_PRODUCT_SKU = 11,
+	DMI_PRODUCT_FAMILY = 12,
+	DMI_BOARD_VENDOR = 13,
+	DMI_BOARD_NAME = 14,
+	DMI_BOARD_VERSION = 15,
+	DMI_BOARD_SERIAL = 16,
+	DMI_BOARD_ASSET_TAG = 17,
+	DMI_CHASSIS_VENDOR = 18,
+	DMI_CHASSIS_TYPE = 19,
+	DMI_CHASSIS_VERSION = 20,
+	DMI_CHASSIS_SERIAL = 21,
+	DMI_CHASSIS_ASSET_TAG = 22,
+	DMI_STRING_MAX = 23,
+	DMI_OEM_STRING = 24,
+};
+
+struct walk_rcec_data {
+	struct pci_dev *rcec;
+	int (*user_callback)(struct pci_dev *, void *);
+	void *user_data;
+};
+
+struct aspm_latency {
+	u32 l0s;
+	u32 l1;
+};
+
+struct pcie_link_state {
+	struct pci_dev *pdev;
+	struct pci_dev *downstream;
+	struct pcie_link_state *root;
+	struct pcie_link_state *parent;
+	struct list_head sibling;
+	u32 aspm_support: 7;
+	u32 aspm_enabled: 7;
+	u32 aspm_capable: 7;
+	u32 aspm_default: 7;
+	char: 4;
+	u32 aspm_disable: 7;
+	u32 clkpm_capable: 1;
+	u32 clkpm_enabled: 1;
+	u32 clkpm_default: 1;
+	u32 clkpm_disable: 1;
+	struct aspm_latency latency_up;
+	struct aspm_latency latency_dw;
+	struct aspm_latency acceptable[8];
+};
+
+struct aer_stats {
+	u64 dev_cor_errs[16];
+	u64 dev_fatal_errs[27];
+	u64 dev_nonfatal_errs[27];
+	u64 dev_total_cor_errs;
+	u64 dev_total_fatal_errs;
+	u64 dev_total_nonfatal_errs;
+	u64 rootport_total_cor_errs;
+	u64 rootport_total_fatal_errs;
+	u64 rootport_total_nonfatal_errs;
+};
+
+struct aer_header_log_regs {
+	unsigned int dw0;
+	unsigned int dw1;
+	unsigned int dw2;
+	unsigned int dw3;
+};
+
+struct aer_err_info {
+	struct pci_dev *dev[5];
+	int error_dev_num;
+	unsigned int id: 16;
+	unsigned int severity: 2;
+	unsigned int __pad1: 5;
+	unsigned int multi_error_valid: 1;
+	unsigned int first_error: 5;
+	unsigned int __pad2: 2;
+	unsigned int tlp_header_valid: 1;
+	unsigned int status;
+	unsigned int mask;
+	struct aer_header_log_regs tlp;
+};
+
+struct aer_err_source {
+	unsigned int status;
+	unsigned int id;
+};
+
+struct aer_rpc {
+	struct pci_dev *rpd;
+	struct {
+		union {
+			struct __kfifo kfifo;
+			struct aer_err_source *type;
+			const struct aer_err_source *const_type;
+			char (*rectype)[0];
+			struct aer_err_source *ptr;
+			const struct aer_err_source *ptr_const;
+		};
+		struct aer_err_source buf[128];
+	} aer_fifo;
+};
+
+struct pci_slot_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct pci_slot *, char *);
+	ssize_t (*store)(struct pci_slot *, const char *, size_t);
+};
+
+struct of_bus;
+
+struct of_pci_range_parser {
+	struct device_node *node;
+	struct of_bus *bus;
+	const __be32 *range;
+	const __be32 *end;
+	int na;
+	int ns;
+	int pna;
+	bool dma;
+};
+
+struct of_pci_range {
+	union {
+		u64 pci_addr;
+		u64 bus_addr;
+	};
+	u64 cpu_addr;
+	u64 size;
+	u32 flags;
+};
+
+enum {
+	NVME_REG_CAP = 0,
+	NVME_REG_VS = 8,
+	NVME_REG_INTMS = 12,
+	NVME_REG_INTMC = 16,
+	NVME_REG_CC = 20,
+	NVME_REG_CSTS = 28,
+	NVME_REG_NSSR = 32,
+	NVME_REG_AQA = 36,
+	NVME_REG_ASQ = 40,
+	NVME_REG_ACQ = 48,
+	NVME_REG_CMBLOC = 56,
+	NVME_REG_CMBSZ = 60,
+	NVME_REG_BPINFO = 64,
+	NVME_REG_BPRSEL = 68,
+	NVME_REG_BPMBL = 72,
+	NVME_REG_CMBMSC = 80,
+	NVME_REG_PMRCAP = 3584,
+	NVME_REG_PMRCTL = 3588,
+	NVME_REG_PMRSTS = 3592,
+	NVME_REG_PMREBS = 3596,
+	NVME_REG_PMRSWTP = 3600,
+	NVME_REG_DBS = 4096,
+};
+
+enum {
+	NVME_CC_ENABLE = 1,
+	NVME_CC_EN_SHIFT = 0,
+	NVME_CC_CSS_SHIFT = 4,
+	NVME_CC_MPS_SHIFT = 7,
+	NVME_CC_AMS_SHIFT = 11,
+	NVME_CC_SHN_SHIFT = 14,
+	NVME_CC_IOSQES_SHIFT = 16,
+	NVME_CC_IOCQES_SHIFT = 20,
+	NVME_CC_CSS_NVM = 0,
+	NVME_CC_CSS_CSI = 96,
+	NVME_CC_CSS_MASK = 112,
+	NVME_CC_AMS_RR = 0,
+	NVME_CC_AMS_WRRU = 2048,
+	NVME_CC_AMS_VS = 14336,
+	NVME_CC_SHN_NONE = 0,
+	NVME_CC_SHN_NORMAL = 16384,
+	NVME_CC_SHN_ABRUPT = 32768,
+	NVME_CC_SHN_MASK = 49152,
+	NVME_CC_IOSQES = 393216,
+	NVME_CC_IOCQES = 4194304,
+	NVME_CAP_CSS_NVM = 1,
+	NVME_CAP_CSS_CSI = 64,
+	NVME_CSTS_RDY = 1,
+	NVME_CSTS_CFS = 2,
+	NVME_CSTS_NSSRO = 16,
+	NVME_CSTS_PP = 32,
+	NVME_CSTS_SHST_NORMAL = 0,
+	NVME_CSTS_SHST_OCCUR = 4,
+	NVME_CSTS_SHST_CMPLT = 8,
+	NVME_CSTS_SHST_MASK = 12,
+	NVME_CMBMSC_CRE = 1,
+	NVME_CMBMSC_CMSE = 2,
+};
+
+enum {
+	NVME_AEN_BIT_NS_ATTR = 8,
+	NVME_AEN_BIT_FW_ACT = 9,
+	NVME_AEN_BIT_ANA_CHANGE = 11,
+	NVME_AEN_BIT_DISC_CHANGE = 31,
+};
+
+enum {
+	SWITCHTEC_GAS_MRPC_OFFSET = 0,
+	SWITCHTEC_GAS_TOP_CFG_OFFSET = 4096,
+	SWITCHTEC_GAS_SW_EVENT_OFFSET = 6144,
+	SWITCHTEC_GAS_SYS_INFO_OFFSET = 8192,
+	SWITCHTEC_GAS_FLASH_INFO_OFFSET = 8704,
+	SWITCHTEC_GAS_PART_CFG_OFFSET = 16384,
+	SWITCHTEC_GAS_NTB_OFFSET = 65536,
+	SWITCHTEC_GAS_PFF_CSR_OFFSET = 1261568,
+};
+
+enum {
+	SWITCHTEC_NTB_REG_INFO_OFFSET = 0,
+	SWITCHTEC_NTB_REG_CTRL_OFFSET = 16384,
+	SWITCHTEC_NTB_REG_DBMSG_OFFSET = 409600,
+};
+
+struct nt_partition_info {
+	u32 xlink_enabled;
+	u32 target_part_low;
+	u32 target_part_high;
+	u32 reserved;
+};
+
+struct ntb_info_regs {
+	u8 partition_count;
+	u8 partition_id;
+	u16 reserved1;
+	u64 ep_map;
+	u16 requester_id;
+	u16 reserved2;
+	u32 reserved3[4];
+	struct nt_partition_info ntp_info[48];
+} __attribute__((packed));
+
+struct ntb_ctrl_regs {
+	u32 partition_status;
+	u32 partition_op;
+	u32 partition_ctrl;
+	u32 bar_setup;
+	u32 bar_error;
+	u16 lut_table_entries;
+	u16 lut_table_offset;
+	u32 lut_error;
+	u16 req_id_table_size;
+	u16 req_id_table_offset;
+	u32 req_id_error;
+	u32 reserved1[7];
+	struct {
+		u32 ctl;
+		u32 win_size;
+		u64 xlate_addr;
+	} bar_entry[6];
+	struct {
+		u32 win_size;
+		u32 reserved[3];
+	} bar_ext_entry[6];
+	u32 reserved2[192];
+	u32 req_id_table[512];
+	u32 reserved3[256];
+	u64 lut_entry[512];
+};
+
+struct pci_dev_reset_methods {
+	u16 vendor;
+	u16 device;
+	int (*reset)(struct pci_dev *, bool);
+};
+
+struct pci_dev_acs_enabled {
+	u16 vendor;
+	u16 device;
+	int (*acs_enabled)(struct pci_dev *, u16);
+};
+
+struct pci_dev_acs_ops {
+	u16 vendor;
+	u16 device;
+	int (*enable_acs)(struct pci_dev *);
+	int (*disable_acs_redir)(struct pci_dev *);
+};
+
+struct slot {
+	u8 number;
+	unsigned int devfn;
+	struct pci_bus *bus;
+	struct pci_dev *dev;
+	unsigned int latch_status: 1;
+	unsigned int adapter_status: 1;
+	unsigned int extracting;
+	struct hotplug_slot hotplug_slot;
+	struct list_head slot_list;
+};
+
+struct cpci_hp_controller_ops {
+	int (*query_enum)();
+	int (*enable_irq)();
+	int (*disable_irq)();
+	int (*check_irq)(void *);
+	int (*hardware_test)(struct slot *, u32);
+	u8 (*get_power)(struct slot *);
+	int (*set_power)(struct slot *, int);
+};
+
+struct cpci_hp_controller {
+	unsigned int irq;
+	long unsigned int irq_flags;
+	char *devname;
+	void *dev_id;
+	char *name;
+	struct cpci_hp_controller_ops *ops;
+};
+
+struct controller {
+	struct pcie_device *pcie;
+	u32 slot_cap;
+	unsigned int inband_presence_disabled: 1;
+	u16 slot_ctrl;
+	struct mutex ctrl_lock;
+	long unsigned int cmd_started;
+	unsigned int cmd_busy: 1;
+	wait_queue_head_t queue;
+	atomic_t pending_events;
+	unsigned int notification_enabled: 1;
+	unsigned int power_fault_detected;
+	struct task_struct *poll_thread;
+	u8 state;
+	struct mutex state_lock;
+	struct delayed_work button_work;
+	struct hotplug_slot hotplug_slot;
+	struct rw_semaphore reset_lock;
+	unsigned int depth;
+	unsigned int ist_running;
+	int request_result;
+	wait_queue_head_t requester;
+};
+
+struct controller___2;
+
+struct hpc_ops;
+
+struct slot___2 {
+	u8 bus;
+	u8 device;
+	u16 status;
+	u32 number;
+	u8 is_a_board;
+	u8 state;
+	u8 attention_save;
+	u8 presence_save;
+	u8 latch_save;
+	u8 pwr_save;
+	struct controller___2 *ctrl;
+	const struct hpc_ops *hpc_ops;
+	struct hotplug_slot hotplug_slot;
+	struct list_head slot_list;
+	struct delayed_work work;
+	struct mutex lock;
+	struct workqueue_struct *wq;
+	u8 hp_slot;
+};
+
+struct controller___2 {
+	struct mutex crit_sect;
+	struct mutex cmd_lock;
+	int num_slots;
+	int slot_num_inc;
+	struct pci_dev *pci_dev;
+	struct list_head slot_list;
+	const struct hpc_ops *hpc_ops;
+	wait_queue_head_t queue;
+	u8 slot_device_offset;
+	u32 pcix_misc2_reg;
+	u32 first_slot;
+	u32 cap_offset;
+	long unsigned int mmio_base;
+	long unsigned int mmio_size;
+	void *creg;
+	struct timer_list poll_timer;
+};
+
+struct hpc_ops {
+	int (*power_on_slot)(struct slot___2 *);
+	int (*slot_enable)(struct slot___2 *);
+	int (*slot_disable)(struct slot___2 *);
+	int (*set_bus_speed_mode)(struct slot___2 *, enum pci_bus_speed);
+	int (*get_power_status)(struct slot___2 *, u8 *);
+	int (*get_attention_status)(struct slot___2 *, u8 *);
+	int (*set_attention_status)(struct slot___2 *, u8);
+	int (*get_latch_status)(struct slot___2 *, u8 *);
+	int (*get_adapter_status)(struct slot___2 *, u8 *);
+	int (*get_adapter_speed)(struct slot___2 *, enum pci_bus_speed *);
+	int (*get_mode1_ECC_cap)(struct slot___2 *, u8 *);
+	int (*get_prog_int)(struct slot___2 *, u8 *);
+	int (*query_power_fault)(struct slot___2 *);
+	void (*green_led_on)(struct slot___2 *);
+	void (*green_led_off)(struct slot___2 *);
+	void (*green_led_blink)(struct slot___2 *);
+	void (*release_ctlr)(struct controller___2 *);
+	int (*check_cmd_status)(struct controller___2 *);
+};
+
+struct event_info {
+	u32 event_type;
+	struct slot___2 *p_slot;
+	struct work_struct work;
+};
+
+struct pushbutton_work_info {
+	struct slot___2 *p_slot;
+	struct work_struct work;
+};
+
+enum ctrl_offsets {
+	BASE_OFFSET = 0,
+	SLOT_AVAIL1 = 4,
+	SLOT_AVAIL2 = 8,
+	SLOT_CONFIG = 12,
+	SEC_BUS_CONFIG = 16,
+	MSI_CTRL = 18,
+	PROG_INTERFACE = 19,
+	CMD = 20,
+	CMD_STATUS = 22,
+	INTR_LOC = 24,
+	SERR_LOC = 28,
+	SERR_INTR_ENABLE = 32,
+	SLOT1 = 36,
+};
+
+struct pci_config_window;
+
+struct pci_ecam_ops {
+	unsigned int bus_shift;
+	struct pci_ops pci_ops;
+	int (*init)(struct pci_config_window *);
+};
+
+struct pci_config_window {
+	struct resource res;
+	struct resource busr;
+	unsigned int bus_shift;
+	void *priv;
+	const struct pci_ecam_ops *ops;
+	union {
+		void *win;
+		void **winp;
+	};
+	struct device *parent;
+};
+
+struct pci_epf_device_id {
+	char name[20];
+	kernel_ulong_t driver_data;
+};
+
+enum pci_interrupt_pin {
+	PCI_INTERRUPT_UNKNOWN = 0,
+	PCI_INTERRUPT_INTA = 1,
+	PCI_INTERRUPT_INTB = 2,
+	PCI_INTERRUPT_INTC = 3,
+	PCI_INTERRUPT_INTD = 4,
+};
+
+enum pci_barno {
+	NO_BAR = 4294967295,
+	BAR_0 = 0,
+	BAR_1 = 1,
+	BAR_2 = 2,
+	BAR_3 = 3,
+	BAR_4 = 4,
+	BAR_5 = 5,
+};
+
+struct pci_epf_header {
+	u16 vendorid;
+	u16 deviceid;
+	u8 revid;
+	u8 progif_code;
+	u8 subclass_code;
+	u8 baseclass_code;
+	u8 cache_line_size;
+	u16 subsys_vendor_id;
+	u16 subsys_id;
+	enum pci_interrupt_pin interrupt_pin;
+};
+
+struct pci_epf;
+
+struct pci_epf_ops {
+	int (*bind)(struct pci_epf *);
+	void (*unbind)(struct pci_epf *);
+	struct config_group * (*add_cfs)(struct pci_epf *, struct config_group *);
+};
+
+struct pci_epf_bar {
+	dma_addr_t phys_addr;
+	void *addr;
+	size_t size;
+	enum pci_barno barno;
+	int flags;
+};
+
+struct pci_epc;
+
+struct pci_epf_driver;
+
+struct pci_epf {
+	struct device dev;
+	const char *name;
+	struct pci_epf_header *header;
+	struct pci_epf_bar bar[6];
+	u8 msi_interrupts;
+	u16 msix_interrupts;
+	u8 func_no;
+	u8 vfunc_no;
+	struct pci_epc *epc;
+	struct pci_epf *epf_pf;
+	struct pci_epf_driver *driver;
+	struct list_head list;
+	struct notifier_block nb;
+	struct mutex lock;
+	struct pci_epc *sec_epc;
+	struct list_head sec_epc_list;
+	struct pci_epf_bar sec_epc_bar[6];
+	u8 sec_epc_func_no;
+	struct config_group *group;
+	unsigned int is_bound;
+	unsigned int is_vf;
+	long unsigned int vfunction_num_map;
+	struct list_head pci_vepf;
+};
+
+struct pci_epf_driver {
+	int (*probe)(struct pci_epf *);
+	void (*remove)(struct pci_epf *);
+	struct device_driver driver;
+	struct pci_epf_ops *ops;
+	struct module *owner;
+	struct list_head epf_group;
+	const struct pci_epf_device_id *id_table;
+};
+
+struct pci_epc_ops;
+
+struct pci_epc_mem;
+
+struct pci_epc {
+	struct device dev;
+	struct list_head pci_epf;
+	const struct pci_epc_ops *ops;
+	struct pci_epc_mem **windows;
+	struct pci_epc_mem *mem;
+	unsigned int num_windows;
+	u8 max_functions;
+	u8 *max_vfs;
+	struct config_group *group;
+	struct mutex lock;
+	long unsigned int function_num_map;
+	struct atomic_notifier_head notifier;
+};
+
+enum pci_epc_interface_type {
+	UNKNOWN_INTERFACE = 4294967295,
+	PRIMARY_INTERFACE = 0,
+	SECONDARY_INTERFACE = 1,
+};
+
+enum pci_epc_irq_type {
+	PCI_EPC_IRQ_UNKNOWN = 0,
+	PCI_EPC_IRQ_LEGACY = 1,
+	PCI_EPC_IRQ_MSI = 2,
+	PCI_EPC_IRQ_MSIX = 3,
+};
+
+struct pci_epc_features;
+
+struct pci_epc_ops {
+	int (*write_header)(struct pci_epc *, u8, u8, struct pci_epf_header *);
+	int (*set_bar)(struct pci_epc *, u8, u8, struct pci_epf_bar *);
+	void (*clear_bar)(struct pci_epc *, u8, u8, struct pci_epf_bar *);
+	int (*map_addr)(struct pci_epc *, u8, u8, phys_addr_t, u64, size_t);
+	void (*unmap_addr)(struct pci_epc *, u8, u8, phys_addr_t);
+	int (*set_msi)(struct pci_epc *, u8, u8, u8);
+	int (*get_msi)(struct pci_epc *, u8, u8);
+	int (*set_msix)(struct pci_epc *, u8, u8, u16, enum pci_barno, u32);
+	int (*get_msix)(struct pci_epc *, u8, u8);
+	int (*raise_irq)(struct pci_epc *, u8, u8, enum pci_epc_irq_type, u16);
+	int (*map_msi_irq)(struct pci_epc *, u8, u8, phys_addr_t, u8, u32, u32 *, u32 *);
+	int (*start)(struct pci_epc *);
+	void (*stop)(struct pci_epc *);
+	const struct pci_epc_features * (*get_features)(struct pci_epc *, u8, u8);
+	struct module *owner;
+};
+
+struct pci_epc_features {
+	unsigned int linkup_notifier: 1;
+	unsigned int core_init_notifier: 1;
+	unsigned int msi_capable: 1;
+	unsigned int msix_capable: 1;
+	u8 reserved_bar;
+	u8 bar_fixed_64bit;
+	u64 bar_fixed_size[6];
+	size_t align;
+};
+
+struct pci_epc_mem_window {
+	phys_addr_t phys_base;
+	size_t size;
+	size_t page_size;
+};
+
+struct pci_epc_mem {
+	struct pci_epc_mem_window window;
+	long unsigned int *bitmap;
+	int pages;
+	struct mutex lock;
+};
+
+struct pci_epf_group {
+	struct config_group group;
+	struct config_group primary_epc_group;
+	struct config_group secondary_epc_group;
+	struct delayed_work cfs_work;
+	struct pci_epf *epf;
+	int index;
+};
+
+struct pci_epc_group {
+	struct config_group group;
+	struct pci_epc *epc;
+	bool start;
+};
+
+enum pci_notify_event {
+	CORE_INIT = 0,
+	LINK_UP = 1,
+};
+
+struct cdns_pcie;
+
+struct cdns_pcie_ops {
+	int (*start_link)(struct cdns_pcie *);
+	void (*stop_link)(struct cdns_pcie *);
+	bool (*link_up)(struct cdns_pcie *);
+	u64 (*cpu_addr_fixup)(struct cdns_pcie *, u64);
+};
+
+struct cdns_pcie {
+	void *reg_base;
+	struct resource *mem_res;
+	struct device *dev;
+	bool is_rc;
+	int phy_count;
+	struct phy **phy;
+	struct device_link **link;
+	const struct cdns_pcie_ops *ops;
+};
+
+enum cdns_pcie_rp_bar {
+	RP_BAR_UNDEFINED = 4294967295,
+	RP_BAR0 = 0,
+	RP_BAR1 = 1,
+	RP_NO_BAR = 2,
+};
+
+struct cdns_pcie_rc {
+	struct cdns_pcie pcie;
+	struct resource *cfg_res;
+	void *cfg_base;
+	u32 vendor_id;
+	u32 device_id;
+	bool avail_ib_bar[3];
+	unsigned int quirk_retrain_flag: 1;
+	unsigned int quirk_detect_quiet_flag: 1;
+};
+
+struct pci_epf_msix_tbl {
+	u64 msg_addr;
+	u32 msg_data;
+	u32 vector_ctrl;
+};
+
+enum cdns_pcie_msg_code {
+	MSG_CODE_ASSERT_INTA = 32,
+	MSG_CODE_ASSERT_INTB = 33,
+	MSG_CODE_ASSERT_INTC = 34,
+	MSG_CODE_ASSERT_INTD = 35,
+	MSG_CODE_DEASSERT_INTA = 36,
+	MSG_CODE_DEASSERT_INTB = 37,
+	MSG_CODE_DEASSERT_INTC = 38,
+	MSG_CODE_DEASSERT_INTD = 39,
+};
+
+enum cdns_pcie_msg_routing {
+	MSG_ROUTING_TO_RC = 0,
+	MSG_ROUTING_BY_ADDR = 1,
+	MSG_ROUTING_BY_ID = 2,
+	MSG_ROUTING_BCAST = 3,
+	MSG_ROUTING_LOCAL = 4,
+	MSG_ROUTING_GATHER = 5,
+};
+
+struct cdns_pcie_epf {
+	struct cdns_pcie_epf *epf;
+	struct pci_epf_bar *epf_bar[6];
+};
+
+struct cdns_pcie_ep {
+	struct cdns_pcie pcie;
+	u32 max_regions;
+	long unsigned int ob_region_map;
+	phys_addr_t *ob_addr;
+	phys_addr_t irq_phys_addr;
+	void *irq_cpu_addr;
+	u64 irq_pci_addr;
+	u8 irq_pci_fn;
+	u8 irq_pending;
+	spinlock_t lock;
+	struct cdns_pcie_epf *epf;
+	unsigned int quirk_detect_quiet_flag: 1;
+};
+
+struct cdns_plat_pcie {
+	struct cdns_pcie *pcie;
+	bool is_rc;
+};
+
+struct cdns_plat_pcie_of_data {
+	bool is_rc;
+};
+
+enum link_status {
+	NO_RECEIVERS_DETECTED = 0,
+	LINK_TRAINING_IN_PROGRESS = 1,
+	LINK_UP_DL_IN_PROGRESS = 2,
+	LINK_UP_DL_COMPLETED = 3,
+};
+
+struct j721e_pcie {
+	struct device *dev;
+	struct clk *refclk;
+	u32 mode;
+	u32 num_lanes;
+	struct cdns_pcie *cdns_pcie;
+	void *user_cfg_base;
+	void *intd_cfg_base;
+	u32 linkdown_irq_regfield;
+};
+
+enum j721e_pcie_mode {
+	PCI_MODE_RC = 0,
+	PCI_MODE_EP = 1,
+};
+
+struct j721e_pcie_data {
+	enum j721e_pcie_mode mode;
+	unsigned int quirk_retrain_flag: 1;
+	unsigned int quirk_detect_quiet_flag: 1;
+	u32 linkdown_irq_regfield;
+	unsigned int byte_access_allowed: 1;
+};
+
+struct faraday_pci_variant {
+	bool cascaded_irq;
+};
+
+struct faraday_pci {
+	struct device *dev;
+	void *base;
+	struct irq_domain *irqdomain;
+	struct pci_bus *bus;
+	struct clk *bus_clk;
+};
+
+struct xilinx_pcie_port {
+	void *reg_base;
+	struct device *dev;
+	long unsigned int msi_map[2];
+	struct mutex map_lock;
+	struct irq_domain *msi_domain;
+	struct irq_domain *leg_domain;
+	struct list_head resources;
+};
+
+struct event_map {
+	u32 reg_mask;
+	u32 event_bit;
+};
+
+struct mc_msi {
+	struct mutex lock;
+	struct irq_domain *msi_domain;
+	struct irq_domain *dev_domain;
+	u32 num_vectors;
+	u64 vector_phy;
+	long unsigned int used[1];
+};
+
+struct mc_port {
+	void *axi_base_addr;
+	struct device *dev;
+	struct irq_domain *intx_domain;
+	struct irq_domain *event_domain;
+	raw_spinlock_t lock;
+	struct mc_msi msi;
+};
+
+struct cause {
+	const char *sym;
+	const char *str;
+};
+
+enum dw_pcie_region_type {
+	DW_PCIE_REGION_UNKNOWN = 0,
+	DW_PCIE_REGION_INBOUND = 1,
+	DW_PCIE_REGION_OUTBOUND = 2,
+};
+
+struct pcie_port;
+
+struct dw_pcie_host_ops {
+	int (*host_init)(struct pcie_port *);
+	int (*msi_host_init)(struct pcie_port *);
+};
+
+struct pcie_port {
+	bool has_msi_ctrl: 1;
+	u64 cfg0_base;
+	void *va_cfg0_base;
+	u32 cfg0_size;
+	resource_size_t io_base;
+	phys_addr_t io_bus_addr;
+	u32 io_size;
+	int irq;
+	const struct dw_pcie_host_ops *ops;
+	int msi_irq;
+	struct irq_domain *irq_domain;
+	struct irq_domain *msi_domain;
+	u16 msi_msg;
+	dma_addr_t msi_data;
+	struct irq_chip *msi_irq_chip;
+	u32 num_vectors;
+	u32 irq_mask[8];
+	struct pci_host_bridge *bridge;
+	raw_spinlock_t lock;
+	long unsigned int msi_irq_in_use[4];
+};
+
+enum dw_pcie_as_type {
+	DW_PCIE_AS_UNKNOWN = 0,
+	DW_PCIE_AS_MEM = 1,
+	DW_PCIE_AS_IO = 2,
+};
+
+struct dw_pcie_ep;
+
+struct dw_pcie_ep_ops {
+	void (*ep_init)(struct dw_pcie_ep *);
+	int (*raise_irq)(struct dw_pcie_ep *, u8, enum pci_epc_irq_type, u16);
+	const struct pci_epc_features * (*get_features)(struct dw_pcie_ep *);
+	unsigned int (*func_conf_select)(struct dw_pcie_ep *, u8);
+};
+
+struct dw_pcie_ep {
+	struct pci_epc *epc;
+	struct list_head func_list;
+	const struct dw_pcie_ep_ops *ops;
+	phys_addr_t phys_base;
+	size_t addr_size;
+	size_t page_size;
+	u8 bar_to_atu[6];
+	phys_addr_t *outbound_addr;
+	long unsigned int *ib_window_map;
+	long unsigned int *ob_window_map;
+	void *msi_mem;
+	phys_addr_t msi_mem_phys;
+	struct pci_epf_bar *epf_bar[6];
+};
+
+struct dw_pcie;
+
+struct dw_pcie_ops {
+	u64 (*cpu_addr_fixup)(struct dw_pcie *, u64);
+	u32 (*read_dbi)(struct dw_pcie *, void *, u32, size_t);
+	void (*write_dbi)(struct dw_pcie *, void *, u32, size_t, u32);
+	void (*write_dbi2)(struct dw_pcie *, void *, u32, size_t, u32);
+	int (*link_up)(struct dw_pcie *);
+	int (*start_link)(struct dw_pcie *);
+	void (*stop_link)(struct dw_pcie *);
+};
+
+struct dw_pcie {
+	struct device *dev;
+	void *dbi_base;
+	void *dbi_base2;
+	void *atu_base;
+	size_t atu_size;
+	u32 num_ib_windows;
+	u32 num_ob_windows;
+	struct pcie_port pp;
+	struct dw_pcie_ep ep;
+	const struct dw_pcie_ops *ops;
+	unsigned int version;
+	int num_lanes;
+	int link_gen;
+	u8 n_fts[2];
+	bool iatu_unroll_enabled: 1;
+	bool io_cfg_atu_shared: 1;
+};
+
+struct dw_pcie_ep_func {
+	struct list_head list;
+	u8 func_no;
+	u8 msi_cap;
+	u8 msix_cap;
+};
+
+enum dw_pcie_device_mode {
+	DW_PCIE_UNKNOWN_TYPE = 0,
+	DW_PCIE_EP_TYPE = 1,
+	DW_PCIE_LEG_EP_TYPE = 2,
+	DW_PCIE_RC_TYPE = 3,
+};
+
+struct dw_plat_pcie {
+	struct dw_pcie *pci;
+	struct regmap *regmap;
+	enum dw_pcie_device_mode mode;
+};
+
+struct dw_plat_pcie_of_data {
+	enum dw_pcie_device_mode mode;
+};
+
+struct reset_control;
+
+struct fu740_pcie {
+	struct dw_pcie pci;
+	void *mgmt_base;
+	struct gpio_desc *reset;
+	struct gpio_desc *pwren;
+	struct clk *pcie_aux;
+	struct reset_control *rst;
+};
+
+struct rio_device_id {
+	__u16 did;
+	__u16 vid;
+	__u16 asm_did;
+	__u16 asm_vid;
+};
+
+typedef s32 dma_cookie_t;
+
+enum dma_status {
+	DMA_COMPLETE = 0,
+	DMA_IN_PROGRESS = 1,
+	DMA_PAUSED = 2,
+	DMA_ERROR = 3,
+	DMA_OUT_OF_ORDER = 4,
+};
+
+enum dma_transaction_type {
+	DMA_MEMCPY = 0,
+	DMA_XOR = 1,
+	DMA_PQ = 2,
+	DMA_XOR_VAL = 3,
+	DMA_PQ_VAL = 4,
+	DMA_MEMSET = 5,
+	DMA_MEMSET_SG = 6,
+	DMA_INTERRUPT = 7,
+	DMA_PRIVATE = 8,
+	DMA_ASYNC_TX = 9,
+	DMA_SLAVE = 10,
+	DMA_CYCLIC = 11,
+	DMA_INTERLEAVE = 12,
+	DMA_COMPLETION_NO_ORDER = 13,
+	DMA_REPEAT = 14,
+	DMA_LOAD_EOT = 15,
+	DMA_TX_TYPE_END = 16,
+};
+
+enum dma_transfer_direction {
+	DMA_MEM_TO_MEM = 0,
+	DMA_MEM_TO_DEV = 1,
+	DMA_DEV_TO_MEM = 2,
+	DMA_DEV_TO_DEV = 3,
+	DMA_TRANS_NONE = 4,
+};
+
+struct data_chunk {
+	size_t size;
+	size_t icg;
+	size_t dst_icg;
+	size_t src_icg;
+};
+
+struct dma_interleaved_template {
+	dma_addr_t src_start;
+	dma_addr_t dst_start;
+	enum dma_transfer_direction dir;
+	bool src_inc;
+	bool dst_inc;
+	bool src_sgl;
+	bool dst_sgl;
+	size_t numf;
+	size_t frame_size;
+	struct data_chunk sgl[0];
+};
+
+enum dma_ctrl_flags {
+	DMA_PREP_INTERRUPT = 1,
+	DMA_CTRL_ACK = 2,
+	DMA_PREP_PQ_DISABLE_P = 4,
+	DMA_PREP_PQ_DISABLE_Q = 8,
+	DMA_PREP_CONTINUE = 16,
+	DMA_PREP_FENCE = 32,
+	DMA_CTRL_REUSE = 64,
+	DMA_PREP_CMD = 128,
+	DMA_PREP_REPEAT = 256,
+	DMA_PREP_LOAD_EOT = 512,
+};
+
+enum sum_check_bits {
+	SUM_CHECK_P = 0,
+	SUM_CHECK_Q = 1,
+};
+
+enum sum_check_flags {
+	SUM_CHECK_P_RESULT = 1,
+	SUM_CHECK_Q_RESULT = 2,
+};
+
+typedef struct {
+	long unsigned int bits[1];
+} dma_cap_mask_t;
+
+enum dma_desc_metadata_mode {
+	DESC_METADATA_NONE = 0,
+	DESC_METADATA_CLIENT = 1,
+	DESC_METADATA_ENGINE = 2,
+};
+
+struct dma_chan_percpu {
+	long unsigned int memcpy_count;
+	long unsigned int bytes_transferred;
+};
+
+struct dma_router {
+	struct device *dev;
+	void (*route_free)(struct device *, void *);
+};
+
+struct dma_device;
+
+struct dma_chan_dev;
+
+struct dma_chan {
+	struct dma_device *device;
+	struct device *slave;
+	dma_cookie_t cookie;
+	dma_cookie_t completed_cookie;
+	int chan_id;
+	struct dma_chan_dev *dev;
+	const char *name;
+	char *dbg_client_name;
+	struct list_head device_node;
+	struct dma_chan_percpu *local;
+	int client_count;
+	int table_count;
+	struct dma_router *router;
+	void *route_data;
+	void *private;
+};
+
+typedef bool (*dma_filter_fn)(struct dma_chan *, void *);
+
+struct dma_slave_map;
+
+struct dma_filter {
+	dma_filter_fn fn;
+	int mapcnt;
+	const struct dma_slave_map *map;
+};
+
+enum dmaengine_alignment {
+	DMAENGINE_ALIGN_1_BYTE = 0,
+	DMAENGINE_ALIGN_2_BYTES = 1,
+	DMAENGINE_ALIGN_4_BYTES = 2,
+	DMAENGINE_ALIGN_8_BYTES = 3,
+	DMAENGINE_ALIGN_16_BYTES = 4,
+	DMAENGINE_ALIGN_32_BYTES = 5,
+	DMAENGINE_ALIGN_64_BYTES = 6,
+	DMAENGINE_ALIGN_128_BYTES = 7,
+	DMAENGINE_ALIGN_256_BYTES = 8,
+};
+
+enum dma_residue_granularity {
+	DMA_RESIDUE_GRANULARITY_DESCRIPTOR = 0,
+	DMA_RESIDUE_GRANULARITY_SEGMENT = 1,
+	DMA_RESIDUE_GRANULARITY_BURST = 2,
+};
+
+struct dma_async_tx_descriptor;
+
+struct dma_slave_caps;
+
+struct dma_slave_config;
+
+struct dma_tx_state;
+
+struct dma_device {
+	struct kref ref;
+	unsigned int chancnt;
+	unsigned int privatecnt;
+	struct list_head channels;
+	struct list_head global_node;
+	struct dma_filter filter;
+	dma_cap_mask_t cap_mask;
+	enum dma_desc_metadata_mode desc_metadata_modes;
+	short unsigned int max_xor;
+	short unsigned int max_pq;
+	enum dmaengine_alignment copy_align;
+	enum dmaengine_alignment xor_align;
+	enum dmaengine_alignment pq_align;
+	enum dmaengine_alignment fill_align;
+	int dev_id;
+	struct device *dev;
+	struct module *owner;
+	struct ida chan_ida;
+	struct mutex chan_mutex;
+	u32 src_addr_widths;
+	u32 dst_addr_widths;
+	u32 directions;
+	u32 min_burst;
+	u32 max_burst;
+	u32 max_sg_burst;
+	bool descriptor_reuse;
+	enum dma_residue_granularity residue_granularity;
+	int (*device_alloc_chan_resources)(struct dma_chan *);
+	int (*device_router_config)(struct dma_chan *);
+	void (*device_free_chan_resources)(struct dma_chan *);
+	struct dma_async_tx_descriptor * (*device_prep_dma_memcpy)(struct dma_chan *, dma_addr_t, dma_addr_t, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_xor)(struct dma_chan *, dma_addr_t, dma_addr_t *, unsigned int, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_xor_val)(struct dma_chan *, dma_addr_t *, unsigned int, size_t, enum sum_check_flags *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_pq)(struct dma_chan *, dma_addr_t *, dma_addr_t *, unsigned int, const unsigned char *, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_pq_val)(struct dma_chan *, dma_addr_t *, dma_addr_t *, unsigned int, const unsigned char *, size_t, enum sum_check_flags *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_memset)(struct dma_chan *, dma_addr_t, int, size_t, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_memset_sg)(struct dma_chan *, struct scatterlist *, unsigned int, int, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_interrupt)(struct dma_chan *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_slave_sg)(struct dma_chan *, struct scatterlist *, unsigned int, enum dma_transfer_direction, long unsigned int, void *);
+	struct dma_async_tx_descriptor * (*device_prep_dma_cyclic)(struct dma_chan *, dma_addr_t, size_t, size_t, enum dma_transfer_direction, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_interleaved_dma)(struct dma_chan *, struct dma_interleaved_template *, long unsigned int);
+	struct dma_async_tx_descriptor * (*device_prep_dma_imm_data)(struct dma_chan *, dma_addr_t, u64, long unsigned int);
+	void (*device_caps)(struct dma_chan *, struct dma_slave_caps *);
+	int (*device_config)(struct dma_chan *, struct dma_slave_config *);
+	int (*device_pause)(struct dma_chan *);
+	int (*device_resume)(struct dma_chan *);
+	int (*device_terminate_all)(struct dma_chan *);
+	void (*device_synchronize)(struct dma_chan *);
+	enum dma_status (*device_tx_status)(struct dma_chan *, dma_cookie_t, struct dma_tx_state *);
+	void (*device_issue_pending)(struct dma_chan *);
+	void (*device_release)(struct dma_device *);
+	void (*dbg_summary_show)(struct seq_file *, struct dma_device *);
+	struct dentry *dbg_dev_root;
+};
+
+struct dma_chan_dev {
+	struct dma_chan *chan;
+	struct device device;
+	int dev_id;
+	bool chan_dma_dev;
+};
+
+enum dma_slave_buswidth {
+	DMA_SLAVE_BUSWIDTH_UNDEFINED = 0,
+	DMA_SLAVE_BUSWIDTH_1_BYTE = 1,
+	DMA_SLAVE_BUSWIDTH_2_BYTES = 2,
+	DMA_SLAVE_BUSWIDTH_3_BYTES = 3,
+	DMA_SLAVE_BUSWIDTH_4_BYTES = 4,
+	DMA_SLAVE_BUSWIDTH_8_BYTES = 8,
+	DMA_SLAVE_BUSWIDTH_16_BYTES = 16,
+	DMA_SLAVE_BUSWIDTH_32_BYTES = 32,
+	DMA_SLAVE_BUSWIDTH_64_BYTES = 64,
+	DMA_SLAVE_BUSWIDTH_128_BYTES = 128,
+};
+
+struct dma_slave_config {
+	enum dma_transfer_direction direction;
+	phys_addr_t src_addr;
+	phys_addr_t dst_addr;
+	enum dma_slave_buswidth src_addr_width;
+	enum dma_slave_buswidth dst_addr_width;
+	u32 src_maxburst;
+	u32 dst_maxburst;
+	u32 src_port_window_size;
+	u32 dst_port_window_size;
+	bool device_fc;
+	unsigned int slave_id;
+	void *peripheral_config;
+	size_t peripheral_size;
+};
+
+struct dma_slave_caps {
+	u32 src_addr_widths;
+	u32 dst_addr_widths;
+	u32 directions;
+	u32 min_burst;
+	u32 max_burst;
+	u32 max_sg_burst;
+	bool cmd_pause;
+	bool cmd_resume;
+	bool cmd_terminate;
+	enum dma_residue_granularity residue_granularity;
+	bool descriptor_reuse;
+};
+
+typedef void (*dma_async_tx_callback)(void *);
+
+enum dmaengine_tx_result {
+	DMA_TRANS_NOERROR = 0,
+	DMA_TRANS_READ_FAILED = 1,
+	DMA_TRANS_WRITE_FAILED = 2,
+	DMA_TRANS_ABORTED = 3,
+};
+
+struct dmaengine_result {
+	enum dmaengine_tx_result result;
+	u32 residue;
+};
+
+typedef void (*dma_async_tx_callback_result)(void *, const struct dmaengine_result *);
+
+struct dmaengine_unmap_data {
+	u8 map_cnt;
+	u8 to_cnt;
+	u8 from_cnt;
+	u8 bidi_cnt;
+	struct device *dev;
+	struct kref kref;
+	size_t len;
+	dma_addr_t addr[0];
+};
+
+struct dma_descriptor_metadata_ops {
+	int (*attach)(struct dma_async_tx_descriptor *, void *, size_t);
+	void * (*get_ptr)(struct dma_async_tx_descriptor *, size_t *, size_t *);
+	int (*set_len)(struct dma_async_tx_descriptor *, size_t);
+};
+
+struct dma_async_tx_descriptor {
+	dma_cookie_t cookie;
+	enum dma_ctrl_flags flags;
+	dma_addr_t phys;
+	struct dma_chan *chan;
+	dma_cookie_t (*tx_submit)(struct dma_async_tx_descriptor *);
+	int (*desc_free)(struct dma_async_tx_descriptor *);
+	dma_async_tx_callback callback;
+	dma_async_tx_callback_result callback_result;
+	void *callback_param;
+	struct dmaengine_unmap_data *unmap;
+	enum dma_desc_metadata_mode desc_metadata_mode;
+	struct dma_descriptor_metadata_ops *metadata_ops;
+};
+
+struct dma_tx_state {
+	dma_cookie_t last;
+	dma_cookie_t used;
+	u32 residue;
+	u32 in_flight_bytes;
+};
+
+struct dma_slave_map {
+	const char *devname;
+	const char *slave;
+	void *param;
+};
+
+struct rio_switch_ops;
+
+struct rio_dev;
+
+struct rio_switch {
+	struct list_head node;
+	u8 *route_table;
+	u32 port_ok;
+	struct rio_switch_ops *ops;
+	spinlock_t lock;
+	struct rio_dev *nextdev[0];
+};
+
+struct rio_mport;
+
+struct rio_switch_ops {
+	struct module *owner;
+	int (*add_entry)(struct rio_mport *, u16, u8, u16, u16, u8);
+	int (*get_entry)(struct rio_mport *, u16, u8, u16, u16, u8 *);
+	int (*clr_table)(struct rio_mport *, u16, u8, u16);
+	int (*set_domain)(struct rio_mport *, u16, u8, u8);
+	int (*get_domain)(struct rio_mport *, u16, u8, u8 *);
+	int (*em_init)(struct rio_dev *);
+	int (*em_handle)(struct rio_dev *, u8);
+};
+
+struct rio_net;
+
+struct rio_driver;
+
+union rio_pw_msg;
+
+struct rio_dev {
+	struct list_head global_list;
+	struct list_head net_list;
+	struct rio_net *net;
+	bool do_enum;
+	u16 did;
+	u16 vid;
+	u32 device_rev;
+	u16 asm_did;
+	u16 asm_vid;
+	u16 asm_rev;
+	u16 efptr;
+	u32 pef;
+	u32 swpinfo;
+	u32 src_ops;
+	u32 dst_ops;
+	u32 comp_tag;
+	u32 phys_efptr;
+	u32 phys_rmap;
+	u32 em_efptr;
+	u64 dma_mask;
+	struct rio_driver *driver;
+	struct device dev;
+	struct resource riores[16];
+	int (*pwcback)(struct rio_dev *, union rio_pw_msg *, int);
+	u16 destid;
+	u8 hopcount;
+	struct rio_dev *prev;
+	atomic_t state;
+	struct rio_switch rswitch[0];
+};
+
+struct rio_msg {
+	struct resource *res;
+	void (*mcback)(struct rio_mport *, void *, int, int);
+};
+
+struct rio_ops;
+
+struct rio_scan;
+
+struct rio_mport {
+	struct list_head dbells;
+	struct list_head pwrites;
+	struct list_head node;
+	struct list_head nnode;
+	struct rio_net *net;
+	struct mutex lock;
+	struct resource iores;
+	struct resource riores[16];
+	struct rio_msg inb_msg[4];
+	struct rio_msg outb_msg[4];
+	int host_deviceid;
+	struct rio_ops *ops;
+	unsigned char id;
+	unsigned char index;
+	unsigned int sys_size;
+	u32 phys_efptr;
+	u32 phys_rmap;
+	unsigned char name[40];
+	struct device dev;
+	void *priv;
+	struct dma_device dma;
+	struct rio_scan *nscan;
+	atomic_t state;
+	unsigned int pwe_refcnt;
+};
+
+enum rio_device_state {
+	RIO_DEVICE_INITIALIZING = 0,
+	RIO_DEVICE_RUNNING = 1,
+	RIO_DEVICE_GONE = 2,
+	RIO_DEVICE_SHUTDOWN = 3,
+};
+
+struct rio_net {
+	struct list_head node;
+	struct list_head devices;
+	struct list_head switches;
+	struct list_head mports;
+	struct rio_mport *hport;
+	unsigned char id;
+	struct device dev;
+	void *enum_data;
+	void (*release)(struct rio_net *);
+};
+
+struct rio_driver {
+	struct list_head node;
+	char *name;
+	const struct rio_device_id *id_table;
+	int (*probe)(struct rio_dev *, const struct rio_device_id *);
+	void (*remove)(struct rio_dev *);
+	void (*shutdown)(struct rio_dev *);
+	int (*suspend)(struct rio_dev *, u32);
+	int (*resume)(struct rio_dev *);
+	int (*enable_wake)(struct rio_dev *, u32, int);
+	struct device_driver driver;
+};
+
+union rio_pw_msg {
+	struct {
+		u32 comptag;
+		u32 errdetect;
+		u32 is_port;
+		u32 ltlerrdet;
+		u32 padding[12];
+	} em;
+	u32 raw[16];
+};
+
+struct rio_dbell {
+	struct list_head node;
+	struct resource *res;
+	void (*dinb)(struct rio_mport *, void *, u16, u16, u16);
+	void *dev_id;
+};
+
+struct rio_mport_attr;
+
+struct rio_ops {
+	int (*lcread)(struct rio_mport *, int, u32, int, u32 *);
+	int (*lcwrite)(struct rio_mport *, int, u32, int, u32);
+	int (*cread)(struct rio_mport *, int, u16, u8, u32, int, u32 *);
+	int (*cwrite)(struct rio_mport *, int, u16, u8, u32, int, u32);
+	int (*dsend)(struct rio_mport *, int, u16, u16);
+	int (*pwenable)(struct rio_mport *, int);
+	int (*open_outb_mbox)(struct rio_mport *, void *, int, int);
+	void (*close_outb_mbox)(struct rio_mport *, int);
+	int (*open_inb_mbox)(struct rio_mport *, void *, int, int);
+	void (*close_inb_mbox)(struct rio_mport *, int);
+	int (*add_outb_message)(struct rio_mport *, struct rio_dev *, int, void *, size_t);
+	int (*add_inb_buffer)(struct rio_mport *, int, void *);
+	void * (*get_inb_message)(struct rio_mport *, int);
+	int (*map_inb)(struct rio_mport *, dma_addr_t, u64, u64, u32);
+	void (*unmap_inb)(struct rio_mport *, dma_addr_t);
+	int (*query_mport)(struct rio_mport *, struct rio_mport_attr *);
+	int (*map_outb)(struct rio_mport *, u16, u64, u32, u32, dma_addr_t *);
+	void (*unmap_outb)(struct rio_mport *, u16, u64);
+};
+
+struct rio_scan {
+	struct module *owner;
+	int (*enumerate)(struct rio_mport *, u32);
+	int (*discover)(struct rio_mport *, u32);
+};
+
+struct rio_mport_attr {
+	int flags;
+	int link_speed;
+	int link_width;
+	int dma_max_sge;
+	int dma_max_size;
+	int dma_align;
+};
+
+enum rio_write_type {
+	RDW_DEFAULT = 0,
+	RDW_ALL_NWRITE = 1,
+	RDW_ALL_NWRITE_R = 2,
+	RDW_LAST_NWRITE_R = 3,
+};
+
+struct rio_dma_ext {
+	u16 destid;
+	u64 rio_addr;
+	u8 rio_addr_u;
+	enum rio_write_type wr_type;
+};
+
+struct rio_dma_data {
+	struct scatterlist *sg;
+	unsigned int sg_len;
+	u64 rio_addr;
+	u8 rio_addr_u;
+	enum rio_write_type wr_type;
+};
