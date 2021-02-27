@@ -74136,3 +74136,1999 @@ enum s5m8767_reg {
 	S5M8767_REG_LDO6 = 24,
 	S5M8767_REG_LDO7 = 25,
 	S5M8767_REG_LDO8 = 26,
+	S5M8767_REG_LDO9 = 27,
+	S5M8767_REG_LDO10 = 28,
+	S5M8767_REG_LDO11 = 29,
+	S5M8767_REG_LDO12 = 30,
+	S5M8767_REG_LDO13 = 31,
+	S5M8767_REG_LDO14 = 32,
+	S5M8767_REG_LDO15 = 33,
+	S5M8767_REG_LDO16 = 34,
+	S5M8767_REG_LDO17 = 35,
+	S5M8767_REG_LDO18 = 36,
+	S5M8767_REG_LDO19 = 37,
+	S5M8767_REG_LDO20 = 38,
+	S5M8767_REG_LDO21 = 39,
+	S5M8767_REG_LDO22 = 40,
+	S5M8767_REG_LDO23 = 41,
+	S5M8767_REG_LDO24 = 42,
+	S5M8767_REG_LDO25 = 43,
+	S5M8767_REG_LDO26 = 44,
+	S5M8767_REG_LDO27 = 45,
+	S5M8767_REG_LDO28 = 46,
+	S5M8767_REG_UVLO = 49,
+	S5M8767_REG_BUCK1CTRL1 = 50,
+	S5M8767_REG_BUCK1CTRL2 = 51,
+	S5M8767_REG_BUCK2CTRL = 52,
+	S5M8767_REG_BUCK2DVS1 = 53,
+	S5M8767_REG_BUCK2DVS2 = 54,
+	S5M8767_REG_BUCK2DVS3 = 55,
+	S5M8767_REG_BUCK2DVS4 = 56,
+	S5M8767_REG_BUCK2DVS5 = 57,
+	S5M8767_REG_BUCK2DVS6 = 58,
+	S5M8767_REG_BUCK2DVS7 = 59,
+	S5M8767_REG_BUCK2DVS8 = 60,
+	S5M8767_REG_BUCK3CTRL = 61,
+	S5M8767_REG_BUCK3DVS1 = 62,
+	S5M8767_REG_BUCK3DVS2 = 63,
+	S5M8767_REG_BUCK3DVS3 = 64,
+	S5M8767_REG_BUCK3DVS4 = 65,
+	S5M8767_REG_BUCK3DVS5 = 66,
+	S5M8767_REG_BUCK3DVS6 = 67,
+	S5M8767_REG_BUCK3DVS7 = 68,
+	S5M8767_REG_BUCK3DVS8 = 69,
+	S5M8767_REG_BUCK4CTRL = 70,
+	S5M8767_REG_BUCK4DVS1 = 71,
+	S5M8767_REG_BUCK4DVS2 = 72,
+	S5M8767_REG_BUCK4DVS3 = 73,
+	S5M8767_REG_BUCK4DVS4 = 74,
+	S5M8767_REG_BUCK4DVS5 = 75,
+	S5M8767_REG_BUCK4DVS6 = 76,
+	S5M8767_REG_BUCK4DVS7 = 77,
+	S5M8767_REG_BUCK4DVS8 = 78,
+	S5M8767_REG_BUCK5CTRL1 = 79,
+	S5M8767_REG_BUCK5CTRL2 = 80,
+	S5M8767_REG_BUCK5CTRL3 = 81,
+	S5M8767_REG_BUCK5CTRL4 = 82,
+	S5M8767_REG_BUCK5CTRL5 = 83,
+	S5M8767_REG_BUCK6CTRL1 = 84,
+	S5M8767_REG_BUCK6CTRL2 = 85,
+	S5M8767_REG_BUCK7CTRL1 = 86,
+	S5M8767_REG_BUCK7CTRL2 = 87,
+	S5M8767_REG_BUCK8CTRL1 = 88,
+	S5M8767_REG_BUCK8CTRL2 = 89,
+	S5M8767_REG_BUCK9CTRL1 = 90,
+	S5M8767_REG_BUCK9CTRL2 = 91,
+	S5M8767_REG_LDO1CTRL = 92,
+	S5M8767_REG_LDO2_1CTRL = 93,
+	S5M8767_REG_LDO2_2CTRL = 94,
+	S5M8767_REG_LDO2_3CTRL = 95,
+	S5M8767_REG_LDO2_4CTRL = 96,
+	S5M8767_REG_LDO3CTRL = 97,
+	S5M8767_REG_LDO4CTRL = 98,
+	S5M8767_REG_LDO5CTRL = 99,
+	S5M8767_REG_LDO6CTRL = 100,
+	S5M8767_REG_LDO7CTRL = 101,
+	S5M8767_REG_LDO8CTRL = 102,
+	S5M8767_REG_LDO9CTRL = 103,
+	S5M8767_REG_LDO10CTRL = 104,
+	S5M8767_REG_LDO11CTRL = 105,
+	S5M8767_REG_LDO12CTRL = 106,
+	S5M8767_REG_LDO13CTRL = 107,
+	S5M8767_REG_LDO14CTRL = 108,
+	S5M8767_REG_LDO15CTRL = 109,
+	S5M8767_REG_LDO16CTRL = 110,
+	S5M8767_REG_LDO17CTRL = 111,
+	S5M8767_REG_LDO18CTRL = 112,
+	S5M8767_REG_LDO19CTRL = 113,
+	S5M8767_REG_LDO20CTRL = 114,
+	S5M8767_REG_LDO21CTRL = 115,
+	S5M8767_REG_LDO22CTRL = 116,
+	S5M8767_REG_LDO23CTRL = 117,
+	S5M8767_REG_LDO24CTRL = 118,
+	S5M8767_REG_LDO25CTRL = 119,
+	S5M8767_REG_LDO26CTRL = 120,
+	S5M8767_REG_LDO27CTRL = 121,
+	S5M8767_REG_LDO28CTRL = 122,
+};
+
+enum s2mps11_irq {
+	S2MPS11_IRQ_PWRONF = 0,
+	S2MPS11_IRQ_PWRONR = 1,
+	S2MPS11_IRQ_JIGONBF = 2,
+	S2MPS11_IRQ_JIGONBR = 3,
+	S2MPS11_IRQ_ACOKBF = 4,
+	S2MPS11_IRQ_ACOKBR = 5,
+	S2MPS11_IRQ_PWRON1S = 6,
+	S2MPS11_IRQ_MRB = 7,
+	S2MPS11_IRQ_RTC60S = 8,
+	S2MPS11_IRQ_RTCA1 = 9,
+	S2MPS11_IRQ_RTCA0 = 10,
+	S2MPS11_IRQ_SMPL = 11,
+	S2MPS11_IRQ_RTC1S = 12,
+	S2MPS11_IRQ_WTSR = 13,
+	S2MPS11_IRQ_INT120C = 14,
+	S2MPS11_IRQ_INT140C = 15,
+	S2MPS11_IRQ_NR = 16,
+};
+
+enum s2mps14_irq {
+	S2MPS14_IRQ_PWRONF = 0,
+	S2MPS14_IRQ_PWRONR = 1,
+	S2MPS14_IRQ_JIGONBF = 2,
+	S2MPS14_IRQ_JIGONBR = 3,
+	S2MPS14_IRQ_ACOKBF = 4,
+	S2MPS14_IRQ_ACOKBR = 5,
+	S2MPS14_IRQ_PWRON1S = 6,
+	S2MPS14_IRQ_MRB = 7,
+	S2MPS14_IRQ_RTC60S = 8,
+	S2MPS14_IRQ_RTCA1 = 9,
+	S2MPS14_IRQ_RTCA0 = 10,
+	S2MPS14_IRQ_SMPL = 11,
+	S2MPS14_IRQ_RTC1S = 12,
+	S2MPS14_IRQ_WTSR = 13,
+	S2MPS14_IRQ_INT120C = 14,
+	S2MPS14_IRQ_INT140C = 15,
+	S2MPS14_IRQ_TSD = 16,
+	S2MPS14_IRQ_NR = 17,
+};
+
+enum s2mpu02_irq {
+	S2MPU02_IRQ_PWRONF = 0,
+	S2MPU02_IRQ_PWRONR = 1,
+	S2MPU02_IRQ_JIGONBF = 2,
+	S2MPU02_IRQ_JIGONBR = 3,
+	S2MPU02_IRQ_ACOKBF = 4,
+	S2MPU02_IRQ_ACOKBR = 5,
+	S2MPU02_IRQ_PWRON1S = 6,
+	S2MPU02_IRQ_MRB = 7,
+	S2MPU02_IRQ_RTC60S = 8,
+	S2MPU02_IRQ_RTCA1 = 9,
+	S2MPU02_IRQ_RTCA0 = 10,
+	S2MPU02_IRQ_SMPL = 11,
+	S2MPU02_IRQ_RTC1S = 12,
+	S2MPU02_IRQ_WTSR = 13,
+	S2MPU02_IRQ_INT120C = 14,
+	S2MPU02_IRQ_INT140C = 15,
+	S2MPU02_IRQ_TSD = 16,
+	S2MPU02_IRQ_NR = 17,
+};
+
+enum s5m8767_irq {
+	S5M8767_IRQ_PWRR = 0,
+	S5M8767_IRQ_PWRF = 1,
+	S5M8767_IRQ_PWR1S = 2,
+	S5M8767_IRQ_JIGR = 3,
+	S5M8767_IRQ_JIGF = 4,
+	S5M8767_IRQ_LOWBAT2 = 5,
+	S5M8767_IRQ_LOWBAT1 = 6,
+	S5M8767_IRQ_MRB = 7,
+	S5M8767_IRQ_DVSOK2 = 8,
+	S5M8767_IRQ_DVSOK3 = 9,
+	S5M8767_IRQ_DVSOK4 = 10,
+	S5M8767_IRQ_RTC60S = 11,
+	S5M8767_IRQ_RTCA1 = 12,
+	S5M8767_IRQ_RTCA2 = 13,
+	S5M8767_IRQ_SMPL = 14,
+	S5M8767_IRQ_RTC1S = 15,
+	S5M8767_IRQ_WTSR = 16,
+	S5M8767_IRQ_NR = 17,
+};
+
+enum s5m8763_irq {
+	S5M8763_IRQ_DCINF = 0,
+	S5M8763_IRQ_DCINR = 1,
+	S5M8763_IRQ_JIGF = 2,
+	S5M8763_IRQ_JIGR = 3,
+	S5M8763_IRQ_PWRONF = 4,
+	S5M8763_IRQ_PWRONR = 5,
+	S5M8763_IRQ_WTSREVNT = 6,
+	S5M8763_IRQ_SMPLEVNT = 7,
+	S5M8763_IRQ_ALARM1 = 8,
+	S5M8763_IRQ_ALARM0 = 9,
+	S5M8763_IRQ_ONKEY1S = 10,
+	S5M8763_IRQ_TOPOFFR = 11,
+	S5M8763_IRQ_DCINOVPR = 12,
+	S5M8763_IRQ_CHGRSTF = 13,
+	S5M8763_IRQ_DONER = 14,
+	S5M8763_IRQ_CHGFAULT = 15,
+	S5M8763_IRQ_LOBAT1 = 16,
+	S5M8763_IRQ_LOBAT2 = 17,
+	S5M8763_IRQ_NR = 18,
+};
+
+struct syscon_platform_data {
+	const char *label;
+};
+
+struct syscon {
+	struct device_node *np;
+	struct regmap *regmap;
+	struct list_head list;
+};
+
+enum {
+	AS3711_REGULATOR_SD_1 = 0,
+	AS3711_REGULATOR_SD_2 = 1,
+	AS3711_REGULATOR_SD_3 = 2,
+	AS3711_REGULATOR_SD_4 = 3,
+	AS3711_REGULATOR_LDO_1 = 4,
+	AS3711_REGULATOR_LDO_2 = 5,
+	AS3711_REGULATOR_LDO_3 = 6,
+	AS3711_REGULATOR_LDO_4 = 7,
+	AS3711_REGULATOR_LDO_5 = 8,
+	AS3711_REGULATOR_LDO_6 = 9,
+	AS3711_REGULATOR_LDO_7 = 10,
+	AS3711_REGULATOR_LDO_8 = 11,
+	AS3711_REGULATOR_MAX = 12,
+};
+
+struct as3711 {
+	struct device *dev;
+	struct regmap *regmap;
+};
+
+enum as3711_su2_feedback {
+	AS3711_SU2_VOLTAGE = 0,
+	AS3711_SU2_CURR1 = 1,
+	AS3711_SU2_CURR2 = 2,
+	AS3711_SU2_CURR3 = 3,
+	AS3711_SU2_CURR_AUTO = 4,
+};
+
+enum as3711_su2_fbprot {
+	AS3711_SU2_LX_SD4 = 0,
+	AS3711_SU2_GPIO2 = 1,
+	AS3711_SU2_GPIO3 = 2,
+	AS3711_SU2_GPIO4 = 3,
+};
+
+struct as3711_regulator_pdata {
+	struct regulator_init_data *init_data[12];
+};
+
+struct as3711_bl_pdata {
+	bool su1_fb;
+	int su1_max_uA;
+	bool su2_fb;
+	int su2_max_uA;
+	enum as3711_su2_feedback su2_feedback;
+	enum as3711_su2_fbprot su2_fbprot;
+	bool su2_auto_curr1;
+	bool su2_auto_curr2;
+	bool su2_auto_curr3;
+};
+
+struct as3711_platform_data {
+	struct as3711_regulator_pdata regulator;
+	struct as3711_bl_pdata backlight;
+};
+
+enum {
+	AS3711_REGULATOR = 0,
+	AS3711_BACKLIGHT = 1,
+};
+
+enum as3722_irq {
+	AS3722_IRQ_LID = 0,
+	AS3722_IRQ_ACOK = 1,
+	AS3722_IRQ_ENABLE1 = 2,
+	AS3722_IRQ_OCCUR_ALARM_SD0 = 3,
+	AS3722_IRQ_ONKEY_LONG_PRESS = 4,
+	AS3722_IRQ_ONKEY = 5,
+	AS3722_IRQ_OVTMP = 6,
+	AS3722_IRQ_LOWBAT = 7,
+	AS3722_IRQ_SD0_LV = 8,
+	AS3722_IRQ_SD1_LV = 9,
+	AS3722_IRQ_SD2_LV = 10,
+	AS3722_IRQ_PWM1_OV_PROT = 11,
+	AS3722_IRQ_PWM2_OV_PROT = 12,
+	AS3722_IRQ_ENABLE2 = 13,
+	AS3722_IRQ_SD6_LV = 14,
+	AS3722_IRQ_RTC_REP = 15,
+	AS3722_IRQ_RTC_ALARM = 16,
+	AS3722_IRQ_GPIO1 = 17,
+	AS3722_IRQ_GPIO2 = 18,
+	AS3722_IRQ_GPIO3 = 19,
+	AS3722_IRQ_GPIO4 = 20,
+	AS3722_IRQ_GPIO5 = 21,
+	AS3722_IRQ_WATCHDOG = 22,
+	AS3722_IRQ_ENABLE3 = 23,
+	AS3722_IRQ_TEMP_SD0_SHUTDOWN = 24,
+	AS3722_IRQ_TEMP_SD1_SHUTDOWN = 25,
+	AS3722_IRQ_TEMP_SD2_SHUTDOWN = 26,
+	AS3722_IRQ_TEMP_SD0_ALARM = 27,
+	AS3722_IRQ_TEMP_SD1_ALARM = 28,
+	AS3722_IRQ_TEMP_SD6_ALARM = 29,
+	AS3722_IRQ_OCCUR_ALARM_SD6 = 30,
+	AS3722_IRQ_ADC = 31,
+	AS3722_IRQ_MAX = 32,
+};
+
+struct badrange {
+	struct list_head list;
+	spinlock_t lock;
+};
+
+enum {
+	NDD_ALIASING = 0,
+	NDD_UNARMED = 1,
+	NDD_LOCKED = 2,
+	NDD_SECURITY_OVERWRITE = 3,
+	NDD_WORK_PENDING = 4,
+	NDD_NOBLK = 5,
+	NDD_LABELING = 6,
+	ND_IOCTL_MAX_BUFLEN = 4194304,
+	ND_CMD_MAX_ELEM = 5,
+	ND_CMD_MAX_ENVELOPE = 256,
+	ND_MAX_MAPPINGS = 32,
+	ND_REGION_PAGEMAP = 0,
+	ND_REGION_PERSIST_CACHE = 1,
+	ND_REGION_PERSIST_MEMCTRL = 2,
+	ND_REGION_ASYNC = 3,
+	DPA_RESOURCE_ADJUSTED = 1,
+};
+
+struct nvdimm_bus_descriptor;
+
+struct nvdimm;
+
+typedef int (*ndctl_fn)(struct nvdimm_bus_descriptor *, struct nvdimm *, unsigned int, void *, unsigned int, int *);
+
+struct nvdimm_bus_fw_ops;
+
+struct nvdimm_bus_descriptor {
+	const struct attribute_group **attr_groups;
+	long unsigned int cmd_mask;
+	long unsigned int dimm_family_mask;
+	long unsigned int bus_family_mask;
+	struct module *module;
+	char *provider_name;
+	struct device_node *of_node;
+	ndctl_fn ndctl;
+	int (*flush_probe)(struct nvdimm_bus_descriptor *);
+	int (*clear_to_send)(struct nvdimm_bus_descriptor *, struct nvdimm *, unsigned int, void *);
+	const struct nvdimm_bus_fw_ops *fw_ops;
+};
+
+struct nvdimm_security_ops;
+
+struct nvdimm_fw_ops;
+
+struct nvdimm {
+	long unsigned int flags;
+	void *provider_data;
+	long unsigned int cmd_mask;
+	struct device dev;
+	atomic_t busy;
+	int id;
+	int num_flush;
+	struct resource *flush_wpq;
+	const char *dimm_id;
+	struct {
+		const struct nvdimm_security_ops *ops;
+		long unsigned int flags;
+		long unsigned int ext_flags;
+		unsigned int overwrite_tmo;
+		struct kernfs_node *overwrite_state;
+	} sec;
+	struct delayed_work dwork;
+	const struct nvdimm_fw_ops *fw_ops;
+};
+
+enum nvdimm_fwa_state {
+	NVDIMM_FWA_INVALID = 0,
+	NVDIMM_FWA_IDLE = 1,
+	NVDIMM_FWA_ARMED = 2,
+	NVDIMM_FWA_BUSY = 3,
+	NVDIMM_FWA_ARM_OVERFLOW = 4,
+};
+
+enum nvdimm_fwa_capability {
+	NVDIMM_FWA_CAP_INVALID = 0,
+	NVDIMM_FWA_CAP_NONE = 1,
+	NVDIMM_FWA_CAP_QUIESCE = 2,
+	NVDIMM_FWA_CAP_LIVE = 3,
+};
+
+struct nvdimm_bus_fw_ops {
+	enum nvdimm_fwa_state (*activate_state)(struct nvdimm_bus_descriptor *);
+	enum nvdimm_fwa_capability (*capability)(struct nvdimm_bus_descriptor *);
+	int (*activate)(struct nvdimm_bus_descriptor *);
+};
+
+struct nvdimm_bus {
+	struct nvdimm_bus_descriptor *nd_desc;
+	wait_queue_head_t wait;
+	struct list_head list;
+	struct device dev;
+	int id;
+	int probe_active;
+	atomic_t ioctl_active;
+	struct list_head mapping_list;
+	struct mutex reconfig_mutex;
+	struct badrange badrange;
+};
+
+struct nvdimm_key_data {
+	u8 data[32];
+};
+
+enum nvdimm_passphrase_type {
+	NVDIMM_USER = 0,
+	NVDIMM_MASTER = 1,
+};
+
+struct nvdimm_security_ops {
+	long unsigned int (*get_flags)(struct nvdimm *, enum nvdimm_passphrase_type);
+	int (*freeze)(struct nvdimm *);
+	int (*change_key)(struct nvdimm *, const struct nvdimm_key_data *, const struct nvdimm_key_data *, enum nvdimm_passphrase_type);
+	int (*unlock)(struct nvdimm *, const struct nvdimm_key_data *);
+	int (*disable)(struct nvdimm *, const struct nvdimm_key_data *);
+	int (*erase)(struct nvdimm *, const struct nvdimm_key_data *, enum nvdimm_passphrase_type);
+	int (*overwrite)(struct nvdimm *, const struct nvdimm_key_data *);
+	int (*query_overwrite)(struct nvdimm *);
+};
+
+enum nvdimm_fwa_trigger {
+	NVDIMM_FWA_ARM = 0,
+	NVDIMM_FWA_DISARM = 1,
+};
+
+enum nvdimm_fwa_result {
+	NVDIMM_FWA_RESULT_INVALID = 0,
+	NVDIMM_FWA_RESULT_NONE = 1,
+	NVDIMM_FWA_RESULT_SUCCESS = 2,
+	NVDIMM_FWA_RESULT_NOTSTAGED = 3,
+	NVDIMM_FWA_RESULT_NEEDRESET = 4,
+	NVDIMM_FWA_RESULT_FAIL = 5,
+};
+
+struct nvdimm_fw_ops {
+	enum nvdimm_fwa_state (*activate_state)(struct nvdimm *);
+	enum nvdimm_fwa_result (*activate_result)(struct nvdimm *);
+	int (*arm)(struct nvdimm *, enum nvdimm_fwa_trigger);
+};
+
+enum {
+	ND_CMD_IMPLEMENTED = 0,
+	ND_CMD_ARS_CAP = 1,
+	ND_CMD_ARS_START = 2,
+	ND_CMD_ARS_STATUS = 3,
+	ND_CMD_CLEAR_ERROR = 4,
+	ND_CMD_SMART = 1,
+	ND_CMD_SMART_THRESHOLD = 2,
+	ND_CMD_DIMM_FLAGS = 3,
+	ND_CMD_GET_CONFIG_SIZE = 4,
+	ND_CMD_GET_CONFIG_DATA = 5,
+	ND_CMD_SET_CONFIG_DATA = 6,
+	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
+	ND_CMD_VENDOR_EFFECT_LOG = 8,
+	ND_CMD_VENDOR = 9,
+	ND_CMD_CALL = 10,
+};
+
+enum {
+	NSINDEX_SIG_LEN = 16,
+	NSINDEX_ALIGN = 256,
+	NSINDEX_SEQ_MASK = 3,
+	NSLABEL_UUID_LEN = 16,
+	NSLABEL_NAME_LEN = 64,
+	NSLABEL_FLAG_ROLABEL = 1,
+	NSLABEL_FLAG_LOCAL = 2,
+	NSLABEL_FLAG_BTT = 4,
+	NSLABEL_FLAG_UPDATING = 8,
+	BTT_ALIGN = 4096,
+	BTTINFO_SIG_LEN = 16,
+	BTTINFO_UUID_LEN = 16,
+	BTTINFO_FLAG_ERROR = 1,
+	BTTINFO_MAJOR_VERSION = 1,
+	ND_LABEL_MIN_SIZE = 1024,
+	ND_LABEL_ID_SIZE = 50,
+	ND_NSINDEX_INIT = 1,
+};
+
+struct nvdimm_map {
+	struct nvdimm_bus *nvdimm_bus;
+	struct list_head list;
+	resource_size_t offset;
+	long unsigned int flags;
+	size_t size;
+	union {
+		void *mem;
+		void *iomem;
+	};
+	struct kref kref;
+};
+
+struct badrange_entry {
+	u64 start;
+	u64 length;
+	struct list_head list;
+};
+
+struct nd_cmd_desc {
+	int in_num;
+	int out_num;
+	u32 in_sizes[5];
+	int out_sizes[5];
+};
+
+struct nd_interleave_set {
+	u64 cookie1;
+	u64 cookie2;
+	u64 altcookie;
+	guid_t type_guid;
+};
+
+struct nvdimm_drvdata;
+
+struct nd_mapping {
+	struct nvdimm *nvdimm;
+	u64 start;
+	u64 size;
+	int position;
+	struct list_head labels;
+	struct mutex lock;
+	struct nvdimm_drvdata *ndd;
+};
+
+struct nd_percpu_lane;
+
+struct nd_region {
+	struct device dev;
+	struct ida ns_ida;
+	struct ida btt_ida;
+	struct ida pfn_ida;
+	struct ida dax_ida;
+	long unsigned int flags;
+	struct device *ns_seed;
+	struct device *btt_seed;
+	struct device *pfn_seed;
+	struct device *dax_seed;
+	long unsigned int align;
+	u16 ndr_mappings;
+	u64 ndr_size;
+	u64 ndr_start;
+	int id;
+	int num_lanes;
+	int ro;
+	int numa_node;
+	int target_node;
+	void *provider_data;
+	struct kernfs_node *bb_state;
+	struct badblocks bb;
+	struct nd_interleave_set *nd_set;
+	struct nd_percpu_lane *lane;
+	int (*flush)(struct nd_region *, struct bio *);
+	struct nd_mapping mapping[0];
+};
+
+struct nd_cmd_get_config_size {
+	__u32 status;
+	__u32 config_size;
+	__u32 max_xfer;
+};
+
+struct nd_cmd_set_config_hdr {
+	__u32 in_offset;
+	__u32 in_length;
+	__u8 in_buf[0];
+};
+
+struct nd_cmd_vendor_hdr {
+	__u32 opcode;
+	__u32 in_length;
+	__u8 in_buf[0];
+};
+
+struct nd_cmd_ars_cap {
+	__u64 address;
+	__u64 length;
+	__u32 status;
+	__u32 max_ars_out;
+	__u32 clear_err_unit;
+	__u16 flags;
+	__u16 reserved;
+};
+
+struct nd_cmd_clear_error {
+	__u64 address;
+	__u64 length;
+	__u32 status;
+	__u8 reserved[4];
+	__u64 cleared;
+};
+
+struct nd_cmd_pkg {
+	__u64 nd_family;
+	__u64 nd_command;
+	__u32 nd_size_in;
+	__u32 nd_size_out;
+	__u32 nd_reserved2[9];
+	__u32 nd_fw_size;
+	unsigned char nd_payload[0];
+};
+
+enum nvdimm_event {
+	NVDIMM_REVALIDATE_POISON = 0,
+	NVDIMM_REVALIDATE_REGION = 1,
+};
+
+enum nvdimm_claim_class {
+	NVDIMM_CCLASS_NONE = 0,
+	NVDIMM_CCLASS_BTT = 1,
+	NVDIMM_CCLASS_BTT2 = 2,
+	NVDIMM_CCLASS_PFN = 3,
+	NVDIMM_CCLASS_DAX = 4,
+	NVDIMM_CCLASS_UNKNOWN = 5,
+};
+
+struct nd_device_driver {
+	struct device_driver drv;
+	long unsigned int type;
+	int (*probe)(struct device *);
+	void (*remove)(struct device *);
+	void (*shutdown)(struct device *);
+	void (*notify)(struct device *, enum nvdimm_event);
+};
+
+struct nd_namespace_common {
+	int force_raw;
+	struct device dev;
+	struct device *claim;
+	enum nvdimm_claim_class claim_class;
+	int (*rw_bytes)(struct nd_namespace_common *, resource_size_t, void *, size_t, int, long unsigned int);
+};
+
+struct nd_namespace_io {
+	struct nd_namespace_common common;
+	struct resource res;
+	resource_size_t size;
+	void *addr;
+	struct badblocks bb;
+};
+
+struct nvdimm_drvdata {
+	struct device *dev;
+	int nslabel_size;
+	struct nd_cmd_get_config_size nsarea;
+	void *data;
+	int ns_current;
+	int ns_next;
+	struct resource dpa;
+	struct kref kref;
+};
+
+struct nd_percpu_lane {
+	int count;
+	spinlock_t lock;
+};
+
+struct btt;
+
+struct nd_btt {
+	struct device dev;
+	struct nd_namespace_common *ndns;
+	struct btt *btt;
+	long unsigned int lbasize;
+	u64 size;
+	u8 *uuid;
+	int id;
+	int initial_offset;
+	u16 version_major;
+	u16 version_minor;
+};
+
+enum nd_pfn_mode {
+	PFN_MODE_NONE = 0,
+	PFN_MODE_RAM = 1,
+	PFN_MODE_PMEM = 2,
+};
+
+struct nd_pfn_sb;
+
+struct nd_pfn {
+	int id;
+	u8 *uuid;
+	struct device dev;
+	long unsigned int align;
+	long unsigned int npfns;
+	enum nd_pfn_mode mode;
+	struct nd_pfn_sb *pfn_sb;
+	struct nd_namespace_common *ndns;
+};
+
+struct nd_pfn_sb {
+	u8 signature[16];
+	u8 uuid[16];
+	u8 parent_uuid[16];
+	__le32 flags;
+	__le16 version_major;
+	__le16 version_minor;
+	__le64 dataoff;
+	__le64 npfns;
+	__le32 mode;
+	__le32 start_pad;
+	__le32 end_trunc;
+	__le32 align;
+	__le32 page_size;
+	__le16 page_struct_size;
+	u8 padding[3994];
+	__le64 checksum;
+};
+
+struct nd_dax {
+	struct nd_pfn nd_pfn;
+};
+
+enum nd_async_mode {
+	ND_SYNC = 0,
+	ND_ASYNC = 1,
+};
+
+struct clear_badblocks_context {
+	resource_size_t phys;
+	resource_size_t cleared;
+};
+
+enum nd_ioctl_mode {
+	BUS_IOCTL = 0,
+	DIMM_IOCTL = 1,
+};
+
+struct nd_cmd_get_config_data_hdr {
+	__u32 in_offset;
+	__u32 in_length;
+	__u32 status;
+	__u8 out_buf[0];
+};
+
+struct nd_blk_region {
+	int (*enable)(struct nvdimm_bus *, struct device *);
+	int (*do_io)(struct nd_blk_region *, resource_size_t, void *, u64, int);
+	void *blk_provider_data;
+	struct nd_region nd_region;
+};
+
+enum nvdimm_security_bits {
+	NVDIMM_SECURITY_DISABLED = 0,
+	NVDIMM_SECURITY_UNLOCKED = 1,
+	NVDIMM_SECURITY_LOCKED = 2,
+	NVDIMM_SECURITY_FROZEN = 3,
+	NVDIMM_SECURITY_OVERWRITE = 4,
+};
+
+struct nd_label_id {
+	char id[50];
+};
+
+struct blk_alloc_info {
+	struct nd_mapping *nd_mapping;
+	resource_size_t available;
+	resource_size_t busy;
+	struct resource *res;
+};
+
+enum nd_driver_flags {
+	ND_DRIVER_DIMM = 2,
+	ND_DRIVER_REGION_PMEM = 4,
+	ND_DRIVER_REGION_BLK = 8,
+	ND_DRIVER_NAMESPACE_IO = 16,
+	ND_DRIVER_NAMESPACE_PMEM = 32,
+	ND_DRIVER_NAMESPACE_BLK = 64,
+	ND_DRIVER_DAX_PMEM = 128,
+};
+
+struct nd_mapping_desc {
+	struct nvdimm *nvdimm;
+	u64 start;
+	u64 size;
+	int position;
+};
+
+struct nd_region_desc {
+	struct resource *res;
+	struct nd_mapping_desc *mapping;
+	u16 num_mappings;
+	const struct attribute_group **attr_groups;
+	struct nd_interleave_set *nd_set;
+	void *provider_data;
+	int num_lanes;
+	int numa_node;
+	int target_node;
+	long unsigned int flags;
+	struct device_node *of_node;
+	int (*flush)(struct nd_region *, struct bio *);
+};
+
+struct nd_blk_region_desc {
+	int (*enable)(struct nvdimm_bus *, struct device *);
+	int (*do_io)(struct nd_blk_region *, resource_size_t, void *, u64, int);
+	struct nd_region_desc ndr_desc;
+};
+
+struct nd_namespace_index {
+	u8 sig[16];
+	u8 flags[3];
+	u8 labelsize;
+	__le32 seq;
+	__le64 myoff;
+	__le64 mysize;
+	__le64 otheroff;
+	__le64 labeloff;
+	__le32 nslot;
+	__le16 major;
+	__le16 minor;
+	__le64 checksum;
+	u8 free[0];
+};
+
+struct nd_namespace_label {
+	u8 uuid[16];
+	u8 name[64];
+	__le32 flags;
+	__le16 nlabel;
+	__le16 position;
+	__le64 isetcookie;
+	__le64 lbasize;
+	__le64 dpa;
+	__le64 rawsize;
+	__le32 slot;
+	u8 align;
+	u8 reserved[3];
+	guid_t type_guid;
+	guid_t abstraction_guid;
+	u8 reserved2[88];
+	__le64 checksum;
+};
+
+enum {
+	ND_MAX_LANES = 256,
+	INT_LBASIZE_ALIGNMENT = 64,
+	NVDIMM_IO_ATOMIC = 1,
+};
+
+struct nd_region_data {
+	int ns_count;
+	int ns_active;
+	unsigned int hints_shift;
+	void *flush_wpq[0];
+};
+
+struct nd_label_ent {
+	struct list_head list;
+	long unsigned int flags;
+	struct nd_namespace_label *label;
+};
+
+struct conflict_context {
+	struct nd_region *nd_region;
+	resource_size_t start;
+	resource_size_t size;
+};
+
+enum {
+	ND_MIN_NAMESPACE_SIZE = 4096,
+};
+
+struct nd_namespace_pmem {
+	struct nd_namespace_io nsio;
+	long unsigned int lbasize;
+	char *alt_name;
+	u8 *uuid;
+	int id;
+};
+
+struct nd_namespace_blk {
+	struct nd_namespace_common common;
+	char *alt_name;
+	u8 *uuid;
+	int id;
+	long unsigned int lbasize;
+	resource_size_t size;
+	int num_resources;
+	struct resource **res;
+};
+
+enum nd_label_flags {
+	ND_LABEL_REAP = 0,
+};
+
+enum alloc_loc {
+	ALLOC_ERR = 0,
+	ALLOC_BEFORE = 1,
+	ALLOC_MID = 2,
+	ALLOC_AFTER = 3,
+};
+
+struct btt {
+	struct gendisk *btt_disk;
+	struct list_head arena_list;
+	struct dentry *debugfs_dir;
+	struct nd_btt *nd_btt;
+	u64 nlba;
+	long long unsigned int rawsize;
+	u32 lbasize;
+	u32 sector_size;
+	struct nd_region *nd_region;
+	struct mutex init_lock;
+	int init_state;
+	int num_arenas;
+	struct badblocks *phys_bb;
+};
+
+struct nd_gen_sb {
+	char reserved[4088];
+	__le64 checksum;
+};
+
+struct btt_sb {
+	u8 signature[16];
+	u8 uuid[16];
+	u8 parent_uuid[16];
+	__le32 flags;
+	__le16 version_major;
+	__le16 version_minor;
+	__le32 external_lbasize;
+	__le32 external_nlba;
+	__le32 internal_lbasize;
+	__le32 internal_nlba;
+	__le32 nfree;
+	__le32 infosize;
+	__le64 nextoff;
+	__le64 dataoff;
+	__le64 mapoff;
+	__le64 logoff;
+	__le64 info2off;
+	u8 padding[3968];
+	__le64 checksum;
+};
+
+enum nvdimmsec_op_ids {
+	OP_FREEZE = 0,
+	OP_DISABLE = 1,
+	OP_UPDATE = 2,
+	OP_ERASE = 3,
+	OP_OVERWRITE = 4,
+	OP_MASTER_UPDATE = 5,
+	OP_MASTER_ERASE = 6,
+};
+
+struct dax_operations {
+	long int (*direct_access)(struct dax_device *, long unsigned int, long int, void **, pfn_t *);
+	bool (*dax_supported)(struct dax_device *, struct block_device *, int, sector_t, sector_t);
+	size_t (*copy_from_iter)(struct dax_device *, long unsigned int, void *, size_t, struct iov_iter *);
+	size_t (*copy_to_iter)(struct dax_device *, long unsigned int, void *, size_t, struct iov_iter *);
+	int (*zero_page_range)(struct dax_device *, long unsigned int, size_t);
+};
+
+struct dax_device {
+	struct hlist_node list;
+	struct inode inode;
+	struct cdev cdev;
+	const char *host;
+	void *private;
+	long unsigned int flags;
+	const struct dax_operations *ops;
+};
+
+enum dax_device_flags {
+	DAXDEV_ALIVE = 0,
+	DAXDEV_WRITE_CACHE = 1,
+	DAXDEV_SYNC = 2,
+};
+
+struct dax_region {
+	int id;
+	int target_node;
+	struct kref kref;
+	struct device *dev;
+	unsigned int align;
+	struct ida ida;
+	struct resource res;
+	struct device *seed;
+	struct device *youngest;
+};
+
+struct dax_mapping {
+	struct device dev;
+	int range_id;
+	int id;
+};
+
+struct dev_dax_range {
+	long unsigned int pgoff;
+	struct range range;
+	struct dax_mapping *mapping;
+};
+
+struct dev_dax {
+	struct dax_region *region;
+	struct dax_device *dax_dev;
+	unsigned int align;
+	int target_node;
+	int id;
+	struct ida ida;
+	struct device dev;
+	struct dev_pagemap *pgmap;
+	int nr_range;
+	struct dev_dax_range *ranges;
+};
+
+enum dev_dax_subsys {
+	DEV_DAX_BUS = 0,
+	DEV_DAX_CLASS = 1,
+};
+
+struct dev_dax_data {
+	struct dax_region *dax_region;
+	struct dev_pagemap *pgmap;
+	enum dev_dax_subsys subsys;
+	resource_size_t size;
+	int id;
+};
+
+struct dax_device_driver {
+	struct device_driver drv;
+	struct list_head ids;
+	int match_always;
+	int (*probe)(struct dev_dax *);
+	void (*remove)(struct dev_dax *);
+};
+
+struct dax_id {
+	struct list_head list;
+	char dev_name[30];
+};
+
+enum id_action {
+	ID_REMOVE = 0,
+	ID_ADD = 1,
+};
+
+struct seqcount_ww_mutex {
+	seqcount_t seqcount;
+};
+
+typedef struct seqcount_ww_mutex seqcount_ww_mutex_t;
+
+struct dma_buf_map {
+	union {
+		void *vaddr_iomem;
+		void *vaddr;
+	};
+	bool is_iomem;
+};
+
+struct dma_fence_ops;
+
+struct dma_fence {
+	spinlock_t *lock;
+	const struct dma_fence_ops *ops;
+	union {
+		struct list_head cb_list;
+		ktime_t timestamp;
+		struct callback_head rcu;
+	};
+	u64 context;
+	u64 seqno;
+	long unsigned int flags;
+	struct kref refcount;
+	int error;
+};
+
+struct dma_fence_ops {
+	bool use_64bit_seqno;
+	const char * (*get_driver_name)(struct dma_fence *);
+	const char * (*get_timeline_name)(struct dma_fence *);
+	bool (*enable_signaling)(struct dma_fence *);
+	bool (*signaled)(struct dma_fence *);
+	long int (*wait)(struct dma_fence *, bool, long int);
+	void (*release)(struct dma_fence *);
+	void (*fence_value_str)(struct dma_fence *, char *, int);
+	void (*timeline_value_str)(struct dma_fence *, char *, int);
+};
+
+enum dma_fence_flag_bits {
+	DMA_FENCE_FLAG_SIGNALED_BIT = 0,
+	DMA_FENCE_FLAG_TIMESTAMP_BIT = 1,
+	DMA_FENCE_FLAG_ENABLE_SIGNAL_BIT = 2,
+	DMA_FENCE_FLAG_USER_BITS = 3,
+};
+
+struct dma_fence_cb;
+
+typedef void (*dma_fence_func_t)(struct dma_fence *, struct dma_fence_cb *);
+
+struct dma_fence_cb {
+	struct list_head node;
+	dma_fence_func_t func;
+};
+
+struct dma_buf;
+
+struct dma_buf_attachment;
+
+struct dma_buf_ops {
+	bool cache_sgt_mapping;
+	int (*attach)(struct dma_buf *, struct dma_buf_attachment *);
+	void (*detach)(struct dma_buf *, struct dma_buf_attachment *);
+	int (*pin)(struct dma_buf_attachment *);
+	void (*unpin)(struct dma_buf_attachment *);
+	struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *, enum dma_data_direction);
+	void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *, enum dma_data_direction);
+	void (*release)(struct dma_buf *);
+	int (*begin_cpu_access)(struct dma_buf *, enum dma_data_direction);
+	int (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
+	int (*mmap)(struct dma_buf *, struct vm_area_struct *);
+	int (*vmap)(struct dma_buf *, struct dma_buf_map *);
+	void (*vunmap)(struct dma_buf *, struct dma_buf_map *);
+};
+
+struct dma_buf_poll_cb_t {
+	struct dma_fence_cb cb;
+	wait_queue_head_t *poll;
+	__poll_t active;
+};
+
+struct dma_resv;
+
+struct dma_buf {
+	size_t size;
+	struct file *file;
+	struct list_head attachments;
+	const struct dma_buf_ops *ops;
+	struct mutex lock;
+	unsigned int vmapping_counter;
+	struct dma_buf_map vmap_ptr;
+	const char *exp_name;
+	const char *name;
+	spinlock_t name_lock;
+	struct module *owner;
+	struct list_head list_node;
+	void *priv;
+	struct dma_resv *resv;
+	wait_queue_head_t poll;
+	struct dma_buf_poll_cb_t cb_in;
+	struct dma_buf_poll_cb_t cb_out;
+};
+
+struct dma_buf_attach_ops;
+
+struct dma_buf_attachment {
+	struct dma_buf *dmabuf;
+	struct device *dev;
+	struct list_head node;
+	struct sg_table *sgt;
+	enum dma_data_direction dir;
+	bool peer2peer;
+	const struct dma_buf_attach_ops *importer_ops;
+	void *importer_priv;
+	void *priv;
+};
+
+struct dma_resv_list;
+
+struct dma_resv {
+	struct ww_mutex lock;
+	seqcount_ww_mutex_t seq;
+	struct dma_fence *fence_excl;
+	struct dma_resv_list *fence;
+};
+
+struct dma_buf_attach_ops {
+	bool allow_peer2peer;
+	void (*move_notify)(struct dma_buf_attachment *);
+};
+
+struct dma_buf_export_info {
+	const char *exp_name;
+	struct module *owner;
+	const struct dma_buf_ops *ops;
+	size_t size;
+	int flags;
+	struct dma_resv *resv;
+	void *priv;
+};
+
+struct dma_resv_list {
+	struct callback_head rcu;
+	u32 shared_count;
+	u32 shared_max;
+	struct dma_fence *shared[0];
+};
+
+struct dma_buf_sync {
+	__u64 flags;
+};
+
+struct dma_buf_list {
+	struct list_head head;
+	struct mutex lock;
+};
+
+struct trace_event_raw_dma_fence {
+	struct trace_entry ent;
+	u32 __data_loc_driver;
+	u32 __data_loc_timeline;
+	unsigned int context;
+	unsigned int seqno;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_dma_fence {
+	u32 driver;
+	u32 timeline;
+};
+
+typedef void (*btf_trace_dma_fence_emit)(void *, struct dma_fence *);
+
+typedef void (*btf_trace_dma_fence_init)(void *, struct dma_fence *);
+
+typedef void (*btf_trace_dma_fence_destroy)(void *, struct dma_fence *);
+
+typedef void (*btf_trace_dma_fence_enable_signal)(void *, struct dma_fence *);
+
+typedef void (*btf_trace_dma_fence_signaled)(void *, struct dma_fence *);
+
+typedef void (*btf_trace_dma_fence_wait_start)(void *, struct dma_fence *);
+
+typedef void (*btf_trace_dma_fence_wait_end)(void *, struct dma_fence *);
+
+struct default_wait_cb {
+	struct dma_fence_cb base;
+	struct task_struct *task;
+};
+
+struct dma_fence_array;
+
+struct dma_fence_array_cb {
+	struct dma_fence_cb cb;
+	struct dma_fence_array *array;
+};
+
+struct dma_fence_array {
+	struct dma_fence base;
+	spinlock_t lock;
+	unsigned int num_fences;
+	atomic_t num_pending;
+	struct dma_fence **fences;
+	struct irq_work work;
+};
+
+struct dma_fence_chain {
+	struct dma_fence base;
+	struct dma_fence *prev;
+	u64 prev_seqno;
+	struct dma_fence *fence;
+	union {
+		struct dma_fence_cb cb;
+		struct irq_work work;
+	};
+	spinlock_t lock;
+};
+
+enum seqno_fence_condition {
+	SEQNO_FENCE_WAIT_GEQUAL = 0,
+	SEQNO_FENCE_WAIT_NONZERO = 1,
+};
+
+struct seqno_fence {
+	struct dma_fence base;
+	const struct dma_fence_ops *ops;
+	struct dma_buf *sync_buf;
+	uint32_t seqno_ofs;
+	enum seqno_fence_condition condition;
+};
+
+struct dma_heap;
+
+struct dma_heap_ops {
+	struct dma_buf * (*allocate)(struct dma_heap *, long unsigned int, long unsigned int, long unsigned int);
+};
+
+struct dma_heap {
+	const char *name;
+	const struct dma_heap_ops *ops;
+	void *priv;
+	dev_t heap_devt;
+	struct list_head list;
+	struct cdev heap_cdev;
+};
+
+struct dma_heap_export_info {
+	const char *name;
+	const struct dma_heap_ops *ops;
+	void *priv;
+};
+
+struct dma_heap_allocation_data {
+	__u64 len;
+	__u32 fd;
+	__u32 fd_flags;
+	__u64 heap_flags;
+};
+
+struct system_heap_buffer {
+	struct dma_heap *heap;
+	struct list_head attachments;
+	struct mutex lock;
+	long unsigned int len;
+	struct sg_table sg_table;
+	int vmap_cnt;
+	void *vaddr;
+};
+
+struct dma_heap_attachment {
+	struct device *dev;
+	struct sg_table *table;
+	struct list_head list;
+	bool mapped;
+};
+
+struct cma_heap {
+	struct dma_heap *heap;
+	struct cma *cma;
+};
+
+struct cma_heap_buffer {
+	struct cma_heap *heap;
+	struct list_head attachments;
+	struct mutex lock;
+	long unsigned int len;
+	struct page *cma_pages;
+	struct page **pages;
+	long unsigned int pagecount;
+	int vmap_cnt;
+	void *vaddr;
+};
+
+struct dma_heap_attachment___2 {
+	struct device *dev;
+	struct sg_table table;
+	struct list_head list;
+	bool mapped;
+};
+
+struct sync_file {
+	struct file *file;
+	char user_name[32];
+	struct list_head sync_file_list;
+	wait_queue_head_t wq;
+	long unsigned int flags;
+	struct dma_fence *fence;
+	struct dma_fence_cb cb;
+};
+
+struct sync_merge_data {
+	char name[32];
+	__s32 fd2;
+	__s32 fence;
+	__u32 flags;
+	__u32 pad;
+};
+
+struct sync_fence_info {
+	char obj_name[32];
+	char driver_name[32];
+	__s32 status;
+	__u32 flags;
+	__u64 timestamp_ns;
+};
+
+struct sync_file_info {
+	char name[32];
+	__s32 status;
+	__u32 flags;
+	__u32 num_fences;
+	__u32 pad;
+	__u64 sync_fence_info;
+};
+
+struct sync_timeline {
+	struct kref kref;
+	char name[32];
+	u64 context;
+	int value;
+	struct rb_root pt_tree;
+	struct list_head pt_list;
+	spinlock_t lock;
+	struct list_head sync_timeline_list;
+};
+
+struct sync_pt {
+	struct dma_fence base;
+	struct list_head link;
+	struct rb_node node;
+};
+
+struct trace_event_raw_sync_timeline {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u32 value;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_sync_timeline {
+	u32 name;
+};
+
+typedef void (*btf_trace_sync_timeline)(void *, struct sync_timeline *);
+
+struct sw_sync_create_fence_data {
+	__u32 value;
+	char name[32];
+	__s32 fence;
+};
+
+struct udmabuf_create {
+	__u32 memfd;
+	__u32 flags;
+	__u64 offset;
+	__u64 size;
+};
+
+struct udmabuf_create_item {
+	__u32 memfd;
+	__u32 __pad;
+	__u64 offset;
+	__u64 size;
+};
+
+struct udmabuf_create_list {
+	__u32 flags;
+	__u32 count;
+	struct udmabuf_create_item list[0];
+};
+
+struct udmabuf {
+	long unsigned int pagecount;
+	struct page **pages;
+	struct sg_table *sg;
+	struct miscdevice *device;
+};
+
+enum sam_status {
+	SAM_STAT_GOOD = 0,
+	SAM_STAT_CHECK_CONDITION = 2,
+	SAM_STAT_CONDITION_MET = 4,
+	SAM_STAT_BUSY = 8,
+	SAM_STAT_INTERMEDIATE = 16,
+	SAM_STAT_INTERMEDIATE_CONDITION_MET = 20,
+	SAM_STAT_RESERVATION_CONFLICT = 24,
+	SAM_STAT_COMMAND_TERMINATED = 34,
+	SAM_STAT_TASK_SET_FULL = 40,
+	SAM_STAT_ACA_ACTIVE = 48,
+	SAM_STAT_TASK_ABORTED = 64,
+};
+
+struct scsi_sense_hdr {
+	u8 response_code;
+	u8 sense_key;
+	u8 asc;
+	u8 ascq;
+	u8 byte4;
+	u8 byte5;
+	u8 byte6;
+	u8 additional_length;
+};
+
+enum scsi_host_status {
+	DID_OK = 0,
+	DID_NO_CONNECT = 1,
+	DID_BUS_BUSY = 2,
+	DID_TIME_OUT = 3,
+	DID_BAD_TARGET = 4,
+	DID_ABORT = 5,
+	DID_PARITY = 6,
+	DID_ERROR = 7,
+	DID_RESET = 8,
+	DID_BAD_INTR = 9,
+	DID_PASSTHROUGH = 10,
+	DID_SOFT_ERROR = 11,
+	DID_IMM_RETRY = 12,
+	DID_REQUEUE = 13,
+	DID_TRANSPORT_DISRUPTED = 14,
+	DID_TRANSPORT_FAILFAST = 15,
+	DID_TARGET_FAILURE = 16,
+	DID_NEXUS_FAILURE = 17,
+	DID_ALLOC_FAILURE = 18,
+	DID_MEDIUM_ERROR = 19,
+	DID_TRANSPORT_MARGINAL = 20,
+};
+
+enum scsi_disposition {
+	NEEDS_RETRY = 8193,
+	SUCCESS = 8194,
+	FAILED = 8195,
+	QUEUED = 8196,
+	SOFT_ERROR = 8197,
+	ADD_TO_MLQUEUE = 8198,
+	TIMEOUT_ERROR = 8199,
+	SCSI_RETURN_NOT_HANDLED = 8200,
+	FAST_IO_FAIL = 8201,
+};
+
+typedef __u64 blist_flags_t;
+
+enum scsi_device_state {
+	SDEV_CREATED = 1,
+	SDEV_RUNNING = 2,
+	SDEV_CANCEL = 3,
+	SDEV_DEL = 4,
+	SDEV_QUIESCE = 5,
+	SDEV_OFFLINE = 6,
+	SDEV_TRANSPORT_OFFLINE = 7,
+	SDEV_BLOCK = 8,
+	SDEV_CREATED_BLOCK = 9,
+};
+
+struct scsi_vpd {
+	struct callback_head rcu;
+	int len;
+	unsigned char data[0];
+};
+
+struct Scsi_Host;
+
+struct scsi_target;
+
+struct scsi_device_handler;
+
+struct scsi_device {
+	struct Scsi_Host *host;
+	struct request_queue *request_queue;
+	struct list_head siblings;
+	struct list_head same_target_siblings;
+	struct sbitmap budget_map;
+	atomic_t device_blocked;
+	atomic_t restarts;
+	spinlock_t list_lock;
+	struct list_head starved_entry;
+	short unsigned int queue_depth;
+	short unsigned int max_queue_depth;
+	short unsigned int last_queue_full_depth;
+	short unsigned int last_queue_full_count;
+	long unsigned int last_queue_full_time;
+	long unsigned int queue_ramp_up_period;
+	long unsigned int last_queue_ramp_up;
+	unsigned int id;
+	unsigned int channel;
+	u64 lun;
+	unsigned int manufacturer;
+	unsigned int sector_size;
+	void *hostdata;
+	unsigned char type;
+	char scsi_level;
+	char inq_periph_qual;
+	struct mutex inquiry_mutex;
+	unsigned char inquiry_len;
+	unsigned char *inquiry;
+	const char *vendor;
+	const char *model;
+	const char *rev;
+	struct scsi_vpd *vpd_pg0;
+	struct scsi_vpd *vpd_pg83;
+	struct scsi_vpd *vpd_pg80;
+	struct scsi_vpd *vpd_pg89;
+	struct scsi_target *sdev_target;
+	blist_flags_t sdev_bflags;
+	unsigned int eh_timeout;
+	unsigned int removable: 1;
+	unsigned int changed: 1;
+	unsigned int busy: 1;
+	unsigned int lockable: 1;
+	unsigned int locked: 1;
+	unsigned int borken: 1;
+	unsigned int disconnect: 1;
+	unsigned int soft_reset: 1;
+	unsigned int sdtr: 1;
+	unsigned int wdtr: 1;
+	unsigned int ppr: 1;
+	unsigned int tagged_supported: 1;
+	unsigned int simple_tags: 1;
+	unsigned int was_reset: 1;
+	unsigned int expecting_cc_ua: 1;
+	unsigned int use_10_for_rw: 1;
+	unsigned int use_10_for_ms: 1;
+	unsigned int set_dbd_for_ms: 1;
+	unsigned int no_report_opcodes: 1;
+	unsigned int no_write_same: 1;
+	unsigned int use_16_for_rw: 1;
+	unsigned int skip_ms_page_8: 1;
+	unsigned int skip_ms_page_3f: 1;
+	unsigned int skip_vpd_pages: 1;
+	unsigned int try_vpd_pages: 1;
+	unsigned int use_192_bytes_for_3f: 1;
+	unsigned int no_start_on_add: 1;
+	unsigned int allow_restart: 1;
+	unsigned int manage_start_stop: 1;
+	unsigned int start_stop_pwr_cond: 1;
+	unsigned int no_uld_attach: 1;
+	unsigned int select_no_atn: 1;
+	unsigned int fix_capacity: 1;
+	unsigned int guess_capacity: 1;
+	unsigned int retry_hwerror: 1;
+	unsigned int last_sector_bug: 1;
+	unsigned int no_read_disc_info: 1;
+	unsigned int no_read_capacity_16: 1;
+	unsigned int try_rc_10_first: 1;
+	unsigned int security_supported: 1;
+	unsigned int is_visible: 1;
+	unsigned int wce_default_on: 1;
+	unsigned int no_dif: 1;
+	unsigned int broken_fua: 1;
+	unsigned int lun_in_cdb: 1;
+	unsigned int unmap_limit_for_ws: 1;
+	unsigned int rpm_autosuspend: 1;
+	unsigned int ignore_media_change: 1;
+	bool offline_already;
+	atomic_t disk_events_disable_depth;
+	long unsigned int supported_events[1];
+	long unsigned int pending_events[1];
+	struct list_head event_list;
+	struct work_struct event_work;
+	unsigned int max_device_blocked;
+	atomic_t iorequest_cnt;
+	atomic_t iodone_cnt;
+	atomic_t ioerr_cnt;
+	struct device sdev_gendev;
+	struct device sdev_dev;
+	struct execute_work ew;
+	struct work_struct requeue_work;
+	struct scsi_device_handler *handler;
+	void *handler_data;
+	size_t dma_drain_len;
+	void *dma_drain_buf;
+	unsigned int sg_timeout;
+	unsigned int sg_reserved_size;
+	struct bsg_device *bsg_dev;
+	unsigned char access_state;
+	struct mutex state_mutex;
+	enum scsi_device_state sdev_state;
+	struct task_struct *quiesced_by;
+	long unsigned int sdev_data[0];
+};
+
+enum scsi_host_state {
+	SHOST_CREATED = 1,
+	SHOST_RUNNING = 2,
+	SHOST_CANCEL = 3,
+	SHOST_DEL = 4,
+	SHOST_RECOVERY = 5,
+	SHOST_CANCEL_RECOVERY = 6,
+	SHOST_DEL_RECOVERY = 7,
+};
+
+struct scsi_host_template;
+
+struct scsi_transport_template;
+
+struct Scsi_Host {
+	struct list_head __devices;
+	struct list_head __targets;
+	struct list_head starved_list;
+	spinlock_t default_lock;
+	spinlock_t *host_lock;
+	struct mutex scan_mutex;
+	struct list_head eh_abort_list;
+	struct list_head eh_cmd_q;
+	struct task_struct *ehandler;
+	struct completion *eh_action;
+	wait_queue_head_t host_wait;
+	struct scsi_host_template *hostt;
+	struct scsi_transport_template *transportt;
+	struct blk_mq_tag_set tag_set;
+	atomic_t host_blocked;
+	unsigned int host_failed;
+	unsigned int host_eh_scheduled;
+	unsigned int host_no;
+	int eh_deadline;
+	long unsigned int last_reset;
+	unsigned int max_channel;
+	unsigned int max_id;
+	u64 max_lun;
+	unsigned int unique_id;
+	short unsigned int max_cmd_len;
+	int this_id;
+	int can_queue;
+	short int cmd_per_lun;
+	short unsigned int sg_tablesize;
+	short unsigned int sg_prot_tablesize;
+	unsigned int max_sectors;
+	unsigned int max_segment_size;
+	long unsigned int dma_boundary;
+	long unsigned int virt_boundary_mask;
+	unsigned int nr_hw_queues;
+	unsigned int nr_maps;
+	unsigned int active_mode: 2;
+	unsigned int host_self_blocked: 1;
+	unsigned int reverse_ordering: 1;
+	unsigned int tmf_in_progress: 1;
+	unsigned int async_scan: 1;
+	unsigned int eh_noresume: 1;
+	unsigned int no_write_same: 1;
+	unsigned int host_tagset: 1;
+	unsigned int short_inquiry: 1;
+	unsigned int no_scsi2_lun_in_cdb: 1;
+	char work_q_name[20];
+	struct workqueue_struct *work_q;
+	struct workqueue_struct *tmf_work_q;
+	unsigned int max_host_blocked;
+	unsigned int prot_capabilities;
+	unsigned char prot_guard_type;
+	long unsigned int base;
+	long unsigned int io_port;
+	unsigned char n_io_port;
+	unsigned char dma_channel;
+	unsigned int irq;
+	enum scsi_host_state shost_state;
+	struct device shost_gendev;
+	struct device shost_dev;
+	void *shost_data;
+	struct device *dma_dev;
+	long unsigned int hostdata[0];
+};
+
+enum scsi_target_state {
+	STARGET_CREATED = 1,
+	STARGET_RUNNING = 2,
+	STARGET_REMOVE = 3,
+	STARGET_CREATED_REMOVE = 4,
+	STARGET_DEL = 5,
+};
+
+struct scsi_target {
+	struct scsi_device *starget_sdev_user;
+	struct list_head siblings;
+	struct list_head devices;
+	struct device dev;
+	struct kref reap_ref;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int create: 1;
+	unsigned int single_lun: 1;
+	unsigned int pdt_1f_for_no_lun: 1;
+	unsigned int no_report_luns: 1;
+	unsigned int expecting_lun_change: 1;
+	atomic_t target_busy;
+	atomic_t target_blocked;
+	unsigned int can_queue;
+	unsigned int max_target_blocked;
+	char scsi_level;
+	enum scsi_target_state state;
+	void *hostdata;
+	long unsigned int starget_data[0];
+};
+
+struct scsi_host_cmd_pool;
+
+struct scsi_cmnd;
+
+struct scsi_host_template {
+	unsigned int cmd_size;
+	int (*queuecommand)(struct Scsi_Host *, struct scsi_cmnd *);
+	void (*commit_rqs)(struct Scsi_Host *, u16);
+	struct module *module;
+	const char *name;
+	const char * (*info)(struct Scsi_Host *);
+	int (*ioctl)(struct scsi_device *, unsigned int, void *);
+	int (*init_cmd_priv)(struct Scsi_Host *, struct scsi_cmnd *);
+	int (*exit_cmd_priv)(struct Scsi_Host *, struct scsi_cmnd *);
+	int (*eh_abort_handler)(struct scsi_cmnd *);
+	int (*eh_device_reset_handler)(struct scsi_cmnd *);
+	int (*eh_target_reset_handler)(struct scsi_cmnd *);
+	int (*eh_bus_reset_handler)(struct scsi_cmnd *);
+	int (*eh_host_reset_handler)(struct scsi_cmnd *);
+	int (*slave_alloc)(struct scsi_device *);
+	int (*slave_configure)(struct scsi_device *);
+	void (*slave_destroy)(struct scsi_device *);
+	int (*target_alloc)(struct scsi_target *);
+	void (*target_destroy)(struct scsi_target *);
+	int (*scan_finished)(struct Scsi_Host *, long unsigned int);
+	void (*scan_start)(struct Scsi_Host *);
+	int (*change_queue_depth)(struct scsi_device *, int);
+	int (*map_queues)(struct Scsi_Host *);
+	int (*mq_poll)(struct Scsi_Host *, unsigned int);
+	bool (*dma_need_drain)(struct request *);
+	int (*bios_param)(struct scsi_device *, struct block_device *, sector_t, int *);
+	void (*unlock_native_capacity)(struct scsi_device *);
+	int (*show_info)(struct seq_file *, struct Scsi_Host *);
+	int (*write_info)(struct Scsi_Host *, char *, int);
+	enum blk_eh_timer_return (*eh_timed_out)(struct scsi_cmnd *);
+	bool (*eh_should_retry_cmd)(struct scsi_cmnd *);
+	int (*host_reset)(struct Scsi_Host *, int);
+	const char *proc_name;
+	struct proc_dir_entry *proc_dir;
+	int can_queue;
+	int this_id;
+	short unsigned int sg_tablesize;
+	short unsigned int sg_prot_tablesize;
+	unsigned int max_sectors;
+	unsigned int max_segment_size;
+	long unsigned int dma_boundary;
+	long unsigned int virt_boundary_mask;
+	short int cmd_per_lun;
+	unsigned char present;
+	int tag_alloc_policy;
+	unsigned int track_queue_depth: 1;
+	unsigned int supported_mode: 2;
+	unsigned int emulated: 1;
+	unsigned int skip_settle_delay: 1;
+	unsigned int no_write_same: 1;
+	unsigned int host_tagset: 1;
+	unsigned int max_host_blocked;
+	struct device_attribute **shost_attrs;
+	struct device_attribute **sdev_attrs;
+	const struct attribute_group **sdev_groups;
+	u64 vendor_id;
+	struct scsi_host_cmd_pool *cmd_pool;
+	int rpm_autosuspend_delay;
+};
+
+struct scsi_request {
+	unsigned char __cmd[16];
+	unsigned char *cmd;
+	short unsigned int cmd_len;
+	int result;
+	unsigned int sense_len;
+	unsigned int resid_len;
+	int retries;
+	void *sense;
+};
+
+struct scsi_data_buffer {
+	struct sg_table table;
+	unsigned int length;
+};
+
+struct scsi_pointer {
+	char *ptr;
+	int this_residual;
+	struct scatterlist *buffer;
+	int buffers_residual;
+	dma_addr_t dma_handle;
+	volatile int Status;
+	volatile int Message;
+	volatile int have_data_in;
+	volatile int sent_command;
+	volatile int phase;
+};
+
+struct scsi_cmnd {
+	struct scsi_request req;
+	struct scsi_device *device;
+	struct list_head eh_entry;
+	struct delayed_work abort_work;
+	struct callback_head rcu;
+	int eh_eflags;
+	int budget_token;
+	long unsigned int jiffies_at_alloc;
+	int retries;
+	int allowed;
+	unsigned char prot_op;
+	unsigned char prot_type;
+	unsigned char prot_flags;
+	short unsigned int cmd_len;
+	enum dma_data_direction sc_data_direction;
+	unsigned char *cmnd;
+	struct scsi_data_buffer sdb;
+	struct scsi_data_buffer *prot_sdb;
+	unsigned int underflow;
+	unsigned int transfersize;
+	unsigned char *sense_buffer;
+	void (*scsi_done)(struct scsi_cmnd *);
+	struct scsi_pointer SCp;
+	unsigned char *host_scribble;
+	int result;
+	int flags;
+	long unsigned int state;
+	unsigned int extra_len;
+};
+
+enum scsi_prot_operations {
+	SCSI_PROT_NORMAL = 0,
+	SCSI_PROT_READ_INSERT = 1,
+	SCSI_PROT_WRITE_STRIP = 2,
+	SCSI_PROT_READ_STRIP = 3,
+	SCSI_PROT_WRITE_INSERT = 4,
+	SCSI_PROT_READ_PASS = 5,
+	SCSI_PROT_WRITE_PASS = 6,
+};
+
+struct scsi_driver {
+	struct device_driver gendrv;
+	void (*rescan)(struct device *);
+	blk_status_t (*init_command)(struct scsi_cmnd *);
+	void (*uninit_command)(struct scsi_cmnd *);
+	int (*done)(struct scsi_cmnd *);
+	int (*eh_action)(struct scsi_cmnd *, int);
+	void (*eh_reset)(struct scsi_cmnd *);
+};
+
+struct trace_event_raw_scsi_dispatch_cmd_start {
+	struct trace_entry ent;
+	unsigned int host_no;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int lun;
+	unsigned int opcode;
+	unsigned int cmd_len;
+	unsigned int data_sglen;
+	unsigned int prot_sglen;
+	unsigned char prot_op;
+	u32 __data_loc_cmnd;
+	char __data[0];
+};
+
+struct trace_event_raw_scsi_dispatch_cmd_error {
+	struct trace_entry ent;
+	unsigned int host_no;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int lun;
+	int rtn;
+	unsigned int opcode;
+	unsigned int cmd_len;
+	unsigned int data_sglen;
+	unsigned int prot_sglen;
+	unsigned char prot_op;
+	u32 __data_loc_cmnd;
+	char __data[0];
+};
+
+struct trace_event_raw_scsi_cmd_done_timeout_template {
+	struct trace_entry ent;
+	unsigned int host_no;
+	unsigned int channel;
+	unsigned int id;
+	unsigned int lun;
+	int result;
+	unsigned int opcode;
+	unsigned int cmd_len;
+	unsigned int data_sglen;
+	unsigned int prot_sglen;
+	unsigned char prot_op;
+	u32 __data_loc_cmnd;
+	char __data[0];
+};
+
+struct trace_event_raw_scsi_eh_wakeup {
+	struct trace_entry ent;
+	unsigned int host_no;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_scsi_dispatch_cmd_start {
+	u32 cmnd;
+};
+
+struct trace_event_data_offsets_scsi_dispatch_cmd_error {
+	u32 cmnd;
+};
+
+struct trace_event_data_offsets_scsi_cmd_done_timeout_template {
+	u32 cmnd;
+};
+
+struct trace_event_data_offsets_scsi_eh_wakeup {};
+
+typedef void (*btf_trace_scsi_dispatch_cmd_start)(void *, struct scsi_cmnd *);
+
+typedef void (*btf_trace_scsi_dispatch_cmd_error)(void *, struct scsi_cmnd *, int);
+
+typedef void (*btf_trace_scsi_dispatch_cmd_done)(void *, struct scsi_cmnd *);
+
+typedef void (*btf_trace_scsi_dispatch_cmd_timeout)(void *, struct scsi_cmnd *);
+
+typedef void (*btf_trace_scsi_eh_wakeup)(void *, struct Scsi_Host *);
+
+struct scsi_transport_template {
+	struct transport_container host_attrs;
+	struct transport_container target_attrs;
+	struct transport_container device_attrs;
+	int (*user_scan)(struct Scsi_Host *, uint, uint, u64);
+	int device_size;
+	int device_private_offset;
+	int target_size;
