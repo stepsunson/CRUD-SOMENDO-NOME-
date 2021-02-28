@@ -78198,3 +78198,2094 @@ struct mipi_dsi_device {
 };
 
 struct mipi_dsi_device_info {
+	char type[20];
+	u32 channel;
+	struct device_node *node;
+};
+
+enum mipi_dsi_dcs_tear_mode {
+	MIPI_DSI_DCS_TEAR_MODE_VBLANK = 0,
+	MIPI_DSI_DCS_TEAR_MODE_VHBLANK = 1,
+};
+
+struct mipi_dsi_driver {
+	struct device_driver driver;
+	int (*probe)(struct mipi_dsi_device *);
+	int (*remove)(struct mipi_dsi_device *);
+	void (*shutdown)(struct mipi_dsi_device *);
+};
+
+struct drm_dsc_picture_parameter_set {
+	u8 dsc_version;
+	u8 pps_identifier;
+	u8 pps_reserved;
+	u8 pps_3;
+	u8 pps_4;
+	u8 bits_per_pixel_low;
+	__be16 pic_height;
+	__be16 pic_width;
+	__be16 slice_height;
+	__be16 slice_width;
+	__be16 chunk_size;
+	u8 initial_xmit_delay_high;
+	u8 initial_xmit_delay_low;
+	__be16 initial_dec_delay;
+	u8 pps20_reserved;
+	u8 initial_scale_value;
+	__be16 scale_increment_interval;
+	u8 scale_decrement_interval_high;
+	u8 scale_decrement_interval_low;
+	u8 pps26_reserved;
+	u8 first_line_bpg_offset;
+	__be16 nfl_bpg_offset;
+	__be16 slice_bpg_offset;
+	__be16 initial_offset;
+	__be16 final_offset;
+	u8 flatness_min_qp;
+	u8 flatness_max_qp;
+	__be16 rc_model_size;
+	u8 rc_edge_factor;
+	u8 rc_quant_incr_limit0;
+	u8 rc_quant_incr_limit1;
+	u8 rc_tgt_offset;
+	u8 rc_buf_thresh[14];
+	__be16 rc_range_parameters[15];
+	u8 native_422_420;
+	u8 second_line_bpg_offset;
+	__be16 nsl_bpg_offset;
+	__be16 second_line_offset_adj;
+	u32 pps_long_94_reserved;
+	u32 pps_long_98_reserved;
+	u32 pps_long_102_reserved;
+	u32 pps_long_106_reserved;
+	u32 pps_long_110_reserved;
+	u32 pps_long_114_reserved;
+	u32 pps_long_118_reserved;
+	u32 pps_long_122_reserved;
+	__be16 pps_short_126_reserved;
+} __attribute__((packed));
+
+enum {
+	MIPI_DSI_V_SYNC_START = 1,
+	MIPI_DSI_V_SYNC_END = 17,
+	MIPI_DSI_H_SYNC_START = 33,
+	MIPI_DSI_H_SYNC_END = 49,
+	MIPI_DSI_COMPRESSION_MODE = 7,
+	MIPI_DSI_END_OF_TRANSMISSION = 8,
+	MIPI_DSI_COLOR_MODE_OFF = 2,
+	MIPI_DSI_COLOR_MODE_ON = 18,
+	MIPI_DSI_SHUTDOWN_PERIPHERAL = 34,
+	MIPI_DSI_TURN_ON_PERIPHERAL = 50,
+	MIPI_DSI_GENERIC_SHORT_WRITE_0_PARAM = 3,
+	MIPI_DSI_GENERIC_SHORT_WRITE_1_PARAM = 19,
+	MIPI_DSI_GENERIC_SHORT_WRITE_2_PARAM = 35,
+	MIPI_DSI_GENERIC_READ_REQUEST_0_PARAM = 4,
+	MIPI_DSI_GENERIC_READ_REQUEST_1_PARAM = 20,
+	MIPI_DSI_GENERIC_READ_REQUEST_2_PARAM = 36,
+	MIPI_DSI_DCS_SHORT_WRITE = 5,
+	MIPI_DSI_DCS_SHORT_WRITE_PARAM = 21,
+	MIPI_DSI_DCS_READ = 6,
+	MIPI_DSI_EXECUTE_QUEUE = 22,
+	MIPI_DSI_SET_MAXIMUM_RETURN_PACKET_SIZE = 55,
+	MIPI_DSI_NULL_PACKET = 9,
+	MIPI_DSI_BLANKING_PACKET = 25,
+	MIPI_DSI_GENERIC_LONG_WRITE = 41,
+	MIPI_DSI_DCS_LONG_WRITE = 57,
+	MIPI_DSI_PICTURE_PARAMETER_SET = 10,
+	MIPI_DSI_COMPRESSED_PIXEL_STREAM = 11,
+	MIPI_DSI_LOOSELY_PACKED_PIXEL_STREAM_YCBCR20 = 12,
+	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR24 = 28,
+	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR16 = 44,
+	MIPI_DSI_PACKED_PIXEL_STREAM_30 = 13,
+	MIPI_DSI_PACKED_PIXEL_STREAM_36 = 29,
+	MIPI_DSI_PACKED_PIXEL_STREAM_YCBCR12 = 61,
+	MIPI_DSI_PACKED_PIXEL_STREAM_16 = 14,
+	MIPI_DSI_PACKED_PIXEL_STREAM_18 = 30,
+	MIPI_DSI_PIXEL_STREAM_3BYTE_18 = 46,
+	MIPI_DSI_PACKED_PIXEL_STREAM_24 = 62,
+};
+
+enum {
+	MIPI_DCS_NOP = 0,
+	MIPI_DCS_SOFT_RESET = 1,
+	MIPI_DCS_GET_COMPRESSION_MODE = 3,
+	MIPI_DCS_GET_DISPLAY_ID = 4,
+	MIPI_DCS_GET_ERROR_COUNT_ON_DSI = 5,
+	MIPI_DCS_GET_RED_CHANNEL = 6,
+	MIPI_DCS_GET_GREEN_CHANNEL = 7,
+	MIPI_DCS_GET_BLUE_CHANNEL = 8,
+	MIPI_DCS_GET_DISPLAY_STATUS = 9,
+	MIPI_DCS_GET_POWER_MODE = 10,
+	MIPI_DCS_GET_ADDRESS_MODE = 11,
+	MIPI_DCS_GET_PIXEL_FORMAT = 12,
+	MIPI_DCS_GET_DISPLAY_MODE = 13,
+	MIPI_DCS_GET_SIGNAL_MODE = 14,
+	MIPI_DCS_GET_DIAGNOSTIC_RESULT = 15,
+	MIPI_DCS_ENTER_SLEEP_MODE = 16,
+	MIPI_DCS_EXIT_SLEEP_MODE = 17,
+	MIPI_DCS_ENTER_PARTIAL_MODE = 18,
+	MIPI_DCS_ENTER_NORMAL_MODE = 19,
+	MIPI_DCS_GET_IMAGE_CHECKSUM_RGB = 20,
+	MIPI_DCS_GET_IMAGE_CHECKSUM_CT = 21,
+	MIPI_DCS_EXIT_INVERT_MODE = 32,
+	MIPI_DCS_ENTER_INVERT_MODE = 33,
+	MIPI_DCS_SET_GAMMA_CURVE = 38,
+	MIPI_DCS_SET_DISPLAY_OFF = 40,
+	MIPI_DCS_SET_DISPLAY_ON = 41,
+	MIPI_DCS_SET_COLUMN_ADDRESS = 42,
+	MIPI_DCS_SET_PAGE_ADDRESS = 43,
+	MIPI_DCS_WRITE_MEMORY_START = 44,
+	MIPI_DCS_WRITE_LUT = 45,
+	MIPI_DCS_READ_MEMORY_START = 46,
+	MIPI_DCS_SET_PARTIAL_ROWS = 48,
+	MIPI_DCS_SET_PARTIAL_COLUMNS = 49,
+	MIPI_DCS_SET_SCROLL_AREA = 51,
+	MIPI_DCS_SET_TEAR_OFF = 52,
+	MIPI_DCS_SET_TEAR_ON = 53,
+	MIPI_DCS_SET_ADDRESS_MODE = 54,
+	MIPI_DCS_SET_SCROLL_START = 55,
+	MIPI_DCS_EXIT_IDLE_MODE = 56,
+	MIPI_DCS_ENTER_IDLE_MODE = 57,
+	MIPI_DCS_SET_PIXEL_FORMAT = 58,
+	MIPI_DCS_WRITE_MEMORY_CONTINUE = 60,
+	MIPI_DCS_SET_3D_CONTROL = 61,
+	MIPI_DCS_READ_MEMORY_CONTINUE = 62,
+	MIPI_DCS_GET_3D_CONTROL = 63,
+	MIPI_DCS_SET_VSYNC_TIMING = 64,
+	MIPI_DCS_SET_TEAR_SCANLINE = 68,
+	MIPI_DCS_GET_SCANLINE = 69,
+	MIPI_DCS_SET_DISPLAY_BRIGHTNESS = 81,
+	MIPI_DCS_GET_DISPLAY_BRIGHTNESS = 82,
+	MIPI_DCS_WRITE_CONTROL_DISPLAY = 83,
+	MIPI_DCS_GET_CONTROL_DISPLAY = 84,
+	MIPI_DCS_WRITE_POWER_SAVE = 85,
+	MIPI_DCS_GET_POWER_SAVE = 86,
+	MIPI_DCS_SET_CABC_MIN_BRIGHTNESS = 94,
+	MIPI_DCS_GET_CABC_MIN_BRIGHTNESS = 95,
+	MIPI_DCS_READ_DDB_START = 161,
+	MIPI_DCS_READ_PPS_START = 162,
+	MIPI_DCS_READ_DDB_CONTINUE = 168,
+	MIPI_DCS_READ_PPS_CONTINUE = 169,
+};
+
+struct vga_device {
+	struct list_head list;
+	struct pci_dev *pdev;
+	unsigned int decodes;
+	unsigned int owns;
+	unsigned int locks;
+	unsigned int io_lock_cnt;
+	unsigned int mem_lock_cnt;
+	unsigned int io_norm_cnt;
+	unsigned int mem_norm_cnt;
+	bool bridge_has_one_vga;
+	unsigned int (*set_decode)(struct pci_dev *, bool);
+};
+
+struct vga_arb_user_card {
+	struct pci_dev *pdev;
+	unsigned int mem_cnt;
+	unsigned int io_cnt;
+};
+
+struct vga_arb_private {
+	struct list_head list;
+	struct pci_dev *target;
+	struct vga_arb_user_card cards[16];
+	spinlock_t lock;
+};
+
+typedef void (*spi_res_release_t)(struct spi_controller *, struct spi_message *, void *);
+
+struct spi_res {
+	struct list_head entry;
+	spi_res_release_t release;
+	long long unsigned int data[0];
+};
+
+struct spi_replaced_transfers;
+
+typedef void (*spi_replaced_release_t)(struct spi_controller *, struct spi_message *, struct spi_replaced_transfers *);
+
+struct spi_replaced_transfers {
+	spi_replaced_release_t release;
+	void *extradata;
+	struct list_head replaced_transfers;
+	struct list_head *replaced_after;
+	size_t inserted;
+	struct spi_transfer inserted_transfers[0];
+};
+
+struct spi_board_info {
+	char modalias[32];
+	const void *platform_data;
+	const struct software_node *swnode;
+	void *controller_data;
+	int irq;
+	u32 max_speed_hz;
+	u16 bus_num;
+	u16 chip_select;
+	u32 mode;
+};
+
+enum spi_mem_data_dir {
+	SPI_MEM_NO_DATA = 0,
+	SPI_MEM_DATA_IN = 1,
+	SPI_MEM_DATA_OUT = 2,
+};
+
+struct spi_mem_op {
+	struct {
+		u8 nbytes;
+		u8 buswidth;
+		u8 dtr: 1;
+		u16 opcode;
+	} cmd;
+	struct {
+		u8 nbytes;
+		u8 buswidth;
+		u8 dtr: 1;
+		u64 val;
+	} addr;
+	struct {
+		u8 nbytes;
+		u8 buswidth;
+		u8 dtr: 1;
+	} dummy;
+	struct {
+		u8 buswidth;
+		u8 dtr: 1;
+		enum spi_mem_data_dir dir;
+		unsigned int nbytes;
+		union {
+			void *in;
+			const void *out;
+		} buf;
+	} data;
+};
+
+struct spi_mem_dirmap_info {
+	struct spi_mem_op op_tmpl;
+	u64 offset;
+	u64 length;
+};
+
+struct spi_mem_dirmap_desc {
+	struct spi_mem *mem;
+	struct spi_mem_dirmap_info info;
+	unsigned int nodirmap;
+	void *priv;
+};
+
+struct spi_mem {
+	struct spi_device *spi;
+	void *drvpriv;
+	const char *name;
+};
+
+struct trace_event_raw_spi_controller {
+	struct trace_entry ent;
+	int bus_num;
+	char __data[0];
+};
+
+struct trace_event_raw_spi_setup {
+	struct trace_entry ent;
+	int bus_num;
+	int chip_select;
+	long unsigned int mode;
+	unsigned int bits_per_word;
+	unsigned int max_speed_hz;
+	int status;
+	char __data[0];
+};
+
+struct trace_event_raw_spi_set_cs {
+	struct trace_entry ent;
+	int bus_num;
+	int chip_select;
+	long unsigned int mode;
+	bool enable;
+	char __data[0];
+};
+
+struct trace_event_raw_spi_message {
+	struct trace_entry ent;
+	int bus_num;
+	int chip_select;
+	struct spi_message *msg;
+	char __data[0];
+};
+
+struct trace_event_raw_spi_message_done {
+	struct trace_entry ent;
+	int bus_num;
+	int chip_select;
+	struct spi_message *msg;
+	unsigned int frame;
+	unsigned int actual;
+	char __data[0];
+};
+
+struct trace_event_raw_spi_transfer {
+	struct trace_entry ent;
+	int bus_num;
+	int chip_select;
+	struct spi_transfer *xfer;
+	int len;
+	u32 __data_loc_rx_buf;
+	u32 __data_loc_tx_buf;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_spi_controller {};
+
+struct trace_event_data_offsets_spi_setup {};
+
+struct trace_event_data_offsets_spi_set_cs {};
+
+struct trace_event_data_offsets_spi_message {};
+
+struct trace_event_data_offsets_spi_message_done {};
+
+struct trace_event_data_offsets_spi_transfer {
+	u32 rx_buf;
+	u32 tx_buf;
+};
+
+typedef void (*btf_trace_spi_controller_idle)(void *, struct spi_controller *);
+
+typedef void (*btf_trace_spi_controller_busy)(void *, struct spi_controller *);
+
+typedef void (*btf_trace_spi_setup)(void *, struct spi_device *, int);
+
+typedef void (*btf_trace_spi_set_cs)(void *, struct spi_device *, bool);
+
+typedef void (*btf_trace_spi_message_submit)(void *, struct spi_message *);
+
+typedef void (*btf_trace_spi_message_start)(void *, struct spi_message *);
+
+typedef void (*btf_trace_spi_message_done)(void *, struct spi_message *);
+
+typedef void (*btf_trace_spi_transfer_start)(void *, struct spi_message *, struct spi_transfer *);
+
+typedef void (*btf_trace_spi_transfer_stop)(void *, struct spi_message *, struct spi_transfer *);
+
+struct boardinfo {
+	struct list_head list;
+	struct spi_board_info board_info;
+};
+
+struct spi_mem_driver {
+	struct spi_driver spidrv;
+	int (*probe)(struct spi_mem *);
+	int (*remove)(struct spi_mem *);
+	void (*shutdown)(struct spi_mem *);
+};
+
+struct fsl_spi_platform_data {
+	u32 initial_spmode;
+	s16 bus_num;
+	unsigned int flags;
+	u16 max_chipselect;
+	void (*cs_control)(struct spi_device *, bool);
+	u32 sysclk;
+};
+
+struct spi_pram;
+
+struct mpc8xxx_spi {
+	struct device *dev;
+	void *reg_base;
+	const void *tx;
+	void *rx;
+	int subblock;
+	struct spi_pram *pram;
+	struct spi_transfer *xfer_in_progress;
+	dma_addr_t tx_dma;
+	dma_addr_t rx_dma;
+	bool map_tx_dma;
+	bool map_rx_dma;
+	dma_addr_t dma_dummy_tx;
+	dma_addr_t dma_dummy_rx;
+	void (*get_rx)(u32, struct mpc8xxx_spi *);
+	u32 (*get_tx)(struct mpc8xxx_spi *);
+	unsigned int count;
+	unsigned int irq;
+	unsigned int nsecs;
+	u32 spibrg;
+	u32 rx_shift;
+	u32 tx_shift;
+	unsigned int flags;
+	int type;
+	int native_chipselects;
+	u8 max_bits_per_word;
+	void (*set_shifts)(u32 *, u32 *, int, int);
+	struct completion done;
+};
+
+struct mpc8xxx_spi_probe_info {
+	struct fsl_spi_platform_data pdata;
+	__be32 *immr_spi_cs;
+};
+
+struct spi_mpc8xxx_cs {
+	void (*get_rx)(u32, struct mpc8xxx_spi *);
+	u32 (*get_tx)(struct mpc8xxx_spi *);
+	u32 rx_shift;
+	u32 tx_shift;
+	u32 hw_mode;
+};
+
+struct fsl_spi_reg {
+	__be32 cap;
+	u8 res1[28];
+	__be32 mode;
+	__be32 event;
+	__be32 mask;
+	__be32 command;
+	__be32 transmit;
+	__be32 receive;
+	__be32 slvsel;
+};
+
+struct fsl_spi_match_data {
+	int type;
+};
+
+struct sifive_spi {
+	void *regs;
+	struct clk *clk;
+	unsigned int fifo_depth;
+	u32 cs_inactive;
+	struct completion done;
+};
+
+enum {
+	NETIF_F_SG_BIT = 0,
+	NETIF_F_IP_CSUM_BIT = 1,
+	__UNUSED_NETIF_F_1 = 2,
+	NETIF_F_HW_CSUM_BIT = 3,
+	NETIF_F_IPV6_CSUM_BIT = 4,
+	NETIF_F_HIGHDMA_BIT = 5,
+	NETIF_F_FRAGLIST_BIT = 6,
+	NETIF_F_HW_VLAN_CTAG_TX_BIT = 7,
+	NETIF_F_HW_VLAN_CTAG_RX_BIT = 8,
+	NETIF_F_HW_VLAN_CTAG_FILTER_BIT = 9,
+	NETIF_F_VLAN_CHALLENGED_BIT = 10,
+	NETIF_F_GSO_BIT = 11,
+	NETIF_F_LLTX_BIT = 12,
+	NETIF_F_NETNS_LOCAL_BIT = 13,
+	NETIF_F_GRO_BIT = 14,
+	NETIF_F_LRO_BIT = 15,
+	NETIF_F_GSO_SHIFT = 16,
+	NETIF_F_TSO_BIT = 16,
+	NETIF_F_GSO_ROBUST_BIT = 17,
+	NETIF_F_TSO_ECN_BIT = 18,
+	NETIF_F_TSO_MANGLEID_BIT = 19,
+	NETIF_F_TSO6_BIT = 20,
+	NETIF_F_FSO_BIT = 21,
+	NETIF_F_GSO_GRE_BIT = 22,
+	NETIF_F_GSO_GRE_CSUM_BIT = 23,
+	NETIF_F_GSO_IPXIP4_BIT = 24,
+	NETIF_F_GSO_IPXIP6_BIT = 25,
+	NETIF_F_GSO_UDP_TUNNEL_BIT = 26,
+	NETIF_F_GSO_UDP_TUNNEL_CSUM_BIT = 27,
+	NETIF_F_GSO_PARTIAL_BIT = 28,
+	NETIF_F_GSO_TUNNEL_REMCSUM_BIT = 29,
+	NETIF_F_GSO_SCTP_BIT = 30,
+	NETIF_F_GSO_ESP_BIT = 31,
+	NETIF_F_GSO_UDP_BIT = 32,
+	NETIF_F_GSO_UDP_L4_BIT = 33,
+	NETIF_F_GSO_FRAGLIST_BIT = 34,
+	NETIF_F_GSO_LAST = 34,
+	NETIF_F_FCOE_CRC_BIT = 35,
+	NETIF_F_SCTP_CRC_BIT = 36,
+	NETIF_F_FCOE_MTU_BIT = 37,
+	NETIF_F_NTUPLE_BIT = 38,
+	NETIF_F_RXHASH_BIT = 39,
+	NETIF_F_RXCSUM_BIT = 40,
+	NETIF_F_NOCACHE_COPY_BIT = 41,
+	NETIF_F_LOOPBACK_BIT = 42,
+	NETIF_F_RXFCS_BIT = 43,
+	NETIF_F_RXALL_BIT = 44,
+	NETIF_F_HW_VLAN_STAG_TX_BIT = 45,
+	NETIF_F_HW_VLAN_STAG_RX_BIT = 46,
+	NETIF_F_HW_VLAN_STAG_FILTER_BIT = 47,
+	NETIF_F_HW_L2FW_DOFFLOAD_BIT = 48,
+	NETIF_F_HW_TC_BIT = 49,
+	NETIF_F_HW_ESP_BIT = 50,
+	NETIF_F_HW_ESP_TX_CSUM_BIT = 51,
+	NETIF_F_RX_UDP_TUNNEL_PORT_BIT = 52,
+	NETIF_F_HW_TLS_TX_BIT = 53,
+	NETIF_F_HW_TLS_RX_BIT = 54,
+	NETIF_F_GRO_HW_BIT = 55,
+	NETIF_F_HW_TLS_RECORD_BIT = 56,
+	NETIF_F_GRO_FRAGLIST_BIT = 57,
+	NETIF_F_HW_MACSEC_BIT = 58,
+	NETIF_F_GRO_UDP_FWD_BIT = 59,
+	NETIF_F_HW_HSR_TAG_INS_BIT = 60,
+	NETIF_F_HW_HSR_TAG_RM_BIT = 61,
+	NETIF_F_HW_HSR_FWD_BIT = 62,
+	NETIF_F_HW_HSR_DUP_BIT = 63,
+	NETDEV_FEATURE_COUNT = 64,
+};
+
+typedef struct bio_vec skb_frag_t;
+
+struct skb_shared_hwtstamps {
+	ktime_t hwtstamp;
+};
+
+enum {
+	SKBTX_HW_TSTAMP = 1,
+	SKBTX_SW_TSTAMP = 2,
+	SKBTX_IN_PROGRESS = 4,
+	SKBTX_WIFI_STATUS = 16,
+	SKBTX_SCHED_TSTAMP = 64,
+};
+
+struct skb_shared_info {
+	__u8 flags;
+	__u8 meta_len;
+	__u8 nr_frags;
+	__u8 tx_flags;
+	short unsigned int gso_size;
+	short unsigned int gso_segs;
+	struct sk_buff *frag_list;
+	struct skb_shared_hwtstamps hwtstamps;
+	unsigned int gso_type;
+	u32 tskey;
+	atomic_t dataref;
+	void *destructor_arg;
+	skb_frag_t frags[17];
+};
+
+struct mdio_board_info {
+	const char *bus_id;
+	char modalias[32];
+	int mdio_addr;
+	const void *platform_data;
+};
+
+struct mdio_board_entry {
+	struct list_head list;
+	struct mdio_board_info board_info;
+};
+
+struct mdiobus_devres {
+	struct mii_bus *mii;
+};
+
+enum netdev_state_t {
+	__LINK_STATE_START = 0,
+	__LINK_STATE_PRESENT = 1,
+	__LINK_STATE_NOCARRIER = 2,
+	__LINK_STATE_LINKWATCH_PENDING = 3,
+	__LINK_STATE_DORMANT = 4,
+	__LINK_STATE_TESTING = 5,
+};
+
+struct mii_ioctl_data {
+	__u16 phy_id;
+	__u16 reg_num;
+	__u16 val_in;
+	__u16 val_out;
+};
+
+enum {
+	ETHTOOL_MSG_KERNEL_NONE = 0,
+	ETHTOOL_MSG_STRSET_GET_REPLY = 1,
+	ETHTOOL_MSG_LINKINFO_GET_REPLY = 2,
+	ETHTOOL_MSG_LINKINFO_NTF = 3,
+	ETHTOOL_MSG_LINKMODES_GET_REPLY = 4,
+	ETHTOOL_MSG_LINKMODES_NTF = 5,
+	ETHTOOL_MSG_LINKSTATE_GET_REPLY = 6,
+	ETHTOOL_MSG_DEBUG_GET_REPLY = 7,
+	ETHTOOL_MSG_DEBUG_NTF = 8,
+	ETHTOOL_MSG_WOL_GET_REPLY = 9,
+	ETHTOOL_MSG_WOL_NTF = 10,
+	ETHTOOL_MSG_FEATURES_GET_REPLY = 11,
+	ETHTOOL_MSG_FEATURES_SET_REPLY = 12,
+	ETHTOOL_MSG_FEATURES_NTF = 13,
+	ETHTOOL_MSG_PRIVFLAGS_GET_REPLY = 14,
+	ETHTOOL_MSG_PRIVFLAGS_NTF = 15,
+	ETHTOOL_MSG_RINGS_GET_REPLY = 16,
+	ETHTOOL_MSG_RINGS_NTF = 17,
+	ETHTOOL_MSG_CHANNELS_GET_REPLY = 18,
+	ETHTOOL_MSG_CHANNELS_NTF = 19,
+	ETHTOOL_MSG_COALESCE_GET_REPLY = 20,
+	ETHTOOL_MSG_COALESCE_NTF = 21,
+	ETHTOOL_MSG_PAUSE_GET_REPLY = 22,
+	ETHTOOL_MSG_PAUSE_NTF = 23,
+	ETHTOOL_MSG_EEE_GET_REPLY = 24,
+	ETHTOOL_MSG_EEE_NTF = 25,
+	ETHTOOL_MSG_TSINFO_GET_REPLY = 26,
+	ETHTOOL_MSG_CABLE_TEST_NTF = 27,
+	ETHTOOL_MSG_CABLE_TEST_TDR_NTF = 28,
+	ETHTOOL_MSG_TUNNEL_INFO_GET_REPLY = 29,
+	ETHTOOL_MSG_FEC_GET_REPLY = 30,
+	ETHTOOL_MSG_FEC_NTF = 31,
+	ETHTOOL_MSG_MODULE_EEPROM_GET_REPLY = 32,
+	ETHTOOL_MSG_STATS_GET_REPLY = 33,
+	ETHTOOL_MSG_PHC_VCLOCKS_GET_REPLY = 34,
+	__ETHTOOL_MSG_KERNEL_CNT = 35,
+	ETHTOOL_MSG_KERNEL_MAX = 34,
+};
+
+enum {
+	ETHTOOL_A_STATS_UNSPEC = 0,
+	ETHTOOL_A_STATS_PAD = 1,
+	ETHTOOL_A_STATS_HEADER = 2,
+	ETHTOOL_A_STATS_GROUPS = 3,
+	ETHTOOL_A_STATS_GRP = 4,
+	__ETHTOOL_A_STATS_CNT = 5,
+	ETHTOOL_A_STATS_MAX = 4,
+};
+
+struct phy_led_trigger {
+	struct led_trigger trigger;
+	char name[76];
+	unsigned int speed;
+};
+
+struct phy_setting {
+	u32 speed;
+	u8 duplex;
+	u8 bit;
+};
+
+struct ethtool_phy_ops {
+	int (*get_sset_count)(struct phy_device *);
+	int (*get_strings)(struct phy_device *, u8 *);
+	int (*get_stats)(struct phy_device *, struct ethtool_stats *, u64 *);
+	int (*start_cable_test)(struct phy_device *, struct netlink_ext_ack *);
+	int (*start_cable_test_tdr)(struct phy_device *, struct netlink_ext_ack *, const struct phy_tdr_config *);
+};
+
+struct phy_fixup {
+	struct list_head list;
+	char bus_id[64];
+	u32 phy_uid;
+	u32 phy_uid_mask;
+	int (*run)(struct phy_device *);
+};
+
+struct sfp_eeprom_base {
+	u8 phys_id;
+	u8 phys_ext_id;
+	u8 connector;
+	u8 if_1x_copper_passive: 1;
+	u8 if_1x_copper_active: 1;
+	u8 if_1x_lx: 1;
+	u8 if_1x_sx: 1;
+	u8 e10g_base_sr: 1;
+	u8 e10g_base_lr: 1;
+	u8 e10g_base_lrm: 1;
+	u8 e10g_base_er: 1;
+	u8 sonet_oc3_short_reach: 1;
+	u8 sonet_oc3_smf_intermediate_reach: 1;
+	u8 sonet_oc3_smf_long_reach: 1;
+	u8 unallocated_5_3: 1;
+	u8 sonet_oc12_short_reach: 1;
+	u8 sonet_oc12_smf_intermediate_reach: 1;
+	u8 sonet_oc12_smf_long_reach: 1;
+	u8 unallocated_5_7: 1;
+	u8 sonet_oc48_short_reach: 1;
+	u8 sonet_oc48_intermediate_reach: 1;
+	u8 sonet_oc48_long_reach: 1;
+	u8 sonet_reach_bit2: 1;
+	u8 sonet_reach_bit1: 1;
+	u8 sonet_oc192_short_reach: 1;
+	u8 escon_smf_1310_laser: 1;
+	u8 escon_mmf_1310_led: 1;
+	u8 e1000_base_sx: 1;
+	u8 e1000_base_lx: 1;
+	u8 e1000_base_cx: 1;
+	u8 e1000_base_t: 1;
+	u8 e100_base_lx: 1;
+	u8 e100_base_fx: 1;
+	u8 e_base_bx10: 1;
+	u8 e_base_px: 1;
+	u8 fc_tech_electrical_inter_enclosure: 1;
+	u8 fc_tech_lc: 1;
+	u8 fc_tech_sa: 1;
+	u8 fc_ll_m: 1;
+	u8 fc_ll_l: 1;
+	u8 fc_ll_i: 1;
+	u8 fc_ll_s: 1;
+	u8 fc_ll_v: 1;
+	u8 unallocated_8_0: 1;
+	u8 unallocated_8_1: 1;
+	u8 sfp_ct_passive: 1;
+	u8 sfp_ct_active: 1;
+	u8 fc_tech_ll: 1;
+	u8 fc_tech_sl: 1;
+	u8 fc_tech_sn: 1;
+	u8 fc_tech_electrical_intra_enclosure: 1;
+	u8 fc_media_sm: 1;
+	u8 unallocated_9_1: 1;
+	u8 fc_media_m5: 1;
+	u8 fc_media_m6: 1;
+	u8 fc_media_tv: 1;
+	u8 fc_media_mi: 1;
+	u8 fc_media_tp: 1;
+	u8 fc_media_tw: 1;
+	u8 fc_speed_100: 1;
+	u8 unallocated_10_1: 1;
+	u8 fc_speed_200: 1;
+	u8 fc_speed_3200: 1;
+	u8 fc_speed_400: 1;
+	u8 fc_speed_1600: 1;
+	u8 fc_speed_800: 1;
+	u8 fc_speed_1200: 1;
+	u8 encoding;
+	u8 br_nominal;
+	u8 rate_id;
+	u8 link_len[6];
+	char vendor_name[16];
+	u8 extended_cc;
+	char vendor_oui[3];
+	char vendor_pn[16];
+	char vendor_rev[4];
+	union {
+		__be16 optical_wavelength;
+		__be16 cable_compliance;
+		struct {
+			u8 sff8431_app_e: 1;
+			u8 fc_pi_4_app_h: 1;
+			u8 reserved60_2: 6;
+			u8 reserved61: 8;
+		} passive;
+		struct {
+			u8 sff8431_app_e: 1;
+			u8 fc_pi_4_app_h: 1;
+			u8 sff8431_lim: 1;
+			u8 fc_pi_4_lim: 1;
+			u8 reserved60_4: 4;
+			u8 reserved61: 8;
+		} active;
+	};
+	u8 reserved62;
+	u8 cc_base;
+};
+
+struct sfp_eeprom_ext {
+	__be16 options;
+	u8 br_max;
+	u8 br_min;
+	char vendor_sn[16];
+	char datecode[8];
+	u8 diagmon;
+	u8 enhopts;
+	u8 sff8472_compliance;
+	u8 cc_ext;
+};
+
+struct sfp_eeprom_id {
+	struct sfp_eeprom_base base;
+	struct sfp_eeprom_ext ext;
+};
+
+struct sfp_upstream_ops {
+	void (*attach)(void *, struct sfp_bus *);
+	void (*detach)(void *, struct sfp_bus *);
+	int (*module_insert)(void *, const struct sfp_eeprom_id *);
+	void (*module_remove)(void *);
+	int (*module_start)(void *);
+	void (*module_stop)(void *);
+	void (*link_down)(void *);
+	void (*link_up)(void *);
+	int (*connect_phy)(void *, struct phy_device *);
+	void (*disconnect_phy)(void *);
+};
+
+struct trace_event_raw_mdio_access {
+	struct trace_entry ent;
+	char busid[61];
+	char read;
+	u8 addr;
+	u16 val;
+	unsigned int regnum;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mdio_access {};
+
+typedef void (*btf_trace_mdio_access)(void *, struct mii_bus *, char, u8, unsigned int, u16, int);
+
+struct mdio_bus_stat_attr {
+	int addr;
+	unsigned int field_offset;
+};
+
+struct mdio_driver {
+	struct mdio_driver_common mdiodrv;
+	int (*probe)(struct mdio_device *);
+	void (*remove)(struct mdio_device *);
+	void (*shutdown)(struct mdio_device *);
+};
+
+struct fixed_phy_status {
+	int link;
+	int speed;
+	int duplex;
+	int pause;
+	int asym_pause;
+};
+
+struct swmii_regs {
+	u16 bmsr;
+	u16 lpa;
+	u16 lpagb;
+	u16 estat;
+};
+
+enum {
+	SWMII_SPEED_10 = 0,
+	SWMII_SPEED_100 = 1,
+	SWMII_SPEED_1000 = 2,
+	SWMII_DUPLEX_HALF = 0,
+	SWMII_DUPLEX_FULL = 1,
+};
+
+struct mii_timestamping_ctrl {
+	struct mii_timestamper * (*probe_channel)(struct device *, unsigned int);
+	void (*release_channel)(struct device *, struct mii_timestamper *);
+};
+
+struct mii_timestamping_desc {
+	struct list_head list;
+	struct mii_timestamping_ctrl *ctrl;
+	struct device *device;
+};
+
+struct sfp;
+
+struct sfp_socket_ops;
+
+struct sfp_quirk;
+
+struct sfp_bus {
+	struct kref kref;
+	struct list_head node;
+	struct fwnode_handle *fwnode;
+	const struct sfp_socket_ops *socket_ops;
+	struct device *sfp_dev;
+	struct sfp *sfp;
+	const struct sfp_quirk *sfp_quirk;
+	const struct sfp_upstream_ops *upstream_ops;
+	void *upstream;
+	struct phy_device *phydev;
+	bool registered;
+	bool started;
+};
+
+enum {
+	SFF8024_ID_UNK = 0,
+	SFF8024_ID_SFF_8472 = 2,
+	SFF8024_ID_SFP = 3,
+	SFF8024_ID_DWDM_SFP = 11,
+	SFF8024_ID_QSFP_8438 = 12,
+	SFF8024_ID_QSFP_8436_8636 = 13,
+	SFF8024_ID_QSFP28_8636 = 17,
+	SFF8024_ENCODING_UNSPEC = 0,
+	SFF8024_ENCODING_8B10B = 1,
+	SFF8024_ENCODING_4B5B = 2,
+	SFF8024_ENCODING_NRZ = 3,
+	SFF8024_ENCODING_8472_MANCHESTER = 4,
+	SFF8024_ENCODING_8472_SONET = 5,
+	SFF8024_ENCODING_8472_64B66B = 6,
+	SFF8024_ENCODING_8436_MANCHESTER = 6,
+	SFF8024_ENCODING_8436_SONET = 4,
+	SFF8024_ENCODING_8436_64B66B = 5,
+	SFF8024_ENCODING_256B257B = 7,
+	SFF8024_ENCODING_PAM4 = 8,
+	SFF8024_CONNECTOR_UNSPEC = 0,
+	SFF8024_CONNECTOR_SC = 1,
+	SFF8024_CONNECTOR_FIBERJACK = 6,
+	SFF8024_CONNECTOR_LC = 7,
+	SFF8024_CONNECTOR_MT_RJ = 8,
+	SFF8024_CONNECTOR_MU = 9,
+	SFF8024_CONNECTOR_SG = 10,
+	SFF8024_CONNECTOR_OPTICAL_PIGTAIL = 11,
+	SFF8024_CONNECTOR_MPO_1X12 = 12,
+	SFF8024_CONNECTOR_MPO_2X16 = 13,
+	SFF8024_CONNECTOR_HSSDC_II = 32,
+	SFF8024_CONNECTOR_COPPER_PIGTAIL = 33,
+	SFF8024_CONNECTOR_RJ45 = 34,
+	SFF8024_CONNECTOR_NOSEPARATE = 35,
+	SFF8024_CONNECTOR_MXC_2X16 = 36,
+	SFF8024_ECC_UNSPEC = 0,
+	SFF8024_ECC_100G_25GAUI_C2M_AOC = 1,
+	SFF8024_ECC_100GBASE_SR4_25GBASE_SR = 2,
+	SFF8024_ECC_100GBASE_LR4_25GBASE_LR = 3,
+	SFF8024_ECC_100GBASE_ER4_25GBASE_ER = 4,
+	SFF8024_ECC_100GBASE_SR10 = 5,
+	SFF8024_ECC_100GBASE_CR4 = 11,
+	SFF8024_ECC_25GBASE_CR_S = 12,
+	SFF8024_ECC_25GBASE_CR_N = 13,
+	SFF8024_ECC_10GBASE_T_SFI = 22,
+	SFF8024_ECC_10GBASE_T_SR = 28,
+	SFF8024_ECC_5GBASE_T = 29,
+	SFF8024_ECC_2_5GBASE_T = 30,
+};
+
+struct sfp_socket_ops {
+	void (*attach)(struct sfp *);
+	void (*detach)(struct sfp *);
+	void (*start)(struct sfp *);
+	void (*stop)(struct sfp *);
+	int (*module_info)(struct sfp *, struct ethtool_modinfo *);
+	int (*module_eeprom)(struct sfp *, struct ethtool_eeprom *, u8 *);
+	int (*module_eeprom_by_page)(struct sfp *, const struct ethtool_module_eeprom *, struct netlink_ext_ack *);
+};
+
+struct sfp_quirk {
+	const char *vendor;
+	const char *part;
+	void (*modes)(const struct sfp_eeprom_id *, long unsigned int *);
+};
+
+struct fixed_mdio_bus {
+	struct mii_bus *mii_bus;
+	struct list_head phys;
+};
+
+struct fixed_phy {
+	int addr;
+	struct phy_device *phydev;
+	struct fixed_phy_status status;
+	bool no_carrier;
+	int (*link_update)(struct net_device *, struct fixed_phy_status *);
+	struct list_head node;
+	struct gpio_desc *link_gpiod;
+};
+
+struct flow_dissector_key_control {
+	u16 thoff;
+	u16 addr_type;
+	u32 flags;
+};
+
+struct flow_dissector_key_basic {
+	__be16 n_proto;
+	u8 ip_proto;
+	u8 padding;
+};
+
+struct flow_dissector {
+	unsigned int used_keys;
+	short unsigned int offset[28];
+};
+
+struct flow_keys_basic {
+	struct flow_dissector_key_control control;
+	struct flow_dissector_key_basic basic;
+};
+
+struct nf_conntrack {
+	atomic_t use;
+};
+
+enum {
+	SKBFL_ZEROCOPY_ENABLE = 1,
+	SKBFL_SHARED_FRAG = 2,
+};
+
+struct mmpin {
+	struct user_struct *user;
+	unsigned int num_pg;
+};
+
+struct ubuf_info {
+	void (*callback)(struct sk_buff *, struct ubuf_info *, bool);
+	union {
+		struct {
+			long unsigned int desc;
+			void *ctx;
+		};
+		struct {
+			u32 id;
+			u16 len;
+			u16 zerocopy: 1;
+			u32 bytelen;
+		};
+	};
+	refcount_t refcnt;
+	u8 flags;
+	struct mmpin mmp;
+};
+
+enum {
+	SKB_GSO_TCPV4 = 1,
+	SKB_GSO_DODGY = 2,
+	SKB_GSO_TCP_ECN = 4,
+	SKB_GSO_TCP_FIXEDID = 8,
+	SKB_GSO_TCPV6 = 16,
+	SKB_GSO_FCOE = 32,
+	SKB_GSO_GRE = 64,
+	SKB_GSO_GRE_CSUM = 128,
+	SKB_GSO_IPXIP4 = 256,
+	SKB_GSO_IPXIP6 = 512,
+	SKB_GSO_UDP_TUNNEL = 1024,
+	SKB_GSO_UDP_TUNNEL_CSUM = 2048,
+	SKB_GSO_PARTIAL = 4096,
+	SKB_GSO_TUNNEL_REMCSUM = 8192,
+	SKB_GSO_SCTP = 16384,
+	SKB_GSO_ESP = 32768,
+	SKB_GSO_UDP = 65536,
+	SKB_GSO_UDP_L4 = 131072,
+	SKB_GSO_FRAGLIST = 262144,
+};
+
+enum {
+	IFLA_TUN_UNSPEC = 0,
+	IFLA_TUN_OWNER = 1,
+	IFLA_TUN_GROUP = 2,
+	IFLA_TUN_TYPE = 3,
+	IFLA_TUN_PI = 4,
+	IFLA_TUN_VNET_HDR = 5,
+	IFLA_TUN_PERSIST = 6,
+	IFLA_TUN_MULTI_QUEUE = 7,
+	IFLA_TUN_NUM_QUEUES = 8,
+	IFLA_TUN_NUM_DISABLED_QUEUES = 9,
+	__IFLA_TUN_MAX = 10,
+};
+
+struct gro_list {
+	struct list_head list;
+	int count;
+};
+
+struct napi_struct {
+	struct list_head poll_list;
+	long unsigned int state;
+	int weight;
+	int defer_hard_irqs_count;
+	long unsigned int gro_bitmask;
+	int (*poll)(struct napi_struct *, int);
+	int poll_owner;
+	struct net_device *dev;
+	struct gro_list gro_hash[8];
+	struct sk_buff *skb;
+	struct list_head rx_list;
+	int rx_count;
+	struct hrtimer timer;
+	struct list_head dev_list;
+	struct hlist_node napi_hash_node;
+	unsigned int napi_id;
+	struct task_struct *thread;
+};
+
+enum gro_result {
+	GRO_MERGED = 0,
+	GRO_MERGED_FREE = 1,
+	GRO_HELD = 2,
+	GRO_NORMAL = 3,
+	GRO_CONSUMED = 4,
+};
+
+typedef enum gro_result gro_result_t;
+
+enum netdev_queue_state_t {
+	__QUEUE_STATE_DRV_XOFF = 0,
+	__QUEUE_STATE_STACK_XOFF = 1,
+	__QUEUE_STATE_FROZEN = 2,
+};
+
+struct rps_sock_flow_table {
+	u32 mask;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 ents[0];
+};
+
+struct ip_tunnel_parm {
+	char name[16];
+	int link;
+	__be16 i_flags;
+	__be16 o_flags;
+	__be32 i_key;
+	__be32 o_key;
+	struct iphdr iph;
+};
+
+struct wpan_phy;
+
+struct wpan_dev_header_ops;
+
+struct wpan_dev {
+	struct wpan_phy *wpan_phy;
+	int iftype;
+	struct list_head list;
+	struct net_device *netdev;
+	const struct wpan_dev_header_ops *header_ops;
+	struct net_device *lowpan_dev;
+	u32 identifier;
+	__le16 pan_id;
+	__le16 short_addr;
+	__le64 extended_addr;
+	atomic_t bsn;
+	atomic_t dsn;
+	u8 min_be;
+	u8 max_be;
+	u8 csma_retries;
+	s8 frame_retries;
+	bool lbt;
+	bool promiscuous_mode;
+	bool ackreq;
+};
+
+struct tun_pi {
+	__u16 flags;
+	__be16 proto;
+};
+
+struct tun_filter {
+	__u16 flags;
+	__u16 count;
+	__u8 addr[0];
+};
+
+struct virtio_net_hdr {
+	__u8 flags;
+	__u8 gso_type;
+	__virtio16 hdr_len;
+	__virtio16 gso_size;
+	__virtio16 csum_start;
+	__virtio16 csum_offset;
+};
+
+struct tun_msg_ctl {
+	short unsigned int type;
+	short unsigned int num;
+	void *ptr;
+};
+
+struct tun_xdp_hdr {
+	int buflen;
+	struct virtio_net_hdr gso;
+};
+
+struct fib_info;
+
+struct fib_nh {
+	struct fib_nh_common nh_common;
+	struct hlist_node nh_hash;
+	struct fib_info *nh_parent;
+	__u32 nh_tclassid;
+	__be32 nh_saddr;
+	int nh_saddr_genid;
+};
+
+struct fib_info {
+	struct hlist_node fib_hash;
+	struct hlist_node fib_lhash;
+	struct list_head nh_list;
+	struct net *fib_net;
+	refcount_t fib_treeref;
+	refcount_t fib_clntref;
+	unsigned int fib_flags;
+	unsigned char fib_dead;
+	unsigned char fib_protocol;
+	unsigned char fib_scope;
+	unsigned char fib_type;
+	__be32 fib_prefsrc;
+	u32 fib_tb_id;
+	u32 fib_priority;
+	struct dst_metrics *fib_metrics;
+	int fib_nhs;
+	bool fib_nh_is_v6;
+	bool nh_updated;
+	struct nexthop *nh;
+	struct callback_head rcu;
+	struct fib_nh fib_nh[0];
+};
+
+struct nh_info;
+
+struct nh_group;
+
+struct nexthop {
+	struct rb_node rb_node;
+	struct list_head fi_list;
+	struct list_head f6i_list;
+	struct list_head fdb_list;
+	struct list_head grp_list;
+	struct net *net;
+	u32 id;
+	u8 protocol;
+	u8 nh_flags;
+	bool is_group;
+	refcount_t refcnt;
+	struct callback_head rcu;
+	union {
+		struct nh_info *nh_info;
+		struct nh_group *nh_grp;
+	};
+};
+
+struct nh_info {
+	struct hlist_node dev_hash;
+	struct nexthop *nh_parent;
+	u8 family;
+	bool reject_nh;
+	bool fdb_nh;
+	union {
+		struct fib_nh_common fib_nhc;
+		struct fib_nh fib_nh;
+		struct fib6_nh fib6_nh;
+	};
+};
+
+struct nh_grp_entry;
+
+struct nh_res_bucket {
+	struct nh_grp_entry *nh_entry;
+	atomic_long_t used_time;
+	long unsigned int migrated_time;
+	bool occupied;
+	u8 nh_flags;
+};
+
+struct nh_grp_entry {
+	struct nexthop *nh;
+	u8 weight;
+	union {
+		struct {
+			atomic_t upper_bound;
+		} hthr;
+		struct {
+			struct list_head uw_nh_entry;
+			u16 count_buckets;
+			u16 wants_buckets;
+		} res;
+	};
+	struct list_head nh_list;
+	struct nexthop *nh_parent;
+};
+
+struct nh_res_table {
+	struct net *net;
+	u32 nhg_id;
+	struct delayed_work upkeep_dw;
+	struct list_head uw_nh_entries;
+	long unsigned int unbalanced_since;
+	u32 idle_timer;
+	u32 unbalanced_timer;
+	u16 num_nh_buckets;
+	struct nh_res_bucket nh_buckets[0];
+};
+
+struct nh_group {
+	struct nh_group *spare;
+	u16 num_nh;
+	bool is_multipath;
+	bool hash_threshold;
+	bool resilient;
+	bool fdb_nh;
+	bool has_v4;
+	struct nh_res_table *res_table;
+	struct nh_grp_entry nh_entries[0];
+};
+
+enum {
+	AX25_VALUES_IPDEFMODE = 0,
+	AX25_VALUES_AXDEFMODE = 1,
+	AX25_VALUES_BACKOFF = 2,
+	AX25_VALUES_CONMODE = 3,
+	AX25_VALUES_WINDOW = 4,
+	AX25_VALUES_EWINDOW = 5,
+	AX25_VALUES_T1 = 6,
+	AX25_VALUES_T2 = 7,
+	AX25_VALUES_T3 = 8,
+	AX25_VALUES_IDLE = 9,
+	AX25_VALUES_N2 = 10,
+	AX25_VALUES_PACLEN = 11,
+	AX25_VALUES_PROTOCOL = 12,
+	AX25_VALUES_DS_TIMEOUT = 13,
+	AX25_MAX_VALUES = 14,
+};
+
+enum nl802154_cca_modes {
+	__NL802154_CCA_INVALID = 0,
+	NL802154_CCA_ENERGY = 1,
+	NL802154_CCA_CARRIER = 2,
+	NL802154_CCA_ENERGY_CARRIER = 3,
+	NL802154_CCA_ALOHA = 4,
+	NL802154_CCA_UWB_SHR = 5,
+	NL802154_CCA_UWB_MULTIPLEXED = 6,
+	__NL802154_CCA_ATTR_AFTER_LAST = 7,
+	NL802154_CCA_ATTR_MAX = 6,
+};
+
+enum nl802154_cca_opts {
+	NL802154_CCA_OPT_ENERGY_CARRIER_AND = 0,
+	NL802154_CCA_OPT_ENERGY_CARRIER_OR = 1,
+	__NL802154_CCA_OPT_ATTR_AFTER_LAST = 2,
+	NL802154_CCA_OPT_ATTR_MAX = 1,
+};
+
+enum nl802154_supported_bool_states {
+	NL802154_SUPPORTED_BOOL_FALSE = 0,
+	NL802154_SUPPORTED_BOOL_TRUE = 1,
+	__NL802154_SUPPORTED_BOOL_INVALD = 2,
+	NL802154_SUPPORTED_BOOL_BOTH = 3,
+	__NL802154_SUPPORTED_BOOL_AFTER_LAST = 4,
+	NL802154_SUPPORTED_BOOL_MAX = 3,
+};
+
+struct wpan_phy_supported {
+	u32 channels[32];
+	u32 cca_modes;
+	u32 cca_opts;
+	u32 iftypes;
+	enum nl802154_supported_bool_states lbt;
+	u8 min_minbe;
+	u8 max_minbe;
+	u8 min_maxbe;
+	u8 max_maxbe;
+	u8 min_csma_backoffs;
+	u8 max_csma_backoffs;
+	s8 min_frame_retries;
+	s8 max_frame_retries;
+	size_t tx_powers_size;
+	size_t cca_ed_levels_size;
+	const s32 *tx_powers;
+	const s32 *cca_ed_levels;
+};
+
+struct wpan_phy_cca {
+	enum nl802154_cca_modes mode;
+	enum nl802154_cca_opts opt;
+};
+
+struct wpan_phy {
+	const void *privid;
+	u32 flags;
+	u8 current_channel;
+	u8 current_page;
+	struct wpan_phy_supported supported;
+	s32 transmit_power;
+	struct wpan_phy_cca cca;
+	__le64 perm_extended_addr;
+	s32 cca_ed_level;
+	u8 symbol_duration;
+	u16 lifs_period;
+	u16 sifs_period;
+	struct device dev;
+	possible_net_t _net;
+	long: 64;
+	long: 64;
+	long: 64;
+	char priv[0];
+};
+
+struct ieee802154_addr {
+	u8 mode;
+	__le16 pan_id;
+	union {
+		__le16 short_addr;
+		__le64 extended_addr;
+	};
+};
+
+struct wpan_dev_header_ops {
+	int (*create)(struct sk_buff *, struct net_device *, const struct ieee802154_addr *, const struct ieee802154_addr *, unsigned int);
+};
+
+struct tap_filter {
+	unsigned int count;
+	u32 mask[2];
+	unsigned char addr[48];
+};
+
+struct tun_struct;
+
+struct tun_file {
+	struct sock sk;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct socket socket;
+	struct tun_struct *tun;
+	struct fasync_struct *fasync;
+	unsigned int flags;
+	union {
+		u16 queue_index;
+		unsigned int ifindex;
+	};
+	struct napi_struct napi;
+	bool napi_enabled;
+	bool napi_frags_enabled;
+	struct mutex napi_mutex;
+	struct list_head next;
+	struct tun_struct *detached;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct ptr_ring tx_ring;
+	struct xdp_rxq_info xdp_rxq;
+};
+
+struct tun_prog;
+
+struct tun_struct {
+	struct tun_file *tfiles[256];
+	unsigned int numqueues;
+	unsigned int flags;
+	kuid_t owner;
+	kgid_t group;
+	struct net_device *dev;
+	netdev_features_t set_features;
+	int align;
+	int vnet_hdr_sz;
+	int sndbuf;
+	struct tap_filter txflt;
+	struct sock_fprog fprog;
+	bool filter_attached;
+	u32 msg_enable;
+	spinlock_t lock;
+	struct hlist_head flows[1024];
+	struct timer_list flow_gc_timer;
+	long unsigned int ageing_time;
+	unsigned int numdisabled;
+	struct list_head disabled;
+	void *security;
+	u32 flow_count;
+	u32 rx_batched;
+	atomic_long_t rx_frame_errors;
+	struct bpf_prog *xdp_prog;
+	struct tun_prog *steering_prog;
+	struct tun_prog *filter_prog;
+	struct ethtool_link_ksettings link_ksettings;
+	struct file *file;
+	struct ifreq *ifr;
+};
+
+struct tun_page {
+	struct page *page;
+	int count;
+};
+
+struct tun_flow_entry {
+	struct hlist_node hash_link;
+	struct callback_head rcu;
+	struct tun_struct *tun;
+	u32 rxhash;
+	u32 rps_rxhash;
+	int queue_index;
+	long: 32;
+	long: 64;
+	long unsigned int updated;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct tun_prog {
+	struct callback_head rcu;
+	struct bpf_prog *prog;
+};
+
+struct veth {
+	__be16 h_vlan_proto;
+	__be16 h_vlan_TCI;
+};
+
+enum {
+	IFLA_UNSPEC = 0,
+	IFLA_ADDRESS = 1,
+	IFLA_BROADCAST = 2,
+	IFLA_IFNAME = 3,
+	IFLA_MTU = 4,
+	IFLA_LINK = 5,
+	IFLA_QDISC = 6,
+	IFLA_STATS = 7,
+	IFLA_COST = 8,
+	IFLA_PRIORITY = 9,
+	IFLA_MASTER = 10,
+	IFLA_WIRELESS = 11,
+	IFLA_PROTINFO = 12,
+	IFLA_TXQLEN = 13,
+	IFLA_MAP = 14,
+	IFLA_WEIGHT = 15,
+	IFLA_OPERSTATE = 16,
+	IFLA_LINKMODE = 17,
+	IFLA_LINKINFO = 18,
+	IFLA_NET_NS_PID = 19,
+	IFLA_IFALIAS = 20,
+	IFLA_NUM_VF = 21,
+	IFLA_VFINFO_LIST = 22,
+	IFLA_STATS64 = 23,
+	IFLA_VF_PORTS = 24,
+	IFLA_PORT_SELF = 25,
+	IFLA_AF_SPEC = 26,
+	IFLA_GROUP = 27,
+	IFLA_NET_NS_FD = 28,
+	IFLA_EXT_MASK = 29,
+	IFLA_PROMISCUITY = 30,
+	IFLA_NUM_TX_QUEUES = 31,
+	IFLA_NUM_RX_QUEUES = 32,
+	IFLA_CARRIER = 33,
+	IFLA_PHYS_PORT_ID = 34,
+	IFLA_CARRIER_CHANGES = 35,
+	IFLA_PHYS_SWITCH_ID = 36,
+	IFLA_LINK_NETNSID = 37,
+	IFLA_PHYS_PORT_NAME = 38,
+	IFLA_PROTO_DOWN = 39,
+	IFLA_GSO_MAX_SEGS = 40,
+	IFLA_GSO_MAX_SIZE = 41,
+	IFLA_PAD = 42,
+	IFLA_XDP = 43,
+	IFLA_EVENT = 44,
+	IFLA_NEW_NETNSID = 45,
+	IFLA_IF_NETNSID = 46,
+	IFLA_TARGET_NETNSID = 46,
+	IFLA_CARRIER_UP_COUNT = 47,
+	IFLA_CARRIER_DOWN_COUNT = 48,
+	IFLA_NEW_IFINDEX = 49,
+	IFLA_MIN_MTU = 50,
+	IFLA_MAX_MTU = 51,
+	IFLA_PROP_LIST = 52,
+	IFLA_ALT_IFNAME = 53,
+	IFLA_PERM_ADDRESS = 54,
+	IFLA_PROTO_DOWN_REASON = 55,
+	IFLA_PARENT_DEV_NAME = 56,
+	IFLA_PARENT_DEV_BUS_NAME = 57,
+	__IFLA_MAX = 58,
+};
+
+enum {
+	IFLA_PPP_UNSPEC = 0,
+	IFLA_PPP_DEV_FD = 1,
+	__IFLA_PPP_MAX = 2,
+};
+
+enum NPmode {
+	NPMODE_PASS = 0,
+	NPMODE_DROP = 1,
+	NPMODE_ERROR = 2,
+	NPMODE_QUEUE = 3,
+};
+
+struct pppstat {
+	__u32 ppp_discards;
+	__u32 ppp_ibytes;
+	__u32 ppp_ioctects;
+	__u32 ppp_ipackets;
+	__u32 ppp_ierrors;
+	__u32 ppp_ilqrs;
+	__u32 ppp_obytes;
+	__u32 ppp_ooctects;
+	__u32 ppp_opackets;
+	__u32 ppp_oerrors;
+	__u32 ppp_olqrs;
+};
+
+struct vjstat {
+	__u32 vjs_packets;
+	__u32 vjs_compressed;
+	__u32 vjs_searches;
+	__u32 vjs_misses;
+	__u32 vjs_uncompressedin;
+	__u32 vjs_compressedin;
+	__u32 vjs_errorin;
+	__u32 vjs_tossed;
+};
+
+struct compstat {
+	__u32 unc_bytes;
+	__u32 unc_packets;
+	__u32 comp_bytes;
+	__u32 comp_packets;
+	__u32 inc_bytes;
+	__u32 inc_packets;
+	__u32 in_count;
+	__u32 bytes_out;
+	double ratio;
+};
+
+struct ppp_stats {
+	struct pppstat p;
+	struct vjstat vj;
+};
+
+struct ppp_comp_stats {
+	struct compstat c;
+	struct compstat d;
+};
+
+struct ppp_idle32 {
+	__s32 xmit_idle;
+	__s32 recv_idle;
+};
+
+struct ppp_idle64 {
+	__s64 xmit_idle;
+	__s64 recv_idle;
+};
+
+struct npioctl {
+	int protocol;
+	enum NPmode mode;
+};
+
+struct ppp_option_data {
+	__u8 *ptr;
+	__u32 length;
+	int transmit;
+};
+
+struct ppp_channel;
+
+struct ppp_channel_ops {
+	int (*start_xmit)(struct ppp_channel *, struct sk_buff *);
+	int (*ioctl)(struct ppp_channel *, unsigned int, long unsigned int);
+	int (*fill_forward_path)(struct net_device_path_ctx *, struct net_device_path *, const struct ppp_channel *);
+};
+
+struct ppp_channel {
+	void *private;
+	const struct ppp_channel_ops *ops;
+	int mtu;
+	int hdrlen;
+	void *ppp;
+	int speed;
+	int latency;
+};
+
+struct compressor {
+	int compress_proto;
+	void * (*comp_alloc)(unsigned char *, int);
+	void (*comp_free)(void *);
+	int (*comp_init)(void *, unsigned char *, int, int, int, int);
+	void (*comp_reset)(void *);
+	int (*compress)(void *, unsigned char *, unsigned char *, int, int);
+	void (*comp_stat)(void *, struct compstat *);
+	void * (*decomp_alloc)(unsigned char *, int);
+	void (*decomp_free)(void *);
+	int (*decomp_init)(void *, unsigned char *, int, int, int, int, int);
+	void (*decomp_reset)(void *);
+	int (*decompress)(void *, unsigned char *, int, unsigned char *, int);
+	void (*incomp)(void *, unsigned char *, int);
+	void (*decomp_stat)(void *, struct compstat *);
+	struct module *owner;
+	unsigned int comp_extra;
+};
+
+typedef __u8 byte_t;
+
+typedef __u32 int32;
+
+struct cstate___2 {
+	byte_t cs_this;
+	bool initialized;
+	struct cstate___2 *next;
+	struct iphdr cs_ip;
+	struct tcphdr cs_tcp;
+	unsigned char cs_ipopt[64];
+	unsigned char cs_tcpopt[64];
+	int cs_hsize;
+};
+
+struct slcompress {
+	struct cstate___2 *tstate;
+	struct cstate___2 *rstate;
+	byte_t tslot_limit;
+	byte_t rslot_limit;
+	byte_t xmit_oldest;
+	byte_t xmit_current;
+	byte_t recv_current;
+	byte_t flags;
+	int32 sls_o_nontcp;
+	int32 sls_o_tcp;
+	int32 sls_o_uncompressed;
+	int32 sls_o_compressed;
+	int32 sls_o_searches;
+	int32 sls_o_misses;
+	int32 sls_i_uncompressed;
+	int32 sls_i_compressed;
+	int32 sls_i_error;
+	int32 sls_i_tossed;
+	int32 sls_i_runt;
+	int32 sls_i_badcheck;
+};
+
+struct ppp_file {
+	enum {
+		INTERFACE = 1,
+		CHANNEL = 2,
+	} kind;
+	struct sk_buff_head xq;
+	struct sk_buff_head rq;
+	wait_queue_head_t rwait;
+	refcount_t refcnt;
+	int hdrlen;
+	int index;
+	int dead;
+};
+
+struct ppp_link_stats {
+	u64 rx_packets;
+	u64 tx_packets;
+	u64 rx_bytes;
+	u64 tx_bytes;
+};
+
+struct ppp {
+	struct ppp_file file;
+	struct file *owner;
+	struct list_head channels;
+	int n_channels;
+	spinlock_t rlock;
+	spinlock_t wlock;
+	int *xmit_recursion;
+	int mru;
+	unsigned int flags;
+	unsigned int xstate;
+	unsigned int rstate;
+	int debug;
+	struct slcompress *vj;
+	enum NPmode npmode[6];
+	struct sk_buff *xmit_pending;
+	struct compressor *xcomp;
+	void *xc_state;
+	struct compressor *rcomp;
+	void *rc_state;
+	long unsigned int last_xmit;
+	long unsigned int last_recv;
+	struct net_device *dev;
+	int closing;
+	int nxchan;
+	u32 nxseq;
+	int mrru;
+	u32 nextseq;
+	u32 minseq;
+	struct sk_buff_head mrq;
+	struct bpf_prog *pass_filter;
+	struct bpf_prog *active_filter;
+	struct net *ppp_net;
+	struct ppp_link_stats stats64;
+};
+
+struct channel {
+	struct ppp_file file;
+	struct list_head list;
+	struct ppp_channel *chan;
+	struct rw_semaphore chan_sem;
+	spinlock_t downl;
+	struct ppp *ppp;
+	struct net *chan_net;
+	struct list_head clist;
+	rwlock_t upl;
+	struct channel *bridge;
+	u8 avail;
+	u8 had_frag;
+	u32 lastseq;
+	int speed;
+};
+
+struct ppp_config {
+	struct file *file;
+	s32 unit;
+	bool ifname_is_set;
+};
+
+struct ppp_net {
+	struct idr units_idr;
+	struct mutex all_ppp_mutex;
+	struct list_head all_channels;
+	struct list_head new_channels;
+	int last_channel_index;
+	spinlock_t all_channels_lock;
+};
+
+struct ppp_mp_skb_parm {
+	u32 sequence;
+	u8 BEbits;
+};
+
+struct compressor_entry {
+	struct list_head list;
+	struct compressor *comp;
+};
+
+struct wl1251_platform_data {
+	int power_gpio;
+	int irq;
+	bool use_eeprom;
+};
+
+struct cdrom_msf {
+	__u8 cdmsf_min0;
+	__u8 cdmsf_sec0;
+	__u8 cdmsf_frame0;
+	__u8 cdmsf_min1;
+	__u8 cdmsf_sec1;
+	__u8 cdmsf_frame1;
+};
+
+struct cdrom_volctrl {
+	__u8 channel0;
+	__u8 channel1;
+	__u8 channel2;
+	__u8 channel3;
+};
+
+struct cdrom_subchnl {
+	__u8 cdsc_format;
+	__u8 cdsc_audiostatus;
+	__u8 cdsc_adr: 4;
+	__u8 cdsc_ctrl: 4;
+	__u8 cdsc_trk;
+	__u8 cdsc_ind;
+	union cdrom_addr cdsc_absaddr;
+	union cdrom_addr cdsc_reladdr;
+};
+
+struct cdrom_read_audio {
+	union cdrom_addr addr;
+	__u8 addr_format;
+	int nframes;
+	__u8 *buf;
+};
+
+struct cdrom_blk {
+	unsigned int from;
+	short unsigned int len;
+};
+
+struct dvd_layer {
+	__u8 book_version: 4;
+	__u8 book_type: 4;
+	__u8 min_rate: 4;
+	__u8 disc_size: 4;
+	__u8 layer_type: 4;
+	__u8 track_path: 1;
+	__u8 nlayers: 2;
+	char: 1;
+	__u8 track_density: 4;
+	__u8 linear_density: 4;
+	__u8 bca: 1;
+	__u32 start_sector;
+	__u32 end_sector;
+	__u32 end_sector_l0;
+};
+
+struct dvd_physical {
+	__u8 type;
+	__u8 layer_num;
+	struct dvd_layer layer[4];
+};
+
+struct dvd_copyright {
+	__u8 type;
+	__u8 layer_num;
+	__u8 cpst;
+	__u8 rmi;
+};
+
+struct dvd_disckey {
+	__u8 type;
+	unsigned int agid: 2;
+	__u8 value[2048];
+};
+
+struct dvd_bca {
+	__u8 type;
+	int len;
+	__u8 value[188];
+};
+
+struct dvd_manufact {
+	__u8 type;
+	__u8 layer_num;
+	int len;
+	__u8 value[2048];
+};
+
+typedef union {
+	__u8 type;
+	struct dvd_physical physical;
+	struct dvd_copyright copyright;
+	struct dvd_disckey disckey;
+	struct dvd_bca bca;
+	struct dvd_manufact manufact;
+} dvd_struct;
+
+typedef __u8 dvd_key[5];
+
+typedef __u8 dvd_challenge[10];
+
+struct dvd_lu_send_agid {
+	__u8 type;
+	unsigned int agid: 2;
+};
+
+struct dvd_host_send_challenge {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_challenge chal;
+};
+
+struct dvd_send_key {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_key key;
+};
+
+struct dvd_lu_send_challenge {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_challenge chal;
+};
+
+struct dvd_lu_send_title_key {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_key title_key;
+	int lba;
+	unsigned int cpm: 1;
+	unsigned int cp_sec: 1;
+	unsigned int cgms: 2;
+};
+
+struct dvd_lu_send_asf {
+	__u8 type;
+	unsigned int agid: 2;
+	unsigned int asf: 1;
+};
+
+struct dvd_host_send_rpcstate {
+	__u8 type;
+	__u8 pdrc;
+};
+
+struct dvd_lu_send_rpcstate {
+	__u8 type: 2;
+	__u8 vra: 3;
+	__u8 ucca: 3;
+	__u8 region_mask;
+	__u8 rpc_scheme;
+};
+
+typedef union {
+	__u8 type;
+	struct dvd_lu_send_agid lsa;
+	struct dvd_host_send_challenge hsc;
+	struct dvd_send_key lsk;
+	struct dvd_lu_send_challenge lsc;
+	struct dvd_send_key hsk;
+	struct dvd_lu_send_title_key lstk;
+	struct dvd_lu_send_asf lsasf;
+	struct dvd_host_send_rpcstate hrpcs;
+	struct dvd_lu_send_rpcstate lrpcs;
+} dvd_authinfo;
+
+struct mrw_feature_desc {
+	__be16 feature_code;
+	__u8 curr: 1;
+	__u8 persistent: 1;
+	__u8 feature_version: 4;
+	__u8 reserved1: 2;
+	__u8 add_len;
+	__u8 write: 1;
+	__u8 reserved2: 7;
+	__u8 reserved3;
+	__u8 reserved4;
+	__u8 reserved5;
+};
+
+struct rwrt_feature_desc {
+	__be16 feature_code;
+	__u8 curr: 1;
+	__u8 persistent: 1;
+	__u8 feature_version: 4;
+	__u8 reserved1: 2;
+	__u8 add_len;
+	__u32 last_lba;
+	__u32 block_size;
+	__u16 blocking;
+	__u8 page_present: 1;
+	__u8 reserved2: 7;
+	__u8 reserved3;
+};
+
+typedef struct {
+	__be16 disc_information_length;
+	__u8 disc_status: 2;
+	__u8 border_status: 2;
+	__u8 erasable: 1;
+	__u8 reserved1: 3;
+	__u8 n_first_track;
+	__u8 n_sessions_lsb;
+	__u8 first_track_lsb;
+	__u8 last_track_lsb;
+	__u8 mrw_status: 2;
+	__u8 dbit: 1;
+	__u8 reserved2: 2;
+	__u8 uru: 1;
+	__u8 dbc_v: 1;
+	__u8 did_v: 1;
+	__u8 disc_type;
+	__u8 n_sessions_msb;
+	__u8 first_track_msb;
+	__u8 last_track_msb;
+	__u32 disc_id;
+	__u32 lead_in;
+	__u32 lead_out;
+	__u8 disc_bar_code[8];
+	__u8 reserved3;
+	__u8 n_opc;
+} disc_information;
+
+typedef struct {
+	__be16 track_information_length;
+	__u8 track_lsb;
+	__u8 session_lsb;
+	__u8 reserved1;
+	__u8 track_mode: 4;
+	__u8 copy: 1;
+	__u8 damage: 1;
+	__u8 reserved2: 2;
+	__u8 data_mode: 4;
+	__u8 fp: 1;
+	__u8 packet: 1;
+	__u8 blank: 1;
+	__u8 rt: 1;
+	__u8 nwa_v: 1;
+	__u8 lra_v: 1;
+	__u8 reserved3: 6;
+	__be32 track_start;
+	__be32 next_writable;
+	__be32 free_blocks;
+	__be32 fixed_packet_size;
+	__be32 track_size;
+	__be32 last_rec_address;
+} track_information;
+
+struct mode_page_header {
+	__be16 mode_data_length;
+	__u8 medium_type;
+	__u8 reserved1;
+	__u8 reserved2;
+	__u8 reserved3;
+	__be16 desc_length;
+};
+
+typedef struct {
