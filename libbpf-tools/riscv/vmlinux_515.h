@@ -80289,3 +80289,1994 @@ struct mode_page_header {
 };
 
 typedef struct {
+	int data;
+	int audio;
+	int cdi;
+	int xa;
+	long int error;
+} tracktype;
+
+struct cdrom_mechstat_header {
+	__u8 curslot: 5;
+	__u8 changer_state: 2;
+	__u8 fault: 1;
+	__u8 reserved1: 4;
+	__u8 door_open: 1;
+	__u8 mech_state: 3;
+	__u8 curlba[3];
+	__u8 nslots;
+	__u16 slot_tablelen;
+};
+
+struct cdrom_slot {
+	__u8 change: 1;
+	__u8 reserved1: 6;
+	__u8 disc_present: 1;
+	__u8 reserved2[3];
+};
+
+struct cdrom_changer_info {
+	struct cdrom_mechstat_header hdr;
+	struct cdrom_slot slots[256];
+};
+
+struct modesel_head {
+	__u8 reserved1;
+	__u8 medium;
+	__u8 reserved2;
+	__u8 block_desc_length;
+	__u8 density;
+	__u8 number_of_blocks_hi;
+	__u8 number_of_blocks_med;
+	__u8 number_of_blocks_lo;
+	__u8 reserved3;
+	__u8 block_length_hi;
+	__u8 block_length_med;
+	__u8 block_length_lo;
+};
+
+typedef struct {
+	__u16 report_key_length;
+	__u8 reserved1;
+	__u8 reserved2;
+	__u8 ucca: 3;
+	__u8 vra: 3;
+	__u8 type_code: 2;
+	__u8 region_mask;
+	__u8 rpc_scheme;
+	__u8 reserved3;
+} rpc_state_t;
+
+struct cdrom_sysctl_settings {
+	char info[1000];
+	int autoclose;
+	int autoeject;
+	int debug;
+	int lock;
+	int check;
+};
+
+enum cdrom_print_option {
+	CTL_NAME = 0,
+	CTL_SPEED = 1,
+	CTL_SLOTS = 2,
+	CTL_CAPABILITY = 3,
+};
+
+struct usb_endpoint_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bEndpointAddress;
+	__u8 bmAttributes;
+	__le16 wMaxPacketSize;
+	__u8 bInterval;
+	__u8 bRefresh;
+	__u8 bSynchAddress;
+} __attribute__((packed));
+
+enum usb_device_speed {
+	USB_SPEED_UNKNOWN = 0,
+	USB_SPEED_LOW = 1,
+	USB_SPEED_FULL = 2,
+	USB_SPEED_HIGH = 3,
+	USB_SPEED_WIRELESS = 4,
+	USB_SPEED_SUPER = 5,
+	USB_SPEED_SUPER_PLUS = 6,
+};
+
+enum usb_device_state {
+	USB_STATE_NOTATTACHED = 0,
+	USB_STATE_ATTACHED = 1,
+	USB_STATE_POWERED = 2,
+	USB_STATE_RECONNECTING = 3,
+	USB_STATE_UNAUTHENTICATED = 4,
+	USB_STATE_DEFAULT = 5,
+	USB_STATE_ADDRESS = 6,
+	USB_STATE_CONFIGURED = 7,
+	USB_STATE_SUSPENDED = 8,
+};
+
+enum usb_ssp_rate {
+	USB_SSP_GEN_UNKNOWN = 0,
+	USB_SSP_GEN_2x1 = 1,
+	USB_SSP_GEN_1x2 = 2,
+	USB_SSP_GEN_2x2 = 3,
+};
+
+enum usb_otg_state {
+	OTG_STATE_UNDEFINED = 0,
+	OTG_STATE_B_IDLE = 1,
+	OTG_STATE_B_SRP_INIT = 2,
+	OTG_STATE_B_PERIPHERAL = 3,
+	OTG_STATE_B_WAIT_ACON = 4,
+	OTG_STATE_B_HOST = 5,
+	OTG_STATE_A_IDLE = 6,
+	OTG_STATE_A_WAIT_VRISE = 7,
+	OTG_STATE_A_WAIT_BCON = 8,
+	OTG_STATE_A_HOST = 9,
+	OTG_STATE_A_SUSPEND = 10,
+	OTG_STATE_A_PERIPHERAL = 11,
+	OTG_STATE_A_WAIT_VFALL = 12,
+	OTG_STATE_A_VBUS_ERR = 13,
+};
+
+struct usb_otg_caps {
+	u16 otg_rev;
+	bool hnp_support;
+	bool srp_support;
+	bool adp_support;
+};
+
+enum usb_dr_mode {
+	USB_DR_MODE_UNKNOWN = 0,
+	USB_DR_MODE_HOST = 1,
+	USB_DR_MODE_PERIPHERAL = 2,
+	USB_DR_MODE_OTG = 3,
+};
+
+enum usb_led_event {
+	USB_LED_EVENT_HOST = 0,
+	USB_LED_EVENT_GADGET = 1,
+};
+
+struct usb_device_id {
+	__u16 match_flags;
+	__u16 idVendor;
+	__u16 idProduct;
+	__u16 bcdDevice_lo;
+	__u16 bcdDevice_hi;
+	__u8 bDeviceClass;
+	__u8 bDeviceSubClass;
+	__u8 bDeviceProtocol;
+	__u8 bInterfaceClass;
+	__u8 bInterfaceSubClass;
+	__u8 bInterfaceProtocol;
+	__u8 bInterfaceNumber;
+	kernel_ulong_t driver_info;
+};
+
+struct usb_descriptor_header {
+	__u8 bLength;
+	__u8 bDescriptorType;
+};
+
+struct usb_device_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 bcdUSB;
+	__u8 bDeviceClass;
+	__u8 bDeviceSubClass;
+	__u8 bDeviceProtocol;
+	__u8 bMaxPacketSize0;
+	__le16 idVendor;
+	__le16 idProduct;
+	__le16 bcdDevice;
+	__u8 iManufacturer;
+	__u8 iProduct;
+	__u8 iSerialNumber;
+	__u8 bNumConfigurations;
+};
+
+struct usb_config_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 wTotalLength;
+	__u8 bNumInterfaces;
+	__u8 bConfigurationValue;
+	__u8 iConfiguration;
+	__u8 bmAttributes;
+	__u8 bMaxPower;
+} __attribute__((packed));
+
+struct usb_interface_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bInterfaceNumber;
+	__u8 bAlternateSetting;
+	__u8 bNumEndpoints;
+	__u8 bInterfaceClass;
+	__u8 bInterfaceSubClass;
+	__u8 bInterfaceProtocol;
+	__u8 iInterface;
+};
+
+struct usb_ssp_isoc_ep_comp_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 wReseved;
+	__le32 dwBytesPerInterval;
+};
+
+struct usb_ss_ep_comp_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bMaxBurst;
+	__u8 bmAttributes;
+	__le16 wBytesPerInterval;
+};
+
+struct usb_interface_assoc_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bFirstInterface;
+	__u8 bInterfaceCount;
+	__u8 bFunctionClass;
+	__u8 bFunctionSubClass;
+	__u8 bFunctionProtocol;
+	__u8 iFunction;
+};
+
+struct usb_bos_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 wTotalLength;
+	__u8 bNumDeviceCaps;
+} __attribute__((packed));
+
+struct usb_ext_cap_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDevCapabilityType;
+	__le32 bmAttributes;
+} __attribute__((packed));
+
+struct usb_ss_cap_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDevCapabilityType;
+	__u8 bmAttributes;
+	__le16 wSpeedSupported;
+	__u8 bFunctionalitySupport;
+	__u8 bU1devExitLat;
+	__le16 bU2DevExitLat;
+};
+
+struct usb_ss_container_id_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDevCapabilityType;
+	__u8 bReserved;
+	__u8 ContainerID[16];
+};
+
+struct usb_ssp_cap_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDevCapabilityType;
+	__u8 bReserved;
+	__le32 bmAttributes;
+	__le16 wFunctionalitySupport;
+	__le16 wReserved;
+	__le32 bmSublinkSpeedAttr[1];
+};
+
+struct usb_ptm_cap_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDevCapabilityType;
+};
+
+enum usb3_link_state {
+	USB3_LPM_U0 = 0,
+	USB3_LPM_U1 = 1,
+	USB3_LPM_U2 = 2,
+	USB3_LPM_U3 = 3,
+};
+
+struct ep_device;
+
+struct usb_host_endpoint {
+	struct usb_endpoint_descriptor desc;
+	struct usb_ss_ep_comp_descriptor ss_ep_comp;
+	struct usb_ssp_isoc_ep_comp_descriptor ssp_isoc_ep_comp;
+	char: 8;
+	struct list_head urb_list;
+	void *hcpriv;
+	struct ep_device *ep_dev;
+	unsigned char *extra;
+	int extralen;
+	int enabled;
+	int streams;
+	int: 32;
+} __attribute__((packed));
+
+struct usb_host_interface {
+	struct usb_interface_descriptor desc;
+	int extralen;
+	unsigned char *extra;
+	struct usb_host_endpoint *endpoint;
+	char *string;
+};
+
+enum usb_interface_condition {
+	USB_INTERFACE_UNBOUND = 0,
+	USB_INTERFACE_BINDING = 1,
+	USB_INTERFACE_BOUND = 2,
+	USB_INTERFACE_UNBINDING = 3,
+};
+
+struct usb_interface {
+	struct usb_host_interface *altsetting;
+	struct usb_host_interface *cur_altsetting;
+	unsigned int num_altsetting;
+	struct usb_interface_assoc_descriptor *intf_assoc;
+	int minor;
+	enum usb_interface_condition condition;
+	unsigned int sysfs_files_created: 1;
+	unsigned int ep_devs_created: 1;
+	unsigned int unregistering: 1;
+	unsigned int needs_remote_wakeup: 1;
+	unsigned int needs_altsetting0: 1;
+	unsigned int needs_binding: 1;
+	unsigned int resetting_device: 1;
+	unsigned int authorized: 1;
+	struct device dev;
+	struct device *usb_dev;
+	struct work_struct reset_ws;
+};
+
+struct usb_interface_cache {
+	unsigned int num_altsetting;
+	struct kref ref;
+	struct usb_host_interface altsetting[0];
+};
+
+struct usb_host_config {
+	struct usb_config_descriptor desc;
+	char *string;
+	struct usb_interface_assoc_descriptor *intf_assoc[16];
+	struct usb_interface *interface[32];
+	struct usb_interface_cache *intf_cache[32];
+	unsigned char *extra;
+	int extralen;
+};
+
+struct usb_host_bos {
+	struct usb_bos_descriptor *desc;
+	struct usb_ext_cap_descriptor *ext_cap;
+	struct usb_ss_cap_descriptor *ss_cap;
+	struct usb_ssp_cap_descriptor *ssp_cap;
+	struct usb_ss_container_id_descriptor *ss_id;
+	struct usb_ptm_cap_descriptor *ptm_cap;
+};
+
+struct usb_devmap {
+	long unsigned int devicemap[2];
+};
+
+struct mon_bus;
+
+struct usb_device;
+
+struct usb_bus {
+	struct device *controller;
+	struct device *sysdev;
+	int busnum;
+	const char *bus_name;
+	u8 uses_pio_for_control;
+	u8 otg_port;
+	unsigned int is_b_host: 1;
+	unsigned int b_hnp_enable: 1;
+	unsigned int no_stop_on_short: 1;
+	unsigned int no_sg_constraint: 1;
+	unsigned int sg_tablesize;
+	int devnum_next;
+	struct mutex devnum_next_mutex;
+	struct usb_devmap devmap;
+	struct usb_device *root_hub;
+	struct usb_bus *hs_companion;
+	int bandwidth_allocated;
+	int bandwidth_int_reqs;
+	int bandwidth_isoc_reqs;
+	unsigned int resuming_ports;
+	struct mon_bus *mon_bus;
+	int monitored;
+};
+
+struct wusb_dev;
+
+struct usb2_lpm_parameters {
+	unsigned int besl;
+	int timeout;
+};
+
+struct usb3_lpm_parameters {
+	unsigned int mel;
+	unsigned int pel;
+	unsigned int sel;
+	int timeout;
+};
+
+struct usb_tt;
+
+struct usb_device {
+	int devnum;
+	char devpath[16];
+	u32 route;
+	enum usb_device_state state;
+	enum usb_device_speed speed;
+	unsigned int rx_lanes;
+	unsigned int tx_lanes;
+	enum usb_ssp_rate ssp_rate;
+	struct usb_tt *tt;
+	int ttport;
+	unsigned int toggle[2];
+	struct usb_device *parent;
+	struct usb_bus *bus;
+	struct usb_host_endpoint ep0;
+	struct device dev;
+	struct usb_device_descriptor descriptor;
+	struct usb_host_bos *bos;
+	struct usb_host_config *config;
+	struct usb_host_config *actconfig;
+	struct usb_host_endpoint *ep_in[16];
+	struct usb_host_endpoint *ep_out[16];
+	char **rawdescriptors;
+	short unsigned int bus_mA;
+	u8 portnum;
+	u8 level;
+	u8 devaddr;
+	unsigned int can_submit: 1;
+	unsigned int persist_enabled: 1;
+	unsigned int have_langid: 1;
+	unsigned int authorized: 1;
+	unsigned int authenticated: 1;
+	unsigned int wusb: 1;
+	unsigned int lpm_capable: 1;
+	unsigned int usb2_hw_lpm_capable: 1;
+	unsigned int usb2_hw_lpm_besl_capable: 1;
+	unsigned int usb2_hw_lpm_enabled: 1;
+	unsigned int usb2_hw_lpm_allowed: 1;
+	unsigned int usb3_lpm_u1_enabled: 1;
+	unsigned int usb3_lpm_u2_enabled: 1;
+	int string_langid;
+	char *product;
+	char *manufacturer;
+	char *serial;
+	struct list_head filelist;
+	int maxchild;
+	u32 quirks;
+	atomic_t urbnum;
+	long unsigned int active_duration;
+	struct wusb_dev *wusb_dev;
+	int slot_id;
+	struct usb2_lpm_parameters l1_params;
+	struct usb3_lpm_parameters u1_params;
+	struct usb3_lpm_parameters u2_params;
+	unsigned int lpm_disable_count;
+	u16 hub_delay;
+	unsigned int use_generic_driver: 1;
+};
+
+enum usb_port_connect_type {
+	USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
+	USB_PORT_CONNECT_TYPE_HOT_PLUG = 1,
+	USB_PORT_CONNECT_TYPE_HARD_WIRED = 2,
+	USB_PORT_NOT_USED = 3,
+};
+
+struct usb_tt {
+	struct usb_device *hub;
+	int multi;
+	unsigned int think_time;
+	void *hcpriv;
+	spinlock_t lock;
+	struct list_head clear_list;
+	struct work_struct clear_work;
+};
+
+struct usb_dynids {
+	spinlock_t lock;
+	struct list_head list;
+};
+
+struct usbdrv_wrap {
+	struct device_driver driver;
+	int for_devices;
+};
+
+struct usb_driver {
+	const char *name;
+	int (*probe)(struct usb_interface *, const struct usb_device_id *);
+	void (*disconnect)(struct usb_interface *);
+	int (*unlocked_ioctl)(struct usb_interface *, unsigned int, void *);
+	int (*suspend)(struct usb_interface *, pm_message_t);
+	int (*resume)(struct usb_interface *);
+	int (*reset_resume)(struct usb_interface *);
+	int (*pre_reset)(struct usb_interface *);
+	int (*post_reset)(struct usb_interface *);
+	const struct usb_device_id *id_table;
+	const struct attribute_group **dev_groups;
+	struct usb_dynids dynids;
+	struct usbdrv_wrap drvwrap;
+	unsigned int no_dynamic_id: 1;
+	unsigned int supports_autosuspend: 1;
+	unsigned int disable_hub_initiated_lpm: 1;
+	unsigned int soft_unbind: 1;
+};
+
+struct usb_device_driver {
+	const char *name;
+	bool (*match)(struct usb_device *);
+	int (*probe)(struct usb_device *);
+	void (*disconnect)(struct usb_device *);
+	int (*suspend)(struct usb_device *, pm_message_t);
+	int (*resume)(struct usb_device *, pm_message_t);
+	const struct attribute_group **dev_groups;
+	struct usbdrv_wrap drvwrap;
+	const struct usb_device_id *id_table;
+	unsigned int supports_autosuspend: 1;
+	unsigned int generic_subclass: 1;
+};
+
+struct usb_iso_packet_descriptor {
+	unsigned int offset;
+	unsigned int length;
+	unsigned int actual_length;
+	int status;
+};
+
+struct usb_anchor {
+	struct list_head urb_list;
+	wait_queue_head_t wait;
+	spinlock_t lock;
+	atomic_t suspend_wakeups;
+	unsigned int poisoned: 1;
+};
+
+struct urb;
+
+typedef void (*usb_complete_t)(struct urb *);
+
+struct urb {
+	struct kref kref;
+	int unlinked;
+	void *hcpriv;
+	atomic_t use_count;
+	atomic_t reject;
+	struct list_head urb_list;
+	struct list_head anchor_list;
+	struct usb_anchor *anchor;
+	struct usb_device *dev;
+	struct usb_host_endpoint *ep;
+	unsigned int pipe;
+	unsigned int stream_id;
+	int status;
+	unsigned int transfer_flags;
+	void *transfer_buffer;
+	dma_addr_t transfer_dma;
+	struct scatterlist *sg;
+	int num_mapped_sgs;
+	int num_sgs;
+	u32 transfer_buffer_length;
+	u32 actual_length;
+	unsigned char *setup_packet;
+	dma_addr_t setup_dma;
+	int start_frame;
+	int number_of_packets;
+	int interval;
+	int error_count;
+	void *context;
+	usb_complete_t complete;
+	struct usb_iso_packet_descriptor iso_frame_desc[0];
+};
+
+struct giveback_urb_bh {
+	bool running;
+	spinlock_t lock;
+	struct list_head head;
+	struct tasklet_struct bh;
+	struct usb_host_endpoint *completing_ep;
+};
+
+enum usb_dev_authorize_policy {
+	USB_DEVICE_AUTHORIZE_NONE = 0,
+	USB_DEVICE_AUTHORIZE_ALL = 1,
+	USB_DEVICE_AUTHORIZE_INTERNAL = 2,
+};
+
+struct usb_phy_roothub;
+
+struct dma_pool;
+
+struct hc_driver;
+
+struct usb_phy;
+
+struct usb_hcd {
+	struct usb_bus self;
+	struct kref kref;
+	const char *product_desc;
+	int speed;
+	char irq_descr[24];
+	struct timer_list rh_timer;
+	struct urb *status_urb;
+	struct work_struct died_work;
+	const struct hc_driver *driver;
+	struct usb_phy *usb_phy;
+	struct usb_phy_roothub *phy_roothub;
+	long unsigned int flags;
+	enum usb_dev_authorize_policy dev_policy;
+	unsigned int rh_registered: 1;
+	unsigned int rh_pollable: 1;
+	unsigned int msix_enabled: 1;
+	unsigned int msi_enabled: 1;
+	unsigned int skip_phy_initialization: 1;
+	unsigned int uses_new_polling: 1;
+	unsigned int wireless: 1;
+	unsigned int has_tt: 1;
+	unsigned int amd_resume_bug: 1;
+	unsigned int can_do_streams: 1;
+	unsigned int tpl_support: 1;
+	unsigned int cant_recv_wakeups: 1;
+	unsigned int irq;
+	void *regs;
+	resource_size_t rsrc_start;
+	resource_size_t rsrc_len;
+	unsigned int power_budget;
+	struct giveback_urb_bh high_prio_bh;
+	struct giveback_urb_bh low_prio_bh;
+	struct mutex *address0_mutex;
+	struct mutex *bandwidth_mutex;
+	struct usb_hcd *shared_hcd;
+	struct usb_hcd *primary_hcd;
+	struct dma_pool *pool[4];
+	int state;
+	struct gen_pool *localmem_pool;
+	long unsigned int hcd_priv[0];
+};
+
+struct hc_driver {
+	const char *description;
+	const char *product_desc;
+	size_t hcd_priv_size;
+	irqreturn_t (*irq)(struct usb_hcd *);
+	int flags;
+	int (*reset)(struct usb_hcd *);
+	int (*start)(struct usb_hcd *);
+	int (*pci_suspend)(struct usb_hcd *, bool);
+	int (*pci_resume)(struct usb_hcd *, bool);
+	void (*stop)(struct usb_hcd *);
+	void (*shutdown)(struct usb_hcd *);
+	int (*get_frame_number)(struct usb_hcd *);
+	int (*urb_enqueue)(struct usb_hcd *, struct urb *, gfp_t);
+	int (*urb_dequeue)(struct usb_hcd *, struct urb *, int);
+	int (*map_urb_for_dma)(struct usb_hcd *, struct urb *, gfp_t);
+	void (*unmap_urb_for_dma)(struct usb_hcd *, struct urb *);
+	void (*endpoint_disable)(struct usb_hcd *, struct usb_host_endpoint *);
+	void (*endpoint_reset)(struct usb_hcd *, struct usb_host_endpoint *);
+	int (*hub_status_data)(struct usb_hcd *, char *);
+	int (*hub_control)(struct usb_hcd *, u16, u16, u16, char *, u16);
+	int (*bus_suspend)(struct usb_hcd *);
+	int (*bus_resume)(struct usb_hcd *);
+	int (*start_port_reset)(struct usb_hcd *, unsigned int);
+	long unsigned int (*get_resuming_ports)(struct usb_hcd *);
+	void (*relinquish_port)(struct usb_hcd *, int);
+	int (*port_handed_over)(struct usb_hcd *, int);
+	void (*clear_tt_buffer_complete)(struct usb_hcd *, struct usb_host_endpoint *);
+	int (*alloc_dev)(struct usb_hcd *, struct usb_device *);
+	void (*free_dev)(struct usb_hcd *, struct usb_device *);
+	int (*alloc_streams)(struct usb_hcd *, struct usb_device *, struct usb_host_endpoint **, unsigned int, unsigned int, gfp_t);
+	int (*free_streams)(struct usb_hcd *, struct usb_device *, struct usb_host_endpoint **, unsigned int, gfp_t);
+	int (*add_endpoint)(struct usb_hcd *, struct usb_device *, struct usb_host_endpoint *);
+	int (*drop_endpoint)(struct usb_hcd *, struct usb_device *, struct usb_host_endpoint *);
+	int (*check_bandwidth)(struct usb_hcd *, struct usb_device *);
+	void (*reset_bandwidth)(struct usb_hcd *, struct usb_device *);
+	int (*address_device)(struct usb_hcd *, struct usb_device *);
+	int (*enable_device)(struct usb_hcd *, struct usb_device *);
+	int (*update_hub_device)(struct usb_hcd *, struct usb_device *, struct usb_tt *, gfp_t);
+	int (*reset_device)(struct usb_hcd *, struct usb_device *);
+	int (*update_device)(struct usb_hcd *, struct usb_device *);
+	int (*set_usb2_hw_lpm)(struct usb_hcd *, struct usb_device *, int);
+	int (*enable_usb3_lpm_timeout)(struct usb_hcd *, struct usb_device *, enum usb3_link_state);
+	int (*disable_usb3_lpm_timeout)(struct usb_hcd *, struct usb_device *, enum usb3_link_state);
+	int (*find_raw_port_number)(struct usb_hcd *, int);
+	int (*port_power)(struct usb_hcd *, int, bool);
+	int (*submit_single_step_set_feature)(struct usb_hcd *, struct urb *, int);
+};
+
+enum usb_phy_type {
+	USB_PHY_TYPE_UNDEFINED = 0,
+	USB_PHY_TYPE_USB2 = 1,
+	USB_PHY_TYPE_USB3 = 2,
+};
+
+enum usb_phy_events {
+	USB_EVENT_NONE = 0,
+	USB_EVENT_VBUS = 1,
+	USB_EVENT_ID = 2,
+	USB_EVENT_CHARGER = 3,
+	USB_EVENT_ENUMERATED = 4,
+};
+
+enum usb_charger_type {
+	UNKNOWN_TYPE = 0,
+	SDP_TYPE = 1,
+	DCP_TYPE = 2,
+	CDP_TYPE = 3,
+	ACA_TYPE = 4,
+};
+
+enum usb_charger_state {
+	USB_CHARGER_DEFAULT = 0,
+	USB_CHARGER_PRESENT = 1,
+	USB_CHARGER_ABSENT = 2,
+};
+
+struct usb_charger_current {
+	unsigned int sdp_min;
+	unsigned int sdp_max;
+	unsigned int dcp_min;
+	unsigned int dcp_max;
+	unsigned int cdp_min;
+	unsigned int cdp_max;
+	unsigned int aca_min;
+	unsigned int aca_max;
+};
+
+struct usb_otg;
+
+struct usb_phy_io_ops;
+
+struct usb_phy {
+	struct device *dev;
+	const char *label;
+	unsigned int flags;
+	enum usb_phy_type type;
+	enum usb_phy_events last_event;
+	struct usb_otg *otg;
+	struct device *io_dev;
+	struct usb_phy_io_ops *io_ops;
+	void *io_priv;
+	struct extcon_dev *edev;
+	struct extcon_dev *id_edev;
+	struct notifier_block vbus_nb;
+	struct notifier_block id_nb;
+	struct notifier_block type_nb;
+	enum usb_charger_type chg_type;
+	enum usb_charger_state chg_state;
+	struct usb_charger_current chg_cur;
+	struct work_struct chg_work;
+	struct atomic_notifier_head notifier;
+	u16 port_status;
+	u16 port_change;
+	struct list_head head;
+	int (*init)(struct usb_phy *);
+	void (*shutdown)(struct usb_phy *);
+	int (*set_vbus)(struct usb_phy *, int);
+	int (*set_power)(struct usb_phy *, unsigned int);
+	int (*set_suspend)(struct usb_phy *, int);
+	int (*set_wakeup)(struct usb_phy *, bool);
+	int (*notify_connect)(struct usb_phy *, enum usb_device_speed);
+	int (*notify_disconnect)(struct usb_phy *, enum usb_device_speed);
+	enum usb_charger_type (*charger_detect)(struct usb_phy *);
+};
+
+struct usb_port_status {
+	__le16 wPortStatus;
+	__le16 wPortChange;
+	__le32 dwExtPortStatus;
+};
+
+struct usb_hub_status {
+	__le16 wHubStatus;
+	__le16 wHubChange;
+};
+
+struct usb_hub_descriptor {
+	__u8 bDescLength;
+	__u8 bDescriptorType;
+	__u8 bNbrPorts;
+	__le16 wHubCharacteristics;
+	__u8 bPwrOn2PwrGood;
+	__u8 bHubContrCurrent;
+	union {
+		struct {
+			__u8 DeviceRemovable[4];
+			__u8 PortPwrCtrlMask[4];
+		} hs;
+		struct {
+			__u8 bHubHdrDecLat;
+			__le16 wHubDelay;
+			__le16 DeviceRemovable;
+		} __attribute__((packed)) ss;
+	} u;
+} __attribute__((packed));
+
+struct usb_phy_io_ops {
+	int (*read)(struct usb_phy *, u32);
+	int (*write)(struct usb_phy *, u32, u32);
+};
+
+struct usb_gadget;
+
+struct usb_otg {
+	u8 default_a;
+	struct phy *phy;
+	struct usb_phy *usb_phy;
+	struct usb_bus *host;
+	struct usb_gadget *gadget;
+	enum usb_otg_state state;
+	int (*set_host)(struct usb_otg *, struct usb_bus *);
+	int (*set_peripheral)(struct usb_otg *, struct usb_gadget *);
+	int (*set_vbus)(struct usb_otg *, bool);
+	int (*start_srp)(struct usb_otg *);
+	int (*start_hnp)(struct usb_otg *);
+};
+
+typedef u32 usb_port_location_t;
+
+struct usb_port;
+
+struct usb_hub {
+	struct device *intfdev;
+	struct usb_device *hdev;
+	struct kref kref;
+	struct urb *urb;
+	u8 (*buffer)[8];
+	union {
+		struct usb_hub_status hub;
+		struct usb_port_status port;
+	} *status;
+	struct mutex status_mutex;
+	int error;
+	int nerrors;
+	long unsigned int event_bits[1];
+	long unsigned int change_bits[1];
+	long unsigned int removed_bits[1];
+	long unsigned int wakeup_bits[1];
+	long unsigned int power_bits[1];
+	long unsigned int child_usage_bits[1];
+	long unsigned int warm_reset_bits[1];
+	struct usb_hub_descriptor *descriptor;
+	struct usb_tt tt;
+	unsigned int mA_per_port;
+	unsigned int limited_power: 1;
+	unsigned int quiescing: 1;
+	unsigned int disconnected: 1;
+	unsigned int in_reset: 1;
+	unsigned int quirk_disable_autosuspend: 1;
+	unsigned int quirk_check_port_auto_suspend: 1;
+	unsigned int has_indicators: 1;
+	u8 indicator[31];
+	struct delayed_work leds;
+	struct delayed_work init_work;
+	struct work_struct events;
+	spinlock_t irq_urb_lock;
+	struct timer_list irq_urb_retry;
+	struct usb_port **ports;
+};
+
+struct usb_dev_state;
+
+struct usb_port {
+	struct usb_device *child;
+	struct device dev;
+	struct usb_dev_state *port_owner;
+	struct usb_port *peer;
+	struct dev_pm_qos_request *req;
+	enum usb_port_connect_type connect_type;
+	usb_port_location_t location;
+	struct mutex status_lock;
+	u32 over_current_count;
+	u8 portnum;
+	u32 quirks;
+	unsigned int is_superspeed: 1;
+	unsigned int usb3_lpm_u1_permit: 1;
+	unsigned int usb3_lpm_u2_permit: 1;
+};
+
+struct find_interface_arg {
+	int minor;
+	struct device_driver *drv;
+};
+
+struct each_dev_arg {
+	void *data;
+	int (*fn)(struct usb_device *, void *);
+};
+
+struct each_hub_arg {
+	void *data;
+	int (*fn)(struct device *, void *);
+};
+
+struct usb_qualifier_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 bcdUSB;
+	__u8 bDeviceClass;
+	__u8 bDeviceSubClass;
+	__u8 bDeviceProtocol;
+	__u8 bMaxPacketSize0;
+	__u8 bNumConfigurations;
+	__u8 bRESERVED;
+};
+
+struct usbdevfs_hub_portinfo {
+	char nports;
+	char port[127];
+};
+
+enum hub_led_mode {
+	INDICATOR_AUTO = 0,
+	INDICATOR_CYCLE = 1,
+	INDICATOR_GREEN_BLINK = 2,
+	INDICATOR_GREEN_BLINK_OFF = 3,
+	INDICATOR_AMBER_BLINK = 4,
+	INDICATOR_AMBER_BLINK_OFF = 5,
+	INDICATOR_ALT_BLINK = 6,
+	INDICATOR_ALT_BLINK_OFF = 7,
+};
+
+struct usb_tt_clear {
+	struct list_head clear_list;
+	unsigned int tt;
+	u16 devinfo;
+	struct usb_hcd *hcd;
+	struct usb_host_endpoint *ep;
+};
+
+enum hub_activation_type {
+	HUB_INIT = 0,
+	HUB_INIT2 = 1,
+	HUB_INIT3 = 2,
+	HUB_POST_RESET = 3,
+	HUB_RESUME = 4,
+	HUB_RESET_RESUME = 5,
+};
+
+enum hub_quiescing_type {
+	HUB_DISCONNECT = 0,
+	HUB_PRE_RESET = 1,
+	HUB_SUSPEND = 2,
+};
+
+struct usb_ctrlrequest {
+	__u8 bRequestType;
+	__u8 bRequest;
+	__le16 wValue;
+	__le16 wIndex;
+	__le16 wLength;
+};
+
+struct usb_mon_operations {
+	void (*urb_submit)(struct usb_bus *, struct urb *);
+	void (*urb_submit_error)(struct usb_bus *, struct urb *, int);
+	void (*urb_complete)(struct usb_bus *, struct urb *, int);
+};
+
+struct usb_sg_request {
+	int status;
+	size_t bytes;
+	spinlock_t lock;
+	struct usb_device *dev;
+	int pipe;
+	int entries;
+	struct urb **urbs;
+	int count;
+	struct completion complete;
+};
+
+struct usb_cdc_header_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdCDC;
+} __attribute__((packed));
+
+struct usb_cdc_call_mgmt_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bmCapabilities;
+	__u8 bDataInterface;
+};
+
+struct usb_cdc_acm_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bmCapabilities;
+};
+
+struct usb_cdc_union_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bMasterInterface0;
+	__u8 bSlaveInterface0;
+};
+
+struct usb_cdc_country_functional_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 iCountryCodeRelDate;
+	__le16 wCountyCode0;
+};
+
+struct usb_cdc_network_terminal_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bEntityId;
+	__u8 iName;
+	__u8 bChannelIndex;
+	__u8 bPhysicalInterface;
+};
+
+struct usb_cdc_ether_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 iMACAddress;
+	__le32 bmEthernetStatistics;
+	__le16 wMaxSegmentSize;
+	__le16 wNumberMCFilters;
+	__u8 bNumberPowerFilters;
+} __attribute__((packed));
+
+struct usb_cdc_dmm_desc {
+	__u8 bFunctionLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubtype;
+	__u16 bcdVersion;
+	__le16 wMaxCommand;
+} __attribute__((packed));
+
+struct usb_cdc_mdlm_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdVersion;
+	__u8 bGUID[16];
+} __attribute__((packed));
+
+struct usb_cdc_mdlm_detail_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bGuidDescriptorType;
+	__u8 bDetailData[0];
+};
+
+struct usb_cdc_obex_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdVersion;
+} __attribute__((packed));
+
+struct usb_cdc_ncm_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdNcmVersion;
+	__u8 bmNetworkCapabilities;
+} __attribute__((packed));
+
+struct usb_cdc_mbim_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdMBIMVersion;
+	__le16 wMaxControlMessage;
+	__u8 bNumberFilters;
+	__u8 bMaxFilterSize;
+	__le16 wMaxSegmentSize;
+	__u8 bmNetworkCapabilities;
+} __attribute__((packed));
+
+struct usb_cdc_mbim_extended_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdMBIMExtendedVersion;
+	__u8 bMaxOutstandingCommandMessages;
+	__le16 wMTU;
+} __attribute__((packed));
+
+struct usb_cdc_parsed_header {
+	struct usb_cdc_union_desc *usb_cdc_union_desc;
+	struct usb_cdc_header_desc *usb_cdc_header_desc;
+	struct usb_cdc_call_mgmt_descriptor *usb_cdc_call_mgmt_descriptor;
+	struct usb_cdc_acm_descriptor *usb_cdc_acm_descriptor;
+	struct usb_cdc_country_functional_desc *usb_cdc_country_functional_desc;
+	struct usb_cdc_network_terminal_desc *usb_cdc_network_terminal_desc;
+	struct usb_cdc_ether_desc *usb_cdc_ether_desc;
+	struct usb_cdc_dmm_desc *usb_cdc_dmm_desc;
+	struct usb_cdc_mdlm_desc *usb_cdc_mdlm_desc;
+	struct usb_cdc_mdlm_detail_desc *usb_cdc_mdlm_detail_desc;
+	struct usb_cdc_obex_desc *usb_cdc_obex_desc;
+	struct usb_cdc_ncm_desc *usb_cdc_ncm_desc;
+	struct usb_cdc_mbim_desc *usb_cdc_mbim_desc;
+	struct usb_cdc_mbim_extended_desc *usb_cdc_mbim_extended_desc;
+	bool phonet_magic_present;
+};
+
+struct api_context {
+	struct completion done;
+	int status;
+};
+
+struct set_config_request {
+	struct usb_device *udev;
+	int config;
+	struct work_struct work;
+	struct list_head node;
+};
+
+struct usb_dynid {
+	struct list_head node;
+	struct usb_device_id id;
+};
+
+struct usb_dev_cap_header {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDevCapabilityType;
+};
+
+struct usb_class_driver {
+	char *name;
+	char * (*devnode)(struct device *, umode_t *);
+	const struct file_operations *fops;
+	int minor_base;
+};
+
+struct usb_class {
+	struct kref kref;
+	struct class *class;
+};
+
+struct ep_device {
+	struct usb_endpoint_descriptor *desc;
+	struct usb_device *udev;
+	struct device dev;
+};
+
+struct usbdevfs_ctrltransfer {
+	__u8 bRequestType;
+	__u8 bRequest;
+	__u16 wValue;
+	__u16 wIndex;
+	__u16 wLength;
+	__u32 timeout;
+	void *data;
+};
+
+struct usbdevfs_bulktransfer {
+	unsigned int ep;
+	unsigned int len;
+	unsigned int timeout;
+	void *data;
+};
+
+struct usbdevfs_setinterface {
+	unsigned int interface;
+	unsigned int altsetting;
+};
+
+struct usbdevfs_disconnectsignal {
+	unsigned int signr;
+	void *context;
+};
+
+struct usbdevfs_getdriver {
+	unsigned int interface;
+	char driver[256];
+};
+
+struct usbdevfs_connectinfo {
+	unsigned int devnum;
+	unsigned char slow;
+};
+
+struct usbdevfs_conninfo_ex {
+	__u32 size;
+	__u32 busnum;
+	__u32 devnum;
+	__u32 speed;
+	__u8 num_ports;
+	__u8 ports[7];
+};
+
+struct usbdevfs_iso_packet_desc {
+	unsigned int length;
+	unsigned int actual_length;
+	unsigned int status;
+};
+
+struct usbdevfs_urb {
+	unsigned char type;
+	unsigned char endpoint;
+	int status;
+	unsigned int flags;
+	void *buffer;
+	int buffer_length;
+	int actual_length;
+	int start_frame;
+	union {
+		int number_of_packets;
+		unsigned int stream_id;
+	};
+	int error_count;
+	unsigned int signr;
+	void *usercontext;
+	struct usbdevfs_iso_packet_desc iso_frame_desc[0];
+};
+
+struct usbdevfs_ioctl {
+	int ifno;
+	int ioctl_code;
+	void *data;
+};
+
+struct usbdevfs_disconnect_claim {
+	unsigned int interface;
+	unsigned int flags;
+	char driver[256];
+};
+
+struct usbdevfs_streams {
+	unsigned int num_streams;
+	unsigned int num_eps;
+	unsigned char eps[0];
+};
+
+struct usb_dev_state {
+	struct list_head list;
+	struct usb_device *dev;
+	struct file *file;
+	spinlock_t lock;
+	struct list_head async_pending;
+	struct list_head async_completed;
+	struct list_head memory_list;
+	wait_queue_head_t wait;
+	wait_queue_head_t wait_for_resume;
+	unsigned int discsignr;
+	struct pid *disc_pid;
+	const struct cred *cred;
+	sigval_t disccontext;
+	long unsigned int ifclaimed;
+	u32 disabled_bulk_eps;
+	long unsigned int interface_allowed_mask;
+	int not_yet_resumed;
+	bool suspend_allowed;
+	bool privileges_dropped;
+};
+
+struct usb_memory {
+	struct list_head memlist;
+	int vma_use_count;
+	int urb_use_count;
+	u32 size;
+	void *mem;
+	dma_addr_t dma_handle;
+	long unsigned int vm_start;
+	struct usb_dev_state *ps;
+};
+
+struct async {
+	struct list_head asynclist;
+	struct usb_dev_state *ps;
+	struct pid *pid;
+	const struct cred *cred;
+	unsigned int signr;
+	unsigned int ifnum;
+	void *userbuffer;
+	void *userurb;
+	sigval_t userurb_sigval;
+	struct urb *urb;
+	struct usb_memory *usbm;
+	unsigned int mem_usage;
+	int status;
+	u8 bulk_addr;
+	u8 bulk_status;
+};
+
+enum snoop_when {
+	SUBMIT = 0,
+	COMPLETE = 1,
+};
+
+struct quirk_entry {
+	u16 vid;
+	u16 pid;
+	u32 flags;
+};
+
+struct class_info {
+	int class;
+	char *class_name;
+};
+
+struct usb_phy_roothub {
+	struct phy *phy;
+	struct list_head list;
+};
+
+typedef void (*companion_fn)(struct pci_dev *, struct usb_hcd *, struct pci_dev *, struct usb_hcd *);
+
+struct phy_devm {
+	struct usb_phy *phy;
+	struct notifier_block *nb;
+};
+
+enum usb_phy_interface {
+	USBPHY_INTERFACE_MODE_UNKNOWN = 0,
+	USBPHY_INTERFACE_MODE_UTMI = 1,
+	USBPHY_INTERFACE_MODE_UTMIW = 2,
+	USBPHY_INTERFACE_MODE_ULPI = 3,
+	USBPHY_INTERFACE_MODE_SERIAL = 4,
+	USBPHY_INTERFACE_MODE_HSIC = 5,
+};
+
+struct usb_ep;
+
+struct usb_request {
+	void *buf;
+	unsigned int length;
+	dma_addr_t dma;
+	struct scatterlist *sg;
+	unsigned int num_sgs;
+	unsigned int num_mapped_sgs;
+	unsigned int stream_id: 16;
+	unsigned int is_last: 1;
+	unsigned int no_interrupt: 1;
+	unsigned int zero: 1;
+	unsigned int short_not_ok: 1;
+	unsigned int dma_mapped: 1;
+	void (*complete)(struct usb_ep *, struct usb_request *);
+	void *context;
+	struct list_head list;
+	unsigned int frame_number;
+	int status;
+	unsigned int actual;
+};
+
+struct usb_ep_caps {
+	unsigned int type_control: 1;
+	unsigned int type_iso: 1;
+	unsigned int type_bulk: 1;
+	unsigned int type_int: 1;
+	unsigned int dir_in: 1;
+	unsigned int dir_out: 1;
+};
+
+struct usb_ep_ops;
+
+struct usb_ep {
+	void *driver_data;
+	const char *name;
+	const struct usb_ep_ops *ops;
+	struct list_head ep_list;
+	struct usb_ep_caps caps;
+	bool claimed;
+	bool enabled;
+	unsigned int maxpacket: 16;
+	unsigned int maxpacket_limit: 16;
+	unsigned int max_streams: 16;
+	unsigned int mult: 2;
+	unsigned int maxburst: 5;
+	u8 address;
+	const struct usb_endpoint_descriptor *desc;
+	const struct usb_ss_ep_comp_descriptor *comp_desc;
+};
+
+struct usb_ep_ops {
+	int (*enable)(struct usb_ep *, const struct usb_endpoint_descriptor *);
+	int (*disable)(struct usb_ep *);
+	void (*dispose)(struct usb_ep *);
+	struct usb_request * (*alloc_request)(struct usb_ep *, gfp_t);
+	void (*free_request)(struct usb_ep *, struct usb_request *);
+	int (*queue)(struct usb_ep *, struct usb_request *, gfp_t);
+	int (*dequeue)(struct usb_ep *, struct usb_request *);
+	int (*set_halt)(struct usb_ep *, int);
+	int (*set_wedge)(struct usb_ep *);
+	int (*fifo_status)(struct usb_ep *);
+	void (*fifo_flush)(struct usb_ep *);
+};
+
+struct usb_dcd_config_params {
+	__u8 bU1devExitLat;
+	__le16 bU2DevExitLat;
+	__u8 besl_baseline;
+	__u8 besl_deep;
+};
+
+struct usb_gadget_driver;
+
+struct usb_gadget_ops {
+	int (*get_frame)(struct usb_gadget *);
+	int (*wakeup)(struct usb_gadget *);
+	int (*set_selfpowered)(struct usb_gadget *, int);
+	int (*vbus_session)(struct usb_gadget *, int);
+	int (*vbus_draw)(struct usb_gadget *, unsigned int);
+	int (*pullup)(struct usb_gadget *, int);
+	int (*ioctl)(struct usb_gadget *, unsigned int, long unsigned int);
+	void (*get_config_params)(struct usb_gadget *, struct usb_dcd_config_params *);
+	int (*udc_start)(struct usb_gadget *, struct usb_gadget_driver *);
+	int (*udc_stop)(struct usb_gadget *);
+	void (*udc_set_speed)(struct usb_gadget *, enum usb_device_speed);
+	void (*udc_set_ssp_rate)(struct usb_gadget *, enum usb_ssp_rate);
+	void (*udc_async_callbacks)(struct usb_gadget *, bool);
+	struct usb_ep * (*match_ep)(struct usb_gadget *, struct usb_endpoint_descriptor *, struct usb_ss_ep_comp_descriptor *);
+	int (*check_config)(struct usb_gadget *);
+};
+
+struct usb_udc;
+
+struct usb_gadget {
+	struct work_struct work;
+	struct usb_udc *udc;
+	const struct usb_gadget_ops *ops;
+	struct usb_ep *ep0;
+	struct list_head ep_list;
+	enum usb_device_speed speed;
+	enum usb_device_speed max_speed;
+	enum usb_ssp_rate ssp_rate;
+	enum usb_ssp_rate max_ssp_rate;
+	enum usb_device_state state;
+	const char *name;
+	struct device dev;
+	unsigned int isoch_delay;
+	unsigned int out_epnum;
+	unsigned int in_epnum;
+	unsigned int mA;
+	struct usb_otg_caps *otg_caps;
+	unsigned int sg_supported: 1;
+	unsigned int is_otg: 1;
+	unsigned int is_a_peripheral: 1;
+	unsigned int b_hnp_enable: 1;
+	unsigned int a_hnp_support: 1;
+	unsigned int a_alt_hnp_support: 1;
+	unsigned int hnp_polling_support: 1;
+	unsigned int host_request_flag: 1;
+	unsigned int quirk_ep_out_aligned_size: 1;
+	unsigned int quirk_altset_not_supp: 1;
+	unsigned int quirk_stall_not_supp: 1;
+	unsigned int quirk_zlp_not_supp: 1;
+	unsigned int quirk_avoids_skb_reserve: 1;
+	unsigned int is_selfpowered: 1;
+	unsigned int deactivated: 1;
+	unsigned int connected: 1;
+	unsigned int lpm_capable: 1;
+	int irq;
+};
+
+struct usb_gadget_driver {
+	char *function;
+	enum usb_device_speed max_speed;
+	int (*bind)(struct usb_gadget *, struct usb_gadget_driver *);
+	void (*unbind)(struct usb_gadget *);
+	int (*setup)(struct usb_gadget *, const struct usb_ctrlrequest *);
+	void (*disconnect)(struct usb_gadget *);
+	void (*suspend)(struct usb_gadget *);
+	void (*resume)(struct usb_gadget *);
+	void (*reset)(struct usb_gadget *);
+	struct device_driver driver;
+	char *udc_name;
+	struct list_head pending;
+	unsigned int match_existing_only: 1;
+};
+
+struct dwc2_dma_desc {
+	u32 status;
+	u32 buf;
+};
+
+struct dwc2_hw_params {
+	unsigned int op_mode: 3;
+	unsigned int arch: 2;
+	unsigned int dma_desc_enable: 1;
+	unsigned int enable_dynamic_fifo: 1;
+	unsigned int en_multiple_tx_fifo: 1;
+	unsigned int rx_fifo_size: 16;
+	char: 8;
+	unsigned int host_nperio_tx_fifo_size: 16;
+	unsigned int dev_nperio_tx_fifo_size: 16;
+	unsigned int host_perio_tx_fifo_size: 16;
+	unsigned int nperio_tx_q_depth: 3;
+	unsigned int host_perio_tx_q_depth: 3;
+	unsigned int dev_token_q_depth: 5;
+	char: 5;
+	unsigned int max_transfer_size: 26;
+	char: 6;
+	unsigned int max_packet_count: 11;
+	unsigned int host_channels: 5;
+	unsigned int hs_phy_type: 2;
+	unsigned int fs_phy_type: 2;
+	unsigned int i2c_enable: 1;
+	unsigned int acg_enable: 1;
+	unsigned int num_dev_ep: 4;
+	unsigned int num_dev_in_eps: 4;
+	char: 2;
+	unsigned int num_dev_perio_in_ep: 4;
+	unsigned int total_fifo_size: 16;
+	unsigned int power_optimized: 1;
+	unsigned int hibernation: 1;
+	unsigned int utmi_phy_data_width: 2;
+	unsigned int lpm_mode: 1;
+	unsigned int ipg_isoc_en: 1;
+	unsigned int service_interval_mode: 1;
+	u32 snpsid;
+	u32 dev_ep_dirs;
+	u32 g_tx_fifo_size[16];
+};
+
+struct dwc2_core_params {
+	u8 otg_cap;
+	u8 phy_type;
+	u8 speed;
+	u8 phy_utmi_width;
+	bool phy_ulpi_ddr;
+	bool phy_ulpi_ext_vbus;
+	bool enable_dynamic_fifo;
+	bool en_multiple_tx_fifo;
+	bool i2c_enable;
+	bool acg_enable;
+	bool ulpi_fs_ls;
+	bool ts_dline;
+	bool reload_ctl;
+	bool uframe_sched;
+	bool external_id_pin_ctl;
+	int power_down;
+	bool no_clock_gating;
+	bool lpm;
+	bool lpm_clock_gating;
+	bool besl;
+	bool hird_threshold_en;
+	bool service_interval;
+	u8 hird_threshold;
+	bool activate_stm_fs_transceiver;
+	bool activate_stm_id_vb_detection;
+	bool ipg_isoc_en;
+	u16 max_packet_count;
+	u32 max_transfer_size;
+	u32 ahbcfg;
+	u32 ref_clk_per;
+	u16 sof_cnt_wkup_alert;
+	bool host_dma;
+	bool dma_desc_enable;
+	bool dma_desc_fs_enable;
+	bool host_support_fs_ls_low_power;
+	bool host_ls_low_power_phy_clk;
+	bool oc_disable;
+	u8 host_channels;
+	u16 host_rx_fifo_size;
+	u16 host_nperio_tx_fifo_size;
+	u16 host_perio_tx_fifo_size;
+	bool g_dma;
+	bool g_dma_desc;
+	u32 g_rx_fifo_size;
+	u32 g_np_tx_fifo_size;
+	u32 g_tx_fifo_size[16];
+	bool change_speed_quirk;
+};
+
+enum dwc2_lx_state {
+	DWC2_L0 = 0,
+	DWC2_L1 = 1,
+	DWC2_L2 = 2,
+	DWC2_L3 = 3,
+};
+
+struct dwc2_gregs_backup {
+	u32 gotgctl;
+	u32 gintmsk;
+	u32 gahbcfg;
+	u32 gusbcfg;
+	u32 grxfsiz;
+	u32 gnptxfsiz;
+	u32 gi2cctl;
+	u32 glpmcfg;
+	u32 pcgcctl;
+	u32 pcgcctl1;
+	u32 gdfifocfg;
+	u32 gpwrdn;
+	bool valid;
+};
+
+struct dwc2_dregs_backup {
+	u32 dcfg;
+	u32 dctl;
+	u32 daintmsk;
+	u32 diepmsk;
+	u32 doepmsk;
+	u32 diepctl[16];
+	u32 dieptsiz[16];
+	u32 diepdma[16];
+	u32 doepctl[16];
+	u32 doeptsiz[16];
+	u32 doepdma[16];
+	u32 dtxfsiz[16];
+	bool valid;
+};
+
+struct dwc2_hregs_backup {
+	u32 hcfg;
+	u32 haintmsk;
+	u32 hcintmsk[16];
+	u32 hprt0;
+	u32 hfir;
+	u32 hptxfsiz;
+	bool valid;
+};
+
+union dwc2_hcd_internal_flags {
+	u32 d32;
+	struct {
+		unsigned int port_connect_status_change: 1;
+		unsigned int port_connect_status: 1;
+		unsigned int port_reset_change: 1;
+		unsigned int port_enable_change: 1;
+		unsigned int port_suspend_change: 1;
+		unsigned int port_over_current_change: 1;
+		unsigned int port_l1_change: 1;
+		unsigned int reserved: 25;
+	} b;
+};
+
+struct usb_role_switch;
+
+struct dwc2_hsotg_plat;
+
+struct dwc2_host_chan;
+
+struct dwc2_hsotg {
+	struct device *dev;
+	void *regs;
+	struct dwc2_hw_params hw_params;
+	struct dwc2_core_params params;
+	enum usb_otg_state op_state;
+	enum usb_dr_mode dr_mode;
+	struct usb_role_switch *role_sw;
+	unsigned int hcd_enabled: 1;
+	unsigned int gadget_enabled: 1;
+	unsigned int ll_hw_enabled: 1;
+	unsigned int hibernated: 1;
+	unsigned int in_ppd: 1;
+	bool bus_suspended;
+	unsigned int reset_phy_on_wake: 1;
+	unsigned int need_phy_for_wake: 1;
+	unsigned int phy_off_for_suspend: 1;
+	u16 frame_number;
+	struct phy *phy;
+	struct usb_phy *uphy;
+	struct dwc2_hsotg_plat *plat;
+	struct regulator_bulk_data supplies[2];
+	struct regulator *vbus_supply;
+	struct regulator *usb33d;
+	spinlock_t lock;
+	void *priv;
+	int irq;
+	struct clk *clk;
+	struct reset_control *reset;
+	struct reset_control *reset_ecc;
+	unsigned int queuing_high_bandwidth: 1;
+	unsigned int srp_success: 1;
+	struct workqueue_struct *wq_otg;
+	struct work_struct wf_otg;
+	struct timer_list wkp_timer;
+	enum dwc2_lx_state lx_state;
+	struct dwc2_gregs_backup gr_backup;
+	struct dwc2_dregs_backup dr_backup;
+	struct dwc2_hregs_backup hr_backup;
+	struct dentry *debug_root;
+	struct debugfs_regset32 *regset;
+	bool needs_byte_swap;
+	union dwc2_hcd_internal_flags flags;
+	struct list_head non_periodic_sched_inactive;
+	struct list_head non_periodic_sched_waiting;
+	struct list_head non_periodic_sched_active;
+	struct list_head *non_periodic_qh_ptr;
+	struct list_head periodic_sched_inactive;
+	struct list_head periodic_sched_ready;
+	struct list_head periodic_sched_assigned;
+	struct list_head periodic_sched_queued;
+	struct list_head split_order;
+	u16 periodic_usecs;
+	long unsigned int hs_periodic_bitmap[13];
+	u16 periodic_qh_count;
+	bool new_connection;
+	u16 last_frame_num;
+	struct list_head free_hc_list;
+	int periodic_channels;
+	int non_periodic_channels;
+	int available_host_channels;
+	struct dwc2_host_chan *hc_ptr_array[16];
+	u8 *status_buf;
+	dma_addr_t status_buf_dma;
+	struct delayed_work start_work;
+	struct delayed_work reset_work;
+	struct work_struct phy_reset_work;
+	u8 otg_port;
+	u32 *frame_list;
+	dma_addr_t frame_list_dma;
+	u32 frame_list_sz;
+	struct kmem_cache *desc_gen_cache;
+	struct kmem_cache *desc_hsisoc_cache;
+	struct kmem_cache *unaligned_cache;
+};
+
+enum dwc2_halt_status {
+	DWC2_HC_XFER_NO_HALT_STATUS = 0,
+	DWC2_HC_XFER_COMPLETE = 1,
+	DWC2_HC_XFER_URB_COMPLETE = 2,
+	DWC2_HC_XFER_ACK = 3,
+	DWC2_HC_XFER_NAK = 4,
+	DWC2_HC_XFER_NYET = 5,
+	DWC2_HC_XFER_STALL = 6,
+	DWC2_HC_XFER_XACT_ERR = 7,
+	DWC2_HC_XFER_FRAME_OVERRUN = 8,
+	DWC2_HC_XFER_BABBLE_ERR = 9,
+	DWC2_HC_XFER_DATA_TOGGLE_ERR = 10,
+	DWC2_HC_XFER_AHB_ERR = 11,
+	DWC2_HC_XFER_PERIODIC_INCOMPLETE = 12,
+	DWC2_HC_XFER_URB_DEQUEUE = 13,
+};
+
+struct dwc2_qh;
+
+struct dwc2_host_chan {
+	u8 hc_num;
+	unsigned int dev_addr: 7;
+	unsigned int ep_num: 4;
+	unsigned int ep_is_in: 1;
+	unsigned int speed: 4;
+	unsigned int ep_type: 2;
+	char: 6;
+	unsigned int max_packet: 11;
+	unsigned int data_pid_start: 2;
+	unsigned int multi_count: 2;
+	u8 *xfer_buf;
+	dma_addr_t xfer_dma;
+	dma_addr_t align_buf;
+	u32 xfer_len;
+	u32 xfer_count;
+	u16 start_pkt_count;
+	u8 xfer_started;
+	u8 do_ping;
+	u8 error_state;
+	u8 halt_on_queue;
+	u8 halt_pending;
+	u8 do_split;
+	u8 complete_split;
+	u8 hub_addr;
+	u8 hub_port;
+	u8 xact_pos;
+	u8 requests;
+	u8 schinfo;
+	u16 ntd;
+	enum dwc2_halt_status halt_status;
+	u32 hcint;
+	struct dwc2_qh *qh;
+	struct list_head hc_list_entry;
+	dma_addr_t desc_list_addr;
+	u32 desc_list_sz;
+	struct list_head split_order_list_entry;
+};
+
+struct dwc2_hs_transfer_time {
+	u32 start_schedule_us;
+	u16 duration_us;
+};
+
+struct dwc2_tt;
+
+struct dwc2_qh {
+	struct dwc2_hsotg *hsotg;
+	u8 ep_type;
+	u8 ep_is_in;
+	u16 maxp;
+	u16 maxp_mult;
+	u8 dev_speed;
+	u8 data_toggle;
+	u8 ping_state;
+	u8 do_split;
+	u8 td_first;
+	u8 td_last;
+	u16 host_us;
+	u16 device_us;
+	u16 host_interval;
+	u16 device_interval;
+	u16 next_active_frame;
+	u16 start_active_frame;
+	s16 num_hs_transfers;
+	struct dwc2_hs_transfer_time hs_transfers[8];
+	u32 ls_start_schedule_slice;
+	u16 ntd;
+	u8 *dw_align_buf;
+	dma_addr_t dw_align_buf_dma;
+	struct list_head qtd_list;
+	struct dwc2_host_chan *channel;
+	struct list_head qh_list_entry;
+	struct dwc2_dma_desc *desc_list;
+	dma_addr_t desc_list_dma;
+	u32 desc_list_sz;
+	u32 *n_bytes;
+	struct timer_list unreserve_timer;
+	struct hrtimer wait_timer;
+	struct dwc2_tt *dwc_tt;
+	int ttport;
+	unsigned int tt_buffer_dirty: 1;
+	unsigned int unreserve_pending: 1;
+	unsigned int schedule_low_speed: 1;
+	unsigned int want_wait: 1;
+	unsigned int wait_timer_cancel: 1;
+};
+
+struct dwc2_tt {
+	int refcount;
+	struct usb_tt *usb_tt;
+	long unsigned int periodic_bitmaps[0];
+};
+
+enum dwc2_hsotg_dmamode {
+	S3C_HSOTG_DMA_NONE = 0,
+	S3C_HSOTG_DMA_ONLY = 1,
+	S3C_HSOTG_DMA_DRV = 2,
+};
+
+struct dwc2_hsotg_plat {
+	enum dwc2_hsotg_dmamode dma;
+	unsigned int is_osc: 1;
+	int phy_type;
+	int (*phy_init)(struct platform_device *, int);
+	int (*phy_exit)(struct platform_device *, int);
+};
+
+enum usb_role {
+	USB_ROLE_NONE = 0,
+	USB_ROLE_HOST = 1,
+	USB_ROLE_DEVICE = 2,
+};
+
+typedef int (*usb_role_switch_set_t)(struct usb_role_switch *, enum usb_role);
+
+typedef enum usb_role (*usb_role_switch_get_t)(struct usb_role_switch *);
+
+struct usb_role_switch_desc {
+	struct fwnode_handle *fwnode;
+	struct device *usb2_port;
+	struct device *usb3_port;
+	struct device *udc;
+	usb_role_switch_set_t set;
+	usb_role_switch_get_t get;
+	bool allow_userspace_control;
+	void *driver_data;
+	const char *name;
+};
+
+typedef void (*set_params_cb)(struct dwc2_hsotg *);
+
+struct dwc2_hcd_pipe_info {
+	u8 dev_addr;
+	u8 ep_num;
+	u8 pipe_type;
+	u8 pipe_dir;
+	u16 maxp;
+	u16 maxp_mult;
+};
+
+struct dwc2_hcd_iso_packet_desc {
+	u32 offset;
+	u32 length;
+	u32 actual_length;
+	u32 status;
+};
+
+struct dwc2_qtd;
+
+struct dwc2_hcd_urb {
+	void *priv;
+	struct dwc2_qtd *qtd;
+	void *buf;
+	dma_addr_t dma;
+	void *setup_packet;
+	dma_addr_t setup_dma;
+	u32 length;
+	u32 actual_length;
+	u32 status;
+	u32 error_count;
+	u32 packet_count;
+	u32 flags;
+	u16 interval;
+	struct dwc2_hcd_pipe_info pipe_info;
+	struct dwc2_hcd_iso_packet_desc iso_descs[0];
+};
+
+enum dwc2_control_phase {
+	DWC2_CONTROL_SETUP = 0,
+	DWC2_CONTROL_DATA = 1,
+	DWC2_CONTROL_STATUS = 2,
+};
+
+struct dwc2_qtd {
+	enum dwc2_control_phase control_phase;
+	u8 in_process;
+	u8 data_toggle;
+	u8 complete_split;
+	u8 isoc_split_pos;
+	u16 isoc_frame_index;
+	u16 isoc_split_offset;
+	u16 isoc_td_last;
+	u16 isoc_td_first;
+	u32 ssplit_out_xfer_count;
+	u8 error_count;
+	u8 n_desc;
+	u16 isoc_frame_index_last;
+	u16 num_naks;
+	struct dwc2_hcd_urb *urb;
+	struct dwc2_qh *qh;
+	struct list_head qtd_list_entry;
+};
+
+enum dwc2_transaction_type {
+	DWC2_TRANSACTION_NONE = 0,
+	DWC2_TRANSACTION_PERIODIC = 1,
+	DWC2_TRANSACTION_NON_PERIODIC = 2,
+	DWC2_TRANSACTION_ALL = 3,
+};
+
+struct wrapper_priv_data {
+	struct dwc2_hsotg *hsotg;
+};
+
+enum amd_chipset_gen {
+	NOT_AMD_CHIPSET = 0,
+	AMD_CHIPSET_SB600 = 1,
+	AMD_CHIPSET_SB700 = 2,
+	AMD_CHIPSET_SB800 = 3,
+	AMD_CHIPSET_HUDSON2 = 4,
+	AMD_CHIPSET_BOLTON = 5,
+	AMD_CHIPSET_YANGTZE = 6,
+	AMD_CHIPSET_TAISHAN = 7,
+	AMD_CHIPSET_UNKNOWN = 8,
+};
+
+struct amd_chipset_type {
+	enum amd_chipset_gen gen;
+	u8 rev;
+};
+
+struct amd_chipset_info {
+	struct pci_dev *nb_dev;
+	struct pci_dev *smbus_dev;
+	int nb_type;
+	struct amd_chipset_type sb_type;
+	int isoc_reqs;
+	int probe_count;
+	bool need_pll_quirk;
+};
+
+struct ehci_stats {
+	long unsigned int normal;
+	long unsigned int error;
+	long unsigned int iaa;
+	long unsigned int lost_iaa;
+	long unsigned int complete;
+	long unsigned int unlink;
+};
