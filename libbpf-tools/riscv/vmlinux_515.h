@@ -97159,3 +97159,2048 @@ enum tca_id {
 	TCA_ID_IFE = 25,
 	TCA_ID_SAMPLE = 26,
 	TCA_ID_CTINFO = 27,
+	TCA_ID_MPLS = 28,
+	TCA_ID_CT = 29,
+	TCA_ID_GATE = 30,
+	__TCA_ID_MAX = 255,
+};
+
+struct tcf_t {
+	__u64 install;
+	__u64 lastuse;
+	__u64 expires;
+	__u64 firstuse;
+};
+
+struct psample_group {
+	struct list_head list;
+	struct net *net;
+	u32 group_num;
+	u32 refcount;
+	u32 seq;
+	struct callback_head rcu;
+};
+
+struct action_gate_entry {
+	u8 gate_state;
+	u32 interval;
+	s32 ipv;
+	s32 maxoctets;
+};
+
+enum qdisc_class_ops_flags {
+	QDISC_CLASS_OPS_DOIT_UNLOCKED = 1,
+};
+
+enum tcf_proto_ops_flags {
+	TCF_PROTO_OPS_DOIT_UNLOCKED = 1,
+};
+
+typedef void tcf_chain_head_change_t(struct tcf_proto *, void *);
+
+struct tcf_idrinfo {
+	struct mutex lock;
+	struct idr action_idr;
+	struct net *net;
+};
+
+struct tc_action_ops;
+
+struct tc_cookie;
+
+struct tc_action {
+	const struct tc_action_ops *ops;
+	__u32 type;
+	struct tcf_idrinfo *idrinfo;
+	u32 tcfa_index;
+	refcount_t tcfa_refcnt;
+	atomic_t tcfa_bindcnt;
+	int tcfa_action;
+	struct tcf_t tcfa_tm;
+	struct gnet_stats_basic_packed tcfa_bstats;
+	struct gnet_stats_basic_packed tcfa_bstats_hw;
+	struct gnet_stats_queue tcfa_qstats;
+	struct net_rate_estimator *tcfa_rate_est;
+	spinlock_t tcfa_lock;
+	struct gnet_stats_basic_cpu *cpu_bstats;
+	struct gnet_stats_basic_cpu *cpu_bstats_hw;
+	struct gnet_stats_queue *cpu_qstats;
+	struct tc_cookie *act_cookie;
+	struct tcf_chain *goto_chain;
+	u32 tcfa_flags;
+	u8 hw_stats;
+	u8 used_hw_stats;
+	bool used_hw_stats_valid;
+};
+
+typedef void (*tc_action_priv_destructor)(void *);
+
+struct tc_action_ops {
+	struct list_head head;
+	char kind[16];
+	enum tca_id id;
+	size_t size;
+	struct module *owner;
+	int (*act)(struct sk_buff *, const struct tc_action *, struct tcf_result *);
+	int (*dump)(struct sk_buff *, struct tc_action *, int, int);
+	void (*cleanup)(struct tc_action *);
+	int (*lookup)(struct net *, struct tc_action **, u32);
+	int (*init)(struct net *, struct nlattr *, struct nlattr *, struct tc_action **, struct tcf_proto *, u32, struct netlink_ext_ack *);
+	int (*walk)(struct net *, struct sk_buff *, struct netlink_callback *, int, const struct tc_action_ops *, struct netlink_ext_ack *);
+	void (*stats_update)(struct tc_action *, u64, u64, u64, u64, bool);
+	size_t (*get_fill_size)(const struct tc_action *);
+	struct net_device * (*get_dev)(const struct tc_action *, tc_action_priv_destructor *);
+	struct psample_group * (*get_psample_group)(const struct tc_action *, tc_action_priv_destructor *);
+};
+
+struct tc_cookie {
+	u8 *data;
+	u32 len;
+	struct callback_head rcu;
+};
+
+struct tcf_block_ext_info {
+	enum flow_block_binder_type binder_type;
+	tcf_chain_head_change_t *chain_head_change;
+	void *chain_head_change_priv;
+	u32 block_index;
+};
+
+struct tcf_qevent {
+	struct tcf_block *block;
+	struct tcf_block_ext_info info;
+	struct tcf_proto *filter_chain;
+};
+
+struct tcf_exts {
+	__u32 type;
+	int nr_actions;
+	struct tc_action **actions;
+	struct net *net;
+	int action;
+	int police;
+};
+
+enum pedit_header_type {
+	TCA_PEDIT_KEY_EX_HDR_TYPE_NETWORK = 0,
+	TCA_PEDIT_KEY_EX_HDR_TYPE_ETH = 1,
+	TCA_PEDIT_KEY_EX_HDR_TYPE_IP4 = 2,
+	TCA_PEDIT_KEY_EX_HDR_TYPE_IP6 = 3,
+	TCA_PEDIT_KEY_EX_HDR_TYPE_TCP = 4,
+	TCA_PEDIT_KEY_EX_HDR_TYPE_UDP = 5,
+	__PEDIT_HDR_TYPE_MAX = 6,
+};
+
+enum pedit_cmd {
+	TCA_PEDIT_KEY_EX_CMD_SET = 0,
+	TCA_PEDIT_KEY_EX_CMD_ADD = 1,
+	__PEDIT_CMD_MAX = 2,
+};
+
+struct tc_pedit_key {
+	__u32 mask;
+	__u32 val;
+	__u32 off;
+	__u32 at;
+	__u32 offmask;
+	__u32 shift;
+};
+
+struct tcf_pedit_key_ex {
+	enum pedit_header_type htype;
+	enum pedit_cmd cmd;
+};
+
+struct tcf_pedit {
+	struct tc_action common;
+	unsigned char tcfp_nkeys;
+	unsigned char tcfp_flags;
+	struct tc_pedit_key *tcfp_keys;
+	struct tcf_pedit_key_ex *tcfp_keys_ex;
+};
+
+struct tcf_mirred {
+	struct tc_action common;
+	int tcfm_eaction;
+	bool tcfm_mac_header_xmit;
+	struct net_device *tcfm_dev;
+	struct list_head tcfm_list;
+};
+
+struct tcf_vlan_params {
+	int tcfv_action;
+	unsigned char tcfv_push_dst[6];
+	unsigned char tcfv_push_src[6];
+	u16 tcfv_push_vid;
+	__be16 tcfv_push_proto;
+	u8 tcfv_push_prio;
+	bool tcfv_push_prio_exists;
+	struct callback_head rcu;
+};
+
+struct tcf_vlan {
+	struct tc_action common;
+	struct tcf_vlan_params *vlan_p;
+};
+
+struct tcf_tunnel_key_params {
+	struct callback_head rcu;
+	int tcft_action;
+	struct metadata_dst *tcft_enc_metadata;
+};
+
+struct tcf_tunnel_key {
+	struct tc_action common;
+	struct tcf_tunnel_key_params *params;
+};
+
+struct tcf_csum_params {
+	u32 update_flags;
+	struct callback_head rcu;
+};
+
+struct tcf_csum {
+	struct tc_action common;
+	struct tcf_csum_params *params;
+};
+
+struct tcf_gact {
+	struct tc_action common;
+	u16 tcfg_ptype;
+	u16 tcfg_pval;
+	int tcfg_paction;
+	atomic_t packets;
+};
+
+struct tcf_police_params {
+	int tcfp_result;
+	u32 tcfp_ewma_rate;
+	s64 tcfp_burst;
+	u32 tcfp_mtu;
+	s64 tcfp_mtu_ptoks;
+	s64 tcfp_pkt_burst;
+	struct psched_ratecfg rate;
+	bool rate_present;
+	struct psched_ratecfg peak;
+	bool peak_present;
+	struct psched_pktrate ppsrate;
+	bool pps_present;
+	struct callback_head rcu;
+};
+
+struct tcf_police {
+	struct tc_action common;
+	struct tcf_police_params *params;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t tcfp_lock;
+	s64 tcfp_toks;
+	s64 tcfp_ptoks;
+	s64 tcfp_pkttoks;
+	s64 tcfp_t_c;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct tcf_sample {
+	struct tc_action common;
+	u32 rate;
+	bool truncate;
+	u32 trunc_size;
+	struct psample_group *psample_group;
+	u32 psample_group_num;
+	struct list_head tcfm_list;
+};
+
+struct tcf_skbedit_params {
+	u32 flags;
+	u32 priority;
+	u32 mark;
+	u32 mask;
+	u16 queue_mapping;
+	u16 ptype;
+	struct callback_head rcu;
+};
+
+struct tcf_skbedit {
+	struct tc_action common;
+	struct tcf_skbedit_params *params;
+};
+
+struct nf_nat_range2 {
+	unsigned int flags;
+	union nf_inet_addr min_addr;
+	union nf_inet_addr max_addr;
+	union nf_conntrack_man_proto min_proto;
+	union nf_conntrack_man_proto max_proto;
+	union nf_conntrack_man_proto base_proto;
+};
+
+struct tcf_ct_flow_table;
+
+struct tcf_ct_params {
+	struct nf_conn *tmpl;
+	u16 zone;
+	u32 mark;
+	u32 mark_mask;
+	u32 labels[4];
+	u32 labels_mask[4];
+	struct nf_nat_range2 range;
+	bool ipv4_range;
+	u16 ct_action;
+	struct callback_head rcu;
+	struct tcf_ct_flow_table *ct_ft;
+	struct nf_flowtable *nf_ft;
+};
+
+struct tcf_ct {
+	struct tc_action common;
+	struct tcf_ct_params *params;
+};
+
+struct tcf_mpls_params {
+	int tcfm_action;
+	u32 tcfm_label;
+	u8 tcfm_tc;
+	u8 tcfm_ttl;
+	u8 tcfm_bos;
+	__be16 tcfm_proto;
+	struct callback_head rcu;
+};
+
+struct tcf_mpls {
+	struct tc_action common;
+	struct tcf_mpls_params *mpls_p;
+};
+
+struct tcfg_gate_entry {
+	int index;
+	u8 gate_state;
+	u32 interval;
+	s32 ipv;
+	s32 maxoctets;
+	struct list_head list;
+};
+
+struct tcf_gate_params {
+	s32 tcfg_priority;
+	u64 tcfg_basetime;
+	u64 tcfg_cycletime;
+	u64 tcfg_cycletime_ext;
+	u32 tcfg_flags;
+	s32 tcfg_clockid;
+	size_t num_entries;
+	struct list_head entries;
+};
+
+struct tcf_gate {
+	struct tc_action common;
+	struct tcf_gate_params param;
+	u8 current_gate_status;
+	ktime_t current_close_time;
+	u32 current_entry_octets;
+	s32 current_max_octets;
+	struct tcfg_gate_entry *next_entry;
+	struct hrtimer hitimer;
+	enum tk_offsets tk_offset;
+};
+
+struct tcf_filter_chain_list_item {
+	struct list_head list;
+	tcf_chain_head_change_t *chain_head_change;
+	void *chain_head_change_priv;
+};
+
+struct tcf_net {
+	spinlock_t idr_lock;
+	struct idr idr;
+};
+
+struct tcf_block_owner_item {
+	struct list_head list;
+	struct Qdisc *q;
+	enum flow_block_binder_type binder_type;
+};
+
+struct tcf_chain_info {
+	struct tcf_proto **pprev;
+	struct tcf_proto *next;
+};
+
+struct tcf_dump_args {
+	struct tcf_walker w;
+	struct sk_buff *skb;
+	struct netlink_callback *cb;
+	struct tcf_block *block;
+	struct Qdisc *q;
+	u32 parent;
+	bool terse_dump;
+};
+
+struct tcamsg {
+	unsigned char tca_family;
+	unsigned char tca__pad1;
+	short unsigned int tca__pad2;
+};
+
+enum {
+	TCA_ROOT_UNSPEC = 0,
+	TCA_ROOT_TAB = 1,
+	TCA_ROOT_FLAGS = 2,
+	TCA_ROOT_COUNT = 3,
+	TCA_ROOT_TIME_DELTA = 4,
+	__TCA_ROOT_MAX = 5,
+};
+
+struct tc_action_net {
+	struct tcf_idrinfo *idrinfo;
+	const struct tc_action_ops *ops;
+};
+
+struct tc_fifo_qopt {
+	__u32 limit;
+};
+
+enum tc_fifo_command {
+	TC_FIFO_REPLACE = 0,
+	TC_FIFO_DESTROY = 1,
+	TC_FIFO_STATS = 2,
+};
+
+struct tc_fifo_qopt_offload {
+	enum tc_fifo_command command;
+	u32 handle;
+	u32 parent;
+	union {
+		struct tc_qopt_offload_stats stats;
+	};
+};
+
+struct tcf_ematch_tree_hdr {
+	__u16 nmatches;
+	__u16 progid;
+};
+
+enum {
+	TCA_EMATCH_TREE_UNSPEC = 0,
+	TCA_EMATCH_TREE_HDR = 1,
+	TCA_EMATCH_TREE_LIST = 2,
+	__TCA_EMATCH_TREE_MAX = 3,
+};
+
+struct tcf_ematch_hdr {
+	__u16 matchid;
+	__u16 kind;
+	__u16 flags;
+	__u16 pad;
+};
+
+struct tcf_pkt_info {
+	unsigned char *ptr;
+	int nexthdr;
+};
+
+struct tcf_ematch_ops;
+
+struct tcf_ematch {
+	struct tcf_ematch_ops *ops;
+	long unsigned int data;
+	unsigned int datalen;
+	u16 matchid;
+	u16 flags;
+	struct net *net;
+};
+
+struct tcf_ematch_ops {
+	int kind;
+	int datalen;
+	int (*change)(struct net *, void *, int, struct tcf_ematch *);
+	int (*match)(struct sk_buff *, struct tcf_ematch *, struct tcf_pkt_info *);
+	void (*destroy)(struct tcf_ematch *);
+	int (*dump)(struct sk_buff *, struct tcf_ematch *);
+	struct module *owner;
+	struct list_head link;
+};
+
+struct tcf_ematch_tree {
+	struct tcf_ematch_tree_hdr hdr;
+	struct tcf_ematch *matches;
+};
+
+struct sockaddr_nl {
+	__kernel_sa_family_t nl_family;
+	short unsigned int nl_pad;
+	__u32 nl_pid;
+	__u32 nl_groups;
+};
+
+struct nlmsgerr {
+	int error;
+	struct nlmsghdr msg;
+};
+
+enum nlmsgerr_attrs {
+	NLMSGERR_ATTR_UNUSED = 0,
+	NLMSGERR_ATTR_MSG = 1,
+	NLMSGERR_ATTR_OFFS = 2,
+	NLMSGERR_ATTR_COOKIE = 3,
+	NLMSGERR_ATTR_POLICY = 4,
+	__NLMSGERR_ATTR_MAX = 5,
+	NLMSGERR_ATTR_MAX = 4,
+};
+
+struct nl_pktinfo {
+	__u32 group;
+};
+
+enum {
+	NETLINK_UNCONNECTED = 0,
+	NETLINK_CONNECTED = 1,
+};
+
+enum netlink_skb_flags {
+	NETLINK_SKB_DST = 8,
+};
+
+struct netlink_notify {
+	struct net *net;
+	u32 portid;
+	int protocol;
+};
+
+struct netlink_tap {
+	struct net_device *dev;
+	struct module *module;
+	struct list_head list;
+};
+
+struct trace_event_raw_netlink_extack {
+	struct trace_entry ent;
+	u32 __data_loc_msg;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_netlink_extack {
+	u32 msg;
+};
+
+typedef void (*btf_trace_netlink_extack)(void *, const char *);
+
+struct netlink_sock {
+	struct sock sk;
+	u32 portid;
+	u32 dst_portid;
+	u32 dst_group;
+	u32 flags;
+	u32 subscriptions;
+	u32 ngroups;
+	long unsigned int *groups;
+	long unsigned int state;
+	size_t max_recvmsg_len;
+	wait_queue_head_t wait;
+	bool bound;
+	bool cb_running;
+	int dump_done_errno;
+	struct netlink_callback cb;
+	struct mutex *cb_mutex;
+	struct mutex cb_def_mutex;
+	void (*netlink_rcv)(struct sk_buff *);
+	int (*netlink_bind)(struct net *, int);
+	void (*netlink_unbind)(struct net *, int);
+	struct module *module;
+	struct rhash_head node;
+	struct callback_head rcu;
+	struct work_struct work;
+};
+
+struct listeners;
+
+struct netlink_table {
+	struct rhashtable hash;
+	struct hlist_head mc_list;
+	struct listeners *listeners;
+	unsigned int flags;
+	unsigned int groups;
+	struct mutex *cb_mutex;
+	struct module *module;
+	int (*bind)(struct net *, int);
+	void (*unbind)(struct net *, int);
+	bool (*compare)(struct net *, struct sock *);
+	int registered;
+};
+
+struct listeners {
+	struct callback_head rcu;
+	long unsigned int masks[0];
+};
+
+struct netlink_tap_net {
+	struct list_head netlink_tap_all;
+	struct mutex netlink_tap_lock;
+};
+
+struct netlink_compare_arg {
+	possible_net_t pnet;
+	u32 portid;
+};
+
+struct netlink_broadcast_data {
+	struct sock *exclude_sk;
+	struct net *net;
+	u32 portid;
+	u32 group;
+	int failure;
+	int delivery_failure;
+	int congested;
+	int delivered;
+	gfp_t allocation;
+	struct sk_buff *skb;
+	struct sk_buff *skb2;
+	int (*tx_filter)(struct sock *, struct sk_buff *, void *);
+	void *tx_data;
+};
+
+struct netlink_set_err_data {
+	struct sock *exclude_sk;
+	u32 portid;
+	u32 group;
+	int code;
+};
+
+struct nl_seq_iter {
+	struct seq_net_private p;
+	struct rhashtable_iter hti;
+	int link;
+};
+
+struct bpf_iter__netlink {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct netlink_sock *sk;
+	};
+};
+
+enum {
+	CTRL_CMD_UNSPEC = 0,
+	CTRL_CMD_NEWFAMILY = 1,
+	CTRL_CMD_DELFAMILY = 2,
+	CTRL_CMD_GETFAMILY = 3,
+	CTRL_CMD_NEWOPS = 4,
+	CTRL_CMD_DELOPS = 5,
+	CTRL_CMD_GETOPS = 6,
+	CTRL_CMD_NEWMCAST_GRP = 7,
+	CTRL_CMD_DELMCAST_GRP = 8,
+	CTRL_CMD_GETMCAST_GRP = 9,
+	CTRL_CMD_GETPOLICY = 10,
+	__CTRL_CMD_MAX = 11,
+};
+
+enum {
+	CTRL_ATTR_UNSPEC = 0,
+	CTRL_ATTR_FAMILY_ID = 1,
+	CTRL_ATTR_FAMILY_NAME = 2,
+	CTRL_ATTR_VERSION = 3,
+	CTRL_ATTR_HDRSIZE = 4,
+	CTRL_ATTR_MAXATTR = 5,
+	CTRL_ATTR_OPS = 6,
+	CTRL_ATTR_MCAST_GROUPS = 7,
+	CTRL_ATTR_POLICY = 8,
+	CTRL_ATTR_OP_POLICY = 9,
+	CTRL_ATTR_OP = 10,
+	__CTRL_ATTR_MAX = 11,
+};
+
+enum {
+	CTRL_ATTR_OP_UNSPEC = 0,
+	CTRL_ATTR_OP_ID = 1,
+	CTRL_ATTR_OP_FLAGS = 2,
+	__CTRL_ATTR_OP_MAX = 3,
+};
+
+enum {
+	CTRL_ATTR_MCAST_GRP_UNSPEC = 0,
+	CTRL_ATTR_MCAST_GRP_NAME = 1,
+	CTRL_ATTR_MCAST_GRP_ID = 2,
+	__CTRL_ATTR_MCAST_GRP_MAX = 3,
+};
+
+enum {
+	CTRL_ATTR_POLICY_UNSPEC = 0,
+	CTRL_ATTR_POLICY_DO = 1,
+	CTRL_ATTR_POLICY_DUMP = 2,
+	__CTRL_ATTR_POLICY_DUMP_MAX = 3,
+	CTRL_ATTR_POLICY_DUMP_MAX = 2,
+};
+
+struct genl_start_context {
+	const struct genl_family *family;
+	struct nlmsghdr *nlh;
+	struct netlink_ext_ack *extack;
+	const struct genl_ops *ops;
+	int hdrlen;
+};
+
+struct netlink_policy_dump_state;
+
+struct ctrl_dump_policy_ctx {
+	struct netlink_policy_dump_state *state;
+	const struct genl_family *rt;
+	unsigned int opidx;
+	u32 op;
+	u16 fam_id;
+	u8 policies: 1;
+	u8 single_op: 1;
+};
+
+enum netlink_attribute_type {
+	NL_ATTR_TYPE_INVALID = 0,
+	NL_ATTR_TYPE_FLAG = 1,
+	NL_ATTR_TYPE_U8 = 2,
+	NL_ATTR_TYPE_U16 = 3,
+	NL_ATTR_TYPE_U32 = 4,
+	NL_ATTR_TYPE_U64 = 5,
+	NL_ATTR_TYPE_S8 = 6,
+	NL_ATTR_TYPE_S16 = 7,
+	NL_ATTR_TYPE_S32 = 8,
+	NL_ATTR_TYPE_S64 = 9,
+	NL_ATTR_TYPE_BINARY = 10,
+	NL_ATTR_TYPE_STRING = 11,
+	NL_ATTR_TYPE_NUL_STRING = 12,
+	NL_ATTR_TYPE_NESTED = 13,
+	NL_ATTR_TYPE_NESTED_ARRAY = 14,
+	NL_ATTR_TYPE_BITFIELD32 = 15,
+};
+
+enum netlink_policy_type_attr {
+	NL_POLICY_TYPE_ATTR_UNSPEC = 0,
+	NL_POLICY_TYPE_ATTR_TYPE = 1,
+	NL_POLICY_TYPE_ATTR_MIN_VALUE_S = 2,
+	NL_POLICY_TYPE_ATTR_MAX_VALUE_S = 3,
+	NL_POLICY_TYPE_ATTR_MIN_VALUE_U = 4,
+	NL_POLICY_TYPE_ATTR_MAX_VALUE_U = 5,
+	NL_POLICY_TYPE_ATTR_MIN_LENGTH = 6,
+	NL_POLICY_TYPE_ATTR_MAX_LENGTH = 7,
+	NL_POLICY_TYPE_ATTR_POLICY_IDX = 8,
+	NL_POLICY_TYPE_ATTR_POLICY_MAXTYPE = 9,
+	NL_POLICY_TYPE_ATTR_BITFIELD32_MASK = 10,
+	NL_POLICY_TYPE_ATTR_PAD = 11,
+	NL_POLICY_TYPE_ATTR_MASK = 12,
+	__NL_POLICY_TYPE_ATTR_MAX = 13,
+	NL_POLICY_TYPE_ATTR_MAX = 12,
+};
+
+struct netlink_policy_dump_state {
+	unsigned int policy_idx;
+	unsigned int attr_idx;
+	unsigned int n_alloc;
+	struct {
+		const struct nla_policy *policy;
+		unsigned int maxtype;
+	} policies[0];
+};
+
+struct trace_event_raw_bpf_test_finish {
+	struct trace_entry ent;
+	int err;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_bpf_test_finish {};
+
+typedef void (*btf_trace_bpf_test_finish)(void *, int *);
+
+struct bpf_test_timer {
+	enum {
+		NO_PREEMPT = 0,
+		NO_MIGRATE = 1,
+	} mode;
+	u32 i;
+	u64 time_start;
+	u64 time_spent;
+};
+
+struct bpf_fentry_test_t {
+	struct bpf_fentry_test_t *a;
+};
+
+struct bpf_raw_tp_test_run_info {
+	struct bpf_prog *prog;
+	void *ctx;
+	u32 retval;
+};
+
+struct ethtool_cmd {
+	__u32 cmd;
+	__u32 supported;
+	__u32 advertising;
+	__u16 speed;
+	__u8 duplex;
+	__u8 port;
+	__u8 phy_address;
+	__u8 transceiver;
+	__u8 autoneg;
+	__u8 mdio_support;
+	__u32 maxtxpkt;
+	__u32 maxrxpkt;
+	__u16 speed_hi;
+	__u8 eth_tp_mdix;
+	__u8 eth_tp_mdix_ctrl;
+	__u32 lp_advertising;
+	__u32 reserved[2];
+};
+
+struct ethtool_value {
+	__u32 cmd;
+	__u32 data;
+};
+
+enum tunable_id {
+	ETHTOOL_ID_UNSPEC = 0,
+	ETHTOOL_RX_COPYBREAK = 1,
+	ETHTOOL_TX_COPYBREAK = 2,
+	ETHTOOL_PFC_PREVENTION_TOUT = 3,
+	__ETHTOOL_TUNABLE_COUNT = 4,
+};
+
+enum tunable_type_id {
+	ETHTOOL_TUNABLE_UNSPEC = 0,
+	ETHTOOL_TUNABLE_U8 = 1,
+	ETHTOOL_TUNABLE_U16 = 2,
+	ETHTOOL_TUNABLE_U32 = 3,
+	ETHTOOL_TUNABLE_U64 = 4,
+	ETHTOOL_TUNABLE_STRING = 5,
+	ETHTOOL_TUNABLE_S8 = 6,
+	ETHTOOL_TUNABLE_S16 = 7,
+	ETHTOOL_TUNABLE_S32 = 8,
+	ETHTOOL_TUNABLE_S64 = 9,
+};
+
+enum phy_tunable_id {
+	ETHTOOL_PHY_ID_UNSPEC = 0,
+	ETHTOOL_PHY_DOWNSHIFT = 1,
+	ETHTOOL_PHY_FAST_LINK_DOWN = 2,
+	ETHTOOL_PHY_EDPD = 3,
+	__ETHTOOL_PHY_TUNABLE_COUNT = 4,
+};
+
+enum ethtool_stringset {
+	ETH_SS_TEST = 0,
+	ETH_SS_STATS = 1,
+	ETH_SS_PRIV_FLAGS = 2,
+	ETH_SS_NTUPLE_FILTERS = 3,
+	ETH_SS_FEATURES = 4,
+	ETH_SS_RSS_HASH_FUNCS = 5,
+	ETH_SS_TUNABLES = 6,
+	ETH_SS_PHY_STATS = 7,
+	ETH_SS_PHY_TUNABLES = 8,
+	ETH_SS_LINK_MODES = 9,
+	ETH_SS_MSG_CLASSES = 10,
+	ETH_SS_WOL_MODES = 11,
+	ETH_SS_SOF_TIMESTAMPING = 12,
+	ETH_SS_TS_TX_TYPES = 13,
+	ETH_SS_TS_RX_FILTERS = 14,
+	ETH_SS_UDP_TUNNEL_TYPES = 15,
+	ETH_SS_STATS_STD = 16,
+	ETH_SS_STATS_ETH_PHY = 17,
+	ETH_SS_STATS_ETH_MAC = 18,
+	ETH_SS_STATS_ETH_CTRL = 19,
+	ETH_SS_STATS_RMON = 20,
+	ETH_SS_COUNT = 21,
+};
+
+struct ethtool_gstrings {
+	__u32 cmd;
+	__u32 string_set;
+	__u32 len;
+	__u8 data[0];
+};
+
+struct ethtool_sset_info {
+	__u32 cmd;
+	__u32 reserved;
+	__u64 sset_mask;
+	__u32 data[0];
+};
+
+struct ethtool_perm_addr {
+	__u32 cmd;
+	__u32 size;
+	__u8 data[0];
+};
+
+enum ethtool_flags {
+	ETH_FLAG_TXVLAN = 128,
+	ETH_FLAG_RXVLAN = 256,
+	ETH_FLAG_LRO = 32768,
+	ETH_FLAG_NTUPLE = 134217728,
+	ETH_FLAG_RXHASH = 268435456,
+};
+
+struct ethtool_rxfh {
+	__u32 cmd;
+	__u32 rss_context;
+	__u32 indir_size;
+	__u32 key_size;
+	__u8 hfunc;
+	__u8 rsvd8[3];
+	__u32 rsvd32;
+	__u32 rss_config[0];
+};
+
+struct ethtool_get_features_block {
+	__u32 available;
+	__u32 requested;
+	__u32 active;
+	__u32 never_changed;
+};
+
+struct ethtool_gfeatures {
+	__u32 cmd;
+	__u32 size;
+	struct ethtool_get_features_block features[0];
+};
+
+struct ethtool_set_features_block {
+	__u32 valid;
+	__u32 requested;
+};
+
+struct ethtool_sfeatures {
+	__u32 cmd;
+	__u32 size;
+	struct ethtool_set_features_block features[0];
+};
+
+enum ethtool_sfeatures_retval_bits {
+	ETHTOOL_F_UNSUPPORTED__BIT = 0,
+	ETHTOOL_F_WISH__BIT = 1,
+	ETHTOOL_F_COMPAT__BIT = 2,
+};
+
+struct ethtool_per_queue_op {
+	__u32 cmd;
+	__u32 sub_command;
+	__u32 queue_mask[128];
+	char data[0];
+};
+
+enum ethtool_fec_config_bits {
+	ETHTOOL_FEC_NONE_BIT = 0,
+	ETHTOOL_FEC_AUTO_BIT = 1,
+	ETHTOOL_FEC_OFF_BIT = 2,
+	ETHTOOL_FEC_RS_BIT = 3,
+	ETHTOOL_FEC_BASER_BIT = 4,
+	ETHTOOL_FEC_LLRS_BIT = 5,
+};
+
+enum {
+	ETH_RSS_HASH_TOP_BIT = 0,
+	ETH_RSS_HASH_XOR_BIT = 1,
+	ETH_RSS_HASH_CRC32_BIT = 2,
+	ETH_RSS_HASH_FUNCS_COUNT = 3,
+};
+
+struct ethtool_rx_flow_rule {
+	struct flow_rule *rule;
+	long unsigned int priv[0];
+};
+
+struct ethtool_rx_flow_spec_input {
+	const struct ethtool_rx_flow_spec *fs;
+	u32 rss_ctx;
+};
+
+struct ethtool_link_usettings {
+	struct ethtool_link_settings base;
+	struct {
+		__u32 supported[3];
+		__u32 advertising[3];
+		__u32 lp_advertising[3];
+	} link_modes;
+};
+
+struct ethtool_rx_flow_key {
+	struct flow_dissector_key_basic basic;
+	union {
+		struct flow_dissector_key_ipv4_addrs ipv4;
+		struct flow_dissector_key_ipv6_addrs ipv6;
+	};
+	struct flow_dissector_key_ports tp;
+	struct flow_dissector_key_ip ip;
+	struct flow_dissector_key_vlan vlan;
+	struct flow_dissector_key_eth_addrs eth_addrs;
+	long: 48;
+};
+
+struct ethtool_rx_flow_match {
+	struct flow_dissector dissector;
+	int: 32;
+	struct ethtool_rx_flow_key key;
+	struct ethtool_rx_flow_key mask;
+};
+
+enum {
+	ETHTOOL_UDP_TUNNEL_TYPE_VXLAN = 0,
+	ETHTOOL_UDP_TUNNEL_TYPE_GENEVE = 1,
+	ETHTOOL_UDP_TUNNEL_TYPE_VXLAN_GPE = 2,
+	__ETHTOOL_UDP_TUNNEL_TYPE_CNT = 3,
+};
+
+struct link_mode_info {
+	int speed;
+	u8 lanes;
+	u8 duplex;
+};
+
+enum {
+	ETHTOOL_MSG_USER_NONE = 0,
+	ETHTOOL_MSG_STRSET_GET = 1,
+	ETHTOOL_MSG_LINKINFO_GET = 2,
+	ETHTOOL_MSG_LINKINFO_SET = 3,
+	ETHTOOL_MSG_LINKMODES_GET = 4,
+	ETHTOOL_MSG_LINKMODES_SET = 5,
+	ETHTOOL_MSG_LINKSTATE_GET = 6,
+	ETHTOOL_MSG_DEBUG_GET = 7,
+	ETHTOOL_MSG_DEBUG_SET = 8,
+	ETHTOOL_MSG_WOL_GET = 9,
+	ETHTOOL_MSG_WOL_SET = 10,
+	ETHTOOL_MSG_FEATURES_GET = 11,
+	ETHTOOL_MSG_FEATURES_SET = 12,
+	ETHTOOL_MSG_PRIVFLAGS_GET = 13,
+	ETHTOOL_MSG_PRIVFLAGS_SET = 14,
+	ETHTOOL_MSG_RINGS_GET = 15,
+	ETHTOOL_MSG_RINGS_SET = 16,
+	ETHTOOL_MSG_CHANNELS_GET = 17,
+	ETHTOOL_MSG_CHANNELS_SET = 18,
+	ETHTOOL_MSG_COALESCE_GET = 19,
+	ETHTOOL_MSG_COALESCE_SET = 20,
+	ETHTOOL_MSG_PAUSE_GET = 21,
+	ETHTOOL_MSG_PAUSE_SET = 22,
+	ETHTOOL_MSG_EEE_GET = 23,
+	ETHTOOL_MSG_EEE_SET = 24,
+	ETHTOOL_MSG_TSINFO_GET = 25,
+	ETHTOOL_MSG_CABLE_TEST_ACT = 26,
+	ETHTOOL_MSG_CABLE_TEST_TDR_ACT = 27,
+	ETHTOOL_MSG_TUNNEL_INFO_GET = 28,
+	ETHTOOL_MSG_FEC_GET = 29,
+	ETHTOOL_MSG_FEC_SET = 30,
+	ETHTOOL_MSG_MODULE_EEPROM_GET = 31,
+	ETHTOOL_MSG_STATS_GET = 32,
+	ETHTOOL_MSG_PHC_VCLOCKS_GET = 33,
+	__ETHTOOL_MSG_USER_CNT = 34,
+	ETHTOOL_MSG_USER_MAX = 33,
+};
+
+enum {
+	ETHTOOL_A_HEADER_UNSPEC = 0,
+	ETHTOOL_A_HEADER_DEV_INDEX = 1,
+	ETHTOOL_A_HEADER_DEV_NAME = 2,
+	ETHTOOL_A_HEADER_FLAGS = 3,
+	__ETHTOOL_A_HEADER_CNT = 4,
+	ETHTOOL_A_HEADER_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_STRSET_UNSPEC = 0,
+	ETHTOOL_A_STRSET_HEADER = 1,
+	ETHTOOL_A_STRSET_STRINGSETS = 2,
+	ETHTOOL_A_STRSET_COUNTS_ONLY = 3,
+	__ETHTOOL_A_STRSET_CNT = 4,
+	ETHTOOL_A_STRSET_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_LINKINFO_UNSPEC = 0,
+	ETHTOOL_A_LINKINFO_HEADER = 1,
+	ETHTOOL_A_LINKINFO_PORT = 2,
+	ETHTOOL_A_LINKINFO_PHYADDR = 3,
+	ETHTOOL_A_LINKINFO_TP_MDIX = 4,
+	ETHTOOL_A_LINKINFO_TP_MDIX_CTRL = 5,
+	ETHTOOL_A_LINKINFO_TRANSCEIVER = 6,
+	__ETHTOOL_A_LINKINFO_CNT = 7,
+	ETHTOOL_A_LINKINFO_MAX = 6,
+};
+
+enum {
+	ETHTOOL_A_LINKMODES_UNSPEC = 0,
+	ETHTOOL_A_LINKMODES_HEADER = 1,
+	ETHTOOL_A_LINKMODES_AUTONEG = 2,
+	ETHTOOL_A_LINKMODES_OURS = 3,
+	ETHTOOL_A_LINKMODES_PEER = 4,
+	ETHTOOL_A_LINKMODES_SPEED = 5,
+	ETHTOOL_A_LINKMODES_DUPLEX = 6,
+	ETHTOOL_A_LINKMODES_MASTER_SLAVE_CFG = 7,
+	ETHTOOL_A_LINKMODES_MASTER_SLAVE_STATE = 8,
+	ETHTOOL_A_LINKMODES_LANES = 9,
+	__ETHTOOL_A_LINKMODES_CNT = 10,
+	ETHTOOL_A_LINKMODES_MAX = 9,
+};
+
+enum {
+	ETHTOOL_A_LINKSTATE_UNSPEC = 0,
+	ETHTOOL_A_LINKSTATE_HEADER = 1,
+	ETHTOOL_A_LINKSTATE_LINK = 2,
+	ETHTOOL_A_LINKSTATE_SQI = 3,
+	ETHTOOL_A_LINKSTATE_SQI_MAX = 4,
+	ETHTOOL_A_LINKSTATE_EXT_STATE = 5,
+	ETHTOOL_A_LINKSTATE_EXT_SUBSTATE = 6,
+	__ETHTOOL_A_LINKSTATE_CNT = 7,
+	ETHTOOL_A_LINKSTATE_MAX = 6,
+};
+
+enum {
+	ETHTOOL_A_DEBUG_UNSPEC = 0,
+	ETHTOOL_A_DEBUG_HEADER = 1,
+	ETHTOOL_A_DEBUG_MSGMASK = 2,
+	__ETHTOOL_A_DEBUG_CNT = 3,
+	ETHTOOL_A_DEBUG_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_WOL_UNSPEC = 0,
+	ETHTOOL_A_WOL_HEADER = 1,
+	ETHTOOL_A_WOL_MODES = 2,
+	ETHTOOL_A_WOL_SOPASS = 3,
+	__ETHTOOL_A_WOL_CNT = 4,
+	ETHTOOL_A_WOL_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_FEATURES_UNSPEC = 0,
+	ETHTOOL_A_FEATURES_HEADER = 1,
+	ETHTOOL_A_FEATURES_HW = 2,
+	ETHTOOL_A_FEATURES_WANTED = 3,
+	ETHTOOL_A_FEATURES_ACTIVE = 4,
+	ETHTOOL_A_FEATURES_NOCHANGE = 5,
+	__ETHTOOL_A_FEATURES_CNT = 6,
+	ETHTOOL_A_FEATURES_MAX = 5,
+};
+
+enum {
+	ETHTOOL_A_PRIVFLAGS_UNSPEC = 0,
+	ETHTOOL_A_PRIVFLAGS_HEADER = 1,
+	ETHTOOL_A_PRIVFLAGS_FLAGS = 2,
+	__ETHTOOL_A_PRIVFLAGS_CNT = 3,
+	ETHTOOL_A_PRIVFLAGS_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_RINGS_UNSPEC = 0,
+	ETHTOOL_A_RINGS_HEADER = 1,
+	ETHTOOL_A_RINGS_RX_MAX = 2,
+	ETHTOOL_A_RINGS_RX_MINI_MAX = 3,
+	ETHTOOL_A_RINGS_RX_JUMBO_MAX = 4,
+	ETHTOOL_A_RINGS_TX_MAX = 5,
+	ETHTOOL_A_RINGS_RX = 6,
+	ETHTOOL_A_RINGS_RX_MINI = 7,
+	ETHTOOL_A_RINGS_RX_JUMBO = 8,
+	ETHTOOL_A_RINGS_TX = 9,
+	__ETHTOOL_A_RINGS_CNT = 10,
+	ETHTOOL_A_RINGS_MAX = 9,
+};
+
+enum {
+	ETHTOOL_A_CHANNELS_UNSPEC = 0,
+	ETHTOOL_A_CHANNELS_HEADER = 1,
+	ETHTOOL_A_CHANNELS_RX_MAX = 2,
+	ETHTOOL_A_CHANNELS_TX_MAX = 3,
+	ETHTOOL_A_CHANNELS_OTHER_MAX = 4,
+	ETHTOOL_A_CHANNELS_COMBINED_MAX = 5,
+	ETHTOOL_A_CHANNELS_RX_COUNT = 6,
+	ETHTOOL_A_CHANNELS_TX_COUNT = 7,
+	ETHTOOL_A_CHANNELS_OTHER_COUNT = 8,
+	ETHTOOL_A_CHANNELS_COMBINED_COUNT = 9,
+	__ETHTOOL_A_CHANNELS_CNT = 10,
+	ETHTOOL_A_CHANNELS_MAX = 9,
+};
+
+enum {
+	ETHTOOL_A_COALESCE_UNSPEC = 0,
+	ETHTOOL_A_COALESCE_HEADER = 1,
+	ETHTOOL_A_COALESCE_RX_USECS = 2,
+	ETHTOOL_A_COALESCE_RX_MAX_FRAMES = 3,
+	ETHTOOL_A_COALESCE_RX_USECS_IRQ = 4,
+	ETHTOOL_A_COALESCE_RX_MAX_FRAMES_IRQ = 5,
+	ETHTOOL_A_COALESCE_TX_USECS = 6,
+	ETHTOOL_A_COALESCE_TX_MAX_FRAMES = 7,
+	ETHTOOL_A_COALESCE_TX_USECS_IRQ = 8,
+	ETHTOOL_A_COALESCE_TX_MAX_FRAMES_IRQ = 9,
+	ETHTOOL_A_COALESCE_STATS_BLOCK_USECS = 10,
+	ETHTOOL_A_COALESCE_USE_ADAPTIVE_RX = 11,
+	ETHTOOL_A_COALESCE_USE_ADAPTIVE_TX = 12,
+	ETHTOOL_A_COALESCE_PKT_RATE_LOW = 13,
+	ETHTOOL_A_COALESCE_RX_USECS_LOW = 14,
+	ETHTOOL_A_COALESCE_RX_MAX_FRAMES_LOW = 15,
+	ETHTOOL_A_COALESCE_TX_USECS_LOW = 16,
+	ETHTOOL_A_COALESCE_TX_MAX_FRAMES_LOW = 17,
+	ETHTOOL_A_COALESCE_PKT_RATE_HIGH = 18,
+	ETHTOOL_A_COALESCE_RX_USECS_HIGH = 19,
+	ETHTOOL_A_COALESCE_RX_MAX_FRAMES_HIGH = 20,
+	ETHTOOL_A_COALESCE_TX_USECS_HIGH = 21,
+	ETHTOOL_A_COALESCE_TX_MAX_FRAMES_HIGH = 22,
+	ETHTOOL_A_COALESCE_RATE_SAMPLE_INTERVAL = 23,
+	ETHTOOL_A_COALESCE_USE_CQE_MODE_TX = 24,
+	ETHTOOL_A_COALESCE_USE_CQE_MODE_RX = 25,
+	__ETHTOOL_A_COALESCE_CNT = 26,
+	ETHTOOL_A_COALESCE_MAX = 25,
+};
+
+enum {
+	ETHTOOL_A_PAUSE_UNSPEC = 0,
+	ETHTOOL_A_PAUSE_HEADER = 1,
+	ETHTOOL_A_PAUSE_AUTONEG = 2,
+	ETHTOOL_A_PAUSE_RX = 3,
+	ETHTOOL_A_PAUSE_TX = 4,
+	ETHTOOL_A_PAUSE_STATS = 5,
+	__ETHTOOL_A_PAUSE_CNT = 6,
+	ETHTOOL_A_PAUSE_MAX = 5,
+};
+
+enum {
+	ETHTOOL_A_EEE_UNSPEC = 0,
+	ETHTOOL_A_EEE_HEADER = 1,
+	ETHTOOL_A_EEE_MODES_OURS = 2,
+	ETHTOOL_A_EEE_MODES_PEER = 3,
+	ETHTOOL_A_EEE_ACTIVE = 4,
+	ETHTOOL_A_EEE_ENABLED = 5,
+	ETHTOOL_A_EEE_TX_LPI_ENABLED = 6,
+	ETHTOOL_A_EEE_TX_LPI_TIMER = 7,
+	__ETHTOOL_A_EEE_CNT = 8,
+	ETHTOOL_A_EEE_MAX = 7,
+};
+
+enum {
+	ETHTOOL_A_TSINFO_UNSPEC = 0,
+	ETHTOOL_A_TSINFO_HEADER = 1,
+	ETHTOOL_A_TSINFO_TIMESTAMPING = 2,
+	ETHTOOL_A_TSINFO_TX_TYPES = 3,
+	ETHTOOL_A_TSINFO_RX_FILTERS = 4,
+	ETHTOOL_A_TSINFO_PHC_INDEX = 5,
+	__ETHTOOL_A_TSINFO_CNT = 6,
+	ETHTOOL_A_TSINFO_MAX = 5,
+};
+
+enum {
+	ETHTOOL_A_PHC_VCLOCKS_UNSPEC = 0,
+	ETHTOOL_A_PHC_VCLOCKS_HEADER = 1,
+	ETHTOOL_A_PHC_VCLOCKS_NUM = 2,
+	ETHTOOL_A_PHC_VCLOCKS_INDEX = 3,
+	__ETHTOOL_A_PHC_VCLOCKS_CNT = 4,
+	ETHTOOL_A_PHC_VCLOCKS_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_CABLE_TEST_UNSPEC = 0,
+	ETHTOOL_A_CABLE_TEST_HEADER = 1,
+	__ETHTOOL_A_CABLE_TEST_CNT = 2,
+	ETHTOOL_A_CABLE_TEST_MAX = 1,
+};
+
+enum {
+	ETHTOOL_A_CABLE_TEST_TDR_UNSPEC = 0,
+	ETHTOOL_A_CABLE_TEST_TDR_HEADER = 1,
+	ETHTOOL_A_CABLE_TEST_TDR_CFG = 2,
+	__ETHTOOL_A_CABLE_TEST_TDR_CNT = 3,
+	ETHTOOL_A_CABLE_TEST_TDR_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_TUNNEL_INFO_UNSPEC = 0,
+	ETHTOOL_A_TUNNEL_INFO_HEADER = 1,
+	ETHTOOL_A_TUNNEL_INFO_UDP_PORTS = 2,
+	__ETHTOOL_A_TUNNEL_INFO_CNT = 3,
+	ETHTOOL_A_TUNNEL_INFO_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_FEC_UNSPEC = 0,
+	ETHTOOL_A_FEC_HEADER = 1,
+	ETHTOOL_A_FEC_MODES = 2,
+	ETHTOOL_A_FEC_AUTO = 3,
+	ETHTOOL_A_FEC_ACTIVE = 4,
+	ETHTOOL_A_FEC_STATS = 5,
+	__ETHTOOL_A_FEC_CNT = 6,
+	ETHTOOL_A_FEC_MAX = 5,
+};
+
+enum {
+	ETHTOOL_A_MODULE_EEPROM_UNSPEC = 0,
+	ETHTOOL_A_MODULE_EEPROM_HEADER = 1,
+	ETHTOOL_A_MODULE_EEPROM_OFFSET = 2,
+	ETHTOOL_A_MODULE_EEPROM_LENGTH = 3,
+	ETHTOOL_A_MODULE_EEPROM_PAGE = 4,
+	ETHTOOL_A_MODULE_EEPROM_BANK = 5,
+	ETHTOOL_A_MODULE_EEPROM_I2C_ADDRESS = 6,
+	ETHTOOL_A_MODULE_EEPROM_DATA = 7,
+	__ETHTOOL_A_MODULE_EEPROM_CNT = 8,
+	ETHTOOL_A_MODULE_EEPROM_MAX = 7,
+};
+
+enum {
+	ETHTOOL_STATS_ETH_PHY = 0,
+	ETHTOOL_STATS_ETH_MAC = 1,
+	ETHTOOL_STATS_ETH_CTRL = 2,
+	ETHTOOL_STATS_RMON = 3,
+	__ETHTOOL_STATS_CNT = 4,
+};
+
+enum {
+	ETHTOOL_A_STATS_ETH_PHY_5_SYM_ERR = 0,
+	__ETHTOOL_A_STATS_ETH_PHY_CNT = 1,
+	ETHTOOL_A_STATS_ETH_PHY_MAX = 0,
+};
+
+enum {
+	ETHTOOL_A_STATS_ETH_MAC_2_TX_PKT = 0,
+	ETHTOOL_A_STATS_ETH_MAC_3_SINGLE_COL = 1,
+	ETHTOOL_A_STATS_ETH_MAC_4_MULTI_COL = 2,
+	ETHTOOL_A_STATS_ETH_MAC_5_RX_PKT = 3,
+	ETHTOOL_A_STATS_ETH_MAC_6_FCS_ERR = 4,
+	ETHTOOL_A_STATS_ETH_MAC_7_ALIGN_ERR = 5,
+	ETHTOOL_A_STATS_ETH_MAC_8_TX_BYTES = 6,
+	ETHTOOL_A_STATS_ETH_MAC_9_TX_DEFER = 7,
+	ETHTOOL_A_STATS_ETH_MAC_10_LATE_COL = 8,
+	ETHTOOL_A_STATS_ETH_MAC_11_XS_COL = 9,
+	ETHTOOL_A_STATS_ETH_MAC_12_TX_INT_ERR = 10,
+	ETHTOOL_A_STATS_ETH_MAC_13_CS_ERR = 11,
+	ETHTOOL_A_STATS_ETH_MAC_14_RX_BYTES = 12,
+	ETHTOOL_A_STATS_ETH_MAC_15_RX_INT_ERR = 13,
+	ETHTOOL_A_STATS_ETH_MAC_18_TX_MCAST = 14,
+	ETHTOOL_A_STATS_ETH_MAC_19_TX_BCAST = 15,
+	ETHTOOL_A_STATS_ETH_MAC_20_XS_DEFER = 16,
+	ETHTOOL_A_STATS_ETH_MAC_21_RX_MCAST = 17,
+	ETHTOOL_A_STATS_ETH_MAC_22_RX_BCAST = 18,
+	ETHTOOL_A_STATS_ETH_MAC_23_IR_LEN_ERR = 19,
+	ETHTOOL_A_STATS_ETH_MAC_24_OOR_LEN = 20,
+	ETHTOOL_A_STATS_ETH_MAC_25_TOO_LONG_ERR = 21,
+	__ETHTOOL_A_STATS_ETH_MAC_CNT = 22,
+	ETHTOOL_A_STATS_ETH_MAC_MAX = 21,
+};
+
+enum {
+	ETHTOOL_A_STATS_ETH_CTRL_3_TX = 0,
+	ETHTOOL_A_STATS_ETH_CTRL_4_RX = 1,
+	ETHTOOL_A_STATS_ETH_CTRL_5_RX_UNSUP = 2,
+	__ETHTOOL_A_STATS_ETH_CTRL_CNT = 3,
+	ETHTOOL_A_STATS_ETH_CTRL_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_STATS_RMON_UNDERSIZE = 0,
+	ETHTOOL_A_STATS_RMON_OVERSIZE = 1,
+	ETHTOOL_A_STATS_RMON_FRAG = 2,
+	ETHTOOL_A_STATS_RMON_JABBER = 3,
+	__ETHTOOL_A_STATS_RMON_CNT = 4,
+	ETHTOOL_A_STATS_RMON_MAX = 3,
+};
+
+enum ethtool_multicast_groups {
+	ETHNL_MCGRP_MONITOR = 0,
+};
+
+struct ethnl_req_info {
+	struct net_device *dev;
+	u32 flags;
+};
+
+struct ethnl_reply_data {
+	struct net_device *dev;
+};
+
+struct ethnl_request_ops {
+	u8 request_cmd;
+	u8 reply_cmd;
+	u16 hdr_attr;
+	unsigned int req_info_size;
+	unsigned int reply_data_size;
+	bool allow_nodev_do;
+	int (*parse_request)(struct ethnl_req_info *, struct nlattr **, struct netlink_ext_ack *);
+	int (*prepare_data)(const struct ethnl_req_info *, struct ethnl_reply_data *, struct genl_info *);
+	int (*reply_size)(const struct ethnl_req_info *, const struct ethnl_reply_data *);
+	int (*fill_reply)(struct sk_buff *, const struct ethnl_req_info *, const struct ethnl_reply_data *);
+	void (*cleanup_data)(struct ethnl_reply_data *);
+};
+
+struct ethnl_dump_ctx {
+	const struct ethnl_request_ops *ops;
+	struct ethnl_req_info *req_info;
+	struct ethnl_reply_data *reply_data;
+	int pos_hash;
+	int pos_idx;
+};
+
+typedef void (*ethnl_notify_handler_t)(struct net_device *, unsigned int, const void *);
+
+enum {
+	ETHTOOL_A_BITSET_BIT_UNSPEC = 0,
+	ETHTOOL_A_BITSET_BIT_INDEX = 1,
+	ETHTOOL_A_BITSET_BIT_NAME = 2,
+	ETHTOOL_A_BITSET_BIT_VALUE = 3,
+	__ETHTOOL_A_BITSET_BIT_CNT = 4,
+	ETHTOOL_A_BITSET_BIT_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_BITSET_BITS_UNSPEC = 0,
+	ETHTOOL_A_BITSET_BITS_BIT = 1,
+	__ETHTOOL_A_BITSET_BITS_CNT = 2,
+	ETHTOOL_A_BITSET_BITS_MAX = 1,
+};
+
+enum {
+	ETHTOOL_A_BITSET_UNSPEC = 0,
+	ETHTOOL_A_BITSET_NOMASK = 1,
+	ETHTOOL_A_BITSET_SIZE = 2,
+	ETHTOOL_A_BITSET_BITS = 3,
+	ETHTOOL_A_BITSET_VALUE = 4,
+	ETHTOOL_A_BITSET_MASK = 5,
+	__ETHTOOL_A_BITSET_CNT = 6,
+	ETHTOOL_A_BITSET_MAX = 5,
+};
+
+typedef const char (* const ethnl_string_array_t)[32];
+
+enum {
+	ETHTOOL_A_STRING_UNSPEC = 0,
+	ETHTOOL_A_STRING_INDEX = 1,
+	ETHTOOL_A_STRING_VALUE = 2,
+	__ETHTOOL_A_STRING_CNT = 3,
+	ETHTOOL_A_STRING_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_STRINGS_UNSPEC = 0,
+	ETHTOOL_A_STRINGS_STRING = 1,
+	__ETHTOOL_A_STRINGS_CNT = 2,
+	ETHTOOL_A_STRINGS_MAX = 1,
+};
+
+enum {
+	ETHTOOL_A_STRINGSET_UNSPEC = 0,
+	ETHTOOL_A_STRINGSET_ID = 1,
+	ETHTOOL_A_STRINGSET_COUNT = 2,
+	ETHTOOL_A_STRINGSET_STRINGS = 3,
+	__ETHTOOL_A_STRINGSET_CNT = 4,
+	ETHTOOL_A_STRINGSET_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_STRINGSETS_UNSPEC = 0,
+	ETHTOOL_A_STRINGSETS_STRINGSET = 1,
+	__ETHTOOL_A_STRINGSETS_CNT = 2,
+	ETHTOOL_A_STRINGSETS_MAX = 1,
+};
+
+struct strset_info {
+	bool per_dev;
+	bool free_strings;
+	unsigned int count;
+	const char (*strings)[32];
+};
+
+struct strset_req_info {
+	struct ethnl_req_info base;
+	u32 req_ids;
+	bool counts_only;
+};
+
+struct strset_reply_data {
+	struct ethnl_reply_data base;
+	struct strset_info sets[21];
+};
+
+struct linkinfo_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_link_ksettings ksettings;
+	struct ethtool_link_settings *lsettings;
+};
+
+struct linkmodes_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_link_ksettings ksettings;
+	struct ethtool_link_settings *lsettings;
+	bool peer_empty;
+};
+
+struct linkstate_reply_data {
+	struct ethnl_reply_data base;
+	int link;
+	int sqi;
+	int sqi_max;
+	bool link_ext_state_provided;
+	struct ethtool_link_ext_state_info ethtool_link_ext_state_info;
+};
+
+struct debug_reply_data {
+	struct ethnl_reply_data base;
+	u32 msg_mask;
+};
+
+struct wol_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_wolinfo wol;
+	bool show_sopass;
+};
+
+struct features_reply_data {
+	struct ethnl_reply_data base;
+	u32 hw[2];
+	u32 wanted[2];
+	u32 active[2];
+	u32 nochange[2];
+	u32 all[2];
+};
+
+struct privflags_reply_data {
+	struct ethnl_reply_data base;
+	const char (*priv_flag_names)[32];
+	unsigned int n_priv_flags;
+	u32 priv_flags;
+};
+
+struct rings_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_ringparam ringparam;
+};
+
+struct channels_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_channels channels;
+};
+
+struct coalesce_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_coalesce coalesce;
+	struct kernel_ethtool_coalesce kernel_coalesce;
+	u32 supported_params;
+};
+
+enum {
+	ETHTOOL_A_PAUSE_STAT_UNSPEC = 0,
+	ETHTOOL_A_PAUSE_STAT_PAD = 1,
+	ETHTOOL_A_PAUSE_STAT_TX_FRAMES = 2,
+	ETHTOOL_A_PAUSE_STAT_RX_FRAMES = 3,
+	__ETHTOOL_A_PAUSE_STAT_CNT = 4,
+	ETHTOOL_A_PAUSE_STAT_MAX = 3,
+};
+
+struct pause_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_pauseparam pauseparam;
+	struct ethtool_pause_stats pausestat;
+};
+
+struct eee_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_eee eee;
+};
+
+struct tsinfo_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_ts_info ts_info;
+};
+
+enum {
+	ETHTOOL_A_CABLE_PAIR_A = 0,
+	ETHTOOL_A_CABLE_PAIR_B = 1,
+	ETHTOOL_A_CABLE_PAIR_C = 2,
+	ETHTOOL_A_CABLE_PAIR_D = 3,
+};
+
+enum {
+	ETHTOOL_A_CABLE_RESULT_UNSPEC = 0,
+	ETHTOOL_A_CABLE_RESULT_PAIR = 1,
+	ETHTOOL_A_CABLE_RESULT_CODE = 2,
+	__ETHTOOL_A_CABLE_RESULT_CNT = 3,
+	ETHTOOL_A_CABLE_RESULT_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_CABLE_FAULT_LENGTH_UNSPEC = 0,
+	ETHTOOL_A_CABLE_FAULT_LENGTH_PAIR = 1,
+	ETHTOOL_A_CABLE_FAULT_LENGTH_CM = 2,
+	__ETHTOOL_A_CABLE_FAULT_LENGTH_CNT = 3,
+	ETHTOOL_A_CABLE_FAULT_LENGTH_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_CABLE_TEST_NTF_STATUS_UNSPEC = 0,
+	ETHTOOL_A_CABLE_TEST_NTF_STATUS_STARTED = 1,
+	ETHTOOL_A_CABLE_TEST_NTF_STATUS_COMPLETED = 2,
+};
+
+enum {
+	ETHTOOL_A_CABLE_NEST_UNSPEC = 0,
+	ETHTOOL_A_CABLE_NEST_RESULT = 1,
+	ETHTOOL_A_CABLE_NEST_FAULT_LENGTH = 2,
+	__ETHTOOL_A_CABLE_NEST_CNT = 3,
+	ETHTOOL_A_CABLE_NEST_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_CABLE_TEST_NTF_UNSPEC = 0,
+	ETHTOOL_A_CABLE_TEST_NTF_HEADER = 1,
+	ETHTOOL_A_CABLE_TEST_NTF_STATUS = 2,
+	ETHTOOL_A_CABLE_TEST_NTF_NEST = 3,
+	__ETHTOOL_A_CABLE_TEST_NTF_CNT = 4,
+	ETHTOOL_A_CABLE_TEST_NTF_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_CABLE_TEST_TDR_CFG_UNSPEC = 0,
+	ETHTOOL_A_CABLE_TEST_TDR_CFG_FIRST = 1,
+	ETHTOOL_A_CABLE_TEST_TDR_CFG_LAST = 2,
+	ETHTOOL_A_CABLE_TEST_TDR_CFG_STEP = 3,
+	ETHTOOL_A_CABLE_TEST_TDR_CFG_PAIR = 4,
+	__ETHTOOL_A_CABLE_TEST_TDR_CFG_CNT = 5,
+	ETHTOOL_A_CABLE_TEST_TDR_CFG_MAX = 4,
+};
+
+enum {
+	ETHTOOL_A_CABLE_AMPLITUDE_UNSPEC = 0,
+	ETHTOOL_A_CABLE_AMPLITUDE_PAIR = 1,
+	ETHTOOL_A_CABLE_AMPLITUDE_mV = 2,
+	__ETHTOOL_A_CABLE_AMPLITUDE_CNT = 3,
+	ETHTOOL_A_CABLE_AMPLITUDE_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_CABLE_PULSE_UNSPEC = 0,
+	ETHTOOL_A_CABLE_PULSE_mV = 1,
+	__ETHTOOL_A_CABLE_PULSE_CNT = 2,
+	ETHTOOL_A_CABLE_PULSE_MAX = 1,
+};
+
+enum {
+	ETHTOOL_A_CABLE_STEP_UNSPEC = 0,
+	ETHTOOL_A_CABLE_STEP_FIRST_DISTANCE = 1,
+	ETHTOOL_A_CABLE_STEP_LAST_DISTANCE = 2,
+	ETHTOOL_A_CABLE_STEP_STEP_DISTANCE = 3,
+	__ETHTOOL_A_CABLE_STEP_CNT = 4,
+	ETHTOOL_A_CABLE_STEP_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_CABLE_TDR_NEST_UNSPEC = 0,
+	ETHTOOL_A_CABLE_TDR_NEST_STEP = 1,
+	ETHTOOL_A_CABLE_TDR_NEST_AMPLITUDE = 2,
+	ETHTOOL_A_CABLE_TDR_NEST_PULSE = 3,
+	__ETHTOOL_A_CABLE_TDR_NEST_CNT = 4,
+	ETHTOOL_A_CABLE_TDR_NEST_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_TUNNEL_UDP_ENTRY_UNSPEC = 0,
+	ETHTOOL_A_TUNNEL_UDP_ENTRY_PORT = 1,
+	ETHTOOL_A_TUNNEL_UDP_ENTRY_TYPE = 2,
+	__ETHTOOL_A_TUNNEL_UDP_ENTRY_CNT = 3,
+	ETHTOOL_A_TUNNEL_UDP_ENTRY_MAX = 2,
+};
+
+enum {
+	ETHTOOL_A_TUNNEL_UDP_TABLE_UNSPEC = 0,
+	ETHTOOL_A_TUNNEL_UDP_TABLE_SIZE = 1,
+	ETHTOOL_A_TUNNEL_UDP_TABLE_TYPES = 2,
+	ETHTOOL_A_TUNNEL_UDP_TABLE_ENTRY = 3,
+	__ETHTOOL_A_TUNNEL_UDP_TABLE_CNT = 4,
+	ETHTOOL_A_TUNNEL_UDP_TABLE_MAX = 3,
+};
+
+enum {
+	ETHTOOL_A_TUNNEL_UDP_UNSPEC = 0,
+	ETHTOOL_A_TUNNEL_UDP_TABLE = 1,
+	__ETHTOOL_A_TUNNEL_UDP_CNT = 2,
+	ETHTOOL_A_TUNNEL_UDP_MAX = 1,
+};
+
+enum udp_parsable_tunnel_type {
+	UDP_TUNNEL_TYPE_VXLAN = 1,
+	UDP_TUNNEL_TYPE_GENEVE = 2,
+	UDP_TUNNEL_TYPE_VXLAN_GPE = 4,
+};
+
+enum udp_tunnel_nic_info_flags {
+	UDP_TUNNEL_NIC_INFO_MAY_SLEEP = 1,
+	UDP_TUNNEL_NIC_INFO_OPEN_ONLY = 2,
+	UDP_TUNNEL_NIC_INFO_IPV4_ONLY = 4,
+	UDP_TUNNEL_NIC_INFO_STATIC_IANA_VXLAN = 8,
+};
+
+struct udp_tunnel_nic_ops {
+	void (*get_port)(struct net_device *, unsigned int, unsigned int, struct udp_tunnel_info *);
+	void (*set_port_priv)(struct net_device *, unsigned int, unsigned int, u8);
+	void (*add_port)(struct net_device *, struct udp_tunnel_info *);
+	void (*del_port)(struct net_device *, struct udp_tunnel_info *);
+	void (*reset_ntf)(struct net_device *);
+	size_t (*dump_size)(struct net_device *, unsigned int);
+	int (*dump_write)(struct net_device *, unsigned int, struct sk_buff *);
+};
+
+struct ethnl_tunnel_info_dump_ctx {
+	struct ethnl_req_info req_info;
+	int pos_hash;
+	int pos_idx;
+};
+
+enum {
+	ETHTOOL_A_FEC_STAT_UNSPEC = 0,
+	ETHTOOL_A_FEC_STAT_PAD = 1,
+	ETHTOOL_A_FEC_STAT_CORRECTED = 2,
+	ETHTOOL_A_FEC_STAT_UNCORR = 3,
+	ETHTOOL_A_FEC_STAT_CORR_BITS = 4,
+	__ETHTOOL_A_FEC_STAT_CNT = 5,
+	ETHTOOL_A_FEC_STAT_MAX = 4,
+};
+
+struct fec_stat_grp {
+	u64 stats[9];
+	u8 cnt;
+};
+
+struct fec_reply_data {
+	struct ethnl_reply_data base;
+	long unsigned int fec_link_modes[2];
+	u32 active_fec;
+	u8 fec_auto;
+	struct fec_stat_grp corr;
+	struct fec_stat_grp uncorr;
+	struct fec_stat_grp corr_bits;
+};
+
+struct eeprom_req_info {
+	struct ethnl_req_info base;
+	u32 offset;
+	u32 length;
+	u8 page;
+	u8 bank;
+	u8 i2c_address;
+};
+
+struct eeprom_reply_data {
+	struct ethnl_reply_data base;
+	u32 length;
+	u8 *data;
+};
+
+enum {
+	ETHTOOL_A_STATS_GRP_UNSPEC = 0,
+	ETHTOOL_A_STATS_GRP_PAD = 1,
+	ETHTOOL_A_STATS_GRP_ID = 2,
+	ETHTOOL_A_STATS_GRP_SS_ID = 3,
+	ETHTOOL_A_STATS_GRP_STAT = 4,
+	ETHTOOL_A_STATS_GRP_HIST_RX = 5,
+	ETHTOOL_A_STATS_GRP_HIST_TX = 6,
+	ETHTOOL_A_STATS_GRP_HIST_BKT_LOW = 7,
+	ETHTOOL_A_STATS_GRP_HIST_BKT_HI = 8,
+	ETHTOOL_A_STATS_GRP_HIST_VAL = 9,
+	__ETHTOOL_A_STATS_GRP_CNT = 10,
+	ETHTOOL_A_STATS_GRP_MAX = 4,
+};
+
+struct stats_req_info {
+	struct ethnl_req_info base;
+	long unsigned int stat_mask[1];
+};
+
+struct stats_reply_data {
+	struct ethnl_reply_data base;
+	struct ethtool_eth_phy_stats phy_stats;
+	struct ethtool_eth_mac_stats mac_stats;
+	struct ethtool_eth_ctrl_stats ctrl_stats;
+	struct ethtool_rmon_stats rmon_stats;
+	const struct ethtool_rmon_hist_range *rmon_ranges;
+};
+
+struct phc_vclocks_reply_data {
+	struct ethnl_reply_data base;
+	int num;
+	int *index;
+};
+
+struct nf_hook_entries_rcu_head {
+	struct callback_head head;
+	void *allocation;
+};
+
+struct nf_conn;
+
+enum nf_nat_manip_type;
+
+struct nf_nat_hook {
+	int (*parse_nat_setup)(struct nf_conn *, enum nf_nat_manip_type, const struct nlattr *);
+	void (*decode_session)(struct sk_buff *, struct flowi *);
+	unsigned int (*manip_pkt)(struct sk_buff *, struct nf_conn *, enum nf_nat_manip_type, enum ip_conntrack_dir);
+};
+
+struct nf_conntrack_tuple;
+
+struct nf_ct_hook {
+	int (*update)(struct net *, struct sk_buff *);
+	void (*destroy)(struct nf_conntrack *);
+	bool (*get_tuple_skb)(struct nf_conntrack_tuple *, const struct sk_buff *);
+};
+
+struct nfnl_ct_hook {
+	size_t (*build_size)(const struct nf_conn *);
+	int (*build)(struct sk_buff *, struct nf_conn *, enum ip_conntrack_info, u_int16_t, u_int16_t);
+	int (*parse)(const struct nlattr *, struct nf_conn *);
+	int (*attach_expect)(const struct nlattr *, struct nf_conn *, u32, u32);
+	void (*seq_adjust)(struct sk_buff *, struct nf_conn *, enum ip_conntrack_info, s32);
+};
+
+struct nf_queue_entry;
+
+struct nf_ipv6_ops {
+	void (*route_input)(struct sk_buff *);
+	int (*fragment)(struct net *, struct sock *, struct sk_buff *, int (*)(struct net *, struct sock *, struct sk_buff *));
+	int (*reroute)(struct sk_buff *, const struct nf_queue_entry *);
+};
+
+struct nf_queue_entry {
+	struct list_head list;
+	struct sk_buff *skb;
+	unsigned int id;
+	unsigned int hook_index;
+	struct net_device *physin;
+	struct net_device *physout;
+	struct nf_hook_state state;
+	u16 size;
+};
+
+struct nf_loginfo {
+	u_int8_t type;
+	union {
+		struct {
+			u_int32_t copy_len;
+			u_int16_t group;
+			u_int16_t qthreshold;
+			u_int16_t flags;
+		} ulog;
+		struct {
+			u_int8_t level;
+			u_int8_t logflags;
+		} log;
+	} u;
+};
+
+struct nf_log_buf {
+	unsigned int count;
+	char buf[1020];
+};
+
+struct nf_bridge_info {
+	enum {
+		BRNF_PROTO_UNCHANGED = 0,
+		BRNF_PROTO_8021Q = 1,
+		BRNF_PROTO_PPPOE = 2,
+	} orig_proto: 8;
+	u8 pkt_otherhost: 1;
+	u8 in_prerouting: 1;
+	u8 bridged_dnat: 1;
+	__u16 frag_max_size;
+	struct net_device *physindev;
+	struct net_device *physoutdev;
+	union {
+		__be32 ipv4_daddr;
+		struct in6_addr ipv6_daddr;
+		char neigh_header[8];
+	};
+};
+
+struct ip_rt_info {
+	__be32 daddr;
+	__be32 saddr;
+	u_int8_t tos;
+	u_int32_t mark;
+};
+
+struct ip6_rt_info {
+	struct in6_addr daddr;
+	struct in6_addr saddr;
+	u_int32_t mark;
+};
+
+struct nf_queue_handler {
+	int (*outfn)(struct nf_queue_entry *, unsigned int);
+	void (*nf_hook_drop)(struct net *);
+};
+
+struct nf_sockopt_ops {
+	struct list_head list;
+	u_int8_t pf;
+	int set_optmin;
+	int set_optmax;
+	int (*set)(struct sock *, int, sockptr_t, unsigned int);
+	int get_optmin;
+	int get_optmax;
+	int (*get)(struct sock *, int, void *, int *);
+	struct module *owner;
+};
+
+struct ip_mreqn {
+	struct in_addr imr_multiaddr;
+	struct in_addr imr_address;
+	int imr_ifindex;
+};
+
+struct rtmsg {
+	unsigned char rtm_family;
+	unsigned char rtm_dst_len;
+	unsigned char rtm_src_len;
+	unsigned char rtm_tos;
+	unsigned char rtm_table;
+	unsigned char rtm_protocol;
+	unsigned char rtm_scope;
+	unsigned char rtm_type;
+	unsigned int rtm_flags;
+};
+
+struct rtvia {
+	__kernel_sa_family_t rtvia_family;
+	__u8 rtvia_addr[0];
+};
+
+struct ip_sf_list;
+
+struct ip_mc_list {
+	struct in_device *interface;
+	__be32 multiaddr;
+	unsigned int sfmode;
+	struct ip_sf_list *sources;
+	struct ip_sf_list *tomb;
+	long unsigned int sfcount[2];
+	union {
+		struct ip_mc_list *next;
+		struct ip_mc_list *next_rcu;
+	};
+	struct ip_mc_list *next_hash;
+	struct timer_list timer;
+	int users;
+	refcount_t refcnt;
+	spinlock_t lock;
+	char tm_running;
+	char reporter;
+	char unsolicit_count;
+	char loaded;
+	unsigned char gsquery;
+	unsigned char crcount;
+	struct callback_head rcu;
+};
+
+struct ip_sf_socklist {
+	unsigned int sl_max;
+	unsigned int sl_count;
+	struct callback_head rcu;
+	__be32 sl_addr[0];
+};
+
+struct ip_mc_socklist {
+	struct ip_mc_socklist *next_rcu;
+	struct ip_mreqn multi;
+	unsigned int sfmode;
+	struct ip_sf_socklist *sflist;
+	struct callback_head rcu;
+};
+
+struct ip_sf_list {
+	struct ip_sf_list *sf_next;
+	long unsigned int sf_count[2];
+	__be32 sf_inaddr;
+	unsigned char sf_gsresp;
+	unsigned char sf_oldin;
+	unsigned char sf_crcount;
+};
+
+struct ipv4_addr_key {
+	__be32 addr;
+	int vif;
+};
+
+struct inetpeer_addr {
+	union {
+		struct ipv4_addr_key a4;
+		struct in6_addr a6;
+		u32 key[4];
+	};
+	__u16 family;
+};
+
+struct inet_peer {
+	struct rb_node rb_node;
+	struct inetpeer_addr daddr;
+	u32 metrics[17];
+	u32 rate_tokens;
+	u32 n_redirects;
+	long unsigned int rate_last;
+	union {
+		struct {
+			atomic_t rid;
+		};
+		struct callback_head rcu;
+	};
+	__u32 dtime;
+	refcount_t refcnt;
+};
+
+struct fib_rt_info {
+	struct fib_info *fi;
+	u32 tb_id;
+	__be32 dst;
+	int dst_len;
+	u8 tos;
+	u8 type;
+	u8 offload: 1;
+	u8 trap: 1;
+	u8 offload_failed: 1;
+	u8 unused: 5;
+};
+
+struct uncached_list {
+	spinlock_t lock;
+	struct list_head head;
+};
+
+struct ip_rt_acct {
+	__u32 o_bytes;
+	__u32 o_packets;
+	__u32 i_bytes;
+	__u32 i_packets;
+};
+
+struct rt_cache_stat {
+	unsigned int in_slow_tot;
+	unsigned int in_slow_mc;
+	unsigned int in_no_route;
+	unsigned int in_brd;
+	unsigned int in_martian_dst;
+	unsigned int in_martian_src;
+	unsigned int out_slow_tot;
+	unsigned int out_slow_mc;
+};
+
+struct fib_alias {
+	struct hlist_node fa_list;
+	struct fib_info *fa_info;
+	u8 fa_tos;
+	u8 fa_type;
+	u8 fa_state;
+	u8 fa_slen;
+	u32 tb_id;
+	s16 fa_default;
+	u8 offload;
+	u8 trap;
+	u8 offload_failed;
+	struct callback_head rcu;
+};
+
+struct fib_prop {
+	int error;
+	u8 scope;
