@@ -105457,3 +105457,819 @@ struct xdp_rxtx_ring {
 };
 
 struct xdp_umem_ring {
+	struct xdp_ring ptrs;
+	u64 desc[0];
+};
+
+struct xsk_dma_map {
+	dma_addr_t *dma_pages;
+	struct device *dev;
+	struct net_device *netdev;
+	refcount_t users;
+	struct list_head list;
+	u32 dma_pages_cnt;
+	bool dma_need_sync;
+};
+
+struct mptcp_mib {
+	long unsigned int mibs[43];
+};
+
+enum mptcp_event_type {
+	MPTCP_EVENT_UNSPEC = 0,
+	MPTCP_EVENT_CREATED = 1,
+	MPTCP_EVENT_ESTABLISHED = 2,
+	MPTCP_EVENT_CLOSED = 3,
+	MPTCP_EVENT_ANNOUNCED = 6,
+	MPTCP_EVENT_REMOVED = 7,
+	MPTCP_EVENT_SUB_ESTABLISHED = 10,
+	MPTCP_EVENT_SUB_CLOSED = 11,
+	MPTCP_EVENT_SUB_PRIORITY = 13,
+};
+
+struct mptcp_options_received {
+	u64 sndr_key;
+	u64 rcvr_key;
+	u64 data_ack;
+	u64 data_seq;
+	u32 subflow_seq;
+	u16 data_len;
+	__sum16 csum;
+	u16 suboptions;
+	u32 token;
+	u32 nonce;
+	u16 use_map: 1;
+	u16 dsn64: 1;
+	u16 data_fin: 1;
+	u16 use_ack: 1;
+	u16 ack64: 1;
+	u16 mpc_map: 1;
+	u16 reset_reason: 4;
+	u16 reset_transient: 1;
+	u16 echo: 1;
+	u16 backup: 1;
+	u16 deny_join_id0: 1;
+	u16 __unused: 2;
+	u8 join_id;
+	u64 thmac;
+	u8 hmac[20];
+	struct mptcp_addr_info addr;
+	struct mptcp_rm_list rm_list;
+	u64 ahmac;
+	u64 fail_seq;
+};
+
+struct mptcp_pm_data {
+	struct mptcp_addr_info local;
+	struct mptcp_addr_info remote;
+	struct list_head anno_list;
+	spinlock_t lock;
+	u8 addr_signal;
+	bool server_side;
+	bool work_pending;
+	bool accept_addr;
+	bool accept_subflow;
+	bool remote_deny_join_id0;
+	u8 add_addr_signaled;
+	u8 add_addr_accepted;
+	u8 local_addr_used;
+	u8 subflows;
+	u8 status;
+	struct mptcp_rm_list rm_list_tx;
+	struct mptcp_rm_list rm_list_rx;
+};
+
+struct mptcp_data_frag {
+	struct list_head list;
+	u64 data_seq;
+	u16 data_len;
+	u16 offset;
+	u16 overhead;
+	u16 already_sent;
+	struct page *page;
+};
+
+struct mptcp_sock {
+	struct inet_connection_sock sk;
+	u64 local_key;
+	u64 remote_key;
+	u64 write_seq;
+	u64 snd_nxt;
+	u64 ack_seq;
+	u64 rcv_wnd_sent;
+	u64 rcv_data_fin_seq;
+	int wmem_reserved;
+	struct sock *last_snd;
+	int snd_burst;
+	int old_wspace;
+	u64 recovery_snd_nxt;
+	u64 snd_una;
+	u64 wnd_end;
+	long unsigned int timer_ival;
+	u32 token;
+	int rmem_released;
+	long unsigned int flags;
+	bool recovery;
+	bool can_ack;
+	bool fully_established;
+	bool rcv_data_fin;
+	bool snd_data_fin_enable;
+	bool rcv_fastclose;
+	bool use_64bit_ack;
+	bool csum_enabled;
+	spinlock_t join_list_lock;
+	struct work_struct work;
+	struct sk_buff *ooo_last_skb;
+	struct rb_root out_of_order_queue;
+	struct sk_buff_head receive_queue;
+	int tx_pending_data;
+	struct list_head conn_list;
+	struct list_head rtx_queue;
+	struct mptcp_data_frag *first_pending;
+	struct list_head join_list;
+	struct socket *subflow;
+	struct sock *first;
+	struct mptcp_pm_data pm;
+	struct {
+		u32 space;
+		u32 copied;
+		u64 time;
+		u64 rtt_us;
+	} rcvq_space;
+	u32 setsockopt_seq;
+	char ca_name[16];
+};
+
+struct mptcp_subflow_request_sock {
+	struct tcp_request_sock sk;
+	u16 mp_capable: 1;
+	u16 mp_join: 1;
+	u16 backup: 1;
+	u16 csum_reqd: 1;
+	u16 allow_join_id0: 1;
+	u8 local_id;
+	u8 remote_id;
+	u64 local_key;
+	u64 idsn;
+	u32 token;
+	u32 ssn_offset;
+	u64 thmac;
+	u32 local_nonce;
+	u32 remote_nonce;
+	struct mptcp_sock *msk;
+	struct hlist_nulls_node token_node;
+};
+
+enum mptcp_data_avail {
+	MPTCP_SUBFLOW_NODATA = 0,
+	MPTCP_SUBFLOW_DATA_AVAIL = 1,
+};
+
+struct mptcp_delegated_action {
+	struct napi_struct napi;
+	struct list_head head;
+};
+
+struct mptcp_subflow_context {
+	struct list_head node;
+	u64 local_key;
+	u64 remote_key;
+	u64 idsn;
+	u64 map_seq;
+	u32 snd_isn;
+	u32 token;
+	u32 rel_write_seq;
+	u32 map_subflow_seq;
+	u32 ssn_offset;
+	u32 map_data_len;
+	__wsum map_data_csum;
+	u32 map_csum_len;
+	u32 request_mptcp: 1;
+	u32 request_join: 1;
+	u32 request_bkup: 1;
+	u32 mp_capable: 1;
+	u32 mp_join: 1;
+	u32 fully_established: 1;
+	u32 pm_notified: 1;
+	u32 conn_finished: 1;
+	u32 map_valid: 1;
+	u32 map_csum_reqd: 1;
+	u32 map_data_fin: 1;
+	u32 mpc_map: 1;
+	u32 backup: 1;
+	u32 send_mp_prio: 1;
+	u32 send_mp_fail: 1;
+	u32 rx_eof: 1;
+	u32 can_ack: 1;
+	u32 disposable: 1;
+	u32 stale: 1;
+	enum mptcp_data_avail data_avail;
+	u32 remote_nonce;
+	u64 thmac;
+	u32 local_nonce;
+	u32 remote_token;
+	u8 hmac[20];
+	u8 local_id;
+	u8 remote_id;
+	u8 reset_seen: 1;
+	u8 reset_transient: 1;
+	u8 reset_reason: 4;
+	u8 stale_count;
+	long int delegated_status;
+	struct list_head delegated_node;
+	u32 setsockopt_seq;
+	u32 stale_rcv_tstamp;
+	struct sock *tcp_sock;
+	struct sock *conn;
+	const struct inet_connection_sock_af_ops *icsk_af_ops;
+	void (*tcp_data_ready)(struct sock *);
+	void (*tcp_state_change)(struct sock *);
+	void (*tcp_write_space)(struct sock *);
+	void (*tcp_error_report)(struct sock *);
+	struct callback_head rcu;
+};
+
+enum linux_mptcp_mib_field {
+	MPTCP_MIB_NUM = 0,
+	MPTCP_MIB_MPCAPABLEPASSIVE = 1,
+	MPTCP_MIB_MPCAPABLEACTIVE = 2,
+	MPTCP_MIB_MPCAPABLEACTIVEACK = 3,
+	MPTCP_MIB_MPCAPABLEPASSIVEACK = 4,
+	MPTCP_MIB_MPCAPABLEPASSIVEFALLBACK = 5,
+	MPTCP_MIB_MPCAPABLEACTIVEFALLBACK = 6,
+	MPTCP_MIB_TOKENFALLBACKINIT = 7,
+	MPTCP_MIB_RETRANSSEGS = 8,
+	MPTCP_MIB_JOINNOTOKEN = 9,
+	MPTCP_MIB_JOINSYNRX = 10,
+	MPTCP_MIB_JOINSYNACKRX = 11,
+	MPTCP_MIB_JOINSYNACKMAC = 12,
+	MPTCP_MIB_JOINACKRX = 13,
+	MPTCP_MIB_JOINACKMAC = 14,
+	MPTCP_MIB_DSSNOMATCH = 15,
+	MPTCP_MIB_INFINITEMAPRX = 16,
+	MPTCP_MIB_DSSTCPMISMATCH = 17,
+	MPTCP_MIB_DATACSUMERR = 18,
+	MPTCP_MIB_OFOQUEUETAIL = 19,
+	MPTCP_MIB_OFOQUEUE = 20,
+	MPTCP_MIB_OFOMERGE = 21,
+	MPTCP_MIB_NODSSWINDOW = 22,
+	MPTCP_MIB_DUPDATA = 23,
+	MPTCP_MIB_ADDADDR = 24,
+	MPTCP_MIB_ECHOADD = 25,
+	MPTCP_MIB_PORTADD = 26,
+	MPTCP_MIB_ADDADDRDROP = 27,
+	MPTCP_MIB_JOINPORTSYNRX = 28,
+	MPTCP_MIB_JOINPORTSYNACKRX = 29,
+	MPTCP_MIB_JOINPORTACKRX = 30,
+	MPTCP_MIB_MISMATCHPORTSYNRX = 31,
+	MPTCP_MIB_MISMATCHPORTACKRX = 32,
+	MPTCP_MIB_RMADDR = 33,
+	MPTCP_MIB_RMADDRDROP = 34,
+	MPTCP_MIB_RMSUBFLOW = 35,
+	MPTCP_MIB_MPPRIOTX = 36,
+	MPTCP_MIB_MPPRIORX = 37,
+	MPTCP_MIB_MPFAILTX = 38,
+	MPTCP_MIB_MPFAILRX = 39,
+	MPTCP_MIB_RCVPRUNED = 40,
+	MPTCP_MIB_SUBFLOWSTALE = 41,
+	MPTCP_MIB_SUBFLOWRECOVER = 42,
+	__MPTCP_MIB_MAX = 43,
+};
+
+struct trace_event_raw_mptcp_subflow_get_send {
+	struct trace_entry ent;
+	bool active;
+	bool free;
+	u32 snd_wnd;
+	u32 pace;
+	u8 backup;
+	u64 ratio;
+	char __data[0];
+};
+
+struct trace_event_raw_mptcp_dump_mpext {
+	struct trace_entry ent;
+	u64 data_ack;
+	u64 data_seq;
+	u32 subflow_seq;
+	u16 data_len;
+	u16 csum;
+	u8 use_map;
+	u8 dsn64;
+	u8 data_fin;
+	u8 use_ack;
+	u8 ack64;
+	u8 mpc_map;
+	u8 frozen;
+	u8 reset_transient;
+	u8 reset_reason;
+	u8 csum_reqd;
+	char __data[0];
+};
+
+struct trace_event_raw_ack_update_msk {
+	struct trace_entry ent;
+	u64 data_ack;
+	u64 old_snd_una;
+	u64 new_snd_una;
+	u64 new_wnd_end;
+	u64 msk_wnd_end;
+	char __data[0];
+};
+
+struct trace_event_raw_subflow_check_data_avail {
+	struct trace_entry ent;
+	u8 status;
+	const void *skb;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mptcp_subflow_get_send {};
+
+struct trace_event_data_offsets_mptcp_dump_mpext {};
+
+struct trace_event_data_offsets_ack_update_msk {};
+
+struct trace_event_data_offsets_subflow_check_data_avail {};
+
+typedef void (*btf_trace_mptcp_subflow_get_send)(void *, struct mptcp_subflow_context *);
+
+typedef void (*btf_trace_get_mapping_status)(void *, struct mptcp_ext *);
+
+typedef void (*btf_trace_ack_update_msk)(void *, u64, u64, u64, u64, u64);
+
+typedef void (*btf_trace_subflow_check_data_avail)(void *, __u8, struct sk_buff *);
+
+struct mptcp_skb_cb {
+	u64 map_seq;
+	u64 end_seq;
+	u32 offset;
+	u8 has_rxtstamp: 1;
+};
+
+enum {
+	MPTCP_CMSG_TS = 1,
+};
+
+struct mptcp_sendmsg_info {
+	int mss_now;
+	int size_goal;
+	u16 limit;
+	u16 sent;
+	unsigned int flags;
+	bool data_lock_held;
+};
+
+struct subflow_send_info {
+	struct sock *ssk;
+	u64 ratio;
+};
+
+struct csum_pseudo_header {
+	__be64 data_seq;
+	__be32 subflow_seq;
+	__be16 data_len;
+	__sum16 csum;
+};
+
+enum mapping_status {
+	MAPPING_OK = 0,
+	MAPPING_INVALID = 1,
+	MAPPING_EMPTY = 2,
+	MAPPING_DATA_FIN = 3,
+	MAPPING_DUMMY = 4,
+};
+
+enum mptcp_addr_signal_status {
+	MPTCP_ADD_ADDR_SIGNAL = 0,
+	MPTCP_ADD_ADDR_ECHO = 1,
+	MPTCP_RM_ADDR_SIGNAL = 2,
+};
+
+struct mptcp_pm_add_entry;
+
+struct token_bucket {
+	spinlock_t lock;
+	int chain_len;
+	struct hlist_nulls_head req_chain;
+	struct hlist_nulls_head msk_chain;
+};
+
+struct mptcp_pernet {
+	struct ctl_table_header *ctl_table_hdr;
+	unsigned int add_addr_timeout;
+	unsigned int stale_loss_cnt;
+	u8 mptcp_enabled;
+	u8 checksum_enabled;
+	u8 allow_join_initial_addr_port;
+};
+
+enum mptcp_pm_status {
+	MPTCP_PM_ADD_ADDR_RECEIVED = 0,
+	MPTCP_PM_ADD_ADDR_SEND_ACK = 1,
+	MPTCP_PM_RM_ADDR_RECEIVED = 2,
+	MPTCP_PM_ESTABLISHED = 3,
+	MPTCP_PM_ALREADY_ESTABLISHED = 4,
+	MPTCP_PM_SUBFLOW_ESTABLISHED = 5,
+};
+
+enum {
+	INET_ULP_INFO_UNSPEC = 0,
+	INET_ULP_INFO_NAME = 1,
+	INET_ULP_INFO_TLS = 2,
+	INET_ULP_INFO_MPTCP = 3,
+	__INET_ULP_INFO_MAX = 4,
+};
+
+enum {
+	MPTCP_SUBFLOW_ATTR_UNSPEC = 0,
+	MPTCP_SUBFLOW_ATTR_TOKEN_REM = 1,
+	MPTCP_SUBFLOW_ATTR_TOKEN_LOC = 2,
+	MPTCP_SUBFLOW_ATTR_RELWRITE_SEQ = 3,
+	MPTCP_SUBFLOW_ATTR_MAP_SEQ = 4,
+	MPTCP_SUBFLOW_ATTR_MAP_SFSEQ = 5,
+	MPTCP_SUBFLOW_ATTR_SSN_OFFSET = 6,
+	MPTCP_SUBFLOW_ATTR_MAP_DATALEN = 7,
+	MPTCP_SUBFLOW_ATTR_FLAGS = 8,
+	MPTCP_SUBFLOW_ATTR_ID_REM = 9,
+	MPTCP_SUBFLOW_ATTR_ID_LOC = 10,
+	MPTCP_SUBFLOW_ATTR_PAD = 11,
+	__MPTCP_SUBFLOW_ATTR_MAX = 12,
+};
+
+enum {
+	MPTCP_PM_ATTR_UNSPEC = 0,
+	MPTCP_PM_ATTR_ADDR = 1,
+	MPTCP_PM_ATTR_RCV_ADD_ADDRS = 2,
+	MPTCP_PM_ATTR_SUBFLOWS = 3,
+	__MPTCP_PM_ATTR_MAX = 4,
+};
+
+enum {
+	MPTCP_PM_ADDR_ATTR_UNSPEC = 0,
+	MPTCP_PM_ADDR_ATTR_FAMILY = 1,
+	MPTCP_PM_ADDR_ATTR_ID = 2,
+	MPTCP_PM_ADDR_ATTR_ADDR4 = 3,
+	MPTCP_PM_ADDR_ATTR_ADDR6 = 4,
+	MPTCP_PM_ADDR_ATTR_PORT = 5,
+	MPTCP_PM_ADDR_ATTR_FLAGS = 6,
+	MPTCP_PM_ADDR_ATTR_IF_IDX = 7,
+	__MPTCP_PM_ADDR_ATTR_MAX = 8,
+};
+
+enum {
+	MPTCP_PM_CMD_UNSPEC = 0,
+	MPTCP_PM_CMD_ADD_ADDR = 1,
+	MPTCP_PM_CMD_DEL_ADDR = 2,
+	MPTCP_PM_CMD_GET_ADDR = 3,
+	MPTCP_PM_CMD_FLUSH_ADDRS = 4,
+	MPTCP_PM_CMD_SET_LIMITS = 5,
+	MPTCP_PM_CMD_GET_LIMITS = 6,
+	MPTCP_PM_CMD_SET_FLAGS = 7,
+	__MPTCP_PM_CMD_AFTER_LAST = 8,
+};
+
+enum mptcp_event_attr {
+	MPTCP_ATTR_UNSPEC = 0,
+	MPTCP_ATTR_TOKEN = 1,
+	MPTCP_ATTR_FAMILY = 2,
+	MPTCP_ATTR_LOC_ID = 3,
+	MPTCP_ATTR_REM_ID = 4,
+	MPTCP_ATTR_SADDR4 = 5,
+	MPTCP_ATTR_SADDR6 = 6,
+	MPTCP_ATTR_DADDR4 = 7,
+	MPTCP_ATTR_DADDR6 = 8,
+	MPTCP_ATTR_SPORT = 9,
+	MPTCP_ATTR_DPORT = 10,
+	MPTCP_ATTR_BACKUP = 11,
+	MPTCP_ATTR_ERROR = 12,
+	MPTCP_ATTR_FLAGS = 13,
+	MPTCP_ATTR_TIMEOUT = 14,
+	MPTCP_ATTR_IF_IDX = 15,
+	MPTCP_ATTR_RESET_REASON = 16,
+	MPTCP_ATTR_RESET_FLAGS = 17,
+	__MPTCP_ATTR_AFTER_LAST = 18,
+};
+
+struct mptcp_pm_addr_entry {
+	struct list_head list;
+	struct mptcp_addr_info addr;
+	u8 flags;
+	int ifindex;
+	struct socket *lsk;
+};
+
+struct mptcp_pm_add_entry {
+	struct list_head list;
+	struct mptcp_addr_info addr;
+	struct timer_list add_timer;
+	struct mptcp_sock *sock;
+	u8 retrans_times;
+};
+
+struct pm_nl_pernet {
+	spinlock_t lock;
+	struct list_head local_addr_list;
+	unsigned int addrs;
+	unsigned int stale_loss_cnt;
+	unsigned int add_addr_signal_max;
+	unsigned int add_addr_accept_max;
+	unsigned int local_addr_max;
+	unsigned int subflows_max;
+	unsigned int next_id;
+	long unsigned int id_bitmap[4];
+};
+
+struct join_entry {
+	u32 token;
+	u32 remote_nonce;
+	u32 local_nonce;
+	u8 join_id;
+	u8 local_id;
+	u8 backup;
+	u8 valid;
+};
+
+typedef struct {
+	u32 version;
+	u32 length;
+	u64 memory_protection_attribute;
+} efi_properties_table_t;
+
+typedef union {
+	struct {
+		u32 revision;
+		efi_handle_t parent_handle;
+		efi_system_table_t *system_table;
+		efi_handle_t device_handle;
+		void *file_path;
+		void *reserved;
+		u32 load_options_size;
+		void *load_options;
+		void *image_base;
+		__u64 image_size;
+		unsigned int image_code_type;
+		unsigned int image_data_type;
+		efi_status_t (*unload)(efi_handle_t);
+	};
+	struct {
+		u32 revision;
+		u32 parent_handle;
+		u32 system_table;
+		u32 device_handle;
+		u32 file_path;
+		u32 reserved;
+		u32 load_options_size;
+		u32 load_options;
+		u32 image_base;
+		__u64 image_size;
+		u32 image_code_type;
+		u32 image_data_type;
+		u32 unload;
+	} mixed_mode;
+} efi_loaded_image_t;
+
+struct efi_boot_memmap {
+	efi_memory_desc_t **map;
+	long unsigned int *map_size;
+	long unsigned int *desc_size;
+	u32 *desc_ver;
+	long unsigned int *key_ptr;
+	long unsigned int *buff_size;
+};
+
+typedef efi_status_t (*efi_exit_boot_map_processing)(struct efi_boot_memmap *, void *);
+
+struct exit_boot_struct {
+	efi_memory_desc_t *runtime_map;
+	int *runtime_entry_count;
+	void *new_fdt_addr;
+};
+
+typedef struct {
+	u32 red_mask;
+	u32 green_mask;
+	u32 blue_mask;
+	u32 reserved_mask;
+} efi_pixel_bitmask_t;
+
+typedef struct {
+	u32 version;
+	u32 horizontal_resolution;
+	u32 vertical_resolution;
+	int pixel_format;
+	efi_pixel_bitmask_t pixel_information;
+	u32 pixels_per_scan_line;
+} efi_graphics_output_mode_info_t;
+
+union efi_graphics_output_protocol_mode {
+	struct {
+		u32 max_mode;
+		u32 mode;
+		efi_graphics_output_mode_info_t *info;
+		long unsigned int size_of_info;
+		efi_physical_addr_t frame_buffer_base;
+		long unsigned int frame_buffer_size;
+	};
+	struct {
+		u32 max_mode;
+		u32 mode;
+		u32 info;
+		u32 size_of_info;
+		u64 frame_buffer_base;
+		u32 frame_buffer_size;
+	} mixed_mode;
+};
+
+typedef union efi_graphics_output_protocol_mode efi_graphics_output_protocol_mode_t;
+
+union efi_graphics_output_protocol;
+
+typedef union efi_graphics_output_protocol efi_graphics_output_protocol_t;
+
+union efi_graphics_output_protocol {
+	struct {
+		efi_status_t (*query_mode)(efi_graphics_output_protocol_t *, u32, long unsigned int *, efi_graphics_output_mode_info_t **);
+		efi_status_t (*set_mode)(efi_graphics_output_protocol_t *, u32);
+		void *blt;
+		efi_graphics_output_protocol_mode_t *mode;
+	};
+	struct {
+		u32 query_mode;
+		u32 set_mode;
+		u32 blt;
+		u32 mode;
+	} mixed_mode;
+};
+
+enum efi_cmdline_option {
+	EFI_CMDLINE_NONE = 0,
+	EFI_CMDLINE_MODE_NUM = 1,
+	EFI_CMDLINE_RES = 2,
+	EFI_CMDLINE_AUTO = 3,
+	EFI_CMDLINE_LIST = 4,
+};
+
+union efi_rng_protocol;
+
+typedef union efi_rng_protocol efi_rng_protocol_t;
+
+union efi_rng_protocol {
+	struct {
+		efi_status_t (*get_info)(efi_rng_protocol_t *, long unsigned int *, efi_guid_t *);
+		efi_status_t (*get_rng)(efi_rng_protocol_t *, efi_guid_t *, long unsigned int, u8 *);
+	};
+	struct {
+		u32 get_info;
+		u32 get_rng;
+	} mixed_mode;
+};
+
+typedef void (*jump_kernel_func)(unsigned int, long unsigned int);
+
+typedef u32 efi_tcg2_event_log_format;
+
+union efi_tcg2_protocol;
+
+typedef union efi_tcg2_protocol efi_tcg2_protocol_t;
+
+union efi_tcg2_protocol {
+	struct {
+		void *get_capability;
+		efi_status_t (*get_event_log)(efi_tcg2_protocol_t *, efi_tcg2_event_log_format, efi_physical_addr_t *, efi_physical_addr_t *, efi_bool_t *);
+		void *hash_log_extend_event;
+		void *submit_command;
+		void *get_active_pcr_banks;
+		void *set_active_pcr_banks;
+		void *get_result_of_set_active_pcr_banks;
+	};
+	struct {
+		u32 get_capability;
+		u32 get_event_log;
+		u32 hash_log_extend_event;
+		u32 submit_command;
+		u32 get_active_pcr_banks;
+		u32 set_active_pcr_banks;
+		u32 get_result_of_set_active_pcr_banks;
+	} mixed_mode;
+};
+
+struct efi_vendor_dev_path {
+	struct efi_generic_dev_path header;
+	efi_guid_t vendorguid;
+	u8 vendordata[0];
+};
+
+union efi_load_file_protocol;
+
+typedef union efi_load_file_protocol efi_load_file_protocol_t;
+
+union efi_load_file_protocol {
+	struct {
+		efi_status_t (*load_file)(efi_load_file_protocol_t *, efi_device_path_protocol_t *, bool, long unsigned int *, void *);
+	};
+	struct {
+		u32 load_file;
+	} mixed_mode;
+};
+
+typedef union efi_load_file_protocol efi_load_file2_protocol_t;
+
+typedef struct {
+	u32 attributes;
+	u16 file_path_list_length;
+	u8 variable_data[0];
+} __attribute__((packed)) efi_load_option_t;
+
+typedef struct {
+	u32 attributes;
+	u16 file_path_list_length;
+	const efi_char16_t *description;
+	const efi_device_path_protocol_t *file_path_list;
+	size_t optional_data_size;
+	const void *optional_data;
+} efi_load_option_unpacked_t;
+
+typedef enum {
+	EfiPciIoWidthUint8 = 0,
+	EfiPciIoWidthUint16 = 1,
+	EfiPciIoWidthUint32 = 2,
+	EfiPciIoWidthUint64 = 3,
+	EfiPciIoWidthFifoUint8 = 4,
+	EfiPciIoWidthFifoUint16 = 5,
+	EfiPciIoWidthFifoUint32 = 6,
+	EfiPciIoWidthFifoUint64 = 7,
+	EfiPciIoWidthFillUint8 = 8,
+	EfiPciIoWidthFillUint16 = 9,
+	EfiPciIoWidthFillUint32 = 10,
+	EfiPciIoWidthFillUint64 = 11,
+	EfiPciIoWidthMaximum = 12,
+} EFI_PCI_IO_PROTOCOL_WIDTH;
+
+typedef struct {
+	u32 read;
+	u32 write;
+} efi_pci_io_protocol_access_32_t;
+
+typedef struct {
+	void *read;
+	void *write;
+} efi_pci_io_protocol_access_t;
+
+union efi_pci_io_protocol;
+
+typedef union efi_pci_io_protocol efi_pci_io_protocol_t;
+
+typedef efi_status_t (*efi_pci_io_protocol_cfg_t)(efi_pci_io_protocol_t *, EFI_PCI_IO_PROTOCOL_WIDTH, u32, long unsigned int, void *);
+
+typedef struct {
+	efi_pci_io_protocol_cfg_t read;
+	efi_pci_io_protocol_cfg_t write;
+} efi_pci_io_protocol_config_access_t;
+
+union efi_pci_io_protocol {
+	struct {
+		void *poll_mem;
+		void *poll_io;
+		efi_pci_io_protocol_access_t mem;
+		efi_pci_io_protocol_access_t io;
+		efi_pci_io_protocol_config_access_t pci;
+		void *copy_mem;
+		void *map;
+		void *unmap;
+		void *allocate_buffer;
+		void *free_buffer;
+		void *flush;
+		efi_status_t (*get_location)(efi_pci_io_protocol_t *, long unsigned int *, long unsigned int *, long unsigned int *, long unsigned int *);
+		void *attributes;
+		void *get_bar_attributes;
+		void *set_bar_attributes;
+		uint64_t romsize;
+		void *romimage;
+	};
+	struct {
+		u32 poll_mem;
+		u32 poll_io;
+		efi_pci_io_protocol_access_32_t mem;
+		efi_pci_io_protocol_access_32_t io;
+		efi_pci_io_protocol_access_32_t pci;
+		u32 copy_mem;
+		u32 map;
+		u32 unmap;
+		u32 allocate_buffer;
+		u32 free_buffer;
+		u32 flush;
+		u32 get_location;
+		u32 attributes;
+		u32 get_bar_attributes;
+		u32 set_bar_attributes;
+		u64 romsize;
+		u32 romimage;
+	} mixed_mode;
+};
+
+#ifndef BPF_NO_PRESERVE_ACCESS_INDEX
+#pragma clang attribute pop
+#endif
+
+#endif /* __VMLINUX_H__ */
