@@ -101217,3 +101217,2107 @@ struct xfrm_pol_inexact_key {
 struct xfrm_pol_inexact_bin {
 	struct xfrm_pol_inexact_key k;
 	struct rhash_head head;
+	struct hlist_head hhead;
+	seqcount_spinlock_t count;
+	struct rb_root root_d;
+	struct rb_root root_s;
+	struct list_head inexact_bins;
+	struct callback_head rcu;
+};
+
+enum xfrm_pol_inexact_candidate_type {
+	XFRM_POL_CAND_BOTH = 0,
+	XFRM_POL_CAND_SADDR = 1,
+	XFRM_POL_CAND_DADDR = 2,
+	XFRM_POL_CAND_ANY = 3,
+	XFRM_POL_CAND_MAX = 4,
+};
+
+struct xfrm_pol_inexact_candidates {
+	struct hlist_head *res[4];
+};
+
+enum xfrm_ae_ftype_t {
+	XFRM_AE_UNSPEC = 0,
+	XFRM_AE_RTHR = 1,
+	XFRM_AE_RVAL = 2,
+	XFRM_AE_LVAL = 4,
+	XFRM_AE_ETHR = 8,
+	XFRM_AE_CR = 16,
+	XFRM_AE_CE = 32,
+	XFRM_AE_CU = 64,
+	__XFRM_AE_MAX = 65,
+};
+
+enum xfrm_nlgroups {
+	XFRMNLGRP_NONE = 0,
+	XFRMNLGRP_ACQUIRE = 1,
+	XFRMNLGRP_EXPIRE = 2,
+	XFRMNLGRP_SA = 3,
+	XFRMNLGRP_POLICY = 4,
+	XFRMNLGRP_AEVENTS = 5,
+	XFRMNLGRP_REPORT = 6,
+	XFRMNLGRP_MIGRATE = 7,
+	XFRMNLGRP_MAPPING = 8,
+	__XFRMNLGRP_MAX = 9,
+};
+
+enum {
+	XFRM_MODE_FLAG_TUNNEL = 1,
+};
+
+struct km_event {
+	union {
+		u32 hard;
+		u32 proto;
+		u32 byid;
+		u32 aevent;
+		u32 type;
+	} data;
+	u32 seq;
+	u32 portid;
+	u32 event;
+	struct net *net;
+};
+
+struct xfrm_kmaddress {
+	xfrm_address_t local;
+	xfrm_address_t remote;
+	u32 reserved;
+	u16 family;
+};
+
+struct xfrm_migrate {
+	xfrm_address_t old_daddr;
+	xfrm_address_t old_saddr;
+	xfrm_address_t new_daddr;
+	xfrm_address_t new_saddr;
+	u8 proto;
+	u8 mode;
+	u16 reserved;
+	u32 reqid;
+	u16 old_family;
+	u16 new_family;
+};
+
+struct xfrm_mgr {
+	struct list_head list;
+	int (*notify)(struct xfrm_state *, const struct km_event *);
+	int (*acquire)(struct xfrm_state *, struct xfrm_tmpl *, struct xfrm_policy *);
+	struct xfrm_policy * (*compile_policy)(struct sock *, int, u8 *, int, int *);
+	int (*new_mapping)(struct xfrm_state *, xfrm_address_t *, __be16);
+	int (*notify_policy)(struct xfrm_policy *, int, const struct km_event *);
+	int (*report)(struct net *, u8, struct xfrm_selector *, xfrm_address_t *);
+	int (*migrate)(const struct xfrm_selector *, u8, u8, const struct xfrm_migrate *, int, const struct xfrm_kmaddress *, const struct xfrm_encap_tmpl *);
+	bool (*is_alive)(const struct km_event *);
+};
+
+struct xfrmk_sadinfo {
+	u32 sadhcnt;
+	u32 sadhmcnt;
+	u32 sadcnt;
+};
+
+struct xfrm_translator {
+	int (*alloc_compat)(struct sk_buff *, const struct nlmsghdr *);
+	struct nlmsghdr * (*rcv_msg_compat)(const struct nlmsghdr *, int, const struct nla_policy *, struct netlink_ext_ack *);
+	int (*xlate_user_policy_sockptr)(u8 **, int);
+	struct module *owner;
+};
+
+struct ip_beet_phdr {
+	__u8 nexthdr;
+	__u8 hdrlen;
+	__u8 padlen;
+	__u8 reserved;
+};
+
+struct ip_tunnel_6rd_parm {
+	struct in6_addr prefix;
+	__be32 relay_prefix;
+	u16 prefixlen;
+	u16 relay_prefixlen;
+};
+
+struct ip_tunnel_fan {
+	struct list_head fan_maps;
+};
+
+struct ip_tunnel_prl_entry;
+
+struct ip_tunnel {
+	struct ip_tunnel *next;
+	struct hlist_node hash_node;
+	struct net_device *dev;
+	struct net *net;
+	long unsigned int err_time;
+	int err_count;
+	u32 i_seqno;
+	u32 o_seqno;
+	int tun_hlen;
+	u32 index;
+	u8 erspan_ver;
+	u8 dir;
+	u16 hwid;
+	struct dst_cache dst_cache;
+	struct ip_tunnel_parm parms;
+	int mlink;
+	int encap_hlen;
+	int hlen;
+	struct ip_tunnel_encap encap;
+	struct ip_tunnel_6rd_parm ip6rd;
+	struct ip_tunnel_prl_entry *prl;
+	unsigned int prl_count;
+	struct ip_tunnel_fan fan;
+	unsigned int ip_tnl_net_id;
+	struct gro_cells gro_cells;
+	__u32 fwmark;
+	bool collect_md;
+	bool ignore_df;
+};
+
+struct __ip6_tnl_parm {
+	char name[16];
+	int link;
+	__u8 proto;
+	__u8 encap_limit;
+	__u8 hop_limit;
+	bool collect_md;
+	__be32 flowinfo;
+	__u32 flags;
+	struct in6_addr laddr;
+	struct in6_addr raddr;
+	__be16 i_flags;
+	__be16 o_flags;
+	__be32 i_key;
+	__be32 o_key;
+	__u32 fwmark;
+	__u32 index;
+	__u8 erspan_ver;
+	__u8 dir;
+	__u16 hwid;
+};
+
+struct ip6_tnl {
+	struct ip6_tnl *next;
+	struct net_device *dev;
+	struct net *net;
+	struct __ip6_tnl_parm parms;
+	struct flowi fl;
+	struct dst_cache dst_cache;
+	struct gro_cells gro_cells;
+	int err_count;
+	long unsigned int err_time;
+	__u32 i_seqno;
+	__u32 o_seqno;
+	int hlen;
+	int tun_hlen;
+	int encap_hlen;
+	struct ip_tunnel_encap encap;
+	int mlink;
+};
+
+struct xfrm_skb_cb {
+	struct xfrm_tunnel_skb_cb header;
+	union {
+		struct {
+			__u32 low;
+			__u32 hi;
+		} output;
+		struct {
+			__be32 low;
+			__be32 hi;
+		} input;
+	} seq;
+};
+
+struct ip_tunnel_prl_entry {
+	struct ip_tunnel_prl_entry *next;
+	__be32 addr;
+	u16 flags;
+	struct callback_head callback_head;
+};
+
+struct xfrm_trans_tasklet {
+	struct tasklet_struct tasklet;
+	struct sk_buff_head queue;
+};
+
+struct xfrm_trans_cb {
+	union {
+		struct inet_skb_parm h4;
+		struct inet6_skb_parm h6;
+	} header;
+	int (*finish)(struct net *, struct sock *, struct sk_buff *);
+	struct net *net;
+};
+
+struct xfrm_user_offload {
+	int ifindex;
+	__u8 flags;
+};
+
+struct espintcp_msg {
+	struct sk_buff *skb;
+	struct sk_msg skmsg;
+	int offset;
+	int len;
+};
+
+struct espintcp_ctx {
+	struct strparser strp;
+	struct sk_buff_head ike_queue;
+	struct sk_buff_head out_queue;
+	struct espintcp_msg partial;
+	void (*saved_data_ready)(struct sock *);
+	void (*saved_write_space)(struct sock *);
+	void (*saved_destruct)(struct sock *);
+	struct work_struct work;
+	bool tx_running;
+};
+
+struct unix_stream_read_state {
+	int (*recv_actor)(struct sk_buff *, int, int, struct unix_stream_read_state *);
+	struct socket *socket;
+	struct msghdr *msg;
+	struct pipe_inode_info *pipe;
+	size_t size;
+	int flags;
+	unsigned int splice_flags;
+};
+
+struct bpf_iter__unix {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct unix_sock *unix_sk;
+	};
+	uid_t uid;
+};
+
+struct ioam6_pernet_data {
+	struct mutex lock;
+	struct rhashtable namespaces;
+	struct rhashtable schemas;
+};
+
+struct ipv6_params {
+	__s32 disable_ipv6;
+	__s32 autoconf;
+};
+
+enum flowlabel_reflect {
+	FLOWLABEL_REFLECT_ESTABLISHED = 1,
+	FLOWLABEL_REFLECT_TCP_RESET = 2,
+	FLOWLABEL_REFLECT_ICMPV6_ECHO_REPLIES = 4,
+};
+
+struct in6_rtmsg {
+	struct in6_addr rtmsg_dst;
+	struct in6_addr rtmsg_src;
+	struct in6_addr rtmsg_gateway;
+	__u32 rtmsg_type;
+	__u16 rtmsg_dst_len;
+	__u16 rtmsg_src_len;
+	__u32 rtmsg_metric;
+	long unsigned int rtmsg_info;
+	__u32 rtmsg_flags;
+	int rtmsg_ifindex;
+};
+
+struct ac6_iter_state {
+	struct seq_net_private p;
+	struct net_device *dev;
+	struct inet6_dev *idev;
+};
+
+struct ip6_fraglist_iter {
+	struct ipv6hdr *tmp_hdr;
+	struct sk_buff *frag;
+	int offset;
+	unsigned int hlen;
+	__be32 frag_id;
+	u8 nexthdr;
+};
+
+struct ip6_frag_state {
+	u8 *prevhdr;
+	unsigned int hlen;
+	unsigned int mtu;
+	unsigned int left;
+	int offset;
+	int ptr;
+	int hroom;
+	int troom;
+	__be32 frag_id;
+	u8 nexthdr;
+};
+
+struct ip6_ra_chain {
+	struct ip6_ra_chain *next;
+	struct sock *sk;
+	int sel;
+	void (*destructor)(struct sock *);
+};
+
+struct ipcm6_cookie {
+	struct sockcm_cookie sockc;
+	__s16 hlimit;
+	__s16 tclass;
+	__s8 dontfrag;
+	struct ipv6_txoptions *opt;
+	__u16 gso_size;
+};
+
+enum {
+	IFLA_INET6_UNSPEC = 0,
+	IFLA_INET6_FLAGS = 1,
+	IFLA_INET6_CONF = 2,
+	IFLA_INET6_STATS = 3,
+	IFLA_INET6_MCAST = 4,
+	IFLA_INET6_CACHEINFO = 5,
+	IFLA_INET6_ICMP6STATS = 6,
+	IFLA_INET6_TOKEN = 7,
+	IFLA_INET6_ADDR_GEN_MODE = 8,
+	IFLA_INET6_RA_MTU = 9,
+	__IFLA_INET6_MAX = 10,
+};
+
+enum in6_addr_gen_mode {
+	IN6_ADDR_GEN_MODE_EUI64 = 0,
+	IN6_ADDR_GEN_MODE_NONE = 1,
+	IN6_ADDR_GEN_MODE_STABLE_PRIVACY = 2,
+	IN6_ADDR_GEN_MODE_RANDOM = 3,
+};
+
+struct ifla_cacheinfo {
+	__u32 max_reasm_len;
+	__u32 tstamp;
+	__u32 reachable_time;
+	__u32 retrans_time;
+};
+
+struct prefixmsg {
+	unsigned char prefix_family;
+	unsigned char prefix_pad1;
+	short unsigned int prefix_pad2;
+	int prefix_ifindex;
+	unsigned char prefix_type;
+	unsigned char prefix_len;
+	unsigned char prefix_flags;
+	unsigned char prefix_pad3;
+};
+
+enum {
+	PREFIX_UNSPEC = 0,
+	PREFIX_ADDRESS = 1,
+	PREFIX_CACHEINFO = 2,
+	__PREFIX_MAX = 3,
+};
+
+struct prefix_cacheinfo {
+	__u32 preferred_time;
+	__u32 valid_time;
+};
+
+struct in6_ifreq {
+	struct in6_addr ifr6_addr;
+	__u32 ifr6_prefixlen;
+	int ifr6_ifindex;
+};
+
+enum {
+	DEVCONF_FORWARDING = 0,
+	DEVCONF_HOPLIMIT = 1,
+	DEVCONF_MTU6 = 2,
+	DEVCONF_ACCEPT_RA = 3,
+	DEVCONF_ACCEPT_REDIRECTS = 4,
+	DEVCONF_AUTOCONF = 5,
+	DEVCONF_DAD_TRANSMITS = 6,
+	DEVCONF_RTR_SOLICITS = 7,
+	DEVCONF_RTR_SOLICIT_INTERVAL = 8,
+	DEVCONF_RTR_SOLICIT_DELAY = 9,
+	DEVCONF_USE_TEMPADDR = 10,
+	DEVCONF_TEMP_VALID_LFT = 11,
+	DEVCONF_TEMP_PREFERED_LFT = 12,
+	DEVCONF_REGEN_MAX_RETRY = 13,
+	DEVCONF_MAX_DESYNC_FACTOR = 14,
+	DEVCONF_MAX_ADDRESSES = 15,
+	DEVCONF_FORCE_MLD_VERSION = 16,
+	DEVCONF_ACCEPT_RA_DEFRTR = 17,
+	DEVCONF_ACCEPT_RA_PINFO = 18,
+	DEVCONF_ACCEPT_RA_RTR_PREF = 19,
+	DEVCONF_RTR_PROBE_INTERVAL = 20,
+	DEVCONF_ACCEPT_RA_RT_INFO_MAX_PLEN = 21,
+	DEVCONF_PROXY_NDP = 22,
+	DEVCONF_OPTIMISTIC_DAD = 23,
+	DEVCONF_ACCEPT_SOURCE_ROUTE = 24,
+	DEVCONF_MC_FORWARDING = 25,
+	DEVCONF_DISABLE_IPV6 = 26,
+	DEVCONF_ACCEPT_DAD = 27,
+	DEVCONF_FORCE_TLLAO = 28,
+	DEVCONF_NDISC_NOTIFY = 29,
+	DEVCONF_MLDV1_UNSOLICITED_REPORT_INTERVAL = 30,
+	DEVCONF_MLDV2_UNSOLICITED_REPORT_INTERVAL = 31,
+	DEVCONF_SUPPRESS_FRAG_NDISC = 32,
+	DEVCONF_ACCEPT_RA_FROM_LOCAL = 33,
+	DEVCONF_USE_OPTIMISTIC = 34,
+	DEVCONF_ACCEPT_RA_MTU = 35,
+	DEVCONF_STABLE_SECRET = 36,
+	DEVCONF_USE_OIF_ADDRS_ONLY = 37,
+	DEVCONF_ACCEPT_RA_MIN_HOP_LIMIT = 38,
+	DEVCONF_IGNORE_ROUTES_WITH_LINKDOWN = 39,
+	DEVCONF_DROP_UNICAST_IN_L2_MULTICAST = 40,
+	DEVCONF_DROP_UNSOLICITED_NA = 41,
+	DEVCONF_KEEP_ADDR_ON_DOWN = 42,
+	DEVCONF_RTR_SOLICIT_MAX_INTERVAL = 43,
+	DEVCONF_SEG6_ENABLED = 44,
+	DEVCONF_SEG6_REQUIRE_HMAC = 45,
+	DEVCONF_ENHANCED_DAD = 46,
+	DEVCONF_ADDR_GEN_MODE = 47,
+	DEVCONF_DISABLE_POLICY = 48,
+	DEVCONF_ACCEPT_RA_RT_INFO_MIN_PLEN = 49,
+	DEVCONF_NDISC_TCLASS = 50,
+	DEVCONF_RPL_SEG_ENABLED = 51,
+	DEVCONF_RA_DEFRTR_METRIC = 52,
+	DEVCONF_IOAM6_ENABLED = 53,
+	DEVCONF_IOAM6_ID = 54,
+	DEVCONF_IOAM6_ID_WIDE = 55,
+	DEVCONF_MAX = 56,
+};
+
+enum {
+	INET6_IFADDR_STATE_PREDAD = 0,
+	INET6_IFADDR_STATE_DAD = 1,
+	INET6_IFADDR_STATE_POSTDAD = 2,
+	INET6_IFADDR_STATE_ERRDAD = 3,
+	INET6_IFADDR_STATE_DEAD = 4,
+};
+
+union fwnet_hwaddr {
+	u8 u[16];
+	struct {
+		__be64 uniq_id;
+		u8 max_rec;
+		u8 sspd;
+		__be16 fifo_hi;
+		__be32 fifo_lo;
+	} uc;
+};
+
+struct in6_validator_info {
+	struct in6_addr i6vi_addr;
+	struct inet6_dev *i6vi_dev;
+	struct netlink_ext_ack *extack;
+};
+
+struct ifa6_config {
+	const struct in6_addr *pfx;
+	unsigned int plen;
+	const struct in6_addr *peer_pfx;
+	u32 rt_priority;
+	u32 ifa_flags;
+	u32 preferred_lft;
+	u32 valid_lft;
+	u16 scope;
+};
+
+enum cleanup_prefix_rt_t {
+	CLEANUP_PREFIX_RT_NOP = 0,
+	CLEANUP_PREFIX_RT_DEL = 1,
+	CLEANUP_PREFIX_RT_EXPIRE = 2,
+};
+
+enum {
+	IPV6_SADDR_RULE_INIT = 0,
+	IPV6_SADDR_RULE_LOCAL = 1,
+	IPV6_SADDR_RULE_SCOPE = 2,
+	IPV6_SADDR_RULE_PREFERRED = 3,
+	IPV6_SADDR_RULE_OIF = 4,
+	IPV6_SADDR_RULE_LABEL = 5,
+	IPV6_SADDR_RULE_PRIVACY = 6,
+	IPV6_SADDR_RULE_ORCHID = 7,
+	IPV6_SADDR_RULE_PREFIX = 8,
+	IPV6_SADDR_RULE_MAX = 9,
+};
+
+struct ipv6_saddr_score {
+	int rule;
+	int addr_type;
+	struct inet6_ifaddr *ifa;
+	long unsigned int scorebits[1];
+	int scopedist;
+	int matchlen;
+};
+
+struct ipv6_saddr_dst {
+	const struct in6_addr *addr;
+	int ifindex;
+	int scope;
+	int label;
+	unsigned int prefs;
+};
+
+struct if6_iter_state {
+	struct seq_net_private p;
+	int bucket;
+	int offset;
+};
+
+enum addr_type_t {
+	UNICAST_ADDR = 0,
+	MULTICAST_ADDR = 1,
+	ANYCAST_ADDR = 2,
+};
+
+struct inet6_fill_args {
+	u32 portid;
+	u32 seq;
+	int event;
+	unsigned int flags;
+	int netnsid;
+	int ifindex;
+	enum addr_type_t type;
+};
+
+enum {
+	DAD_PROCESS = 0,
+	DAD_BEGIN = 1,
+	DAD_ABORT = 2,
+};
+
+struct ifaddrlblmsg {
+	__u8 ifal_family;
+	__u8 __ifal_reserved;
+	__u8 ifal_prefixlen;
+	__u8 ifal_flags;
+	__u32 ifal_index;
+	__u32 ifal_seq;
+};
+
+enum {
+	IFAL_ADDRESS = 1,
+	IFAL_LABEL = 2,
+	__IFAL_MAX = 3,
+};
+
+struct ip6addrlbl_entry {
+	struct in6_addr prefix;
+	int prefixlen;
+	int ifindex;
+	int addrtype;
+	u32 label;
+	struct hlist_node list;
+	struct callback_head rcu;
+};
+
+struct ip6addrlbl_init_table {
+	const struct in6_addr *prefix;
+	int prefixlen;
+	u32 label;
+};
+
+struct rd_msg {
+	struct icmp6hdr icmph;
+	struct in6_addr target;
+	struct in6_addr dest;
+	__u8 opt[0];
+};
+
+struct fib6_gc_args {
+	int timeout;
+	int more;
+};
+
+struct rt6_exception {
+	struct hlist_node hlist;
+	struct rt6_info *rt6i;
+	long unsigned int stamp;
+	struct callback_head rcu;
+};
+
+typedef struct rt6_info * (*pol_lookup_t)(struct net *, struct fib6_table *, struct flowi6 *, const struct sk_buff *, int);
+
+struct route_info {
+	__u8 type;
+	__u8 length;
+	__u8 prefix_len;
+	__u8 reserved_l: 3;
+	__u8 route_pref: 2;
+	__u8 reserved_h: 3;
+	__be32 lifetime;
+	__u8 prefix[0];
+};
+
+struct rt6_rtnl_dump_arg {
+	struct sk_buff *skb;
+	struct netlink_callback *cb;
+	struct net *net;
+	struct fib_dump_filter filter;
+};
+
+struct netevent_redirect {
+	struct dst_entry *old;
+	struct dst_entry *new;
+	struct neighbour *neigh;
+	const void *daddr;
+};
+
+struct trace_event_raw_fib6_table_lookup {
+	struct trace_entry ent;
+	u32 tb_id;
+	int err;
+	int oif;
+	int iif;
+	__u8 tos;
+	__u8 scope;
+	__u8 flags;
+	__u8 src[16];
+	__u8 dst[16];
+	u16 sport;
+	u16 dport;
+	u8 proto;
+	u8 rt_type;
+	u32 __data_loc_name;
+	__u8 gw[16];
+	char __data[0];
+};
+
+struct trace_event_data_offsets_fib6_table_lookup {
+	u32 name;
+};
+
+typedef void (*btf_trace_fib6_table_lookup)(void *, const struct net *, const struct fib6_result *, struct fib6_table *, const struct flowi6 *);
+
+enum rt6_nud_state {
+	RT6_NUD_FAIL_HARD = 4294967293,
+	RT6_NUD_FAIL_PROBE = 4294967294,
+	RT6_NUD_FAIL_DO_RR = 4294967295,
+	RT6_NUD_SUCCEED = 1,
+};
+
+struct fib6_nh_dm_arg {
+	struct net *net;
+	const struct in6_addr *saddr;
+	int oif;
+	int flags;
+	struct fib6_nh *nh;
+};
+
+struct __rt6_probe_work {
+	struct work_struct work;
+	struct in6_addr target;
+	struct net_device *dev;
+};
+
+struct fib6_nh_frl_arg {
+	u32 flags;
+	int oif;
+	int strict;
+	int *mpri;
+	bool *do_rr;
+	struct fib6_nh *nh;
+};
+
+struct fib6_nh_excptn_arg {
+	struct rt6_info *rt;
+	int plen;
+};
+
+struct fib6_nh_match_arg {
+	const struct net_device *dev;
+	const struct in6_addr *gw;
+	struct fib6_nh *match;
+};
+
+struct fib6_nh_age_excptn_arg {
+	struct fib6_gc_args *gc_args;
+	long unsigned int now;
+};
+
+struct fib6_nh_rd_arg {
+	struct fib6_result *res;
+	struct flowi6 *fl6;
+	const struct in6_addr *gw;
+	struct rt6_info **ret;
+};
+
+struct ip6rd_flowi {
+	struct flowi6 fl6;
+	struct in6_addr gateway;
+};
+
+struct fib6_nh_del_cached_rt_arg {
+	struct fib6_config *cfg;
+	struct fib6_info *f6i;
+};
+
+struct arg_dev_net_ip {
+	struct net_device *dev;
+	struct net *net;
+	struct in6_addr *addr;
+};
+
+struct arg_netdev_event {
+	const struct net_device *dev;
+	union {
+		unsigned char nh_flags;
+		long unsigned int event;
+	};
+};
+
+struct rt6_mtu_change_arg {
+	struct net_device *dev;
+	unsigned int mtu;
+	struct fib6_info *f6i;
+};
+
+struct rt6_nh {
+	struct fib6_info *fib6_info;
+	struct fib6_config r_cfg;
+	struct list_head next;
+};
+
+struct fib6_nh_exception_dump_walker {
+	struct rt6_rtnl_dump_arg *dump;
+	struct fib6_info *rt;
+	unsigned int flags;
+	unsigned int skip;
+	unsigned int count;
+};
+
+enum fib6_walk_state {
+	FWS_S = 0,
+	FWS_L = 1,
+	FWS_R = 2,
+	FWS_C = 3,
+	FWS_U = 4,
+};
+
+struct fib6_walker {
+	struct list_head lh;
+	struct fib6_node *root;
+	struct fib6_node *node;
+	struct fib6_info *leaf;
+	enum fib6_walk_state state;
+	unsigned int skip;
+	unsigned int count;
+	unsigned int skip_in_node;
+	int (*func)(struct fib6_walker *);
+	void *args;
+};
+
+struct fib6_entry_notifier_info {
+	struct fib_notifier_info info;
+	struct fib6_info *rt;
+	unsigned int nsiblings;
+};
+
+struct ipv6_route_iter {
+	struct seq_net_private p;
+	struct fib6_walker w;
+	loff_t skip;
+	struct fib6_table *tbl;
+	int sernum;
+};
+
+struct bpf_iter__ipv6_route {
+	union {
+		struct bpf_iter_meta *meta;
+	};
+	union {
+		struct fib6_info *rt;
+	};
+};
+
+struct fib6_cleaner {
+	struct fib6_walker w;
+	struct net *net;
+	int (*func)(struct fib6_info *, void *);
+	int sernum;
+	void *arg;
+	bool skip_notify;
+};
+
+enum {
+	FIB6_NO_SERNUM_CHANGE = 0,
+};
+
+struct fib6_dump_arg {
+	struct net *net;
+	struct notifier_block *nb;
+	struct netlink_ext_ack *extack;
+};
+
+struct fib6_nh_pcpu_arg {
+	struct fib6_info *from;
+	const struct fib6_table *table;
+};
+
+struct lookup_args {
+	int offset;
+	const struct in6_addr *addr;
+};
+
+struct ipv6_mreq {
+	struct in6_addr ipv6mr_multiaddr;
+	int ipv6mr_ifindex;
+};
+
+struct in6_flowlabel_req {
+	struct in6_addr flr_dst;
+	__be32 flr_label;
+	__u8 flr_action;
+	__u8 flr_share;
+	__u16 flr_flags;
+	__u16 flr_expires;
+	__u16 flr_linger;
+	__u32 __flr_pad;
+};
+
+struct ip6_mtuinfo {
+	struct sockaddr_in6 ip6m_addr;
+	__u32 ip6m_mtu;
+};
+
+struct nduseroptmsg {
+	unsigned char nduseropt_family;
+	unsigned char nduseropt_pad1;
+	short unsigned int nduseropt_opts_len;
+	int nduseropt_ifindex;
+	__u8 nduseropt_icmp_type;
+	__u8 nduseropt_icmp_code;
+	short unsigned int nduseropt_pad2;
+	unsigned int nduseropt_pad3;
+};
+
+enum {
+	NDUSEROPT_UNSPEC = 0,
+	NDUSEROPT_SRCADDR = 1,
+	__NDUSEROPT_MAX = 2,
+};
+
+struct nd_msg {
+	struct icmp6hdr icmph;
+	struct in6_addr target;
+	__u8 opt[0];
+};
+
+struct rs_msg {
+	struct icmp6hdr icmph;
+	__u8 opt[0];
+};
+
+struct ra_msg {
+	struct icmp6hdr icmph;
+	__be32 reachable_time;
+	__be32 retrans_timer;
+};
+
+struct icmp6_filter {
+	__u32 data[8];
+};
+
+struct raw6_sock {
+	struct inet_sock inet;
+	__u32 checksum;
+	__u32 offset;
+	struct icmp6_filter filter;
+	__u32 ip6mr_table;
+	struct ipv6_pinfo inet6;
+};
+
+typedef int mh_filter_t(struct sock *, struct sk_buff *);
+
+struct raw6_frag_vec {
+	struct msghdr *msg;
+	int hlen;
+	char c[4];
+};
+
+struct ipv6_destopt_hao {
+	__u8 type;
+	__u8 length;
+	struct in6_addr addr;
+} __attribute__((packed));
+
+typedef void ip6_icmp_send_t(struct sk_buff *, u8, u8, __u32, const struct in6_addr *, const struct inet6_skb_parm *);
+
+struct icmpv6_msg {
+	struct sk_buff *skb;
+	int offset;
+	uint8_t type;
+};
+
+struct icmp6_err {
+	int err;
+	int fatal;
+};
+
+struct mld_msg {
+	struct icmp6hdr mld_hdr;
+	struct in6_addr mld_mca;
+};
+
+struct mld2_grec {
+	__u8 grec_type;
+	__u8 grec_auxwords;
+	__be16 grec_nsrcs;
+	struct in6_addr grec_mca;
+	struct in6_addr grec_src[0];
+};
+
+struct mld2_report {
+	struct icmp6hdr mld2r_hdr;
+	struct mld2_grec mld2r_grec[0];
+};
+
+struct mld2_query {
+	struct icmp6hdr mld2q_hdr;
+	struct in6_addr mld2q_mca;
+	__u8 mld2q_qrv: 3;
+	__u8 mld2q_suppress: 1;
+	__u8 mld2q_resv2: 4;
+	__u8 mld2q_qqic;
+	__be16 mld2q_nsrcs;
+	struct in6_addr mld2q_srcs[0];
+};
+
+struct igmp6_mc_iter_state {
+	struct seq_net_private p;
+	struct net_device *dev;
+	struct inet6_dev *idev;
+};
+
+struct igmp6_mcf_iter_state {
+	struct seq_net_private p;
+	struct net_device *dev;
+	struct inet6_dev *idev;
+	struct ifmcaddr6 *im;
+};
+
+enum ip6_defrag_users {
+	IP6_DEFRAG_LOCAL_DELIVER = 0,
+	IP6_DEFRAG_CONNTRACK_IN = 1,
+	__IP6_DEFRAG_CONNTRACK_IN = 65536,
+	IP6_DEFRAG_CONNTRACK_OUT = 65537,
+	__IP6_DEFRAG_CONNTRACK_OUT = 131072,
+	IP6_DEFRAG_CONNTRACK_BRIDGE_IN = 131073,
+	__IP6_DEFRAG_CONNTRACK_BRIDGE_IN = 196608,
+};
+
+struct frag_queue {
+	struct inet_frag_queue q;
+	int iif;
+	__u16 nhoffset;
+	u8 ecn;
+};
+
+struct tcp6_pseudohdr {
+	struct in6_addr saddr;
+	struct in6_addr daddr;
+	__be32 len;
+	__be32 protocol;
+};
+
+struct rt0_hdr {
+	struct ipv6_rt_hdr rt_hdr;
+	__u32 reserved;
+	struct in6_addr addr[0];
+};
+
+struct ipv6_rpl_sr_hdr {
+	__u8 nexthdr;
+	__u8 hdrlen;
+	__u8 type;
+	__u8 segments_left;
+	__u32 cmpre: 4;
+	__u32 cmpri: 4;
+	__u32 reserved: 4;
+	__u32 pad: 4;
+	__u32 reserved1: 16;
+	union {
+		struct in6_addr addr[0];
+		__u8 data[0];
+	} segments;
+};
+
+struct ioam6_hdr {
+	__u8 opt_type;
+	__u8 opt_len;
+	char: 8;
+	__u8 type;
+};
+
+struct ioam6_trace_hdr {
+	__be16 namespace_id;
+	char: 2;
+	__u8 overflow: 1;
+	__u8 nodelen: 5;
+	__u8 remlen: 7;
+	union {
+		__be32 type_be32;
+		struct {
+			__u32 bit7: 1;
+			__u32 bit6: 1;
+			__u32 bit5: 1;
+			__u32 bit4: 1;
+			__u32 bit3: 1;
+			__u32 bit2: 1;
+			__u32 bit1: 1;
+			__u32 bit0: 1;
+			__u32 bit15: 1;
+			__u32 bit14: 1;
+			__u32 bit13: 1;
+			__u32 bit12: 1;
+			__u32 bit11: 1;
+			__u32 bit10: 1;
+			__u32 bit9: 1;
+			__u32 bit8: 1;
+			__u32 bit23: 1;
+			__u32 bit22: 1;
+			__u32 bit21: 1;
+			__u32 bit20: 1;
+			__u32 bit19: 1;
+			__u32 bit18: 1;
+			__u32 bit17: 1;
+			__u32 bit16: 1;
+		} type;
+	};
+	__u8 data[0];
+};
+
+struct ioam6_schema;
+
+struct ioam6_namespace {
+	struct rhash_head head;
+	struct callback_head rcu;
+	struct ioam6_schema *schema;
+	__be16 id;
+	__be32 data;
+	__be64 data_wide;
+};
+
+struct ioam6_schema {
+	struct rhash_head head;
+	struct callback_head rcu;
+	struct ioam6_namespace *ns;
+	u32 id;
+	int len;
+	__be32 hdr;
+	u8 data[0];
+};
+
+struct ip6fl_iter_state {
+	struct seq_net_private p;
+	struct pid_namespace *pid_ns;
+	int bucket;
+};
+
+struct sr6_tlv {
+	__u8 type;
+	__u8 len;
+	__u8 data[0];
+};
+
+enum {
+	SEG6_ATTR_UNSPEC = 0,
+	SEG6_ATTR_DST = 1,
+	SEG6_ATTR_DSTLEN = 2,
+	SEG6_ATTR_HMACKEYID = 3,
+	SEG6_ATTR_SECRET = 4,
+	SEG6_ATTR_SECRETLEN = 5,
+	SEG6_ATTR_ALGID = 6,
+	SEG6_ATTR_HMACINFO = 7,
+	__SEG6_ATTR_MAX = 8,
+};
+
+enum {
+	SEG6_CMD_UNSPEC = 0,
+	SEG6_CMD_SETHMAC = 1,
+	SEG6_CMD_DUMPHMAC = 2,
+	SEG6_CMD_SET_TUNSRC = 3,
+	SEG6_CMD_GET_TUNSRC = 4,
+	__SEG6_CMD_MAX = 5,
+};
+
+struct seg6_hmac_info {
+	struct rhash_head node;
+	struct callback_head rcu;
+	u32 hmackeyid;
+	char secret[64];
+	u8 slen;
+	u8 alg_id;
+};
+
+enum {
+	IOAM6_ATTR_UNSPEC = 0,
+	IOAM6_ATTR_NS_ID = 1,
+	IOAM6_ATTR_NS_DATA = 2,
+	IOAM6_ATTR_NS_DATA_WIDE = 3,
+	IOAM6_ATTR_SC_ID = 4,
+	IOAM6_ATTR_SC_DATA = 5,
+	IOAM6_ATTR_SC_NONE = 6,
+	IOAM6_ATTR_PAD = 7,
+	__IOAM6_ATTR_MAX = 8,
+};
+
+enum {
+	IOAM6_CMD_UNSPEC = 0,
+	IOAM6_CMD_ADD_NAMESPACE = 1,
+	IOAM6_CMD_DEL_NAMESPACE = 2,
+	IOAM6_CMD_DUMP_NAMESPACES = 3,
+	IOAM6_CMD_ADD_SCHEMA = 4,
+	IOAM6_CMD_DEL_SCHEMA = 5,
+	IOAM6_CMD_DUMP_SCHEMAS = 6,
+	IOAM6_CMD_NS_SET_SCHEMA = 7,
+	__IOAM6_CMD_MAX = 8,
+};
+
+typedef short unsigned int mifi_t;
+
+typedef __u32 if_mask;
+
+struct if_set {
+	if_mask ifs_bits[8];
+};
+
+struct mif6ctl {
+	mifi_t mif6c_mifi;
+	unsigned char mif6c_flags;
+	unsigned char vifc_threshold;
+	__u16 mif6c_pifi;
+	unsigned int vifc_rate_limit;
+};
+
+struct mf6cctl {
+	struct sockaddr_in6 mf6cc_origin;
+	struct sockaddr_in6 mf6cc_mcastgrp;
+	mifi_t mf6cc_parent;
+	struct if_set mf6cc_ifset;
+};
+
+struct sioc_sg_req6 {
+	struct sockaddr_in6 src;
+	struct sockaddr_in6 grp;
+	long unsigned int pktcnt;
+	long unsigned int bytecnt;
+	long unsigned int wrong_if;
+};
+
+struct sioc_mif_req6 {
+	mifi_t mifi;
+	long unsigned int icount;
+	long unsigned int ocount;
+	long unsigned int ibytes;
+	long unsigned int obytes;
+};
+
+struct mrt6msg {
+	__u8 im6_mbz;
+	__u8 im6_msgtype;
+	__u16 im6_mif;
+	__u32 im6_pad;
+	struct in6_addr im6_src;
+	struct in6_addr im6_dst;
+};
+
+enum {
+	IP6MRA_CREPORT_UNSPEC = 0,
+	IP6MRA_CREPORT_MSGTYPE = 1,
+	IP6MRA_CREPORT_MIF_ID = 2,
+	IP6MRA_CREPORT_SRC_ADDR = 3,
+	IP6MRA_CREPORT_DST_ADDR = 4,
+	IP6MRA_CREPORT_PKT = 5,
+	__IP6MRA_CREPORT_MAX = 6,
+};
+
+struct mfc6_cache_cmp_arg {
+	struct in6_addr mf6c_mcastgrp;
+	struct in6_addr mf6c_origin;
+};
+
+struct mfc6_cache {
+	struct mr_mfc _c;
+	union {
+		struct {
+			struct in6_addr mf6c_mcastgrp;
+			struct in6_addr mf6c_origin;
+		};
+		struct mfc6_cache_cmp_arg cmparg;
+	};
+};
+
+struct ip6mr_result {
+	struct mr_table *mrt;
+};
+
+struct xfrm6_protocol {
+	int (*handler)(struct sk_buff *);
+	int (*input_handler)(struct sk_buff *, int, __be32, int);
+	int (*cb_handler)(struct sk_buff *, int);
+	int (*err_handler)(struct sk_buff *, struct inet6_skb_parm *, u8, u8, int, __be32);
+	struct xfrm6_protocol *next;
+	int priority;
+};
+
+struct br_input_skb_cb {
+	struct net_device *brdev;
+	u16 frag_max_size;
+	u8 igmp;
+	u8 mrouters_only: 1;
+	u8 proxyarp_replied: 1;
+	u8 src_port_isolated: 1;
+	u8 vlan_filtered: 1;
+	u8 br_netfilter_broute: 1;
+	u8 tx_fwd_offload: 1;
+	int src_hwdom;
+	long unsigned int fwd_hwdoms;
+};
+
+struct nf_bridge_frag_data;
+
+struct fib6_rule {
+	struct fib_rule common;
+	struct rt6key src;
+	struct rt6key dst;
+	u8 tclass;
+};
+
+struct calipso_doi;
+
+struct netlbl_calipso_ops {
+	int (*doi_add)(struct calipso_doi *, struct netlbl_audit *);
+	void (*doi_free)(struct calipso_doi *);
+	int (*doi_remove)(u32, struct netlbl_audit *);
+	struct calipso_doi * (*doi_getdef)(u32);
+	void (*doi_putdef)(struct calipso_doi *);
+	int (*doi_walk)(u32 *, int (*)(struct calipso_doi *, void *), void *);
+	int (*sock_getattr)(struct sock *, struct netlbl_lsm_secattr *);
+	int (*sock_setattr)(struct sock *, const struct calipso_doi *, const struct netlbl_lsm_secattr *);
+	void (*sock_delattr)(struct sock *);
+	int (*req_setattr)(struct request_sock *, const struct calipso_doi *, const struct netlbl_lsm_secattr *);
+	void (*req_delattr)(struct request_sock *);
+	int (*opt_getattr)(const unsigned char *, struct netlbl_lsm_secattr *);
+	unsigned char * (*skbuff_optptr)(const struct sk_buff *);
+	int (*skbuff_setattr)(struct sk_buff *, const struct calipso_doi *, const struct netlbl_lsm_secattr *);
+	int (*skbuff_delattr)(struct sk_buff *);
+	void (*cache_invalidate)();
+	int (*cache_add)(const unsigned char *, const struct netlbl_lsm_secattr *);
+};
+
+struct calipso_doi {
+	u32 doi;
+	u32 type;
+	refcount_t refcount;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct calipso_map_cache_bkt {
+	spinlock_t lock;
+	u32 size;
+	struct list_head list;
+};
+
+struct calipso_map_cache_entry {
+	u32 hash;
+	unsigned char *key;
+	size_t key_len;
+	struct netlbl_lsm_cache *lsm_data;
+	u32 activity;
+	struct list_head list;
+};
+
+enum {
+	SEG6_IPTUNNEL_UNSPEC = 0,
+	SEG6_IPTUNNEL_SRH = 1,
+	__SEG6_IPTUNNEL_MAX = 2,
+};
+
+struct seg6_iptunnel_encap {
+	int mode;
+	struct ipv6_sr_hdr srh[0];
+};
+
+enum {
+	SEG6_IPTUN_MODE_INLINE = 0,
+	SEG6_IPTUN_MODE_ENCAP = 1,
+	SEG6_IPTUN_MODE_L2ENCAP = 2,
+};
+
+struct seg6_lwt {
+	struct dst_cache cache;
+	struct seg6_iptunnel_encap tuninfo[0];
+};
+
+enum l3mdev_type {
+	L3MDEV_TYPE_UNSPEC = 0,
+	L3MDEV_TYPE_VRF = 1,
+	__L3MDEV_TYPE_MAX = 2,
+};
+
+enum {
+	IP6_FH_F_FRAG = 1,
+	IP6_FH_F_AUTH = 2,
+	IP6_FH_F_SKIP_RH = 4,
+};
+
+enum {
+	SEG6_LOCAL_UNSPEC = 0,
+	SEG6_LOCAL_ACTION = 1,
+	SEG6_LOCAL_SRH = 2,
+	SEG6_LOCAL_TABLE = 3,
+	SEG6_LOCAL_NH4 = 4,
+	SEG6_LOCAL_NH6 = 5,
+	SEG6_LOCAL_IIF = 6,
+	SEG6_LOCAL_OIF = 7,
+	SEG6_LOCAL_BPF = 8,
+	SEG6_LOCAL_VRFTABLE = 9,
+	SEG6_LOCAL_COUNTERS = 10,
+	__SEG6_LOCAL_MAX = 11,
+};
+
+enum {
+	SEG6_LOCAL_BPF_PROG_UNSPEC = 0,
+	SEG6_LOCAL_BPF_PROG = 1,
+	SEG6_LOCAL_BPF_PROG_NAME = 2,
+	__SEG6_LOCAL_BPF_PROG_MAX = 3,
+};
+
+enum {
+	SEG6_LOCAL_CNT_UNSPEC = 0,
+	SEG6_LOCAL_CNT_PAD = 1,
+	SEG6_LOCAL_CNT_PACKETS = 2,
+	SEG6_LOCAL_CNT_BYTES = 3,
+	SEG6_LOCAL_CNT_ERRORS = 4,
+	__SEG6_LOCAL_CNT_MAX = 5,
+};
+
+struct seg6_local_lwt;
+
+struct seg6_local_lwtunnel_ops {
+	int (*build_state)(struct seg6_local_lwt *, const void *, struct netlink_ext_ack *);
+	void (*destroy_state)(struct seg6_local_lwt *);
+};
+
+enum seg6_end_dt_mode {
+	DT_INVALID_MODE = 4294967274,
+	DT_LEGACY_MODE = 0,
+	DT_VRF_MODE = 1,
+};
+
+struct seg6_end_dt_info {
+	enum seg6_end_dt_mode mode;
+	struct net *net;
+	int vrf_ifindex;
+	int vrf_table;
+	u16 family;
+};
+
+struct pcpu_seg6_local_counters;
+
+struct seg6_action_desc;
+
+struct seg6_local_lwt {
+	int action;
+	struct ipv6_sr_hdr *srh;
+	int table;
+	struct in_addr nh4;
+	struct in6_addr nh6;
+	int iif;
+	int oif;
+	struct bpf_lwt_prog bpf;
+	struct seg6_end_dt_info dt_info;
+	struct pcpu_seg6_local_counters *pcpu_counters;
+	int headroom;
+	struct seg6_action_desc *desc;
+	long unsigned int parsed_optattrs;
+};
+
+struct seg6_action_desc {
+	int action;
+	long unsigned int attrs;
+	long unsigned int optattrs;
+	int (*input)(struct sk_buff *, struct seg6_local_lwt *);
+	int static_headroom;
+	struct seg6_local_lwtunnel_ops slwt_ops;
+};
+
+struct pcpu_seg6_local_counters {
+	u64_stats_t packets;
+	u64_stats_t bytes;
+	u64_stats_t errors;
+	struct u64_stats_sync syncp;
+};
+
+struct seg6_local_counters {
+	__u64 packets;
+	__u64 bytes;
+	__u64 errors;
+};
+
+struct seg6_action_param {
+	int (*parse)(struct nlattr **, struct seg6_local_lwt *);
+	int (*put)(struct sk_buff *, struct seg6_local_lwt *);
+	int (*cmp)(struct seg6_local_lwt *, struct seg6_local_lwt *);
+	void (*destroy)(struct seg6_local_lwt *);
+};
+
+struct sr6_tlv_hmac {
+	struct sr6_tlv tlvhdr;
+	__u16 reserved;
+	__be32 hmackeyid;
+	__u8 hmac[32];
+};
+
+enum {
+	SEG6_HMAC_ALGO_SHA1 = 1,
+	SEG6_HMAC_ALGO_SHA256 = 2,
+};
+
+struct seg6_hmac_algo {
+	u8 alg_id;
+	char name[64];
+	struct crypto_shash **tfms;
+	struct shash_desc **shashs;
+};
+
+enum {
+	IOAM6_IPTUNNEL_UNSPEC = 0,
+	IOAM6_IPTUNNEL_TRACE = 1,
+	__IOAM6_IPTUNNEL_MAX = 2,
+};
+
+struct ioam6_lwt_encap {
+	struct ipv6_opt_hdr eh;
+	u8 pad[2];
+	struct ioam6_hdr ioamh;
+	struct ioam6_trace_hdr traceh;
+};
+
+struct ioam6_lwt {
+	struct ioam6_lwt_encap tuninfo;
+};
+
+struct sockaddr_pkt {
+	short unsigned int spkt_family;
+	unsigned char spkt_device[14];
+	__be16 spkt_protocol;
+};
+
+struct sockaddr_ll {
+	short unsigned int sll_family;
+	__be16 sll_protocol;
+	int sll_ifindex;
+	short unsigned int sll_hatype;
+	unsigned char sll_pkttype;
+	unsigned char sll_halen;
+	unsigned char sll_addr[8];
+};
+
+struct tpacket_stats {
+	unsigned int tp_packets;
+	unsigned int tp_drops;
+};
+
+struct tpacket_stats_v3 {
+	unsigned int tp_packets;
+	unsigned int tp_drops;
+	unsigned int tp_freeze_q_cnt;
+};
+
+struct tpacket_rollover_stats {
+	__u64 tp_all;
+	__u64 tp_huge;
+	__u64 tp_failed;
+};
+
+union tpacket_stats_u {
+	struct tpacket_stats stats1;
+	struct tpacket_stats_v3 stats3;
+};
+
+struct tpacket_auxdata {
+	__u32 tp_status;
+	__u32 tp_len;
+	__u32 tp_snaplen;
+	__u16 tp_mac;
+	__u16 tp_net;
+	__u16 tp_vlan_tci;
+	__u16 tp_vlan_tpid;
+};
+
+struct tpacket_hdr {
+	long unsigned int tp_status;
+	unsigned int tp_len;
+	unsigned int tp_snaplen;
+	short unsigned int tp_mac;
+	short unsigned int tp_net;
+	unsigned int tp_sec;
+	unsigned int tp_usec;
+};
+
+struct tpacket2_hdr {
+	__u32 tp_status;
+	__u32 tp_len;
+	__u32 tp_snaplen;
+	__u16 tp_mac;
+	__u16 tp_net;
+	__u32 tp_sec;
+	__u32 tp_nsec;
+	__u16 tp_vlan_tci;
+	__u16 tp_vlan_tpid;
+	__u8 tp_padding[4];
+};
+
+struct tpacket_hdr_variant1 {
+	__u32 tp_rxhash;
+	__u32 tp_vlan_tci;
+	__u16 tp_vlan_tpid;
+	__u16 tp_padding;
+};
+
+struct tpacket3_hdr {
+	__u32 tp_next_offset;
+	__u32 tp_sec;
+	__u32 tp_nsec;
+	__u32 tp_snaplen;
+	__u32 tp_len;
+	__u32 tp_status;
+	__u16 tp_mac;
+	__u16 tp_net;
+	union {
+		struct tpacket_hdr_variant1 hv1;
+	};
+	__u8 tp_padding[8];
+};
+
+struct tpacket_bd_ts {
+	unsigned int ts_sec;
+	union {
+		unsigned int ts_usec;
+		unsigned int ts_nsec;
+	};
+};
+
+struct tpacket_hdr_v1 {
+	__u32 block_status;
+	__u32 num_pkts;
+	__u32 offset_to_first_pkt;
+	__u32 blk_len;
+	__u64 seq_num;
+	struct tpacket_bd_ts ts_first_pkt;
+	struct tpacket_bd_ts ts_last_pkt;
+};
+
+union tpacket_bd_header_u {
+	struct tpacket_hdr_v1 bh1;
+};
+
+struct tpacket_block_desc {
+	__u32 version;
+	__u32 offset_to_priv;
+	union tpacket_bd_header_u hdr;
+};
+
+enum tpacket_versions {
+	TPACKET_V1 = 0,
+	TPACKET_V2 = 1,
+	TPACKET_V3 = 2,
+};
+
+struct tpacket_req {
+	unsigned int tp_block_size;
+	unsigned int tp_block_nr;
+	unsigned int tp_frame_size;
+	unsigned int tp_frame_nr;
+};
+
+struct tpacket_req3 {
+	unsigned int tp_block_size;
+	unsigned int tp_block_nr;
+	unsigned int tp_frame_size;
+	unsigned int tp_frame_nr;
+	unsigned int tp_retire_blk_tov;
+	unsigned int tp_sizeof_priv;
+	unsigned int tp_feature_req_word;
+};
+
+union tpacket_req_u {
+	struct tpacket_req req;
+	struct tpacket_req3 req3;
+};
+
+struct fanout_args {
+	__u16 id;
+	__u16 type_flags;
+	__u32 max_num_members;
+};
+
+struct packet_mclist {
+	struct packet_mclist *next;
+	int ifindex;
+	int count;
+	short unsigned int type;
+	short unsigned int alen;
+	unsigned char addr[32];
+};
+
+struct pgv;
+
+struct tpacket_kbdq_core {
+	struct pgv *pkbdq;
+	unsigned int feature_req_word;
+	unsigned int hdrlen;
+	unsigned char reset_pending_on_curr_blk;
+	unsigned char delete_blk_timer;
+	short unsigned int kactive_blk_num;
+	short unsigned int blk_sizeof_priv;
+	short unsigned int last_kactive_blk_num;
+	char *pkblk_start;
+	char *pkblk_end;
+	int kblk_size;
+	unsigned int max_frame_len;
+	unsigned int knum_blocks;
+	uint64_t knxt_seq_num;
+	char *prev;
+	char *nxt_offset;
+	struct sk_buff *skb;
+	rwlock_t blk_fill_in_prog_lock;
+	short unsigned int retire_blk_tov;
+	short unsigned int version;
+	long unsigned int tov_in_jiffies;
+	struct timer_list retire_blk_timer;
+};
+
+struct pgv {
+	char *buffer;
+};
+
+struct packet_ring_buffer {
+	struct pgv *pg_vec;
+	unsigned int head;
+	unsigned int frames_per_block;
+	unsigned int frame_size;
+	unsigned int frame_max;
+	unsigned int pg_vec_order;
+	unsigned int pg_vec_pages;
+	unsigned int pg_vec_len;
+	unsigned int *pending_refcnt;
+	union {
+		long unsigned int *rx_owner_map;
+		struct tpacket_kbdq_core prb_bdqc;
+	};
+};
+
+struct packet_fanout {
+	possible_net_t net;
+	unsigned int num_members;
+	u32 max_num_members;
+	u16 id;
+	u8 type;
+	u8 flags;
+	union {
+		atomic_t rr_cur;
+		struct bpf_prog *bpf_prog;
+	};
+	struct list_head list;
+	spinlock_t lock;
+	refcount_t sk_ref;
+	long: 64;
+	struct packet_type prot_hook;
+	struct sock *arr[0];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct packet_rollover {
+	int sock;
+	atomic_long_t num;
+	atomic_long_t num_huge;
+	atomic_long_t num_failed;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 history[16];
+};
+
+struct packet_sock {
+	struct sock sk;
+	struct packet_fanout *fanout;
+	union tpacket_stats_u stats;
+	struct packet_ring_buffer rx_ring;
+	struct packet_ring_buffer tx_ring;
+	int copy_thresh;
+	spinlock_t bind_lock;
+	struct mutex pg_vec_lock;
+	unsigned int running;
+	unsigned int auxdata: 1;
+	unsigned int origdev: 1;
+	unsigned int has_vnet_hdr: 1;
+	unsigned int tp_loss: 1;
+	unsigned int tp_tx_has_off: 1;
+	int pressure;
+	int ifindex;
+	__be16 num;
+	struct packet_rollover *rollover;
+	struct packet_mclist *mclist;
+	atomic_t mapped;
+	enum tpacket_versions tp_version;
+	unsigned int tp_hdrlen;
+	unsigned int tp_reserve;
+	unsigned int tp_tstamp;
+	struct completion skb_completion;
+	struct net_device *cached_dev;
+	int (*xmit)(struct sk_buff *);
+	struct packet_type prot_hook;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	atomic_t tp_drops;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct packet_mreq_max {
+	int mr_ifindex;
+	short unsigned int mr_type;
+	short unsigned int mr_alen;
+	unsigned char mr_address[32];
+};
+
+union tpacket_uhdr {
+	struct tpacket_hdr *h1;
+	struct tpacket2_hdr *h2;
+	struct tpacket3_hdr *h3;
+	void *raw;
+};
+
+struct packet_skb_cb {
+	union {
+		struct sockaddr_pkt pkt;
+		union {
+			unsigned int origlen;
+			struct sockaddr_ll ll;
+		};
+	} sa;
+};
+
+struct vlan_group {
+	unsigned int nr_vlan_devs;
+	struct hlist_node hlist;
+	struct net_device **vlan_devices_arrays[16];
+};
+
+struct vlan_info {
+	struct net_device *real_dev;
+	struct vlan_group grp;
+	struct list_head vid_list;
+	unsigned int nr_vids;
+	struct callback_head rcu;
+};
+
+enum vlan_flags {
+	VLAN_FLAG_REORDER_HDR = 1,
+	VLAN_FLAG_GVRP = 2,
+	VLAN_FLAG_LOOSE_BINDING = 4,
+	VLAN_FLAG_MVRP = 8,
+	VLAN_FLAG_BRIDGE_BINDING = 16,
+};
+
+struct vlan_priority_tci_mapping {
+	u32 priority;
+	u16 vlan_qos;
+	struct vlan_priority_tci_mapping *next;
+};
+
+struct vlan_dev_priv {
+	unsigned int nr_ingress_mappings;
+	u32 ingress_priority_map[8];
+	unsigned int nr_egress_mappings;
+	struct vlan_priority_tci_mapping *egress_priority_map[16];
+	__be16 vlan_proto;
+	u16 vlan_id;
+	u16 flags;
+	struct net_device *real_dev;
+	unsigned char real_dev_addr[6];
+	struct proc_dir_entry *dent;
+	struct vlan_pcpu_stats *vlan_pcpu_stats;
+	struct netpoll *netpoll;
+};
+
+enum vlan_protos {
+	VLAN_PROTO_8021Q = 0,
+	VLAN_PROTO_8021AD = 1,
+	VLAN_PROTO_NUM = 2,
+};
+
+struct vlan_vid_info {
+	struct list_head list;
+	__be16 proto;
+	u16 vid;
+	int refcount;
+};
+
+enum nl80211_iftype {
+	NL80211_IFTYPE_UNSPECIFIED = 0,
+	NL80211_IFTYPE_ADHOC = 1,
+	NL80211_IFTYPE_STATION = 2,
+	NL80211_IFTYPE_AP = 3,
+	NL80211_IFTYPE_AP_VLAN = 4,
+	NL80211_IFTYPE_WDS = 5,
+	NL80211_IFTYPE_MONITOR = 6,
+	NL80211_IFTYPE_MESH_POINT = 7,
+	NL80211_IFTYPE_P2P_CLIENT = 8,
+	NL80211_IFTYPE_P2P_GO = 9,
+	NL80211_IFTYPE_P2P_DEVICE = 10,
+	NL80211_IFTYPE_OCB = 11,
+	NL80211_IFTYPE_NAN = 12,
+	NUM_NL80211_IFTYPES = 13,
+	NL80211_IFTYPE_MAX = 12,
+};
+
+struct cfg80211_conn;
+
+struct cfg80211_cached_keys;
+
+enum ieee80211_bss_type {
+	IEEE80211_BSS_TYPE_ESS = 0,
+	IEEE80211_BSS_TYPE_PBSS = 1,
+	IEEE80211_BSS_TYPE_IBSS = 2,
+	IEEE80211_BSS_TYPE_MBSS = 3,
+	IEEE80211_BSS_TYPE_ANY = 4,
+};
+
+struct cfg80211_internal_bss;
+
+enum nl80211_chan_width {
+	NL80211_CHAN_WIDTH_20_NOHT = 0,
+	NL80211_CHAN_WIDTH_20 = 1,
+	NL80211_CHAN_WIDTH_40 = 2,
+	NL80211_CHAN_WIDTH_80 = 3,
+	NL80211_CHAN_WIDTH_80P80 = 4,
+	NL80211_CHAN_WIDTH_160 = 5,
+	NL80211_CHAN_WIDTH_5 = 6,
+	NL80211_CHAN_WIDTH_10 = 7,
+	NL80211_CHAN_WIDTH_1 = 8,
+	NL80211_CHAN_WIDTH_2 = 9,
+	NL80211_CHAN_WIDTH_4 = 10,
+	NL80211_CHAN_WIDTH_8 = 11,
+	NL80211_CHAN_WIDTH_16 = 12,
+};
+
+enum ieee80211_edmg_bw_config {
+	IEEE80211_EDMG_BW_CONFIG_4 = 4,
+	IEEE80211_EDMG_BW_CONFIG_5 = 5,
+	IEEE80211_EDMG_BW_CONFIG_6 = 6,
+	IEEE80211_EDMG_BW_CONFIG_7 = 7,
+	IEEE80211_EDMG_BW_CONFIG_8 = 8,
+	IEEE80211_EDMG_BW_CONFIG_9 = 9,
+	IEEE80211_EDMG_BW_CONFIG_10 = 10,
+	IEEE80211_EDMG_BW_CONFIG_11 = 11,
+	IEEE80211_EDMG_BW_CONFIG_12 = 12,
+	IEEE80211_EDMG_BW_CONFIG_13 = 13,
+	IEEE80211_EDMG_BW_CONFIG_14 = 14,
+	IEEE80211_EDMG_BW_CONFIG_15 = 15,
+};
+
+struct ieee80211_edmg {
+	u8 channels;
+	enum ieee80211_edmg_bw_config bw_config;
+};
+
+struct ieee80211_channel;
+
+struct cfg80211_chan_def {
+	struct ieee80211_channel *chan;
+	enum nl80211_chan_width width;
+	u32 center_freq1;
+	u32 center_freq2;
+	struct ieee80211_edmg edmg;
+	u16 freq1_offset;
+};
+
+struct ieee80211_mcs_info {
+	u8 rx_mask[10];
+	__le16 rx_highest;
+	u8 tx_params;
+	u8 reserved[3];
+};
+
+struct ieee80211_ht_cap {
+	__le16 cap_info;
+	u8 ampdu_params_info;
+	struct ieee80211_mcs_info mcs;
+	__le16 extended_ht_cap_info;
+	__le32 tx_BF_cap_info;
+	u8 antenna_selection_info;
+} __attribute__((packed));
+
+struct key_params;
+
+struct cfg80211_ibss_params {
+	const u8 *ssid;
+	const u8 *bssid;
+	struct cfg80211_chan_def chandef;
+	const u8 *ie;
+	u8 ssid_len;
+	u8 ie_len;
+	u16 beacon_interval;
+	u32 basic_rates;
+	bool channel_fixed;
+	bool privacy;
+	bool control_port;
+	bool control_port_over_nl80211;
+	bool userspace_handles_dfs;
+	int: 24;
+	int mcast_rate[5];
+	struct ieee80211_ht_cap ht_capa;
+	struct ieee80211_ht_cap ht_capa_mask;
+	struct key_params *wep_keys;
+	int wep_tx_key;
+	int: 32;
+} __attribute__((packed));
+
+enum nl80211_auth_type {
+	NL80211_AUTHTYPE_OPEN_SYSTEM = 0,
+	NL80211_AUTHTYPE_SHARED_KEY = 1,
+	NL80211_AUTHTYPE_FT = 2,
+	NL80211_AUTHTYPE_NETWORK_EAP = 3,
+	NL80211_AUTHTYPE_SAE = 4,
+	NL80211_AUTHTYPE_FILS_SK = 5,
+	NL80211_AUTHTYPE_FILS_SK_PFS = 6,
+	NL80211_AUTHTYPE_FILS_PK = 7,
+	__NL80211_AUTHTYPE_NUM = 8,
+	NL80211_AUTHTYPE_MAX = 7,
+	NL80211_AUTHTYPE_AUTOMATIC = 8,
+};
+
+enum nl80211_mfp {
+	NL80211_MFP_NO = 0,
+	NL80211_MFP_REQUIRED = 1,
+	NL80211_MFP_OPTIONAL = 2,
+};
+
+enum nl80211_sae_pwe_mechanism {
+	NL80211_SAE_PWE_UNSPECIFIED = 0,
+	NL80211_SAE_PWE_HUNT_AND_PECK = 1,
+	NL80211_SAE_PWE_HASH_TO_ELEMENT = 2,
+	NL80211_SAE_PWE_BOTH = 3,
+};
+
+struct cfg80211_crypto_settings {
+	u32 wpa_versions;
+	u32 cipher_group;
+	int n_ciphers_pairwise;
+	u32 ciphers_pairwise[5];
+	int n_akm_suites;
+	u32 akm_suites[2];
+	bool control_port;
+	__be16 control_port_ethertype;
+	bool control_port_no_encrypt;
+	bool control_port_over_nl80211;
+	bool control_port_no_preauth;
+	struct key_params *wep_keys;
+	int wep_tx_key;
+	const u8 *psk;
+	const u8 *sae_pwd;
+	u8 sae_pwd_len;
+	enum nl80211_sae_pwe_mechanism sae_pwe;
+};
+
+struct ieee80211_vht_mcs_info {
+	__le16 rx_mcs_map;
+	__le16 rx_highest;
+	__le16 tx_mcs_map;
+	__le16 tx_highest;
+};
+
+struct ieee80211_vht_cap {
+	__le32 vht_cap_info;
+	struct ieee80211_vht_mcs_info supp_mcs;
+};
+
+enum nl80211_bss_select_attr {
+	__NL80211_BSS_SELECT_ATTR_INVALID = 0,
+	NL80211_BSS_SELECT_ATTR_RSSI = 1,
+	NL80211_BSS_SELECT_ATTR_BAND_PREF = 2,
+	NL80211_BSS_SELECT_ATTR_RSSI_ADJUST = 3,
+	__NL80211_BSS_SELECT_ATTR_AFTER_LAST = 4,
+	NL80211_BSS_SELECT_ATTR_MAX = 3,
+};
+
+enum nl80211_band {
+	NL80211_BAND_2GHZ = 0,
+	NL80211_BAND_5GHZ = 1,
+	NL80211_BAND_60GHZ = 2,
+	NL80211_BAND_6GHZ = 3,
+	NL80211_BAND_S1GHZ = 4,
+	NUM_NL80211_BANDS = 5,
+};
+
+struct cfg80211_bss_select_adjust {
+	enum nl80211_band band;
+	s8 delta;
+};
+
+struct cfg80211_bss_selection {
+	enum nl80211_bss_select_attr behaviour;
+	union {
+		enum nl80211_band band_pref;
+		struct cfg80211_bss_select_adjust adjust;
+	} param;
+};
+
+struct cfg80211_connect_params {
+	struct ieee80211_channel *channel;
+	struct ieee80211_channel *channel_hint;
+	const u8 *bssid;
+	const u8 *bssid_hint;
+	const u8 *ssid;
+	size_t ssid_len;
+	enum nl80211_auth_type auth_type;
+	int: 32;
+	const u8 *ie;
+	size_t ie_len;
+	bool privacy;
+	int: 24;
+	enum nl80211_mfp mfp;
+	struct cfg80211_crypto_settings crypto;
+	const u8 *key;
+	u8 key_len;
+	u8 key_idx;
+	short: 16;
+	u32 flags;
+	int bg_scan_period;
+	struct ieee80211_ht_cap ht_capa;
+	struct ieee80211_ht_cap ht_capa_mask;
+	struct ieee80211_vht_cap vht_capa;
+	struct ieee80211_vht_cap vht_capa_mask;
+	bool pbss;
+	int: 24;
+	struct cfg80211_bss_selection bss_select;
+	const u8 *prev_bssid;
+	const u8 *fils_erp_username;
+	size_t fils_erp_username_len;
+	const u8 *fils_erp_realm;
+	size_t fils_erp_realm_len;
+	u16 fils_erp_next_seq_num;
