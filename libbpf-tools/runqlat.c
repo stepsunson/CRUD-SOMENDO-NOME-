@@ -134,4 +134,88 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 
 static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
 {
-	if (level == LIBBPF_DEBUG && !env
+	if (level == LIBBPF_DEBUG && !env.verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_handler(int sig)
+{
+	exiting = true;
+}
+
+static int print_log2_hists(struct bpf_map *hists)
+{
+	const char *units = env.milliseconds ? "msecs" : "usecs";
+	int err, fd = bpf_map__fd(hists);
+	__u32 lookup_key = -2, next_key;
+	struct hist hist;
+
+	while (!bpf_map_get_next_key(fd, &lookup_key, &next_key)) {
+		err = bpf_map_lookup_elem(fd, &next_key, &hist);
+		if (err < 0) {
+			fprintf(stderr, "failed to lookup hist: %d\n", err);
+			return -1;
+		}
+		if (env.per_process)
+			printf("\npid = %d %s\n", next_key, hist.comm);
+		else if (env.per_thread)
+			printf("\ntid = %d %s\n", next_key, hist.comm);
+		else if (env.per_pidns)
+			printf("\npidns = %u %s\n", next_key, hist.comm);
+		print_log2_hist(hist.slots, MAX_SLOTS, units);
+		lookup_key = next_key;
+	}
+
+	lookup_key = -2;
+	while (!bpf_map_get_next_key(fd, &lookup_key, &next_key)) {
+		err = bpf_map_delete_elem(fd, &next_key);
+		if (err < 0) {
+			fprintf(stderr, "failed to cleanup hist : %d\n", err);
+			return -1;
+		}
+		lookup_key = next_key;
+	}
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct runqlat_bpf *obj;
+	struct tm *tm;
+	char ts[32];
+	time_t t;
+	int err;
+	int idx, cg_map_fd;
+	int cgfd = -1;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	if ((env.per_thread && (env.per_process || env.per_pidns)) ||
+		(env.per_process && env.per_pidns)) {
+		fprintf(stderr, "pidnss, pids, tids cann't be used together.\n");
+		return 1;
+	}
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	obj = runqlat_bpf__open();
+	if (!obj) {
+		fprintf(stderr, "failed to open BPF object\n");
+		return 1;
+	}
+
+	/* initialize global data (filtering options) */
+	obj->rodata->targ_per_process = env.per_process;
+	obj->rodata->targ_per_thread = env.per_thread;
+	obj->rodata->targ_per_pidns = env.per_pidns;
+	obj->rodata->targ_ms = env.milliseconds;
+	obj->
