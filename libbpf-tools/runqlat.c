@@ -218,4 +218,74 @@ int main(int argc, char **argv)
 	obj->rodata->targ_per_thread = env.per_thread;
 	obj->rodata->targ_per_pidns = env.per_pidns;
 	obj->rodata->targ_ms = env.milliseconds;
-	obj->
+	obj->rodata->targ_tgid = env.pid;
+	obj->rodata->filter_cg = env.cg;
+
+	if (probe_tp_btf("sched_wakeup")) {
+		bpf_program__set_autoload(obj->progs.handle_sched_wakeup, false);
+		bpf_program__set_autoload(obj->progs.handle_sched_wakeup_new, false);
+		bpf_program__set_autoload(obj->progs.handle_sched_switch, false);
+	} else {
+		bpf_program__set_autoload(obj->progs.sched_wakeup, false);
+		bpf_program__set_autoload(obj->progs.sched_wakeup_new, false);
+		bpf_program__set_autoload(obj->progs.sched_switch, false);
+	}
+
+	err = runqlat_bpf__load(obj);
+	if (err) {
+		fprintf(stderr, "failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	/* update cgroup path fd to map */
+	if (env.cg) {
+		idx = 0;
+		cg_map_fd = bpf_map__fd(obj->maps.cgroup_map);
+		cgfd = open(env.cgroupspath, O_RDONLY);
+		if (cgfd < 0) {
+			fprintf(stderr, "Failed opening Cgroup path: %s", env.cgroupspath);
+			goto cleanup;
+		}
+		if (bpf_map_update_elem(cg_map_fd, &idx, &cgfd, BPF_ANY)) {
+			fprintf(stderr, "Failed adding target cgroup to map");
+			goto cleanup;
+		}
+	}
+
+	err = runqlat_bpf__attach(obj);
+	if (err) {
+		fprintf(stderr, "failed to attach BPF programs\n");
+		goto cleanup;
+	}
+
+	printf("Tracing run queue latency... Hit Ctrl-C to end.\n");
+
+	signal(SIGINT, sig_handler);
+
+	/* main: poll */
+	while (1) {
+		sleep(env.interval);
+		printf("\n");
+
+		if (env.timestamp) {
+			time(&t);
+			tm = localtime(&t);
+			strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+			printf("%-8s\n", ts);
+		}
+
+		err = print_log2_hists(obj->maps.hists);
+		if (err)
+			break;
+
+		if (exiting || --env.times == 0)
+			break;
+	}
+
+cleanup:
+	runqlat_bpf__destroy(obj);
+	if (cgfd > 0)
+		close(cgfd);
+
+	return err != 0;
+}
