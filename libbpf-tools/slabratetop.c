@@ -96,4 +96,98 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 			argp_usage(state);
 		}
 		break;
-	c
+	case 'r':
+		errno = 0;
+		rows = strtol(arg, NULL, 10);
+		if (errno || rows <= 0) {
+			warn("invalid rows: %s\n", arg);
+			argp_usage(state);
+		}
+		output_rows = rows;
+		if (output_rows > OUTPUT_ROWS_LIMIT)
+			output_rows = OUTPUT_ROWS_LIMIT;
+		break;
+	case 'v':
+		verbose = true;
+		break;
+	case 'h':
+		argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
+		break;
+	case ARGP_KEY_ARG:
+		errno = 0;
+		if (pos_args == 0) {
+			interval = strtol(arg, NULL, 10);
+			if (errno || interval <= 0) {
+				warn("invalid interval\n");
+				argp_usage(state);
+			}
+		} else if (pos_args == 1) {
+			count = strtol(arg, NULL, 10);
+			if (errno || count <= 0) {
+				warn("invalid count\n");
+				argp_usage(state);
+			}
+		} else {
+			warn("unrecognized positional argument: %s\n", arg);
+			argp_usage(state);
+		}
+		pos_args++;
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static int sort_column(const void *obj1, const void *obj2)
+{
+	struct slabrate_info *s1 = (struct slabrate_info *)obj1;
+	struct slabrate_info *s2 = (struct slabrate_info *)obj2;
+
+	if (sort_by == SORT_BY_CACHE_NAME) {
+		return strcasecmp(s1->name, s2->name);
+	} else if (sort_by == SORT_BY_CACHE_COUNT) {
+		return s2->count - s1->count;
+	} else if (sort_by == SORT_BY_CACHE_SIZE) {
+		return s2->size - s1->size;
+	} else {
+		return s2->size - s1->size;
+	}
+}
+
+static int print_stat(struct slabratetop_bpf *obj)
+{
+	FILE *f;
+	time_t t;
+	struct tm *tm;
+	char ts[16], buf[256];
+	char *key, **prev_key = NULL;
+	static struct slabrate_info values[OUTPUT_ROWS_LIMIT];
+	int n, i, err = 0, rows = 0;
+	int fd = bpf_map__fd(obj->maps.slab_entries);
+
+	f = fopen("/proc/loadavg", "r");
+	if (f) {
+		time(&t);
+		tm = localtime(&t);
+		strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+		memset(buf, 0 , sizeof(buf));
+		n = fread(buf, 1, sizeof(buf), f);
+		if (n)
+			printf("%8s loadavg: %s\n", ts, buf);
+		fclose(f);
+	}
+
+	printf
