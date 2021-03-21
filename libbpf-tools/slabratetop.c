@@ -297,4 +297,11 @@ int main(int argc, char **argv)
 
 		count--;
 		if (exiting || !count)
-		
+			goto cleanup;
+	}
+
+cleanup:
+	slabratetop_bpf__destroy(obj);
+
+	return err != 0;
+}
