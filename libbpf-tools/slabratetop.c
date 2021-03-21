@@ -190,4 +190,111 @@ static int print_stat(struct slabratetop_bpf *obj)
 		fclose(f);
 	}
 
-	printf
+	printf("%-32s %6s %10s\n", "CACHE", "ALLOCS", "BYTES");
+
+	while (1) {
+		err = bpf_map_get_next_key(fd, prev_key, &key);
+		if (err) {
+			if (errno == ENOENT) {
+				err = 0;
+				break;
+			}
+			warn("bpf_map_get_next_key failed: %s\n", strerror(errno));
+			return err;
+		}
+		err = bpf_map_lookup_elem(fd, &key, &values[rows++]);
+		if (err) {
+			warn("bpf_map_lookup_elem failed: %s\n", strerror(errno));
+			return err;
+		}
+		prev_key = &key;
+	}
+
+	qsort(values, rows, sizeof(struct slabrate_info), sort_column);
+	rows = rows < output_rows ? rows : output_rows;
+	for (i = 0; i < rows; i++)
+		printf("%-32s %6lld %10lld\n",
+		       values[i].name, values[i].count, values[i].size);
+
+	printf("\n");
+	prev_key = NULL;
+
+	while (1) {
+		err = bpf_map_get_next_key(fd, prev_key, &key);
+		if (err) {
+			if (errno == ENOENT) {
+				err = 0;
+				break;
+			}
+			warn("bpf_map_get_next_key failed: %s\n", strerror(errno));
+			return err;
+		}
+		err = bpf_map_delete_elem(fd, &key);
+		if (err) {
+			warn("bpf_map_delete_elem failed: %s\n", strerror(errno));
+			return err;
+		}
+		prev_key = &key;
+	}
+	return err;
+}
+
+int main(int argc, char **argv)
+{
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct slabratetop_bpf *obj;
+	int err;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	obj = slabratetop_bpf__open();
+	if (!obj) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	obj->rodata->target_pid = target_pid;
+
+	err = slabratetop_bpf__load(obj);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	err = slabratetop_bpf__attach(obj);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	while (1) {
+		sleep(interval);
+
+		if (clear_screen) {
+			err = system("clear");
+			if (err)
+				goto cleanup;
+		}
+
+		err = print_stat(obj);
+		if (err)
+			goto cleanup;
+
+		count--;
+		if (exiting || !count)
+		
