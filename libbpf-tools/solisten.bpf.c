@@ -67,4 +67,35 @@ int BPF_KPROBE(inet_listen_entry, struct socket *sock, int backlog)
 SEC("kretprobe/inet_listen")
 int BPF_KRETPROBE(inet_listen_exit, int ret)
 {
-	__u32 tid = bpf_get_current
+	__u32 tid = bpf_get_current_pid_tgid();
+	struct event *eventp;
+
+	eventp = bpf_map_lookup_elem(&values, &tid);
+	if (!eventp)
+		return 0;
+
+	eventp->ret = ret;
+	bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, eventp, sizeof(*eventp));
+	bpf_map_delete_elem(&values, &tid);
+	return 0;
+}
+
+SEC("fexit/inet_listen")
+int BPF_PROG(inet_listen_fexit, struct socket *sock, int backlog, int ret)
+{
+	__u64 pid_tgid = bpf_get_current_pid_tgid();
+	__u32 pid = pid_tgid >> 32;
+	struct event event = {};
+
+	if (target_pid && target_pid != pid)
+		return 0;
+
+	fill_event(&event, sock);
+	event.pid = pid;
+	event.backlog = backlog;
+	event.ret = ret;
+	bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
+	return 0;
+}
+
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
