@@ -141,4 +141,82 @@ int main(int argc, char **argv)
 		.doc = argp_program_doc,
 	};
 	struct perf_buffer *pb = NULL;
-	struct so
+	struct solisten_bpf *obj;
+	int err;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		fprintf(stderr, "failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = solisten_bpf__open_opts(&open_opts);
+	if (!obj) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	obj->rodata->target_pid = target_pid;
+
+	if (fentry_can_attach("inet_listen", NULL)) {
+		bpf_program__set_autoload(obj->progs.inet_listen_entry, false);
+		bpf_program__set_autoload(obj->progs.inet_listen_exit, false);
+	} else {
+		bpf_program__set_autoload(obj->progs.inet_listen_fexit, false);
+	}
+
+	err = solisten_bpf__load(obj);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	err = solisten_bpf__attach(obj);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	pb = perf_buffer__new(bpf_map__fd(obj->maps.events), PERF_BUFFER_PAGES,
+			      handle_event, handle_lost_events, NULL, NULL);
+	if (!pb) {
+		err = -errno;
+		warn("failed to open perf buffer: %d\n", err);
+		goto cleanup;
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	if (emit_timestamp)
+		printf("%-8s ", "TIME(s)");
+	printf("%-7s %-16s %-3s %-7s %-5s %-5s %-32s\n",
+	       "PID", "COMM", "RET", "BACKLOG", "PROTO", "PORT", "ADDR");
+
+	while (!exiting) {
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			warn("error polling perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		/* reset err to return 0 if exiting */
+		err = 0;
+	}
+
+cleanup:
+	perf_buffer__free(pb);
+	solisten_bpf__destroy(obj);
+	cleanup_core_btf(&open_opts);
+
+	return err != 0;
+}
