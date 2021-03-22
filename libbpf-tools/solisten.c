@@ -48,4 +48,97 @@ const char argp_program_doc[] =
 
 static const struct argp_option opts[] = {
 	{ "pid", 'p', "PID", 0, "Process ID to trace" },
-	{ "timestamp",
+	{ "timestamp", 't', NULL, 0, "Include timestamp on output" },
+	{ "verbose", 'v', NULL, 0, "Verbose debug output" },
+	{ NULL, 'h', NULL, OPTION_HIDDEN, "Show the full help" },
+	{},
+};
+
+static error_t parse_arg(int key, char *arg, struct argp_state *state)
+{
+	long pid;
+
+	switch (key) {
+	case 'p':
+		errno = 0;
+		pid = strtol(arg, NULL, 10);
+		if (errno || pid <= 0) {
+			warn("Invalid PID: %s\n", arg);
+			argp_usage(state);
+		}
+		target_pid = pid;
+		break;
+	case 't':
+		emit_timestamp = true;
+		break;
+	case 'v':
+		verbose = true;
+		break;
+	case 'h':
+		argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
+{
+	const struct event *e = data;
+	time_t t;
+	struct tm *tm;
+	char ts[32], proto[16], addr[48] = {};
+	__u16 family = e->proto >> 16;
+	__u16 type = (__u16)e->proto;
+	const char *prot;
+
+	if (emit_timestamp) {
+		time(&t);
+		tm = localtime(&t);
+		strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+		printf("%8s ", ts);
+	}
+
+	if (type == SOCK_STREAM)
+		prot = "TCP";
+	else if (type == SOCK_DGRAM)
+		prot = "UDP";
+	else
+		prot = "UNK";
+	if (family == AF_INET)
+		snprintf(proto, sizeof(proto), "%sv4", prot);
+	else /* family == AF_INET6 */
+		snprintf(proto, sizeof(proto), "%sv6", prot);
+	inet_ntop(family, e->addr, addr, sizeof(addr));
+	printf("%-7d %-16s %-3d %-7d %-5s %-5d %-32s\n",
+	       e->pid, e->task, e->ret, e->backlog, proto, e->port, addr);
+}
+
+static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	warn("lost %llu events on CPU #%d\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct perf_buffer *pb = NULL;
+	struct so
