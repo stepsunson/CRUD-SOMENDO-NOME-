@@ -8,4 +8,10 @@ struct event {
 	__u32 addr[4];
 	__u32 pid;
 	__u32 proto;
-	in
+	int backlog;
+	int ret;
+	__u16 port;
+	char task[TASK_COMM_LEN];
+};
+
+#endif /* __SOLISTEN_H */
