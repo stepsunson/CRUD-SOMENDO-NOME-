@@ -49,4 +49,83 @@ struct {
 	__uint(value_size, sizeof(u32));
 } events SEC(".maps");
 
-stat
+static __always_inline bool filter_port(__u16 port)
+{
+	int i;
+
+	if (filter_ports_len == 0)
+		return false;
+
+	for (i = 0; i < filter_ports_len && i < MAX_PORTS; i++) {
+		if (port == filter_ports[i])
+			return false;
+	}
+	return true;
+}
+
+static __always_inline int
+enter_tcp_connect(struct pt_regs *ctx, struct sock *sk)
+{
+	__u64 pid_tgid = bpf_get_current_pid_tgid();
+	__u32 pid = pid_tgid >> 32;
+	__u32 tid = pid_tgid;
+	__u32 uid;
+
+	if (filter_pid && pid != filter_pid)
+		return 0;
+
+	uid = bpf_get_current_uid_gid();
+	if (filter_uid != (uid_t) -1 && uid != filter_uid)
+		return 0;
+
+	bpf_map_update_elem(&sockets, &tid, &sk, 0);
+	return 0;
+}
+
+static  __always_inline void count_v4(struct sock *sk, __u16 sport, __u16 dport)
+{
+	struct ipv4_flow_key key = {};
+	static __u64 zero;
+	__u64 *val;
+
+	BPF_CORE_READ_INTO(&key.saddr, sk, __sk_common.skc_rcv_saddr);
+	BPF_CORE_READ_INTO(&key.daddr, sk, __sk_common.skc_daddr);
+	key.sport = sport;
+	key.dport = dport;
+	val = bpf_map_lookup_or_try_init(&ipv4_count, &key, &zero);
+	if (val)
+		__atomic_add_fetch(val, 1, __ATOMIC_RELAXED);
+}
+
+static __always_inline void count_v6(struct sock *sk, __u16 sport, __u16 dport)
+{
+	struct ipv6_flow_key key = {};
+	static const __u64 zero;
+	__u64 *val;
+
+	BPF_CORE_READ_INTO(&key.saddr, sk,
+			   __sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+	BPF_CORE_READ_INTO(&key.daddr, sk,
+			   __sk_common.skc_v6_daddr.in6_u.u6_addr32);
+	key.sport = sport;
+	key.dport = dport;
+
+	val = bpf_map_lookup_or_try_init(&ipv6_count, &key, &zero);
+	if (val)
+		__atomic_add_fetch(val, 1, __ATOMIC_RELAXED);
+}
+
+static __always_inline void
+trace_v4(struct pt_regs *ctx, pid_t pid, struct sock *sk, __u16 sport, __u16 dport)
+{
+	struct event event = {};
+
+	event.af = AF_INET;
+	event.pid = pid;
+	event.uid = bpf_get_current_uid_gid();
+	event.ts_us = bpf_ktime_get_ns() / 1000;
+	BPF_CORE_READ_INTO(&event.saddr_v4, sk, __sk_common.skc_rcv_saddr);
+	BPF_CORE_READ_INTO(&event.daddr_v4, sk, __sk_common.skc_daddr);
+	event.sport = sport;
+	event.dport = dport;
+	bpf_get_current
