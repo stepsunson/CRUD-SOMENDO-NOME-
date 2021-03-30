@@ -128,4 +128,96 @@ trace_v4(struct pt_regs *ctx, pid_t pid, struct sock *sk, __u16 sport, __u16 dpo
 	BPF_CORE_READ_INTO(&event.daddr_v4, sk, __sk_common.skc_daddr);
 	event.sport = sport;
 	event.dport = dport;
-	bpf_get_current
+	bpf_get_current_comm(event.task, sizeof(event.task));
+
+	bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU,
+			      &event, sizeof(event));
+}
+
+static __always_inline void
+trace_v6(struct pt_regs *ctx, pid_t pid, struct sock *sk, __u16 sport, __u16 dport)
+{
+	struct event event = {};
+
+	event.af = AF_INET6;
+	event.pid = pid;
+	event.uid = bpf_get_current_uid_gid();
+	event.ts_us = bpf_ktime_get_ns() / 1000;
+	BPF_CORE_READ_INTO(&event.saddr_v6, sk,
+			   __sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+	BPF_CORE_READ_INTO(&event.daddr_v6, sk,
+			   __sk_common.skc_v6_daddr.in6_u.u6_addr32);
+	event.sport = sport;
+	event.dport = dport;
+	bpf_get_current_comm(event.task, sizeof(event.task));
+
+	bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU,
+			      &event, sizeof(event));
+}
+
+static __always_inline int
+exit_tcp_connect(struct pt_regs *ctx, int ret, int ip_ver)
+{
+	__u64 pid_tgid = bpf_get_current_pid_tgid();
+	__u32 pid = pid_tgid >> 32;
+	__u32 tid = pid_tgid;
+	struct sock **skpp;
+	struct sock *sk;
+	__u16 sport = 0;
+	__u16 dport;
+
+	skpp = bpf_map_lookup_elem(&sockets, &tid);
+	if (!skpp)
+		return 0;
+
+	if (ret)
+		goto end;
+
+	sk = *skpp;
+
+	if (source_port)
+		BPF_CORE_READ_INTO(&sport, sk, __sk_common.skc_num);
+	BPF_CORE_READ_INTO(&dport, sk, __sk_common.skc_dport);
+
+	if (filter_port(dport))
+		goto end;
+
+	if (do_count) {
+		if (ip_ver == 4)
+			count_v4(sk, sport, dport);
+		else
+			count_v6(sk, sport, dport);
+	} else {
+		if (ip_ver == 4)
+			trace_v4(ctx, pid, sk, sport, dport);
+		else
+			trace_v6(ctx, pid, sk, sport, dport);
+	}
+
+end:
+	bpf_map_delete_elem(&sockets, &tid);
+	return 0;
+}
+
+SEC("kprobe/tcp_v4_connect")
+int BPF_KPROBE(tcp_v4_connect, struct sock *sk)
+{
+	return enter_tcp_connect(ctx, sk);
+}
+
+SEC("kretprobe/tcp_v4_connect")
+int BPF_KRETPROBE(tcp_v4_connect_ret, int ret)
+{
+	return exit_tcp_connect(ctx, ret, 4);
+}
+
+SEC("kprobe/tcp_v6_connect")
+int BPF_KPROBE(tcp_v6_connect, struct sock *sk)
+{
+	return enter_tcp_connect(ctx, sk);
+}
+
+SEC("kretprobe/tcp_v6_connect")
+int BPF_KRETPROBE(tcp_v6_connect_ret, int ret)
+{
+	return exit_tcp_connec
