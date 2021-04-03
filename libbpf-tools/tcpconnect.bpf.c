@@ -220,4 +220,7 @@ int BPF_KPROBE(tcp_v6_connect, struct sock *sk)
 SEC("kretprobe/tcp_v6_connect")
 int BPF_KRETPROBE(tcp_v6_connect_ret, int ret)
 {
-	return exit_tcp_connec
+	return exit_tcp_connect(ctx, ret, 6);
+}
+
+char LICENSE[] SEC("license") = "GPL";
