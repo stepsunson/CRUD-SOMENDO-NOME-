@@ -88,4 +88,40 @@ int BPF_KPROBE(tcp_rcv_kprobe, struct sock *sk)
 	}
 	if (targ_dport) {
 		u16 dport;
-		bpf_probe_read_kernel(&dport, sizeof(dport), &sk->__sk_commo
+		bpf_probe_read_kernel(&dport, sizeof(dport), &sk->__sk_common.skc_dport);
+		if (targ_dport != dport)
+			return 0;
+	}
+	bpf_probe_read_kernel(&saddr, sizeof(saddr), &inet->inet_saddr);
+	if (targ_saddr && targ_saddr != saddr)
+		return 0;
+	bpf_probe_read_kernel(&daddr, sizeof(daddr), &sk->__sk_common.skc_daddr);
+	if (targ_daddr && targ_daddr != daddr)
+		return 0;
+
+	if (targ_laddr_hist)
+		key = saddr;
+	else if (targ_raddr_hist)
+		key = daddr;
+	else
+		key = 0;
+	histp = bpf_map_lookup_or_try_init(&hists, &key, &zero);
+	if (!histp)
+		return 0;
+	ts = (struct tcp_sock *)(sk);
+	bpf_probe_read_kernel(&srtt, sizeof(srtt), &ts->srtt_us);
+	srtt >>= 3;
+	if (targ_ms)
+		srtt /= 1000U;
+	slot = log2l(srtt);
+	if (slot >= MAX_SLOTS)
+		slot = MAX_SLOTS - 1;
+	__sync_fetch_and_add(&histp->slots[slot], 1);
+	if (targ_show_ext) {
+		__sync_fetch_and_add(&histp->latency, srtt);
+		__sync_fetch_and_add(&histp->cnt, 1);
+	}
+	return 0;
+}
+
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
