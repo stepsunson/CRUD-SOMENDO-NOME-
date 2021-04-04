@@ -115,4 +115,38 @@ int inet_sock_set_state(struct trace_event_raw_inet_sock_set_state *args)
 
 	identp = bpf_map_lookup_elem(&idents, &sk);
 	pid = identp ? identp->pid : bpf_get_current_pid_tgid() >> 32;
-	if
+	if (target_pid && pid != target_pid)
+		goto cleanup;
+
+	tp = (struct tcp_sock *)sk;
+	rx_b = BPF_CORE_READ(tp, bytes_received);
+	tx_b = BPF_CORE_READ(tp, bytes_acked);
+
+	event.ts_us = ts / 1000;
+	event.span_us = delta_us;
+	event.rx_b = rx_b;
+	event.tx_b = tx_b;
+	event.pid = pid;
+	event.sport = sport;
+	event.dport = dport;
+	event.family = family;
+	if (!identp)
+		bpf_get_current_comm(event.comm, sizeof(event.comm));
+	else
+		bpf_probe_read_kernel(event.comm, sizeof(event.comm), (void *)identp->comm);
+	if (family == AF_INET) {
+		bpf_probe_read_kernel(&event.saddr, sizeof(args->saddr), BPF_CORE_READ(args, saddr));
+		bpf_probe_read_kernel(&event.daddr, sizeof(args->daddr), BPF_CORE_READ(args, daddr));
+	} else {	/*  AF_INET6 */
+		bpf_probe_read_kernel(&event.saddr, sizeof(args->saddr_v6), BPF_CORE_READ(args, saddr_v6));
+		bpf_probe_read_kernel(&event.daddr, sizeof(args->daddr_v6), BPF_CORE_READ(args, daddr_v6));
+	}
+	bpf_perf_event_output(args, &events, BPF_F_CURRENT_CPU, &event, sizeof(event));
+
+cleanup:
+	bpf_map_delete_elem(&birth, &sk);
+	bpf_map_delete_elem(&idents, &sk);
+	return 0;
+}
+
+char LICENSE[] SEC("license") = "GPL";
