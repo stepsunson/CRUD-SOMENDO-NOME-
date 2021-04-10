@@ -175,4 +175,88 @@ static void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
 		       tcp_states[e->oldstate], tcp_states[e->newstate], (double)e->delta_us / 1000);
 	} else {
 		printf("%-16llx %-7d %-10.10s %-15s %-5d %-15s %-5d %-11s -> %-11s %.3f\n",
-		       e->skaddr, e->pid, e->task, saddr, e->sport, daddr, e->dport
+		       e->skaddr, e->pid, e->task, saddr, e->sport, daddr, e->dport,
+		       tcp_states[e->oldstate], tcp_states[e->newstate], (double)e->delta_us / 1000);
+	}
+}
+
+static void handle_lost_events(void *ctx, int cpu, __u64 lost_cnt)
+{
+	warn("lost %llu events on CPU #%d\n", lost_cnt, cpu);
+}
+
+int main(int argc, char **argv)
+{
+	LIBBPF_OPTS(bpf_object_open_opts, open_opts);
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct perf_buffer *pb = NULL;
+	struct tcpstates_bpf *obj;
+	int err, port_map_fd;
+	short port_num;
+	char *port;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	err = ensure_core_btf(&open_opts);
+	if (err) {
+		warn("failed to fetch necessary BTF for CO-RE: %s\n", strerror(-err));
+		return 1;
+	}
+
+	obj = tcpstates_bpf__open_opts(&open_opts);
+	if (!obj) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	obj->rodata->filter_by_sport = target_sports != NULL;
+	obj->rodata->filter_by_dport = target_dports != NULL;
+	obj->rodata->target_family = target_family;
+
+	err = tcpstates_bpf__load(obj);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	if (target_sports) {
+		port_map_fd = bpf_map__fd(obj->maps.sports);
+		port = strtok(target_sports, ",");
+		while (port) {
+			port_num = strtol(port, NULL, 10);
+			bpf_map_update_elem(port_map_fd, &port_num, &port_num, BPF_ANY);
+			port = strtok(NULL, ",");
+		}
+	}
+	if (target_dports) {
+		port_map_fd = bpf_map__fd(obj->maps.dports);
+		port = strtok(target_dports, ",");
+		while (port) {
+			port_num = strtol(port, NULL, 10);
+			bpf_map_update_elem(port_map_fd, &port_num, &port_num, BPF_ANY);
+			port = strtok(NULL, ",");
+		}
+	}
+
+	err = tcpstates_bpf__attach(obj);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	pb = perf_buffer__new(bpf_map__fd(obj->maps.events), PERF_BUFFER_PAGES,
+			      handle_event, handle_lost_events, NULL, NULL);
+	if (!pb) {
+		err = - errno;
+		warn("failed to open perf buffer: %d\n", err);
+		goto cleanup;
+	
