@@ -88,4 +88,91 @@ static error_t parse_arg(int key, char *arg, struct argp_state *state)
 	case 'T':
 		emit_timestamp = true;
 		break;
-	case 
+	case '4':
+		target_family = AF_INET;
+		break;
+	case '6':
+		target_family = AF_INET6;
+		break;
+	case 'w':
+		wide_output = true;
+		break;
+	case 'L':
+		if (!arg) {
+			warn("No ports specified\n");
+			argp_usage(state);
+		}
+		target_sports = strdup(arg);
+		port = strtok(arg, ",");
+		while (port) {
+			port_num = strtol(port, NULL, 10);
+			if (errno || port_num <= 0 || port_num > 65536) {
+				warn("Invalid ports: %s\n", arg);
+				argp_usage(state);
+			}
+			port = strtok(NULL, ",");
+		}
+		break;
+	case 'D':
+		if (!arg) {
+			warn("No ports specified\n");
+			argp_usage(state);
+		}
+		target_dports = strdup(arg);
+		port = strtok(arg, ",");
+		while (port) {
+			port_num = strtol(port, NULL, 10);
+			if (errno || port_num <= 0 || port_num > 65536) {
+				warn("Invalid ports: %s\n", arg);
+				argp_usage(state);
+			}
+			port = strtok(NULL, ",");
+		}
+		break;
+	case 'h':
+		argp_state_help(state, stderr, ARGP_HELP_STD_HELP);
+		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+	return 0;
+}
+
+static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
+{
+	if (level == LIBBPF_DEBUG && !verbose)
+		return 0;
+
+	return vfprintf(stderr, format, args);
+}
+
+static void sig_int(int signo)
+{
+	exiting = 1;
+}
+
+static void handle_event(void *ctx, int cpu, void *data, __u32 data_sz)
+{
+	char ts[32], saddr[26], daddr[26];
+	struct event *e = data;
+	struct tm *tm;
+	int family;
+	time_t t;
+
+	if (emit_timestamp) {
+		time(&t);
+		tm = localtime(&t);
+		strftime(ts, sizeof(ts), "%H:%M:%S", tm);
+		printf("%8s ", ts);
+	}
+
+	inet_ntop(e->family, &e->saddr, saddr, sizeof(saddr));
+	inet_ntop(e->family, &e->daddr, daddr, sizeof(daddr));
+	if (wide_output) {
+		family = e->family == AF_INET ? 4 : 6;
+		printf("%-16llx %-7d %-16s %-2d %-26s %-5d %-26s %-5d %-11s -> %-11s %.3f\n",
+		       e->skaddr, e->pid, e->task, family, saddr, e->sport, daddr, e->dport,
+		       tcp_states[e->oldstate], tcp_states[e->newstate], (double)e->delta_us / 1000);
+	} else {
+		printf("%-16llx %-7d %-10.10s %-15s %-5d %-15s %-5d %-11s -> %-11s %.3f\n",
+		       e->skaddr, e->pid, e->task, saddr, e->sport, daddr, e->dport
