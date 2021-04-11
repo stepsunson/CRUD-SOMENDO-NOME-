@@ -259,4 +259,39 @@ int main(int argc, char **argv)
 		err = - errno;
 		warn("failed to open perf buffer: %d\n", err);
 		goto cleanup;
-	
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	if (emit_timestamp)
+		printf("%-8s ", "TIME(s)");
+	if (wide_output)
+		printf("%-16s %-7s %-16s %-2s %-26s %-5s %-26s %-5s %-11s -> %-11s %s\n",
+		       "SKADDR", "PID", "COMM", "IP", "LADDR", "LPORT",
+		       "RADDR", "RPORT", "OLDSTATE", "NEWSTATE", "MS");
+	else
+		printf("%-16s %-7s %-10s %-15s %-5s %-15s %-5s %-11s -> %-11s %s\n",
+		       "SKADDR", "PID", "COMM", "LADDR", "LPORT",
+		       "RADDR", "RPORT", "OLDSTATE", "NEWSTATE", "MS");
+
+	while (!exiting) {
+		err = perf_buffer__poll(pb, PERF_POLL_TIMEOUT_MS);
+		if (err < 0 && err != -EINTR) {
+			warn("error polling perf buffer: %s\n", strerror(-err));
+			goto cleanup;
+		}
+		/* reset err to return 0 if exiting */
+		err = 0;
+	}
+
+cleanup:
+	perf_buffer__free(pb);
+	tcpstates_bpf__destroy(obj);
+	cleanup_core_btf(&open_opts);
+
+	return err != 0;
+}
