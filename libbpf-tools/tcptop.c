@@ -261,4 +261,93 @@ static int print_stat(struct tcptop_bpf *obj)
 	printf("%-6s %-12s %-21s %-21s %6s %6s", "PID", "COMM", "LADDR", "RADDR",
 				 "RX_KB", "TX_KB\n");
 
-	qsort(infos, row
+	qsort(infos, rows, sizeof(struct info_t), sort_column);
+	rows = rows < output_rows ? rows : output_rows;
+	for (i = 0; i < rows; i++) {
+		/* Default width to fit IPv4 plus port. */
+		int column_width = 21;
+		struct ip_key_t *key = &infos[i].key;
+		struct traffic_t *value = &infos[i].value;
+
+		if (key->family == AF_INET6) {
+			/* Width to fit IPv6 plus port. */
+			column_width = 51;
+			if (!ipv6_header_printed) {
+				printf("\n%-6s %-12s %-51s %-51s %6s %6s", "PID", "COMM", "LADDR6",
+							"RADDR6", "RX_KB", "TX_KB\n");
+				ipv6_header_printed = true;
+			}
+		}
+
+		char saddr[INET6_ADDRSTRLEN];
+		char daddr[INET6_ADDRSTRLEN];
+
+		inet_ntop(key->family, &key->saddr, saddr, INET6_ADDRSTRLEN);
+		inet_ntop(key->family, &key->daddr, daddr, INET6_ADDRSTRLEN);
+
+		/*
+		 * A port is stored in u16, so highest value is 65535, which is 5
+		 * characters long.
+		 * We need one character more for ':'.
+		 */
+		size_t size = INET6_ADDRSTRLEN + PORT_LENGTH + 1;
+
+		char saddr_port[size];
+		char daddr_port[size];
+
+		snprintf(saddr_port, size, "%s:%d", saddr, key->lport);
+		snprintf(daddr_port, size, "%s:%d", daddr, key->dport);
+
+		printf("%-6d %-12.12s %-*s %-*s %6ld %6ld\n",
+					 key->pid, key->name,
+					 column_width, saddr_port,
+					 column_width, daddr_port,
+					 value->received / 1024, value->sent / 1024);
+	}
+
+	printf("\n");
+
+	prev_key = NULL;
+	while (1) {
+		err = bpf_map_get_next_key(fd, prev_key, &key);
+		if (err) {
+			if (errno == ENOENT) {
+				err = 0;
+				break;
+			}
+			warn("bpf_map_get_next_key failed: %s\n", strerror(errno));
+			return err;
+		}
+		err = bpf_map_delete_elem(fd, &key);
+		if (err) {
+			warn("bpf_map_delete_elem failed: %s\n", strerror(errno));
+			return err;
+		}
+		prev_key = &key;
+	}
+
+	return err;
+}
+
+int main(int argc, char **argv)
+{
+	static const struct argp argp = {
+		.options = opts,
+		.parser = parse_arg,
+		.doc = argp_program_doc,
+	};
+	struct tcptop_bpf *obj;
+	int family;
+	int cgfd = -1;
+	int err;
+
+	err = argp_parse(&argp, argc, argv, 0, NULL, NULL);
+	if (err)
+		return err;
+
+	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
+	libbpf_set_print(libbpf_print_fn);
+
+	family = -1;
+	if (ipv4_only)
+		family = A
