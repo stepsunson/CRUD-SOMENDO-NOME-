@@ -350,4 +350,78 @@ int main(int argc, char **argv)
 
 	family = -1;
 	if (ipv4_only)
-		family = A
+		family = AF_INET;
+	if (ipv6_only)
+		family = AF_INET6;
+
+	obj = tcptop_bpf__open();
+	if (!obj) {
+		warn("failed to open BPF object\n");
+		return 1;
+	}
+
+	obj->rodata->target_pid = target_pid;
+	obj->rodata->target_family = family;
+	obj->rodata->filter_cg = cgroup_filtering;
+
+	err = tcptop_bpf__load(obj);
+	if (err) {
+		warn("failed to load BPF object: %d\n", err);
+		goto cleanup;
+	}
+
+	if (cgroup_filtering) {
+		int zero = 0;
+		int cg_map_fd = bpf_map__fd(obj->maps.cgroup_map);
+
+		cgfd = open(cgroup_path, O_RDONLY);
+		if (cgfd < 0) {
+			warn("Failed opening Cgroup path: %s\n", cgroup_path);
+			goto cleanup;
+		}
+
+		warn("bpf_map__fd: %d\n", cg_map_fd);
+
+		if (bpf_map_update_elem(cg_map_fd, &zero, &cgfd, BPF_ANY)) {
+			warn("Failed adding target cgroup to map\n");
+			goto cleanup;
+		}
+	}
+
+	err = tcptop_bpf__attach(obj);
+	if (err) {
+		warn("failed to attach BPF programs: %d\n", err);
+		goto cleanup;
+	}
+
+	if (signal(SIGINT, sig_int) == SIG_ERR) {
+		warn("can't set signal handler: %s\n", strerror(errno));
+		err = 1;
+		goto cleanup;
+	}
+
+	while (1) {
+		sleep(interval);
+
+		if (clear_screen) {
+			err = system("clear");
+			if (err)
+				goto cleanup;
+		}
+
+		err = print_stat(obj);
+		if (err)
+			goto cleanup;
+
+		count--;
+		if (exiting || !count)
+			goto cleanup;
+	}
+
+cleanup:
+	if (cgroup_filtering && cgfd != -1)
+		close(cgfd);
+	tcptop_bpf__destroy(obj);
+
+	return err != 0;
+}
