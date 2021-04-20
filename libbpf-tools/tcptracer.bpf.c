@@ -99,3 +99,98 @@ fill_tuple(struct tuple_key_t *tuple, struct sock *sk, int family)
 	}
 
 	BPF_CORE_READ_INTO(&tuple->dport, sk, __sk_common.skc_dport);
+	if (tuple->dport == 0)
+		return false;
+
+	BPF_CORE_READ_INTO(&tuple->sport, sockp, inet_sport);
+	if (tuple->sport == 0)
+		return false;
+
+	return true;
+}
+
+static __always_inline void
+fill_event(struct tuple_key_t *tuple, struct event *event, __u32 pid,
+	   __u32 uid, __u16 family, __u8 type)
+{
+	event->ts_us = bpf_ktime_get_ns() / 1000;
+	event->type = type;
+	event->pid = pid;
+	event->uid = uid;
+	event->af = family;
+	event->netns = tuple->netns;
+	if (family == AF_INET) {
+		event->saddr_v4 = tuple->saddr_v4;
+		event->daddr_v4 = tuple->daddr_v4;
+	} else {
+		event->saddr_v6 = tuple->saddr_v6;
+		event->daddr_v6 = tuple->daddr_v6;
+	}
+	event->sport = tuple->sport;
+	event->dport = tuple->dport;
+}
+
+/* returns true if the event should be skipped */
+static __always_inline bool
+filter_event(struct sock *sk, __u32 uid, __u32 pid)
+{
+	u16 family = BPF_CORE_READ(sk, __sk_common.skc_family);
+
+	if (family != AF_INET && family != AF_INET6)
+		return true;
+
+	if (filter_pid && pid != filter_pid)
+		return true;
+
+	if (filter_uid != (uid_t) -1 && uid != filter_uid)
+		return true;
+
+	return false;
+}
+
+static __always_inline int
+enter_tcp_connect(struct pt_regs *ctx, struct sock *sk)
+{
+	__u64 pid_tgid = bpf_get_current_pid_tgid();
+	__u32 pid = pid_tgid >> 32;
+	__u32 tid = pid_tgid;
+	__u64 uid_gid = bpf_get_current_uid_gid();
+	__u32 uid = uid_gid;
+
+	if (filter_event(sk, uid, pid))
+		return 0;
+
+	bpf_map_update_elem(&sockets, &tid, &sk, 0);
+	return 0;
+}
+
+static __always_inline int
+exit_tcp_connect(struct pt_regs *ctx, int ret, __u16 family)
+{
+	__u64 pid_tgid = bpf_get_current_pid_tgid();
+	__u32 pid = pid_tgid >> 32;
+	__u32 tid = pid_tgid;
+	__u64 uid_gid = bpf_get_current_uid_gid();
+	__u32 uid = uid_gid;
+	struct tuple_key_t tuple = {};
+	struct pid_comm_t pid_comm = {};
+	struct sock **skpp;
+	struct sock *sk;
+
+	skpp = bpf_map_lookup_elem(&sockets, &tid);
+	if (!skpp)
+		return 0;
+
+	if (ret)
+		goto end;
+
+	sk = *skpp;
+
+	if (!fill_tuple(&tuple, sk, family))
+		goto end;
+
+	pid_comm.pid = pid;
+	pid_comm.uid = uid;
+	bpf_get_current_comm(&pid_comm.comm, sizeof(pid_comm.comm));
+
+	bpf_map_update_elem(&tuplepid, &tuple, &pi
