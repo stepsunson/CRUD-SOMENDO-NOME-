@@ -193,4 +193,96 @@ exit_tcp_connect(struct pt_regs *ctx, int ret, __u16 family)
 	pid_comm.uid = uid;
 	bpf_get_current_comm(&pid_comm.comm, sizeof(pid_comm.comm));
 
-	bpf_map_update_elem(&tuplepid, &tuple, &pi
+	bpf_map_update_elem(&tuplepid, &tuple, &pid_comm, 0);
+
+end:
+	bpf_map_delete_elem(&sockets, &tid);
+	return 0;
+}
+
+SEC("kprobe/tcp_v4_connect")
+int BPF_KPROBE(tcp_v4_connect, struct sock *sk)
+{
+	return enter_tcp_connect(ctx, sk);
+}
+
+SEC("kretprobe/tcp_v4_connect")
+int BPF_KRETPROBE(tcp_v4_connect_ret, int ret)
+{
+	return exit_tcp_connect(ctx, ret, AF_INET);
+}
+
+SEC("kprobe/tcp_v6_connect")
+int BPF_KPROBE(tcp_v6_connect, struct sock *sk)
+{
+	return enter_tcp_connect(ctx, sk);
+}
+
+SEC("kretprobe/tcp_v6_connect")
+int BPF_KRETPROBE(tcp_v6_connect_ret, int ret)
+{
+	return exit_tcp_connect(ctx, ret, AF_INET6);
+}
+
+SEC("kprobe/tcp_close")
+int BPF_KPROBE(entry_trace_close, struct sock *sk)
+{
+	__u64 pid_tgid = bpf_get_current_pid_tgid();
+	__u32 pid = pid_tgid >> 32;
+	__u64 uid_gid = bpf_get_current_uid_gid();
+	__u32 uid = uid_gid;
+	struct tuple_key_t tuple = {};
+	struct event event = {};
+	u16 family;
+
+	if (filter_event(sk, uid, pid))
+		return 0;
+
+	/*
+	 * Don't generate close events for connections that were never
+	 * established in the first place.
+	 */
+	u8 oldstate = BPF_CORE_READ(sk, __sk_common.skc_state);
+	if (oldstate == TCP_SYN_SENT ||
+	    oldstate == TCP_SYN_RECV ||
+	    oldstate == TCP_NEW_SYN_RECV)
+		return 0;
+
+	family = BPF_CORE_READ(sk, __sk_common.skc_family);
+	if (!fill_tuple(&tuple, sk, family))
+		return 0;
+
+	fill_event(&tuple, &event, pid, uid, family, TCP_EVENT_TYPE_CLOSE);
+	bpf_get_current_comm(&event.task, sizeof(event.task));
+
+	bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU,
+		      &event, sizeof(event));
+
+	return 0;
+};
+
+SEC("kprobe/tcp_set_state")
+int BPF_KPROBE(enter_tcp_set_state, struct sock *sk, int state)
+{
+	struct tuple_key_t tuple = {};
+	struct event event = {};
+	__u16 family;
+
+	if (state != TCP_ESTABLISHED && state != TCP_CLOSE)
+		goto end;
+
+	family = BPF_CORE_READ(sk, __sk_common.skc_family);
+
+	if (!fill_tuple(&tuple, sk, family))
+		goto end;
+
+	if (state == TCP_CLOSE)
+		goto end;
+
+	struct pid_comm_t *p;
+	p = bpf_map_lookup_elem(&tuplepid, &tuple);
+	if (!p)
+		return 0; /* missed entry */
+
+	fill_event(&tuple, &event, p->pid, p->uid, family, TCP_EVENT_TYPE_CONNECT);
+	__builtin_memcp
