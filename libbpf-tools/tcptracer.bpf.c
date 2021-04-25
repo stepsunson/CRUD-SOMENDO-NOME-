@@ -285,4 +285,51 @@ int BPF_KPROBE(enter_tcp_set_state, struct sock *sk, int state)
 		return 0; /* missed entry */
 
 	fill_event(&tuple, &event, p->pid, p->uid, family, TCP_EVENT_TYPE_CONNECT);
-	__builtin_memcp
+	__builtin_memcpy(&event.task, p->comm, sizeof(event.task));
+
+	bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU,
+			      &event, sizeof(event));
+
+end:
+	bpf_map_delete_elem(&tuplepid, &tuple);
+
+	return 0;
+}
+
+SEC("kretprobe/inet_csk_accept")
+int BPF_KRETPROBE(exit_inet_csk_accept, struct sock *sk)
+{
+	__u64 pid_tgid = bpf_get_current_pid_tgid();
+	__u32 pid = pid_tgid >> 32;
+	__u64 uid_gid = bpf_get_current_uid_gid();
+	__u32 uid = uid_gid;
+	__u16 sport, family;
+	struct event event = {};
+
+	if (!sk)
+		return 0;
+
+	if (filter_event(sk, uid, pid))
+		return 0;
+
+	family = BPF_CORE_READ(sk, __sk_common.skc_family);
+	sport = BPF_CORE_READ(sk, __sk_common.skc_num);
+
+	struct tuple_key_t t = {};
+	fill_tuple(&t, sk, family);
+	t.sport = bpf_ntohs(sport);
+	/* do not send event if IP address is 0.0.0.0 or port is 0 */
+	if (t.saddr_v6 == 0 || t.daddr_v6 == 0 || t.dport == 0 || t.sport == 0)
+		return 0;
+
+	fill_event(&t, &event, pid, uid, family, TCP_EVENT_TYPE_ACCEPT);
+
+	bpf_get_current_comm(&event.task, sizeof(event.task));
+	bpf_perf_event_output(ctx, &events, BPF_F_CURRENT_CPU,
+			      &event, sizeof(event));
+
+	return 0;
+}
+
+
+char LICENSE[] SEC("license") = "GPL";
