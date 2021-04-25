@@ -32,4 +32,11 @@ struct event {
 	__u32 af; /* AF_INET or AF_INET6 */
 	__u32 pid;
 	__u32 uid;
-	__u32 n
+	__u32 netns;
+	__u16 dport;
+	__u16 sport;
+	__u8 type;
+};
+
+
+#endif /* __TCPTRACER_H */
