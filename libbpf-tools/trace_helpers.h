@@ -89,4 +89,16 @@ bool fentry_can_attach(const char *name, const char *mod);
  *
  * It is achieved by scaning
  * 	/sys/kernel/debug/tracing/available_filter_functions
- * If this file does not exist, it f
+ * If this file does not exist, it fallbacks to parse /proc/kallsyms,
+ * which is slower.
+ */
+bool kprobe_exists(const char *name);
+bool tracepoint_exists(const char *category, const char *event);
+
+bool vmlinux_btf_exists(void);
+bool module_btf_exists(const char *mod);
+
+bool probe_tp_btf(const char *name);
+bool probe_ringbuf();
+
+#endif /* __TRACE_HELPERS_H */
