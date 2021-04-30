@@ -153,4 +153,110 @@ int resolve_binary_path(const char *binary, pid_t pid, char *path, size_t path_s
 	if (which_program(binary, path, path_sz)) {
 		/*
 		 * If the user is tracing a program by name, we can find it.
-		 * But we can't find a library by name yet.  We'd nee
+		 * But we can't find a library by name yet.  We'd need to parse
+		 * ld.so.cache or something similar.
+		 */
+		warn("Can't find %s (Need a PID if this is a library)\n", binary);
+		return -1;
+	}
+	return 0;
+}
+
+/*
+ * Opens an elf at `path` of kind ELF_K_ELF.  Returns NULL on failure.  On
+ * success, close with close_elf(e, fd_close).
+ */
+Elf *open_elf(const char *path, int *fd_close)
+{
+	int fd;
+	Elf *e;
+
+	if (elf_version(EV_CURRENT) == EV_NONE) {
+		warn("elf init failed\n");
+		return NULL;
+	}
+	fd = open(path, O_RDONLY);
+	if (fd < 0) {
+		warn("Could not open %s\n", path);
+		return NULL;
+	}
+	e = elf_begin(fd, ELF_C_READ, NULL);
+	if (!e) {
+		warn("elf_begin failed: %s\n", elf_errmsg(-1));
+		close(fd);
+		return NULL;
+	}
+	if (elf_kind(e) != ELF_K_ELF) {
+		warn("elf kind %d is not ELF_K_ELF\n", elf_kind(e));
+		elf_end(e);
+		close(fd);
+		return NULL;
+	}
+	*fd_close = fd;
+	return e;
+}
+
+Elf *open_elf_by_fd(int fd)
+{
+	Elf *e;
+
+	if (elf_version(EV_CURRENT) == EV_NONE) {
+		warn("elf init failed\n");
+		return NULL;
+	}
+	e = elf_begin(fd, ELF_C_READ, NULL);
+	if (!e) {
+		warn("elf_begin failed: %s\n", elf_errmsg(-1));
+		close(fd);
+		return NULL;
+	}
+	if (elf_kind(e) != ELF_K_ELF) {
+		warn("elf kind %d is not ELF_K_ELF\n", elf_kind(e));
+		elf_end(e);
+		close(fd);
+		return NULL;
+	}
+	return e;
+}
+
+void close_elf(Elf *e, int fd_close)
+{
+	elf_end(e);
+	close(fd_close);
+}
+
+/* Returns the offset of a function in the elf file `path`, or -1 on failure. */
+off_t get_elf_func_offset(const char *path, const char *func)
+{
+	off_t ret = -1;
+	int i, fd = -1;
+	Elf *e;
+	Elf_Scn *scn;
+	Elf_Data *data;
+	GElf_Ehdr ehdr;
+	GElf_Shdr shdr[1];
+	GElf_Phdr phdr;
+	GElf_Sym sym[1];
+	size_t shstrndx, nhdrs;
+	char *n;
+
+	e = open_elf(path, &fd);
+
+	if (!gelf_getehdr(e, &ehdr))
+		goto out;
+
+	if (elf_getshdrstrndx(e, &shstrndx) != 0)
+		goto out;
+
+	scn = NULL;
+	while ((scn = elf_nextscn(e, scn))) {
+		if (!gelf_getshdr(scn, shdr))
+			continue;
+		if (!(shdr->sh_type == SHT_SYMTAB || shdr->sh_type == SHT_DYNSYM))
+			continue;
+		data = NULL;
+		while ((data = elf_getdata(scn, data))) {
+			for (i = 0; gelf_getsym(data, i, sym); i++) {
+				n = elf_strptr(e, shdr->sh_link, sym->st_name);
+				if (!n)
+					continue;
