@@ -260,3 +260,35 @@ off_t get_elf_func_offset(const char *path, const char *func)
 				n = elf_strptr(e, shdr->sh_link, sym->st_name);
 				if (!n)
 					continue;
+				if (GELF_ST_TYPE(sym->st_info) != STT_FUNC)
+					continue;
+				if (!strcmp(n, func)) {
+					ret = sym->st_value;
+					goto check;
+				}
+			}
+		}
+	}
+
+check:
+	if (ehdr.e_type == ET_EXEC || ehdr.e_type == ET_DYN) {
+		if (elf_getphdrnum(e, &nhdrs) != 0) {
+			ret = -1;
+			goto out;
+		}
+		for (i = 0; i < (int)nhdrs; i++) {
+			if (!gelf_getphdr(e, i, &phdr))
+				continue;
+			if (phdr.p_type != PT_LOAD || !(phdr.p_flags & PF_X))
+				continue;
+			if (phdr.p_vaddr <= ret && ret < (phdr.p_vaddr + phdr.p_memsz)) {
+				ret = ret - phdr.p_vaddr + phdr.p_offset;
+				goto out;
+			}
+		}
+		ret = -1;
+	}
+out:
+	close_elf(e, fd);
+	return ret;
+}
