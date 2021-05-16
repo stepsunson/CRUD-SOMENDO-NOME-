@@ -15547,3 +15547,2029 @@ struct gdt_page {
 	long: 64;
 	long: 64;
 	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct cyc2ns_data {
+	u32 cyc2ns_mul;
+	u32 cyc2ns_shift;
+	u64 cyc2ns_offset;
+};
+
+struct unwind_state {
+	struct stack_info stack_info;
+	long unsigned int stack_mask;
+	struct task_struct *task;
+	int graph_idx;
+	struct llist_node *kr_cur;
+	bool error;
+	bool got_irq;
+	long unsigned int *bp;
+	long unsigned int *orig_sp;
+	long unsigned int ip;
+	long unsigned int *next_bp;
+	struct pt_regs *regs;
+};
+
+enum extra_reg_type {
+	EXTRA_REG_NONE = 4294967295,
+	EXTRA_REG_RSP_0 = 0,
+	EXTRA_REG_RSP_1 = 1,
+	EXTRA_REG_LBR = 2,
+	EXTRA_REG_LDLAT = 3,
+	EXTRA_REG_FE = 4,
+	EXTRA_REG_MAX = 5,
+};
+
+struct event_constraint {
+	union {
+		long unsigned int idxmsk[1];
+		u64 idxmsk64;
+	};
+	u64 code;
+	u64 cmask;
+	int weight;
+	int overlap;
+	int flags;
+	unsigned int size;
+};
+
+struct amd_nb {
+	int nb_id;
+	int refcnt;
+	struct perf_event *owners[64];
+	struct event_constraint event_constraints[64];
+};
+
+struct er_account {
+	raw_spinlock_t lock;
+	u64 config;
+	u64 reg;
+	atomic_t ref;
+};
+
+struct intel_shared_regs {
+	struct er_account regs[5];
+	int refcnt;
+	unsigned int core_id;
+};
+
+enum intel_excl_state_type {
+	INTEL_EXCL_UNUSED = 0,
+	INTEL_EXCL_SHARED = 1,
+	INTEL_EXCL_EXCLUSIVE = 2,
+};
+
+struct intel_excl_states {
+	enum intel_excl_state_type state[64];
+	bool sched_started;
+};
+
+struct intel_excl_cntrs {
+	raw_spinlock_t lock;
+	struct intel_excl_states states[2];
+	union {
+		u16 has_exclusive[2];
+		u32 exclusive_present;
+	};
+	int refcnt;
+	unsigned int core_id;
+};
+
+enum {
+	X86_PERF_KFREE_SHARED = 0,
+	X86_PERF_KFREE_EXCL = 1,
+	X86_PERF_KFREE_MAX = 2,
+};
+
+struct cpu_hw_events {
+	struct perf_event *events[64];
+	long unsigned int active_mask[1];
+	long unsigned int dirty[1];
+	int enabled;
+	int n_events;
+	int n_added;
+	int n_txn;
+	int n_txn_pair;
+	int n_txn_metric;
+	int assign[64];
+	u64 tags[64];
+	struct perf_event *event_list[64];
+	struct event_constraint *event_constraint[64];
+	int n_excl;
+	unsigned int txn_flags;
+	int is_fake;
+	struct debug_store *ds;
+	void *ds_pebs_vaddr;
+	void *ds_bts_vaddr;
+	u64 pebs_enabled;
+	int n_pebs;
+	int n_large_pebs;
+	int n_pebs_via_pt;
+	int pebs_output;
+	u64 pebs_data_cfg;
+	u64 active_pebs_data_cfg;
+	int pebs_record_size;
+	int lbr_users;
+	int lbr_pebs_users;
+	struct perf_branch_stack lbr_stack;
+	struct perf_branch_entry lbr_entries[32];
+	union {
+		struct er_account *lbr_sel;
+		struct er_account *lbr_ctl;
+	};
+	u64 br_sel;
+	void *last_task_ctx;
+	int last_log_id;
+	int lbr_select;
+	void *lbr_xsave;
+	u64 intel_ctrl_guest_mask;
+	u64 intel_ctrl_host_mask;
+	struct perf_guest_switch_msr guest_switch_msrs[64];
+	u64 intel_cp_status;
+	struct intel_shared_regs *shared_regs;
+	struct event_constraint *constraint_list;
+	struct intel_excl_cntrs *excl_cntrs;
+	int excl_thread_id;
+	u64 tfa_shadow;
+	int n_metric;
+	struct amd_nb *amd_nb;
+	int brs_active;
+	u64 perf_ctr_virt_mask;
+	int n_pair;
+	void *kfree_on_online[2];
+	struct pmu *pmu;
+};
+
+struct extra_reg {
+	unsigned int event;
+	unsigned int msr;
+	u64 config_mask;
+	u64 valid_mask;
+	int idx;
+	bool extra_msr_access;
+};
+
+union perf_capabilities {
+	struct {
+		u64 lbr_format: 6;
+		u64 pebs_trap: 1;
+		u64 pebs_arch_reg: 1;
+		u64 pebs_format: 4;
+		u64 smm_freeze: 1;
+		u64 full_width_write: 1;
+		u64 pebs_baseline: 1;
+		u64 perf_metrics: 1;
+		u64 pebs_output_pt_available: 1;
+		u64 anythread_deprecated: 1;
+	};
+	u64 capabilities;
+};
+
+struct x86_pmu_quirk {
+	struct x86_pmu_quirk *next;
+	void (*func)();
+};
+
+enum {
+	x86_lbr_exclusive_lbr = 0,
+	x86_lbr_exclusive_bts = 1,
+	x86_lbr_exclusive_pt = 2,
+	x86_lbr_exclusive_max = 3,
+};
+
+struct x86_hybrid_pmu {
+	struct pmu pmu;
+	const char *name;
+	u8 cpu_type;
+	cpumask_t supported_cpus;
+	union perf_capabilities intel_cap;
+	u64 intel_ctrl;
+	int max_pebs_events;
+	int num_counters;
+	int num_counters_fixed;
+	struct event_constraint unconstrained;
+	u64 hw_cache_event_ids[42];
+	u64 hw_cache_extra_regs[42];
+	struct event_constraint *event_constraints;
+	struct event_constraint *pebs_constraints;
+	struct extra_reg *extra_regs;
+	unsigned int late_ack: 1;
+	unsigned int mid_ack: 1;
+	unsigned int enabled_ack: 1;
+};
+
+enum hybrid_pmu_type {
+	hybrid_big = 64,
+	hybrid_small = 32,
+	hybrid_big_small = 96,
+};
+
+struct x86_pmu {
+	const char *name;
+	int version;
+	int (*handle_irq)(struct pt_regs *);
+	void (*disable_all)();
+	void (*enable_all)(int);
+	void (*enable)(struct perf_event *);
+	void (*disable)(struct perf_event *);
+	void (*assign)(struct perf_event *, int);
+	void (*add)(struct perf_event *);
+	void (*del)(struct perf_event *);
+	void (*read)(struct perf_event *);
+	int (*hw_config)(struct perf_event *);
+	int (*schedule_events)(struct cpu_hw_events *, int, int *);
+	unsigned int eventsel;
+	unsigned int perfctr;
+	int (*addr_offset)(int, bool);
+	int (*rdpmc_index)(int);
+	u64 (*event_map)(int);
+	int max_events;
+	int num_counters;
+	int num_counters_fixed;
+	int cntval_bits;
+	u64 cntval_mask;
+	union {
+		long unsigned int events_maskl;
+		long unsigned int events_mask[1];
+	};
+	int events_mask_len;
+	int apic;
+	u64 max_period;
+	struct event_constraint * (*get_event_constraints)(struct cpu_hw_events *, int, struct perf_event *);
+	void (*put_event_constraints)(struct cpu_hw_events *, struct perf_event *);
+	void (*start_scheduling)(struct cpu_hw_events *);
+	void (*commit_scheduling)(struct cpu_hw_events *, int, int);
+	void (*stop_scheduling)(struct cpu_hw_events *);
+	struct event_constraint *event_constraints;
+	struct x86_pmu_quirk *quirks;
+	int perfctr_second_write;
+	u64 (*limit_period)(struct perf_event *, u64);
+	unsigned int late_ack: 1;
+	unsigned int mid_ack: 1;
+	unsigned int enabled_ack: 1;
+	int attr_rdpmc_broken;
+	int attr_rdpmc;
+	struct attribute **format_attrs;
+	ssize_t (*events_sysfs_show)(char *, u64);
+	const struct attribute_group **attr_update;
+	long unsigned int attr_freeze_on_smi;
+	int (*cpu_prepare)(int);
+	void (*cpu_starting)(int);
+	void (*cpu_dying)(int);
+	void (*cpu_dead)(int);
+	void (*check_microcode)();
+	void (*sched_task)(struct perf_event_context *, bool);
+	u64 intel_ctrl;
+	union perf_capabilities intel_cap;
+	unsigned int bts: 1;
+	unsigned int bts_active: 1;
+	unsigned int pebs: 1;
+	unsigned int pebs_active: 1;
+	unsigned int pebs_broken: 1;
+	unsigned int pebs_prec_dist: 1;
+	unsigned int pebs_no_tlb: 1;
+	unsigned int pebs_no_isolation: 1;
+	unsigned int pebs_block: 1;
+	int pebs_record_size;
+	int pebs_buffer_size;
+	int max_pebs_events;
+	void (*drain_pebs)(struct pt_regs *, struct perf_sample_data *);
+	struct event_constraint *pebs_constraints;
+	void (*pebs_aliases)(struct perf_event *);
+	long unsigned int large_pebs_flags;
+	u64 rtm_abort_event;
+	unsigned int lbr_tos;
+	unsigned int lbr_from;
+	unsigned int lbr_to;
+	unsigned int lbr_info;
+	unsigned int lbr_nr;
+	union {
+		u64 lbr_sel_mask;
+		u64 lbr_ctl_mask;
+	};
+	union {
+		const int *lbr_sel_map;
+		int *lbr_ctl_map;
+	};
+	bool lbr_double_abort;
+	bool lbr_pt_coexist;
+	unsigned int lbr_has_info: 1;
+	unsigned int lbr_has_tsx: 1;
+	unsigned int lbr_from_flags: 1;
+	unsigned int lbr_to_cycles: 1;
+	unsigned int lbr_depth_mask: 8;
+	unsigned int lbr_deep_c_reset: 1;
+	unsigned int lbr_lip: 1;
+	unsigned int lbr_cpl: 1;
+	unsigned int lbr_filter: 1;
+	unsigned int lbr_call_stack: 1;
+	unsigned int lbr_mispred: 1;
+	unsigned int lbr_timed_lbr: 1;
+	unsigned int lbr_br_type: 1;
+	void (*lbr_reset)();
+	void (*lbr_read)(struct cpu_hw_events *);
+	void (*lbr_save)(void *);
+	void (*lbr_restore)(void *);
+	atomic_t lbr_exclusive[3];
+	int num_topdown_events;
+	u64 (*update_topdown_event)(struct perf_event *);
+	int (*set_topdown_event_period)(struct perf_event *);
+	void (*swap_task_ctx)(struct perf_event_context *, struct perf_event_context *);
+	unsigned int amd_nb_constraints: 1;
+	u64 perf_ctr_pair_en;
+	struct extra_reg *extra_regs;
+	unsigned int flags;
+	struct perf_guest_switch_msr * (*guest_get_msrs)(int *);
+	int (*check_period)(struct perf_event *, u64);
+	int (*aux_output_match)(struct perf_event *);
+	int (*filter_match)(struct perf_event *);
+	int num_hybrid_pmus;
+	struct x86_hybrid_pmu *hybrid_pmu;
+	u8 (*get_hybrid_cpu_type)();
+};
+
+struct sched_state {
+	int weight;
+	int event;
+	int counter;
+	int unassigned;
+	int nr_gp;
+	u64 used;
+};
+
+struct perf_sched {
+	int max_weight;
+	int max_events;
+	int max_gp;
+	int saved_states;
+	struct event_constraint **constraints;
+	struct sched_state state;
+	struct sched_state saved[2];
+};
+
+struct perf_msr {
+	u64 msr;
+	struct attribute_group *grp;
+	bool (*test)(int, void *);
+	bool no_check;
+	u64 mask;
+};
+
+union cpuid_0x80000022_ebx {
+	struct {
+		unsigned int num_core_pmc: 4;
+	} split;
+	unsigned int full;
+};
+
+struct pci_device_id {
+	__u32 vendor;
+	__u32 device;
+	__u32 subvendor;
+	__u32 subdevice;
+	__u32 class;
+	__u32 class_mask;
+	kernel_ulong_t driver_data;
+	__u32 override_only;
+};
+
+struct pci_bus;
+
+struct hotplug_slot;
+
+struct pci_slot {
+	struct pci_bus *bus;
+	struct list_head list;
+	struct hotplug_slot *hotplug;
+	unsigned char number;
+	struct kobject kobj;
+};
+
+typedef short unsigned int pci_bus_flags_t;
+
+struct pci_dev;
+
+struct pci_ops;
+
+struct pci_bus {
+	struct list_head node;
+	struct pci_bus *parent;
+	struct list_head children;
+	struct list_head devices;
+	struct pci_dev *self;
+	struct list_head slots;
+	struct resource *resource[4];
+	struct list_head resources;
+	struct resource busn_res;
+	struct pci_ops *ops;
+	void *sysdata;
+	struct proc_dir_entry *procdir;
+	unsigned char number;
+	unsigned char primary;
+	unsigned char max_bus_speed;
+	unsigned char cur_bus_speed;
+	char name[48];
+	short unsigned int bridge_ctl;
+	pci_bus_flags_t bus_flags;
+	struct device *bridge;
+	struct device dev;
+	struct bin_attribute *legacy_io;
+	struct bin_attribute *legacy_mem;
+	unsigned int is_added: 1;
+	unsigned int unsafe_warn: 1;
+};
+
+enum {
+	PCI_STD_RESOURCES = 0,
+	PCI_STD_RESOURCE_END = 5,
+	PCI_ROM_RESOURCE = 6,
+	PCI_IOV_RESOURCES = 7,
+	PCI_IOV_RESOURCE_END = 12,
+	PCI_BRIDGE_RESOURCES = 13,
+	PCI_BRIDGE_RESOURCE_END = 16,
+	PCI_NUM_RESOURCES = 17,
+	DEVICE_COUNT_RESOURCE = 17,
+};
+
+typedef int pci_power_t;
+
+typedef unsigned int pci_channel_state_t;
+
+typedef unsigned int pcie_reset_state_t;
+
+typedef short unsigned int pci_dev_flags_t;
+
+struct pci_vpd {
+	struct mutex lock;
+	unsigned int len;
+	u8 cap;
+};
+
+struct aer_stats;
+
+struct rcec_ea;
+
+struct pci_driver;
+
+struct pcie_link_state;
+
+struct pci_sriov;
+
+struct pci_dev {
+	struct list_head bus_list;
+	struct pci_bus *bus;
+	struct pci_bus *subordinate;
+	void *sysdata;
+	struct proc_dir_entry *procent;
+	struct pci_slot *slot;
+	unsigned int devfn;
+	short unsigned int vendor;
+	short unsigned int device;
+	short unsigned int subsystem_vendor;
+	short unsigned int subsystem_device;
+	unsigned int class;
+	u8 revision;
+	u8 hdr_type;
+	u16 aer_cap;
+	struct aer_stats *aer_stats;
+	struct rcec_ea *rcec_ea;
+	struct pci_dev *rcec;
+	u32 devcap;
+	u8 pcie_cap;
+	u8 msi_cap;
+	u8 msix_cap;
+	u8 pcie_mpss: 3;
+	u8 rom_base_reg;
+	u8 pin;
+	u16 pcie_flags_reg;
+	long unsigned int *dma_alias_mask;
+	struct pci_driver *driver;
+	u64 dma_mask;
+	struct device_dma_parameters dma_parms;
+	pci_power_t current_state;
+	unsigned int imm_ready: 1;
+	u8 pm_cap;
+	unsigned int pme_support: 5;
+	unsigned int pme_poll: 1;
+	unsigned int d1_support: 1;
+	unsigned int d2_support: 1;
+	unsigned int no_d1d2: 1;
+	unsigned int no_d3cold: 1;
+	unsigned int bridge_d3: 1;
+	unsigned int d3cold_allowed: 1;
+	unsigned int mmio_always_on: 1;
+	unsigned int wakeup_prepared: 1;
+	unsigned int skip_bus_pm: 1;
+	unsigned int ignore_hotplug: 1;
+	unsigned int hotplug_user_indicators: 1;
+	unsigned int clear_retrain_link: 1;
+	unsigned int d3hot_delay;
+	unsigned int d3cold_delay;
+	struct pcie_link_state *link_state;
+	unsigned int ltr_path: 1;
+	u16 l1ss;
+	unsigned int pasid_no_tlp: 1;
+	unsigned int eetlp_prefix_path: 1;
+	pci_channel_state_t error_state;
+	struct device dev;
+	int cfg_size;
+	unsigned int irq;
+	struct resource resource[17];
+	bool match_driver;
+	unsigned int transparent: 1;
+	unsigned int io_window: 1;
+	unsigned int pref_window: 1;
+	unsigned int pref_64_window: 1;
+	unsigned int multifunction: 1;
+	unsigned int is_busmaster: 1;
+	unsigned int no_msi: 1;
+	unsigned int no_64bit_msi: 1;
+	unsigned int block_cfg_access: 1;
+	unsigned int broken_parity_status: 1;
+	unsigned int irq_reroute_variant: 2;
+	unsigned int msi_enabled: 1;
+	unsigned int msix_enabled: 1;
+	unsigned int ari_enabled: 1;
+	unsigned int ats_enabled: 1;
+	unsigned int pasid_enabled: 1;
+	unsigned int pri_enabled: 1;
+	unsigned int is_managed: 1;
+	unsigned int is_msi_managed: 1;
+	unsigned int needs_freset: 1;
+	unsigned int state_saved: 1;
+	unsigned int is_physfn: 1;
+	unsigned int is_virtfn: 1;
+	unsigned int is_hotplug_bridge: 1;
+	unsigned int shpc_managed: 1;
+	unsigned int is_thunderbolt: 1;
+	unsigned int untrusted: 1;
+	unsigned int external_facing: 1;
+	unsigned int broken_intx_masking: 1;
+	unsigned int io_window_1k: 1;
+	unsigned int irq_managed: 1;
+	unsigned int non_compliant_bars: 1;
+	unsigned int is_probed: 1;
+	unsigned int link_active_reporting: 1;
+	unsigned int no_vf_scan: 1;
+	unsigned int no_command_memory: 1;
+	unsigned int rom_bar_overlap: 1;
+	pci_dev_flags_t dev_flags;
+	atomic_t enable_cnt;
+	u32 saved_config_space[16];
+	struct hlist_head saved_cap_space;
+	int rom_attr_enabled;
+	struct bin_attribute *res_attr[17];
+	struct bin_attribute *res_attr_wc[17];
+	unsigned int broken_cmd_compl: 1;
+	unsigned int ptm_root: 1;
+	unsigned int ptm_enabled: 1;
+	u8 ptm_granularity;
+	void *msix_base;
+	raw_spinlock_t msi_lock;
+	struct pci_vpd vpd;
+	u16 dpc_cap;
+	unsigned int dpc_rp_extensions: 1;
+	u8 dpc_rp_log_size;
+	union {
+		struct pci_sriov *sriov;
+		struct pci_dev *physfn;
+	};
+	u16 ats_cap;
+	u8 ats_stu;
+	u16 pri_cap;
+	u32 pri_reqs_alloc;
+	unsigned int pasid_required: 1;
+	u16 pasid_cap;
+	u16 pasid_features;
+	u16 acs_cap;
+	phys_addr_t rom;
+	size_t romlen;
+	const char *driver_override;
+	long unsigned int priv_flags;
+	u8 reset_methods[7];
+};
+
+struct pci_dynids {
+	spinlock_t lock;
+	struct list_head list;
+};
+
+struct pci_error_handlers;
+
+struct pci_driver {
+	struct list_head node;
+	const char *name;
+	const struct pci_device_id *id_table;
+	int (*probe)(struct pci_dev *, const struct pci_device_id *);
+	void (*remove)(struct pci_dev *);
+	int (*suspend)(struct pci_dev *, pm_message_t);
+	int (*resume)(struct pci_dev *);
+	void (*shutdown)(struct pci_dev *);
+	int (*sriov_configure)(struct pci_dev *, int);
+	int (*sriov_set_msix_vec_count)(struct pci_dev *, int);
+	u32 (*sriov_get_vf_total_msix)(struct pci_dev *);
+	const struct pci_error_handlers *err_handler;
+	const struct attribute_group **groups;
+	const struct attribute_group **dev_groups;
+	struct device_driver driver;
+	struct pci_dynids dynids;
+	bool driver_managed_dma;
+};
+
+struct pci_ops {
+	int (*add_bus)(struct pci_bus *);
+	void (*remove_bus)(struct pci_bus *);
+	void * (*map_bus)(struct pci_bus *, unsigned int, int);
+	int (*read)(struct pci_bus *, unsigned int, int, int, u32 *);
+	int (*write)(struct pci_bus *, unsigned int, int, int, u32);
+};
+
+typedef unsigned int pci_ers_result_t;
+
+struct pci_error_handlers {
+	pci_ers_result_t (*error_detected)(struct pci_dev *, pci_channel_state_t);
+	pci_ers_result_t (*mmio_enabled)(struct pci_dev *);
+	pci_ers_result_t (*slot_reset)(struct pci_dev *);
+	void (*reset_prepare)(struct pci_dev *);
+	void (*reset_done)(struct pci_dev *);
+	void (*resume)(struct pci_dev *);
+};
+
+struct syscore_ops {
+	struct list_head node;
+	int (*suspend)();
+	void (*resume)();
+	void (*shutdown)();
+};
+
+union ibs_fetch_ctl {
+	__u64 val;
+	struct {
+		__u64 fetch_maxcnt: 16;
+		__u64 fetch_cnt: 16;
+		__u64 fetch_lat: 16;
+		__u64 fetch_en: 1;
+		__u64 fetch_val: 1;
+		__u64 fetch_comp: 1;
+		__u64 ic_miss: 1;
+		__u64 phy_addr_valid: 1;
+		__u64 l1tlb_pgsz: 2;
+		__u64 l1tlb_miss: 1;
+		__u64 l2tlb_miss: 1;
+		__u64 rand_en: 1;
+		__u64 fetch_l2_miss: 1;
+		__u64 reserved: 5;
+	};
+};
+
+union ibs_op_ctl {
+	__u64 val;
+	struct {
+		__u64 opmaxcnt: 16;
+		__u64 reserved0: 1;
+		__u64 op_en: 1;
+		__u64 op_val: 1;
+		__u64 cnt_ctl: 1;
+		__u64 opmaxcnt_ext: 7;
+		__u64 reserved1: 5;
+		__u64 opcurcnt: 27;
+		__u64 reserved2: 5;
+	};
+};
+
+struct perf_ibs_data {
+	u32 size;
+	union {
+		u32 data[0];
+		u32 caps;
+	};
+	u64 regs[8];
+};
+
+enum ibs_states {
+	IBS_ENABLED = 0,
+	IBS_STARTED = 1,
+	IBS_STOPPING = 2,
+	IBS_STOPPED = 3,
+	IBS_MAX_STATES = 4,
+};
+
+struct cpu_perf_ibs {
+	struct perf_event *event;
+	long unsigned int state[1];
+};
+
+struct perf_ibs {
+	struct pmu pmu;
+	unsigned int msr;
+	u64 config_mask;
+	u64 cnt_mask;
+	u64 enable_mask;
+	u64 valid_mask;
+	u64 max_period;
+	long unsigned int offset_mask[1];
+	int offset_max;
+	unsigned int fetch_count_reset_broken: 1;
+	unsigned int fetch_ignore_if_zero_rip: 1;
+	struct cpu_perf_ibs *pcpu;
+	u64 (*get_count)(u64);
+};
+
+typedef void (*exitcall_t)();
+
+struct amd_uncore {
+	int id;
+	int refcnt;
+	int cpu;
+	int num_counters;
+	int rdpmc_base;
+	u32 msr_base;
+	cpumask_t *active_mask;
+	struct pmu *pmu;
+	struct perf_event *events[6];
+	struct hlist_node node;
+};
+
+struct amd_iommu;
+
+struct perf_amd_iommu {
+	struct list_head list;
+	struct pmu pmu;
+	struct amd_iommu *iommu;
+	char name[16];
+	u8 max_banks;
+	u8 max_counters;
+	u64 cntr_assign_mask;
+	raw_spinlock_t lock;
+};
+
+struct amd_iommu_event_desc {
+	struct device_attribute attr;
+	const char *event;
+};
+
+enum perf_msr_id {
+	PERF_MSR_TSC = 0,
+	PERF_MSR_APERF = 1,
+	PERF_MSR_MPERF = 2,
+	PERF_MSR_PPERF = 3,
+	PERF_MSR_SMI = 4,
+	PERF_MSR_PTSC = 5,
+	PERF_MSR_IRPERF = 6,
+	PERF_MSR_THERM = 7,
+	PERF_MSR_EVENT_MAX = 8,
+};
+
+struct x86_cpu_desc {
+	u8 x86_family;
+	u8 x86_vendor;
+	u8 x86_model;
+	u8 x86_stepping;
+	u32 x86_microcode_rev;
+};
+
+union cpuid10_eax {
+	struct {
+		unsigned int version_id: 8;
+		unsigned int num_counters: 8;
+		unsigned int bit_width: 8;
+		unsigned int mask_length: 8;
+	} split;
+	unsigned int full;
+};
+
+union cpuid10_ebx {
+	struct {
+		unsigned int no_unhalted_core_cycles: 1;
+		unsigned int no_instructions_retired: 1;
+		unsigned int no_unhalted_reference_cycles: 1;
+		unsigned int no_llc_reference: 1;
+		unsigned int no_llc_misses: 1;
+		unsigned int no_branch_instruction_retired: 1;
+		unsigned int no_branch_misses_retired: 1;
+	} split;
+	unsigned int full;
+};
+
+union cpuid10_edx {
+	struct {
+		unsigned int num_counters_fixed: 5;
+		unsigned int bit_width_fixed: 8;
+		unsigned int reserved1: 2;
+		unsigned int anythread_deprecated: 1;
+		unsigned int reserved2: 16;
+	} split;
+	unsigned int full;
+};
+
+struct perf_pmu_format_hybrid_attr {
+	struct device_attribute attr;
+	u64 pmu_type;
+};
+
+typedef int perf_snapshot_branch_stack_t(struct perf_branch_entry *, unsigned int);
+
+enum {
+	LBR_FORMAT_32 = 0,
+	LBR_FORMAT_LIP = 1,
+	LBR_FORMAT_EIP = 2,
+	LBR_FORMAT_EIP_FLAGS = 3,
+	LBR_FORMAT_EIP_FLAGS2 = 4,
+	LBR_FORMAT_INFO = 5,
+	LBR_FORMAT_TIME = 6,
+	LBR_FORMAT_INFO2 = 7,
+	LBR_FORMAT_MAX_KNOWN = 7,
+};
+
+union x86_pmu_config {
+	struct {
+		u64 event: 8;
+		u64 umask: 8;
+		u64 usr: 1;
+		u64 os: 1;
+		u64 edge: 1;
+		u64 pc: 1;
+		u64 interrupt: 1;
+		u64 __reserved1: 1;
+		u64 en: 1;
+		u64 inv: 1;
+		u64 cmask: 8;
+		u64 event2: 4;
+		u64 __reserved2: 4;
+		u64 go: 1;
+		u64 ho: 1;
+	} bits;
+	u64 value;
+};
+
+struct bts_ctx {
+	struct perf_output_handle handle;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct debug_store ds_back;
+	int state;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+enum {
+	BTS_STATE_STOPPED = 0,
+	BTS_STATE_INACTIVE = 1,
+	BTS_STATE_ACTIVE = 2,
+};
+
+struct bts_phys {
+	struct page *page;
+	long unsigned int size;
+	long unsigned int offset;
+	long unsigned int displacement;
+};
+
+struct bts_buffer {
+	size_t real_size;
+	unsigned int nr_pages;
+	unsigned int nr_bufs;
+	unsigned int cur_buf;
+	bool snapshot;
+	local_t data_size;
+	local_t head;
+	long unsigned int end;
+	void **data_pages;
+	struct bts_phys buf[0];
+};
+
+struct lbr_entry {
+	u64 from;
+	u64 to;
+	u64 info;
+};
+
+struct pebs_basic {
+	u64 format_size;
+	u64 ip;
+	u64 applicable_counters;
+	u64 tsc;
+};
+
+struct pebs_meminfo {
+	u64 address;
+	u64 aux;
+	u64 latency;
+	u64 tsx_tuning;
+};
+
+struct pebs_gprs {
+	u64 flags;
+	u64 ip;
+	u64 ax;
+	u64 cx;
+	u64 dx;
+	u64 bx;
+	u64 sp;
+	u64 bp;
+	u64 si;
+	u64 di;
+	u64 r8;
+	u64 r9;
+	u64 r10;
+	u64 r11;
+	u64 r12;
+	u64 r13;
+	u64 r14;
+	u64 r15;
+};
+
+struct pebs_xmm {
+	u64 xmm[32];
+};
+
+struct x86_perf_regs {
