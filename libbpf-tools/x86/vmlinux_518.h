@@ -17573,3 +17573,2119 @@ struct pebs_xmm {
 };
 
 struct x86_perf_regs {
+	struct pt_regs regs;
+	u64 *xmm_regs;
+};
+
+typedef unsigned int insn_attr_t;
+
+typedef unsigned char insn_byte_t;
+
+typedef int insn_value_t;
+
+struct insn_field {
+	union {
+		insn_value_t value;
+		insn_byte_t bytes[4];
+	};
+	unsigned char got;
+	unsigned char nbytes;
+};
+
+struct insn {
+	struct insn_field prefixes;
+	struct insn_field rex_prefix;
+	struct insn_field vex_prefix;
+	struct insn_field opcode;
+	struct insn_field modrm;
+	struct insn_field sib;
+	struct insn_field displacement;
+	union {
+		struct insn_field immediate;
+		struct insn_field moffset1;
+		struct insn_field immediate1;
+	};
+	union {
+		struct insn_field moffset2;
+		struct insn_field immediate2;
+	};
+	int emulate_prefix_size;
+	insn_attr_t attr;
+	unsigned char opnd_bytes;
+	unsigned char addr_bytes;
+	unsigned char length;
+	unsigned char x86_64;
+	const insn_byte_t *kaddr;
+	const insn_byte_t *end_kaddr;
+	const insn_byte_t *next_byte;
+};
+
+enum {
+	PERF_TXN_ELISION = 1,
+	PERF_TXN_TRANSACTION = 2,
+	PERF_TXN_SYNC = 4,
+	PERF_TXN_ASYNC = 8,
+	PERF_TXN_RETRY = 16,
+	PERF_TXN_CONFLICT = 32,
+	PERF_TXN_CAPACITY_WRITE = 64,
+	PERF_TXN_CAPACITY_READ = 128,
+	PERF_TXN_MAX = 256,
+	PERF_TXN_ABORT_MASK = 0,
+	PERF_TXN_ABORT_SHIFT = 32,
+};
+
+struct perf_event_header {
+	__u32 type;
+	__u16 misc;
+	__u16 size;
+};
+
+union intel_x86_pebs_dse {
+	u64 val;
+	struct {
+		unsigned int ld_dse: 4;
+		unsigned int ld_stlb_miss: 1;
+		unsigned int ld_locked: 1;
+		unsigned int ld_data_blk: 1;
+		unsigned int ld_addr_blk: 1;
+		unsigned int ld_reserved: 24;
+	};
+	struct {
+		unsigned int st_l1d_hit: 1;
+		unsigned int st_reserved1: 3;
+		unsigned int st_stlb_miss: 1;
+		unsigned int st_locked: 1;
+		unsigned int st_reserved2: 26;
+	};
+	struct {
+		unsigned int st_lat_dse: 4;
+		unsigned int st_lat_stlb_miss: 1;
+		unsigned int st_lat_locked: 1;
+		unsigned int ld_reserved3: 26;
+	};
+};
+
+struct pebs_record_core {
+	u64 flags;
+	u64 ip;
+	u64 ax;
+	u64 bx;
+	u64 cx;
+	u64 dx;
+	u64 si;
+	u64 di;
+	u64 bp;
+	u64 sp;
+	u64 r8;
+	u64 r9;
+	u64 r10;
+	u64 r11;
+	u64 r12;
+	u64 r13;
+	u64 r14;
+	u64 r15;
+};
+
+struct pebs_record_nhm {
+	u64 flags;
+	u64 ip;
+	u64 ax;
+	u64 bx;
+	u64 cx;
+	u64 dx;
+	u64 si;
+	u64 di;
+	u64 bp;
+	u64 sp;
+	u64 r8;
+	u64 r9;
+	u64 r10;
+	u64 r11;
+	u64 r12;
+	u64 r13;
+	u64 r14;
+	u64 r15;
+	u64 status;
+	u64 dla;
+	u64 dse;
+	u64 lat;
+};
+
+union hsw_tsx_tuning {
+	struct {
+		u32 cycles_last_block: 32;
+		u32 hle_abort: 1;
+		u32 rtm_abort: 1;
+		u32 instruction_abort: 1;
+		u32 non_instruction_abort: 1;
+		u32 retry: 1;
+		u32 data_conflict: 1;
+		u32 capacity_writes: 1;
+		u32 capacity_reads: 1;
+	};
+	u64 value;
+};
+
+struct pebs_record_skl {
+	u64 flags;
+	u64 ip;
+	u64 ax;
+	u64 bx;
+	u64 cx;
+	u64 dx;
+	u64 si;
+	u64 di;
+	u64 bp;
+	u64 sp;
+	u64 r8;
+	u64 r9;
+	u64 r10;
+	u64 r11;
+	u64 r12;
+	u64 r13;
+	u64 r14;
+	u64 r15;
+	u64 status;
+	u64 dla;
+	u64 dse;
+	u64 lat;
+	u64 real_ip;
+	u64 tsx_tuning;
+	u64 tsc;
+};
+
+struct bts_record {
+	u64 from;
+	u64 to;
+	u64 flags;
+};
+
+enum {
+	PERF_BR_UNKNOWN = 0,
+	PERF_BR_COND = 1,
+	PERF_BR_UNCOND = 2,
+	PERF_BR_IND = 3,
+	PERF_BR_CALL = 4,
+	PERF_BR_IND_CALL = 5,
+	PERF_BR_RET = 6,
+	PERF_BR_SYSCALL = 7,
+	PERF_BR_SYSRET = 8,
+	PERF_BR_COND_CALL = 9,
+	PERF_BR_COND_RET = 10,
+	PERF_BR_ERET = 11,
+	PERF_BR_IRQ = 12,
+	PERF_BR_MAX = 13,
+};
+
+enum xfeature {
+	XFEATURE_FP = 0,
+	XFEATURE_SSE = 1,
+	XFEATURE_YMM = 2,
+	XFEATURE_BNDREGS = 3,
+	XFEATURE_BNDCSR = 4,
+	XFEATURE_OPMASK = 5,
+	XFEATURE_ZMM_Hi256 = 6,
+	XFEATURE_Hi16_ZMM = 7,
+	XFEATURE_PT_UNIMPLEMENTED_SO_FAR = 8,
+	XFEATURE_PKRU = 9,
+	XFEATURE_PASID = 10,
+	XFEATURE_RSRVD_COMP_11 = 11,
+	XFEATURE_RSRVD_COMP_12 = 12,
+	XFEATURE_RSRVD_COMP_13 = 13,
+	XFEATURE_RSRVD_COMP_14 = 14,
+	XFEATURE_LBR = 15,
+	XFEATURE_RSRVD_COMP_16 = 16,
+	XFEATURE_XTILE_CFG = 17,
+	XFEATURE_XTILE_DATA = 18,
+	XFEATURE_MAX = 19,
+};
+
+struct arch_lbr_state {
+	u64 lbr_ctl;
+	u64 lbr_depth;
+	u64 ler_from;
+	u64 ler_to;
+	u64 ler_info;
+	struct lbr_entry entries[0];
+};
+
+union cpuid28_eax {
+	struct {
+		unsigned int lbr_depth_mask: 8;
+		unsigned int reserved: 22;
+		unsigned int lbr_deep_c_reset: 1;
+		unsigned int lbr_lip: 1;
+	} split;
+	unsigned int full;
+};
+
+union cpuid28_ebx {
+	struct {
+		unsigned int lbr_cpl: 1;
+		unsigned int lbr_filter: 1;
+		unsigned int lbr_call_stack: 1;
+	} split;
+	unsigned int full;
+};
+
+union cpuid28_ecx {
+	struct {
+		unsigned int lbr_mispred: 1;
+		unsigned int lbr_timed_lbr: 1;
+		unsigned int lbr_br_type: 1;
+	} split;
+	unsigned int full;
+};
+
+struct x86_pmu_lbr {
+	unsigned int nr;
+	unsigned int from;
+	unsigned int to;
+	unsigned int info;
+};
+
+struct x86_perf_task_context_opt {
+	int lbr_callstack_users;
+	int lbr_stack_state;
+	int log_id;
+};
+
+struct x86_perf_task_context {
+	u64 lbr_sel;
+	int tos;
+	int valid_lbrs;
+	struct x86_perf_task_context_opt opt;
+	struct lbr_entry lbr[32];
+};
+
+struct x86_perf_task_context_arch_lbr {
+	struct x86_perf_task_context_opt opt;
+	struct lbr_entry entries[0];
+};
+
+struct x86_perf_task_context_arch_lbr_xsave {
+	struct x86_perf_task_context_opt opt;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	union {
+		struct xregs_state xsave;
+		struct {
+			struct fxregs_state i387;
+			struct xstate_header header;
+			struct arch_lbr_state lbr;
+			long: 64;
+			long: 64;
+			long: 64;
+		};
+	};
+};
+
+enum {
+	X86_BR_NONE = 0,
+	X86_BR_USER = 1,
+	X86_BR_KERNEL = 2,
+	X86_BR_CALL = 4,
+	X86_BR_RET = 8,
+	X86_BR_SYSCALL = 16,
+	X86_BR_SYSRET = 32,
+	X86_BR_INT = 64,
+	X86_BR_IRET = 128,
+	X86_BR_JCC = 256,
+	X86_BR_JMP = 512,
+	X86_BR_IRQ = 1024,
+	X86_BR_IND_CALL = 2048,
+	X86_BR_ABORT = 4096,
+	X86_BR_IN_TX = 8192,
+	X86_BR_NO_TX = 16384,
+	X86_BR_ZERO_CALL = 32768,
+	X86_BR_CALL_STACK = 65536,
+	X86_BR_IND_JMP = 131072,
+	X86_BR_TYPE_SAVE = 262144,
+};
+
+enum {
+	LBR_NONE = 0,
+	LBR_VALID = 1,
+};
+
+enum {
+	ARCH_LBR_BR_TYPE_JCC = 0,
+	ARCH_LBR_BR_TYPE_NEAR_IND_JMP = 1,
+	ARCH_LBR_BR_TYPE_NEAR_REL_JMP = 2,
+	ARCH_LBR_BR_TYPE_NEAR_IND_CALL = 3,
+	ARCH_LBR_BR_TYPE_NEAR_REL_CALL = 4,
+	ARCH_LBR_BR_TYPE_NEAR_RET = 5,
+	ARCH_LBR_BR_TYPE_KNOWN_MAX = 5,
+	ARCH_LBR_BR_TYPE_MAP_MAX = 16,
+};
+
+enum P4_EVENTS {
+	P4_EVENT_TC_DELIVER_MODE = 0,
+	P4_EVENT_BPU_FETCH_REQUEST = 1,
+	P4_EVENT_ITLB_REFERENCE = 2,
+	P4_EVENT_MEMORY_CANCEL = 3,
+	P4_EVENT_MEMORY_COMPLETE = 4,
+	P4_EVENT_LOAD_PORT_REPLAY = 5,
+	P4_EVENT_STORE_PORT_REPLAY = 6,
+	P4_EVENT_MOB_LOAD_REPLAY = 7,
+	P4_EVENT_PAGE_WALK_TYPE = 8,
+	P4_EVENT_BSQ_CACHE_REFERENCE = 9,
+	P4_EVENT_IOQ_ALLOCATION = 10,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES = 11,
+	P4_EVENT_FSB_DATA_ACTIVITY = 12,
+	P4_EVENT_BSQ_ALLOCATION = 13,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES = 14,
+	P4_EVENT_SSE_INPUT_ASSIST = 15,
+	P4_EVENT_PACKED_SP_UOP = 16,
+	P4_EVENT_PACKED_DP_UOP = 17,
+	P4_EVENT_SCALAR_SP_UOP = 18,
+	P4_EVENT_SCALAR_DP_UOP = 19,
+	P4_EVENT_64BIT_MMX_UOP = 20,
+	P4_EVENT_128BIT_MMX_UOP = 21,
+	P4_EVENT_X87_FP_UOP = 22,
+	P4_EVENT_TC_MISC = 23,
+	P4_EVENT_GLOBAL_POWER_EVENTS = 24,
+	P4_EVENT_TC_MS_XFER = 25,
+	P4_EVENT_UOP_QUEUE_WRITES = 26,
+	P4_EVENT_RETIRED_MISPRED_BRANCH_TYPE = 27,
+	P4_EVENT_RETIRED_BRANCH_TYPE = 28,
+	P4_EVENT_RESOURCE_STALL = 29,
+	P4_EVENT_WC_BUFFER = 30,
+	P4_EVENT_B2B_CYCLES = 31,
+	P4_EVENT_BNR = 32,
+	P4_EVENT_SNOOP = 33,
+	P4_EVENT_RESPONSE = 34,
+	P4_EVENT_FRONT_END_EVENT = 35,
+	P4_EVENT_EXECUTION_EVENT = 36,
+	P4_EVENT_REPLAY_EVENT = 37,
+	P4_EVENT_INSTR_RETIRED = 38,
+	P4_EVENT_UOPS_RETIRED = 39,
+	P4_EVENT_UOP_TYPE = 40,
+	P4_EVENT_BRANCH_RETIRED = 41,
+	P4_EVENT_MISPRED_BRANCH_RETIRED = 42,
+	P4_EVENT_X87_ASSIST = 43,
+	P4_EVENT_MACHINE_CLEAR = 44,
+	P4_EVENT_INSTR_COMPLETED = 45,
+};
+
+enum P4_EVENT_OPCODES {
+	P4_EVENT_TC_DELIVER_MODE_OPCODE = 257,
+	P4_EVENT_BPU_FETCH_REQUEST_OPCODE = 768,
+	P4_EVENT_ITLB_REFERENCE_OPCODE = 6147,
+	P4_EVENT_MEMORY_CANCEL_OPCODE = 517,
+	P4_EVENT_MEMORY_COMPLETE_OPCODE = 2050,
+	P4_EVENT_LOAD_PORT_REPLAY_OPCODE = 1026,
+	P4_EVENT_STORE_PORT_REPLAY_OPCODE = 1282,
+	P4_EVENT_MOB_LOAD_REPLAY_OPCODE = 770,
+	P4_EVENT_PAGE_WALK_TYPE_OPCODE = 260,
+	P4_EVENT_BSQ_CACHE_REFERENCE_OPCODE = 3079,
+	P4_EVENT_IOQ_ALLOCATION_OPCODE = 774,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES_OPCODE = 6662,
+	P4_EVENT_FSB_DATA_ACTIVITY_OPCODE = 5894,
+	P4_EVENT_BSQ_ALLOCATION_OPCODE = 1287,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES_OPCODE = 1543,
+	P4_EVENT_SSE_INPUT_ASSIST_OPCODE = 13313,
+	P4_EVENT_PACKED_SP_UOP_OPCODE = 2049,
+	P4_EVENT_PACKED_DP_UOP_OPCODE = 3073,
+	P4_EVENT_SCALAR_SP_UOP_OPCODE = 2561,
+	P4_EVENT_SCALAR_DP_UOP_OPCODE = 3585,
+	P4_EVENT_64BIT_MMX_UOP_OPCODE = 513,
+	P4_EVENT_128BIT_MMX_UOP_OPCODE = 6657,
+	P4_EVENT_X87_FP_UOP_OPCODE = 1025,
+	P4_EVENT_TC_MISC_OPCODE = 1537,
+	P4_EVENT_GLOBAL_POWER_EVENTS_OPCODE = 4870,
+	P4_EVENT_TC_MS_XFER_OPCODE = 1280,
+	P4_EVENT_UOP_QUEUE_WRITES_OPCODE = 2304,
+	P4_EVENT_RETIRED_MISPRED_BRANCH_TYPE_OPCODE = 1282,
+	P4_EVENT_RETIRED_BRANCH_TYPE_OPCODE = 1026,
+	P4_EVENT_RESOURCE_STALL_OPCODE = 257,
+	P4_EVENT_WC_BUFFER_OPCODE = 1285,
+	P4_EVENT_B2B_CYCLES_OPCODE = 5635,
+	P4_EVENT_BNR_OPCODE = 2051,
+	P4_EVENT_SNOOP_OPCODE = 1539,
+	P4_EVENT_RESPONSE_OPCODE = 1027,
+	P4_EVENT_FRONT_END_EVENT_OPCODE = 2053,
+	P4_EVENT_EXECUTION_EVENT_OPCODE = 3077,
+	P4_EVENT_REPLAY_EVENT_OPCODE = 2309,
+	P4_EVENT_INSTR_RETIRED_OPCODE = 516,
+	P4_EVENT_UOPS_RETIRED_OPCODE = 260,
+	P4_EVENT_UOP_TYPE_OPCODE = 514,
+	P4_EVENT_BRANCH_RETIRED_OPCODE = 1541,
+	P4_EVENT_MISPRED_BRANCH_RETIRED_OPCODE = 772,
+	P4_EVENT_X87_ASSIST_OPCODE = 773,
+	P4_EVENT_MACHINE_CLEAR_OPCODE = 517,
+	P4_EVENT_INSTR_COMPLETED_OPCODE = 1796,
+};
+
+enum P4_ESCR_EMASKS {
+	P4_EVENT_TC_DELIVER_MODE__DD = 512,
+	P4_EVENT_TC_DELIVER_MODE__DB = 1024,
+	P4_EVENT_TC_DELIVER_MODE__DI = 2048,
+	P4_EVENT_TC_DELIVER_MODE__BD = 4096,
+	P4_EVENT_TC_DELIVER_MODE__BB = 8192,
+	P4_EVENT_TC_DELIVER_MODE__BI = 16384,
+	P4_EVENT_TC_DELIVER_MODE__ID = 32768,
+	P4_EVENT_BPU_FETCH_REQUEST__TCMISS = 512,
+	P4_EVENT_ITLB_REFERENCE__HIT = 512,
+	P4_EVENT_ITLB_REFERENCE__MISS = 1024,
+	P4_EVENT_ITLB_REFERENCE__HIT_UK = 2048,
+	P4_EVENT_MEMORY_CANCEL__ST_RB_FULL = 2048,
+	P4_EVENT_MEMORY_CANCEL__64K_CONF = 4096,
+	P4_EVENT_MEMORY_COMPLETE__LSC = 512,
+	P4_EVENT_MEMORY_COMPLETE__SSC = 1024,
+	P4_EVENT_LOAD_PORT_REPLAY__SPLIT_LD = 1024,
+	P4_EVENT_STORE_PORT_REPLAY__SPLIT_ST = 1024,
+	P4_EVENT_MOB_LOAD_REPLAY__NO_STA = 1024,
+	P4_EVENT_MOB_LOAD_REPLAY__NO_STD = 4096,
+	P4_EVENT_MOB_LOAD_REPLAY__PARTIAL_DATA = 8192,
+	P4_EVENT_MOB_LOAD_REPLAY__UNALGN_ADDR = 16384,
+	P4_EVENT_PAGE_WALK_TYPE__DTMISS = 512,
+	P4_EVENT_PAGE_WALK_TYPE__ITMISS = 1024,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_2ndL_HITS = 512,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_2ndL_HITE = 1024,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_2ndL_HITM = 2048,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_3rdL_HITS = 4096,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_3rdL_HITE = 8192,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_3rdL_HITM = 16384,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_2ndL_MISS = 131072,
+	P4_EVENT_BSQ_CACHE_REFERENCE__RD_3rdL_MISS = 262144,
+	P4_EVENT_BSQ_CACHE_REFERENCE__WR_2ndL_MISS = 524288,
+	P4_EVENT_IOQ_ALLOCATION__DEFAULT = 512,
+	P4_EVENT_IOQ_ALLOCATION__ALL_READ = 16384,
+	P4_EVENT_IOQ_ALLOCATION__ALL_WRITE = 32768,
+	P4_EVENT_IOQ_ALLOCATION__MEM_UC = 65536,
+	P4_EVENT_IOQ_ALLOCATION__MEM_WC = 131072,
+	P4_EVENT_IOQ_ALLOCATION__MEM_WT = 262144,
+	P4_EVENT_IOQ_ALLOCATION__MEM_WP = 524288,
+	P4_EVENT_IOQ_ALLOCATION__MEM_WB = 1048576,
+	P4_EVENT_IOQ_ALLOCATION__OWN = 4194304,
+	P4_EVENT_IOQ_ALLOCATION__OTHER = 8388608,
+	P4_EVENT_IOQ_ALLOCATION__PREFETCH = 16777216,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__DEFAULT = 512,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__ALL_READ = 16384,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__ALL_WRITE = 32768,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__MEM_UC = 65536,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__MEM_WC = 131072,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__MEM_WT = 262144,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__MEM_WP = 524288,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__MEM_WB = 1048576,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__OWN = 4194304,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__OTHER = 8388608,
+	P4_EVENT_IOQ_ACTIVE_ENTRIES__PREFETCH = 16777216,
+	P4_EVENT_FSB_DATA_ACTIVITY__DRDY_DRV = 512,
+	P4_EVENT_FSB_DATA_ACTIVITY__DRDY_OWN = 1024,
+	P4_EVENT_FSB_DATA_ACTIVITY__DRDY_OTHER = 2048,
+	P4_EVENT_FSB_DATA_ACTIVITY__DBSY_DRV = 4096,
+	P4_EVENT_FSB_DATA_ACTIVITY__DBSY_OWN = 8192,
+	P4_EVENT_FSB_DATA_ACTIVITY__DBSY_OTHER = 16384,
+	P4_EVENT_BSQ_ALLOCATION__REQ_TYPE0 = 512,
+	P4_EVENT_BSQ_ALLOCATION__REQ_TYPE1 = 1024,
+	P4_EVENT_BSQ_ALLOCATION__REQ_LEN0 = 2048,
+	P4_EVENT_BSQ_ALLOCATION__REQ_LEN1 = 4096,
+	P4_EVENT_BSQ_ALLOCATION__REQ_IO_TYPE = 16384,
+	P4_EVENT_BSQ_ALLOCATION__REQ_LOCK_TYPE = 32768,
+	P4_EVENT_BSQ_ALLOCATION__REQ_CACHE_TYPE = 65536,
+	P4_EVENT_BSQ_ALLOCATION__REQ_SPLIT_TYPE = 131072,
+	P4_EVENT_BSQ_ALLOCATION__REQ_DEM_TYPE = 262144,
+	P4_EVENT_BSQ_ALLOCATION__REQ_ORD_TYPE = 524288,
+	P4_EVENT_BSQ_ALLOCATION__MEM_TYPE0 = 1048576,
+	P4_EVENT_BSQ_ALLOCATION__MEM_TYPE1 = 2097152,
+	P4_EVENT_BSQ_ALLOCATION__MEM_TYPE2 = 4194304,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_TYPE0 = 512,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_TYPE1 = 1024,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_LEN0 = 2048,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_LEN1 = 4096,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_IO_TYPE = 16384,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_LOCK_TYPE = 32768,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_CACHE_TYPE = 65536,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_SPLIT_TYPE = 131072,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_DEM_TYPE = 262144,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__REQ_ORD_TYPE = 524288,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__MEM_TYPE0 = 1048576,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__MEM_TYPE1 = 2097152,
+	P4_EVENT_BSQ_ACTIVE_ENTRIES__MEM_TYPE2 = 4194304,
+	P4_EVENT_SSE_INPUT_ASSIST__ALL = 16777216,
+	P4_EVENT_PACKED_SP_UOP__ALL = 16777216,
+	P4_EVENT_PACKED_DP_UOP__ALL = 16777216,
+	P4_EVENT_SCALAR_SP_UOP__ALL = 16777216,
+	P4_EVENT_SCALAR_DP_UOP__ALL = 16777216,
+	P4_EVENT_64BIT_MMX_UOP__ALL = 16777216,
+	P4_EVENT_128BIT_MMX_UOP__ALL = 16777216,
+	P4_EVENT_X87_FP_UOP__ALL = 16777216,
+	P4_EVENT_TC_MISC__FLUSH = 8192,
+	P4_EVENT_GLOBAL_POWER_EVENTS__RUNNING = 512,
+	P4_EVENT_TC_MS_XFER__CISC = 512,
+	P4_EVENT_UOP_QUEUE_WRITES__FROM_TC_BUILD = 512,
+	P4_EVENT_UOP_QUEUE_WRITES__FROM_TC_DELIVER = 1024,
+	P4_EVENT_UOP_QUEUE_WRITES__FROM_ROM = 2048,
+	P4_EVENT_RETIRED_MISPRED_BRANCH_TYPE__CONDITIONAL = 1024,
+	P4_EVENT_RETIRED_MISPRED_BRANCH_TYPE__CALL = 2048,
+	P4_EVENT_RETIRED_MISPRED_BRANCH_TYPE__RETURN = 4096,
+	P4_EVENT_RETIRED_MISPRED_BRANCH_TYPE__INDIRECT = 8192,
+	P4_EVENT_RETIRED_BRANCH_TYPE__CONDITIONAL = 1024,
+	P4_EVENT_RETIRED_BRANCH_TYPE__CALL = 2048,
+	P4_EVENT_RETIRED_BRANCH_TYPE__RETURN = 4096,
+	P4_EVENT_RETIRED_BRANCH_TYPE__INDIRECT = 8192,
+	P4_EVENT_RESOURCE_STALL__SBFULL = 16384,
+	P4_EVENT_WC_BUFFER__WCB_EVICTS = 512,
+	P4_EVENT_WC_BUFFER__WCB_FULL_EVICTS = 1024,
+	P4_EVENT_FRONT_END_EVENT__NBOGUS = 512,
+	P4_EVENT_FRONT_END_EVENT__BOGUS = 1024,
+	P4_EVENT_EXECUTION_EVENT__NBOGUS0 = 512,
+	P4_EVENT_EXECUTION_EVENT__NBOGUS1 = 1024,
+	P4_EVENT_EXECUTION_EVENT__NBOGUS2 = 2048,
+	P4_EVENT_EXECUTION_EVENT__NBOGUS3 = 4096,
+	P4_EVENT_EXECUTION_EVENT__BOGUS0 = 8192,
+	P4_EVENT_EXECUTION_EVENT__BOGUS1 = 16384,
+	P4_EVENT_EXECUTION_EVENT__BOGUS2 = 32768,
+	P4_EVENT_EXECUTION_EVENT__BOGUS3 = 65536,
+	P4_EVENT_REPLAY_EVENT__NBOGUS = 512,
+	P4_EVENT_REPLAY_EVENT__BOGUS = 1024,
+	P4_EVENT_INSTR_RETIRED__NBOGUSNTAG = 512,
+	P4_EVENT_INSTR_RETIRED__NBOGUSTAG = 1024,
+	P4_EVENT_INSTR_RETIRED__BOGUSNTAG = 2048,
+	P4_EVENT_INSTR_RETIRED__BOGUSTAG = 4096,
+	P4_EVENT_UOPS_RETIRED__NBOGUS = 512,
+	P4_EVENT_UOPS_RETIRED__BOGUS = 1024,
+	P4_EVENT_UOP_TYPE__TAGLOADS = 1024,
+	P4_EVENT_UOP_TYPE__TAGSTORES = 2048,
+	P4_EVENT_BRANCH_RETIRED__MMNP = 512,
+	P4_EVENT_BRANCH_RETIRED__MMNM = 1024,
+	P4_EVENT_BRANCH_RETIRED__MMTP = 2048,
+	P4_EVENT_BRANCH_RETIRED__MMTM = 4096,
+	P4_EVENT_MISPRED_BRANCH_RETIRED__NBOGUS = 512,
+	P4_EVENT_X87_ASSIST__FPSU = 512,
+	P4_EVENT_X87_ASSIST__FPSO = 1024,
+	P4_EVENT_X87_ASSIST__POAO = 2048,
+	P4_EVENT_X87_ASSIST__POAU = 4096,
+	P4_EVENT_X87_ASSIST__PREA = 8192,
+	P4_EVENT_MACHINE_CLEAR__CLEAR = 512,
+	P4_EVENT_MACHINE_CLEAR__MOCLEAR = 1024,
+	P4_EVENT_MACHINE_CLEAR__SMCLEAR = 2048,
+	P4_EVENT_INSTR_COMPLETED__NBOGUS = 512,
+	P4_EVENT_INSTR_COMPLETED__BOGUS = 1024,
+};
+
+enum P4_PEBS_METRIC {
+	P4_PEBS_METRIC__none = 0,
+	P4_PEBS_METRIC__1stl_cache_load_miss_retired = 1,
+	P4_PEBS_METRIC__2ndl_cache_load_miss_retired = 2,
+	P4_PEBS_METRIC__dtlb_load_miss_retired = 3,
+	P4_PEBS_METRIC__dtlb_store_miss_retired = 4,
+	P4_PEBS_METRIC__dtlb_all_miss_retired = 5,
+	P4_PEBS_METRIC__tagged_mispred_branch = 6,
+	P4_PEBS_METRIC__mob_load_replay_retired = 7,
+	P4_PEBS_METRIC__split_load_retired = 8,
+	P4_PEBS_METRIC__split_store_retired = 9,
+	P4_PEBS_METRIC__max = 10,
+};
+
+struct p4_event_bind {
+	unsigned int opcode;
+	unsigned int escr_msr[2];
+	unsigned int escr_emask;
+	unsigned int shared;
+	char cntr[6];
+};
+
+struct p4_pebs_bind {
+	unsigned int metric_pebs;
+	unsigned int metric_vert;
+};
+
+struct p4_event_alias {
+	u64 original;
+	u64 alternative;
+};
+
+enum cpuid_regs_idx {
+	CPUID_EAX = 0,
+	CPUID_EBX = 1,
+	CPUID_ECX = 2,
+	CPUID_EDX = 3,
+};
+
+struct dev_ext_attribute {
+	struct device_attribute attr;
+	void *var;
+};
+
+enum pt_capabilities {
+	PT_CAP_max_subleaf = 0,
+	PT_CAP_cr3_filtering = 1,
+	PT_CAP_psb_cyc = 2,
+	PT_CAP_ip_filtering = 3,
+	PT_CAP_mtc = 4,
+	PT_CAP_ptwrite = 5,
+	PT_CAP_power_event_trace = 6,
+	PT_CAP_event_trace = 7,
+	PT_CAP_tnt_disable = 8,
+	PT_CAP_topa_output = 9,
+	PT_CAP_topa_multiple_entries = 10,
+	PT_CAP_single_range_output = 11,
+	PT_CAP_output_subsys = 12,
+	PT_CAP_payloads_lip = 13,
+	PT_CAP_num_address_ranges = 14,
+	PT_CAP_mtc_periods = 15,
+	PT_CAP_cycle_thresholds = 16,
+	PT_CAP_psb_periods = 17,
+};
+
+enum perf_addr_filter_action_t {
+	PERF_ADDR_FILTER_ACTION_STOP = 0,
+	PERF_ADDR_FILTER_ACTION_START = 1,
+	PERF_ADDR_FILTER_ACTION_FILTER = 2,
+};
+
+struct perf_addr_filter {
+	struct list_head entry;
+	struct path path;
+	long unsigned int offset;
+	long unsigned int size;
+	enum perf_addr_filter_action_t action;
+};
+
+struct topa_entry {
+	u64 end: 1;
+	u64 rsvd0: 1;
+	u64 intr: 1;
+	u64 rsvd1: 1;
+	u64 stop: 1;
+	u64 rsvd2: 1;
+	u64 size: 4;
+	u64 rsvd3: 2;
+	u64 base: 36;
+	u64 rsvd4: 16;
+};
+
+struct pt_pmu {
+	struct pmu pmu;
+	u32 caps[8];
+	bool vmx;
+	bool branch_en_always_on;
+	long unsigned int max_nonturbo_ratio;
+	unsigned int tsc_art_num;
+	unsigned int tsc_art_den;
+};
+
+struct topa;
+
+struct pt_buffer {
+	struct list_head tables;
+	struct topa *first;
+	struct topa *last;
+	struct topa *cur;
+	unsigned int cur_idx;
+	size_t output_off;
+	long unsigned int nr_pages;
+	local_t data_size;
+	local64_t head;
+	bool snapshot;
+	bool single;
+	long int stop_pos;
+	long int intr_pos;
+	struct topa_entry *stop_te;
+	struct topa_entry *intr_te;
+	void **data_pages;
+};
+
+struct topa {
+	struct list_head list;
+	u64 offset;
+	size_t size;
+	int last;
+	unsigned int z_count;
+};
+
+struct pt_filter {
+	long unsigned int msr_a;
+	long unsigned int msr_b;
+	long unsigned int config;
+};
+
+struct pt_filters {
+	struct pt_filter filter[4];
+	unsigned int nr_filters;
+};
+
+struct pt {
+	struct perf_output_handle handle;
+	struct pt_filters filters;
+	int handle_nmi;
+	int vmx_on;
+	u64 output_base;
+	u64 output_mask;
+};
+
+struct pt_cap_desc {
+	const char *name;
+	u32 leaf;
+	u8 reg;
+	u32 mask;
+};
+
+struct pt_address_range {
+	long unsigned int msr_a;
+	long unsigned int msr_b;
+	unsigned int reg_off;
+};
+
+struct topa_page {
+	struct topa_entry table[507];
+	struct topa topa;
+};
+
+struct x86_cpu_id {
+	__u16 vendor;
+	__u16 family;
+	__u16 model;
+	__u16 steppings;
+	__u16 feature;
+	kernel_ulong_t driver_data;
+};
+
+enum hrtimer_mode {
+	HRTIMER_MODE_ABS = 0,
+	HRTIMER_MODE_REL = 1,
+	HRTIMER_MODE_PINNED = 2,
+	HRTIMER_MODE_SOFT = 4,
+	HRTIMER_MODE_HARD = 8,
+	HRTIMER_MODE_ABS_PINNED = 2,
+	HRTIMER_MODE_REL_PINNED = 3,
+	HRTIMER_MODE_ABS_SOFT = 4,
+	HRTIMER_MODE_REL_SOFT = 5,
+	HRTIMER_MODE_ABS_PINNED_SOFT = 6,
+	HRTIMER_MODE_REL_PINNED_SOFT = 7,
+	HRTIMER_MODE_ABS_HARD = 8,
+	HRTIMER_MODE_REL_HARD = 9,
+	HRTIMER_MODE_ABS_PINNED_HARD = 10,
+	HRTIMER_MODE_REL_PINNED_HARD = 11,
+};
+
+struct acpi_device;
+
+struct pci_sysdata {
+	int domain;
+	int node;
+	struct acpi_device *companion;
+	void *iommu;
+	void *fwnode;
+	struct pci_dev *vmd_dev;
+};
+
+struct pci_extra_dev {
+	struct pci_dev *dev[4];
+};
+
+struct intel_uncore_pmu;
+
+struct intel_uncore_ops;
+
+struct uncore_event_desc;
+
+struct freerunning_counters;
+
+struct intel_uncore_topology;
+
+struct intel_uncore_type {
+	const char *name;
+	int num_counters;
+	int num_boxes;
+	int perf_ctr_bits;
+	int fixed_ctr_bits;
+	int num_freerunning_types;
+	int type_id;
+	unsigned int perf_ctr;
+	unsigned int event_ctl;
+	unsigned int event_mask;
+	unsigned int event_mask_ext;
+	unsigned int fixed_ctr;
+	unsigned int fixed_ctl;
+	unsigned int box_ctl;
+	u64 *box_ctls;
+	union {
+		unsigned int msr_offset;
+		unsigned int mmio_offset;
+	};
+	unsigned int mmio_map_size;
+	unsigned int num_shared_regs: 8;
+	unsigned int single_fixed: 1;
+	unsigned int pair_ctr_ctl: 1;
+	union {
+		unsigned int *msr_offsets;
+		unsigned int *pci_offsets;
+		unsigned int *mmio_offsets;
+	};
+	unsigned int *box_ids;
+	struct event_constraint unconstrainted;
+	struct event_constraint *constraints;
+	struct intel_uncore_pmu *pmus;
+	struct intel_uncore_ops *ops;
+	struct uncore_event_desc *event_descs;
+	struct freerunning_counters *freerunning;
+	const struct attribute_group *attr_groups[4];
+	const struct attribute_group **attr_update;
+	struct pmu *pmu;
+	struct intel_uncore_topology *topology;
+	int (*get_topology)(struct intel_uncore_type *);
+	int (*set_mapping)(struct intel_uncore_type *);
+	void (*cleanup_mapping)(struct intel_uncore_type *);
+};
+
+struct intel_uncore_box;
+
+struct intel_uncore_pmu {
+	struct pmu pmu;
+	char name[32];
+	int pmu_idx;
+	int func_id;
+	bool registered;
+	atomic_t activeboxes;
+	struct intel_uncore_type *type;
+	struct intel_uncore_box **boxes;
+};
+
+struct intel_uncore_ops {
+	void (*init_box)(struct intel_uncore_box *);
+	void (*exit_box)(struct intel_uncore_box *);
+	void (*disable_box)(struct intel_uncore_box *);
+	void (*enable_box)(struct intel_uncore_box *);
+	void (*disable_event)(struct intel_uncore_box *, struct perf_event *);
+	void (*enable_event)(struct intel_uncore_box *, struct perf_event *);
+	u64 (*read_counter)(struct intel_uncore_box *, struct perf_event *);
+	int (*hw_config)(struct intel_uncore_box *, struct perf_event *);
+	struct event_constraint * (*get_constraint)(struct intel_uncore_box *, struct perf_event *);
+	void (*put_constraint)(struct intel_uncore_box *, struct perf_event *);
+};
+
+struct uncore_event_desc {
+	struct device_attribute attr;
+	const char *config;
+};
+
+struct freerunning_counters {
+	unsigned int counter_base;
+	unsigned int counter_offset;
+	unsigned int box_offset;
+	unsigned int num_counters;
+	unsigned int bits;
+	unsigned int *box_offsets;
+};
+
+struct intel_uncore_topology {
+	u64 configuration;
+	int segment;
+};
+
+struct intel_uncore_extra_reg {
+	raw_spinlock_t lock;
+	u64 config;
+	u64 config1;
+	u64 config2;
+	atomic_t ref;
+};
+
+struct intel_uncore_box {
+	int dieid;
+	int n_active;
+	int n_events;
+	int cpu;
+	long unsigned int flags;
+	atomic_t refcnt;
+	struct perf_event *events[10];
+	struct perf_event *event_list[10];
+	struct event_constraint *event_constraint[10];
+	long unsigned int active_mask[1];
+	u64 tags[10];
+	struct pci_dev *pci_dev;
+	struct intel_uncore_pmu *pmu;
+	u64 hrtimer_duration;
+	struct hrtimer hrtimer;
+	struct list_head list;
+	struct list_head active_list;
+	void *io_addr;
+	struct intel_uncore_extra_reg shared_regs[0];
+};
+
+struct pci2phy_map {
+	struct list_head list;
+	int segment;
+	int pbus_to_dieid[256];
+};
+
+struct intel_uncore_init_fun {
+	void (*cpu_init)();
+	int (*pci_init)();
+	void (*mmio_init)();
+	bool use_discovery;
+};
+
+enum {
+	EXTRA_REG_NHMEX_M_FILTER = 0,
+	EXTRA_REG_NHMEX_M_DSP = 1,
+	EXTRA_REG_NHMEX_M_ISS = 2,
+	EXTRA_REG_NHMEX_M_MAP = 3,
+	EXTRA_REG_NHMEX_M_MSC_THR = 4,
+	EXTRA_REG_NHMEX_M_PGT = 5,
+	EXTRA_REG_NHMEX_M_PLD = 6,
+	EXTRA_REG_NHMEX_M_ZDP_CTL_FVC = 7,
+};
+
+enum {
+	SNB_PCI_UNCORE_IMC = 0,
+};
+
+enum perf_snb_uncore_imc_freerunning_types {
+	SNB_PCI_UNCORE_IMC_DATA_READS = 0,
+	SNB_PCI_UNCORE_IMC_DATA_WRITES = 1,
+	SNB_PCI_UNCORE_IMC_GT_REQUESTS = 2,
+	SNB_PCI_UNCORE_IMC_IA_REQUESTS = 3,
+	SNB_PCI_UNCORE_IMC_IO_REQUESTS = 4,
+	SNB_PCI_UNCORE_IMC_FREERUNNING_TYPE_MAX = 5,
+};
+
+struct imc_uncore_pci_dev {
+	__u32 pci_id;
+	struct pci_driver *driver;
+};
+
+enum perf_tgl_uncore_imc_freerunning_types {
+	TGL_MMIO_UNCORE_IMC_DATA_TOTAL = 0,
+	TGL_MMIO_UNCORE_IMC_DATA_READ = 1,
+	TGL_MMIO_UNCORE_IMC_DATA_WRITE = 2,
+	TGL_MMIO_UNCORE_IMC_FREERUNNING_TYPE_MAX = 3,
+};
+
+enum perf_adl_uncore_imc_freerunning_types {
+	ADL_MMIO_UNCORE_IMC_DATA_TOTAL = 0,
+	ADL_MMIO_UNCORE_IMC_DATA_READ = 1,
+	ADL_MMIO_UNCORE_IMC_DATA_WRITE = 2,
+	ADL_MMIO_UNCORE_IMC_FREERUNNING_TYPE_MAX = 3,
+};
+
+enum uncore_access_type {
+	UNCORE_ACCESS_MSR = 0,
+	UNCORE_ACCESS_MMIO = 1,
+	UNCORE_ACCESS_PCI = 2,
+	UNCORE_ACCESS_MAX = 3,
+};
+
+enum {
+	SNBEP_PCI_QPI_PORT0_FILTER = 0,
+	SNBEP_PCI_QPI_PORT1_FILTER = 1,
+	BDX_PCI_QPI_PORT2_FILTER = 2,
+};
+
+enum {
+	SNBEP_PCI_UNCORE_HA = 0,
+	SNBEP_PCI_UNCORE_IMC = 1,
+	SNBEP_PCI_UNCORE_QPI = 2,
+	SNBEP_PCI_UNCORE_R2PCIE = 3,
+	SNBEP_PCI_UNCORE_R3QPI = 4,
+};
+
+enum {
+	IVBEP_PCI_UNCORE_HA = 0,
+	IVBEP_PCI_UNCORE_IMC = 1,
+	IVBEP_PCI_UNCORE_IRP = 2,
+	IVBEP_PCI_UNCORE_QPI = 3,
+	IVBEP_PCI_UNCORE_R2PCIE = 4,
+	IVBEP_PCI_UNCORE_R3QPI = 5,
+};
+
+enum {
+	KNL_PCI_UNCORE_MC_UCLK = 0,
+	KNL_PCI_UNCORE_MC_DCLK = 1,
+	KNL_PCI_UNCORE_EDC_UCLK = 2,
+	KNL_PCI_UNCORE_EDC_ECLK = 3,
+	KNL_PCI_UNCORE_M2PCIE = 4,
+	KNL_PCI_UNCORE_IRP = 5,
+};
+
+enum {
+	HSWEP_PCI_UNCORE_HA = 0,
+	HSWEP_PCI_UNCORE_IMC = 1,
+	HSWEP_PCI_UNCORE_IRP = 2,
+	HSWEP_PCI_UNCORE_QPI = 3,
+	HSWEP_PCI_UNCORE_R2PCIE = 4,
+	HSWEP_PCI_UNCORE_R3QPI = 5,
+};
+
+enum {
+	BDX_PCI_UNCORE_HA = 0,
+	BDX_PCI_UNCORE_IMC = 1,
+	BDX_PCI_UNCORE_IRP = 2,
+	BDX_PCI_UNCORE_QPI = 3,
+	BDX_PCI_UNCORE_R2PCIE = 4,
+	BDX_PCI_UNCORE_R3QPI = 5,
+};
+
+enum perf_uncore_iio_freerunning_type_id {
+	SKX_IIO_MSR_IOCLK = 0,
+	SKX_IIO_MSR_BW = 1,
+	SKX_IIO_MSR_UTIL = 2,
+	SKX_IIO_FREERUNNING_TYPE_MAX = 3,
+};
+
+enum {
+	SKX_PCI_UNCORE_IMC = 0,
+	SKX_PCI_UNCORE_M2M = 1,
+	SKX_PCI_UNCORE_UPI = 2,
+	SKX_PCI_UNCORE_M2PCIE = 3,
+	SKX_PCI_UNCORE_M3UPI = 4,
+};
+
+enum {
+	SNR_QAT_PMON_ID = 0,
+	SNR_CBDMA_DMI_PMON_ID = 1,
+	SNR_NIS_PMON_ID = 2,
+	SNR_DLB_PMON_ID = 3,
+	SNR_PCIE_GEN3_PMON_ID = 4,
+};
+
+enum perf_uncore_snr_iio_freerunning_type_id {
+	SNR_IIO_MSR_IOCLK = 0,
+	SNR_IIO_MSR_BW_IN = 1,
+	SNR_IIO_FREERUNNING_TYPE_MAX = 2,
+};
+
+enum {
+	SNR_PCI_UNCORE_M2M = 0,
+	SNR_PCI_UNCORE_PCIE3 = 1,
+};
+
+enum perf_uncore_snr_imc_freerunning_type_id {
+	SNR_IMC_DCLK = 0,
+	SNR_IMC_DDR = 1,
+	SNR_IMC_FREERUNNING_TYPE_MAX = 2,
+};
+
+enum {
+	ICX_PCIE1_PMON_ID = 0,
+	ICX_PCIE2_PMON_ID = 1,
+	ICX_PCIE3_PMON_ID = 2,
+	ICX_PCIE4_PMON_ID = 3,
+	ICX_PCIE5_PMON_ID = 4,
+	ICX_CBDMA_DMI_PMON_ID = 5,
+};
+
+enum perf_uncore_icx_iio_freerunning_type_id {
+	ICX_IIO_MSR_IOCLK = 0,
+	ICX_IIO_MSR_BW_IN = 1,
+	ICX_IIO_FREERUNNING_TYPE_MAX = 2,
+};
+
+enum {
+	ICX_PCI_UNCORE_M2M = 0,
+	ICX_PCI_UNCORE_UPI = 1,
+	ICX_PCI_UNCORE_M3UPI = 2,
+};
+
+enum perf_uncore_icx_imc_freerunning_type_id {
+	ICX_IMC_DCLK = 0,
+	ICX_IMC_DDR = 1,
+	ICX_IMC_DDRT = 2,
+	ICX_IMC_FREERUNNING_TYPE_MAX = 3,
+};
+
+enum perf_uncore_spr_iio_freerunning_type_id {
+	SPR_IIO_MSR_IOCLK = 0,
+	SPR_IIO_MSR_BW_IN = 1,
+	SPR_IIO_MSR_BW_OUT = 2,
+	SPR_IIO_FREERUNNING_TYPE_MAX = 3,
+};
+
+enum perf_uncore_spr_imc_freerunning_type_id {
+	SPR_IMC_DCLK = 0,
+	SPR_IMC_PQ_CYCLES = 1,
+	SPR_IMC_FREERUNNING_TYPE_MAX = 2,
+};
+
+struct uncore_global_discovery {
+	union {
+		u64 table1;
+		struct {
+			u64 type: 8;
+			u64 stride: 8;
+			u64 max_units: 10;
+			u64 __reserved_1: 36;
+			u64 access_type: 2;
+		};
+	};
+	u64 ctl;
+	union {
+		u64 table3;
+		struct {
+			u64 status_offset: 8;
+			u64 num_status: 16;
+			u64 __reserved_2: 40;
+		};
+	};
+};
+
+struct uncore_unit_discovery {
+	union {
+		u64 table1;
+		struct {
+			u64 num_regs: 8;
+			u64 ctl_offset: 8;
+			u64 bit_width: 8;
+			u64 ctr_offset: 8;
+			u64 status_offset: 8;
+			u64 __reserved_1: 22;
+			u64 access_type: 2;
+		};
+	};
+	u64 ctl;
+	union {
+		u64 table3;
+		struct {
+			u64 box_type: 16;
+			u64 box_id: 16;
+			u64 __reserved_2: 32;
+		};
+	};
+};
+
+struct intel_uncore_discovery_type {
+	struct rb_node node;
+	enum uncore_access_type access_type;
+	u64 box_ctrl;
+	u64 *box_ctrl_die;
+	u16 type;
+	u8 num_counters;
+	u8 counter_width;
+	u8 ctl_offset;
+	u8 ctr_offset;
+	u16 num_boxes;
+	unsigned int *ids;
+	unsigned int *box_offset;
+};
+
+typedef s8 int8_t;
+
+typedef u8 uint8_t;
+
+typedef u64 uint64_t;
+
+struct atomic_notifier_head {
+	spinlock_t lock;
+	struct notifier_block *head;
+};
+
+enum xen_domain_type {
+	XEN_NATIVE = 0,
+	XEN_PV_DOMAIN = 1,
+	XEN_HVM_DOMAIN = 2,
+};
+
+typedef long unsigned int xen_pfn_t;
+
+typedef long unsigned int xen_ulong_t;
+
+struct arch_shared_info {
+	long unsigned int max_pfn;
+	xen_pfn_t pfn_to_mfn_frame_list_list;
+	long unsigned int nmi_reason;
+	long unsigned int p2m_cr3;
+	long unsigned int p2m_vaddr;
+	long unsigned int p2m_generation;
+};
+
+struct arch_vcpu_info {
+	long unsigned int cr2;
+	long unsigned int pad;
+};
+
+struct pvclock_wall_clock {
+	u32 version;
+	u32 sec;
+	u32 nsec;
+};
+
+struct vcpu_info {
+	uint8_t evtchn_upcall_pending;
+	uint8_t evtchn_upcall_mask;
+	xen_ulong_t evtchn_pending_sel;
+	struct arch_vcpu_info arch;
+	struct pvclock_vcpu_time_info time;
+};
+
+struct shared_info {
+	struct vcpu_info vcpu_info[32];
+	xen_ulong_t evtchn_pending[64];
+	xen_ulong_t evtchn_mask[64];
+	struct pvclock_wall_clock wc;
+	uint32_t wc_sec_hi;
+	struct arch_shared_info arch;
+};
+
+struct start_info {
+	char magic[32];
+	long unsigned int nr_pages;
+	long unsigned int shared_info;
+	uint32_t flags;
+	xen_pfn_t store_mfn;
+	uint32_t store_evtchn;
+	union {
+		struct {
+			xen_pfn_t mfn;
+			uint32_t evtchn;
+		} domU;
+		struct {
+			uint32_t info_off;
+			uint32_t info_size;
+		} dom0;
+	} console;
+	long unsigned int pt_base;
+	long unsigned int nr_pt_frames;
+	long unsigned int mfn_list;
+	long unsigned int mod_start;
+	long unsigned int mod_len;
+	int8_t cmd_line[1024];
+	long unsigned int first_p2m_pfn;
+	long unsigned int nr_p2m_frames;
+};
+
+struct sched_shutdown {
+	unsigned int reason;
+};
+
+struct sched_pin_override {
+	int32_t pcpu;
+};
+
+struct xen_extraversion {
+	char extraversion[16];
+};
+
+struct vcpu_register_vcpu_info {
+	uint64_t mfn;
+	uint32_t offset;
+	uint32_t rsvd;
+};
+
+struct xmaddr {
+	phys_addr_t maddr;
+};
+
+typedef struct xmaddr xmaddr_t;
+
+struct xpaddr {
+	phys_addr_t paddr;
+};
+
+typedef struct xpaddr xpaddr_t;
+
+typedef s16 int16_t;
+
+enum clocksource_ids {
+	CSID_GENERIC = 0,
+	CSID_ARM_ARCH_COUNTER = 1,
+	CSID_MAX = 2,
+};
+
+struct clocksource {
+	u64 (*read)(struct clocksource *);
+	u64 mask;
+	u32 mult;
+	u32 shift;
+	u64 max_idle_ns;
+	u32 maxadj;
+	u32 uncertainty_margin;
+	u64 max_cycles;
+	const char *name;
+	struct list_head list;
+	int rating;
+	enum clocksource_ids id;
+	enum vdso_clock_mode vdso_clock_mode;
+	long unsigned int flags;
+	int (*enable)(struct clocksource *);
+	void (*disable)(struct clocksource *);
+	void (*suspend)(struct clocksource *);
+	void (*resume)(struct clocksource *);
+	void (*mark_unstable)(struct clocksource *);
+	void (*tick_stable)(struct clocksource *);
+	struct list_head wd_list;
+	u64 cs_last;
+	u64 wd_last;
+	struct module *owner;
+};
+
+struct x86_init_mpparse {
+	void (*setup_ioapic_ids)();
+	void (*find_smp_config)();
+	void (*get_smp_config)(unsigned int);
+};
+
+struct x86_init_resources {
+	void (*probe_roms)();
+	void (*reserve_resources)();
+	char * (*memory_setup)();
+};
+
+struct x86_init_irqs {
+	void (*pre_vector_init)();
+	void (*intr_init)();
+	void (*intr_mode_select)();
+	void (*intr_mode_init)();
+	struct irq_domain * (*create_pci_msi_domain)();
+};
+
+struct x86_init_oem {
+	void (*arch_setup)();
+	void (*banner)();
+};
+
+struct x86_init_paging {
+	void (*pagetable_init)();
+};
+
+struct x86_init_timers {
+	void (*setup_percpu_clockev)();
+	void (*timer_init)();
+	void (*wallclock_init)();
+};
+
+struct x86_init_iommu {
+	int (*iommu_init)();
+};
+
+struct x86_init_pci {
+	int (*arch_init)();
+	int (*init)();
+	void (*init_irq)();
+	void (*fixup_irqs)();
+};
+
+struct x86_hyper_init {
+	void (*init_platform)();
+	void (*guest_late_init)();
+	bool (*x2apic_available)();
+	bool (*msi_ext_dest_id)();
+	void (*init_mem_mapping)();
+	void (*init_after_bootmem)();
+};
+
+struct x86_init_acpi {
+	void (*set_root_pointer)(u64);
+	u64 (*get_root_pointer)();
+	void (*reduced_hw_early_init)();
+};
+
+struct x86_init_ops {
+	struct x86_init_resources resources;
+	struct x86_init_mpparse mpparse;
+	struct x86_init_irqs irqs;
+	struct x86_init_oem oem;
+	struct x86_init_paging paging;
+	struct x86_init_timers timers;
+	struct x86_init_iommu iommu;
+	struct x86_init_pci pci;
+	struct x86_hyper_init hyper;
+	struct x86_init_acpi acpi;
+};
+
+struct x86_cpuinit_ops {
+	void (*setup_percpu_clockev)();
+	void (*early_percpu_clock_init)();
+	void (*fixup_cpu_id)(struct cpuinfo_x86 *, int);
+};
+
+enum clock_event_state {
+	CLOCK_EVT_STATE_DETACHED = 0,
+	CLOCK_EVT_STATE_SHUTDOWN = 1,
+	CLOCK_EVT_STATE_PERIODIC = 2,
+	CLOCK_EVT_STATE_ONESHOT = 3,
+	CLOCK_EVT_STATE_ONESHOT_STOPPED = 4,
+};
+
+struct clock_event_device {
+	void (*event_handler)(struct clock_event_device *);
+	int (*set_next_event)(long unsigned int, struct clock_event_device *);
+	int (*set_next_ktime)(ktime_t, struct clock_event_device *);
+	ktime_t next_event;
+	u64 max_delta_ns;
+	u64 min_delta_ns;
+	u32 mult;
+	u32 shift;
+	enum clock_event_state state_use_accessors;
+	unsigned int features;
+	long unsigned int retries;
+	int (*set_state_periodic)(struct clock_event_device *);
+	int (*set_state_oneshot)(struct clock_event_device *);
+	int (*set_state_oneshot_stopped)(struct clock_event_device *);
+	int (*set_state_shutdown)(struct clock_event_device *);
+	int (*tick_resume)(struct clock_event_device *);
+	void (*broadcast)(const struct cpumask *);
+	void (*suspend)(struct clock_event_device *);
+	void (*resume)(struct clock_event_device *);
+	long unsigned int min_delta_ticks;
+	long unsigned int max_delta_ticks;
+	const char *name;
+	int rating;
+	int irq;
+	int bound_on;
+	const struct cpumask *cpumask;
+	struct list_head list;
+	struct module *owner;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct tk_read_base {
+	struct clocksource *clock;
+	u64 mask;
+	u64 cycle_last;
+	u32 mult;
+	u32 shift;
+	u64 xtime_nsec;
+	ktime_t base;
+	u64 base_real;
+};
+
+struct timekeeper {
+	struct tk_read_base tkr_mono;
+	struct tk_read_base tkr_raw;
+	u64 xtime_sec;
+	long unsigned int ktime_sec;
+	struct timespec64 wall_to_monotonic;
+	ktime_t offs_real;
+	ktime_t offs_boot;
+	ktime_t offs_tai;
+	s32 tai_offset;
+	unsigned int clock_was_set_seq;
+	u8 cs_was_changed_seq;
+	ktime_t next_leap_ktime;
+	u64 raw_sec;
+	struct timespec64 monotonic_to_boot;
+	u64 cycle_interval;
+	u64 xtime_interval;
+	s64 xtime_remainder;
+	u64 raw_interval;
+	u64 ntp_tick;
+	s64 ntp_error;
+	u32 ntp_error_shift;
+	u32 ntp_err_mult;
+	u32 skip_second_overflow;
+};
+
+typedef unsigned char *__guest_handle_uchar;
+
+typedef char *__guest_handle_char;
+
+typedef void *__guest_handle_void;
+
+typedef uint64_t *__guest_handle_uint64_t;
+
+typedef uint32_t *__guest_handle_uint32_t;
+
+struct vcpu_time_info {
+	uint32_t version;
+	uint32_t pad0;
+	uint64_t tsc_timestamp;
+	uint64_t system_time;
+	uint32_t tsc_to_system_mul;
+	int8_t tsc_shift;
+	int8_t pad1[3];
+};
+
+struct xenpf_settime32 {
+	uint32_t secs;
+	uint32_t nsecs;
+	uint64_t system_time;
+};
+
+struct xenpf_settime64 {
+	uint64_t secs;
+	uint32_t nsecs;
+	uint32_t mbz;
+	uint64_t system_time;
+};
+
+struct xenpf_add_memtype {
+	xen_pfn_t mfn;
+	uint64_t nr_mfns;
+	uint32_t type;
+	uint32_t handle;
+	uint32_t reg;
+};
+
+struct xenpf_del_memtype {
+	uint32_t handle;
+	uint32_t reg;
+};
+
+struct xenpf_read_memtype {
+	uint32_t reg;
+	xen_pfn_t mfn;
+	uint64_t nr_mfns;
+	uint32_t type;
+};
+
+struct xenpf_microcode_update {
+	__guest_handle_void data;
+	uint32_t length;
+};
+
+struct xenpf_platform_quirk {
+	uint32_t quirk_id;
+};
+
+struct xenpf_efi_time {
+	uint16_t year;
+	uint8_t month;
+	uint8_t day;
+	uint8_t hour;
+	uint8_t min;
+	uint8_t sec;
+	uint32_t ns;
+	int16_t tz;
+	uint8_t daylight;
+};
+
+struct xenpf_efi_guid {
+	uint32_t data1;
+	uint16_t data2;
+	uint16_t data3;
+	uint8_t data4[8];
+};
+
+struct xenpf_efi_runtime_call {
+	uint32_t function;
+	uint32_t misc;
+	xen_ulong_t status;
+	union {
+		struct {
+			struct xenpf_efi_time time;
+			uint32_t resolution;
+			uint32_t accuracy;
+		} get_time;
+		struct xenpf_efi_time set_time;
+		struct xenpf_efi_time get_wakeup_time;
+		struct xenpf_efi_time set_wakeup_time;
+		struct {
+			__guest_handle_void name;
+			xen_ulong_t size;
+			__guest_handle_void data;
+			struct xenpf_efi_guid vendor_guid;
+		} get_variable;
+		struct {
+			__guest_handle_void name;
+			xen_ulong_t size;
+			__guest_handle_void data;
+			struct xenpf_efi_guid vendor_guid;
+		} set_variable;
+		struct {
+			xen_ulong_t size;
+			__guest_handle_void name;
+			struct xenpf_efi_guid vendor_guid;
+		} get_next_variable_name;
+		struct {
+			uint32_t attr;
+			uint64_t max_store_size;
+			uint64_t remain_store_size;
+			uint64_t max_size;
+		} query_variable_info;
+		struct {
+			__guest_handle_void capsule_header_array;
+			xen_ulong_t capsule_count;
+			uint64_t max_capsule_size;
+			uint32_t reset_type;
+		} query_capsule_capabilities;
+		struct {
+			__guest_handle_void capsule_header_array;
+			xen_ulong_t capsule_count;
+			uint64_t sg_list;
+		} update_capsule;
+	} u;
+};
+
+union xenpf_efi_info {
+	uint32_t version;
+	struct {
+		uint64_t addr;
+		uint32_t nent;
+	} cfg;
+	struct {
+		uint32_t revision;
+		uint32_t bufsz;
+		__guest_handle_void name;
+	} vendor;
+	struct {
+		uint64_t addr;
+		uint64_t size;
+		uint64_t attr;
+		uint32_t type;
+	} mem;
+};
+
+struct xenpf_firmware_info {
+	uint32_t type;
+	uint32_t index;
+	union {
+		struct {
+			uint8_t device;
+			uint8_t version;
+			uint16_t interface_support;
+			uint16_t legacy_max_cylinder;
+			uint8_t legacy_max_head;
+			uint8_t legacy_sectors_per_track;
+			__guest_handle_void edd_params;
+		} disk_info;
+		struct {
+			uint8_t device;
+			uint32_t mbr_signature;
+		} disk_mbr_signature;
+		struct {
+			uint8_t capabilities;
+			uint8_t edid_transfer_time;
+			__guest_handle_uchar edid;
+		} vbeddc_info;
+		union xenpf_efi_info efi_info;
+		uint8_t kbd_shift_flags;
+	} u;
+};
+
+struct xenpf_enter_acpi_sleep {
+	uint16_t val_a;
+	uint16_t val_b;
+	uint32_t sleep_state;
+	uint32_t flags;
+};
+
+struct xenpf_change_freq {
+	uint32_t flags;
+	uint32_t cpu;
+	uint64_t freq;
+};
+
+struct xenpf_getidletime {
+	__guest_handle_uchar cpumap_bitmap;
+	uint32_t cpumap_nr_cpus;
+	__guest_handle_uint64_t idletime;
+	uint64_t now;
+};
+
+struct xen_power_register {
+	uint32_t space_id;
+	uint32_t bit_width;
+	uint32_t bit_offset;
+	uint32_t access_size;
+	uint64_t address;
+};
+
+struct xen_processor_csd {
+	uint32_t domain;
+	uint32_t coord_type;
+	uint32_t num;
+};
+
+typedef struct xen_processor_csd *__guest_handle_xen_processor_csd;
+
+struct xen_processor_cx {
+	struct xen_power_register reg;
+	uint8_t type;
+	uint32_t latency;
+	uint32_t power;
+	uint32_t dpcnt;
+	__guest_handle_xen_processor_csd dp;
+};
+
+typedef struct xen_processor_cx *__guest_handle_xen_processor_cx;
+
+struct xen_processor_flags {
+	uint32_t bm_control: 1;
+	uint32_t bm_check: 1;
+	uint32_t has_cst: 1;
+	uint32_t power_setup_done: 1;
+	uint32_t bm_rld_set: 1;
+};
+
+struct xen_processor_power {
+	uint32_t count;
+	struct xen_processor_flags flags;
+	__guest_handle_xen_processor_cx states;
+};
+
+struct xen_pct_register {
+	uint8_t descriptor;
+	uint16_t length;
+	uint8_t space_id;
+	uint8_t bit_width;
+	uint8_t bit_offset;
+	uint8_t reserved;
+	uint64_t address;
+};
+
+struct xen_processor_px {
+	uint64_t core_frequency;
+	uint64_t power;
+	uint64_t transition_latency;
+	uint64_t bus_master_latency;
+	uint64_t control;
+	uint64_t status;
+};
+
+typedef struct xen_processor_px *__guest_handle_xen_processor_px;
+
+struct xen_psd_package {
+	uint64_t num_entries;
+	uint64_t revision;
+	uint64_t domain;
+	uint64_t coord_type;
+	uint64_t num_processors;
+};
+
+struct xen_processor_performance {
+	uint32_t flags;
+	uint32_t platform_limit;
+	struct xen_pct_register control_register;
+	struct xen_pct_register status_register;
+	uint32_t state_count;
+	__guest_handle_xen_processor_px states;
+	struct xen_psd_package domain_info;
+	uint32_t shared_type;
+};
+
+struct xenpf_set_processor_pminfo {
+	uint32_t id;
+	uint32_t type;
+	union {
+		struct xen_processor_power power;
+		struct xen_processor_performance perf;
+		__guest_handle_uint32_t pdc;
+	};
+};
+
+struct xenpf_pcpuinfo {
+	uint32_t xen_cpuid;
+	uint32_t max_present;
+	uint32_t flags;
+	uint32_t apic_id;
+	uint32_t acpi_id;
+};
+
+struct xenpf_cpu_ol {
+	uint32_t cpuid;
+};
+
+struct xenpf_cpu_hotadd {
+	uint32_t apic_id;
+	uint32_t acpi_id;
+	uint32_t pxm;
+};
+
+struct xenpf_mem_hotadd {
+	uint64_t spfn;
+	uint64_t epfn;
+	uint32_t pxm;
+	uint32_t flags;
+};
+
+struct xenpf_core_parking {
+	uint32_t type;
+	uint32_t idle_nums;
+};
+
+struct xenpf_symdata {
+	uint32_t namelen;
+	uint32_t symnum;
+	__guest_handle_char name;
+	uint64_t address;
+	char type;
+};
+
+struct xen_platform_op {
+	uint32_t cmd;
+	uint32_t interface_version;
+	union {
+		struct xenpf_settime32 settime32;
+		struct xenpf_settime64 settime64;
+		struct xenpf_add_memtype add_memtype;
+		struct xenpf_del_memtype del_memtype;
+		struct xenpf_read_memtype read_memtype;
+		struct xenpf_microcode_update microcode;
+		struct xenpf_platform_quirk platform_quirk;
+		struct xenpf_efi_runtime_call efi_runtime_call;
+		struct xenpf_firmware_info firmware_info;
+		struct xenpf_enter_acpi_sleep enter_acpi_sleep;
+		struct xenpf_change_freq change_freq;
+		struct xenpf_getidletime getidletime;
+		struct xenpf_set_processor_pminfo set_pminfo;
+		struct xenpf_pcpuinfo pcpu_info;
+		struct xenpf_cpu_ol cpu_ol;
+		struct xenpf_cpu_hotadd cpu_add;
+		struct xenpf_mem_hotadd mem_add;
+		struct xenpf_core_parking core_parking;
+		struct xenpf_symdata symdata;
+		uint8_t pad[128];
+	} u;
+};
+
+struct vcpu_set_singleshot_timer {
+	uint64_t timeout_abs_ns;
+	uint32_t flags;
+};
+
+typedef struct vcpu_time_info *__guest_handle_vcpu_time_info;
+
+struct vcpu_register_time_memory_area {
+	union {
+		__guest_handle_vcpu_time_info h;
+		struct pvclock_vcpu_time_info *v;
+		uint64_t p;
+	} addr;
+};
+
+struct xen_clock_event_device {
+	struct clock_event_device evt;
+	char name[16];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+typedef uint16_t grant_status_t;
+
+struct grant_frames {
+	xen_pfn_t *pfn;
+	unsigned int count;
+	void *vaddr;
+};
+
+struct gnttab_vm_area {
+	struct vm_struct *area;
+	pte_t **ptes;
+	int idx;
+};
+
+enum acpi_irq_model_id {
+	ACPI_IRQ_MODEL_PIC = 0,
+	ACPI_IRQ_MODEL_IOAPIC = 1,
+	ACPI_IRQ_MODEL_IOSAPIC = 2,
+	ACPI_IRQ_MODEL_PLATFORM = 3,
+	ACPI_IRQ_MODEL_GIC = 4,
+	ACPI_IRQ_MODEL_COUNT = 5,
+};
+
+typedef uint16_t domid_t;
+
+struct xen_add_to_physmap {
+	domid_t domid;
+	uint16_t size;
+	unsigned int space;
+	xen_ulong_t idx;
+	xen_pfn_t gpfn;
+};
+
+struct machine_ops {
+	void (*restart)(char *);
+	void (*halt)();
+	void (*power_off)();
+	void (*shutdown)();
+	void (*crash_shutdown)(struct pt_regs *);
+	void (*emergency_restart)();
+};
+
+enum x86_hypervisor_type {
+	X86_HYPER_NATIVE = 0,
+	X86_HYPER_VMWARE = 1,
+	X86_HYPER_MS_HYPERV = 2,
+	X86_HYPER_XEN_PV = 3,
+	X86_HYPER_XEN_HVM = 4,
+	X86_HYPER_KVM = 5,
+	X86_HYPER_JAILHOUSE = 6,
+	X86_HYPER_ACRN = 7,
+};
+
+struct hypervisor_x86 {
+	const char *name;
+	uint32_t (*detect)();
+	enum x86_hypervisor_type type;
+	struct x86_hyper_init init;
+	struct x86_hyper_runtime runtime;
+	bool ignore_nopv;
+};
+
+enum e820_type {
+	E820_TYPE_RAM = 1,
+	E820_TYPE_RESERVED = 2,
+	E820_TYPE_ACPI = 3,
+	E820_TYPE_NVS = 4,
+	E820_TYPE_UNUSABLE = 5,
+	E820_TYPE_PMEM = 7,
+	E820_TYPE_PRAM = 12,
+	E820_TYPE_SOFT_RESERVED = 4026531839,
+	E820_TYPE_RESERVED_KERN = 128,
+};
+
+struct vmcore_cb {
+	bool (*pfn_is_ram)(struct vmcore_cb *, long unsigned int);
+	struct list_head next;
+};
+
+struct xen_hvm_pagetable_dying {
+	domid_t domid;
+	__u64 gpa;
+};
+
+enum hvmmem_type_t {
+	HVMMEM_ram_rw = 0,
+	HVMMEM_ram_ro = 1,
+	HVMMEM_mmio_dm = 2,
+};
+
+struct xen_hvm_get_mem_type {
+	domid_t domid;
+	uint16_t mem_type;
+	uint16_t pad[2];
+	uint64_t pfn;
+};
+
+struct e820_entry {
+	u64 addr;
+	u64 size;
+	enum e820_type type;
+} __attribute__((packed));
+
+struct e820_table {
+	__u32 nr_entries;
+	struct e820_entry entries[3200];
+} __attribute__((packed));
+
+typedef xen_pfn_t *__guest_handle_xen_pfn_t;
+
+typedef long unsigned int xen_callback_t;
+
+struct mmu_update {
+	uint64_t ptr;
+	uint64_t val;
+};
+
+struct xen_memory_region {
+	long unsigned int start_pfn;
+	long unsigned int n_pfns;
+};
+
+struct callback_register {
+	uint16_t type;
+	uint16_t flags;
+	xen_callback_t address;
+};
+
+struct xen_memory_reservation {
+	__guest_handle_xen_pfn_t extent_start;
+	xen_ulong_t nr_extents;
+	unsigned int extent_order;
+	unsigned int address_bits;
+	domid_t domid;
+};
+
+struct xen_memory_map {
+	unsigned int nr_entries;
+	__guest_handle_void buffer;
+};
+
+struct x86_apic_ops {
+	unsigned int (*io_apic_read)(unsigned int, unsigned int);
+	void (*restore)();
+};
+
+struct physdev_apic {
+	long unsigned int apic_physbase;
+	uint32_t reg;
+	uint32_t value;
+};
+
+typedef long unsigned int uintptr_t;
+
+struct xen_pmu_amd_ctxt {
+	uint32_t counters;
+	uint32_t ctrls;
+	uint64_t regs[0];
+};
+
+struct xen_pmu_cntr_pair {
+	uint64_t counter;
+	uint64_t control;
+};
+
+struct xen_pmu_intel_ctxt {
+	uint32_t fixed_counters;
+	uint32_t arch_counters;
+	uint64_t global_ctrl;
+	uint64_t global_ovf_ctrl;
+	uint64_t global_status;
+	uint64_t fixed_ctrl;
+	uint64_t ds_area;
+	uint64_t pebs_enable;
+	uint64_t debugctl;
+	uint64_t regs[0];
+};
+
+struct xen_pmu_regs {
+	uint64_t ip;
+	uint64_t sp;
+	uint64_t flags;
+	uint16_t cs;
+	uint16_t ss;
+	uint8_t cpl;
+	uint8_t pad[3];
+};
+
+struct xen_pmu_arch {
+	union {
+		struct xen_pmu_regs regs;
+		uint8_t pad[64];
+	} r;
+	uint64_t pmu_flags;
+	union {
+		uint32_t lapic_lvtpc;
+		uint64_t pad;
+	} l;
+	union {
+		struct xen_pmu_amd_ctxt amd;
+		struct xen_pmu_intel_ctxt intel;
+		uint8_t pad[128];
+	} c;
+};
+
+struct xen_pmu_params {
+	struct {
+		uint32_t maj;
+		uint32_t min;
+	} version;
+	uint64_t val;
+	uint32_t vcpu;
+	uint32_t pad;
+};
+
+struct xen_pmu_data {
+	uint32_t vcpu_id;
+	uint32_t pcpu_id;
+	domid_t domain_id;
+	uint8_t pad[6];
+	struct xen_pmu_arch pmu;
+};
+
+struct perf_guest_info_callbacks {
+	unsigned int (*state)();
+	long unsigned int (*get_ip)();
+	unsigned int (*handle_intel_pt_intr)();
+};
+
+struct xenpmu {
+	struct xen_pmu_data *xenpmu_data;
