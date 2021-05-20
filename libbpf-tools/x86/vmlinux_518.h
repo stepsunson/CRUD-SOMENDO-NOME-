@@ -19689,3 +19689,2162 @@ struct perf_guest_info_callbacks {
 
 struct xenpmu {
 	struct xen_pmu_data *xenpmu_data;
+	uint8_t flags;
+};
+
+enum pg_level {
+	PG_LEVEL_NONE = 0,
+	PG_LEVEL_4K = 1,
+	PG_LEVEL_2M = 2,
+	PG_LEVEL_1G = 3,
+	PG_LEVEL_512G = 4,
+	PG_LEVEL_NUM = 5,
+};
+
+typedef uint32_t grant_ref_t;
+
+typedef uint32_t grant_handle_t;
+
+struct gnttab_map_grant_ref {
+	uint64_t host_addr;
+	uint32_t flags;
+	grant_ref_t ref;
+	domid_t dom;
+	int16_t status;
+	grant_handle_t handle;
+	uint64_t dev_bus_addr;
+};
+
+struct gnttab_unmap_grant_ref {
+	uint64_t host_addr;
+	uint64_t dev_bus_addr;
+	grant_handle_t handle;
+	int16_t status;
+};
+
+enum {
+	DESC_TSS = 9,
+	DESC_LDT = 2,
+	DESCTYPE_S = 16,
+};
+
+enum paravirt_lazy_mode {
+	PARAVIRT_LAZY_NONE = 0,
+	PARAVIRT_LAZY_MMU = 1,
+	PARAVIRT_LAZY_CPU = 2,
+};
+
+struct x86_hw_tss {
+	u32 reserved1;
+	u64 sp0;
+	u64 sp1;
+	u64 sp2;
+	u64 reserved2;
+	u64 ist[7];
+	u32 reserved3;
+	u32 reserved4;
+	u16 reserved5;
+	u16 io_bitmap_base;
+} __attribute__((packed));
+
+struct x86_io_bitmap {
+	u64 prev_sequence;
+	unsigned int prev_max;
+	long unsigned int bitmap[1025];
+	long unsigned int mapall[1025];
+};
+
+struct tss_struct {
+	struct x86_hw_tss x86_tss;
+	struct x86_io_bitmap io_bitmap;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct plist_head {
+	struct list_head node_list;
+};
+
+enum pm_qos_type {
+	PM_QOS_UNITIALIZED = 0,
+	PM_QOS_MAX = 1,
+	PM_QOS_MIN = 2,
+};
+
+struct pm_qos_constraints {
+	struct plist_head list;
+	s32 target_value;
+	s32 default_value;
+	s32 no_constraint_value;
+	enum pm_qos_type type;
+	struct blocking_notifier_head *notifiers;
+};
+
+struct freq_constraints {
+	struct pm_qos_constraints min_freq;
+	struct blocking_notifier_head min_freq_notifiers;
+	struct pm_qos_constraints max_freq;
+	struct blocking_notifier_head max_freq_notifiers;
+};
+
+struct pm_qos_flags {
+	struct list_head list;
+	s32 effective_flags;
+};
+
+struct dev_pm_qos_request;
+
+struct dev_pm_qos {
+	struct pm_qos_constraints resume_latency;
+	struct pm_qos_constraints latency_tolerance;
+	struct freq_constraints freq;
+	struct pm_qos_flags flags;
+	struct dev_pm_qos_request *resume_latency_req;
+	struct dev_pm_qos_request *latency_tolerance_req;
+	struct dev_pm_qos_request *flags_req;
+};
+
+union text_poke_insn {
+	u8 text[5];
+	struct {
+		u8 opcode;
+		s32 disp;
+	} __attribute__((packed));
+};
+
+typedef long int xen_long_t;
+
+struct trap_info {
+	uint8_t vector;
+	uint8_t flags;
+	uint16_t cs;
+	long unsigned int address;
+};
+
+struct mmuext_op {
+	unsigned int cmd;
+	union {
+		xen_pfn_t mfn;
+		long unsigned int linear_addr;
+	} arg1;
+	union {
+		unsigned int nr_ents;
+		void *vcpumask;
+		xen_pfn_t src_mfn;
+	} arg2;
+};
+
+struct multicall_entry {
+	xen_ulong_t op;
+	xen_long_t result;
+	xen_ulong_t args[6];
+};
+
+struct dom0_vga_console_info {
+	uint8_t video_type;
+	union {
+		struct {
+			uint16_t font_height;
+			uint16_t cursor_x;
+			uint16_t cursor_y;
+			uint16_t rows;
+			uint16_t columns;
+		} text_mode_3;
+		struct {
+			uint16_t width;
+			uint16_t height;
+			uint16_t bytes_per_line;
+			uint16_t bits_per_pixel;
+			uint32_t lfb_base;
+			uint32_t lfb_size;
+			uint8_t red_pos;
+			uint8_t red_size;
+			uint8_t green_pos;
+			uint8_t green_size;
+			uint8_t blue_pos;
+			uint8_t blue_size;
+			uint8_t rsvd_pos;
+			uint8_t rsvd_size;
+			uint32_t gbl_caps;
+			uint16_t mode_attrs;
+			uint16_t pad;
+			uint32_t ext_lfb_base;
+		} vesa_lfb;
+	} u;
+};
+
+struct physdev_set_iopl {
+	uint32_t iopl;
+};
+
+struct physdev_set_iobitmap {
+	uint8_t *bitmap;
+	uint32_t nr_ports;
+};
+
+struct pm_qos_flags_request {
+	struct list_head node;
+	s32 flags;
+};
+
+enum freq_qos_req_type {
+	FREQ_QOS_MIN = 1,
+	FREQ_QOS_MAX = 2,
+};
+
+struct freq_qos_request {
+	enum freq_qos_req_type type;
+	struct plist_node pnode;
+	struct freq_constraints *qos;
+};
+
+enum dev_pm_qos_req_type {
+	DEV_PM_QOS_RESUME_LATENCY = 1,
+	DEV_PM_QOS_LATENCY_TOLERANCE = 2,
+	DEV_PM_QOS_MIN_FREQUENCY = 3,
+	DEV_PM_QOS_MAX_FREQUENCY = 4,
+	DEV_PM_QOS_FLAGS = 5,
+};
+
+struct dev_pm_qos_request {
+	enum dev_pm_qos_req_type type;
+	union {
+		struct plist_node pnode;
+		struct pm_qos_flags_request flr;
+		struct freq_qos_request freq;
+	} data;
+	struct device *dev;
+};
+
+struct multicall_space {
+	struct multicall_entry *mc;
+	void *args;
+};
+
+struct tls_descs {
+	struct desc_struct desc[3];
+};
+
+struct trap_array_entry {
+	void (*orig)();
+	void (*xen)();
+	bool ist_okay;
+};
+
+struct mmu_gather_batch {
+	struct mmu_gather_batch *next;
+	unsigned int nr;
+	unsigned int max;
+	struct page *pages[0];
+};
+
+struct mmu_table_batch;
+
+struct mmu_gather {
+	struct mm_struct *mm;
+	struct mmu_table_batch *batch;
+	long unsigned int start;
+	long unsigned int end;
+	unsigned int fullmm: 1;
+	unsigned int need_flush_all: 1;
+	unsigned int freed_tables: 1;
+	unsigned int cleared_ptes: 1;
+	unsigned int cleared_pmds: 1;
+	unsigned int cleared_puds: 1;
+	unsigned int cleared_p4ds: 1;
+	unsigned int vma_exec: 1;
+	unsigned int vma_huge: 1;
+	unsigned int batch_count;
+	struct mmu_gather_batch *active;
+	struct mmu_gather_batch local;
+	struct page *__pages[8];
+};
+
+struct io_tlb_slot;
+
+struct io_tlb_mem {
+	phys_addr_t start;
+	phys_addr_t end;
+	void *vaddr;
+	long unsigned int nslabs;
+	long unsigned int used;
+	unsigned int index;
+	spinlock_t lock;
+	struct dentry *debugfs;
+	bool late_alloc;
+	bool force_bounce;
+	bool for_alloc;
+	struct io_tlb_slot *slots;
+};
+
+struct mmu_table_batch {
+	struct callback_head rcu;
+	unsigned int nr;
+	void *tables[0];
+};
+
+struct xen_memory_exchange {
+	struct xen_memory_reservation in;
+	struct xen_memory_reservation out;
+	xen_ulong_t nr_exchanged;
+};
+
+struct xen_machphys_mapping {
+	xen_ulong_t v_start;
+	xen_ulong_t v_end;
+	xen_ulong_t max_mfn;
+};
+
+struct io_tlb_slot {
+	phys_addr_t orig_addr;
+	size_t alloc_size;
+	unsigned int list;
+};
+
+enum pt_level {
+	PT_PGD = 0,
+	PT_P4D = 1,
+	PT_PUD = 2,
+	PT_PMD = 3,
+	PT_PTE = 4,
+};
+
+struct remap_data {
+	xen_pfn_t *pfn;
+	bool contiguous;
+	bool no_translate;
+	pgprot_t prot;
+	struct mmu_update *mmu_update;
+};
+
+enum xen_mc_flush_reason {
+	XEN_MC_FL_NONE = 0,
+	XEN_MC_FL_BATCH = 1,
+	XEN_MC_FL_ARGS = 2,
+	XEN_MC_FL_CALLBACK = 3,
+};
+
+enum xen_mc_extend_args {
+	XEN_MC_XE_OK = 0,
+	XEN_MC_XE_BAD_OP = 1,
+	XEN_MC_XE_NO_SPACE = 2,
+};
+
+typedef void (*xen_mc_callback_fn_t)(void *);
+
+struct callback {
+	void (*fn)(void *);
+	void *data;
+};
+
+struct mc_buffer {
+	unsigned int mcidx;
+	unsigned int argidx;
+	unsigned int cbidx;
+	struct multicall_entry entries[32];
+	unsigned char args[512];
+	struct callback callbacks[32];
+};
+
+struct hvm_start_info {
+	uint32_t magic;
+	uint32_t version;
+	uint32_t flags;
+	uint32_t nr_modules;
+	uint64_t modlist_paddr;
+	uint64_t cmdline_paddr;
+	uint64_t rsdp_paddr;
+	uint64_t memmap_paddr;
+	uint32_t memmap_entries;
+	uint32_t reserved;
+};
+
+struct trace_event_raw_xen_mc__batch {
+	struct trace_entry ent;
+	enum paravirt_lazy_mode mode;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mc_entry {
+	struct trace_entry ent;
+	unsigned int op;
+	unsigned int nargs;
+	long unsigned int args[6];
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mc_entry_alloc {
+	struct trace_entry ent;
+	size_t args;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mc_callback {
+	struct trace_entry ent;
+	xen_mc_callback_fn_t fn;
+	void *data;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mc_flush_reason {
+	struct trace_entry ent;
+	enum xen_mc_flush_reason reason;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mc_flush {
+	struct trace_entry ent;
+	unsigned int mcidx;
+	unsigned int argidx;
+	unsigned int cbidx;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mc_extend_args {
+	struct trace_entry ent;
+	unsigned int op;
+	size_t args;
+	enum xen_mc_extend_args res;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu__set_pte {
+	struct trace_entry ent;
+	pte_t *ptep;
+	pteval_t pteval;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_set_pmd {
+	struct trace_entry ent;
+	pmd_t *pmdp;
+	pmdval_t pmdval;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_set_pud {
+	struct trace_entry ent;
+	pud_t *pudp;
+	pudval_t pudval;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_set_p4d {
+	struct trace_entry ent;
+	p4d_t *p4dp;
+	p4d_t *user_p4dp;
+	p4dval_t p4dval;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_ptep_modify_prot {
+	struct trace_entry ent;
+	struct mm_struct *mm;
+	long unsigned int addr;
+	pte_t *ptep;
+	pteval_t pteval;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_alloc_ptpage {
+	struct trace_entry ent;
+	struct mm_struct *mm;
+	long unsigned int pfn;
+	unsigned int level;
+	bool pinned;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_release_ptpage {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int level;
+	bool pinned;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_pgd {
+	struct trace_entry ent;
+	struct mm_struct *mm;
+	pgd_t *pgd;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_flush_tlb_one_user {
+	struct trace_entry ent;
+	long unsigned int addr;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_flush_tlb_multi {
+	struct trace_entry ent;
+	unsigned int ncpus;
+	struct mm_struct *mm;
+	long unsigned int addr;
+	long unsigned int end;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_mmu_write_cr3 {
+	struct trace_entry ent;
+	bool kernel;
+	long unsigned int cr3;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_cpu_write_ldt_entry {
+	struct trace_entry ent;
+	struct desc_struct *dt;
+	int entrynum;
+	u64 desc;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_cpu_write_idt_entry {
+	struct trace_entry ent;
+	gate_desc *dt;
+	int entrynum;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_cpu_load_idt {
+	struct trace_entry ent;
+	long unsigned int addr;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_cpu_write_gdt_entry {
+	struct trace_entry ent;
+	u64 desc;
+	struct desc_struct *dt;
+	int entrynum;
+	int type;
+	char __data[0];
+};
+
+struct trace_event_raw_xen_cpu_set_ldt {
+	struct trace_entry ent;
+	const void *addr;
+	unsigned int entries;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_xen_mc__batch {};
+
+struct trace_event_data_offsets_xen_mc_entry {};
+
+struct trace_event_data_offsets_xen_mc_entry_alloc {};
+
+struct trace_event_data_offsets_xen_mc_callback {};
+
+struct trace_event_data_offsets_xen_mc_flush_reason {};
+
+struct trace_event_data_offsets_xen_mc_flush {};
+
+struct trace_event_data_offsets_xen_mc_extend_args {};
+
+struct trace_event_data_offsets_xen_mmu__set_pte {};
+
+struct trace_event_data_offsets_xen_mmu_set_pmd {};
+
+struct trace_event_data_offsets_xen_mmu_set_pud {};
+
+struct trace_event_data_offsets_xen_mmu_set_p4d {};
+
+struct trace_event_data_offsets_xen_mmu_ptep_modify_prot {};
+
+struct trace_event_data_offsets_xen_mmu_alloc_ptpage {};
+
+struct trace_event_data_offsets_xen_mmu_release_ptpage {};
+
+struct trace_event_data_offsets_xen_mmu_pgd {};
+
+struct trace_event_data_offsets_xen_mmu_flush_tlb_one_user {};
+
+struct trace_event_data_offsets_xen_mmu_flush_tlb_multi {};
+
+struct trace_event_data_offsets_xen_mmu_write_cr3 {};
+
+struct trace_event_data_offsets_xen_cpu_write_ldt_entry {};
+
+struct trace_event_data_offsets_xen_cpu_write_idt_entry {};
+
+struct trace_event_data_offsets_xen_cpu_load_idt {};
+
+struct trace_event_data_offsets_xen_cpu_write_gdt_entry {};
+
+struct trace_event_data_offsets_xen_cpu_set_ldt {};
+
+typedef void (*btf_trace_xen_mc_batch)(void *, enum paravirt_lazy_mode);
+
+typedef void (*btf_trace_xen_mc_issue)(void *, enum paravirt_lazy_mode);
+
+typedef void (*btf_trace_xen_mc_entry)(void *, struct multicall_entry *, unsigned int);
+
+typedef void (*btf_trace_xen_mc_entry_alloc)(void *, size_t);
+
+typedef void (*btf_trace_xen_mc_callback)(void *, xen_mc_callback_fn_t, void *);
+
+typedef void (*btf_trace_xen_mc_flush_reason)(void *, enum xen_mc_flush_reason);
+
+typedef void (*btf_trace_xen_mc_flush)(void *, unsigned int, unsigned int, unsigned int);
+
+typedef void (*btf_trace_xen_mc_extend_args)(void *, long unsigned int, size_t, enum xen_mc_extend_args);
+
+typedef void (*btf_trace_xen_mmu_set_pte)(void *, pte_t *, pte_t);
+
+typedef void (*btf_trace_xen_mmu_set_pmd)(void *, pmd_t *, pmd_t);
+
+typedef void (*btf_trace_xen_mmu_set_pud)(void *, pud_t *, pud_t);
+
+typedef void (*btf_trace_xen_mmu_set_p4d)(void *, p4d_t *, p4d_t *, p4d_t);
+
+typedef void (*btf_trace_xen_mmu_ptep_modify_prot_start)(void *, struct mm_struct *, long unsigned int, pte_t *, pte_t);
+
+typedef void (*btf_trace_xen_mmu_ptep_modify_prot_commit)(void *, struct mm_struct *, long unsigned int, pte_t *, pte_t);
+
+typedef void (*btf_trace_xen_mmu_alloc_ptpage)(void *, struct mm_struct *, long unsigned int, unsigned int, bool);
+
+typedef void (*btf_trace_xen_mmu_release_ptpage)(void *, long unsigned int, unsigned int, bool);
+
+typedef void (*btf_trace_xen_mmu_pgd_pin)(void *, struct mm_struct *, pgd_t *);
+
+typedef void (*btf_trace_xen_mmu_pgd_unpin)(void *, struct mm_struct *, pgd_t *);
+
+typedef void (*btf_trace_xen_mmu_flush_tlb_one_user)(void *, long unsigned int);
+
+typedef void (*btf_trace_xen_mmu_flush_tlb_multi)(void *, const struct cpumask *, struct mm_struct *, long unsigned int, long unsigned int);
+
+typedef void (*btf_trace_xen_mmu_write_cr3)(void *, bool, long unsigned int);
+
+typedef void (*btf_trace_xen_cpu_write_ldt_entry)(void *, struct desc_struct *, int, u64);
+
+typedef void (*btf_trace_xen_cpu_write_idt_entry)(void *, gate_desc *, int, const gate_desc *);
+
+typedef void (*btf_trace_xen_cpu_load_idt)(void *, const struct desc_ptr *);
+
+typedef void (*btf_trace_xen_cpu_write_gdt_entry)(void *, struct desc_struct *, int, const void *, int);
+
+typedef void (*btf_trace_xen_cpu_set_ldt)(void *, const void *, unsigned int);
+
+enum ipi_vector {
+	XEN_RESCHEDULE_VECTOR = 0,
+	XEN_CALL_FUNCTION_VECTOR = 1,
+	XEN_CALL_FUNCTION_SINGLE_VECTOR = 2,
+	XEN_SPIN_UNLOCK_VECTOR = 3,
+	XEN_IRQ_WORK_VECTOR = 4,
+	XEN_NMI_VECTOR = 5,
+	XEN_NR_IPIS = 6,
+};
+
+struct xen_common_irq {
+	int irq;
+	char *name;
+};
+
+struct cpu_user_regs {
+	uint64_t r15;
+	uint64_t r14;
+	uint64_t r13;
+	uint64_t r12;
+	union {
+		uint64_t rbp;
+		uint64_t ebp;
+		uint32_t _ebp;
+	};
+	union {
+		uint64_t rbx;
+		uint64_t ebx;
+		uint32_t _ebx;
+	};
+	uint64_t r11;
+	uint64_t r10;
+	uint64_t r9;
+	uint64_t r8;
+	union {
+		uint64_t rax;
+		uint64_t eax;
+		uint32_t _eax;
+	};
+	union {
+		uint64_t rcx;
+		uint64_t ecx;
+		uint32_t _ecx;
+	};
+	union {
+		uint64_t rdx;
+		uint64_t edx;
+		uint32_t _edx;
+	};
+	union {
+		uint64_t rsi;
+		uint64_t esi;
+		uint32_t _esi;
+	};
+	union {
+		uint64_t rdi;
+		uint64_t edi;
+		uint32_t _edi;
+	};
+	uint32_t error_code;
+	uint32_t entry_vector;
+	union {
+		uint64_t rip;
+		uint64_t eip;
+		uint32_t _eip;
+	};
+	uint16_t cs;
+	uint16_t _pad0[1];
+	uint8_t saved_upcall_mask;
+	uint8_t _pad1[3];
+	union {
+		uint64_t rflags;
+		uint64_t eflags;
+		uint32_t _eflags;
+	};
+	union {
+		uint64_t rsp;
+		uint64_t esp;
+		uint32_t _esp;
+	};
+	uint16_t ss;
+	uint16_t _pad2[3];
+	uint16_t es;
+	uint16_t _pad3[3];
+	uint16_t ds;
+	uint16_t _pad4[3];
+	uint16_t fs;
+	uint16_t _pad5[3];
+	uint16_t gs;
+	uint16_t _pad6[3];
+};
+
+struct vcpu_guest_context {
+	struct {
+		char x[512];
+	} fpu_ctxt;
+	long unsigned int flags;
+	struct cpu_user_regs user_regs;
+	struct trap_info trap_ctxt[256];
+	long unsigned int ldt_base;
+	long unsigned int ldt_ents;
+	long unsigned int gdt_frames[16];
+	long unsigned int gdt_ents;
+	long unsigned int kernel_ss;
+	long unsigned int kernel_sp;
+	long unsigned int ctrlreg[8];
+	long unsigned int debugreg[8];
+	long unsigned int event_callback_eip;
+	long unsigned int failsafe_callback_eip;
+	long unsigned int syscall_callback_eip;
+	long unsigned int vm_assist;
+	uint64_t fs_base;
+	uint64_t gs_base_kernel;
+	uint64_t gs_base_user;
+};
+
+union efi_boot_services;
+
+typedef union efi_boot_services efi_boot_services_t;
+
+typedef struct {
+	efi_table_hdr_t hdr;
+	u32 fw_vendor;
+	u32 fw_revision;
+	u32 con_in_handle;
+	u32 con_in;
+	u32 con_out_handle;
+	u32 con_out;
+	u32 stderr_handle;
+	u32 stderr;
+	u32 runtime;
+	u32 boottime;
+	u32 nr_tables;
+	u32 tables;
+} efi_system_table_32_t;
+
+union efi_simple_text_input_protocol;
+
+typedef union efi_simple_text_input_protocol efi_simple_text_input_protocol_t;
+
+union efi_simple_text_output_protocol;
+
+typedef union efi_simple_text_output_protocol efi_simple_text_output_protocol_t;
+
+typedef union {
+	struct {
+		efi_table_hdr_t hdr;
+		long unsigned int fw_vendor;
+		u32 fw_revision;
+		long unsigned int con_in_handle;
+		efi_simple_text_input_protocol_t *con_in;
+		long unsigned int con_out_handle;
+		efi_simple_text_output_protocol_t *con_out;
+		long unsigned int stderr_handle;
+		long unsigned int stderr;
+		efi_runtime_services_t *runtime;
+		efi_boot_services_t *boottime;
+		long unsigned int nr_tables;
+		long unsigned int tables;
+	};
+	efi_system_table_32_t mixed_mode;
+} efi_system_table_t;
+
+enum efi_secureboot_mode {
+	efi_secureboot_mode_unset = 0,
+	efi_secureboot_mode_unknown = 1,
+	efi_secureboot_mode_disabled = 2,
+	efi_secureboot_mode_enabled = 3,
+};
+
+struct hvm_modlist_entry {
+	uint64_t paddr;
+	uint64_t size;
+	uint64_t cmdline_paddr;
+	uint64_t reserved;
+};
+
+struct hvm_memmap_table_entry {
+	uint64_t addr;
+	uint64_t size;
+	uint32_t type;
+	uint32_t reserved;
+};
+
+enum {
+	WORK_STRUCT_PENDING_BIT = 0,
+	WORK_STRUCT_INACTIVE_BIT = 1,
+	WORK_STRUCT_PWQ_BIT = 2,
+	WORK_STRUCT_LINKED_BIT = 3,
+	WORK_STRUCT_COLOR_SHIFT = 4,
+	WORK_STRUCT_COLOR_BITS = 4,
+	WORK_STRUCT_PENDING = 1,
+	WORK_STRUCT_INACTIVE = 2,
+	WORK_STRUCT_PWQ = 4,
+	WORK_STRUCT_LINKED = 8,
+	WORK_STRUCT_STATIC = 0,
+	WORK_NR_COLORS = 16,
+	WORK_CPU_UNBOUND = 8192,
+	WORK_STRUCT_FLAG_BITS = 8,
+	WORK_OFFQ_FLAG_BASE = 4,
+	__WORK_OFFQ_CANCELING = 4,
+	WORK_OFFQ_CANCELING = 16,
+	WORK_OFFQ_FLAG_BITS = 1,
+	WORK_OFFQ_POOL_SHIFT = 5,
+	WORK_OFFQ_LEFT = 59,
+	WORK_OFFQ_POOL_BITS = 31,
+	WORK_OFFQ_POOL_NONE = 2147483647,
+	WORK_STRUCT_FLAG_MASK = 255,
+	WORK_STRUCT_WQ_DATA_MASK = 4294967040,
+	WORK_STRUCT_NO_POOL = 4294967264,
+	WORK_BUSY_PENDING = 1,
+	WORK_BUSY_RUNNING = 2,
+	WORKER_DESC_LEN = 24,
+};
+
+enum {
+	MEMREMAP_WB = 1,
+	MEMREMAP_WT = 2,
+	MEMREMAP_WC = 4,
+	MEMREMAP_ENC = 8,
+	MEMREMAP_DEC = 16,
+};
+
+union hv_x64_msr_hypercall_contents {
+	u64 as_uint64;
+	struct {
+		u64 enable: 1;
+		u64 reserved: 11;
+		u64 guest_physical_address: 52;
+	};
+};
+
+union hv_vp_assist_msr_contents {
+	u64 as_uint64;
+	struct {
+		u64 enable: 1;
+		u64 reserved: 11;
+		u64 pfn: 52;
+	};
+};
+
+struct hv_reenlightenment_control {
+	__u64 vector: 8;
+	__u64 reserved1: 8;
+	__u64 enabled: 1;
+	__u64 reserved2: 15;
+	__u64 target_vp: 32;
+};
+
+struct hv_tsc_emulation_control {
+	__u64 enabled: 1;
+	__u64 reserved: 63;
+};
+
+struct hv_tsc_emulation_status {
+	__u64 inprogress: 1;
+	__u64 reserved: 63;
+};
+
+struct hv_nested_enlightenments_control {
+	struct {
+		__u32 directhypercall: 1;
+		__u32 reserved: 31;
+	} features;
+	struct {
+		__u32 reserved;
+	} hypercallControls;
+};
+
+struct hv_vp_assist_page {
+	__u32 apic_assist;
+	__u32 reserved1;
+	__u64 vtl_control[3];
+	struct hv_nested_enlightenments_control nested_control;
+	__u8 enlighten_vmentry;
+	__u8 reserved2[7];
+	__u64 current_nested_vmcs;
+};
+
+struct hv_get_partition_id {
+	u64 partition_id;
+};
+
+union hv_ghcb;
+
+struct ms_hyperv_info {
+	u32 features;
+	u32 priv_high;
+	u32 misc_features;
+	u32 hints;
+	u32 nested_features;
+	u32 max_vp_index;
+	u32 max_lp_index;
+	u32 isolation_config_a;
+	union {
+		u32 isolation_config_b;
+		struct {
+			u32 cvm_type: 4;
+			u32 reserved1: 1;
+			u32 shared_gpa_boundary_active: 1;
+			u32 shared_gpa_boundary_bits: 6;
+			u32 reserved2: 20;
+		};
+	};
+	u64 shared_gpa_boundary;
+};
+
+enum HV_GENERIC_SET_FORMAT {
+	HV_GENERIC_SET_SPARSE_4K = 0,
+	HV_GENERIC_SET_ALL = 1,
+};
+
+struct hv_vpset {
+	u64 format;
+	u64 valid_bank_mask;
+	u64 bank_contents[0];
+};
+
+struct hv_tlb_flush {
+	u64 address_space;
+	u64 flags;
+	u64 processor_mask;
+	u64 gva_list[0];
+};
+
+struct hv_tlb_flush_ex {
+	u64 address_space;
+	u64 flags;
+	struct hv_vpset hv_vp_set;
+	u64 gva_list[0];
+};
+
+struct trace_event_raw_hyperv_mmu_flush_tlb_multi {
+	struct trace_entry ent;
+	unsigned int ncpus;
+	struct mm_struct *mm;
+	long unsigned int addr;
+	long unsigned int end;
+	char __data[0];
+};
+
+struct trace_event_raw_hyperv_nested_flush_guest_mapping {
+	struct trace_entry ent;
+	u64 as;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_hyperv_nested_flush_guest_mapping_range {
+	struct trace_entry ent;
+	u64 as;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_raw_hyperv_send_ipi_mask {
+	struct trace_entry ent;
+	unsigned int ncpus;
+	int vector;
+	char __data[0];
+};
+
+struct trace_event_raw_hyperv_send_ipi_one {
+	struct trace_entry ent;
+	int cpu;
+	int vector;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_hyperv_mmu_flush_tlb_multi {};
+
+struct trace_event_data_offsets_hyperv_nested_flush_guest_mapping {};
+
+struct trace_event_data_offsets_hyperv_nested_flush_guest_mapping_range {};
+
+struct trace_event_data_offsets_hyperv_send_ipi_mask {};
+
+struct trace_event_data_offsets_hyperv_send_ipi_one {};
+
+typedef void (*btf_trace_hyperv_mmu_flush_tlb_multi)(void *, const struct cpumask *, const struct flush_tlb_info *);
+
+typedef void (*btf_trace_hyperv_nested_flush_guest_mapping)(void *, u64, int);
+
+typedef void (*btf_trace_hyperv_nested_flush_guest_mapping_range)(void *, u64, int);
+
+typedef void (*btf_trace_hyperv_send_ipi_mask)(void *, const struct cpumask *, int);
+
+typedef void (*btf_trace_hyperv_send_ipi_one)(void *, int, int);
+
+struct hv_guest_mapping_flush {
+	u64 address_space;
+	u64 flags;
+};
+
+union hv_gpa_page_range {
+	u64 address_space;
+	struct {
+		u64 additional_pages: 11;
+		u64 largepage: 1;
+		u64 basepfn: 52;
+	} page;
+	struct {
+		u64 reserved: 12;
+		u64 page_size: 1;
+		u64 reserved1: 8;
+		u64 base_large_pfn: 43;
+	};
+};
+
+struct hv_guest_mapping_flush_list {
+	u64 address_space;
+	u64 flags;
+	union hv_gpa_page_range gpa_list[510];
+};
+
+typedef int (*hyperv_fill_flush_list_func)(struct hv_guest_mapping_flush_list *, void *);
+
+enum {
+	IRQCHIP_SET_TYPE_MASKED = 1,
+	IRQCHIP_EOI_IF_HANDLED = 2,
+	IRQCHIP_MASK_ON_SUSPEND = 4,
+	IRQCHIP_ONOFFLINE_ENABLED = 8,
+	IRQCHIP_SKIP_SET_WAKE = 16,
+	IRQCHIP_ONESHOT_SAFE = 32,
+	IRQCHIP_EOI_THREADED = 64,
+	IRQCHIP_SUPPORTS_LEVEL_MSI = 128,
+	IRQCHIP_SUPPORTS_NMI = 256,
+	IRQCHIP_ENABLE_WAKEUP_ON_SUSPEND = 512,
+	IRQCHIP_AFFINITY_PRE_STARTUP = 1024,
+	IRQCHIP_IMMUTABLE = 2048,
+};
+
+enum irq_alloc_type {
+	X86_IRQ_ALLOC_TYPE_IOAPIC = 1,
+	X86_IRQ_ALLOC_TYPE_HPET = 2,
+	X86_IRQ_ALLOC_TYPE_PCI_MSI = 3,
+	X86_IRQ_ALLOC_TYPE_PCI_MSIX = 4,
+	X86_IRQ_ALLOC_TYPE_DMAR = 5,
+	X86_IRQ_ALLOC_TYPE_AMDVI = 6,
+	X86_IRQ_ALLOC_TYPE_UV = 7,
+};
+
+struct ioapic_alloc_info {
+	int pin;
+	int node;
+	u32 is_level: 1;
+	u32 active_low: 1;
+	u32 valid: 1;
+};
+
+struct uv_alloc_info {
+	int limit;
+	int blade;
+	long unsigned int offset;
+	char *name;
+};
+
+struct irq_alloc_info {
+	enum irq_alloc_type type;
+	u32 flags;
+	u32 devid;
+	irq_hw_number_t hwirq;
+	const struct cpumask *mask;
+	struct msi_desc *desc;
+	void *data;
+	union {
+		struct ioapic_alloc_info ioapic;
+		struct uv_alloc_info uv;
+	};
+};
+
+struct irq_cfg {
+	unsigned int dest_apicid;
+	unsigned int vector;
+};
+
+enum {
+	IRQCHIP_FWNODE_REAL = 0,
+	IRQCHIP_FWNODE_NAMED = 1,
+	IRQCHIP_FWNODE_NAMED_ID = 2,
+};
+
+typedef struct irq_alloc_info msi_alloc_info_t;
+
+struct msi_domain_info;
+
+struct msi_domain_ops {
+	irq_hw_number_t (*get_hwirq)(struct msi_domain_info *, msi_alloc_info_t *);
+	int (*msi_init)(struct irq_domain *, struct msi_domain_info *, unsigned int, irq_hw_number_t, msi_alloc_info_t *);
+	void (*msi_free)(struct irq_domain *, struct msi_domain_info *, unsigned int);
+	int (*msi_check)(struct irq_domain *, struct msi_domain_info *, struct device *);
+	int (*msi_prepare)(struct irq_domain *, struct device *, int, msi_alloc_info_t *);
+	void (*set_desc)(msi_alloc_info_t *, struct msi_desc *);
+	int (*domain_alloc_irqs)(struct irq_domain *, struct device *, int);
+	void (*domain_free_irqs)(struct irq_domain *, struct device *);
+};
+
+struct msi_domain_info {
+	u32 flags;
+	struct msi_domain_ops *ops;
+	struct irq_chip *chip;
+	void *chip_data;
+	irq_flow_handler_t handler;
+	void *handler_data;
+	const char *handler_name;
+	void *data;
+};
+
+enum {
+	MSI_FLAG_USE_DEF_DOM_OPS = 1,
+	MSI_FLAG_USE_DEF_CHIP_OPS = 2,
+	MSI_FLAG_MULTI_PCI_MSI = 4,
+	MSI_FLAG_PCI_MSIX = 8,
+	MSI_FLAG_ACTIVATE_EARLY = 16,
+	MSI_FLAG_MUST_REACTIVATE = 32,
+	MSI_FLAG_LEVEL_CAPABLE = 64,
+	MSI_FLAG_DEV_SYSFS = 128,
+	MSI_FLAG_MSIX_CONTIGUOUS = 256,
+	MSI_FLAG_ALLOC_SIMPLE_MSI_DESCS = 512,
+	MSI_FLAG_FREE_MSI_DESCS = 1024,
+};
+
+enum hv_interrupt_type {
+	HV_X64_INTERRUPT_TYPE_FIXED = 0,
+	HV_X64_INTERRUPT_TYPE_LOWESTPRIORITY = 1,
+	HV_X64_INTERRUPT_TYPE_SMI = 2,
+	HV_X64_INTERRUPT_TYPE_REMOTEREAD = 3,
+	HV_X64_INTERRUPT_TYPE_NMI = 4,
+	HV_X64_INTERRUPT_TYPE_INIT = 5,
+	HV_X64_INTERRUPT_TYPE_SIPI = 6,
+	HV_X64_INTERRUPT_TYPE_EXTINT = 7,
+	HV_X64_INTERRUPT_TYPE_LOCALINT0 = 8,
+	HV_X64_INTERRUPT_TYPE_LOCALINT1 = 9,
+	HV_X64_INTERRUPT_TYPE_MAXIMUM = 10,
+};
+
+union hv_msi_address_register {
+	u32 as_uint32;
+	struct {
+		u32 reserved1: 2;
+		u32 destination_mode: 1;
+		u32 redirection_hint: 1;
+		u32 reserved2: 8;
+		u32 destination_id: 8;
+		u32 msi_base: 12;
+	};
+};
+
+union hv_msi_data_register {
+	u32 as_uint32;
+	struct {
+		u32 vector: 8;
+		u32 delivery_mode: 3;
+		u32 reserved1: 3;
+		u32 level_assert: 1;
+		u32 trigger_mode: 1;
+		u32 reserved2: 16;
+	};
+};
+
+union hv_msi_entry {
+	u64 as_uint64;
+	struct {
+		union hv_msi_address_register address;
+		union hv_msi_data_register data;
+	};
+};
+
+union hv_ioapic_rte {
+	u64 as_uint64;
+	struct {
+		u32 vector: 8;
+		u32 delivery_mode: 3;
+		u32 destination_mode: 1;
+		u32 delivery_status: 1;
+		u32 interrupt_polarity: 1;
+		u32 remote_irr: 1;
+		u32 trigger_mode: 1;
+		u32 interrupt_mask: 1;
+		u32 reserved1: 15;
+		u32 reserved2: 24;
+		u32 destination_id: 8;
+	};
+	struct {
+		u32 low_uint32;
+		u32 high_uint32;
+	};
+};
+
+struct hv_interrupt_entry {
+	u32 source;
+	u32 reserved1;
+	union {
+		union hv_msi_entry msi_entry;
+		union hv_ioapic_rte ioapic_rte;
+	};
+};
+
+struct hv_device_interrupt_target {
+	u32 vector;
+	u32 flags;
+	union {
+		u64 vp_mask;
+		struct hv_vpset vp_set;
+	};
+};
+
+enum hv_device_type {
+	HV_DEVICE_TYPE_LOGICAL = 0,
+	HV_DEVICE_TYPE_PCI = 1,
+	HV_DEVICE_TYPE_IOAPIC = 2,
+	HV_DEVICE_TYPE_ACPI = 3,
+};
+
+typedef u16 hv_pci_rid;
+
+typedef u16 hv_pci_segment;
+
+union hv_pci_bdf {
+	u16 as_uint16;
+	struct {
+		u8 function: 3;
+		u8 device: 5;
+		u8 bus;
+	};
+};
+
+union hv_pci_bus_range {
+	u16 as_uint16;
+	struct {
+		u8 subordinate_bus;
+		u8 secondary_bus;
+	};
+};
+
+union hv_device_id {
+	u64 as_uint64;
+	struct {
+		u64 reserved0: 62;
+		u64 device_type: 2;
+	};
+	struct {
+		u64 id: 62;
+		u64 device_type: 2;
+	} logical;
+	struct {
+		union {
+			hv_pci_rid rid;
+			union hv_pci_bdf bdf;
+		};
+		hv_pci_segment segment;
+		union hv_pci_bus_range shadow_bus_range;
+		u16 phantom_function_bits: 2;
+		u16 source_shadow: 1;
+		u16 rsvdz0: 11;
+		u16 device_type: 2;
+	} pci;
+	struct {
+		u8 ioapic_id;
+		u8 rsvdz0;
+		u16 rsvdz1;
+		u16 rsvdz2;
+		u16 rsvdz3: 14;
+		u16 device_type: 2;
+	} ioapic;
+	struct {
+		u32 input_mapping_base;
+		u32 input_mapping_count: 30;
+		u32 device_type: 2;
+	} acpi;
+};
+
+enum hv_interrupt_trigger_mode {
+	HV_INTERRUPT_TRIGGER_MODE_EDGE = 0,
+	HV_INTERRUPT_TRIGGER_MODE_LEVEL = 1,
+};
+
+struct hv_device_interrupt_descriptor {
+	u32 interrupt_type;
+	u32 trigger_mode;
+	u32 vector_count;
+	u32 reserved;
+	struct hv_device_interrupt_target target;
+};
+
+struct hv_input_map_device_interrupt {
+	u64 partition_id;
+	u64 device_id;
+	u64 flags;
+	struct hv_interrupt_entry logical_interrupt_entry;
+	struct hv_device_interrupt_descriptor interrupt_descriptor;
+};
+
+struct hv_output_map_device_interrupt {
+	struct hv_interrupt_entry interrupt_entry;
+};
+
+struct hv_input_unmap_device_interrupt {
+	u64 partition_id;
+	u64 device_id;
+	struct hv_interrupt_entry interrupt_entry;
+};
+
+struct rid_data {
+	struct pci_dev *bridge;
+	u32 rid;
+};
+
+struct ghcb_save_area {
+	u8 reserved_1[203];
+	u8 cpl;
+	u8 reserved_2[116];
+	u64 xss;
+	u8 reserved_3[24];
+	u64 dr7;
+	u8 reserved_4[16];
+	u64 rip;
+	u8 reserved_5[88];
+	u64 rsp;
+	u8 reserved_6[24];
+	u64 rax;
+	u8 reserved_7[264];
+	u64 rcx;
+	u64 rdx;
+	u64 rbx;
+	u8 reserved_8[8];
+	u64 rbp;
+	u64 rsi;
+	u64 rdi;
+	u64 r8;
+	u64 r9;
+	u64 r10;
+	u64 r11;
+	u64 r12;
+	u64 r13;
+	u64 r14;
+	u64 r15;
+	u8 reserved_9[16];
+	u64 sw_exit_code;
+	u64 sw_exit_info_1;
+	u64 sw_exit_info_2;
+	u64 sw_scratch;
+	u8 reserved_10[56];
+	u64 xcr0;
+	u8 valid_bitmap[16];
+	u64 x87_state_gpa;
+};
+
+struct ghcb {
+	struct ghcb_save_area save;
+	u8 reserved_save[1016];
+	u8 shared_buffer[2032];
+	u8 reserved_1[10];
+	u16 protocol_version;
+	u32 ghcb_usage;
+};
+
+enum hv_isolation_type {
+	HV_ISOLATION_TYPE_NONE = 0,
+	HV_ISOLATION_TYPE_VBS = 1,
+	HV_ISOLATION_TYPE_SNP = 2,
+};
+
+enum hv_mem_host_visibility {
+	VMBUS_PAGE_NOT_VISIBLE = 0,
+	VMBUS_PAGE_VISIBLE_READ_ONLY = 1,
+	VMBUS_PAGE_VISIBLE_READ_WRITE = 3,
+};
+
+struct hv_gpa_range_for_visibility {
+	u64 partition_id;
+	u32 host_visibility: 2;
+	u32 reserved0: 30;
+	u32 reserved1;
+	u64 gpa_page_list[510];
+};
+
+enum intercept_words {
+	INTERCEPT_CR = 0,
+	INTERCEPT_DR = 1,
+	INTERCEPT_EXCEPTION = 2,
+	INTERCEPT_WORD3 = 3,
+	INTERCEPT_WORD4 = 4,
+	INTERCEPT_WORD5 = 5,
+	MAX_INTERCEPT = 6,
+};
+
+struct es_fault_info {
+	long unsigned int vector;
+	long unsigned int error_code;
+	long unsigned int cr2;
+};
+
+struct es_em_ctxt {
+	struct pt_regs *regs;
+	struct insn insn;
+	struct es_fault_info fi;
+};
+
+union hv_ghcb___2 {
+	struct ghcb ghcb;
+	struct {
+		u64 hypercalldata[509];
+		u64 outputgpa;
+		union {
+			union {
+				struct {
+					u32 callcode: 16;
+					u32 isfast: 1;
+					u32 reserved1: 14;
+					u32 isnested: 1;
+					u32 countofelements: 12;
+					u32 reserved2: 4;
+					u32 repstartindex: 12;
+					u32 reserved3: 4;
+				};
+				u64 asuint64;
+			} hypercallinput;
+			union {
+				struct {
+					u16 callstatus;
+					u16 reserved1;
+					u32 elementsprocessed: 12;
+					u32 reserved2: 20;
+				};
+				u64 asunit64;
+			} hypercalloutput;
+		};
+		u64 reserved2;
+	} hypercall;
+};
+
+struct hv_send_ipi {
+	u32 vector;
+	u32 reserved;
+	u64 cpu_mask;
+};
+
+struct hv_send_ipi_ex {
+	u32 vector;
+	u32 reserved;
+	struct hv_vpset vp_set;
+};
+
+struct hv_deposit_memory {
+	u64 partition_id;
+	u64 gpa_page_list[0];
+};
+
+struct hv_proximity_domain_flags {
+	u32 proximity_preferred: 1;
+	u32 reserved: 30;
+	u32 proximity_info_valid: 1;
+};
+
+union hv_proximity_domain_info {
+	struct {
+		u32 domain_id;
+		struct hv_proximity_domain_flags flags;
+	};
+	u64 as_uint64;
+};
+
+struct hv_lp_startup_status {
+	u64 hv_status;
+	u64 substatus1;
+	u64 substatus2;
+	u64 substatus3;
+	u64 substatus4;
+	u64 substatus5;
+	u64 substatus6;
+};
+
+struct hv_add_logical_processor_in {
+	u32 lp_index;
+	u32 apic_id;
+	union hv_proximity_domain_info proximity_domain_info;
+	u64 flags;
+};
+
+struct hv_add_logical_processor_out {
+	struct hv_lp_startup_status startup_status;
+};
+
+enum HV_SUBNODE_TYPE {
+	HvSubnodeAny = 0,
+	HvSubnodeSocket = 1,
+	HvSubnodeAmdNode = 2,
+	HvSubnodeL3 = 3,
+	HvSubnodeCount = 4,
+	HvSubnodeInvalid = 4294967295,
+};
+
+struct hv_create_vp {
+	u64 partition_id;
+	u32 vp_index;
+	u8 padding[3];
+	u8 subnode_type;
+	u64 subnode_id;
+	union hv_proximity_domain_info proximity_domain_info;
+	u64 flags;
+};
+
+struct real_mode_header {
+	u32 text_start;
+	u32 ro_end;
+	u32 trampoline_start;
+	u32 trampoline_header;
+	u32 sev_es_trampoline_start;
+	u32 trampoline_start64;
+	u32 trampoline_pgd;
+	u32 wakeup_start;
+	u32 wakeup_header;
+	u32 machine_real_restart_asm;
+	u32 machine_real_restart_seg;
+};
+
+struct trampoline_header {
+	u64 start;
+	u64 efer;
+	u32 cr4;
+	u32 flags;
+};
+
+enum show_regs_mode {
+	SHOW_REGS_SHORT = 0,
+	SHOW_REGS_USER = 1,
+	SHOW_REGS_ALL = 2,
+};
+
+struct resctrl_pqr_state {
+	u32 cur_rmid;
+	u32 cur_closid;
+	u32 default_rmid;
+	u32 default_closid;
+};
+
+enum which_selector {
+	FS = 0,
+	GS = 1,
+};
+
+struct sigcontext_64 {
+	__u64 r8;
+	__u64 r9;
+	__u64 r10;
+	__u64 r11;
+	__u64 r12;
+	__u64 r13;
+	__u64 r14;
+	__u64 r15;
+	__u64 di;
+	__u64 si;
+	__u64 bp;
+	__u64 bx;
+	__u64 dx;
+	__u64 ax;
+	__u64 cx;
+	__u64 sp;
+	__u64 ip;
+	__u64 flags;
+	__u16 cs;
+	__u16 gs;
+	__u16 fs;
+	__u16 ss;
+	__u64 err;
+	__u64 trapno;
+	__u64 oldmask;
+	__u64 cr2;
+	__u64 fpstate;
+	__u64 reserved1[8];
+};
+
+struct sigaltstack {
+	void *ss_sp;
+	int ss_flags;
+	__kernel_size_t ss_size;
+};
+
+typedef struct sigaltstack stack_t;
+
+struct siginfo {
+	union {
+		struct {
+			int si_signo;
+			int si_errno;
+			int si_code;
+			union __sifields _sifields;
+		};
+		int _si_pad[32];
+	};
+};
+
+struct ksignal {
+	struct k_sigaction ka;
+	kernel_siginfo_t info;
+	int sig;
+};
+
+struct __large_struct {
+	long unsigned int buf[100];
+};
+
+typedef u32 compat_sigset_word;
+
+typedef struct {
+	compat_sigset_word sig[2];
+} compat_sigset_t;
+
+struct ucontext {
+	long unsigned int uc_flags;
+	struct ucontext *uc_link;
+	stack_t uc_stack;
+	struct sigcontext_64 uc_mcontext;
+	sigset_t uc_sigmask;
+};
+
+struct kernel_vm86_regs {
+	struct pt_regs pt;
+	short unsigned int es;
+	short unsigned int __esh;
+	short unsigned int ds;
+	short unsigned int __dsh;
+	short unsigned int fs;
+	short unsigned int __fsh;
+	short unsigned int gs;
+	short unsigned int __gsh;
+};
