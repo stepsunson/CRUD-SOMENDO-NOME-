@@ -26104,3 +26104,2133 @@ struct sched_domain_shared {
 	atomic_t nr_busy_cpus;
 	int has_idle_cores;
 };
+
+struct sched_group;
+
+struct sched_domain {
+	struct sched_domain *parent;
+	struct sched_domain *child;
+	struct sched_group *groups;
+	long unsigned int min_interval;
+	long unsigned int max_interval;
+	unsigned int busy_factor;
+	unsigned int imbalance_pct;
+	unsigned int cache_nice_tries;
+	unsigned int imb_numa_nr;
+	int nohz_idle;
+	int flags;
+	int level;
+	long unsigned int last_balance;
+	unsigned int balance_interval;
+	unsigned int nr_balance_failed;
+	u64 max_newidle_lb_cost;
+	long unsigned int last_decay_max_lb_cost;
+	u64 avg_scan_cost;
+	unsigned int lb_count[3];
+	unsigned int lb_failed[3];
+	unsigned int lb_balanced[3];
+	unsigned int lb_imbalance[3];
+	unsigned int lb_gained[3];
+	unsigned int lb_hot_gained[3];
+	unsigned int lb_nobusyg[3];
+	unsigned int lb_nobusyq[3];
+	unsigned int alb_count;
+	unsigned int alb_failed;
+	unsigned int alb_pushed;
+	unsigned int sbe_count;
+	unsigned int sbe_balanced;
+	unsigned int sbe_pushed;
+	unsigned int sbf_count;
+	unsigned int sbf_balanced;
+	unsigned int sbf_pushed;
+	unsigned int ttwu_wake_remote;
+	unsigned int ttwu_move_affine;
+	unsigned int ttwu_move_balance;
+	char *name;
+	union {
+		void *private;
+		struct callback_head rcu;
+	};
+	struct sched_domain_shared *shared;
+	unsigned int span_weight;
+	long unsigned int span[0];
+};
+
+typedef const struct cpumask * (*sched_domain_mask_f)(int);
+
+typedef int (*sched_domain_flags_f)();
+
+struct sched_group_capacity;
+
+struct sd_data {
+	struct sched_domain **sd;
+	struct sched_domain_shared **sds;
+	struct sched_group **sg;
+	struct sched_group_capacity **sgc;
+};
+
+struct sched_domain_topology_level {
+	sched_domain_mask_f mask;
+	sched_domain_flags_f sd_flags;
+	int flags;
+	int numa_level;
+	struct sd_data data;
+	char *name;
+};
+
+enum apic_intr_mode_id {
+	APIC_PIC = 0,
+	APIC_VIRTUAL_WIRE = 1,
+	APIC_VIRTUAL_WIRE_NO_CONFIG = 2,
+	APIC_SYMMETRIC_IO = 3,
+	APIC_SYMMETRIC_IO_NO_ROUTING = 4,
+};
+
+struct tsc_adjust {
+	s64 bootval;
+	s64 adjusted;
+	long unsigned int nextcheck;
+	bool warned;
+};
+
+enum {
+	DUMP_PREFIX_NONE = 0,
+	DUMP_PREFIX_ADDRESS = 1,
+	DUMP_PREFIX_OFFSET = 2,
+};
+
+struct mpf_intel {
+	char signature[4];
+	unsigned int physptr;
+	unsigned char length;
+	unsigned char specification;
+	unsigned char checksum;
+	unsigned char feature1;
+	unsigned char feature2;
+	unsigned char feature3;
+	unsigned char feature4;
+	unsigned char feature5;
+};
+
+struct mpc_table {
+	char signature[4];
+	short unsigned int length;
+	char spec;
+	char checksum;
+	char oem[8];
+	char productid[12];
+	unsigned int oemptr;
+	short unsigned int oemsize;
+	short unsigned int oemcount;
+	unsigned int lapic;
+	unsigned int reserved;
+};
+
+struct mpc_cpu {
+	unsigned char type;
+	unsigned char apicid;
+	unsigned char apicver;
+	unsigned char cpuflag;
+	unsigned int cpufeature;
+	unsigned int featureflag;
+	unsigned int reserved[2];
+};
+
+struct mpc_bus {
+	unsigned char type;
+	unsigned char busid;
+	unsigned char bustype[6];
+};
+
+struct mpc_ioapic {
+	unsigned char type;
+	unsigned char apicid;
+	unsigned char apicver;
+	unsigned char flags;
+	unsigned int apicaddr;
+};
+
+struct mpc_lintsrc {
+	unsigned char type;
+	unsigned char irqtype;
+	short unsigned int irqflag;
+	unsigned char srcbusid;
+	unsigned char srcbusirq;
+	unsigned char destapic;
+	unsigned char destapiclint;
+};
+
+enum page_cache_mode {
+	_PAGE_CACHE_MODE_WB = 0,
+	_PAGE_CACHE_MODE_WC = 1,
+	_PAGE_CACHE_MODE_UC_MINUS = 2,
+	_PAGE_CACHE_MODE_UC = 3,
+	_PAGE_CACHE_MODE_WT = 4,
+	_PAGE_CACHE_MODE_WP = 5,
+	_PAGE_CACHE_MODE_NUM = 8,
+};
+
+enum {
+	IRQ_REMAP_XAPIC_MODE = 0,
+	IRQ_REMAP_X2APIC_MODE = 1,
+};
+
+typedef int (*wakeup_cpu_handler)(int, long unsigned int);
+
+union apic_ir {
+	long unsigned int map[4];
+	u32 regs[8];
+};
+
+enum {
+	X2APIC_OFF = 0,
+	X2APIC_ON = 1,
+	X2APIC_DISABLED = 2,
+};
+
+enum {
+	IRQ_SET_MASK_OK = 0,
+	IRQ_SET_MASK_OK_NOCOPY = 1,
+	IRQ_SET_MASK_OK_DONE = 2,
+};
+
+enum {
+	IRQD_TRIGGER_MASK = 15,
+	IRQD_SETAFFINITY_PENDING = 256,
+	IRQD_ACTIVATED = 512,
+	IRQD_NO_BALANCING = 1024,
+	IRQD_PER_CPU = 2048,
+	IRQD_AFFINITY_SET = 4096,
+	IRQD_LEVEL = 8192,
+	IRQD_WAKEUP_STATE = 16384,
+	IRQD_MOVE_PCNTXT = 32768,
+	IRQD_IRQ_DISABLED = 65536,
+	IRQD_IRQ_MASKED = 131072,
+	IRQD_IRQ_INPROGRESS = 262144,
+	IRQD_WAKEUP_ARMED = 524288,
+	IRQD_FORWARDED_TO_VCPU = 1048576,
+	IRQD_AFFINITY_MANAGED = 2097152,
+	IRQD_IRQ_STARTED = 4194304,
+	IRQD_MANAGED_SHUTDOWN = 8388608,
+	IRQD_SINGLE_TARGET = 16777216,
+	IRQD_DEFAULT_TRIGGER_SET = 33554432,
+	IRQD_CAN_RESERVE = 67108864,
+	IRQD_MSI_NOMASK_QUIRK = 134217728,
+	IRQD_HANDLE_ENFORCE_IRQCTX = 268435456,
+	IRQD_AFFINITY_ON_ACTIVATE = 536870912,
+	IRQD_IRQ_ENABLED_ON_SUSPEND = 1073741824,
+};
+
+enum {
+	X86_IRQ_ALLOC_CONTIGUOUS_VECTORS = 1,
+	X86_IRQ_ALLOC_LEGACY = 2,
+};
+
+struct apic_chip_data {
+	struct irq_cfg hw_irq_cfg;
+	unsigned int vector;
+	unsigned int prev_vector;
+	unsigned int cpu;
+	unsigned int prev_cpu;
+	unsigned int irq;
+	struct hlist_node clist;
+	unsigned int move_in_progress: 1;
+	unsigned int is_managed: 1;
+	unsigned int can_reserve: 1;
+	unsigned int has_reserved: 1;
+};
+
+struct irq_matrix;
+
+enum {
+	IRQ_TYPE_NONE = 0,
+	IRQ_TYPE_EDGE_RISING = 1,
+	IRQ_TYPE_EDGE_FALLING = 2,
+	IRQ_TYPE_EDGE_BOTH = 3,
+	IRQ_TYPE_LEVEL_HIGH = 4,
+	IRQ_TYPE_LEVEL_LOW = 8,
+	IRQ_TYPE_LEVEL_MASK = 12,
+	IRQ_TYPE_SENSE_MASK = 15,
+	IRQ_TYPE_DEFAULT = 15,
+	IRQ_TYPE_PROBE = 16,
+	IRQ_LEVEL = 256,
+	IRQ_PER_CPU = 512,
+	IRQ_NOPROBE = 1024,
+	IRQ_NOREQUEST = 2048,
+	IRQ_NOAUTOEN = 4096,
+	IRQ_NO_BALANCING = 8192,
+	IRQ_MOVE_PCNTXT = 16384,
+	IRQ_NESTED_THREAD = 32768,
+	IRQ_NOTHREAD = 65536,
+	IRQ_PER_CPU_DEVID = 131072,
+	IRQ_IS_POLLED = 262144,
+	IRQ_DISABLE_UNLAZY = 524288,
+	IRQ_HIDDEN = 1048576,
+	IRQ_NO_DEBUG = 2097152,
+};
+
+struct clock_event_device___2;
+
+union IO_APIC_reg_00 {
+	u32 raw;
+	struct {
+		u32 __reserved_2: 14;
+		u32 LTS: 1;
+		u32 delivery_type: 1;
+		u32 __reserved_1: 8;
+		u32 ID: 8;
+	} bits;
+};
+
+union IO_APIC_reg_01 {
+	u32 raw;
+	struct {
+		u32 version: 8;
+		u32 __reserved_2: 7;
+		u32 PRQ: 1;
+		u32 entries: 8;
+		u32 __reserved_1: 8;
+	} bits;
+};
+
+union IO_APIC_reg_02 {
+	u32 raw;
+	struct {
+		u32 __reserved_2: 24;
+		u32 arbitration: 4;
+		u32 __reserved_1: 4;
+	} bits;
+};
+
+union IO_APIC_reg_03 {
+	u32 raw;
+	struct {
+		u32 boot_DT: 1;
+		u32 __reserved_1: 31;
+	} bits;
+};
+
+struct IO_APIC_route_entry {
+	union {
+		struct {
+			u64 vector: 8;
+			u64 delivery_mode: 3;
+			u64 dest_mode_logical: 1;
+			u64 delivery_status: 1;
+			u64 active_low: 1;
+			u64 irr: 1;
+			u64 is_level: 1;
+			u64 masked: 1;
+			u64 reserved_0: 15;
+			u64 reserved_1: 17;
+			u64 virt_destid_8_14: 7;
+			u64 destid_0_7: 8;
+		};
+		struct {
+			u64 ir_shared_0: 8;
+			u64 ir_zero: 3;
+			u64 ir_index_15: 1;
+			u64 ir_shared_1: 5;
+			u64 ir_reserved_0: 31;
+			u64 ir_format: 1;
+			u64 ir_index_0_14: 15;
+		};
+		struct {
+			u64 w1: 32;
+			u64 w2: 32;
+		};
+	};
+};
+
+struct irq_pin_list {
+	struct list_head list;
+	int apic;
+	int pin;
+};
+
+struct mp_chip_data {
+	struct list_head irq_2_pin;
+	struct IO_APIC_route_entry entry;
+	bool is_level;
+	bool active_low;
+	bool isa_irq;
+	u32 count;
+};
+
+struct mp_ioapic_gsi {
+	u32 gsi_base;
+	u32 gsi_end;
+};
+
+struct ioapic {
+	int nr_registers;
+	struct IO_APIC_route_entry *saved_registers;
+	struct mpc_ioapic mp_config;
+	struct mp_ioapic_gsi gsi_config;
+	struct ioapic_domain_cfg irqdomain_cfg;
+	struct irq_domain *irqdomain;
+	struct resource *iomem_res;
+};
+
+struct io_apic {
+	unsigned int index;
+	unsigned int unused[3];
+	unsigned int data;
+	unsigned int unused2[11];
+	unsigned int eoi;
+};
+
+enum {
+	IRQ_DOMAIN_FLAG_HIERARCHY = 1,
+	IRQ_DOMAIN_NAME_ALLOCATED = 2,
+	IRQ_DOMAIN_FLAG_IPI_PER_CPU = 4,
+	IRQ_DOMAIN_FLAG_IPI_SINGLE = 8,
+	IRQ_DOMAIN_FLAG_MSI = 16,
+	IRQ_DOMAIN_FLAG_MSI_REMAP = 32,
+	IRQ_DOMAIN_MSI_NOMASK_QUIRK = 64,
+	IRQ_DOMAIN_FLAG_NO_MAP = 128,
+	IRQ_DOMAIN_FLAG_NONCORE = 65536,
+};
+
+typedef struct pglist_data pg_data_t;
+
+struct acpi_device_status {
+	u32 present: 1;
+	u32 enabled: 1;
+	u32 show_in_ui: 1;
+	u32 functional: 1;
+	u32 battery_present: 1;
+	u32 reserved: 27;
+};
+
+struct acpi_device_flags {
+	u32 dynamic_status: 1;
+	u32 removable: 1;
+	u32 ejectable: 1;
+	u32 power_manageable: 1;
+	u32 match_driver: 1;
+	u32 initialized: 1;
+	u32 visited: 1;
+	u32 hotplug_notify: 1;
+	u32 is_dock_station: 1;
+	u32 of_compatible_ok: 1;
+	u32 coherent_dma: 1;
+	u32 cca_seen: 1;
+	u32 enumeration_by_parent: 1;
+	u32 honor_deps: 1;
+	u32 reserved: 18;
+};
+
+typedef char acpi_bus_id[8];
+
+struct acpi_pnp_type {
+	u32 hardware_id: 1;
+	u32 bus_address: 1;
+	u32 platform_id: 1;
+	u32 reserved: 29;
+};
+
+typedef u64 acpi_bus_address;
+
+typedef char acpi_device_name[40];
+
+typedef char acpi_device_class[20];
+
+union acpi_object;
+
+struct acpi_device_pnp {
+	acpi_bus_id bus_id;
+	int instance_no;
+	struct acpi_pnp_type type;
+	acpi_bus_address bus_address;
+	char *unique_id;
+	struct list_head ids;
+	acpi_device_name device_name;
+	acpi_device_class device_class;
+	union acpi_object *str_obj;
+};
+
+struct acpi_device_power_flags {
+	u32 explicit_get: 1;
+	u32 power_resources: 1;
+	u32 inrush_current: 1;
+	u32 power_removed: 1;
+	u32 ignore_parent: 1;
+	u32 dsw_present: 1;
+	u32 reserved: 26;
+};
+
+struct acpi_device_power_state {
+	struct {
+		u8 valid: 1;
+		u8 explicit_set: 1;
+		u8 reserved: 6;
+	} flags;
+	int power;
+	int latency;
+	struct list_head resources;
+};
+
+struct acpi_device_power {
+	int state;
+	struct acpi_device_power_flags flags;
+	struct acpi_device_power_state states[5];
+	u8 state_for_enumeration;
+};
+
+struct acpi_device_wakeup_flags {
+	u8 valid: 1;
+	u8 notifier_present: 1;
+};
+
+struct acpi_device_wakeup_context {
+	void (*func)(struct acpi_device_wakeup_context *);
+	struct device *dev;
+};
+
+struct acpi_device_wakeup {
+	acpi_handle gpe_device;
+	u64 gpe_number;
+	u64 sleep_state;
+	struct list_head resources;
+	struct acpi_device_wakeup_flags flags;
+	struct acpi_device_wakeup_context context;
+	struct wakeup_source *ws;
+	int prepare_count;
+	int enable_count;
+};
+
+struct acpi_device_perf_flags {
+	u8 reserved: 8;
+};
+
+struct acpi_device_perf_state;
+
+struct acpi_device_perf {
+	int state;
+	struct acpi_device_perf_flags flags;
+	int state_count;
+	struct acpi_device_perf_state *states;
+};
+
+struct acpi_device_dir {
+	struct proc_dir_entry *entry;
+};
+
+struct acpi_device_data {
+	const union acpi_object *pointer;
+	struct list_head properties;
+	const union acpi_object *of_compatible;
+	struct list_head subnodes;
+};
+
+struct acpi_scan_handler;
+
+struct acpi_hotplug_context;
+
+struct acpi_driver;
+
+struct acpi_gpio_mapping;
+
+struct acpi_device {
+	u32 pld_crc;
+	int device_type;
+	acpi_handle handle;
+	struct fwnode_handle fwnode;
+	struct acpi_device *parent;
+	struct list_head children;
+	struct list_head node;
+	struct list_head wakeup_list;
+	struct list_head del_list;
+	struct acpi_device_status status;
+	struct acpi_device_flags flags;
+	struct acpi_device_pnp pnp;
+	struct acpi_device_power power;
+	struct acpi_device_wakeup wakeup;
+	struct acpi_device_perf performance;
+	struct acpi_device_dir dir;
+	struct acpi_device_data data;
+	struct acpi_scan_handler *handler;
+	struct acpi_hotplug_context *hp;
+	struct acpi_driver *driver;
+	const struct acpi_gpio_mapping *driver_gpios;
+	void *driver_data;
+	struct device dev;
+	unsigned int physical_node_count;
+	unsigned int dep_unmet;
+	struct list_head physical_node_list;
+	struct mutex physical_node_lock;
+	void (*remove)(struct acpi_device *);
+};
+
+typedef u64 acpi_io_address;
+
+typedef u32 acpi_object_type;
+
+union acpi_object {
+	acpi_object_type type;
+	struct {
+		acpi_object_type type;
+		u64 value;
+	} integer;
+	struct {
+		acpi_object_type type;
+		u32 length;
+		char *pointer;
+	} string;
+	struct {
+		acpi_object_type type;
+		u32 length;
+		u8 *pointer;
+	} buffer;
+	struct {
+		acpi_object_type type;
+		u32 count;
+		union acpi_object *elements;
+	} package;
+	struct {
+		acpi_object_type type;
+		acpi_object_type actual_type;
+		acpi_handle handle;
+	} reference;
+	struct {
+		acpi_object_type type;
+		u32 proc_id;
+		acpi_io_address pblk_address;
+		u32 pblk_length;
+	} processor;
+	struct {
+		acpi_object_type type;
+		u32 system_level;
+		u32 resource_order;
+	} power_resource;
+};
+
+struct acpi_hotplug_profile {
+	struct kobject kobj;
+	int (*scan_dependent)(struct acpi_device *);
+	void (*notify_online)(struct acpi_device *);
+	bool enabled: 1;
+	bool demand_offline: 1;
+};
+
+struct acpi_scan_handler {
+	const struct acpi_device_id *ids;
+	struct list_head list_node;
+	bool (*match)(const char *, const struct acpi_device_id **);
+	int (*attach)(struct acpi_device *, const struct acpi_device_id *);
+	void (*detach)(struct acpi_device *);
+	void (*bind)(struct device *);
+	void (*unbind)(struct device *);
+	struct acpi_hotplug_profile hotplug;
+};
+
+struct acpi_hotplug_context {
+	struct acpi_device *self;
+	int (*notify)(struct acpi_device *, u32);
+	void (*uevent)(struct acpi_device *, u32);
+	void (*fixup)(struct acpi_device *);
+};
+
+typedef int (*acpi_op_add)(struct acpi_device *);
+
+typedef int (*acpi_op_remove)(struct acpi_device *);
+
+typedef void (*acpi_op_notify)(struct acpi_device *, u32);
+
+struct acpi_device_ops {
+	acpi_op_add add;
+	acpi_op_remove remove;
+	acpi_op_notify notify;
+};
+
+struct acpi_driver {
+	char name[80];
+	char class[80];
+	const struct acpi_device_id *ids;
+	unsigned int flags;
+	struct acpi_device_ops ops;
+	struct device_driver drv;
+	struct module *owner;
+};
+
+struct acpi_device_perf_state {
+	struct {
+		u8 valid: 1;
+		u8 reserved: 7;
+	} flags;
+	u8 power;
+	u8 performance;
+	int latency;
+};
+
+struct acpi_gpio_params;
+
+struct acpi_gpio_mapping {
+	const char *name;
+	const struct acpi_gpio_params *data;
+	unsigned int size;
+	unsigned int quirks;
+};
+
+struct acpi_gpio_params {
+	unsigned int crs_entry_index;
+	unsigned int line_index;
+	bool active_low;
+};
+
+struct uvyh_gr0_gam_gr_config_s {
+	long unsigned int rsvd_0_9: 10;
+	long unsigned int subspace: 1;
+	long unsigned int rsvd_11_63: 53;
+};
+
+struct uv5h_gr0_gam_gr_config_s {
+	long unsigned int rsvd_0_9: 10;
+	long unsigned int subspace: 1;
+	long unsigned int rsvd_11_63: 53;
+};
+
+struct uv4h_gr0_gam_gr_config_s {
+	long unsigned int rsvd_0_9: 10;
+	long unsigned int subspace: 1;
+	long unsigned int rsvd_11_63: 53;
+};
+
+struct uv3h_gr0_gam_gr_config_s {
+	long unsigned int m_skt: 6;
+	long unsigned int undef_6_9: 4;
+	long unsigned int subspace: 1;
+	long unsigned int reserved: 53;
+};
+
+struct uv2h_gr0_gam_gr_config_s {
+	long unsigned int n_gr: 4;
+	long unsigned int reserved: 60;
+};
+
+union uvyh_gr0_gam_gr_config_u {
+	long unsigned int v;
+	struct uvyh_gr0_gam_gr_config_s sy;
+	struct uv5h_gr0_gam_gr_config_s s5;
+	struct uv4h_gr0_gam_gr_config_s s4;
+	struct uv3h_gr0_gam_gr_config_s s3;
+	struct uv2h_gr0_gam_gr_config_s s2;
+};
+
+struct uvh_node_id_s {
+	long unsigned int force1: 1;
+	long unsigned int manufacturer: 11;
+	long unsigned int part_number: 16;
+	long unsigned int revision: 4;
+	long unsigned int rsvd_32_63: 32;
+};
+
+struct uvxh_node_id_s {
+	long unsigned int force1: 1;
+	long unsigned int manufacturer: 11;
+	long unsigned int part_number: 16;
+	long unsigned int revision: 4;
+	long unsigned int node_id: 15;
+	long unsigned int rsvd_47_49: 3;
+	long unsigned int nodes_per_bit: 7;
+	long unsigned int ni_port: 5;
+	long unsigned int rsvd_62_63: 2;
+};
+
+struct uvyh_node_id_s {
+	long unsigned int force1: 1;
+	long unsigned int manufacturer: 11;
+	long unsigned int part_number: 16;
+	long unsigned int revision: 4;
+	long unsigned int node_id: 7;
+	long unsigned int rsvd_39_56: 18;
+	long unsigned int ni_port: 6;
+	long unsigned int rsvd_63: 1;
+};
+
+struct uv5h_node_id_s {
+	long unsigned int force1: 1;
+	long unsigned int manufacturer: 11;
+	long unsigned int part_number: 16;
+	long unsigned int revision: 4;
+	long unsigned int node_id: 7;
+	long unsigned int rsvd_39_56: 18;
+	long unsigned int ni_port: 6;
+	long unsigned int rsvd_63: 1;
+};
+
+struct uv4h_node_id_s {
+	long unsigned int force1: 1;
+	long unsigned int manufacturer: 11;
+	long unsigned int part_number: 16;
+	long unsigned int revision: 4;
+	long unsigned int node_id: 15;
+	long unsigned int rsvd_47: 1;
+	long unsigned int router_select: 1;
+	long unsigned int rsvd_49: 1;
+	long unsigned int nodes_per_bit: 7;
+	long unsigned int ni_port: 5;
+	long unsigned int rsvd_62_63: 2;
+};
+
+struct uv3h_node_id_s {
+	long unsigned int force1: 1;
+	long unsigned int manufacturer: 11;
+	long unsigned int part_number: 16;
+	long unsigned int revision: 4;
+	long unsigned int node_id: 15;
+	long unsigned int rsvd_47: 1;
+	long unsigned int router_select: 1;
+	long unsigned int rsvd_49: 1;
+	long unsigned int nodes_per_bit: 7;
+	long unsigned int ni_port: 5;
+	long unsigned int rsvd_62_63: 2;
+};
+
+struct uv2h_node_id_s {
+	long unsigned int force1: 1;
+	long unsigned int manufacturer: 11;
+	long unsigned int part_number: 16;
+	long unsigned int revision: 4;
+	long unsigned int node_id: 15;
+	long unsigned int rsvd_47_49: 3;
+	long unsigned int nodes_per_bit: 7;
+	long unsigned int ni_port: 5;
+	long unsigned int rsvd_62_63: 2;
+};
+
+union uvh_node_id_u {
+	long unsigned int v;
+	struct uvh_node_id_s s;
+	struct uvxh_node_id_s sx;
+	struct uvyh_node_id_s sy;
+	struct uv5h_node_id_s s5;
+	struct uv4h_node_id_s s4;
+	struct uv3h_node_id_s s3;
+	struct uv2h_node_id_s s2;
+};
+
+struct uvh_rh10_gam_addr_map_config_s {
+	long unsigned int undef_0_5: 6;
+	long unsigned int n_skt: 3;
+	long unsigned int undef_9_11: 3;
+	long unsigned int ls_enable: 1;
+	long unsigned int undef_13_15: 3;
+	long unsigned int mk_tme_keyid_bits: 4;
+	long unsigned int rsvd_20_63: 44;
+};
+
+struct uvyh_rh10_gam_addr_map_config_s {
+	long unsigned int undef_0_5: 6;
+	long unsigned int n_skt: 3;
+	long unsigned int undef_9_11: 3;
+	long unsigned int ls_enable: 1;
+	long unsigned int undef_13_15: 3;
+	long unsigned int mk_tme_keyid_bits: 4;
+	long unsigned int rsvd_20_63: 44;
+};
+
+struct uv5h_rh10_gam_addr_map_config_s {
+	long unsigned int undef_0_5: 6;
+	long unsigned int n_skt: 3;
+	long unsigned int undef_9_11: 3;
+	long unsigned int ls_enable: 1;
+	long unsigned int undef_13_15: 3;
+	long unsigned int mk_tme_keyid_bits: 4;
+};
+
+union uvh_rh10_gam_addr_map_config_u {
+	long unsigned int v;
+	struct uvh_rh10_gam_addr_map_config_s s;
+	struct uvyh_rh10_gam_addr_map_config_s sy;
+	struct uv5h_rh10_gam_addr_map_config_s s5;
+};
+
+struct uvh_rh10_gam_mmioh_overlay_config0_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+struct uvyh_rh10_gam_mmioh_overlay_config0_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+struct uv5h_rh10_gam_mmioh_overlay_config0_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh10_gam_mmioh_overlay_config0_u {
+	long unsigned int v;
+	struct uvh_rh10_gam_mmioh_overlay_config0_s s;
+	struct uvyh_rh10_gam_mmioh_overlay_config0_s sy;
+	struct uv5h_rh10_gam_mmioh_overlay_config0_s s5;
+};
+
+struct uvh_rh10_gam_mmioh_overlay_config1_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+struct uvyh_rh10_gam_mmioh_overlay_config1_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+struct uv5h_rh10_gam_mmioh_overlay_config1_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh10_gam_mmioh_overlay_config1_u {
+	long unsigned int v;
+	struct uvh_rh10_gam_mmioh_overlay_config1_s s;
+	struct uvyh_rh10_gam_mmioh_overlay_config1_s sy;
+	struct uv5h_rh10_gam_mmioh_overlay_config1_s s5;
+};
+
+struct uvh_rh10_gam_mmr_overlay_config_s {
+	long unsigned int undef_0_24: 25;
+	long unsigned int base: 27;
+	long unsigned int undef_52_62: 11;
+	long unsigned int enable: 1;
+};
+
+struct uvyh_rh10_gam_mmr_overlay_config_s {
+	long unsigned int undef_0_24: 25;
+	long unsigned int base: 27;
+	long unsigned int undef_52_62: 11;
+	long unsigned int enable: 1;
+};
+
+struct uv5h_rh10_gam_mmr_overlay_config_s {
+	long unsigned int undef_0_24: 25;
+	long unsigned int base: 27;
+	long unsigned int undef_52_62: 11;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh10_gam_mmr_overlay_config_u {
+	long unsigned int v;
+	struct uvh_rh10_gam_mmr_overlay_config_s s;
+	struct uvyh_rh10_gam_mmr_overlay_config_s sy;
+	struct uv5h_rh10_gam_mmr_overlay_config_s s5;
+};
+
+struct uvh_rh_gam_addr_map_config_s {
+	long unsigned int rsvd_0_5: 6;
+	long unsigned int n_skt: 4;
+	long unsigned int rsvd_10_63: 54;
+};
+
+struct uvxh_rh_gam_addr_map_config_s {
+	long unsigned int rsvd_0_5: 6;
+	long unsigned int n_skt: 4;
+	long unsigned int rsvd_10_63: 54;
+};
+
+struct uv4h_rh_gam_addr_map_config_s {
+	long unsigned int rsvd_0_5: 6;
+	long unsigned int n_skt: 4;
+	long unsigned int rsvd_10_63: 54;
+};
+
+struct uv3h_rh_gam_addr_map_config_s {
+	long unsigned int m_skt: 6;
+	long unsigned int n_skt: 4;
+	long unsigned int rsvd_10_63: 54;
+};
+
+struct uv2h_rh_gam_addr_map_config_s {
+	long unsigned int m_skt: 6;
+	long unsigned int n_skt: 4;
+	long unsigned int rsvd_10_63: 54;
+};
+
+union uvh_rh_gam_addr_map_config_u {
+	long unsigned int v;
+	struct uvh_rh_gam_addr_map_config_s s;
+	struct uvxh_rh_gam_addr_map_config_s sx;
+	struct uv4h_rh_gam_addr_map_config_s s4;
+	struct uv3h_rh_gam_addr_map_config_s s3;
+	struct uv2h_rh_gam_addr_map_config_s s2;
+};
+
+struct uvh_rh_gam_alias_2_overlay_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int base: 8;
+	long unsigned int rsvd_32_47: 16;
+	long unsigned int m_alias: 5;
+	long unsigned int rsvd_53_62: 10;
+	long unsigned int enable: 1;
+};
+
+struct uvxh_rh_gam_alias_2_overlay_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int base: 8;
+	long unsigned int rsvd_32_47: 16;
+	long unsigned int m_alias: 5;
+	long unsigned int rsvd_53_62: 10;
+	long unsigned int enable: 1;
+};
+
+struct uv4h_rh_gam_alias_2_overlay_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int base: 8;
+	long unsigned int rsvd_32_47: 16;
+	long unsigned int m_alias: 5;
+	long unsigned int rsvd_53_62: 10;
+	long unsigned int enable: 1;
+};
+
+struct uv3h_rh_gam_alias_2_overlay_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int base: 8;
+	long unsigned int rsvd_32_47: 16;
+	long unsigned int m_alias: 5;
+	long unsigned int rsvd_53_62: 10;
+	long unsigned int enable: 1;
+};
+
+struct uv2h_rh_gam_alias_2_overlay_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int base: 8;
+	long unsigned int rsvd_32_47: 16;
+	long unsigned int m_alias: 5;
+	long unsigned int rsvd_53_62: 10;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh_gam_alias_2_overlay_config_u {
+	long unsigned int v;
+	struct uvh_rh_gam_alias_2_overlay_config_s s;
+	struct uvxh_rh_gam_alias_2_overlay_config_s sx;
+	struct uv4h_rh_gam_alias_2_overlay_config_s s4;
+	struct uv3h_rh_gam_alias_2_overlay_config_s s3;
+	struct uv2h_rh_gam_alias_2_overlay_config_s s2;
+};
+
+struct uvh_rh_gam_alias_2_redirect_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int dest_base: 22;
+	long unsigned int rsvd_46_63: 18;
+};
+
+struct uvxh_rh_gam_alias_2_redirect_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int dest_base: 22;
+	long unsigned int rsvd_46_63: 18;
+};
+
+struct uv4h_rh_gam_alias_2_redirect_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int dest_base: 22;
+	long unsigned int rsvd_46_63: 18;
+};
+
+struct uv3h_rh_gam_alias_2_redirect_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int dest_base: 22;
+	long unsigned int rsvd_46_63: 18;
+};
+
+struct uv2h_rh_gam_alias_2_redirect_config_s {
+	long unsigned int rsvd_0_23: 24;
+	long unsigned int dest_base: 22;
+	long unsigned int rsvd_46_63: 18;
+};
+
+union uvh_rh_gam_alias_2_redirect_config_u {
+	long unsigned int v;
+	struct uvh_rh_gam_alias_2_redirect_config_s s;
+	struct uvxh_rh_gam_alias_2_redirect_config_s sx;
+	struct uv4h_rh_gam_alias_2_redirect_config_s s4;
+	struct uv3h_rh_gam_alias_2_redirect_config_s s3;
+	struct uv2h_rh_gam_alias_2_redirect_config_s s2;
+};
+
+struct uvh_rh_gam_gru_overlay_config_s {
+	long unsigned int rsvd_0_45: 46;
+	long unsigned int rsvd_46_51: 6;
+	long unsigned int n_gru: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uvxh_rh_gam_gru_overlay_config_s {
+	long unsigned int rsvd_0_45: 46;
+	long unsigned int rsvd_46_51: 6;
+	long unsigned int n_gru: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv4ah_rh_gam_gru_overlay_config_s {
+	long unsigned int rsvd_0_24: 25;
+	long unsigned int undef_25: 1;
+	long unsigned int base: 26;
+	long unsigned int n_gru: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv4h_rh_gam_gru_overlay_config_s {
+	long unsigned int rsvd_0_24: 25;
+	long unsigned int undef_25: 1;
+	long unsigned int base: 20;
+	long unsigned int rsvd_46_51: 6;
+	long unsigned int n_gru: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv3h_rh_gam_gru_overlay_config_s {
+	long unsigned int rsvd_0_27: 28;
+	long unsigned int base: 18;
+	long unsigned int rsvd_46_51: 6;
+	long unsigned int n_gru: 4;
+	long unsigned int rsvd_56_61: 6;
+	long unsigned int mode: 1;
+	long unsigned int enable: 1;
+};
+
+struct uv2h_rh_gam_gru_overlay_config_s {
+	long unsigned int rsvd_0_27: 28;
+	long unsigned int base: 18;
+	long unsigned int rsvd_46_51: 6;
+	long unsigned int n_gru: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh_gam_gru_overlay_config_u {
+	long unsigned int v;
+	struct uvh_rh_gam_gru_overlay_config_s s;
+	struct uvxh_rh_gam_gru_overlay_config_s sx;
+	struct uv4ah_rh_gam_gru_overlay_config_s s4a;
+	struct uv4h_rh_gam_gru_overlay_config_s s4;
+	struct uv3h_rh_gam_gru_overlay_config_s s3;
+	struct uv2h_rh_gam_gru_overlay_config_s s2;
+};
+
+struct uvh_rh_gam_mmioh_overlay_config_s {
+	long unsigned int rsvd_0_26: 27;
+	long unsigned int base: 19;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uvxh_rh_gam_mmioh_overlay_config_s {
+	long unsigned int rsvd_0_26: 27;
+	long unsigned int base: 19;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv2h_rh_gam_mmioh_overlay_config_s {
+	long unsigned int rsvd_0_26: 27;
+	long unsigned int base: 19;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh_gam_mmioh_overlay_config_u {
+	long unsigned int v;
+	struct uvh_rh_gam_mmioh_overlay_config_s s;
+	struct uvxh_rh_gam_mmioh_overlay_config_s sx;
+	struct uv2h_rh_gam_mmioh_overlay_config_s s2;
+};
+
+struct uvh_rh_gam_mmioh_overlay_config0_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uvxh_rh_gam_mmioh_overlay_config0_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv4ah_rh_gam_mmioh_overlay_config0_mmr_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+struct uv4h_rh_gam_mmioh_overlay_config0_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv3h_rh_gam_mmioh_overlay_config0_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh_gam_mmioh_overlay_config0_u {
+	long unsigned int v;
+	struct uvh_rh_gam_mmioh_overlay_config0_s s;
+	struct uvxh_rh_gam_mmioh_overlay_config0_s sx;
+	struct uv4ah_rh_gam_mmioh_overlay_config0_mmr_s s4a;
+	struct uv4h_rh_gam_mmioh_overlay_config0_s s4;
+	struct uv3h_rh_gam_mmioh_overlay_config0_s s3;
+};
+
+struct uvh_rh_gam_mmioh_overlay_config1_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uvxh_rh_gam_mmioh_overlay_config1_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv4ah_rh_gam_mmioh_overlay_config1_mmr_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 26;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int undef_62: 1;
+	long unsigned int enable: 1;
+};
+
+struct uv4h_rh_gam_mmioh_overlay_config1_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+struct uv3h_rh_gam_mmioh_overlay_config1_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int m_io: 6;
+	long unsigned int n_io: 4;
+	long unsigned int rsvd_56_62: 7;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh_gam_mmioh_overlay_config1_u {
+	long unsigned int v;
+	struct uvh_rh_gam_mmioh_overlay_config1_s s;
+	struct uvxh_rh_gam_mmioh_overlay_config1_s sx;
+	struct uv4ah_rh_gam_mmioh_overlay_config1_mmr_s s4a;
+	struct uv4h_rh_gam_mmioh_overlay_config1_s s4;
+	struct uv3h_rh_gam_mmioh_overlay_config1_s s3;
+};
+
+struct uvh_rh_gam_mmr_overlay_config_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int rsvd_46_62: 17;
+	long unsigned int enable: 1;
+};
+
+struct uvxh_rh_gam_mmr_overlay_config_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int rsvd_46_62: 17;
+	long unsigned int enable: 1;
+};
+
+struct uv4h_rh_gam_mmr_overlay_config_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int rsvd_46_62: 17;
+	long unsigned int enable: 1;
+};
+
+struct uv3h_rh_gam_mmr_overlay_config_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int rsvd_46_62: 17;
+	long unsigned int enable: 1;
+};
+
+struct uv2h_rh_gam_mmr_overlay_config_s {
+	long unsigned int rsvd_0_25: 26;
+	long unsigned int base: 20;
+	long unsigned int rsvd_46_62: 17;
+	long unsigned int enable: 1;
+};
+
+union uvh_rh_gam_mmr_overlay_config_u {
+	long unsigned int v;
+	struct uvh_rh_gam_mmr_overlay_config_s s;
+	struct uvxh_rh_gam_mmr_overlay_config_s sx;
+	struct uv4h_rh_gam_mmr_overlay_config_s s4;
+	struct uv3h_rh_gam_mmr_overlay_config_s s3;
+	struct uv2h_rh_gam_mmr_overlay_config_s s2;
+};
+
+enum uv_system_type {
+	UV_NONE = 0,
+	UV_LEGACY_APIC = 1,
+	UV_X2APIC = 2,
+};
+
+enum {
+	BIOS_STATUS_MORE_PASSES = 1,
+	BIOS_STATUS_SUCCESS = 0,
+	BIOS_STATUS_UNIMPLEMENTED = 4294967258,
+	BIOS_STATUS_EINVAL = 4294967274,
+	BIOS_STATUS_UNAVAIL = 4294967280,
+	BIOS_STATUS_ABORT = 4294967292,
+};
+
+struct uv_gam_parameters {
+	u64 mmr_base;
+	u64 gru_base;
+	u8 mmr_shift;
+	u8 gru_shift;
+	u8 gpa_shift;
+	u8 unused1;
+};
+
+struct uv_gam_range_entry {
+	char type;
+	char unused1;
+	u16 nasid;
+	u16 sockid;
+	u16 pnode;
+	u32 unused2;
+	u32 limit;
+};
+
+struct uv_arch_type_entry {
+	char archtype[8];
+};
+
+struct uv_systab {
+	char signature[4];
+	u32 revision;
+	u64 function;
+	u32 size;
+	struct {
+		u32 type: 8;
+		u32 offset: 24;
+	} entry[1];
+};
+
+enum {
+	BIOS_FREQ_BASE_PLATFORM = 0,
+	BIOS_FREQ_BASE_INTERVAL_TIMER = 1,
+	BIOS_FREQ_BASE_REALTIME_CLOCK = 2,
+};
+
+struct uv_gam_range_s {
+	u32 limit;
+	u16 nasid;
+	s8 base;
+	u8 reserved;
+};
+
+struct uv_hub_info_s {
+	unsigned int hub_type;
+	unsigned char hub_revision;
+	long unsigned int global_mmr_base;
+	long unsigned int global_mmr_shift;
+	long unsigned int gpa_mask;
+	short unsigned int *socket_to_node;
+	short unsigned int *socket_to_pnode;
+	short unsigned int *pnode_to_socket;
+	struct uv_gam_range_s *gr_table;
+	short unsigned int min_socket;
+	short unsigned int min_pnode;
+	unsigned char m_val;
+	unsigned char n_val;
+	unsigned char gr_table_len;
+	unsigned char apic_pnode_shift;
+	unsigned char gpa_shift;
+	unsigned char nasid_shift;
+	unsigned char m_shift;
+	unsigned char n_lshift;
+	unsigned int gnode_extra;
+	long unsigned int gnode_upper;
+	long unsigned int lowmem_remap_top;
+	long unsigned int lowmem_remap_base;
+	long unsigned int global_gru_base;
+	long unsigned int global_gru_shift;
+	short unsigned int pnode;
+	short unsigned int pnode_mask;
+	short unsigned int coherency_domain_number;
+	short unsigned int numa_blade_id;
+	short unsigned int nr_possible_cpus;
+	short unsigned int nr_online_cpus;
+	short int memory_nid;
+};
+
+struct uv_cpu_info_s {
+	void *p_uv_hub_info;
+	unsigned char blade_cpu_id;
+	void *reserved;
+};
+
+struct uvh_apicid_s {
+	long unsigned int local_apic_mask: 24;
+	long unsigned int local_apic_shift: 5;
+	long unsigned int unused1: 3;
+	long unsigned int pnode_mask: 24;
+	long unsigned int pnode_shift: 5;
+	long unsigned int unused2: 3;
+};
+
+union uvh_apicid {
+	long unsigned int v;
+	struct uvh_apicid_s s;
+};
+
+enum map_type {
+	map_wb = 0,
+	map_uc = 1,
+};
+
+enum mmioh_arch {
+	UV2_MMIOH = 4294967295,
+	UVY_MMIOH0 = 0,
+	UVY_MMIOH1 = 1,
+	UVX_MMIOH0 = 2,
+	UVX_MMIOH1 = 3,
+};
+
+struct mn {
+	unsigned char m_val;
+	unsigned char n_val;
+	unsigned char m_shift;
+	unsigned char n_lshift;
+};
+
+struct cluster_mask {
+	unsigned int clusterid;
+	int node;
+	struct cpumask mask;
+};
+
+enum {
+	TRACE_FTRACE_BIT = 0,
+	TRACE_FTRACE_NMI_BIT = 1,
+	TRACE_FTRACE_IRQ_BIT = 2,
+	TRACE_FTRACE_SIRQ_BIT = 3,
+	TRACE_FTRACE_TRANSITION_BIT = 4,
+	TRACE_INTERNAL_BIT = 5,
+	TRACE_INTERNAL_NMI_BIT = 6,
+	TRACE_INTERNAL_IRQ_BIT = 7,
+	TRACE_INTERNAL_SIRQ_BIT = 8,
+	TRACE_INTERNAL_TRANSITION_BIT = 9,
+	TRACE_BRANCH_BIT = 10,
+	TRACE_IRQ_BIT = 11,
+	TRACE_GRAPH_BIT = 12,
+	TRACE_GRAPH_DEPTH_START_BIT = 13,
+	TRACE_GRAPH_DEPTH_END_BIT = 14,
+	TRACE_GRAPH_NOTRACE_BIT = 15,
+	TRACE_RECORD_RECURSION_BIT = 16,
+};
+
+enum {
+	TRACE_CTX_NMI = 0,
+	TRACE_CTX_IRQ = 1,
+	TRACE_CTX_SOFTIRQ = 2,
+	TRACE_CTX_NORMAL = 3,
+	TRACE_CTX_TRANSITION = 4,
+};
+
+struct dyn_arch_ftrace {};
+
+enum {
+	FTRACE_OPS_FL_ENABLED = 1,
+	FTRACE_OPS_FL_DYNAMIC = 2,
+	FTRACE_OPS_FL_SAVE_REGS = 4,
+	FTRACE_OPS_FL_SAVE_REGS_IF_SUPPORTED = 8,
+	FTRACE_OPS_FL_RECURSION = 16,
+	FTRACE_OPS_FL_STUB = 32,
+	FTRACE_OPS_FL_INITIALIZED = 64,
+	FTRACE_OPS_FL_DELETED = 128,
+	FTRACE_OPS_FL_ADDING = 256,
+	FTRACE_OPS_FL_REMOVING = 512,
+	FTRACE_OPS_FL_MODIFYING = 1024,
+	FTRACE_OPS_FL_ALLOC_TRAMP = 2048,
+	FTRACE_OPS_FL_IPMODIFY = 4096,
+	FTRACE_OPS_FL_PID = 8192,
+	FTRACE_OPS_FL_RCU = 16384,
+	FTRACE_OPS_FL_TRACE_ARRAY = 32768,
+	FTRACE_OPS_FL_PERMANENT = 65536,
+	FTRACE_OPS_FL_DIRECT = 131072,
+};
+
+enum {
+	FTRACE_FL_ENABLED = 2147483648,
+	FTRACE_FL_REGS = 1073741824,
+	FTRACE_FL_REGS_EN = 536870912,
+	FTRACE_FL_TRAMP = 268435456,
+	FTRACE_FL_TRAMP_EN = 134217728,
+	FTRACE_FL_IPMODIFY = 67108864,
+	FTRACE_FL_DISABLED = 33554432,
+	FTRACE_FL_DIRECT = 16777216,
+	FTRACE_FL_DIRECT_EN = 8388608,
+};
+
+struct dyn_ftrace {
+	long unsigned int ip;
+	long unsigned int flags;
+	struct dyn_arch_ftrace arch;
+};
+
+enum {
+	FTRACE_UPDATE_IGNORE = 0,
+	FTRACE_UPDATE_MAKE_CALL = 1,
+	FTRACE_UPDATE_MODIFY_CALL = 2,
+	FTRACE_UPDATE_MAKE_NOP = 3,
+};
+
+union ftrace_op_code_union {
+	char code[7];
+	struct {
+		char op[3];
+		int offset;
+	} __attribute__((packed));
+};
+
+struct ftrace_rec_iter;
+
+struct freelist_node {
+	atomic_t refs;
+	struct freelist_node *next;
+};
+
+struct freelist_head {
+	struct freelist_node *head;
+};
+
+struct rethook_node;
+
+typedef void (*rethook_handler_t)(struct rethook_node *, void *, struct pt_regs *);
+
+struct rethook;
+
+struct rethook_node {
+	union {
+		struct freelist_node freelist;
+		struct callback_head rcu;
+	};
+	struct llist_node llist;
+	struct rethook *rethook;
+	long unsigned int ret_addr;
+	long unsigned int frame;
+};
+
+struct rethook {
+	void *data;
+	rethook_handler_t handler;
+	struct freelist_head pool;
+	refcount_t ref;
+	struct callback_head rcu;
+};
+
+typedef __s64 Elf64_Sxword;
+
+struct elf64_rela {
+	Elf64_Addr r_offset;
+	Elf64_Xword r_info;
+	Elf64_Sxword r_addend;
+};
+
+typedef struct elf64_rela Elf64_Rela;
+
+struct kimage_arch {
+	p4d_t *p4d;
+	pud_t *pud;
+	pmd_t *pmd;
+	pte_t *pte;
+};
+
+typedef long unsigned int kimage_entry_t;
+
+struct kexec_segment {
+	union {
+		void *buf;
+		void *kbuf;
+	};
+	size_t bufsz;
+	long unsigned int mem;
+	size_t memsz;
+};
+
+struct purgatory_info {
+	const Elf64_Ehdr *ehdr;
+	Elf64_Shdr *sechdrs;
+	void *purgatory_buf;
+};
+
+typedef int kexec_probe_t(const char *, long unsigned int);
+
+struct kimage;
+
+typedef void *kexec_load_t(struct kimage *, char *, long unsigned int, char *, long unsigned int, char *, long unsigned int);
+
+struct kexec_file_ops;
+
+struct kimage {
+	kimage_entry_t head;
+	kimage_entry_t *entry;
+	kimage_entry_t *last_entry;
+	long unsigned int start;
+	struct page *control_code_page;
+	struct page *swap_page;
+	void *vmcoreinfo_data_copy;
+	long unsigned int nr_segments;
+	struct kexec_segment segment[16];
+	struct list_head control_pages;
+	struct list_head dest_pages;
+	struct list_head unusable_pages;
+	long unsigned int control_page;
+	unsigned int type: 1;
+	unsigned int preserve_context: 1;
+	unsigned int file_mode: 1;
+	struct kimage_arch arch;
+	void *kernel_buf;
+	long unsigned int kernel_buf_len;
+	void *initrd_buf;
+	long unsigned int initrd_buf_len;
+	char *cmdline_buf;
+	long unsigned int cmdline_buf_len;
+	const struct kexec_file_ops *fops;
+	void *image_loader_data;
+	struct purgatory_info purgatory_info;
+	void *elf_headers;
+	long unsigned int elf_headers_sz;
+	long unsigned int elf_load_addr;
+};
+
+typedef int kexec_cleanup_t(void *);
+
+typedef int kexec_verify_sig_t(const char *, long unsigned int);
+
+struct kexec_file_ops {
+	kexec_probe_t *probe;
+	kexec_load_t *load;
+	kexec_cleanup_t *cleanup;
+	kexec_verify_sig_t *verify_sig;
+};
+
+struct x86_mapping_info {
+	void * (*alloc_pgt_page)(void *);
+	void *context;
+	long unsigned int page_flag;
+	long unsigned int offset;
+	bool direct_gbpages;
+	long unsigned int kernpg_flag;
+};
+
+struct init_pgtable_data {
+	struct x86_mapping_info *info;
+	pgd_t *level4p;
+};
+
+typedef void crash_vmclear_fn();
+
+struct kexec_buf {
+	struct kimage *image;
+	void *buffer;
+	long unsigned int bufsz;
+	long unsigned int mem;
+	long unsigned int memsz;
+	long unsigned int buf_align;
+	long unsigned int buf_min;
+	long unsigned int buf_max;
+	bool top_down;
+};
+
+struct crash_mem_range {
+	u64 start;
+	u64 end;
+};
+
+struct crash_mem {
+	unsigned int max_nr_ranges;
+	unsigned int nr_ranges;
+	struct crash_mem_range ranges[0];
+};
+
+struct crash_memmap_data {
+	struct boot_params *params;
+	unsigned int type;
+};
+
+struct kexec_entry64_regs {
+	uint64_t rax;
+	uint64_t rcx;
+	uint64_t rdx;
+	uint64_t rbx;
+	uint64_t rsp;
+	uint64_t rbp;
+	uint64_t rsi;
+	uint64_t rdi;
+	uint64_t r8;
+	uint64_t r9;
+	uint64_t r10;
+	uint64_t r11;
+	uint64_t r12;
+	uint64_t r13;
+	uint64_t r14;
+	uint64_t r15;
+	uint64_t rip;
+};
+
+enum key_being_used_for {
+	VERIFYING_MODULE_SIGNATURE = 0,
+	VERIFYING_FIRMWARE_SIGNATURE = 1,
+	VERIFYING_KEXEC_PE_SIGNATURE = 2,
+	VERIFYING_KEY_SIGNATURE = 3,
+	VERIFYING_KEY_SELF_SIGNATURE = 4,
+	VERIFYING_UNSPECIFIED_SIGNATURE = 5,
+	NR__KEY_BEING_USED_FOR = 6,
+};
+
+struct efi_setup_data {
+	u64 fw_vendor;
+	u64 __unused;
+	u64 tables;
+	u64 smbios;
+	u64 reserved[8];
+};
+
+struct bzimage64_data {
+	void *bootparams_buf;
+};
+
+struct prev_kprobe {
+	struct kprobe *kp;
+	long unsigned int status;
+	long unsigned int old_flags;
+	long unsigned int saved_flags;
+};
+
+struct kprobe_ctlblk {
+	long unsigned int kprobe_status;
+	long unsigned int kprobe_old_flags;
+	long unsigned int kprobe_saved_flags;
+	struct prev_kprobe prev_kprobe;
+};
+
+struct kretprobe_blackpoint {
+	const char *name;
+	void *addr;
+};
+
+struct kprobe_insn_cache {
+	struct mutex mutex;
+	void * (*alloc)();
+	void (*free)(void *);
+	const char *sym;
+	struct list_head pages;
+	size_t insn_size;
+	int nr_garbage;
+};
+
+struct __arch_relative_insn {
+	u8 op;
+	s32 raddr;
+} __attribute__((packed));
+
+struct arch_optimized_insn {
+	kprobe_opcode_t copied_insn[4];
+	kprobe_opcode_t *insn;
+	size_t size;
+};
+
+struct optimized_kprobe {
+	struct kprobe kp;
+	struct list_head list;
+	struct arch_optimized_insn optinsn;
+};
+
+enum regnames {
+	GDB_AX = 0,
+	GDB_BX = 1,
+	GDB_CX = 2,
+	GDB_DX = 3,
+	GDB_SI = 4,
+	GDB_DI = 5,
+	GDB_BP = 6,
+	GDB_SP = 7,
+	GDB_R8 = 8,
+	GDB_R9 = 9,
+	GDB_R10 = 10,
+	GDB_R11 = 11,
+	GDB_R12 = 12,
+	GDB_R13 = 13,
+	GDB_R14 = 14,
+	GDB_R15 = 15,
+	GDB_PC = 16,
+	GDB_PS = 17,
+	GDB_CS = 18,
+	GDB_SS = 19,
+	GDB_DS = 20,
+	GDB_ES = 21,
+	GDB_FS = 22,
+	GDB_GS = 23,
+};
+
+enum kgdb_bpstate {
+	BP_UNDEFINED = 0,
+	BP_REMOVED = 1,
+	BP_SET = 2,
+	BP_ACTIVE = 3,
+};
+
+struct kgdb_bkpt {
+	long unsigned int bpt_addr;
+	unsigned char saved_instr[1];
+	enum kgdb_bptype type;
+	enum kgdb_bpstate state;
+};
+
+struct dbg_reg_def_t {
+	char *name;
+	int size;
+	int offset;
+};
+
+struct hw_breakpoint {
+	unsigned int enabled;
+	long unsigned int addr;
+	int len;
+	int type;
+	struct perf_event **pev;
+};
+
+struct console {
+	char name[16];
+	void (*write)(struct console *, const char *, unsigned int);
+	int (*read)(struct console *, char *, unsigned int);
+	struct tty_driver * (*device)(struct console *, int *);
+	void (*unblank)();
+	int (*setup)(struct console *, char *);
+	int (*exit)(struct console *);
+	int (*match)(struct console *, char *, int, char *);
+	short int flags;
+	short int index;
+	int cflag;
+	uint ispeed;
+	uint ospeed;
+	u64 seq;
+	long unsigned int dropped;
+	struct task_struct *thread;
+	bool blocked;
+	struct mutex lock;
+	void *data;
+	struct console *next;
+};
+
+struct hpet_data {
+	long unsigned int hd_phys_address;
+	void *hd_address;
+	short unsigned int hd_nirqs;
+	unsigned int hd_state;
+	unsigned int hd_irq[32];
+};
+
+typedef irqreturn_t (*rtc_irq_handler)(int, void *);
+
+enum hpet_mode {
+	HPET_MODE_UNUSED = 0,
+	HPET_MODE_LEGACY = 1,
+	HPET_MODE_CLOCKEVT = 2,
+	HPET_MODE_DEVICE = 3,
+};
+
+struct hpet_channel {
+	struct clock_event_device evt;
+	unsigned int num;
+	unsigned int cpu;
+	unsigned int irq;
+	unsigned int in_use;
+	enum hpet_mode mode;
+	unsigned int boot_cfg;
+	char name[10];
+	long: 48;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct hpet_base {
+	unsigned int nr_channels;
+	unsigned int nr_clockevents;
+	unsigned int boot_cfg;
+	struct hpet_channel *channels;
+};
+
+union hpet_lock {
+	struct {
+		arch_spinlock_t lock;
+		u32 value;
+	};
+	u64 lockval;
+};
+
+struct amd_nb_bus_dev_range {
+	u8 bus;
+	u8 dev_base;
+	u8 dev_limit;
+};
+
+struct amd_northbridge_info {
+	u16 num;
+	u64 flags;
+	struct amd_northbridge *nb;
+};
+
+struct swait_queue {
+	struct task_struct *task;
+	struct list_head task_list;
+};
+
+struct kvm_steal_time {
+	__u64 steal;
+	__u32 version;
+	__u32 flags;
+	__u8 preempted;
+	__u8 u8_pad[3];
+	__u32 pad[11];
+};
+
+struct kvm_vcpu_pv_apf_data {
+	__u32 flags;
+	__u32 token;
+	__u8 pad[56];
+	__u32 enabled;
+};
+
+struct kvm_task_sleep_node {
+	struct hlist_node link;
+	struct swait_queue_head wq;
+	u32 token;
+	int cpu;
+};
+
+struct kvm_task_sleep_head {
+	raw_spinlock_t lock;
+	struct hlist_head list;
+};
+
+typedef struct ldttss_desc ldt_desc;
+
+typedef long unsigned int ulong;
+
+struct jailhouse_setup_data {
+	struct {
+		__u16 version;
+		__u16 compatible_version;
+	} hdr;
+	struct {
+		__u16 pm_timer_address;
+		__u16 num_cpus;
+		__u64 pci_mmconfig_base;
+		__u32 tsc_khz;
+		__u32 apic_khz;
+		__u8 standard_ioapic;
+		__u8 cpu_ids[255];
+	} __attribute__((packed)) v1;
+	struct {
+		__u32 flags;
+	} v2;
+} __attribute__((packed));
+
+struct circ_buf {
+	char *buf;
+	int head;
+	int tail;
+};
+
+struct serial_rs485 {
+	__u32 flags;
+	__u32 delay_rts_before_send;
+	__u32 delay_rts_after_send;
+	__u32 padding[5];
+};
+
+struct serial_iso7816 {
+	__u32 flags;
+	__u32 tg;
+	__u32 sc_fi;
+	__u32 sc_di;
+	__u32 clk;
+	__u32 reserved[5];
+};
+
+struct uart_port;
+
+struct uart_ops {
+	unsigned int (*tx_empty)(struct uart_port *);
+	void (*set_mctrl)(struct uart_port *, unsigned int);
+	unsigned int (*get_mctrl)(struct uart_port *);
+	void (*stop_tx)(struct uart_port *);
+	void (*start_tx)(struct uart_port *);
+	void (*throttle)(struct uart_port *);
+	void (*unthrottle)(struct uart_port *);
+	void (*send_xchar)(struct uart_port *, char);
+	void (*stop_rx)(struct uart_port *);
+	void (*enable_ms)(struct uart_port *);
+	void (*break_ctl)(struct uart_port *, int);
+	int (*startup)(struct uart_port *);
+	void (*shutdown)(struct uart_port *);
+	void (*flush_buffer)(struct uart_port *);
+	void (*set_termios)(struct uart_port *, struct ktermios *, struct ktermios *);
+	void (*set_ldisc)(struct uart_port *, struct ktermios *);
+	void (*pm)(struct uart_port *, unsigned int, unsigned int);
+	const char * (*type)(struct uart_port *);
+	void (*release_port)(struct uart_port *);
+	int (*request_port)(struct uart_port *);
+	void (*config_port)(struct uart_port *, int);
+	int (*verify_port)(struct uart_port *, struct serial_struct *);
+	int (*ioctl)(struct uart_port *, unsigned int, long unsigned int);
+	int (*poll_init)(struct uart_port *);
+	void (*poll_put_char)(struct uart_port *, unsigned char);
+	int (*poll_get_char)(struct uart_port *);
+};
+
+struct uart_icount {
+	__u32 cts;
+	__u32 dsr;
+	__u32 rng;
+	__u32 dcd;
+	__u32 rx;
+	__u32 tx;
+	__u32 frame;
+	__u32 overrun;
+	__u32 parity;
+	__u32 brk;
+	__u32 buf_overrun;
+};
+
+typedef unsigned int upf_t;
+
+typedef unsigned int upstat_t;
+
+struct gpio_desc;
+
+struct uart_state;
+
+struct uart_port {
+	spinlock_t lock;
+	long unsigned int iobase;
+	unsigned char *membase;
+	unsigned int (*serial_in)(struct uart_port *, int);
+	void (*serial_out)(struct uart_port *, int, int);
+	void (*set_termios)(struct uart_port *, struct ktermios *, struct ktermios *);
+	void (*set_ldisc)(struct uart_port *, struct ktermios *);
+	unsigned int (*get_mctrl)(struct uart_port *);
+	void (*set_mctrl)(struct uart_port *, unsigned int);
+	unsigned int (*get_divisor)(struct uart_port *, unsigned int, unsigned int *);
+	void (*set_divisor)(struct uart_port *, unsigned int, unsigned int, unsigned int);
+	int (*startup)(struct uart_port *);
+	void (*shutdown)(struct uart_port *);
+	void (*throttle)(struct uart_port *);
+	void (*unthrottle)(struct uart_port *);
+	int (*handle_irq)(struct uart_port *);
+	void (*pm)(struct uart_port *, unsigned int, unsigned int);
+	void (*handle_break)(struct uart_port *);
+	int (*rs485_config)(struct uart_port *, struct serial_rs485 *);
+	int (*iso7816_config)(struct uart_port *, struct serial_iso7816 *);
+	unsigned int irq;
+	long unsigned int irqflags;
+	unsigned int uartclk;
+	unsigned int fifosize;
+	unsigned char x_char;
+	unsigned char regshift;
+	unsigned char iotype;
+	unsigned char quirks;
+	unsigned int read_status_mask;
+	unsigned int ignore_status_mask;
+	struct uart_state *state;
+	struct uart_icount icount;
+	struct console *cons;
+	upf_t flags;
+	upstat_t status;
+	int hw_stopped;
+	unsigned int mctrl;
+	unsigned int timeout;
+	unsigned int frame_time;
+	unsigned int type;
+	const struct uart_ops *ops;
+	unsigned int custom_divisor;
+	unsigned int line;
+	unsigned int minor;
+	resource_size_t mapbase;
+	resource_size_t mapsize;
+	struct device *dev;
+	long unsigned int sysrq;
+	unsigned int sysrq_ch;
+	unsigned char has_sysrq;
+	unsigned char sysrq_seq;
+	unsigned char hub6;
+	unsigned char suspended;
+	unsigned char console_reinit;
+	const char *name;
+	struct attribute_group *attr_group;
+	const struct attribute_group **tty_groups;
+	struct serial_rs485 rs485;
+	struct gpio_desc *rs485_term_gpio;
