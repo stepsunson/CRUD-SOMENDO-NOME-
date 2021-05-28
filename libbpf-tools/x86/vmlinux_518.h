@@ -34522,3 +34522,1986 @@ struct rcu_tasks_percpu;
 
 struct rcu_tasks {
 	struct rcuwait cbs_wait;
+	raw_spinlock_t cbs_gbl_lock;
+	int gp_state;
+	int gp_sleep;
+	int init_fract;
+	long unsigned int gp_jiffies;
+	long unsigned int gp_start;
+	long unsigned int tasks_gp_seq;
+	long unsigned int n_ipis;
+	long unsigned int n_ipis_fails;
+	struct task_struct *kthread_ptr;
+	rcu_tasks_gp_func_t gp_func;
+	pregp_func_t pregp_func;
+	pertask_func_t pertask_func;
+	postscan_func_t postscan_func;
+	holdouts_func_t holdouts_func;
+	postgp_func_t postgp_func;
+	call_rcu_func_t call_func;
+	struct rcu_tasks_percpu *rtpcpu;
+	int percpu_enqueue_shift;
+	int percpu_enqueue_lim;
+	int percpu_dequeue_lim;
+	long unsigned int percpu_dequeue_gpseq;
+	struct mutex barrier_q_mutex;
+	atomic_t barrier_q_count;
+	struct completion barrier_q_completion;
+	long unsigned int barrier_q_seq;
+	char *name;
+	char *kname;
+};
+
+struct rcu_tasks_percpu {
+	struct rcu_segcblist cblist;
+	raw_spinlock_t lock;
+	long unsigned int rtp_jiffies;
+	long unsigned int rtp_n_lock_retries;
+	struct work_struct rtp_work;
+	struct irq_work rtp_irq_work;
+	struct callback_head barrier_q_head;
+	int cpu;
+	struct rcu_tasks *rtpp;
+};
+
+struct trc_stall_chk_rdr {
+	int nesting;
+	int ipi_to_cpu;
+	u8 needqs;
+};
+
+enum {
+	GP_IDLE = 0,
+	GP_ENTER = 1,
+	GP_PASSED = 2,
+	GP_EXIT = 3,
+	GP_REPLAY = 4,
+};
+
+enum rcutorture_type {
+	RCU_FLAVOR = 0,
+	RCU_TASKS_FLAVOR = 1,
+	RCU_TASKS_RUDE_FLAVOR = 2,
+	RCU_TASKS_TRACING_FLAVOR = 3,
+	RCU_TRIVIAL_FLAVOR = 4,
+	SRCU_FLAVOR = 5,
+	INVALID_RCU_FLAVOR = 6,
+};
+
+struct rcu_exp_work {
+	long unsigned int rew_s;
+	struct work_struct rew_work;
+};
+
+struct rcu_node {
+	raw_spinlock_t lock;
+	long unsigned int gp_seq;
+	long unsigned int gp_seq_needed;
+	long unsigned int completedqs;
+	long unsigned int qsmask;
+	long unsigned int rcu_gp_init_mask;
+	long unsigned int qsmaskinit;
+	long unsigned int qsmaskinitnext;
+	long unsigned int expmask;
+	long unsigned int expmaskinit;
+	long unsigned int expmaskinitnext;
+	long unsigned int cbovldmask;
+	long unsigned int ffmask;
+	long unsigned int grpmask;
+	int grplo;
+	int grphi;
+	u8 grpnum;
+	u8 level;
+	bool wait_blkd_tasks;
+	struct rcu_node *parent;
+	struct list_head blkd_tasks;
+	struct list_head *gp_tasks;
+	struct list_head *exp_tasks;
+	struct list_head *boost_tasks;
+	struct rt_mutex boost_mtx;
+	long unsigned int boost_time;
+	struct mutex boost_kthread_mutex;
+	struct task_struct *boost_kthread_task;
+	unsigned int boost_kthread_status;
+	long unsigned int n_boosts;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	raw_spinlock_t fqslock;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t exp_lock;
+	long unsigned int exp_seq_rq;
+	wait_queue_head_t exp_wq[4];
+	struct rcu_exp_work rew;
+	bool exp_need_flush;
+	long: 56;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+union rcu_noqs {
+	struct {
+		u8 norm;
+		u8 exp;
+	} b;
+	u16 s;
+};
+
+struct rcu_data {
+	long unsigned int gp_seq;
+	long unsigned int gp_seq_needed;
+	union rcu_noqs cpu_no_qs;
+	bool core_needs_qs;
+	bool beenonline;
+	bool gpwrap;
+	bool cpu_started;
+	struct rcu_node *mynode;
+	long unsigned int grpmask;
+	long unsigned int ticks_this_gp;
+	struct irq_work defer_qs_iw;
+	bool defer_qs_iw_pending;
+	struct work_struct strict_work;
+	struct rcu_segcblist cblist;
+	long int qlen_last_fqs_check;
+	long unsigned int n_cbs_invoked;
+	long unsigned int n_force_qs_snap;
+	long int blimit;
+	int dynticks_snap;
+	long int dynticks_nesting;
+	long int dynticks_nmi_nesting;
+	atomic_t dynticks;
+	bool rcu_need_heavy_qs;
+	bool rcu_urgent_qs;
+	bool rcu_forced_tick;
+	bool rcu_forced_tick_exp;
+	long unsigned int barrier_seq_snap;
+	struct callback_head barrier_head;
+	int exp_dynticks_snap;
+	struct task_struct *rcu_cpu_kthread_task;
+	unsigned int rcu_cpu_kthread_status;
+	char rcu_cpu_has_work;
+	long unsigned int rcuc_activity;
+	unsigned int softirq_snap;
+	struct irq_work rcu_iw;
+	bool rcu_iw_pending;
+	long unsigned int rcu_iw_gp_seq;
+	long unsigned int rcu_ofl_gp_seq;
+	short int rcu_ofl_gp_flags;
+	long unsigned int rcu_onl_gp_seq;
+	short int rcu_onl_gp_flags;
+	long unsigned int last_fqs_resched;
+	long unsigned int last_sched_clock;
+	int cpu;
+};
+
+struct rcu_state {
+	struct rcu_node node[521];
+	struct rcu_node *level[4];
+	int ncpus;
+	int n_online_cpus;
+	long: 64;
+	long: 64;
+	long: 64;
+	long unsigned int gp_seq;
+	long unsigned int gp_max;
+	struct task_struct *gp_kthread;
+	struct swait_queue_head gp_wq;
+	short int gp_flags;
+	short int gp_state;
+	long unsigned int gp_wake_time;
+	long unsigned int gp_wake_seq;
+	struct mutex barrier_mutex;
+	atomic_t barrier_cpu_count;
+	struct completion barrier_completion;
+	long unsigned int barrier_sequence;
+	raw_spinlock_t barrier_lock;
+	struct mutex exp_mutex;
+	struct mutex exp_wake_mutex;
+	long unsigned int expedited_sequence;
+	atomic_t expedited_need_qs;
+	struct swait_queue_head expedited_wq;
+	int ncpus_snap;
+	u8 cbovld;
+	u8 cbovldnext;
+	long unsigned int jiffies_force_qs;
+	long unsigned int jiffies_kick_kthreads;
+	long unsigned int n_force_qs;
+	long unsigned int gp_start;
+	long unsigned int gp_end;
+	long unsigned int gp_activity;
+	long unsigned int gp_req_activity;
+	long unsigned int jiffies_stall;
+	long unsigned int jiffies_resched;
+	long unsigned int n_force_qs_gpstart;
+	const char *name;
+	char abbr;
+	long: 56;
+	long: 64;
+	long: 64;
+	arch_spinlock_t ofl_lock;
+	int nocb_is_setup;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct kvfree_rcu_bulk_data {
+	long unsigned int nr_records;
+	struct kvfree_rcu_bulk_data *next;
+	void *records[0];
+};
+
+struct kfree_rcu_cpu;
+
+struct kfree_rcu_cpu_work {
+	struct rcu_work rcu_work;
+	struct callback_head *head_free;
+	struct kvfree_rcu_bulk_data *bkvhead_free[2];
+	struct kfree_rcu_cpu *krcp;
+};
+
+struct kfree_rcu_cpu {
+	struct callback_head *head;
+	struct kvfree_rcu_bulk_data *bkvhead[2];
+	struct kfree_rcu_cpu_work krw_arr[2];
+	raw_spinlock_t lock;
+	struct delayed_work monitor_work;
+	bool monitor_todo;
+	bool initialized;
+	int count;
+	struct delayed_work page_cache_work;
+	atomic_t backoff_page_cache_fill;
+	atomic_t work_in_progress;
+	struct hrtimer hrtimer;
+	struct llist_head bkvcache;
+	int nr_bkv_objs;
+};
+
+struct rcu_stall_chk_rdr {
+	int nesting;
+	union rcu_special rs;
+	bool on_blkd_list;
+};
+
+struct klp_func {
+	const char *old_name;
+	void *new_func;
+	long unsigned int old_sympos;
+	void *old_func;
+	struct kobject kobj;
+	struct list_head node;
+	struct list_head stack_node;
+	long unsigned int old_size;
+	long unsigned int new_size;
+	bool nop;
+	bool patched;
+	bool transition;
+};
+
+struct klp_object;
+
+struct klp_callbacks {
+	int (*pre_patch)(struct klp_object *);
+	void (*post_patch)(struct klp_object *);
+	void (*pre_unpatch)(struct klp_object *);
+	void (*post_unpatch)(struct klp_object *);
+	bool post_unpatch_enabled;
+};
+
+struct klp_object {
+	const char *name;
+	struct klp_func *funcs;
+	struct klp_callbacks callbacks;
+	struct kobject kobj;
+	struct list_head func_list;
+	struct list_head node;
+	struct module *mod;
+	bool dynamic;
+	bool patched;
+};
+
+struct klp_state {
+	long unsigned int id;
+	unsigned int version;
+	void *data;
+};
+
+struct klp_patch {
+	struct module *mod;
+	struct klp_object *objs;
+	struct klp_state *states;
+	bool replace;
+	struct list_head list;
+	struct kobject kobj;
+	struct list_head obj_list;
+	bool enabled;
+	bool forced;
+	struct work_struct free_work;
+	struct completion finish;
+};
+
+struct klp_find_arg {
+	const char *objname;
+	const char *name;
+	long unsigned int addr;
+	long unsigned int count;
+	long unsigned int pos;
+};
+
+struct klp_ops {
+	struct list_head node;
+	struct list_head func_stack;
+	struct ftrace_ops fops;
+};
+
+typedef int (*klp_shadow_ctor_t)(void *, void *, void *);
+
+typedef void (*klp_shadow_dtor_t)(void *, void *);
+
+struct klp_shadow {
+	struct hlist_node node;
+	struct callback_head callback_head;
+	void *obj;
+	long unsigned int id;
+	char data[0];
+};
+
+struct dma_sgt_handle {
+	struct sg_table sgt;
+	struct page **pages;
+};
+
+struct dma_devres {
+	size_t size;
+	void *vaddr;
+	dma_addr_t dma_handle;
+	long unsigned int attrs;
+};
+
+struct trace_event_raw_swiotlb_bounced {
+	struct trace_entry ent;
+	u32 __data_loc_dev_name;
+	u64 dma_mask;
+	dma_addr_t dev_addr;
+	size_t size;
+	bool force;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_swiotlb_bounced {
+	u32 dev_name;
+};
+
+typedef void (*btf_trace_swiotlb_bounced)(void *, struct device *, dma_addr_t, size_t);
+
+struct cma;
+
+struct trace_event_raw_sys_enter {
+	struct trace_entry ent;
+	long int id;
+	long unsigned int args[6];
+	char __data[0];
+};
+
+struct trace_event_raw_sys_exit {
+	struct trace_entry ent;
+	long int id;
+	long int ret;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_sys_enter {};
+
+struct trace_event_data_offsets_sys_exit {};
+
+typedef void (*btf_trace_sys_enter)(void *, struct pt_regs *, long int);
+
+typedef void (*btf_trace_sys_exit)(void *, struct pt_regs *, long int);
+
+struct interval_tree_node {
+	struct rb_node rb;
+	long unsigned int start;
+	long unsigned int last;
+	long unsigned int __subtree_last;
+};
+
+struct kvm_regs {
+	__u64 rax;
+	__u64 rbx;
+	__u64 rcx;
+	__u64 rdx;
+	__u64 rsi;
+	__u64 rdi;
+	__u64 rsp;
+	__u64 rbp;
+	__u64 r8;
+	__u64 r9;
+	__u64 r10;
+	__u64 r11;
+	__u64 r12;
+	__u64 r13;
+	__u64 r14;
+	__u64 r15;
+	__u64 rip;
+	__u64 rflags;
+};
+
+struct kvm_segment {
+	__u64 base;
+	__u32 limit;
+	__u16 selector;
+	__u8 type;
+	__u8 present;
+	__u8 dpl;
+	__u8 db;
+	__u8 s;
+	__u8 l;
+	__u8 g;
+	__u8 avl;
+	__u8 unusable;
+	__u8 padding;
+};
+
+struct kvm_dtable {
+	__u64 base;
+	__u16 limit;
+	__u16 padding[3];
+};
+
+struct kvm_sregs {
+	struct kvm_segment cs;
+	struct kvm_segment ds;
+	struct kvm_segment es;
+	struct kvm_segment fs;
+	struct kvm_segment gs;
+	struct kvm_segment ss;
+	struct kvm_segment tr;
+	struct kvm_segment ldt;
+	struct kvm_dtable gdt;
+	struct kvm_dtable idt;
+	__u64 cr0;
+	__u64 cr2;
+	__u64 cr3;
+	__u64 cr4;
+	__u64 cr8;
+	__u64 efer;
+	__u64 apic_base;
+	__u64 interrupt_bitmap[4];
+};
+
+struct kvm_msr_entry {
+	__u32 index;
+	__u32 reserved;
+	__u64 data;
+};
+
+struct kvm_cpuid_entry2 {
+	__u32 function;
+	__u32 index;
+	__u32 flags;
+	__u32 eax;
+	__u32 ebx;
+	__u32 ecx;
+	__u32 edx;
+	__u32 padding[3];
+};
+
+struct kvm_debug_exit_arch {
+	__u32 exception;
+	__u32 pad;
+	__u64 pc;
+	__u64 dr6;
+	__u64 dr7;
+};
+
+struct kvm_vcpu_events {
+	struct {
+		__u8 injected;
+		__u8 nr;
+		__u8 has_error_code;
+		__u8 pending;
+		__u32 error_code;
+	} exception;
+	struct {
+		__u8 injected;
+		__u8 nr;
+		__u8 soft;
+		__u8 shadow;
+	} interrupt;
+	struct {
+		__u8 injected;
+		__u8 pending;
+		__u8 masked;
+		__u8 pad;
+	} nmi;
+	__u32 sipi_vector;
+	__u32 flags;
+	struct {
+		__u8 smm;
+		__u8 pending;
+		__u8 smm_inside_nmi;
+		__u8 latched_init;
+	} smi;
+	__u8 reserved[27];
+	__u8 exception_has_payload;
+	__u64 exception_payload;
+};
+
+struct kvm_sync_regs {
+	struct kvm_regs regs;
+	struct kvm_sregs sregs;
+	struct kvm_vcpu_events events;
+};
+
+struct kvm_vmx_nested_state_data {
+	__u8 vmcs12[4096];
+	__u8 shadow_vmcs12[4096];
+};
+
+struct kvm_vmx_nested_state_hdr {
+	__u64 vmxon_pa;
+	__u64 vmcs12_pa;
+	struct {
+		__u16 flags;
+	} smm;
+	__u16 pad;
+	__u32 flags;
+	__u64 preemption_timer_deadline;
+};
+
+struct kvm_svm_nested_state_data {
+	__u8 vmcb12[4096];
+};
+
+struct kvm_svm_nested_state_hdr {
+	__u64 vmcb_pa;
+};
+
+struct kvm_nested_state {
+	__u16 flags;
+	__u16 format;
+	__u32 size;
+	union {
+		struct kvm_vmx_nested_state_hdr vmx;
+		struct kvm_svm_nested_state_hdr svm;
+		__u8 pad[120];
+	} hdr;
+	union {
+		struct kvm_vmx_nested_state_data vmx[0];
+		struct kvm_svm_nested_state_data svm[0];
+	} data;
+};
+
+struct kvm_pmu_event_filter {
+	__u32 action;
+	__u32 nevents;
+	__u32 fixed_counter_bitmap;
+	__u32 flags;
+	__u32 pad[4];
+	__u64 events[0];
+};
+
+struct kvm_hyperv_exit {
+	__u32 type;
+	__u32 pad1;
+	union {
+		struct {
+			__u32 msr;
+			__u32 pad2;
+			__u64 control;
+			__u64 evt_page;
+			__u64 msg_page;
+		} synic;
+		struct {
+			__u64 input;
+			__u64 result;
+			__u64 params[2];
+		} hcall;
+		struct {
+			__u32 msr;
+			__u32 pad2;
+			__u64 control;
+			__u64 status;
+			__u64 send_page;
+			__u64 recv_page;
+			__u64 pending_page;
+		} syndbg;
+	} u;
+};
+
+struct kvm_xen_exit {
+	__u32 type;
+	union {
+		struct {
+			__u32 longmode;
+			__u32 cpl;
+			__u64 input;
+			__u64 result;
+			__u64 params[6];
+		} hcall;
+	} u;
+};
+
+struct kvm_run {
+	__u8 request_interrupt_window;
+	__u8 immediate_exit;
+	__u8 padding1[6];
+	__u32 exit_reason;
+	__u8 ready_for_interrupt_injection;
+	__u8 if_flag;
+	__u16 flags;
+	__u64 cr8;
+	__u64 apic_base;
+	union {
+		struct {
+			__u64 hardware_exit_reason;
+		} hw;
+		struct {
+			__u64 hardware_entry_failure_reason;
+			__u32 cpu;
+		} fail_entry;
+		struct {
+			__u32 exception;
+			__u32 error_code;
+		} ex;
+		struct {
+			__u8 direction;
+			__u8 size;
+			__u16 port;
+			__u32 count;
+			__u64 data_offset;
+		} io;
+		struct {
+			struct kvm_debug_exit_arch arch;
+		} debug;
+		struct {
+			__u64 phys_addr;
+			__u8 data[8];
+			__u32 len;
+			__u8 is_write;
+		} mmio;
+		struct {
+			__u64 nr;
+			__u64 args[6];
+			__u64 ret;
+			__u32 longmode;
+			__u32 pad;
+		} hypercall;
+		struct {
+			__u64 rip;
+			__u32 is_write;
+			__u32 pad;
+		} tpr_access;
+		struct {
+			__u8 icptcode;
+			__u16 ipa;
+			__u32 ipb;
+		} s390_sieic;
+		__u64 s390_reset_flags;
+		struct {
+			__u64 trans_exc_code;
+			__u32 pgm_code;
+		} s390_ucontrol;
+		struct {
+			__u32 dcrn;
+			__u32 data;
+			__u8 is_write;
+		} dcr;
+		struct {
+			__u32 suberror;
+			__u32 ndata;
+			__u64 data[16];
+		} internal;
+		struct {
+			__u32 suberror;
+			__u32 ndata;
+			__u64 flags;
+			union {
+				struct {
+					__u8 insn_size;
+					__u8 insn_bytes[15];
+				};
+			};
+		} emulation_failure;
+		struct {
+			__u64 gprs[32];
+		} osi;
+		struct {
+			__u64 nr;
+			__u64 ret;
+			__u64 args[9];
+		} papr_hcall;
+		struct {
+			__u16 subchannel_id;
+			__u16 subchannel_nr;
+			__u32 io_int_parm;
+			__u32 io_int_word;
+			__u32 ipb;
+			__u8 dequeued;
+		} s390_tsch;
+		struct {
+			__u32 epr;
+		} epr;
+		struct {
+			__u32 type;
+			__u32 ndata;
+			union {
+				__u64 data[16];
+			};
+		} system_event;
+		struct {
+			__u64 addr;
+			__u8 ar;
+			__u8 reserved;
+			__u8 fc;
+			__u8 sel1;
+			__u16 sel2;
+		} s390_stsi;
+		struct {
+			__u8 vector;
+		} eoi;
+		struct kvm_hyperv_exit hyperv;
+		struct {
+			__u64 esr_iss;
+			__u64 fault_ipa;
+		} arm_nisv;
+		struct {
+			__u8 error;
+			__u8 pad[7];
+			__u32 reason;
+			__u32 index;
+			__u64 data;
+		} msr;
+		struct kvm_xen_exit xen;
+		struct {
+			long unsigned int extension_id;
+			long unsigned int function_id;
+			long unsigned int args[6];
+			long unsigned int ret[2];
+		} riscv_sbi;
+		char padding[256];
+	};
+	__u64 kvm_valid_regs;
+	__u64 kvm_dirty_regs;
+	union {
+		struct kvm_sync_regs regs;
+		char padding[2048];
+	} s;
+};
+
+struct kvm_coalesced_mmio {
+	__u64 phys_addr;
+	__u32 len;
+	union {
+		__u32 pad;
+		__u32 pio;
+	};
+	__u8 data[8];
+};
+
+struct kvm_coalesced_mmio_ring {
+	__u32 first;
+	__u32 last;
+	struct kvm_coalesced_mmio coalesced_mmio[0];
+};
+
+struct kvm_xen_hvm_config {
+	__u32 flags;
+	__u32 msr;
+	__u64 blob_addr_32;
+	__u64 blob_addr_64;
+	__u8 blob_size_32;
+	__u8 blob_size_64;
+	__u8 pad2[30];
+};
+
+struct kvm_enc_region {
+	__u64 addr;
+	__u64 size;
+};
+
+struct kvm_dirty_gfn {
+	__u32 flags;
+	__u32 slot;
+	__u64 offset;
+};
+
+struct kvm_stats_desc {
+	__u32 flags;
+	__s16 exponent;
+	__u16 size;
+	__u32 offset;
+	__u32 bucket_size;
+	char name[0];
+};
+
+typedef long unsigned int gva_t;
+
+typedef u64 gpa_t;
+
+typedef u64 gfn_t;
+
+typedef u64 hpa_t;
+
+typedef u64 hfn_t;
+
+typedef hfn_t kvm_pfn_t;
+
+enum pfn_cache_usage {
+	KVM_GUEST_USES_PFN = 1,
+	KVM_HOST_USES_PFN = 2,
+	KVM_GUEST_AND_HOST_USE_PFN = 3,
+};
+
+struct kvm_memory_slot;
+
+struct gfn_to_hva_cache {
+	u64 generation;
+	gpa_t gpa;
+	long unsigned int hva;
+	long unsigned int len;
+	struct kvm_memory_slot *memslot;
+};
+
+struct kvm_rmap_head;
+
+struct kvm_lpage_info;
+
+struct kvm_arch_memory_slot {
+	struct kvm_rmap_head *rmap[3];
+	struct kvm_lpage_info *lpage_info[2];
+	short unsigned int *gfn_track[1];
+};
+
+struct kvm_memory_slot {
+	struct hlist_node id_node[2];
+	struct interval_tree_node hva_node[2];
+	struct rb_node gfn_node[2];
+	gfn_t base_gfn;
+	long unsigned int npages;
+	long unsigned int *dirty_bitmap;
+	struct kvm_arch_memory_slot arch;
+	long unsigned int userspace_addr;
+	u32 flags;
+	short int id;
+	u16 as_id;
+};
+
+struct kvm_vcpu;
+
+struct gfn_to_pfn_cache {
+	u64 generation;
+	gpa_t gpa;
+	long unsigned int uhva;
+	struct kvm_memory_slot *memslot;
+	struct kvm_vcpu *vcpu;
+	struct list_head list;
+	rwlock_t lock;
+	void *khva;
+	kvm_pfn_t pfn;
+	enum pfn_cache_usage usage;
+	bool active;
+	bool valid;
+};
+
+struct kvm_mmio_fragment {
+	gpa_t gpa;
+	void *data;
+	unsigned int len;
+};
+
+struct kvm_lapic;
+
+struct kvm_page_fault;
+
+struct x86_exception;
+
+struct kvm_mmu_page;
+
+struct kvm_mmu_root_info {
+	gpa_t pgd;
+	hpa_t hpa;
+};
+
+union kvm_mmu_page_role {
+	u32 word;
+	struct {
+		unsigned int level: 4;
+		unsigned int has_4_byte_gpte: 1;
+		unsigned int quadrant: 2;
+		unsigned int direct: 1;
+		unsigned int access: 3;
+		unsigned int invalid: 1;
+		unsigned int efer_nx: 1;
+		unsigned int cr0_wp: 1;
+		unsigned int smep_andnot_wp: 1;
+		unsigned int smap_andnot_wp: 1;
+		unsigned int ad_disabled: 1;
+		unsigned int guest_mode: 1;
+		unsigned int passthrough: 1;
+		char: 5;
+		unsigned int smm: 8;
+	};
+};
+
+union kvm_mmu_extended_role {
+	u32 word;
+	struct {
+		unsigned int valid: 1;
+		unsigned int execonly: 1;
+		unsigned int cr4_pse: 1;
+		unsigned int cr4_pke: 1;
+		unsigned int cr4_smap: 1;
+		unsigned int cr4_smep: 1;
+		unsigned int cr4_la57: 1;
+		unsigned int efer_lma: 1;
+	};
+};
+
+union kvm_cpu_role {
+	u64 as_u64;
+	struct {
+		union kvm_mmu_page_role base;
+		union kvm_mmu_extended_role ext;
+	};
+};
+
+struct rsvd_bits_validate {
+	u64 rsvd_bits_mask[10];
+	u64 bad_mt_xwr;
+};
+
+struct kvm_mmu {
+	long unsigned int (*get_guest_pgd)(struct kvm_vcpu *);
+	u64 (*get_pdptr)(struct kvm_vcpu *, int);
+	int (*page_fault)(struct kvm_vcpu *, struct kvm_page_fault *);
+	void (*inject_page_fault)(struct kvm_vcpu *, struct x86_exception *);
+	gpa_t (*gva_to_gpa)(struct kvm_vcpu *, struct kvm_mmu *, gpa_t, u64, struct x86_exception *);
+	int (*sync_page)(struct kvm_vcpu *, struct kvm_mmu_page *);
+	void (*invlpg)(struct kvm_vcpu *, gva_t, hpa_t);
+	struct kvm_mmu_root_info root;
+	union kvm_cpu_role cpu_role;
+	union kvm_mmu_page_role root_role;
+	u32 pkru_mask;
+	struct kvm_mmu_root_info prev_roots[3];
+	u8 permissions[16];
+	u64 *pae_root;
+	u64 *pml4_root;
+	u64 *pml5_root;
+	struct rsvd_bits_validate shadow_zero_check;
+	struct rsvd_bits_validate guest_rsvd_check;
+	u64 pdptrs[4];
+};
+
+struct kvm_mmu_memory_cache {
+	int nobjs;
+	gfp_t gfp_zero;
+	struct kmem_cache *kmem_cache;
+	void *objects[40];
+};
+
+struct kvm_pio_request {
+	long unsigned int linear_rip;
+	long unsigned int count;
+	int in;
+	int port;
+	int size;
+};
+
+struct kvm_queued_exception {
+	bool pending;
+	bool injected;
+	bool has_error_code;
+	u8 nr;
+	u32 error_code;
+	long unsigned int payload;
+	bool has_payload;
+	u8 nested_apf;
+};
+
+struct kvm_queued_interrupt {
+	bool injected;
+	bool soft;
+	u8 nr;
+};
+
+struct x86_emulate_ctxt;
+
+struct kvm_mtrr_range {
+	u64 base;
+	u64 mask;
+	struct list_head node;
+};
+
+struct kvm_mtrr {
+	struct kvm_mtrr_range var_ranges[8];
+	mtrr_type fixed_ranges[88];
+	u64 deftype;
+	struct list_head head;
+};
+
+enum pmc_type {
+	KVM_PMC_GP = 0,
+	KVM_PMC_FIXED = 1,
+};
+
+struct kvm_pmc {
+	enum pmc_type type;
+	u8 idx;
+	u64 counter;
+	u64 eventsel;
+	struct perf_event *perf_event;
+	struct kvm_vcpu *vcpu;
+	u64 current_config;
+	bool is_paused;
+	bool intr;
+};
+
+struct kvm_pmu {
+	unsigned int nr_arch_gp_counters;
+	unsigned int nr_arch_fixed_counters;
+	unsigned int available_event_types;
+	u64 fixed_ctr_ctrl;
+	u64 global_ctrl;
+	u64 global_status;
+	u64 counter_bitmask[2];
+	u64 global_ctrl_mask;
+	u64 global_ovf_ctrl_mask;
+	u64 reserved_bits;
+	u64 raw_event_mask;
+	u8 version;
+	struct kvm_pmc gp_counters[32];
+	struct kvm_pmc fixed_counters[3];
+	struct irq_work irq_work;
+	long unsigned int reprogram_pmi[1];
+	long unsigned int all_valid_pmc_idx[1];
+	long unsigned int pmc_in_use[1];
+	bool need_cleanup;
+	u8 event_count;
+};
+
+struct kvm_vcpu_xen {
+	u64 hypercall_rip;
+	u32 current_runstate;
+	u8 upcall_vector;
+	struct gfn_to_pfn_cache vcpu_info_cache;
+	struct gfn_to_pfn_cache vcpu_time_info_cache;
+	struct gfn_to_pfn_cache runstate_cache;
+	u64 last_steal;
+	u64 runstate_entry_time;
+	u64 runstate_times[4];
+	long unsigned int evtchn_pending_sel;
+	u32 vcpu_id;
+	u32 timer_virq;
+	u64 timer_expires;
+	atomic_t timer_pending;
+	struct hrtimer timer;
+	int poll_evtchn;
+	struct timer_list poll_timer;
+};
+
+struct kvm_vcpu_hv;
+
+struct kvm_vcpu_arch {
+	long unsigned int regs[17];
+	u32 regs_avail;
+	u32 regs_dirty;
+	long unsigned int cr0;
+	long unsigned int cr0_guest_owned_bits;
+	long unsigned int cr2;
+	long unsigned int cr3;
+	long unsigned int cr4;
+	long unsigned int cr4_guest_owned_bits;
+	long unsigned int cr4_guest_rsvd_bits;
+	long unsigned int cr8;
+	u32 host_pkru;
+	u32 pkru;
+	u32 hflags;
+	u64 efer;
+	u64 apic_base;
+	struct kvm_lapic *apic;
+	bool apicv_active;
+	bool load_eoi_exitmap_pending;
+	long unsigned int ioapic_handled_vectors[4];
+	long unsigned int apic_attention;
+	int32_t apic_arb_prio;
+	int mp_state;
+	u64 ia32_misc_enable_msr;
+	u64 smbase;
+	u64 smi_count;
+	bool at_instruction_boundary;
+	bool tpr_access_reporting;
+	bool xsaves_enabled;
+	bool xfd_no_write_intercept;
+	u64 ia32_xss;
+	u64 microcode_version;
+	u64 arch_capabilities;
+	u64 perf_capabilities;
+	struct kvm_mmu *mmu;
+	struct kvm_mmu root_mmu;
+	struct kvm_mmu guest_mmu;
+	struct kvm_mmu nested_mmu;
+	struct kvm_mmu *walk_mmu;
+	struct kvm_mmu_memory_cache mmu_pte_list_desc_cache;
+	struct kvm_mmu_memory_cache mmu_shadow_page_cache;
+	struct kvm_mmu_memory_cache mmu_gfn_array_cache;
+	struct kvm_mmu_memory_cache mmu_page_header_cache;
+	struct fpu_guest guest_fpu;
+	u64 xcr0;
+	struct kvm_pio_request pio;
+	void *pio_data;
+	void *sev_pio_data;
+	unsigned int sev_pio_count;
+	u8 event_exit_inst_len;
+	struct kvm_queued_exception exception;
+	struct kvm_queued_interrupt interrupt;
+	int halt_request;
+	int cpuid_nent;
+	struct kvm_cpuid_entry2 *cpuid_entries;
+	u32 kvm_cpuid_base;
+	u64 reserved_gpa_bits;
+	int maxphyaddr;
+	struct x86_emulate_ctxt *emulate_ctxt;
+	bool emulate_regs_need_sync_to_vcpu;
+	bool emulate_regs_need_sync_from_vcpu;
+	int (*complete_userspace_io)(struct kvm_vcpu *);
+	gpa_t time;
+	struct pvclock_vcpu_time_info hv_clock;
+	unsigned int hw_tsc_khz;
+	struct gfn_to_pfn_cache pv_time;
+	bool pvclock_set_guest_stopped_request;
+	struct {
+		u8 preempted;
+		u64 msr_val;
+		u64 last_steal;
+		struct gfn_to_hva_cache cache;
+	} st;
+	u64 l1_tsc_offset;
+	u64 tsc_offset;
+	u64 last_guest_tsc;
+	u64 last_host_tsc;
+	u64 tsc_offset_adjustment;
+	u64 this_tsc_nsec;
+	u64 this_tsc_write;
+	u64 this_tsc_generation;
+	bool tsc_catchup;
+	bool tsc_always_catchup;
+	s8 virtual_tsc_shift;
+	u32 virtual_tsc_mult;
+	u32 virtual_tsc_khz;
+	s64 ia32_tsc_adjust_msr;
+	u64 msr_ia32_power_ctl;
+	u64 l1_tsc_scaling_ratio;
+	u64 tsc_scaling_ratio;
+	atomic_t nmi_queued;
+	unsigned int nmi_pending;
+	bool nmi_injected;
+	bool smi_pending;
+	u8 handling_intr_from_guest;
+	struct kvm_mtrr mtrr_state;
+	u64 pat;
+	unsigned int switch_db_regs;
+	long unsigned int db[4];
+	long unsigned int dr6;
+	long unsigned int dr7;
+	long unsigned int eff_db[4];
+	long unsigned int guest_debug_dr7;
+	u64 msr_platform_info;
+	u64 msr_misc_features_enables;
+	u64 mcg_cap;
+	u64 mcg_status;
+	u64 mcg_ctl;
+	u64 mcg_ext_ctl;
+	u64 *mce_banks;
+	u64 mmio_gva;
+	unsigned int mmio_access;
+	gfn_t mmio_gfn;
+	u64 mmio_gen;
+	struct kvm_pmu pmu;
+	long unsigned int singlestep_rip;
+	bool hyperv_enabled;
+	struct kvm_vcpu_hv *hyperv;
+	struct kvm_vcpu_xen xen;
+	cpumask_var_t wbinvd_dirty_mask;
+	long unsigned int last_retry_eip;
+	long unsigned int last_retry_addr;
+	struct {
+		bool halted;
+		gfn_t gfns[64];
+		struct gfn_to_hva_cache data;
+		u64 msr_en_val;
+		u64 msr_int_val;
+		u16 vec;
+		u32 id;
+		bool send_user_only;
+		u32 host_apf_flags;
+		long unsigned int nested_apf_token;
+		bool delivery_as_pf_vmexit;
+		bool pageready_pending;
+	} apf;
+	struct {
+		u64 length;
+		u64 status;
+	} osvw;
+	struct {
+		u64 msr_val;
+		struct gfn_to_hva_cache data;
+	} pv_eoi;
+	u64 msr_kvm_poll_control;
+	bool write_fault_to_shadow_pgtable;
+	long unsigned int exit_qualification;
+	struct {
+		bool pv_unhalted;
+	} pv;
+	int pending_ioapic_eoi;
+	int pending_external_vector;
+	bool preempted_in_kernel;
+	bool l1tf_flush_l1d;
+	int last_vmentry_cpu;
+	u64 msr_hwcr;
+	struct {
+		u32 features;
+		bool enforce;
+	} pv_cpuid;
+	bool guest_state_protected;
+	bool pdptrs_from_userspace;
+	hpa_t hv_root_tdp;
+};
+
+struct kvm_vcpu_stat_generic {
+	u64 halt_successful_poll;
+	u64 halt_attempted_poll;
+	u64 halt_poll_invalid;
+	u64 halt_wakeup;
+	u64 halt_poll_success_ns;
+	u64 halt_poll_fail_ns;
+	u64 halt_wait_ns;
+	u64 halt_poll_success_hist[32];
+	u64 halt_poll_fail_hist[32];
+	u64 halt_wait_hist[32];
+	u64 blocking;
+};
+
+struct kvm_vcpu_stat {
+	struct kvm_vcpu_stat_generic generic;
+	u64 pf_taken;
+	u64 pf_fixed;
+	u64 pf_emulate;
+	u64 pf_spurious;
+	u64 pf_fast;
+	u64 pf_mmio_spte_created;
+	u64 pf_guest;
+	u64 tlb_flush;
+	u64 invlpg;
+	u64 exits;
+	u64 io_exits;
+	u64 mmio_exits;
+	u64 signal_exits;
+	u64 irq_window_exits;
+	u64 nmi_window_exits;
+	u64 l1d_flush;
+	u64 halt_exits;
+	u64 request_irq_exits;
+	u64 irq_exits;
+	u64 host_state_reload;
+	u64 fpu_reload;
+	u64 insn_emulation;
+	u64 insn_emulation_fail;
+	u64 hypercalls;
+	u64 irq_injections;
+	u64 nmi_injections;
+	u64 req_event;
+	u64 nested_run;
+	u64 directed_yield_attempted;
+	u64 directed_yield_successful;
+	u64 preemption_reported;
+	u64 preemption_other;
+	u64 guest_mode;
+};
+
+struct kvm_dirty_ring {
+	u32 dirty_index;
+	u32 reset_index;
+	u32 size;
+	u32 soft_limit;
+	struct kvm_dirty_gfn *dirty_gfns;
+	int index;
+};
+
+struct kvm;
+
+struct kvm_vcpu {
+	struct kvm *kvm;
+	struct preempt_notifier preempt_notifier;
+	int cpu;
+	int vcpu_id;
+	int vcpu_idx;
+	int ____srcu_idx;
+	int mode;
+	u64 requests;
+	long unsigned int guest_debug;
+	struct mutex mutex;
+	struct kvm_run *run;
+	struct rcuwait wait;
+	struct pid *pid;
+	int sigset_active;
+	sigset_t sigset;
+	unsigned int halt_poll_ns;
+	bool valid_wakeup;
+	int mmio_needed;
+	int mmio_read_completed;
+	int mmio_is_write;
+	int mmio_cur_fragment;
+	int mmio_nr_fragments;
+	struct kvm_mmio_fragment mmio_fragments[2];
+	struct {
+		u32 queued;
+		struct list_head queue;
+		struct list_head done;
+		spinlock_t lock;
+	} async_pf;
+	struct {
+		bool in_spin_loop;
+		bool dy_eligible;
+	} spin_loop;
+	bool preempted;
+	bool ready;
+	struct kvm_vcpu_arch arch;
+	struct kvm_vcpu_stat stat;
+	char stats_id[48];
+	struct kvm_dirty_ring dirty_ring;
+	struct kvm_memory_slot *last_used_slot;
+	u64 last_used_slot_gen;
+};
+
+struct kvm_vm_stat_generic {
+	u64 remote_tlb_flush;
+	u64 remote_tlb_flush_requests;
+};
+
+struct hv_partition_assist_pg {
+	u32 tlb_lock_count;
+};
+
+union hv_message_flags {
+	__u8 asu8;
+	struct {
+		__u8 msg_pending: 1;
+		__u8 reserved: 7;
+	};
+};
+
+union hv_port_id {
+	__u32 asu32;
+	struct {
+		__u32 id: 24;
+		__u32 reserved: 8;
+	} u;
+};
+
+struct hv_message_header {
+	__u32 message_type;
+	__u8 payload_size;
+	union hv_message_flags message_flags;
+	__u8 reserved[2];
+	union {
+		__u64 sender;
+		union hv_port_id port;
+	};
+};
+
+struct hv_message {
+	struct hv_message_header header;
+	union {
+		__u64 payload[30];
+	} u;
+};
+
+union hv_stimer_config {
+	u64 as_uint64;
+	struct {
+		u64 enable: 1;
+		u64 periodic: 1;
+		u64 lazy: 1;
+		u64 auto_enable: 1;
+		u64 apic_vector: 8;
+		u64 direct_mode: 1;
+		u64 reserved_z0: 3;
+		u64 sintx: 4;
+		u64 reserved_z1: 44;
+	};
+};
+
+enum kvm_page_track_mode {
+	KVM_PAGE_TRACK_WRITE = 0,
+	KVM_PAGE_TRACK_MAX = 1,
+};
+
+struct kvm_page_track_notifier_head {
+	struct srcu_struct track_srcu;
+	struct hlist_head track_notifier_list;
+};
+
+struct kvm_page_track_notifier_node {
+	struct hlist_node node;
+	void (*track_write)(struct kvm_vcpu *, gpa_t, const u8 *, int, struct kvm_page_track_notifier_node *);
+	void (*track_flush_slot)(struct kvm *, struct kvm_memory_slot *, struct kvm_page_track_notifier_node *);
+};
+
+struct kvm_memslots {
+	u64 generation;
+	atomic_long_t last_used_slot;
+	struct rb_root_cached hva_tree;
+	struct rb_root gfn_tree;
+	struct hlist_head id_hash[128];
+	int node_idx;
+};
+
+struct kvm_vm_stat {
+	struct kvm_vm_stat_generic generic;
+	u64 mmu_shadow_zapped;
+	u64 mmu_pte_write;
+	u64 mmu_pde_zapped;
+	u64 mmu_flooded;
+	u64 mmu_recycled;
+	u64 mmu_cache_miss;
+	u64 mmu_unsync;
+	union {
+		struct {
+			atomic64_t pages_4k;
+			atomic64_t pages_2m;
+			atomic64_t pages_1g;
+		};
+		atomic64_t pages[3];
+	};
+	u64 nx_lpage_splits;
+	u64 max_mmu_page_hash_collisions;
+	u64 max_mmu_rmap_size;
+};
+
+struct kvm_pic;
+
+struct kvm_ioapic;
+
+struct kvm_pit;
+
+enum hv_tsc_page_status {
+	HV_TSC_PAGE_UNSET = 0,
+	HV_TSC_PAGE_GUEST_CHANGED = 1,
+	HV_TSC_PAGE_HOST_CHANGED = 2,
+	HV_TSC_PAGE_SET = 3,
+	HV_TSC_PAGE_BROKEN = 4,
+};
+
+struct kvm_hv_syndbg {
+	struct {
+		u64 control;
+		u64 status;
+		u64 send_page;
+		u64 recv_page;
+		u64 pending_page;
+	} control;
+	u64 options;
+};
+
+struct kvm_hv {
+	struct mutex hv_lock;
+	u64 hv_guest_os_id;
+	u64 hv_hypercall;
+	u64 hv_tsc_page;
+	enum hv_tsc_page_status hv_tsc_page_status;
+	u64 hv_crash_param[5];
+	u64 hv_crash_ctl;
+	struct ms_hyperv_tsc_page tsc_ref;
+	struct idr conn_to_evt;
+	u64 hv_reenlightenment_control;
+	u64 hv_tsc_emulation_control;
+	u64 hv_tsc_emulation_status;
+	atomic_t num_mismatched_vp_indexes;
+	unsigned int synic_auto_eoi_used;
+	struct hv_partition_assist_pg *hv_pa_pg;
+	struct kvm_hv_syndbg hv_syndbg;
+};
+
+struct kvm_xen {
+	u32 xen_version;
+	bool long_mode;
+	u8 upcall_vector;
+	struct gfn_to_pfn_cache shinfo_cache;
+	struct idr evtchn_ports;
+	long unsigned int poll_mask[16];
+};
+
+enum kvm_irqchip_mode {
+	KVM_IRQCHIP_NONE = 0,
+	KVM_IRQCHIP_KERNEL = 1,
+	KVM_IRQCHIP_SPLIT = 2,
+};
+
+struct kvm_apic_map;
+
+struct kvm_x86_msr_filter;
+
+struct kvm_arch {
+	long unsigned int n_used_mmu_pages;
+	long unsigned int n_requested_mmu_pages;
+	long unsigned int n_max_mmu_pages;
+	unsigned int indirect_shadow_pages;
+	u8 mmu_valid_gen;
+	struct hlist_head mmu_page_hash[4096];
+	struct list_head active_mmu_pages;
+	struct list_head zapped_obsolete_pages;
+	struct list_head lpage_disallowed_mmu_pages;
+	struct kvm_page_track_notifier_node mmu_sp_tracker;
+	struct kvm_page_track_notifier_head track_notifier_head;
+	spinlock_t mmu_unsync_pages_lock;
+	struct list_head assigned_dev_head;
+	struct iommu_domain *iommu_domain;
+	bool iommu_noncoherent;
+	atomic_t noncoherent_dma_count;
+	atomic_t assigned_device_count;
+	struct kvm_pic *vpic;
+	struct kvm_ioapic *vioapic;
+	struct kvm_pit *vpit;
+	atomic_t vapics_in_nmi_mode;
+	struct mutex apic_map_lock;
+	struct kvm_apic_map *apic_map;
+	atomic_t apic_map_dirty;
+	struct rw_semaphore apicv_update_lock;
+	bool apic_access_memslot_enabled;
+	long unsigned int apicv_inhibit_reasons;
+	gpa_t wall_clock;
+	bool mwait_in_guest;
+	bool hlt_in_guest;
+	bool pause_in_guest;
+	bool cstate_in_guest;
+	long unsigned int irq_sources_bitmap;
+	s64 kvmclock_offset;
+	raw_spinlock_t tsc_write_lock;
+	u64 last_tsc_nsec;
+	u64 last_tsc_write;
+	u32 last_tsc_khz;
+	u64 last_tsc_offset;
+	u64 cur_tsc_nsec;
+	u64 cur_tsc_write;
+	u64 cur_tsc_offset;
+	u64 cur_tsc_generation;
+	int nr_vcpus_matched_tsc;
+	u32 default_tsc_khz;
+	seqcount_raw_spinlock_t pvclock_sc;
+	bool use_master_clock;
+	u64 master_kernel_ns;
+	u64 master_cycle_now;
+	struct delayed_work kvmclock_update_work;
+	struct delayed_work kvmclock_sync_work;
+	struct kvm_xen_hvm_config xen_hvm_config;
+	struct hlist_head mask_notifier_list;
+	struct kvm_hv hyperv;
+	struct kvm_xen xen;
+	bool backwards_tsc_observed;
+	bool boot_vcpu_runs_old_kvmclock;
+	u32 bsp_vcpu_id;
+	u64 disabled_quirks;
+	int cpu_dirty_logging_count;
+	enum kvm_irqchip_mode irqchip_mode;
+	u8 nr_reserved_ioapic_pins;
+	bool disabled_lapic_found;
+	bool x2apic_format;
+	bool x2apic_broadcast_quirk_disabled;
+	bool guest_can_read_msr_platform_info;
+	bool exception_payload_enabled;
+	bool bus_lock_detection_enabled;
+	bool enable_pmu;
+	bool exit_on_emulation_error;
+	u32 user_space_msr_mask;
+	struct kvm_x86_msr_filter *msr_filter;
+	u32 hypercall_exit_enabled;
+	bool sgx_provisioning_allowed;
+	struct kvm_pmu_event_filter *pmu_event_filter;
+	struct task_struct *nx_lpage_recovery_thread;
+	bool tdp_mmu_enabled;
+	struct list_head tdp_mmu_roots;
+	struct list_head tdp_mmu_pages;
+	spinlock_t tdp_mmu_pages_lock;
+	struct workqueue_struct *tdp_mmu_zap_wq;
+	bool shadow_root_allocated;
+	hpa_t hv_root_tdp;
+	spinlock_t hv_root_tdp_lock;
+};
+
+struct kvm_io_bus;
+
+struct kvm_irq_routing_table;
+
+struct kvm_stat_data;
+
+struct kvm {
+	rwlock_t mmu_lock;
+	struct mutex slots_lock;
+	struct mutex slots_arch_lock;
+	struct mm_struct *mm;
+	long unsigned int nr_memslot_pages;
+	struct kvm_memslots __memslots[4];
+	struct kvm_memslots *memslots[2];
+	struct xarray vcpu_array;
+	spinlock_t mn_invalidate_lock;
+	long unsigned int mn_active_invalidate_count;
+	struct rcuwait mn_memslots_update_rcuwait;
+	spinlock_t gpc_lock;
+	struct list_head gpc_list;
+	atomic_t online_vcpus;
+	int max_vcpus;
+	int created_vcpus;
+	int last_boosted_vcpu;
+	struct list_head vm_list;
+	struct mutex lock;
+	struct kvm_io_bus *buses[4];
+	struct {
+		spinlock_t lock;
+		struct list_head items;
+		struct list_head resampler_list;
+		struct mutex resampler_lock;
+	} irqfds;
+	struct list_head ioeventfds;
+	struct kvm_vm_stat stat;
+	struct kvm_arch arch;
+	refcount_t users_count;
+	struct kvm_coalesced_mmio_ring *coalesced_mmio_ring;
+	spinlock_t ring_lock;
+	struct list_head coalesced_zones;
+	struct mutex irq_lock;
+	struct kvm_irq_routing_table *irq_routing;
+	struct hlist_head irq_ack_notifier_list;
+	struct mmu_notifier mmu_notifier;
+	long unsigned int mmu_notifier_seq;
+	long int mmu_notifier_count;
+	long unsigned int mmu_notifier_range_start;
+	long unsigned int mmu_notifier_range_end;
+	struct list_head devices;
+	u64 manual_dirty_log_protect;
+	struct dentry *debugfs_dentry;
+	struct kvm_stat_data **debugfs_stat_data;
+	struct srcu_struct srcu;
+	struct srcu_struct irq_srcu;
+	pid_t userspace_pid;
+	unsigned int max_halt_poll_ns;
+	u32 dirty_ring_size;
+	bool vm_bugged;
+	bool vm_dead;
+	struct notifier_block pm_notifier;
+	char stats_id[48];
+};
+
+enum kvm_reg {
+	VCPU_REGS_RAX = 0,
+	VCPU_REGS_RCX = 1,
+	VCPU_REGS_RDX = 2,
+	VCPU_REGS_RBX = 3,
+	VCPU_REGS_RSP = 4,
+	VCPU_REGS_RBP = 5,
+	VCPU_REGS_RSI = 6,
+	VCPU_REGS_RDI = 7,
+	VCPU_REGS_R8 = 8,
+	VCPU_REGS_R9 = 9,
+	VCPU_REGS_R10 = 10,
+	VCPU_REGS_R11 = 11,
+	VCPU_REGS_R12 = 12,
+	VCPU_REGS_R13 = 13,
+	VCPU_REGS_R14 = 14,
+	VCPU_REGS_R15 = 15,
+	VCPU_REGS_RIP = 16,
+	NR_VCPU_REGS = 17,
+	VCPU_EXREG_PDPTR = 17,
+	VCPU_EXREG_CR0 = 18,
+	VCPU_EXREG_CR3 = 19,
+	VCPU_EXREG_CR4 = 20,
+	VCPU_EXREG_RFLAGS = 21,
+	VCPU_EXREG_SEGMENTS = 22,
+	VCPU_EXREG_EXIT_INFO_1 = 23,
+	VCPU_EXREG_EXIT_INFO_2 = 24,
+};
+
+enum exit_fastpath_completion {
+	EXIT_FASTPATH_NONE = 0,
+	EXIT_FASTPATH_REENTER_GUEST = 1,
+	EXIT_FASTPATH_EXIT_HANDLED = 2,
+};
+
+struct kvm_rmap_head {
+	long unsigned int val;
+};
+
+struct kvm_tlb_range {
+	u64 start_gfn;
+	u64 pages;
+};
+
+struct kvm_vcpu_hv_stimer {
+	struct hrtimer timer;
+	int index;
+	union hv_stimer_config config;
+	u64 count;
+	u64 exp_time;
+	struct hv_message msg;
+	bool msg_pending;
+};
+
+struct kvm_vcpu_hv_synic {
+	u64 version;
+	u64 control;
+	u64 msg_page;
+	u64 evt_page;
+	atomic64_t sint[16];
+	atomic_t sint_to_gsi[16];
+	long unsigned int auto_eoi_bitmap[4];
+	long unsigned int vec_bitmap[4];
+	bool active;
+	bool dont_zero_synic_pages;
+};
+
+struct kvm_vcpu_hv {
+	struct kvm_vcpu *vcpu;
+	u32 vp_index;
+	u64 hv_vapic;
+	s64 runtime_offset;
+	struct kvm_vcpu_hv_synic synic;
+	struct kvm_hyperv_exit exit;
+	struct kvm_vcpu_hv_stimer stimer[4];
+	long unsigned int stimer_pending_bitmap[1];
+	bool enforce_cpuid;
+	struct {
+		u32 features_eax;
+		u32 features_ebx;
+		u32 features_edx;
+		u32 enlightenments_eax;
+		u32 enlightenments_ebx;
+		u32 syndbg_cap_eax;
+	} cpuid_cache;
+};
+
+struct kvm_lpage_info {
+	int disallow_lpage;
+};
+
+struct kvm_apic_map {
+	struct callback_head rcu;
+	u8 mode;
+	u32 max_apic_id;
+	union {
+		struct kvm_lapic *xapic_flat_map[8];
+		struct kvm_lapic *xapic_cluster_map[64];
+	};
+	struct kvm_lapic *phys_map[0];
+};
+
+struct msr_bitmap_range {
+	u32 flags;
+	u32 nmsrs;
+	u32 base;
+	long unsigned int *bitmap;
+};
+
+struct kvm_x86_msr_filter {
+	u8 count;
+	bool default_allow: 1;
+	struct msr_bitmap_range ranges[16];
+};
+
+enum kvm_apicv_inhibit {
+	APICV_INHIBIT_REASON_DISABLE = 0,
+	APICV_INHIBIT_REASON_HYPERV = 1,
+	APICV_INHIBIT_REASON_ABSENT = 2,
+	APICV_INHIBIT_REASON_BLOCKIRQ = 3,
+	APICV_INHIBIT_REASON_APIC_ID_MODIFIED = 4,
+	APICV_INHIBIT_REASON_APIC_BASE_MODIFIED = 5,
+	APICV_INHIBIT_REASON_NESTED = 6,
+	APICV_INHIBIT_REASON_IRQWIN = 7,
+	APICV_INHIBIT_REASON_PIT_REINJ = 8,
+	APICV_INHIBIT_REASON_X2APIC = 9,
+	APICV_INHIBIT_REASON_SEV = 10,
+};
+
+struct msr_data {
+	bool host_initiated;
+	u32 index;
+	u64 data;
+};
+
+struct x86_instruction_info;
+
+enum x86_intercept_stage;
+
+struct kvm_x86_nested_ops;
+
+struct kvm_x86_ops {
+	const char *name;
+	int (*hardware_enable)();
+	void (*hardware_disable)();
+	void (*hardware_unsetup)();
+	bool (*has_emulated_msr)(struct kvm *, u32);
+	void (*vcpu_after_set_cpuid)(struct kvm_vcpu *);
+	unsigned int vm_size;
+	int (*vm_init)(struct kvm *);
+	void (*vm_destroy)(struct kvm *);
+	int (*vcpu_create)(struct kvm_vcpu *);
+	void (*vcpu_free)(struct kvm_vcpu *);
+	void (*vcpu_reset)(struct kvm_vcpu *, bool);
+	void (*prepare_switch_to_guest)(struct kvm_vcpu *);
+	void (*vcpu_load)(struct kvm_vcpu *, int);
+	void (*vcpu_put)(struct kvm_vcpu *);
+	void (*update_exception_bitmap)(struct kvm_vcpu *);
+	int (*get_msr)(struct kvm_vcpu *, struct msr_data *);
+	int (*set_msr)(struct kvm_vcpu *, struct msr_data *);
+	u64 (*get_segment_base)(struct kvm_vcpu *, int);
+	void (*get_segment)(struct kvm_vcpu *, struct kvm_segment *, int);
+	int (*get_cpl)(struct kvm_vcpu *);
+	void (*set_segment)(struct kvm_vcpu *, struct kvm_segment *, int);
+	void (*get_cs_db_l_bits)(struct kvm_vcpu *, int *, int *);
+	void (*set_cr0)(struct kvm_vcpu *, long unsigned int);
+	void (*post_set_cr3)(struct kvm_vcpu *, long unsigned int);
+	bool (*is_valid_cr4)(struct kvm_vcpu *, long unsigned int);
+	void (*set_cr4)(struct kvm_vcpu *, long unsigned int);
+	int (*set_efer)(struct kvm_vcpu *, u64);
+	void (*get_idt)(struct kvm_vcpu *, struct desc_ptr *);
+	void (*set_idt)(struct kvm_vcpu *, struct desc_ptr *);
+	void (*get_gdt)(struct kvm_vcpu *, struct desc_ptr *);
+	void (*set_gdt)(struct kvm_vcpu *, struct desc_ptr *);
+	void (*sync_dirty_debug_regs)(struct kvm_vcpu *);
+	void (*set_dr7)(struct kvm_vcpu *, long unsigned int);
+	void (*cache_reg)(struct kvm_vcpu *, enum kvm_reg);
+	long unsigned int (*get_rflags)(struct kvm_vcpu *);
+	void (*set_rflags)(struct kvm_vcpu *, long unsigned int);
+	bool (*get_if_flag)(struct kvm_vcpu *);
+	void (*flush_tlb_all)(struct kvm_vcpu *);
+	void (*flush_tlb_current)(struct kvm_vcpu *);
+	int (*tlb_remote_flush)(struct kvm *);
+	int (*tlb_remote_flush_with_range)(struct kvm *, struct kvm_tlb_range *);
+	void (*flush_tlb_gva)(struct kvm_vcpu *, gva_t);
+	void (*flush_tlb_guest)(struct kvm_vcpu *);
+	int (*vcpu_pre_run)(struct kvm_vcpu *);
+	enum exit_fastpath_completion (*vcpu_run)(struct kvm_vcpu *);
+	int (*handle_exit)(struct kvm_vcpu *, enum exit_fastpath_completion);
+	int (*skip_emulated_instruction)(struct kvm_vcpu *);
+	void (*update_emulated_instruction)(struct kvm_vcpu *);
+	void (*set_interrupt_shadow)(struct kvm_vcpu *, int);
+	u32 (*get_interrupt_shadow)(struct kvm_vcpu *);
+	void (*patch_hypercall)(struct kvm_vcpu *, unsigned char *);
+	void (*inject_irq)(struct kvm_vcpu *);
+	void (*inject_nmi)(struct kvm_vcpu *);
+	void (*queue_exception)(struct kvm_vcpu *);
+	void (*cancel_injection)(struct kvm_vcpu *);
+	int (*interrupt_allowed)(struct kvm_vcpu *, bool);
+	int (*nmi_allowed)(struct kvm_vcpu *, bool);
+	bool (*get_nmi_mask)(struct kvm_vcpu *);
+	void (*set_nmi_mask)(struct kvm_vcpu *, bool);
+	void (*enable_nmi_window)(struct kvm_vcpu *);
+	void (*enable_irq_window)(struct kvm_vcpu *);
+	void (*update_cr8_intercept)(struct kvm_vcpu *, int, int);
+	bool (*check_apicv_inhibit_reasons)(enum kvm_apicv_inhibit);
+	void (*refresh_apicv_exec_ctrl)(struct kvm_vcpu *);
+	void (*hwapic_irr_update)(struct kvm_vcpu *, int);
+	void (*hwapic_isr_update)(struct kvm_vcpu *, int);
+	bool (*guest_apic_has_interrupt)(struct kvm_vcpu *);
+	void (*load_eoi_exitmap)(struct kvm_vcpu *, u64 *);
+	void (*set_virtual_apic_mode)(struct kvm_vcpu *);
+	void (*set_apic_access_page_addr)(struct kvm_vcpu *);
+	void (*deliver_interrupt)(struct kvm_lapic *, int, int, int);
+	int (*sync_pir_to_irr)(struct kvm_vcpu *);
+	int (*set_tss_addr)(struct kvm *, unsigned int);
+	int (*set_identity_map_addr)(struct kvm *, u64);
+	u64 (*get_mt_mask)(struct kvm_vcpu *, gfn_t, bool);
+	void (*load_mmu_pgd)(struct kvm_vcpu *, hpa_t, int);
+	bool (*has_wbinvd_exit)();
+	u64 (*get_l2_tsc_offset)(struct kvm_vcpu *);
+	u64 (*get_l2_tsc_multiplier)(struct kvm_vcpu *);
+	void (*write_tsc_offset)(struct kvm_vcpu *, u64);
+	void (*write_tsc_multiplier)(struct kvm_vcpu *, u64);
+	void (*get_exit_info)(struct kvm_vcpu *, u32 *, u64 *, u64 *, u32 *, u32 *);
+	int (*check_intercept)(struct kvm_vcpu *, struct x86_instruction_info *, enum x86_intercept_stage, struct x86_exception *);
+	void (*handle_exit_irqoff)(struct kvm_vcpu *);
+	void (*request_immediate_exit)(struct kvm_vcpu *);
+	void (*sched_in)(struct kvm_vcpu *, int);
+	int cpu_dirty_log_size;
+	void (*update_cpu_dirty_logging)(struct kvm_vcpu *);
+	const struct kvm_x86_nested_ops *nested_ops;
+	void (*vcpu_blocking)(struct kvm_vcpu *);
+	void (*vcpu_unblocking)(struct kvm_vcpu *);
+	int (*pi_update_irte)(struct kvm *, unsigned int, uint32_t, bool);
+	void (*pi_start_assignment)(struct kvm *);
+	void (*apicv_post_state_restore)(struct kvm_vcpu *);
+	bool (*dy_apicv_has_pending_interrupt)(struct kvm_vcpu *);
+	int (*set_hv_timer)(struct kvm_vcpu *, u64, bool *);
+	void (*cancel_hv_timer)(struct kvm_vcpu *);
+	void (*setup_mce)(struct kvm_vcpu *);
+	int (*smi_allowed)(struct kvm_vcpu *, bool);
+	int (*enter_smm)(struct kvm_vcpu *, char *);
+	int (*leave_smm)(struct kvm_vcpu *, const char *);
+	void (*enable_smi_window)(struct kvm_vcpu *);
+	int (*mem_enc_ioctl)(struct kvm *, void *);
+	int (*mem_enc_register_region)(struct kvm *, struct kvm_enc_region *);
+	int (*mem_enc_unregister_region)(struct kvm *, struct kvm_enc_region *);
+	int (*vm_copy_enc_context_from)(struct kvm *, unsigned int);
+	int (*vm_move_enc_context_from)(struct kvm *, unsigned int);
+	void (*guest_memory_reclaimed)(struct kvm *);
+	int (*get_msr_feature)(struct kvm_msr_entry *);
+	bool (*can_emulate_instruction)(struct kvm_vcpu *, int, void *, int);
+	bool (*apic_init_signal_blocked)(struct kvm_vcpu *);
+	int (*enable_direct_tlbflush)(struct kvm_vcpu *);
+	void (*migrate_timers)(struct kvm_vcpu *);
+	void (*msr_filter_changed)(struct kvm_vcpu *);
+	int (*complete_emulated_msr)(struct kvm_vcpu *, int);
+	void (*vcpu_deliver_sipi_vector)(struct kvm_vcpu *, u8);
+	long unsigned int (*vcpu_get_apicv_inhibit_reasons)(struct kvm_vcpu *);
+};
+
+struct kvm_x86_nested_ops {
+	void (*leave_nested)(struct kvm_vcpu *);
+	int (*check_events)(struct kvm_vcpu *);
+	bool (*handle_page_fault_workaround)(struct kvm_vcpu *, struct x86_exception *);
+	bool (*hv_timer_pending)(struct kvm_vcpu *);
+	void (*triple_fault)(struct kvm_vcpu *);
+	int (*get_state)(struct kvm_vcpu *, struct kvm_nested_state *, unsigned int);
+	int (*set_state)(struct kvm_vcpu *, struct kvm_nested_state *, struct kvm_nested_state *);
+	bool (*get_nested_state_pages)(struct kvm_vcpu *);
+	int (*write_log_dirty)(struct kvm_vcpu *, gpa_t);
+	int (*enable_evmcs)(struct kvm_vcpu *, uint16_t *);
+	uint16_t (*get_evmcs_version)(struct kvm_vcpu *);
+};
+
+struct kvm_io_device;
+
+struct kvm_io_range {
+	gpa_t addr;
+	int len;
+	struct kvm_io_device *dev;
+};
+
+struct kvm_io_bus {
+	int dev_count;
+	int ioeventfd_count;
+	struct kvm_io_range range[0];
+};
+
+enum kvm_bus {
+	KVM_MMIO_BUS = 0,
+	KVM_PIO_BUS = 1,
+	KVM_VIRTIO_CCW_NOTIFY_BUS = 2,
+	KVM_FAST_MMIO_BUS = 3,
+	KVM_NR_BUSES = 4,
+};
