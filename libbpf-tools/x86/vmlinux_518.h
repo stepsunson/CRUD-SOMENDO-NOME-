@@ -40702,3 +40702,2101 @@ struct blk_mq_tag_set {
 	struct mutex tag_list_lock;
 	struct list_head tag_list;
 };
+
+struct blk_mq_hw_ctx {
+	struct {
+		spinlock_t lock;
+		struct list_head dispatch;
+		long unsigned int state;
+		long: 64;
+		long: 64;
+		long: 64;
+		long: 64;
+	};
+	struct delayed_work run_work;
+	cpumask_var_t cpumask;
+	int next_cpu;
+	int next_cpu_batch;
+	long unsigned int flags;
+	void *sched_data;
+	struct request_queue *queue;
+	struct blk_flush_queue *fq;
+	void *driver_data;
+	struct sbitmap ctx_map;
+	struct blk_mq_ctx *dispatch_from;
+	unsigned int dispatch_busy;
+	short unsigned int type;
+	short unsigned int nr_ctx;
+	struct blk_mq_ctx **ctxs;
+	spinlock_t dispatch_wait_lock;
+	wait_queue_entry_t dispatch_wait;
+	atomic_t wait_index;
+	struct blk_mq_tags *tags;
+	struct blk_mq_tags *sched_tags;
+	long unsigned int queued;
+	long unsigned int run;
+	unsigned int numa_node;
+	unsigned int queue_num;
+	atomic_t nr_active;
+	struct hlist_node cpuhp_online;
+	struct hlist_node cpuhp_dead;
+	struct kobject kobj;
+	struct dentry *debugfs_dir;
+	struct dentry *sched_debugfs_dir;
+	struct list_head hctx_list;
+	long: 64;
+	long: 64;
+};
+
+struct blk_mq_queue_data {
+	struct request *rq;
+	bool last;
+};
+
+typedef u64 compat_u64;
+
+enum blktrace_cat {
+	BLK_TC_READ = 1,
+	BLK_TC_WRITE = 2,
+	BLK_TC_FLUSH = 4,
+	BLK_TC_SYNC = 8,
+	BLK_TC_SYNCIO = 8,
+	BLK_TC_QUEUE = 16,
+	BLK_TC_REQUEUE = 32,
+	BLK_TC_ISSUE = 64,
+	BLK_TC_COMPLETE = 128,
+	BLK_TC_FS = 256,
+	BLK_TC_PC = 512,
+	BLK_TC_NOTIFY = 1024,
+	BLK_TC_AHEAD = 2048,
+	BLK_TC_META = 4096,
+	BLK_TC_DISCARD = 8192,
+	BLK_TC_DRV_DATA = 16384,
+	BLK_TC_FUA = 32768,
+	BLK_TC_END = 32768,
+};
+
+enum blktrace_act {
+	__BLK_TA_QUEUE = 1,
+	__BLK_TA_BACKMERGE = 2,
+	__BLK_TA_FRONTMERGE = 3,
+	__BLK_TA_GETRQ = 4,
+	__BLK_TA_SLEEPRQ = 5,
+	__BLK_TA_REQUEUE = 6,
+	__BLK_TA_ISSUE = 7,
+	__BLK_TA_COMPLETE = 8,
+	__BLK_TA_PLUG = 9,
+	__BLK_TA_UNPLUG_IO = 10,
+	__BLK_TA_UNPLUG_TIMER = 11,
+	__BLK_TA_INSERT = 12,
+	__BLK_TA_SPLIT = 13,
+	__BLK_TA_BOUNCE = 14,
+	__BLK_TA_REMAP = 15,
+	__BLK_TA_ABORT = 16,
+	__BLK_TA_DRV_DATA = 17,
+	__BLK_TA_CGROUP = 256,
+};
+
+enum blktrace_notify {
+	__BLK_TN_PROCESS = 0,
+	__BLK_TN_TIMESTAMP = 1,
+	__BLK_TN_MESSAGE = 2,
+	__BLK_TN_CGROUP = 256,
+};
+
+struct blk_io_trace {
+	__u32 magic;
+	__u32 sequence;
+	__u64 time;
+	__u64 sector;
+	__u32 bytes;
+	__u32 action;
+	__u32 pid;
+	__u32 device;
+	__u32 cpu;
+	__u16 error;
+	__u16 pdu_len;
+};
+
+struct blk_io_trace_remap {
+	__be32 device_from;
+	__be32 device_to;
+	__be64 sector_from;
+};
+
+enum {
+	Blktrace_setup = 1,
+	Blktrace_running = 2,
+	Blktrace_stopped = 3,
+};
+
+struct blk_user_trace_setup {
+	char name[32];
+	__u16 act_mask;
+	__u32 buf_size;
+	__u32 buf_nr;
+	__u64 start_lba;
+	__u64 end_lba;
+	__u32 pid;
+};
+
+struct compat_blk_user_trace_setup {
+	char name[32];
+	u16 act_mask;
+	short: 16;
+	u32 buf_size;
+	u32 buf_nr;
+	compat_u64 start_lba;
+	compat_u64 end_lba;
+	u32 pid;
+} __attribute__((packed));
+
+enum blk_crypto_mode_num {
+	BLK_ENCRYPTION_MODE_INVALID = 0,
+	BLK_ENCRYPTION_MODE_AES_256_XTS = 1,
+	BLK_ENCRYPTION_MODE_AES_128_CBC_ESSIV = 2,
+	BLK_ENCRYPTION_MODE_ADIANTUM = 3,
+	BLK_ENCRYPTION_MODE_MAX = 4,
+};
+
+struct blk_crypto_config {
+	enum blk_crypto_mode_num crypto_mode;
+	unsigned int data_unit_size;
+	unsigned int dun_bytes;
+};
+
+struct blk_crypto_key {
+	struct blk_crypto_config crypto_cfg;
+	unsigned int data_unit_size_bits;
+	unsigned int size;
+	u8 raw[64];
+};
+
+typedef void blk_log_action_t(struct trace_iterator *, const char *, bool);
+
+struct ftrace_event_field {
+	struct list_head link;
+	const char *name;
+	const char *type;
+	int filter_type;
+	int offset;
+	int size;
+	int is_signed;
+};
+
+struct module_string {
+	struct list_head next;
+	struct module *module;
+	char *str;
+};
+
+enum {
+	FORMAT_HEADER = 1,
+	FORMAT_FIELD_SEPERATOR = 2,
+	FORMAT_PRINTFMT = 3,
+};
+
+struct event_probe_data {
+	struct trace_event_file *file;
+	long unsigned int count;
+	int ref;
+	bool enable;
+};
+
+struct syscall_trace_enter {
+	struct trace_entry ent;
+	int nr;
+	long unsigned int args[0];
+};
+
+struct syscall_trace_exit {
+	struct trace_entry ent;
+	int nr;
+	long int ret;
+};
+
+struct syscall_tp_t {
+	long long unsigned int regs;
+	long unsigned int syscall_nr;
+	long unsigned int ret;
+};
+
+struct syscall_tp_t___2 {
+	long long unsigned int regs;
+	long unsigned int syscall_nr;
+	long unsigned int args[6];
+};
+
+typedef long unsigned int perf_trace_t[1024];
+
+struct filter_pred;
+
+struct prog_entry {
+	int target;
+	int when_to_branch;
+	struct filter_pred *pred;
+};
+
+typedef int (*filter_pred_fn_t)(struct filter_pred *, void *);
+
+struct regex;
+
+typedef int (*regex_match_func)(char *, struct regex *, int);
+
+struct regex {
+	char pattern[256];
+	int len;
+	int field_len;
+	regex_match_func match;
+};
+
+struct filter_pred {
+	filter_pred_fn_t fn;
+	u64 val;
+	struct regex regex;
+	short unsigned int *ops;
+	struct ftrace_event_field *field;
+	int offset;
+	int not;
+	int op;
+};
+
+enum filter_op_ids {
+	OP_GLOB = 0,
+	OP_NE = 1,
+	OP_EQ = 2,
+	OP_LE = 3,
+	OP_LT = 4,
+	OP_GE = 5,
+	OP_GT = 6,
+	OP_BAND = 7,
+	OP_MAX = 8,
+};
+
+enum {
+	FILT_ERR_NONE = 0,
+	FILT_ERR_INVALID_OP = 1,
+	FILT_ERR_TOO_MANY_OPEN = 2,
+	FILT_ERR_TOO_MANY_CLOSE = 3,
+	FILT_ERR_MISSING_QUOTE = 4,
+	FILT_ERR_OPERAND_TOO_LONG = 5,
+	FILT_ERR_EXPECT_STRING = 6,
+	FILT_ERR_EXPECT_DIGIT = 7,
+	FILT_ERR_ILLEGAL_FIELD_OP = 8,
+	FILT_ERR_FIELD_NOT_FOUND = 9,
+	FILT_ERR_ILLEGAL_INTVAL = 10,
+	FILT_ERR_BAD_SUBSYS_FILTER = 11,
+	FILT_ERR_TOO_MANY_PREDS = 12,
+	FILT_ERR_INVALID_FILTER = 13,
+	FILT_ERR_IP_FIELD_ONLY = 14,
+	FILT_ERR_INVALID_VALUE = 15,
+	FILT_ERR_ERRNO = 16,
+	FILT_ERR_NO_FILTER = 17,
+};
+
+struct filter_parse_error {
+	int lasterr;
+	int lasterr_pos;
+};
+
+typedef int (*parse_pred_fn)(const char *, void *, int, struct filter_parse_error *, struct filter_pred **);
+
+enum {
+	INVERT = 1,
+	PROCESS_AND = 2,
+	PROCESS_OR = 4,
+};
+
+struct ustring_buffer {
+	char buffer[1024];
+};
+
+enum {
+	TOO_MANY_CLOSE = 4294967295,
+	TOO_MANY_OPEN = 4294967294,
+	MISSING_QUOTE = 4294967293,
+};
+
+struct filter_list {
+	struct list_head list;
+	struct event_filter *filter;
+};
+
+struct function_filter_data {
+	struct ftrace_ops *ops;
+	int first_filter;
+	int first_notrace;
+};
+
+enum {
+	EVENT_TRIGGER_FL_PROBE = 1,
+};
+
+struct event_trigger_ops;
+
+struct event_command;
+
+struct event_trigger_data {
+	long unsigned int count;
+	int ref;
+	int flags;
+	struct event_trigger_ops *ops;
+	struct event_command *cmd_ops;
+	struct event_filter *filter;
+	char *filter_str;
+	void *private_data;
+	bool paused;
+	bool paused_tmp;
+	struct list_head list;
+	char *name;
+	struct list_head named_list;
+	struct event_trigger_data *named_data;
+};
+
+struct event_trigger_ops {
+	void (*trigger)(struct event_trigger_data *, struct trace_buffer *, void *, struct ring_buffer_event *);
+	int (*init)(struct event_trigger_data *);
+	void (*free)(struct event_trigger_data *);
+	int (*print)(struct seq_file *, struct event_trigger_data *);
+};
+
+struct event_command {
+	struct list_head list;
+	char *name;
+	enum event_trigger_type trigger_type;
+	int flags;
+	int (*parse)(struct event_command *, struct trace_event_file *, char *, char *, char *);
+	int (*reg)(char *, struct event_trigger_data *, struct trace_event_file *);
+	void (*unreg)(char *, struct event_trigger_data *, struct trace_event_file *);
+	void (*unreg_all)(struct trace_event_file *);
+	int (*set_filter)(char *, struct event_trigger_data *, struct trace_event_file *);
+	struct event_trigger_ops * (*get_trigger_ops)(char *, char *);
+};
+
+struct enable_trigger_data {
+	struct trace_event_file *file;
+	bool enable;
+	bool hist;
+};
+
+enum event_command_flags {
+	EVENT_CMD_FL_POST_TRIGGER = 1,
+	EVENT_CMD_FL_NEEDS_REC = 2,
+};
+
+struct eprobe_trace_entry_head {
+	struct trace_entry ent;
+};
+
+struct dyn_event;
+
+struct dyn_event_operations {
+	struct list_head list;
+	int (*create)(const char *);
+	int (*show)(struct seq_file *, struct dyn_event *);
+	bool (*is_busy)(struct dyn_event *);
+	int (*free)(struct dyn_event *);
+	bool (*match)(const char *, const char *, int, const char **, struct dyn_event *);
+};
+
+struct dyn_event {
+	struct list_head list;
+	struct dyn_event_operations *ops;
+};
+
+typedef int (*print_type_func_t)(struct trace_seq *, void *, void *);
+
+enum fetch_op {
+	FETCH_OP_NOP = 0,
+	FETCH_OP_REG = 1,
+	FETCH_OP_STACK = 2,
+	FETCH_OP_STACKP = 3,
+	FETCH_OP_RETVAL = 4,
+	FETCH_OP_IMM = 5,
+	FETCH_OP_COMM = 6,
+	FETCH_OP_ARG = 7,
+	FETCH_OP_FOFFS = 8,
+	FETCH_OP_DATA = 9,
+	FETCH_OP_DEREF = 10,
+	FETCH_OP_UDEREF = 11,
+	FETCH_OP_ST_RAW = 12,
+	FETCH_OP_ST_MEM = 13,
+	FETCH_OP_ST_UMEM = 14,
+	FETCH_OP_ST_STRING = 15,
+	FETCH_OP_ST_USTRING = 16,
+	FETCH_OP_MOD_BF = 17,
+	FETCH_OP_LP_ARRAY = 18,
+	FETCH_OP_TP_ARG = 19,
+	FETCH_OP_END = 20,
+	FETCH_NOP_SYMBOL = 21,
+};
+
+struct fetch_insn {
+	enum fetch_op op;
+	union {
+		unsigned int param;
+		struct {
+			unsigned int size;
+			int offset;
+		};
+		struct {
+			unsigned char basesize;
+			unsigned char lshift;
+			unsigned char rshift;
+		};
+		long unsigned int immediate;
+		void *data;
+	};
+};
+
+struct fetch_type {
+	const char *name;
+	size_t size;
+	int is_signed;
+	print_type_func_t print;
+	const char *fmt;
+	const char *fmttype;
+};
+
+struct probe_arg {
+	struct fetch_insn *code;
+	bool dynamic;
+	unsigned int offset;
+	unsigned int count;
+	const char *name;
+	const char *comm;
+	char *fmt;
+	const struct fetch_type *type;
+};
+
+struct trace_uprobe_filter {
+	rwlock_t rwlock;
+	int nr_systemwide;
+	struct list_head perf_events;
+};
+
+struct trace_probe_event {
+	unsigned int flags;
+	struct trace_event_class class;
+	struct trace_event_call call;
+	struct list_head files;
+	struct list_head probes;
+	struct trace_uprobe_filter filter[0];
+};
+
+struct trace_probe {
+	struct list_head list;
+	struct trace_probe_event *event;
+	ssize_t size;
+	unsigned int nr_args;
+	struct probe_arg args[0];
+};
+
+enum probe_print_type {
+	PROBE_PRINT_NORMAL = 0,
+	PROBE_PRINT_RETURN = 1,
+	PROBE_PRINT_EVENT = 2,
+};
+
+enum {
+	TP_ERR_FILE_NOT_FOUND = 0,
+	TP_ERR_NO_REGULAR_FILE = 1,
+	TP_ERR_BAD_REFCNT = 2,
+	TP_ERR_REFCNT_OPEN_BRACE = 3,
+	TP_ERR_BAD_REFCNT_SUFFIX = 4,
+	TP_ERR_BAD_UPROBE_OFFS = 5,
+	TP_ERR_MAXACT_NO_KPROBE = 6,
+	TP_ERR_BAD_MAXACT = 7,
+	TP_ERR_MAXACT_TOO_BIG = 8,
+	TP_ERR_BAD_PROBE_ADDR = 9,
+	TP_ERR_BAD_RETPROBE = 10,
+	TP_ERR_BAD_ADDR_SUFFIX = 11,
+	TP_ERR_NO_GROUP_NAME = 12,
+	TP_ERR_GROUP_TOO_LONG = 13,
+	TP_ERR_BAD_GROUP_NAME = 14,
+	TP_ERR_NO_EVENT_NAME = 15,
+	TP_ERR_EVENT_TOO_LONG = 16,
+	TP_ERR_BAD_EVENT_NAME = 17,
+	TP_ERR_EVENT_EXIST = 18,
+	TP_ERR_RETVAL_ON_PROBE = 19,
+	TP_ERR_BAD_STACK_NUM = 20,
+	TP_ERR_BAD_ARG_NUM = 21,
+	TP_ERR_BAD_VAR = 22,
+	TP_ERR_BAD_REG_NAME = 23,
+	TP_ERR_BAD_MEM_ADDR = 24,
+	TP_ERR_BAD_IMM = 25,
+	TP_ERR_IMMSTR_NO_CLOSE = 26,
+	TP_ERR_FILE_ON_KPROBE = 27,
+	TP_ERR_BAD_FILE_OFFS = 28,
+	TP_ERR_SYM_ON_UPROBE = 29,
+	TP_ERR_TOO_MANY_OPS = 30,
+	TP_ERR_DEREF_NEED_BRACE = 31,
+	TP_ERR_BAD_DEREF_OFFS = 32,
+	TP_ERR_DEREF_OPEN_BRACE = 33,
+	TP_ERR_COMM_CANT_DEREF = 34,
+	TP_ERR_BAD_FETCH_ARG = 35,
+	TP_ERR_ARRAY_NO_CLOSE = 36,
+	TP_ERR_BAD_ARRAY_SUFFIX = 37,
+	TP_ERR_BAD_ARRAY_NUM = 38,
+	TP_ERR_ARRAY_TOO_BIG = 39,
+	TP_ERR_BAD_TYPE = 40,
+	TP_ERR_BAD_STRING = 41,
+	TP_ERR_BAD_BITFIELD = 42,
+	TP_ERR_ARG_NAME_TOO_LONG = 43,
+	TP_ERR_NO_ARG_NAME = 44,
+	TP_ERR_BAD_ARG_NAME = 45,
+	TP_ERR_USED_ARG_NAME = 46,
+	TP_ERR_ARG_TOO_LONG = 47,
+	TP_ERR_NO_ARG_BODY = 48,
+	TP_ERR_BAD_INSN_BNDRY = 49,
+	TP_ERR_FAIL_REG_PROBE = 50,
+	TP_ERR_DIFF_PROBE_TYPE = 51,
+	TP_ERR_DIFF_ARG_TYPE = 52,
+	TP_ERR_SAME_PROBE = 53,
+};
+
+struct trace_eprobe {
+	const char *event_system;
+	const char *event_name;
+	struct trace_event_call *event;
+	struct dyn_event devent;
+	struct trace_probe tp;
+};
+
+struct eprobe_data {
+	struct trace_event_file *file;
+	struct trace_eprobe *ep;
+};
+
+enum dynevent_type {
+	DYNEVENT_TYPE_SYNTH = 1,
+	DYNEVENT_TYPE_KPROBE = 2,
+	DYNEVENT_TYPE_NONE = 3,
+};
+
+struct dynevent_cmd;
+
+typedef int (*dynevent_create_fn_t)(struct dynevent_cmd *);
+
+struct dynevent_cmd {
+	struct seq_buf seq;
+	const char *event_name;
+	unsigned int n_fields;
+	enum dynevent_type type;
+	dynevent_create_fn_t run_command;
+	void *private_data;
+};
+
+struct synth_field_desc {
+	const char *type;
+	const char *name;
+};
+
+struct synth_trace_event;
+
+struct synth_event;
+
+struct synth_event_trace_state {
+	struct trace_event_buffer fbuffer;
+	struct synth_trace_event *entry;
+	struct trace_buffer *buffer;
+	struct synth_event *event;
+	unsigned int cur_field;
+	unsigned int n_u64;
+	bool disabled;
+	bool add_next;
+	bool add_name;
+};
+
+struct synth_trace_event {
+	struct trace_entry ent;
+	u64 fields[0];
+};
+
+struct synth_field;
+
+struct synth_event {
+	struct dyn_event devent;
+	int ref;
+	char *name;
+	struct synth_field **fields;
+	unsigned int n_fields;
+	struct synth_field **dynamic_fields;
+	unsigned int n_dynamic_fields;
+	unsigned int n_u64;
+	struct trace_event_class class;
+	struct trace_event_call call;
+	struct tracepoint *tp;
+	struct module *mod;
+};
+
+struct dynevent_arg {
+	const char *str;
+	char separator;
+};
+
+struct dynevent_arg_pair {
+	const char *lhs;
+	const char *rhs;
+	char operator;
+	char separator;
+};
+
+struct synth_field {
+	char *type;
+	char *name;
+	size_t size;
+	unsigned int offset;
+	unsigned int field_pos;
+	bool is_signed;
+	bool is_string;
+	bool is_dynamic;
+};
+
+enum {
+	SYNTH_ERR_BAD_NAME = 0,
+	SYNTH_ERR_INVALID_CMD = 1,
+	SYNTH_ERR_INVALID_DYN_CMD = 2,
+	SYNTH_ERR_EVENT_EXISTS = 3,
+	SYNTH_ERR_TOO_MANY_FIELDS = 4,
+	SYNTH_ERR_INCOMPLETE_TYPE = 5,
+	SYNTH_ERR_INVALID_TYPE = 6,
+	SYNTH_ERR_INVALID_FIELD = 7,
+	SYNTH_ERR_INVALID_ARRAY_SPEC = 8,
+};
+
+enum {
+	HIST_ERR_NONE = 0,
+	HIST_ERR_DUPLICATE_VAR = 1,
+	HIST_ERR_VAR_NOT_UNIQUE = 2,
+	HIST_ERR_TOO_MANY_VARS = 3,
+	HIST_ERR_MALFORMED_ASSIGNMENT = 4,
+	HIST_ERR_NAMED_MISMATCH = 5,
+	HIST_ERR_TRIGGER_EEXIST = 6,
+	HIST_ERR_TRIGGER_ENOENT_CLEAR = 7,
+	HIST_ERR_SET_CLOCK_FAIL = 8,
+	HIST_ERR_BAD_FIELD_MODIFIER = 9,
+	HIST_ERR_TOO_MANY_SUBEXPR = 10,
+	HIST_ERR_TIMESTAMP_MISMATCH = 11,
+	HIST_ERR_TOO_MANY_FIELD_VARS = 12,
+	HIST_ERR_EVENT_FILE_NOT_FOUND = 13,
+	HIST_ERR_HIST_NOT_FOUND = 14,
+	HIST_ERR_HIST_CREATE_FAIL = 15,
+	HIST_ERR_SYNTH_VAR_NOT_FOUND = 16,
+	HIST_ERR_SYNTH_EVENT_NOT_FOUND = 17,
+	HIST_ERR_SYNTH_TYPE_MISMATCH = 18,
+	HIST_ERR_SYNTH_COUNT_MISMATCH = 19,
+	HIST_ERR_FIELD_VAR_PARSE_FAIL = 20,
+	HIST_ERR_VAR_CREATE_FIND_FAIL = 21,
+	HIST_ERR_ONX_NOT_VAR = 22,
+	HIST_ERR_ONX_VAR_NOT_FOUND = 23,
+	HIST_ERR_ONX_VAR_CREATE_FAIL = 24,
+	HIST_ERR_FIELD_VAR_CREATE_FAIL = 25,
+	HIST_ERR_TOO_MANY_PARAMS = 26,
+	HIST_ERR_PARAM_NOT_FOUND = 27,
+	HIST_ERR_INVALID_PARAM = 28,
+	HIST_ERR_ACTION_NOT_FOUND = 29,
+	HIST_ERR_NO_SAVE_PARAMS = 30,
+	HIST_ERR_TOO_MANY_SAVE_ACTIONS = 31,
+	HIST_ERR_ACTION_MISMATCH = 32,
+	HIST_ERR_NO_CLOSING_PAREN = 33,
+	HIST_ERR_SUBSYS_NOT_FOUND = 34,
+	HIST_ERR_INVALID_SUBSYS_EVENT = 35,
+	HIST_ERR_INVALID_REF_KEY = 36,
+	HIST_ERR_VAR_NOT_FOUND = 37,
+	HIST_ERR_FIELD_NOT_FOUND = 38,
+	HIST_ERR_EMPTY_ASSIGNMENT = 39,
+	HIST_ERR_INVALID_SORT_MODIFIER = 40,
+	HIST_ERR_EMPTY_SORT_FIELD = 41,
+	HIST_ERR_TOO_MANY_SORT_FIELDS = 42,
+	HIST_ERR_INVALID_SORT_FIELD = 43,
+	HIST_ERR_INVALID_STR_OPERAND = 44,
+	HIST_ERR_EXPECT_NUMBER = 45,
+	HIST_ERR_UNARY_MINUS_SUBEXPR = 46,
+	HIST_ERR_DIVISION_BY_ZERO = 47,
+};
+
+struct hist_field;
+
+typedef u64 (*hist_field_fn_t)(struct hist_field *, struct tracing_map_elt *, struct trace_buffer *, struct ring_buffer_event *, void *);
+
+struct hist_trigger_data;
+
+struct hist_var {
+	char *name;
+	struct hist_trigger_data *hist_data;
+	unsigned int idx;
+};
+
+enum field_op_id {
+	FIELD_OP_NONE = 0,
+	FIELD_OP_PLUS = 1,
+	FIELD_OP_MINUS = 2,
+	FIELD_OP_UNARY_MINUS = 3,
+	FIELD_OP_DIV = 4,
+	FIELD_OP_MULT = 5,
+};
+
+struct hist_field {
+	struct ftrace_event_field *field;
+	long unsigned int flags;
+	hist_field_fn_t fn;
+	unsigned int ref;
+	unsigned int size;
+	unsigned int offset;
+	unsigned int is_signed;
+	long unsigned int buckets;
+	const char *type;
+	struct hist_field *operands[2];
+	struct hist_trigger_data *hist_data;
+	struct hist_var var;
+	enum field_op_id operator;
+	char *system;
+	char *event_name;
+	char *name;
+	unsigned int var_ref_idx;
+	bool read_once;
+	unsigned int var_str_idx;
+	u64 constant;
+	u64 div_multiplier;
+};
+
+struct hist_trigger_attrs;
+
+struct action_data;
+
+struct field_var;
+
+struct field_var_hist;
+
+struct hist_trigger_data {
+	struct hist_field *fields[22];
+	unsigned int n_vals;
+	unsigned int n_keys;
+	unsigned int n_fields;
+	unsigned int n_vars;
+	unsigned int n_var_str;
+	unsigned int key_size;
+	struct tracing_map_sort_key sort_keys[2];
+	unsigned int n_sort_keys;
+	struct trace_event_file *event_file;
+	struct hist_trigger_attrs *attrs;
+	struct tracing_map *map;
+	bool enable_timestamps;
+	bool remove;
+	struct hist_field *var_refs[16];
+	unsigned int n_var_refs;
+	struct action_data *actions[8];
+	unsigned int n_actions;
+	struct field_var *field_vars[64];
+	unsigned int n_field_vars;
+	unsigned int n_field_var_str;
+	struct field_var_hist *field_var_hists[64];
+	unsigned int n_field_var_hists;
+	struct field_var *save_vars[64];
+	unsigned int n_save_vars;
+	unsigned int n_save_var_str;
+};
+
+enum hist_field_flags {
+	HIST_FIELD_FL_HITCOUNT = 1,
+	HIST_FIELD_FL_KEY = 2,
+	HIST_FIELD_FL_STRING = 4,
+	HIST_FIELD_FL_HEX = 8,
+	HIST_FIELD_FL_SYM = 16,
+	HIST_FIELD_FL_SYM_OFFSET = 32,
+	HIST_FIELD_FL_EXECNAME = 64,
+	HIST_FIELD_FL_SYSCALL = 128,
+	HIST_FIELD_FL_STACKTRACE = 256,
+	HIST_FIELD_FL_LOG2 = 512,
+	HIST_FIELD_FL_TIMESTAMP = 1024,
+	HIST_FIELD_FL_TIMESTAMP_USECS = 2048,
+	HIST_FIELD_FL_VAR = 4096,
+	HIST_FIELD_FL_EXPR = 8192,
+	HIST_FIELD_FL_VAR_REF = 16384,
+	HIST_FIELD_FL_CPU = 32768,
+	HIST_FIELD_FL_ALIAS = 65536,
+	HIST_FIELD_FL_BUCKET = 131072,
+	HIST_FIELD_FL_CONST = 262144,
+};
+
+struct var_defs {
+	unsigned int n_vars;
+	char *name[16];
+	char *expr[16];
+};
+
+struct hist_trigger_attrs {
+	char *keys_str;
+	char *vals_str;
+	char *sort_key_str;
+	char *name;
+	char *clock;
+	bool pause;
+	bool cont;
+	bool clear;
+	bool ts_in_usecs;
+	unsigned int map_bits;
+	char *assignment_str[16];
+	unsigned int n_assignments;
+	char *action_str[8];
+	unsigned int n_actions;
+	struct var_defs var_defs;
+};
+
+struct field_var {
+	struct hist_field *var;
+	struct hist_field *val;
+};
+
+struct field_var_hist {
+	struct hist_trigger_data *hist_data;
+	char *cmd;
+};
+
+enum handler_id {
+	HANDLER_ONMATCH = 1,
+	HANDLER_ONMAX = 2,
+	HANDLER_ONCHANGE = 3,
+};
+
+enum action_id {
+	ACTION_SAVE = 1,
+	ACTION_TRACE = 2,
+	ACTION_SNAPSHOT = 3,
+};
+
+typedef void (*action_fn_t)(struct hist_trigger_data *, struct tracing_map_elt *, struct trace_buffer *, void *, struct ring_buffer_event *, void *, struct action_data *, u64 *);
+
+typedef bool (*check_track_val_fn_t)(u64, u64);
+
+struct action_data {
+	enum handler_id handler;
+	enum action_id action;
+	char *action_name;
+	action_fn_t fn;
+	unsigned int n_params;
+	char *params[64];
+	unsigned int var_ref_idx[16];
+	struct synth_event *synth_event;
+	bool use_trace_keyword;
+	char *synth_event_name;
+	union {
+		struct {
+			char *event;
+			char *event_system;
+		} match_data;
+		struct {
+			char *var_str;
+			struct hist_field *var_ref;
+			struct hist_field *track_var;
+			check_track_val_fn_t check_val;
+			action_fn_t save_data;
+		} track_data;
+	};
+};
+
+struct track_data {
+	u64 track_val;
+	bool updated;
+	unsigned int key_len;
+	void *key;
+	struct tracing_map_elt elt;
+	struct action_data *action_data;
+	struct hist_trigger_data *hist_data;
+};
+
+struct hist_elt_data {
+	char *comm;
+	u64 *var_ref_vals;
+	char **field_var_str;
+	int n_field_var_str;
+};
+
+struct snapshot_context {
+	struct tracing_map_elt *elt;
+	void *key;
+};
+
+typedef void (*synth_probe_func_t)(void *, u64 *, unsigned int *);
+
+struct hist_var_data {
+	struct list_head list;
+	struct hist_trigger_data *hist_data;
+};
+
+enum bpf_func_id {
+	BPF_FUNC_unspec = 0,
+	BPF_FUNC_map_lookup_elem = 1,
+	BPF_FUNC_map_update_elem = 2,
+	BPF_FUNC_map_delete_elem = 3,
+	BPF_FUNC_probe_read = 4,
+	BPF_FUNC_ktime_get_ns = 5,
+	BPF_FUNC_trace_printk = 6,
+	BPF_FUNC_get_prandom_u32 = 7,
+	BPF_FUNC_get_smp_processor_id = 8,
+	BPF_FUNC_skb_store_bytes = 9,
+	BPF_FUNC_l3_csum_replace = 10,
+	BPF_FUNC_l4_csum_replace = 11,
+	BPF_FUNC_tail_call = 12,
+	BPF_FUNC_clone_redirect = 13,
+	BPF_FUNC_get_current_pid_tgid = 14,
+	BPF_FUNC_get_current_uid_gid = 15,
+	BPF_FUNC_get_current_comm = 16,
+	BPF_FUNC_get_cgroup_classid = 17,
+	BPF_FUNC_skb_vlan_push = 18,
+	BPF_FUNC_skb_vlan_pop = 19,
+	BPF_FUNC_skb_get_tunnel_key = 20,
+	BPF_FUNC_skb_set_tunnel_key = 21,
+	BPF_FUNC_perf_event_read = 22,
+	BPF_FUNC_redirect = 23,
+	BPF_FUNC_get_route_realm = 24,
+	BPF_FUNC_perf_event_output = 25,
+	BPF_FUNC_skb_load_bytes = 26,
+	BPF_FUNC_get_stackid = 27,
+	BPF_FUNC_csum_diff = 28,
+	BPF_FUNC_skb_get_tunnel_opt = 29,
+	BPF_FUNC_skb_set_tunnel_opt = 30,
+	BPF_FUNC_skb_change_proto = 31,
+	BPF_FUNC_skb_change_type = 32,
+	BPF_FUNC_skb_under_cgroup = 33,
+	BPF_FUNC_get_hash_recalc = 34,
+	BPF_FUNC_get_current_task = 35,
+	BPF_FUNC_probe_write_user = 36,
+	BPF_FUNC_current_task_under_cgroup = 37,
+	BPF_FUNC_skb_change_tail = 38,
+	BPF_FUNC_skb_pull_data = 39,
+	BPF_FUNC_csum_update = 40,
+	BPF_FUNC_set_hash_invalid = 41,
+	BPF_FUNC_get_numa_node_id = 42,
+	BPF_FUNC_skb_change_head = 43,
+	BPF_FUNC_xdp_adjust_head = 44,
+	BPF_FUNC_probe_read_str = 45,
+	BPF_FUNC_get_socket_cookie = 46,
+	BPF_FUNC_get_socket_uid = 47,
+	BPF_FUNC_set_hash = 48,
+	BPF_FUNC_setsockopt = 49,
+	BPF_FUNC_skb_adjust_room = 50,
+	BPF_FUNC_redirect_map = 51,
+	BPF_FUNC_sk_redirect_map = 52,
+	BPF_FUNC_sock_map_update = 53,
+	BPF_FUNC_xdp_adjust_meta = 54,
+	BPF_FUNC_perf_event_read_value = 55,
+	BPF_FUNC_perf_prog_read_value = 56,
+	BPF_FUNC_getsockopt = 57,
+	BPF_FUNC_override_return = 58,
+	BPF_FUNC_sock_ops_cb_flags_set = 59,
+	BPF_FUNC_msg_redirect_map = 60,
+	BPF_FUNC_msg_apply_bytes = 61,
+	BPF_FUNC_msg_cork_bytes = 62,
+	BPF_FUNC_msg_pull_data = 63,
+	BPF_FUNC_bind = 64,
+	BPF_FUNC_xdp_adjust_tail = 65,
+	BPF_FUNC_skb_get_xfrm_state = 66,
+	BPF_FUNC_get_stack = 67,
+	BPF_FUNC_skb_load_bytes_relative = 68,
+	BPF_FUNC_fib_lookup = 69,
+	BPF_FUNC_sock_hash_update = 70,
+	BPF_FUNC_msg_redirect_hash = 71,
+	BPF_FUNC_sk_redirect_hash = 72,
+	BPF_FUNC_lwt_push_encap = 73,
+	BPF_FUNC_lwt_seg6_store_bytes = 74,
+	BPF_FUNC_lwt_seg6_adjust_srh = 75,
+	BPF_FUNC_lwt_seg6_action = 76,
+	BPF_FUNC_rc_repeat = 77,
+	BPF_FUNC_rc_keydown = 78,
+	BPF_FUNC_skb_cgroup_id = 79,
+	BPF_FUNC_get_current_cgroup_id = 80,
+	BPF_FUNC_get_local_storage = 81,
+	BPF_FUNC_sk_select_reuseport = 82,
+	BPF_FUNC_skb_ancestor_cgroup_id = 83,
+	BPF_FUNC_sk_lookup_tcp = 84,
+	BPF_FUNC_sk_lookup_udp = 85,
+	BPF_FUNC_sk_release = 86,
+	BPF_FUNC_map_push_elem = 87,
+	BPF_FUNC_map_pop_elem = 88,
+	BPF_FUNC_map_peek_elem = 89,
+	BPF_FUNC_msg_push_data = 90,
+	BPF_FUNC_msg_pop_data = 91,
+	BPF_FUNC_rc_pointer_rel = 92,
+	BPF_FUNC_spin_lock = 93,
+	BPF_FUNC_spin_unlock = 94,
+	BPF_FUNC_sk_fullsock = 95,
+	BPF_FUNC_tcp_sock = 96,
+	BPF_FUNC_skb_ecn_set_ce = 97,
+	BPF_FUNC_get_listener_sock = 98,
+	BPF_FUNC_skc_lookup_tcp = 99,
+	BPF_FUNC_tcp_check_syncookie = 100,
+	BPF_FUNC_sysctl_get_name = 101,
+	BPF_FUNC_sysctl_get_current_value = 102,
+	BPF_FUNC_sysctl_get_new_value = 103,
+	BPF_FUNC_sysctl_set_new_value = 104,
+	BPF_FUNC_strtol = 105,
+	BPF_FUNC_strtoul = 106,
+	BPF_FUNC_sk_storage_get = 107,
+	BPF_FUNC_sk_storage_delete = 108,
+	BPF_FUNC_send_signal = 109,
+	BPF_FUNC_tcp_gen_syncookie = 110,
+	BPF_FUNC_skb_output = 111,
+	BPF_FUNC_probe_read_user = 112,
+	BPF_FUNC_probe_read_kernel = 113,
+	BPF_FUNC_probe_read_user_str = 114,
+	BPF_FUNC_probe_read_kernel_str = 115,
+	BPF_FUNC_tcp_send_ack = 116,
+	BPF_FUNC_send_signal_thread = 117,
+	BPF_FUNC_jiffies64 = 118,
+	BPF_FUNC_read_branch_records = 119,
+	BPF_FUNC_get_ns_current_pid_tgid = 120,
+	BPF_FUNC_xdp_output = 121,
+	BPF_FUNC_get_netns_cookie = 122,
+	BPF_FUNC_get_current_ancestor_cgroup_id = 123,
+	BPF_FUNC_sk_assign = 124,
+	BPF_FUNC_ktime_get_boot_ns = 125,
+	BPF_FUNC_seq_printf = 126,
+	BPF_FUNC_seq_write = 127,
+	BPF_FUNC_sk_cgroup_id = 128,
+	BPF_FUNC_sk_ancestor_cgroup_id = 129,
+	BPF_FUNC_ringbuf_output = 130,
+	BPF_FUNC_ringbuf_reserve = 131,
+	BPF_FUNC_ringbuf_submit = 132,
+	BPF_FUNC_ringbuf_discard = 133,
+	BPF_FUNC_ringbuf_query = 134,
+	BPF_FUNC_csum_level = 135,
+	BPF_FUNC_skc_to_tcp6_sock = 136,
+	BPF_FUNC_skc_to_tcp_sock = 137,
+	BPF_FUNC_skc_to_tcp_timewait_sock = 138,
+	BPF_FUNC_skc_to_tcp_request_sock = 139,
+	BPF_FUNC_skc_to_udp6_sock = 140,
+	BPF_FUNC_get_task_stack = 141,
+	BPF_FUNC_load_hdr_opt = 142,
+	BPF_FUNC_store_hdr_opt = 143,
+	BPF_FUNC_reserve_hdr_opt = 144,
+	BPF_FUNC_inode_storage_get = 145,
+	BPF_FUNC_inode_storage_delete = 146,
+	BPF_FUNC_d_path = 147,
+	BPF_FUNC_copy_from_user = 148,
+	BPF_FUNC_snprintf_btf = 149,
+	BPF_FUNC_seq_printf_btf = 150,
+	BPF_FUNC_skb_cgroup_classid = 151,
+	BPF_FUNC_redirect_neigh = 152,
+	BPF_FUNC_per_cpu_ptr = 153,
+	BPF_FUNC_this_cpu_ptr = 154,
+	BPF_FUNC_redirect_peer = 155,
+	BPF_FUNC_task_storage_get = 156,
+	BPF_FUNC_task_storage_delete = 157,
+	BPF_FUNC_get_current_task_btf = 158,
+	BPF_FUNC_bprm_opts_set = 159,
+	BPF_FUNC_ktime_get_coarse_ns = 160,
+	BPF_FUNC_ima_inode_hash = 161,
+	BPF_FUNC_sock_from_file = 162,
+	BPF_FUNC_check_mtu = 163,
+	BPF_FUNC_for_each_map_elem = 164,
+	BPF_FUNC_snprintf = 165,
+	BPF_FUNC_sys_bpf = 166,
+	BPF_FUNC_btf_find_by_name_kind = 167,
+	BPF_FUNC_sys_close = 168,
+	BPF_FUNC_timer_init = 169,
+	BPF_FUNC_timer_set_callback = 170,
+	BPF_FUNC_timer_start = 171,
+	BPF_FUNC_timer_cancel = 172,
+	BPF_FUNC_get_func_ip = 173,
+	BPF_FUNC_get_attach_cookie = 174,
+	BPF_FUNC_task_pt_regs = 175,
+	BPF_FUNC_get_branch_snapshot = 176,
+	BPF_FUNC_trace_vprintk = 177,
+	BPF_FUNC_skc_to_unix_sock = 178,
+	BPF_FUNC_kallsyms_lookup_name = 179,
+	BPF_FUNC_find_vma = 180,
+	BPF_FUNC_loop = 181,
+	BPF_FUNC_strncmp = 182,
+	BPF_FUNC_get_func_arg = 183,
+	BPF_FUNC_get_func_ret = 184,
+	BPF_FUNC_get_func_arg_cnt = 185,
+	BPF_FUNC_get_retval = 186,
+	BPF_FUNC_set_retval = 187,
+	BPF_FUNC_xdp_get_buff_len = 188,
+	BPF_FUNC_xdp_load_bytes = 189,
+	BPF_FUNC_xdp_store_bytes = 190,
+	BPF_FUNC_copy_from_user_task = 191,
+	BPF_FUNC_skb_set_tstamp = 192,
+	BPF_FUNC_ima_file_hash = 193,
+	BPF_FUNC_kptr_xchg = 194,
+	BPF_FUNC_map_lookup_percpu_elem = 195,
+	BPF_FUNC_skc_to_mptcp_sock = 196,
+	BPF_FUNC_dynptr_from_mem = 197,
+	BPF_FUNC_ringbuf_reserve_dynptr = 198,
+	BPF_FUNC_ringbuf_submit_dynptr = 199,
+	BPF_FUNC_ringbuf_discard_dynptr = 200,
+	BPF_FUNC_dynptr_read = 201,
+	BPF_FUNC_dynptr_write = 202,
+	BPF_FUNC_dynptr_data = 203,
+	BPF_FUNC_tcp_raw_gen_syncookie_ipv4 = 204,
+	BPF_FUNC_tcp_raw_gen_syncookie_ipv6 = 205,
+	BPF_FUNC_tcp_raw_check_syncookie_ipv4 = 206,
+	BPF_FUNC_tcp_raw_check_syncookie_ipv6 = 207,
+	__BPF_FUNC_MAX_ID = 208,
+};
+
+enum {
+	BPF_F_INDEX_MASK = 4294967295,
+	BPF_F_CURRENT_CPU = 4294967295,
+	BPF_F_CTXLEN_MASK = 0,
+};
+
+enum {
+	BPF_F_GET_BRANCH_RECORDS_SIZE = 1,
+};
+
+struct bpf_perf_event_value {
+	__u64 counter;
+	__u64 enabled;
+	__u64 running;
+};
+
+struct bpf_raw_tracepoint_args {
+	__u64 args[0];
+};
+
+enum bpf_task_fd_type {
+	BPF_FD_TYPE_RAW_TRACEPOINT = 0,
+	BPF_FD_TYPE_TRACEPOINT = 1,
+	BPF_FD_TYPE_KPROBE = 2,
+	BPF_FD_TYPE_KRETPROBE = 3,
+	BPF_FD_TYPE_UPROBE = 4,
+	BPF_FD_TYPE_URETPROBE = 5,
+};
+
+struct btf_ptr {
+	void *ptr;
+	__u32 type_id;
+	__u32 flags;
+};
+
+enum {
+	BTF_F_COMPACT = 1,
+	BTF_F_NONAME = 2,
+	BTF_F_PTR_RAW = 4,
+	BTF_F_ZERO = 8,
+};
+
+struct bpf_local_storage_data;
+
+struct bpf_local_storage {
+	struct bpf_local_storage_data *cache[16];
+	struct hlist_head list;
+	void *owner;
+	struct callback_head rcu;
+	raw_spinlock_t lock;
+};
+
+struct btf_id_set {
+	u32 cnt;
+	u32 ids[0];
+};
+
+struct bpf_local_storage_map_bucket;
+
+struct bpf_local_storage_map {
+	struct bpf_map map;
+	struct bpf_local_storage_map_bucket *buckets;
+	u32 bucket_log;
+	u16 elem_size;
+	u16 cache_idx;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_func_proto {
+	u64 (*func)(u64, u64, u64, u64, u64);
+	bool gpl_only;
+	bool pkt_access;
+	enum bpf_return_type ret_type;
+	union {
+		struct {
+			enum bpf_arg_type arg1_type;
+			enum bpf_arg_type arg2_type;
+			enum bpf_arg_type arg3_type;
+			enum bpf_arg_type arg4_type;
+			enum bpf_arg_type arg5_type;
+		};
+		enum bpf_arg_type arg_type[5];
+	};
+	union {
+		struct {
+			u32 *arg1_btf_id;
+			u32 *arg2_btf_id;
+			u32 *arg3_btf_id;
+			u32 *arg4_btf_id;
+			u32 *arg5_btf_id;
+		};
+		u32 *arg_btf_id[5];
+		struct {
+			size_t arg1_size;
+			size_t arg2_size;
+			size_t arg3_size;
+			size_t arg4_size;
+			size_t arg5_size;
+		};
+		size_t arg_size[5];
+	};
+	int *ret_btf_id;
+	bool (*allowed)(const struct bpf_prog *);
+};
+
+enum bpf_access_type {
+	BPF_READ = 1,
+	BPF_WRITE = 2,
+};
+
+struct bpf_verifier_log;
+
+struct bpf_insn_access_aux {
+	enum bpf_reg_type reg_type;
+	union {
+		int ctx_field_size;
+		struct {
+			struct btf *btf;
+			u32 btf_id;
+		};
+	};
+	struct bpf_verifier_log *log;
+};
+
+struct bpf_verifier_ops {
+	const struct bpf_func_proto * (*get_func_proto)(enum bpf_func_id, const struct bpf_prog *);
+	bool (*is_valid_access)(int, int, enum bpf_access_type, const struct bpf_prog *, struct bpf_insn_access_aux *);
+	int (*gen_prologue)(struct bpf_insn *, bool, const struct bpf_prog *);
+	int (*gen_ld_abs)(const struct bpf_insn *, struct bpf_insn *);
+	u32 (*convert_ctx_access)(enum bpf_access_type, const struct bpf_insn *, struct bpf_insn *, struct bpf_prog *, u32 *);
+	int (*btf_struct_access)(struct bpf_verifier_log *, const struct btf *, const struct btf_type *, int, int, enum bpf_access_type, u32 *, enum bpf_type_flag *);
+};
+
+struct bpf_event_entry {
+	struct perf_event *event;
+	struct file *perf_file;
+	struct file *map_file;
+	struct callback_head rcu;
+};
+
+typedef long unsigned int (*bpf_ctx_copy_t)(void *, const void *, long unsigned int, long unsigned int);
+
+struct bpf_trace_run_ctx {
+	struct bpf_run_ctx run_ctx;
+	u64 bpf_cookie;
+};
+
+typedef u32 (*bpf_prog_run_fn)(const struct bpf_prog *, const void *);
+
+typedef struct pt_regs bpf_user_pt_regs_t;
+
+struct bpf_perf_event_data {
+	bpf_user_pt_regs_t regs;
+	__u64 sample_period;
+	__u64 addr;
+};
+
+struct perf_event_query_bpf {
+	__u32 ids_len;
+	__u32 prog_cnt;
+	__u32 ids[0];
+};
+
+struct bpf_perf_event_data_kern {
+	bpf_user_pt_regs_t *regs;
+	struct perf_sample_data *data;
+	struct perf_event *event;
+};
+
+enum {
+	BTF_TRACING_TYPE_TASK = 0,
+	BTF_TRACING_TYPE_FILE = 1,
+	BTF_TRACING_TYPE_VMA = 2,
+	MAX_BTF_TRACING_TYPE = 3,
+};
+
+struct bpf_local_storage_map_bucket {
+	struct hlist_head list;
+	raw_spinlock_t lock;
+};
+
+struct bpf_local_storage_data {
+	struct bpf_local_storage_map *smap;
+	u8 data[0];
+};
+
+struct trace_event_raw_bpf_trace_printk {
+	struct trace_entry ent;
+	u32 __data_loc_bpf_string;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_bpf_trace_printk {
+	u32 bpf_string;
+};
+
+typedef void (*btf_trace_bpf_trace_printk)(void *, const char *);
+
+struct bpf_trace_module {
+	struct module *module;
+	struct list_head list;
+};
+
+typedef u64 (*btf_bpf_override_return)(struct pt_regs *, long unsigned int);
+
+typedef u64 (*btf_bpf_probe_read_user)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_user_str)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_kernel)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_kernel_str)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_compat)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_read_compat_str)(void *, u32, const void *);
+
+typedef u64 (*btf_bpf_probe_write_user)(void *, const void *, u32);
+
+typedef u64 (*btf_bpf_trace_printk)(char *, u32, u64, u64, u64);
+
+typedef u64 (*btf_bpf_trace_vprintk)(char *, u32, const void *, u32);
+
+typedef u64 (*btf_bpf_seq_printf)(struct seq_file *, char *, u32, const void *, u32);
+
+typedef u64 (*btf_bpf_seq_write)(struct seq_file *, const void *, u32);
+
+typedef u64 (*btf_bpf_seq_printf_btf)(struct seq_file *, struct btf_ptr *, u32, u64);
+
+typedef u64 (*btf_bpf_perf_event_read)(struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_perf_event_read_value)(struct bpf_map *, u64, struct bpf_perf_event_value *, u32);
+
+struct bpf_trace_sample_data {
+	struct perf_sample_data sds[3];
+};
+
+typedef u64 (*btf_bpf_perf_event_output)(struct pt_regs *, struct bpf_map *, u64, void *, u64);
+
+struct bpf_nested_pt_regs {
+	struct pt_regs regs[3];
+};
+
+typedef u64 (*btf_bpf_get_current_task)();
+
+typedef u64 (*btf_bpf_get_current_task_btf)();
+
+typedef u64 (*btf_bpf_task_pt_regs)(struct task_struct *);
+
+typedef u64 (*btf_bpf_current_task_under_cgroup)(struct bpf_map *, u32);
+
+struct send_signal_irq_work {
+	struct irq_work irq_work;
+	struct task_struct *task;
+	u32 sig;
+	enum pid_type type;
+};
+
+typedef u64 (*btf_bpf_send_signal)(u32);
+
+typedef u64 (*btf_bpf_send_signal_thread)(u32);
+
+typedef u64 (*btf_bpf_d_path)(struct path *, char *, u32);
+
+typedef u64 (*btf_bpf_snprintf_btf)(char *, u32, struct btf_ptr *, u32, u64);
+
+typedef u64 (*btf_bpf_get_func_ip_tracing)(void *);
+
+typedef u64 (*btf_bpf_get_func_ip_kprobe)(struct pt_regs *);
+
+typedef u64 (*btf_bpf_get_func_ip_kprobe_multi)(struct pt_regs *);
+
+typedef u64 (*btf_bpf_get_attach_cookie_kprobe_multi)(struct pt_regs *);
+
+typedef u64 (*btf_bpf_get_attach_cookie_trace)(void *);
+
+typedef u64 (*btf_bpf_get_attach_cookie_pe)(struct bpf_perf_event_data_kern *);
+
+typedef u64 (*btf_bpf_get_attach_cookie_tracing)(void *);
+
+typedef u64 (*btf_bpf_get_branch_snapshot)(void *, u32, u64);
+
+typedef u64 (*btf_get_func_arg)(void *, u32, u64 *);
+
+typedef u64 (*btf_get_func_ret)(void *, u64 *);
+
+typedef u64 (*btf_get_func_arg_cnt)(void *);
+
+typedef u64 (*btf_bpf_perf_event_output_tp)(void *, struct bpf_map *, u64, void *, u64);
+
+typedef u64 (*btf_bpf_get_stackid_tp)(void *, struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_get_stack_tp)(void *, void *, u32, u64);
+
+typedef u64 (*btf_bpf_perf_prog_read_value)(struct bpf_perf_event_data_kern *, struct bpf_perf_event_value *, u32);
+
+typedef u64 (*btf_bpf_read_branch_records)(struct bpf_perf_event_data_kern *, void *, u32, u64);
+
+struct bpf_raw_tp_regs {
+	struct pt_regs regs[3];
+};
+
+typedef u64 (*btf_bpf_perf_event_output_raw_tp)(struct bpf_raw_tracepoint_args *, struct bpf_map *, u64, void *, u64);
+
+typedef u64 (*btf_bpf_get_stackid_raw_tp)(struct bpf_raw_tracepoint_args *, struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_get_stack_raw_tp)(struct bpf_raw_tracepoint_args *, void *, u32, u64);
+
+struct kprobe_trace_entry_head {
+	struct trace_entry ent;
+	long unsigned int ip;
+};
+
+struct kretprobe_trace_entry_head {
+	struct trace_entry ent;
+	long unsigned int func;
+	long unsigned int ret_ip;
+};
+
+struct event_file_link {
+	struct trace_event_file *file;
+	struct list_head list;
+};
+
+struct trace_kprobe {
+	struct dyn_event devent;
+	struct kretprobe rp;
+	long unsigned int *nhit;
+	const char *symbol;
+	struct trace_probe tp;
+};
+
+struct trace_event_raw_error_report_template {
+	struct trace_entry ent;
+	enum error_detector error_detector;
+	long unsigned int id;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_error_report_template {};
+
+typedef void (*btf_trace_error_report_end)(void *, enum error_detector, long unsigned int);
+
+struct trace_event_raw_cpu {
+	struct trace_entry ent;
+	u32 state;
+	u32 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_powernv_throttle {
+	struct trace_entry ent;
+	int chip_id;
+	u32 __data_loc_reason;
+	int pmax;
+	char __data[0];
+};
+
+struct trace_event_raw_pstate_sample {
+	struct trace_entry ent;
+	u32 core_busy;
+	u32 scaled_busy;
+	u32 from;
+	u32 to;
+	u64 mperf;
+	u64 aperf;
+	u64 tsc;
+	u32 freq;
+	u32 io_boost;
+	char __data[0];
+};
+
+struct trace_event_raw_cpu_frequency_limits {
+	struct trace_entry ent;
+	u32 min_freq;
+	u32 max_freq;
+	u32 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_device_pm_callback_start {
+	struct trace_entry ent;
+	u32 __data_loc_device;
+	u32 __data_loc_driver;
+	u32 __data_loc_parent;
+	u32 __data_loc_pm_ops;
+	int event;
+	char __data[0];
+};
+
+struct trace_event_raw_device_pm_callback_end {
+	struct trace_entry ent;
+	u32 __data_loc_device;
+	u32 __data_loc_driver;
+	int error;
+	char __data[0];
+};
+
+struct trace_event_raw_suspend_resume {
+	struct trace_entry ent;
+	const char *action;
+	int val;
+	bool start;
+	char __data[0];
+};
+
+struct trace_event_raw_wakeup_source {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u64 state;
+	char __data[0];
+};
+
+struct trace_event_raw_clock {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u64 state;
+	u64 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_power_domain {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	u64 state;
+	u64 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_cpu_latency_qos_request {
+	struct trace_entry ent;
+	s32 value;
+	char __data[0];
+};
+
+struct trace_event_raw_pm_qos_update {
+	struct trace_entry ent;
+	enum pm_qos_req_action action;
+	int prev_value;
+	int curr_value;
+	char __data[0];
+};
+
+struct trace_event_raw_dev_pm_qos_request {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	enum dev_pm_qos_req_type type;
+	s32 new_value;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_cpu {};
+
+struct trace_event_data_offsets_powernv_throttle {
+	u32 reason;
+};
+
+struct trace_event_data_offsets_pstate_sample {};
+
+struct trace_event_data_offsets_cpu_frequency_limits {};
+
+struct trace_event_data_offsets_device_pm_callback_start {
+	u32 device;
+	u32 driver;
+	u32 parent;
+	u32 pm_ops;
+};
+
+struct trace_event_data_offsets_device_pm_callback_end {
+	u32 device;
+	u32 driver;
+};
+
+struct trace_event_data_offsets_suspend_resume {};
+
+struct trace_event_data_offsets_wakeup_source {
+	u32 name;
+};
+
+struct trace_event_data_offsets_clock {
+	u32 name;
+};
+
+struct trace_event_data_offsets_power_domain {
+	u32 name;
+};
+
+struct trace_event_data_offsets_cpu_latency_qos_request {};
+
+struct trace_event_data_offsets_pm_qos_update {};
+
+struct trace_event_data_offsets_dev_pm_qos_request {
+	u32 name;
+};
+
+typedef void (*btf_trace_cpu_idle)(void *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_powernv_throttle)(void *, int, const char *, int);
+
+typedef void (*btf_trace_pstate_sample)(void *, u32, u32, u32, u32, u64, u64, u64, u32, u32);
+
+typedef void (*btf_trace_cpu_frequency)(void *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_cpu_frequency_limits)(void *, struct cpufreq_policy *);
+
+typedef void (*btf_trace_device_pm_callback_start)(void *, struct device *, const char *, int);
+
+typedef void (*btf_trace_device_pm_callback_end)(void *, struct device *, int);
+
+typedef void (*btf_trace_suspend_resume)(void *, const char *, int, bool);
+
+typedef void (*btf_trace_wakeup_source_activate)(void *, const char *, unsigned int);
+
+typedef void (*btf_trace_wakeup_source_deactivate)(void *, const char *, unsigned int);
+
+typedef void (*btf_trace_clock_enable)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_clock_disable)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_clock_set_rate)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_power_domain_target)(void *, const char *, unsigned int, unsigned int);
+
+typedef void (*btf_trace_pm_qos_add_request)(void *, s32);
+
+typedef void (*btf_trace_pm_qos_update_request)(void *, s32);
+
+typedef void (*btf_trace_pm_qos_remove_request)(void *, s32);
+
+typedef void (*btf_trace_pm_qos_update_target)(void *, enum pm_qos_req_action, int, int);
+
+typedef void (*btf_trace_pm_qos_update_flags)(void *, enum pm_qos_req_action, int, int);
+
+typedef void (*btf_trace_dev_pm_qos_add_request)(void *, const char *, enum dev_pm_qos_req_type, s32);
+
+typedef void (*btf_trace_dev_pm_qos_update_request)(void *, const char *, enum dev_pm_qos_req_type, s32);
+
+typedef void (*btf_trace_dev_pm_qos_remove_request)(void *, const char *, enum dev_pm_qos_req_type, s32);
+
+struct trace_event_raw_rpm_internal {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	int flags;
+	int usage_count;
+	int disable_depth;
+	int runtime_auto;
+	int request_pending;
+	int irq_safe;
+	int child_count;
+	char __data[0];
+};
+
+struct trace_event_raw_rpm_return_int {
+	struct trace_entry ent;
+	u32 __data_loc_name;
+	long unsigned int ip;
+	int ret;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_rpm_internal {
+	u32 name;
+};
+
+struct trace_event_data_offsets_rpm_return_int {
+	u32 name;
+};
+
+typedef void (*btf_trace_rpm_suspend)(void *, struct device *, int);
+
+typedef void (*btf_trace_rpm_resume)(void *, struct device *, int);
+
+typedef void (*btf_trace_rpm_idle)(void *, struct device *, int);
+
+typedef void (*btf_trace_rpm_usage)(void *, struct device *, int);
+
+typedef void (*btf_trace_rpm_return_int)(void *, struct device *, long unsigned int, int);
+
+typedef int (*dynevent_check_arg_fn_t)(void *);
+
+struct trace_probe_log {
+	const char *subsystem;
+	const char **argv;
+	int argc;
+	int index;
+};
+
+enum uprobe_filter_ctx {
+	UPROBE_FILTER_REGISTER = 0,
+	UPROBE_FILTER_UNREGISTER = 1,
+	UPROBE_FILTER_MMAP = 2,
+};
+
+struct uprobe_consumer {
+	int (*handler)(struct uprobe_consumer *, struct pt_regs *);
+	int (*ret_handler)(struct uprobe_consumer *, long unsigned int, struct pt_regs *);
+	bool (*filter)(struct uprobe_consumer *, enum uprobe_filter_ctx, struct mm_struct *);
+	struct uprobe_consumer *next;
+};
+
+struct uprobe_trace_entry_head {
+	struct trace_entry ent;
+	long unsigned int vaddr[0];
+};
+
+struct trace_uprobe {
+	struct dyn_event devent;
+	struct uprobe_consumer consumer;
+	struct path path;
+	struct inode *inode;
+	char *filename;
+	long unsigned int offset;
+	long unsigned int ref_ctr_offset;
+	long unsigned int nhit;
+	struct trace_probe tp;
+};
+
+struct uprobe_dispatch_data {
+	struct trace_uprobe *tu;
+	long unsigned int bp_addr;
+};
+
+struct uprobe_cpu_buffer {
+	struct mutex mutex;
+	void *buf;
+};
+
+typedef bool (*filter_func_t)(struct uprobe_consumer *, enum uprobe_filter_ctx, struct mm_struct *);
+
+enum xdp_action {
+	XDP_ABORTED = 0,
+	XDP_DROP = 1,
+	XDP_PASS = 2,
+	XDP_TX = 3,
+	XDP_REDIRECT = 4,
+};
+
+struct rhash_lock_head;
+
+struct bucket_table {
+	unsigned int size;
+	unsigned int nest;
+	u32 hash_rnd;
+	struct list_head walkers;
+	struct callback_head rcu;
+	struct bucket_table *future_tbl;
+	struct lockdep_map dep_map;
+	long: 64;
+	struct rhash_lock_head *buckets[0];
+};
+
+typedef sockptr_t bpfptr_t;
+
+struct bpf_verifier_log {
+	u32 level;
+	char kbuf[1024];
+	char *ubuf;
+	u32 len_used;
+	u32 len_total;
+};
+
+struct bpf_subprog_info {
+	u32 start;
+	u32 linfo_idx;
+	u16 stack_depth;
+	bool has_tail_call;
+	bool tail_call_reachable;
+	bool has_ld_abs;
+	bool is_async_cb;
+};
+
+struct bpf_id_pair {
+	u32 old;
+	u32 cur;
+};
+
+struct bpf_verifier_stack_elem;
+
+struct bpf_verifier_state;
+
+struct bpf_verifier_state_list;
+
+struct bpf_insn_aux_data;
+
+struct bpf_verifier_env {
+	u32 insn_idx;
+	u32 prev_insn_idx;
+	struct bpf_prog *prog;
+	const struct bpf_verifier_ops *ops;
+	struct bpf_verifier_stack_elem *head;
+	int stack_size;
+	bool strict_alignment;
+	bool test_state_freq;
+	struct bpf_verifier_state *cur_state;
+	struct bpf_verifier_state_list **explored_states;
+	struct bpf_verifier_state_list *free_list;
+	struct bpf_map *used_maps[64];
+	struct btf_mod_pair used_btfs[64];
+	u32 used_map_cnt;
+	u32 used_btf_cnt;
+	u32 id_gen;
+	bool explore_alu_limits;
+	bool allow_ptr_leaks;
+	bool allow_uninit_stack;
+	bool allow_ptr_to_map_access;
+	bool bpf_capable;
+	bool bypass_spec_v1;
+	bool bypass_spec_v4;
+	bool seen_direct_write;
+	struct bpf_insn_aux_data *insn_aux_data;
+	const struct bpf_line_info *prev_linfo;
+	struct bpf_verifier_log log;
+	struct bpf_subprog_info subprog_info[257];
+	struct bpf_id_pair idmap_scratch[75];
+	struct {
+		int *insn_state;
+		int *insn_stack;
+		int cur_stack;
+	} cfg;
+	u32 pass_cnt;
+	u32 subprog_cnt;
+	u32 prev_insn_processed;
+	u32 insn_processed;
+	u32 prev_jmps_processed;
+	u32 jmps_processed;
+	u64 verification_time;
+	u32 max_states_per_insn;
+	u32 total_states;
+	u32 peak_states;
+	u32 longest_mark_read_walk;
+	bpfptr_t fd_array;
+	u32 scratched_regs;
+	u64 scratched_stack_slots;
+	u32 prev_log_len;
+	u32 prev_insn_print_len;
+	char type_str_buf[64];
+};
+
+enum bpf_dynptr_type {
+	BPF_DYNPTR_TYPE_INVALID = 0,
+	BPF_DYNPTR_TYPE_LOCAL = 1,
+	BPF_DYNPTR_TYPE_RINGBUF = 2,
+};
+
+struct tnum {
+	u64 value;
+	u64 mask;
+};
+
+enum bpf_reg_liveness {
+	REG_LIVE_NONE = 0,
+	REG_LIVE_READ32 = 1,
+	REG_LIVE_READ64 = 2,
+	REG_LIVE_READ = 3,
+	REG_LIVE_WRITTEN = 4,
+	REG_LIVE_DONE = 8,
+};
+
+struct bpf_reg_state {
+	enum bpf_reg_type type;
+	s32 off;
+	union {
+		int range;
+		struct {
+			struct bpf_map *map_ptr;
+			u32 map_uid;
+		};
+		struct {
+			struct btf *btf;
+			u32 btf_id;
+		};
+		u32 mem_size;
+		struct {
+			enum bpf_dynptr_type type;
+			bool first_slot;
+		} dynptr;
+		struct {
+			long unsigned int raw1;
+			long unsigned int raw2;
+		} raw;
+		u32 subprogno;
+	};
+	u32 id;
+	u32 ref_obj_id;
+	struct tnum var_off;
+	s64 smin_value;
+	s64 smax_value;
+	u64 umin_value;
+	u64 umax_value;
+	s32 s32_min_value;
+	s32 s32_max_value;
+	u32 u32_min_value;
+	u32 u32_max_value;
+	struct bpf_reg_state *parent;
+	u32 frameno;
+	s32 subreg_def;
+	enum bpf_reg_liveness live;
+	bool precise;
+};
+
+struct bpf_reference_state;
+
+struct bpf_stack_state;
+
+struct bpf_func_state {
+	struct bpf_reg_state regs[11];
+	int callsite;
+	u32 frameno;
+	u32 subprogno;
+	u32 async_entry_cnt;
+	bool in_callback_fn;
+	bool in_async_callback_fn;
+	int acquired_refs;
+	struct bpf_reference_state *refs;
+	int allocated_stack;
+	struct bpf_stack_state *stack;
+};
+
+struct bpf_empty_prog_array {
+	struct bpf_prog_array hdr;
+	struct bpf_prog *null_prog;
+};
+
+enum xdp_mem_type {
+	MEM_TYPE_PAGE_SHARED = 0,
+	MEM_TYPE_PAGE_ORDER0 = 1,
+	MEM_TYPE_PAGE_POOL = 2,
+	MEM_TYPE_XSK_BUFF_POOL = 3,
+	MEM_TYPE_MAX = 4,
+};
+
+struct xdp_cpumap_stats {
+	unsigned int redirect;
+	unsigned int pass;
+	unsigned int drop;
+};
+
+typedef void (*bpf_jit_fill_hole_t)(void *, unsigned int);
+
+struct bpf_stack_state {
+	struct bpf_reg_state spilled_ptr;
+	u8 slot_type[8];
+};
+
+struct bpf_reference_state {
+	int id;
+	int insn_idx;
+};
+
+struct bpf_idx_pair {
+	u32 prev_idx;
+	u32 idx;
+};
+
+struct bpf_verifier_state {
+	struct bpf_func_state *frame[8];
+	struct bpf_verifier_state *parent;
+	u32 branches;
+	u32 insn_idx;
+	u32 curframe;
+	u32 active_spin_lock;
+	bool speculative;
+	u32 first_insn_idx;
+	u32 last_insn_idx;
+	struct bpf_idx_pair *jmp_history;
+	u32 jmp_history_cnt;
+};
+
+struct bpf_verifier_state_list {
+	struct bpf_verifier_state state;
+	struct bpf_verifier_state_list *next;
+	int miss_cnt;
+	int hit_cnt;
+};
+
+struct bpf_loop_inline_state {
+	int initialized: 1;
+	int fit_for_inline: 1;
+	u32 callback_subprogno;
+};
+
+struct bpf_insn_aux_data {
+	union {
+		enum bpf_reg_type ptr_type;
+		long unsigned int map_ptr_state;
+		s32 call_imm;
+		u32 alu_limit;
+		struct {
+			u32 map_index;
+			u32 map_off;
+		};
+		struct {
+			enum bpf_reg_type reg_type;
+			union {
+				struct {
+					struct btf *btf;
+					u32 btf_id;
+				};
+				u32 mem_size;
+			};
+		} btf_var;
+		struct bpf_loop_inline_state loop_inline_state;
+	};
+	u64 map_key_state;
+	int ctx_field_size;
+	u32 seen;
+	bool sanitize_stack_spill;
+	bool zext_dst;
+	u8 alu_state;
+	unsigned int orig_idx;
+	bool prune_point;
+};
+
+struct bpf_prog_pack {
+	struct list_head list;
+	void *ptr;
+	long unsigned int bitmap[0];
+};
+
+struct bpf_prog_dummy {
+	struct bpf_prog prog;
+};
+
+typedef u64 (*btf_bpf_user_rnd_u32)();
+
+typedef u64 (*btf_bpf_get_raw_cpu_id)();
+
+struct _bpf_dtab_netdev {
+	struct net_device *dev;
+};
+
+struct rhash_lock_head {};
+
+struct xdp_mem_allocator {
+	struct xdp_mem_info mem;
+	union {
+		void *allocator;
+		struct page_pool *page_pool;
+	};
+	struct rhash_head node;
+	struct callback_head rcu;
+};
+
+struct trace_event_raw_xdp_exception {
+	struct trace_entry ent;
+	int prog_id;
+	u32 act;
+	int ifindex;
+	char __data[0];
+};
+
+struct trace_event_raw_xdp_bulk_tx {
+	struct trace_entry ent;
+	int ifindex;
+	u32 act;
+	int drops;
+	int sent;
+	int err;
