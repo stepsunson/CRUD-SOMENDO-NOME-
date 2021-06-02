@@ -44851,3 +44851,2062 @@ struct bpf_ringbuf {
 	long: 64;
 	long: 64;
 	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long unsigned int producer_pos;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	char data[0];
+};
+
+struct bpf_ringbuf_map {
+	struct bpf_map map;
+	struct bpf_ringbuf *rb;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_ringbuf_hdr {
+	u32 len;
+	u32 pg_off;
+};
+
+typedef u64 (*btf_bpf_ringbuf_reserve)(struct bpf_map *, u64, u64);
+
+typedef u64 (*btf_bpf_ringbuf_submit)(void *, u64);
+
+typedef u64 (*btf_bpf_ringbuf_discard)(void *, u64);
+
+typedef u64 (*btf_bpf_ringbuf_output)(struct bpf_map *, void *, u64, u64);
+
+typedef u64 (*btf_bpf_ringbuf_query)(struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_ringbuf_reserve_dynptr)(struct bpf_map *, u32, u64, struct bpf_dynptr_kern *);
+
+typedef u64 (*btf_bpf_ringbuf_submit_dynptr)(struct bpf_dynptr_kern *, u64);
+
+typedef u64 (*btf_bpf_ringbuf_discard_dynptr)(struct bpf_dynptr_kern *, u64);
+
+struct bpf_local_storage_elem {
+	struct hlist_node map_node;
+	struct hlist_node snode;
+	struct bpf_local_storage *local_storage;
+	struct callback_head rcu;
+	long: 64;
+	struct bpf_local_storage_data sdata;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_local_storage_cache {
+	spinlock_t idx_lock;
+	u64 idx_usage_counts[16];
+};
+
+enum {
+	BPF_LOCAL_STORAGE_GET_F_CREATE = 1,
+	BPF_SK_STORAGE_GET_F_CREATE = 1,
+};
+
+typedef u64 (*btf_bpf_task_storage_get)(struct bpf_map *, struct task_struct *, void *, u64, gfp_t);
+
+typedef u64 (*btf_bpf_task_storage_delete)(struct bpf_map *, struct task_struct *);
+
+struct lsm_blob_sizes {
+	int lbs_cred;
+	int lbs_file;
+	int lbs_inode;
+	int lbs_superblock;
+	int lbs_ipc;
+	int lbs_msg_msg;
+	int lbs_task;
+};
+
+struct bpf_storage_blob {
+	struct bpf_local_storage *storage;
+};
+
+typedef u64 (*btf_bpf_inode_storage_get)(struct bpf_map *, struct inode *, void *, u64, gfp_t);
+
+typedef u64 (*btf_bpf_inode_storage_delete)(struct bpf_map *, struct inode *);
+
+struct btf_enum {
+	__u32 name_off;
+	__s32 val;
+};
+
+struct btf_array {
+	__u32 type;
+	__u32 index_type;
+	__u32 nelems;
+};
+
+enum {
+	BTF_VAR_STATIC = 0,
+	BTF_VAR_GLOBAL_ALLOCATED = 1,
+	BTF_VAR_GLOBAL_EXTERN = 2,
+};
+
+struct btf_var {
+	__u32 linkage;
+};
+
+struct btf_decl_tag {
+	__s32 component_idx;
+};
+
+struct btf_enum64 {
+	__u32 name_off;
+	__u32 val_lo32;
+	__u32 val_hi32;
+};
+
+struct bpf_flow_keys {
+	__u16 nhoff;
+	__u16 thoff;
+	__u16 addr_proto;
+	__u8 is_frag;
+	__u8 is_first_frag;
+	__u8 is_encap;
+	__u8 ip_proto;
+	__be16 n_proto;
+	__be16 sport;
+	__be16 dport;
+	union {
+		struct {
+			__be32 ipv4_src;
+			__be32 ipv4_dst;
+		};
+		struct {
+			__u32 ipv6_src[4];
+			__u32 ipv6_dst[4];
+		};
+	};
+	__u32 flags;
+	__be32 flow_label;
+};
+
+struct bpf_sock {
+	__u32 bound_dev_if;
+	__u32 family;
+	__u32 type;
+	__u32 protocol;
+	__u32 mark;
+	__u32 priority;
+	__u32 src_ip4;
+	__u32 src_ip6[4];
+	__u32 src_port;
+	__be16 dst_port;
+	__u32 dst_ip4;
+	__u32 dst_ip6[4];
+	__u32 state;
+	__s32 rx_queue_mapping;
+};
+
+struct __sk_buff {
+	__u32 len;
+	__u32 pkt_type;
+	__u32 mark;
+	__u32 queue_mapping;
+	__u32 protocol;
+	__u32 vlan_present;
+	__u32 vlan_tci;
+	__u32 vlan_proto;
+	__u32 priority;
+	__u32 ingress_ifindex;
+	__u32 ifindex;
+	__u32 tc_index;
+	__u32 cb[5];
+	__u32 hash;
+	__u32 tc_classid;
+	__u32 data;
+	__u32 data_end;
+	__u32 napi_id;
+	__u32 family;
+	__u32 remote_ip4;
+	__u32 local_ip4;
+	__u32 remote_ip6[4];
+	__u32 local_ip6[4];
+	__u32 remote_port;
+	__u32 local_port;
+	__u32 data_meta;
+	union {
+		struct bpf_flow_keys *flow_keys;
+	};
+	__u64 tstamp;
+	__u32 wire_len;
+	__u32 gso_segs;
+	union {
+		struct bpf_sock *sk;
+	};
+	__u32 gso_size;
+	__u8 tstamp_type;
+	__u64 hwtstamp;
+};
+
+struct xdp_md {
+	__u32 data;
+	__u32 data_end;
+	__u32 data_meta;
+	__u32 ingress_ifindex;
+	__u32 rx_queue_index;
+	__u32 egress_ifindex;
+};
+
+struct sk_msg_md {
+	union {
+		void *data;
+	};
+	union {
+		void *data_end;
+	};
+	__u32 family;
+	__u32 remote_ip4;
+	__u32 local_ip4;
+	__u32 remote_ip6[4];
+	__u32 local_ip6[4];
+	__u32 remote_port;
+	__u32 local_port;
+	__u32 size;
+	union {
+		struct bpf_sock *sk;
+	};
+};
+
+struct sk_reuseport_md {
+	union {
+		void *data;
+	};
+	union {
+		void *data_end;
+	};
+	__u32 len;
+	__u32 eth_protocol;
+	__u32 ip_protocol;
+	__u32 bind_inany;
+	__u32 hash;
+	union {
+		struct bpf_sock *sk;
+	};
+	union {
+		struct bpf_sock *migrating_sk;
+	};
+};
+
+struct bpf_sock_addr {
+	__u32 user_family;
+	__u32 user_ip4;
+	__u32 user_ip6[4];
+	__u32 user_port;
+	__u32 family;
+	__u32 type;
+	__u32 protocol;
+	__u32 msg_src_ip4;
+	__u32 msg_src_ip6[4];
+	union {
+		struct bpf_sock *sk;
+	};
+};
+
+struct bpf_sock_ops {
+	__u32 op;
+	union {
+		__u32 args[4];
+		__u32 reply;
+		__u32 replylong[4];
+	};
+	__u32 family;
+	__u32 remote_ip4;
+	__u32 local_ip4;
+	__u32 remote_ip6[4];
+	__u32 local_ip6[4];
+	__u32 remote_port;
+	__u32 local_port;
+	__u32 is_fullsock;
+	__u32 snd_cwnd;
+	__u32 srtt_us;
+	__u32 bpf_sock_ops_cb_flags;
+	__u32 state;
+	__u32 rtt_min;
+	__u32 snd_ssthresh;
+	__u32 rcv_nxt;
+	__u32 snd_nxt;
+	__u32 snd_una;
+	__u32 mss_cache;
+	__u32 ecn_flags;
+	__u32 rate_delivered;
+	__u32 rate_interval_us;
+	__u32 packets_out;
+	__u32 retrans_out;
+	__u32 total_retrans;
+	__u32 segs_in;
+	__u32 data_segs_in;
+	__u32 segs_out;
+	__u32 data_segs_out;
+	__u32 lost_out;
+	__u32 sacked_out;
+	__u32 sk_txhash;
+	__u64 bytes_received;
+	__u64 bytes_acked;
+	union {
+		struct bpf_sock *sk;
+	};
+	union {
+		void *skb_data;
+	};
+	union {
+		void *skb_data_end;
+	};
+	__u32 skb_len;
+	__u32 skb_tcp_flags;
+};
+
+struct bpf_cgroup_dev_ctx {
+	__u32 access_type;
+	__u32 major;
+	__u32 minor;
+};
+
+struct bpf_sysctl {
+	__u32 write;
+	__u32 file_pos;
+};
+
+struct bpf_sockopt {
+	union {
+		struct bpf_sock *sk;
+	};
+	union {
+		void *optval;
+	};
+	union {
+		void *optval_end;
+	};
+	__s32 level;
+	__s32 optname;
+	__s32 optlen;
+	__s32 retval;
+};
+
+struct bpf_sk_lookup {
+	union {
+		union {
+			struct bpf_sock *sk;
+		};
+		__u64 cookie;
+	};
+	__u32 family;
+	__u32 protocol;
+	__u32 remote_ip4;
+	__u32 remote_ip6[4];
+	__be16 remote_port;
+	__u32 local_ip4;
+	__u32 local_ip6[4];
+	__u32 local_port;
+	__u32 ingress_ifindex;
+};
+
+struct btf_kfunc_id_set {
+	struct module *owner;
+	union {
+		struct {
+			struct btf_id_set *check_set;
+			struct btf_id_set *acquire_set;
+			struct btf_id_set *release_set;
+			struct btf_id_set *ret_null_set;
+			struct btf_id_set *kptr_acquire_set;
+		};
+		struct btf_id_set *sets[5];
+	};
+};
+
+struct btf_id_dtor_kfunc {
+	u32 btf_id;
+	u32 kfunc_btf_id;
+};
+
+struct sk_reuseport_kern {
+	struct sk_buff *skb;
+	struct sock *sk;
+	struct sock *selected_sk;
+	struct sock *migrating_sk;
+	void *data_end;
+	u32 hash;
+	u32 reuseport_id;
+	bool bind_inany;
+};
+
+struct bpf_flow_dissector {
+	struct bpf_flow_keys *flow_keys;
+	const struct sk_buff *skb;
+	const void *data;
+	const void *data_end;
+};
+
+struct inet_ehash_bucket;
+
+struct inet_bind_hashbucket;
+
+struct inet_listen_hashbucket;
+
+struct inet_hashinfo {
+	struct inet_ehash_bucket *ehash;
+	spinlock_t *ehash_locks;
+	unsigned int ehash_mask;
+	unsigned int ehash_locks_mask;
+	struct kmem_cache *bind_bucket_cachep;
+	struct inet_bind_hashbucket *bhash;
+	unsigned int bhash_size;
+	unsigned int lhash2_mask;
+	struct inet_listen_hashbucket *lhash2;
+};
+
+struct ip_ra_chain {
+	struct ip_ra_chain *next;
+	struct sock *sk;
+	union {
+		void (*destructor)(struct sock *);
+		struct sock *saved_sk;
+	};
+	struct callback_head rcu;
+};
+
+struct fib_table {
+	struct hlist_node tb_hlist;
+	u32 tb_id;
+	int tb_num_default;
+	struct callback_head rcu;
+	long unsigned int *tb_data;
+	long unsigned int __data[0];
+};
+
+struct inet_peer_base {
+	struct rb_root rb_root;
+	seqlock_t lock;
+	int total;
+};
+
+struct tcp_fastopen_context {
+	siphash_key_t key[2];
+	int num;
+	struct callback_head rcu;
+};
+
+struct bpf_sock_addr_kern {
+	struct sock *sk;
+	struct sockaddr *uaddr;
+	u64 tmp_reg;
+	void *t_ctx;
+};
+
+struct bpf_sock_ops_kern {
+	struct sock *sk;
+	union {
+		u32 args[4];
+		u32 reply;
+		u32 replylong[4];
+	};
+	struct sk_buff *syn_skb;
+	struct sk_buff *skb;
+	void *skb_data_end;
+	u8 op;
+	u8 is_fullsock;
+	u8 remaining_opt_len;
+	u64 temp;
+};
+
+struct bpf_sysctl_kern {
+	struct ctl_table_header *head;
+	struct ctl_table *table;
+	void *cur_val;
+	size_t cur_len;
+	void *new_val;
+	size_t new_len;
+	int new_updated;
+	int write;
+	loff_t *ppos;
+	u64 tmp_reg;
+};
+
+struct bpf_sockopt_kern {
+	struct sock *sk;
+	u8 *optval;
+	u8 *optval_end;
+	s32 level;
+	s32 optname;
+	s32 optlen;
+	struct task_struct *current_task;
+	u64 tmp_reg;
+};
+
+struct bpf_sk_lookup_kern {
+	u16 family;
+	u16 protocol;
+	__be16 sport;
+	u16 dport;
+	struct {
+		__be32 saddr;
+		__be32 daddr;
+	} v4;
+	struct {
+		const struct in6_addr *saddr;
+		const struct in6_addr *daddr;
+	} v6;
+	struct sock *selected_sk;
+	u32 ingress_ifindex;
+	bool no_reuseport;
+};
+
+struct lwtunnel_state {
+	__u16 type;
+	__u16 flags;
+	__u16 headroom;
+	atomic_t refcnt;
+	int (*orig_output)(struct net *, struct sock *, struct sk_buff *);
+	int (*orig_input)(struct sk_buff *);
+	struct callback_head rcu;
+	__u8 data[0];
+};
+
+struct sock_reuseport {
+	struct callback_head rcu;
+	u16 max_socks;
+	u16 num_socks;
+	u16 num_closed_socks;
+	unsigned int synq_overflow_ts;
+	unsigned int reuseport_id;
+	unsigned int bind_inany: 1;
+	unsigned int has_conns: 1;
+	struct bpf_prog *prog;
+	struct sock *socks[0];
+};
+
+struct sk_psock_progs {
+	struct bpf_prog *msg_parser;
+	struct bpf_prog *stream_parser;
+	struct bpf_prog *stream_verdict;
+	struct bpf_prog *skb_verdict;
+};
+
+struct strp_stats {
+	long long unsigned int msgs;
+	long long unsigned int bytes;
+	unsigned int mem_fail;
+	unsigned int need_more_hdr;
+	unsigned int msg_too_big;
+	unsigned int msg_timeouts;
+	unsigned int bad_hdr_len;
+};
+
+struct strparser;
+
+struct strp_callbacks {
+	int (*parse_msg)(struct strparser *, struct sk_buff *);
+	void (*rcv_msg)(struct strparser *, struct sk_buff *);
+	int (*read_sock_done)(struct strparser *, int);
+	void (*abort_parser)(struct strparser *, int);
+	void (*lock)(struct strparser *);
+	void (*unlock)(struct strparser *);
+};
+
+struct strparser {
+	struct sock *sk;
+	u32 stopped: 1;
+	u32 paused: 1;
+	u32 aborted: 1;
+	u32 interrupted: 1;
+	u32 unrecov_intr: 1;
+	struct sk_buff **skb_nextp;
+	struct sk_buff *skb_head;
+	unsigned int need_bytes;
+	struct delayed_work msg_timer_work;
+	struct work_struct work;
+	struct strp_stats stats;
+	struct strp_callbacks cb;
+};
+
+struct sk_psock_work_state {
+	struct sk_buff *skb;
+	u32 len;
+	u32 off;
+};
+
+struct sk_msg;
+
+struct sk_psock {
+	struct sock *sk;
+	struct sock *sk_redir;
+	u32 apply_bytes;
+	u32 cork_bytes;
+	u32 eval;
+	struct sk_msg *cork;
+	struct sk_psock_progs progs;
+	struct strparser strp;
+	struct sk_buff_head ingress_skb;
+	struct list_head ingress_msg;
+	spinlock_t ingress_lock;
+	long unsigned int state;
+	struct list_head link;
+	spinlock_t link_lock;
+	refcount_t refcnt;
+	void (*saved_unhash)(struct sock *);
+	void (*saved_destroy)(struct sock *);
+	void (*saved_close)(struct sock *, long int);
+	void (*saved_write_space)(struct sock *);
+	void (*saved_data_ready)(struct sock *);
+	int (*psock_update_sk_prot)(struct sock *, struct sk_psock *, bool);
+	struct proto *sk_proto;
+	struct mutex work_mutex;
+	struct sk_psock_work_state work_state;
+	struct work_struct work;
+	struct rcu_work rwork;
+};
+
+enum {
+	__ND_OPT_PREFIX_INFO_END = 0,
+	ND_OPT_SOURCE_LL_ADDR = 1,
+	ND_OPT_TARGET_LL_ADDR = 2,
+	ND_OPT_PREFIX_INFO = 3,
+	ND_OPT_REDIRECT_HDR = 4,
+	ND_OPT_MTU = 5,
+	ND_OPT_NONCE = 14,
+	__ND_OPT_ARRAY_MAX = 15,
+	ND_OPT_ROUTE_INFO = 24,
+	ND_OPT_RDNSS = 25,
+	ND_OPT_DNSSL = 31,
+	ND_OPT_6CO = 34,
+	ND_OPT_CAPTIVE_PORTAL = 37,
+	ND_OPT_PREF64 = 38,
+	__ND_OPT_MAX = 39,
+};
+
+struct nd_opt_hdr {
+	__u8 nd_opt_type;
+	__u8 nd_opt_len;
+};
+
+struct ndisc_options {
+	struct nd_opt_hdr *nd_opt_array[15];
+	struct nd_opt_hdr *nd_opts_ri;
+	struct nd_opt_hdr *nd_opts_ri_end;
+	struct nd_opt_hdr *nd_useropts;
+	struct nd_opt_hdr *nd_useropts_end;
+	struct nd_opt_hdr *nd_802154_opt_array[3];
+};
+
+struct prefix_info {
+	__u8 type;
+	__u8 length;
+	__u8 prefix_len;
+	__u8 reserved: 6;
+	__u8 autoconf: 1;
+	__u8 onlink: 1;
+	__be32 valid;
+	__be32 prefered;
+	__be32 reserved2;
+	struct in6_addr prefix;
+};
+
+struct inet_ehash_bucket {
+	struct hlist_nulls_head chain;
+};
+
+struct inet_bind_hashbucket {
+	spinlock_t lock;
+	struct hlist_head chain;
+};
+
+struct inet_listen_hashbucket {
+	spinlock_t lock;
+	struct hlist_nulls_head nulls_head;
+};
+
+struct ack_sample {
+	u32 pkts_acked;
+	s32 rtt_us;
+	u32 in_flight;
+};
+
+struct rate_sample {
+	u64 prior_mstamp;
+	u32 prior_delivered;
+	u32 prior_delivered_ce;
+	s32 delivered;
+	s32 delivered_ce;
+	long int interval_us;
+	u32 snd_interval_us;
+	u32 rcv_interval_us;
+	long int rtt_us;
+	int losses;
+	u32 acked_sacked;
+	u32 prior_in_flight;
+	u32 last_end_seq;
+	bool is_app_limited;
+	bool is_retrans;
+	bool is_ack_delayed;
+};
+
+struct sk_msg_sg {
+	u32 start;
+	u32 curr;
+	u32 end;
+	u32 size;
+	u32 copybreak;
+	long unsigned int copy[1];
+	struct scatterlist data[19];
+};
+
+struct sk_msg {
+	struct sk_msg_sg sg;
+	void *data;
+	void *data_end;
+	u32 apply_bytes;
+	u32 cork_bytes;
+	u32 flags;
+	struct sk_buff *skb;
+	struct sock *sk_redir;
+	struct sock *sk;
+	struct list_head list;
+};
+
+struct bpf_core_cand {
+	const struct btf *btf;
+	__u32 id;
+};
+
+struct bpf_core_cand_list {
+	struct bpf_core_cand *cands;
+	int len;
+};
+
+struct bpf_core_accessor {
+	__u32 type_id;
+	__u32 idx;
+	const char *name;
+};
+
+struct bpf_core_spec {
+	const struct btf *btf;
+	struct bpf_core_accessor spec[64];
+	__u32 root_type_id;
+	enum bpf_core_relo_kind relo_kind;
+	int len;
+	int raw_spec[64];
+	int raw_len;
+	__u32 bit_offset;
+};
+
+struct bpf_core_relo_res {
+	__u64 orig_val;
+	__u64 new_val;
+	bool poison;
+	bool validate;
+	bool fail_memsz_adjust;
+	__u32 orig_sz;
+	__u32 orig_type_id;
+	__u32 new_sz;
+	__u32 new_type_id;
+};
+
+enum btf_kfunc_hook {
+	BTF_KFUNC_HOOK_XDP = 0,
+	BTF_KFUNC_HOOK_TC = 1,
+	BTF_KFUNC_HOOK_STRUCT_OPS = 2,
+	BTF_KFUNC_HOOK_TRACING = 3,
+	BTF_KFUNC_HOOK_SYSCALL = 4,
+	BTF_KFUNC_HOOK_MAX = 5,
+};
+
+enum {
+	BTF_KFUNC_SET_MAX_CNT = 32,
+	BTF_DTOR_KFUNC_MAX_CNT = 256,
+};
+
+struct btf_kfunc_set_tab {
+	struct btf_id_set *sets[25];
+};
+
+struct btf_id_dtor_kfunc_tab {
+	u32 cnt;
+	struct btf_id_dtor_kfunc dtors[0];
+};
+
+enum verifier_phase {
+	CHECK_META = 0,
+	CHECK_TYPE = 1,
+};
+
+struct resolve_vertex {
+	const struct btf_type *t;
+	u32 type_id;
+	u16 next_member;
+};
+
+enum visit_state {
+	NOT_VISITED = 0,
+	VISITED = 1,
+	RESOLVED = 2,
+};
+
+enum resolve_mode {
+	RESOLVE_TBD = 0,
+	RESOLVE_PTR = 1,
+	RESOLVE_STRUCT_OR_ARRAY = 2,
+};
+
+struct btf_sec_info {
+	u32 off;
+	u32 len;
+};
+
+struct btf_verifier_env {
+	struct btf *btf;
+	u8 *visit_states;
+	struct resolve_vertex stack[32];
+	struct bpf_verifier_log log;
+	u32 log_type_id;
+	u32 top_stack;
+	enum verifier_phase phase;
+	enum resolve_mode resolve_mode;
+};
+
+struct btf_show {
+	u64 flags;
+	void *target;
+	void (*showfn)(struct btf_show *, const char *, struct __va_list_tag *);
+	const struct btf *btf;
+	struct {
+		u8 depth;
+		u8 depth_to_show;
+		u8 depth_check;
+		u8 array_member: 1;
+		u8 array_terminated: 1;
+		u16 array_encoding;
+		u32 type_id;
+		int status;
+		const struct btf_type *type;
+		const struct btf_member *member;
+		char name[80];
+	} state;
+	struct {
+		u32 size;
+		void *head;
+		void *data;
+		u8 safe[32];
+	} obj;
+};
+
+struct btf_kind_operations {
+	s32 (*check_meta)(struct btf_verifier_env *, const struct btf_type *, u32);
+	int (*resolve)(struct btf_verifier_env *, const struct resolve_vertex *);
+	int (*check_member)(struct btf_verifier_env *, const struct btf_type *, const struct btf_member *, const struct btf_type *);
+	int (*check_kflag_member)(struct btf_verifier_env *, const struct btf_type *, const struct btf_member *, const struct btf_type *);
+	void (*log_details)(struct btf_verifier_env *, const struct btf_type *);
+	void (*show)(const struct btf *, const struct btf_type *, u32, void *, u8, struct btf_show *);
+};
+
+enum btf_field_type {
+	BTF_FIELD_SPIN_LOCK = 0,
+	BTF_FIELD_TIMER = 1,
+	BTF_FIELD_KPTR = 2,
+};
+
+enum {
+	BTF_FIELD_IGNORE = 0,
+	BTF_FIELD_FOUND = 1,
+};
+
+struct btf_field_info {
+	u32 type_id;
+	u32 off;
+	enum bpf_kptr_type type;
+};
+
+struct bpf_ctx_convert {
+	struct __sk_buff BPF_PROG_TYPE_SOCKET_FILTER_prog;
+	struct sk_buff BPF_PROG_TYPE_SOCKET_FILTER_kern;
+	struct __sk_buff BPF_PROG_TYPE_SCHED_CLS_prog;
+	struct sk_buff BPF_PROG_TYPE_SCHED_CLS_kern;
+	struct __sk_buff BPF_PROG_TYPE_SCHED_ACT_prog;
+	struct sk_buff BPF_PROG_TYPE_SCHED_ACT_kern;
+	struct xdp_md BPF_PROG_TYPE_XDP_prog;
+	struct xdp_buff BPF_PROG_TYPE_XDP_kern;
+	struct __sk_buff BPF_PROG_TYPE_CGROUP_SKB_prog;
+	struct sk_buff BPF_PROG_TYPE_CGROUP_SKB_kern;
+	struct bpf_sock BPF_PROG_TYPE_CGROUP_SOCK_prog;
+	struct sock BPF_PROG_TYPE_CGROUP_SOCK_kern;
+	struct bpf_sock_addr BPF_PROG_TYPE_CGROUP_SOCK_ADDR_prog;
+	struct bpf_sock_addr_kern BPF_PROG_TYPE_CGROUP_SOCK_ADDR_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_IN_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_IN_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_OUT_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_OUT_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_XMIT_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_XMIT_kern;
+	struct __sk_buff BPF_PROG_TYPE_LWT_SEG6LOCAL_prog;
+	struct sk_buff BPF_PROG_TYPE_LWT_SEG6LOCAL_kern;
+	struct bpf_sock_ops BPF_PROG_TYPE_SOCK_OPS_prog;
+	struct bpf_sock_ops_kern BPF_PROG_TYPE_SOCK_OPS_kern;
+	struct __sk_buff BPF_PROG_TYPE_SK_SKB_prog;
+	struct sk_buff BPF_PROG_TYPE_SK_SKB_kern;
+	struct sk_msg_md BPF_PROG_TYPE_SK_MSG_prog;
+	struct sk_msg BPF_PROG_TYPE_SK_MSG_kern;
+	struct __sk_buff BPF_PROG_TYPE_FLOW_DISSECTOR_prog;
+	struct bpf_flow_dissector BPF_PROG_TYPE_FLOW_DISSECTOR_kern;
+	bpf_user_pt_regs_t BPF_PROG_TYPE_KPROBE_prog;
+	struct pt_regs BPF_PROG_TYPE_KPROBE_kern;
+	__u64 BPF_PROG_TYPE_TRACEPOINT_prog;
+	u64 BPF_PROG_TYPE_TRACEPOINT_kern;
+	struct bpf_perf_event_data BPF_PROG_TYPE_PERF_EVENT_prog;
+	struct bpf_perf_event_data_kern BPF_PROG_TYPE_PERF_EVENT_kern;
+	struct bpf_raw_tracepoint_args BPF_PROG_TYPE_RAW_TRACEPOINT_prog;
+	u64 BPF_PROG_TYPE_RAW_TRACEPOINT_kern;
+	struct bpf_raw_tracepoint_args BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE_prog;
+	u64 BPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE_kern;
+	void *BPF_PROG_TYPE_TRACING_prog;
+	void *BPF_PROG_TYPE_TRACING_kern;
+	struct bpf_cgroup_dev_ctx BPF_PROG_TYPE_CGROUP_DEVICE_prog;
+	struct bpf_cgroup_dev_ctx BPF_PROG_TYPE_CGROUP_DEVICE_kern;
+	struct bpf_sysctl BPF_PROG_TYPE_CGROUP_SYSCTL_prog;
+	struct bpf_sysctl_kern BPF_PROG_TYPE_CGROUP_SYSCTL_kern;
+	struct bpf_sockopt BPF_PROG_TYPE_CGROUP_SOCKOPT_prog;
+	struct bpf_sockopt_kern BPF_PROG_TYPE_CGROUP_SOCKOPT_kern;
+	struct sk_reuseport_md BPF_PROG_TYPE_SK_REUSEPORT_prog;
+	struct sk_reuseport_kern BPF_PROG_TYPE_SK_REUSEPORT_kern;
+	struct bpf_sk_lookup BPF_PROG_TYPE_SK_LOOKUP_prog;
+	struct bpf_sk_lookup_kern BPF_PROG_TYPE_SK_LOOKUP_kern;
+	void *BPF_PROG_TYPE_STRUCT_OPS_prog;
+	void *BPF_PROG_TYPE_STRUCT_OPS_kern;
+	void *BPF_PROG_TYPE_EXT_prog;
+	void *BPF_PROG_TYPE_EXT_kern;
+	void *BPF_PROG_TYPE_LSM_prog;
+	void *BPF_PROG_TYPE_LSM_kern;
+	void *BPF_PROG_TYPE_SYSCALL_prog;
+	void *BPF_PROG_TYPE_SYSCALL_kern;
+};
+
+enum {
+	__ctx_convertBPF_PROG_TYPE_SOCKET_FILTER = 0,
+	__ctx_convertBPF_PROG_TYPE_SCHED_CLS = 1,
+	__ctx_convertBPF_PROG_TYPE_SCHED_ACT = 2,
+	__ctx_convertBPF_PROG_TYPE_XDP = 3,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SKB = 4,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SOCK = 5,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SOCK_ADDR = 6,
+	__ctx_convertBPF_PROG_TYPE_LWT_IN = 7,
+	__ctx_convertBPF_PROG_TYPE_LWT_OUT = 8,
+	__ctx_convertBPF_PROG_TYPE_LWT_XMIT = 9,
+	__ctx_convertBPF_PROG_TYPE_LWT_SEG6LOCAL = 10,
+	__ctx_convertBPF_PROG_TYPE_SOCK_OPS = 11,
+	__ctx_convertBPF_PROG_TYPE_SK_SKB = 12,
+	__ctx_convertBPF_PROG_TYPE_SK_MSG = 13,
+	__ctx_convertBPF_PROG_TYPE_FLOW_DISSECTOR = 14,
+	__ctx_convertBPF_PROG_TYPE_KPROBE = 15,
+	__ctx_convertBPF_PROG_TYPE_TRACEPOINT = 16,
+	__ctx_convertBPF_PROG_TYPE_PERF_EVENT = 17,
+	__ctx_convertBPF_PROG_TYPE_RAW_TRACEPOINT = 18,
+	__ctx_convertBPF_PROG_TYPE_RAW_TRACEPOINT_WRITABLE = 19,
+	__ctx_convertBPF_PROG_TYPE_TRACING = 20,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_DEVICE = 21,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SYSCTL = 22,
+	__ctx_convertBPF_PROG_TYPE_CGROUP_SOCKOPT = 23,
+	__ctx_convertBPF_PROG_TYPE_SK_REUSEPORT = 24,
+	__ctx_convertBPF_PROG_TYPE_SK_LOOKUP = 25,
+	__ctx_convertBPF_PROG_TYPE_STRUCT_OPS = 26,
+	__ctx_convertBPF_PROG_TYPE_EXT = 27,
+	__ctx_convertBPF_PROG_TYPE_LSM = 28,
+	__ctx_convertBPF_PROG_TYPE_SYSCALL = 29,
+	__ctx_convert_unused = 30,
+};
+
+enum bpf_struct_walk_result {
+	WALK_SCALAR = 0,
+	WALK_PTR = 1,
+	WALK_STRUCT = 2,
+};
+
+struct btf_show_snprintf {
+	struct btf_show show;
+	int len_left;
+	int len;
+};
+
+enum {
+	BTF_MODULE_F_LIVE = 1,
+};
+
+struct btf_module {
+	struct list_head list;
+	struct module *module;
+	struct btf *btf;
+	struct bin_attribute *sysfs_attr;
+	int flags;
+};
+
+typedef u64 (*btf_bpf_btf_find_by_name_kind)(char *, int, u32, int);
+
+struct bpf_cand_cache {
+	const char *name;
+	u32 name_len;
+	u16 kind;
+	u16 cnt;
+	struct {
+		const struct btf *btf;
+		u32 id;
+	} cands[0];
+};
+
+struct bpf_dispatcher_prog {
+	struct bpf_prog *prog;
+	refcount_t users;
+};
+
+struct bpf_dispatcher {
+	struct mutex mutex;
+	void *func;
+	struct bpf_dispatcher_prog progs[48];
+	int num_progs;
+	void *image;
+	u32 image_off;
+	struct bpf_ksym ksym;
+};
+
+enum {
+	BPF_F_BROADCAST = 8,
+	BPF_F_EXCLUDE_INGRESS = 16,
+};
+
+struct bpf_devmap_val {
+	__u32 ifindex;
+	union {
+		int fd;
+		__u32 id;
+	} bpf_prog;
+};
+
+enum net_device_flags {
+	IFF_UP = 1,
+	IFF_BROADCAST = 2,
+	IFF_DEBUG = 4,
+	IFF_LOOPBACK = 8,
+	IFF_POINTOPOINT = 16,
+	IFF_NOTRAILERS = 32,
+	IFF_RUNNING = 64,
+	IFF_NOARP = 128,
+	IFF_PROMISC = 256,
+	IFF_ALLMULTI = 512,
+	IFF_MASTER = 1024,
+	IFF_SLAVE = 2048,
+	IFF_MULTICAST = 4096,
+	IFF_PORTSEL = 8192,
+	IFF_AUTOMEDIA = 16384,
+	IFF_DYNAMIC = 32768,
+	IFF_LOWER_UP = 65536,
+	IFF_DORMANT = 131072,
+	IFF_ECHO = 262144,
+};
+
+enum netdev_priv_flags {
+	IFF_802_1Q_VLAN = 1,
+	IFF_EBRIDGE = 2,
+	IFF_BONDING = 4,
+	IFF_ISATAP = 8,
+	IFF_WAN_HDLC = 16,
+	IFF_XMIT_DST_RELEASE = 32,
+	IFF_DONT_BRIDGE = 64,
+	IFF_DISABLE_NETPOLL = 128,
+	IFF_MACVLAN_PORT = 256,
+	IFF_BRIDGE_PORT = 512,
+	IFF_OVS_DATAPATH = 1024,
+	IFF_TX_SKB_SHARING = 2048,
+	IFF_UNICAST_FLT = 4096,
+	IFF_TEAM_PORT = 8192,
+	IFF_SUPP_NOFCS = 16384,
+	IFF_LIVE_ADDR_CHANGE = 32768,
+	IFF_MACVLAN = 65536,
+	IFF_XMIT_DST_RELEASE_PERM = 131072,
+	IFF_L3MDEV_MASTER = 262144,
+	IFF_NO_QUEUE = 524288,
+	IFF_OPENVSWITCH = 1048576,
+	IFF_L3MDEV_SLAVE = 2097152,
+	IFF_TEAM = 4194304,
+	IFF_RXFH_CONFIGURED = 8388608,
+	IFF_PHONY_HEADROOM = 16777216,
+	IFF_MACSEC = 33554432,
+	IFF_NO_RX_HANDLER = 67108864,
+	IFF_FAILOVER = 134217728,
+	IFF_FAILOVER_SLAVE = 268435456,
+	IFF_L3MDEV_RX_HANDLER = 536870912,
+	IFF_LIVE_RENAME_OK = 1073741824,
+	IFF_TX_SKB_NO_LINEAR = 2147483648,
+	IFF_CHANGE_PROTO_DOWN = 0,
+};
+
+struct xdp_dev_bulk_queue {
+	struct xdp_frame *q[16];
+	struct list_head flush_node;
+	struct net_device *dev;
+	struct net_device *dev_rx;
+	struct bpf_prog *xdp_prog;
+	unsigned int count;
+};
+
+enum netdev_cmd {
+	NETDEV_UP = 1,
+	NETDEV_DOWN = 2,
+	NETDEV_REBOOT = 3,
+	NETDEV_CHANGE = 4,
+	NETDEV_REGISTER = 5,
+	NETDEV_UNREGISTER = 6,
+	NETDEV_CHANGEMTU = 7,
+	NETDEV_CHANGEADDR = 8,
+	NETDEV_PRE_CHANGEADDR = 9,
+	NETDEV_GOING_DOWN = 10,
+	NETDEV_CHANGENAME = 11,
+	NETDEV_FEAT_CHANGE = 12,
+	NETDEV_BONDING_FAILOVER = 13,
+	NETDEV_PRE_UP = 14,
+	NETDEV_PRE_TYPE_CHANGE = 15,
+	NETDEV_POST_TYPE_CHANGE = 16,
+	NETDEV_POST_INIT = 17,
+	NETDEV_RELEASE = 18,
+	NETDEV_NOTIFY_PEERS = 19,
+	NETDEV_JOIN = 20,
+	NETDEV_CHANGEUPPER = 21,
+	NETDEV_RESEND_IGMP = 22,
+	NETDEV_PRECHANGEMTU = 23,
+	NETDEV_CHANGEINFODATA = 24,
+	NETDEV_BONDING_INFO = 25,
+	NETDEV_PRECHANGEUPPER = 26,
+	NETDEV_CHANGELOWERSTATE = 27,
+	NETDEV_UDP_TUNNEL_PUSH_INFO = 28,
+	NETDEV_UDP_TUNNEL_DROP_INFO = 29,
+	NETDEV_CHANGE_TX_QUEUE_LEN = 30,
+	NETDEV_CVLAN_FILTER_PUSH_INFO = 31,
+	NETDEV_CVLAN_FILTER_DROP_INFO = 32,
+	NETDEV_SVLAN_FILTER_PUSH_INFO = 33,
+	NETDEV_SVLAN_FILTER_DROP_INFO = 34,
+	NETDEV_OFFLOAD_XSTATS_ENABLE = 35,
+	NETDEV_OFFLOAD_XSTATS_DISABLE = 36,
+	NETDEV_OFFLOAD_XSTATS_REPORT_USED = 37,
+	NETDEV_OFFLOAD_XSTATS_REPORT_DELTA = 38,
+};
+
+struct netdev_notifier_info {
+	struct net_device *dev;
+	struct netlink_ext_ack *extack;
+};
+
+struct bpf_nh_params {
+	u32 nh_family;
+	union {
+		u32 ipv4_nh;
+		struct in6_addr ipv6_nh;
+	};
+};
+
+struct bpf_redirect_info {
+	u32 flags;
+	u32 tgt_index;
+	void *tgt_value;
+	struct bpf_map *map;
+	u32 map_id;
+	enum bpf_map_type map_type;
+	u32 kern_flags;
+	struct bpf_nh_params nh;
+};
+
+struct bpf_dtab;
+
+struct bpf_dtab_netdev {
+	struct net_device *dev;
+	struct hlist_node index_hlist;
+	struct bpf_dtab *dtab;
+	struct bpf_prog *xdp_prog;
+	struct callback_head rcu;
+	unsigned int idx;
+	struct bpf_devmap_val val;
+};
+
+struct bpf_dtab {
+	struct bpf_map map;
+	struct bpf_dtab_netdev **netdev_map;
+	struct list_head list;
+	struct hlist_head *dev_index_head;
+	spinlock_t index_lock;
+	unsigned int items;
+	u32 n_buckets;
+	long: 32;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_cpumap_val {
+	__u32 qsize;
+	union {
+		int fd;
+		__u32 id;
+	} bpf_prog;
+};
+
+struct bpf_cpu_map_entry;
+
+struct xdp_bulk_queue {
+	void *q[8];
+	struct list_head flush_node;
+	struct bpf_cpu_map_entry *obj;
+	unsigned int count;
+};
+
+struct bpf_cpu_map;
+
+struct bpf_cpu_map_entry {
+	u32 cpu;
+	int map_id;
+	struct xdp_bulk_queue *bulkq;
+	struct bpf_cpu_map *cmap;
+	struct ptr_ring *queue;
+	struct task_struct *kthread;
+	struct bpf_cpumap_val value;
+	struct bpf_prog *prog;
+	atomic_t refcnt;
+	struct callback_head rcu;
+	struct work_struct kthread_stop_wq;
+};
+
+struct bpf_cpu_map {
+	struct bpf_map map;
+	struct bpf_cpu_map_entry **cpu_map;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct rhlist_head {
+	struct rhash_head rhead;
+	struct rhlist_head *next;
+};
+
+struct bpf_prog_offload_ops {
+	int (*insn_hook)(struct bpf_verifier_env *, int, int);
+	int (*finalize)(struct bpf_verifier_env *);
+	int (*replace_insn)(struct bpf_verifier_env *, u32, struct bpf_insn *);
+	int (*remove_insns)(struct bpf_verifier_env *, u32, u32);
+	int (*prepare)(struct bpf_prog *);
+	int (*translate)(struct bpf_prog *);
+	void (*destroy)(struct bpf_prog *);
+};
+
+struct bpf_offload_dev {
+	const struct bpf_prog_offload_ops *ops;
+	struct list_head netdevs;
+	void *priv;
+};
+
+struct bpf_offload_netdev {
+	struct rhash_head l;
+	struct net_device *netdev;
+	struct bpf_offload_dev *offdev;
+	struct list_head progs;
+	struct list_head maps;
+	struct list_head offdev_netdevs;
+};
+
+struct ns_get_path_bpf_prog_args {
+	struct bpf_prog *prog;
+	struct bpf_prog_info *info;
+};
+
+struct ns_get_path_bpf_map_args {
+	struct bpf_offloaded_map *offmap;
+	struct bpf_map_info *info;
+};
+
+struct bpf_netns_link {
+	struct bpf_link link;
+	enum bpf_attach_type type;
+	enum netns_bpf_attach_type netns_type;
+	struct net *net;
+	struct list_head node;
+};
+
+enum bpf_stack_build_id_status {
+	BPF_STACK_BUILD_ID_EMPTY = 0,
+	BPF_STACK_BUILD_ID_VALID = 1,
+	BPF_STACK_BUILD_ID_IP = 2,
+};
+
+struct bpf_stack_build_id {
+	__s32 status;
+	unsigned char build_id[20];
+	union {
+		__u64 offset;
+		__u64 ip;
+	};
+};
+
+enum {
+	BPF_F_SKIP_FIELD_MASK = 255,
+	BPF_F_USER_STACK = 256,
+	BPF_F_FAST_STACK_CMP = 512,
+	BPF_F_REUSE_STACKID = 1024,
+	BPF_F_USER_BUILD_ID = 2048,
+};
+
+enum perf_callchain_context {
+	PERF_CONTEXT_HV = 4294967264,
+	PERF_CONTEXT_KERNEL = 4294967168,
+	PERF_CONTEXT_USER = 4294966784,
+	PERF_CONTEXT_GUEST = 4294965248,
+	PERF_CONTEXT_GUEST_KERNEL = 4294965120,
+	PERF_CONTEXT_GUEST_USER = 4294964736,
+	PERF_CONTEXT_MAX = 4294963201,
+};
+
+struct stack_map_bucket {
+	struct pcpu_freelist_node fnode;
+	u32 hash;
+	u32 nr;
+	u64 data[0];
+};
+
+struct bpf_stack_map {
+	struct bpf_map map;
+	void *elems;
+	struct pcpu_freelist freelist;
+	u32 n_buckets;
+	struct stack_map_bucket *buckets[0];
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+typedef u64 (*btf_bpf_get_stackid)(struct pt_regs *, struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_get_stackid_pe)(struct bpf_perf_event_data_kern *, struct bpf_map *, u64);
+
+typedef u64 (*btf_bpf_get_stack)(struct pt_regs *, void *, u32, u64);
+
+typedef u64 (*btf_bpf_get_task_stack)(struct task_struct *, void *, u32, u64);
+
+typedef u64 (*btf_bpf_get_stack_pe)(struct bpf_perf_event_data_kern *, void *, u32, u64);
+
+enum {
+	BPF_F_SYSCTL_BASE_NAME = 1,
+};
+
+struct qdisc_skb_cb {
+	struct {
+		unsigned int pkt_len;
+		u16 slave_dev_queue_mapping;
+		u16 tc_classid;
+	};
+	unsigned char data[20];
+};
+
+struct bpf_skb_data_end {
+	struct qdisc_skb_cb qdisc_cb;
+	void *data_meta;
+	void *data_end;
+};
+
+struct bpf_sockopt_buf {
+	u8 data[32];
+};
+
+enum {
+	TCPF_ESTABLISHED = 2,
+	TCPF_SYN_SENT = 4,
+	TCPF_SYN_RECV = 8,
+	TCPF_FIN_WAIT1 = 16,
+	TCPF_FIN_WAIT2 = 32,
+	TCPF_TIME_WAIT = 64,
+	TCPF_CLOSE = 128,
+	TCPF_CLOSE_WAIT = 256,
+	TCPF_LAST_ACK = 512,
+	TCPF_LISTEN = 1024,
+	TCPF_CLOSING = 2048,
+	TCPF_NEW_SYN_RECV = 4096,
+};
+
+struct bpf_cgroup_link {
+	struct bpf_link link;
+	struct cgroup *cgroup;
+	enum bpf_attach_type type;
+};
+
+struct bpf_prog_list {
+	struct list_head node;
+	struct bpf_prog *prog;
+	struct bpf_cgroup_link *link;
+	struct bpf_cgroup_storage *storage[2];
+};
+
+typedef u64 (*btf_bpf_get_retval)();
+
+typedef u64 (*btf_bpf_set_retval)(int);
+
+typedef u64 (*btf_bpf_sysctl_get_name)(struct bpf_sysctl_kern *, char *, size_t, u64);
+
+typedef u64 (*btf_bpf_sysctl_get_current_value)(struct bpf_sysctl_kern *, char *, size_t);
+
+typedef u64 (*btf_bpf_sysctl_get_new_value)(struct bpf_sysctl_kern *, char *, size_t);
+
+typedef u64 (*btf_bpf_sysctl_set_new_value)(struct bpf_sysctl_kern *, const char *, size_t);
+
+typedef u64 (*btf_bpf_get_netns_cookie_sockopt)(struct bpf_sockopt_kern *);
+
+enum sock_type {
+	SOCK_STREAM = 1,
+	SOCK_DGRAM = 2,
+	SOCK_RAW = 3,
+	SOCK_RDM = 4,
+	SOCK_SEQPACKET = 5,
+	SOCK_DCCP = 6,
