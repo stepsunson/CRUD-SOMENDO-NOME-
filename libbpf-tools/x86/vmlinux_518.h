@@ -46910,3 +46910,2008 @@ enum sock_type {
 	SOCK_RDM = 4,
 	SOCK_SEQPACKET = 5,
 	SOCK_DCCP = 6,
+	SOCK_PACKET = 10,
+};
+
+enum sock_flags {
+	SOCK_DEAD = 0,
+	SOCK_DONE = 1,
+	SOCK_URGINLINE = 2,
+	SOCK_KEEPOPEN = 3,
+	SOCK_LINGER = 4,
+	SOCK_DESTROY = 5,
+	SOCK_BROADCAST = 6,
+	SOCK_TIMESTAMP = 7,
+	SOCK_ZAPPED = 8,
+	SOCK_USE_WRITE_QUEUE = 9,
+	SOCK_DBG = 10,
+	SOCK_RCVTSTAMP = 11,
+	SOCK_RCVTSTAMPNS = 12,
+	SOCK_LOCALROUTE = 13,
+	SOCK_MEMALLOC = 14,
+	SOCK_TIMESTAMPING_RX_SOFTWARE = 15,
+	SOCK_FASYNC = 16,
+	SOCK_RXQ_OVFL = 17,
+	SOCK_ZEROCOPY = 18,
+	SOCK_WIFI_STATUS = 19,
+	SOCK_NOFCS = 20,
+	SOCK_FILTER_LOCKED = 21,
+	SOCK_SELECT_ERR_QUEUE = 22,
+	SOCK_RCU_FREE = 23,
+	SOCK_TXTIME = 24,
+	SOCK_XDP = 25,
+	SOCK_TSTAMP_NEW = 26,
+	SOCK_RCVMARK = 27,
+};
+
+struct reuseport_array {
+	struct bpf_map map;
+	struct sock *ptrs[0];
+};
+
+struct bpf_dummy_ops_state {
+	int val;
+};
+
+struct bpf_dummy_ops {
+	int (*test_1)(struct bpf_dummy_ops_state *);
+	int (*test_2)(struct bpf_dummy_ops_state *, int, short unsigned int, char, long unsigned int);
+};
+
+enum bpf_struct_ops_state {
+	BPF_STRUCT_OPS_STATE_INIT = 0,
+	BPF_STRUCT_OPS_STATE_INUSE = 1,
+	BPF_STRUCT_OPS_STATE_TOBEFREE = 2,
+};
+
+struct bpf_struct_ops_value {
+	refcount_t refcnt;
+	enum bpf_struct_ops_state state;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	char data[0];
+};
+
+struct bpf_struct_ops_map {
+	struct bpf_map map;
+	struct callback_head rcu;
+	const struct bpf_struct_ops *st_ops;
+	struct mutex lock;
+	struct bpf_link **links;
+	void *image;
+	struct bpf_struct_ops_value *uvalue;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct bpf_struct_ops_value kvalue;
+};
+
+struct bpf_struct_ops_bpf_dummy_ops {
+	refcount_t refcnt;
+	enum bpf_struct_ops_state state;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct bpf_dummy_ops data;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct bpf_struct_ops_tcp_congestion_ops {
+	refcount_t refcnt;
+	enum bpf_struct_ops_state state;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct tcp_congestion_ops data;
+};
+
+enum {
+	BPF_STRUCT_OPS_TYPE_bpf_dummy_ops = 0,
+	BPF_STRUCT_OPS_TYPE_tcp_congestion_ops = 1,
+	__NR_BPF_STRUCT_OPS_TYPE = 2,
+};
+
+enum {
+	BPF_F_BPRM_SECUREEXEC = 1,
+};
+
+struct sembuf {
+	short unsigned int sem_num;
+	short int sem_op;
+	short int sem_flg;
+};
+
+enum key_need_perm {
+	KEY_NEED_UNSPECIFIED = 0,
+	KEY_NEED_VIEW = 1,
+	KEY_NEED_READ = 2,
+	KEY_NEED_WRITE = 3,
+	KEY_NEED_SEARCH = 4,
+	KEY_NEED_LINK = 5,
+	KEY_NEED_SETATTR = 6,
+	KEY_NEED_UNLINK = 7,
+	KEY_SYSADMIN_OVERRIDE = 8,
+	KEY_AUTHTOKEN_OVERRIDE = 9,
+	KEY_DEFER_PERM_CHECK = 10,
+};
+
+struct __key_reference_with_attributes;
+
+typedef struct __key_reference_with_attributes *key_ref_t;
+
+struct xfrm_sec_ctx {
+	__u8 ctx_doi;
+	__u8 ctx_alg;
+	__u16 ctx_len;
+	__u32 ctx_sid;
+	char ctx_str[0];
+};
+
+struct xfrm_user_sec_ctx {
+	__u16 len;
+	__u16 exttype;
+	__u8 ctx_alg;
+	__u8 ctx_doi;
+	__u16 ctx_len;
+};
+
+typedef u64 (*btf_bpf_bprm_opts_set)(struct linux_binprm *, u64);
+
+typedef u64 (*btf_bpf_ima_inode_hash)(struct inode *, void *, u32);
+
+typedef u64 (*btf_bpf_ima_file_hash)(struct file *, void *, u32);
+
+typedef u64 (*btf_bpf_get_attach_cookie)(void *);
+
+struct static_call_tramp_key {
+	s32 tramp;
+	s32 key;
+};
+
+enum perf_event_read_format {
+	PERF_FORMAT_TOTAL_TIME_ENABLED = 1,
+	PERF_FORMAT_TOTAL_TIME_RUNNING = 2,
+	PERF_FORMAT_ID = 4,
+	PERF_FORMAT_GROUP = 8,
+	PERF_FORMAT_MAX = 16,
+};
+
+enum perf_event_ioc_flags {
+	PERF_IOC_FLAG_GROUP = 1,
+};
+
+struct perf_ns_link_info {
+	__u64 dev;
+	__u64 ino;
+};
+
+enum {
+	NET_NS_INDEX = 0,
+	UTS_NS_INDEX = 1,
+	IPC_NS_INDEX = 2,
+	PID_NS_INDEX = 3,
+	USER_NS_INDEX = 4,
+	MNT_NS_INDEX = 5,
+	CGROUP_NS_INDEX = 6,
+	NR_NAMESPACES = 7,
+};
+
+enum perf_event_type {
+	PERF_RECORD_MMAP = 1,
+	PERF_RECORD_LOST = 2,
+	PERF_RECORD_COMM = 3,
+	PERF_RECORD_EXIT = 4,
+	PERF_RECORD_THROTTLE = 5,
+	PERF_RECORD_UNTHROTTLE = 6,
+	PERF_RECORD_FORK = 7,
+	PERF_RECORD_READ = 8,
+	PERF_RECORD_SAMPLE = 9,
+	PERF_RECORD_MMAP2 = 10,
+	PERF_RECORD_AUX = 11,
+	PERF_RECORD_ITRACE_START = 12,
+	PERF_RECORD_LOST_SAMPLES = 13,
+	PERF_RECORD_SWITCH = 14,
+	PERF_RECORD_SWITCH_CPU_WIDE = 15,
+	PERF_RECORD_NAMESPACES = 16,
+	PERF_RECORD_KSYMBOL = 17,
+	PERF_RECORD_BPF_EVENT = 18,
+	PERF_RECORD_CGROUP = 19,
+	PERF_RECORD_TEXT_POKE = 20,
+	PERF_RECORD_AUX_OUTPUT_HW_ID = 21,
+	PERF_RECORD_MAX = 22,
+};
+
+struct swevent_hlist {
+	struct hlist_head heads[256];
+	struct callback_head callback_head;
+};
+
+struct pmu_event_list {
+	raw_spinlock_t lock;
+	struct list_head list;
+};
+
+struct perf_buffer {
+	refcount_t refcount;
+	struct callback_head callback_head;
+	int nr_pages;
+	int overwrite;
+	int paused;
+	atomic_t poll;
+	local_t head;
+	unsigned int nest;
+	local_t events;
+	local_t wakeup;
+	local_t lost;
+	long int watermark;
+	long int aux_watermark;
+	spinlock_t event_lock;
+	struct list_head event_list;
+	atomic_t mmap_count;
+	long unsigned int mmap_locked;
+	struct user_struct *mmap_user;
+	long int aux_head;
+	unsigned int aux_nest;
+	long int aux_wakeup;
+	long unsigned int aux_pgoff;
+	int aux_nr_pages;
+	int aux_overwrite;
+	atomic_t aux_mmap_count;
+	long unsigned int aux_mmap_locked;
+	void (*free_aux)(void *);
+	refcount_t aux_refcount;
+	int aux_in_sampling;
+	void **aux_pages;
+	void *aux_priv;
+	struct perf_event_mmap_page *user_page;
+	void *data_pages[0];
+};
+
+struct match_token {
+	int token;
+	const char *pattern;
+};
+
+enum {
+	MAX_OPT_ARGS = 3,
+};
+
+struct min_heap {
+	void *data;
+	int nr;
+	int size;
+};
+
+struct min_heap_callbacks {
+	int elem_size;
+	bool (*less)(const void *, const void *);
+	void (*swp)(void *, void *);
+};
+
+typedef int (*remote_function_f)(void *);
+
+struct remote_function_call {
+	struct task_struct *p;
+	remote_function_f func;
+	void *info;
+	int ret;
+};
+
+typedef void (*event_f)(struct perf_event *, struct perf_cpu_context *, struct perf_event_context *, void *);
+
+struct event_function_struct {
+	struct perf_event *event;
+	event_f func;
+	void *data;
+};
+
+enum event_type_t {
+	EVENT_FLEXIBLE = 1,
+	EVENT_PINNED = 2,
+	EVENT_TIME = 4,
+	EVENT_CPU = 8,
+	EVENT_ALL = 3,
+};
+
+struct __group_key {
+	int cpu;
+	struct cgroup *cgroup;
+};
+
+struct stop_event_data {
+	struct perf_event *event;
+	unsigned int restart;
+};
+
+struct perf_read_data {
+	struct perf_event *event;
+	bool group;
+	int ret;
+};
+
+struct perf_read_event {
+	struct perf_event_header header;
+	u32 pid;
+	u32 tid;
+};
+
+typedef void perf_iterate_f(struct perf_event *, void *);
+
+struct remote_output {
+	struct perf_buffer *rb;
+	int err;
+};
+
+struct perf_task_event {
+	struct task_struct *task;
+	struct perf_event_context *task_ctx;
+	struct {
+		struct perf_event_header header;
+		u32 pid;
+		u32 ppid;
+		u32 tid;
+		u32 ptid;
+		u64 time;
+	} event_id;
+};
+
+struct perf_comm_event {
+	struct task_struct *task;
+	char *comm;
+	int comm_size;
+	struct {
+		struct perf_event_header header;
+		u32 pid;
+		u32 tid;
+	} event_id;
+};
+
+struct perf_namespaces_event {
+	struct task_struct *task;
+	struct {
+		struct perf_event_header header;
+		u32 pid;
+		u32 tid;
+		u64 nr_namespaces;
+		struct perf_ns_link_info link_info[7];
+	} event_id;
+};
+
+struct perf_cgroup_event {
+	char *path;
+	int path_size;
+	struct {
+		struct perf_event_header header;
+		u64 id;
+		char path[0];
+	} event_id;
+};
+
+struct perf_mmap_event {
+	struct vm_area_struct *vma;
+	const char *file_name;
+	int file_size;
+	int maj;
+	int min;
+	u64 ino;
+	u64 ino_generation;
+	u32 prot;
+	u32 flags;
+	u8 build_id[20];
+	u32 build_id_size;
+	struct {
+		struct perf_event_header header;
+		u32 pid;
+		u32 tid;
+		u64 start;
+		u64 len;
+		u64 pgoff;
+	} event_id;
+};
+
+struct perf_switch_event {
+	struct task_struct *task;
+	struct task_struct *next_prev;
+	struct {
+		struct perf_event_header header;
+		u32 next_prev_pid;
+		u32 next_prev_tid;
+	} event_id;
+};
+
+struct perf_ksymbol_event {
+	const char *name;
+	int name_len;
+	struct {
+		struct perf_event_header header;
+		u64 addr;
+		u32 len;
+		u16 ksym_type;
+		u16 flags;
+	} event_id;
+};
+
+struct perf_bpf_event {
+	struct bpf_prog *prog;
+	struct {
+		struct perf_event_header header;
+		u16 type;
+		u16 flags;
+		u32 id;
+		u8 tag[8];
+	} event_id;
+};
+
+struct perf_text_poke_event {
+	const void *old_bytes;
+	const void *new_bytes;
+	size_t pad;
+	u16 old_len;
+	u16 new_len;
+	struct {
+		struct perf_event_header header;
+		u64 addr;
+	} event_id;
+};
+
+struct swevent_htable {
+	struct swevent_hlist *swevent_hlist;
+	struct mutex hlist_mutex;
+	int hlist_refcount;
+	int recursion[4];
+};
+
+enum perf_probe_config {
+	PERF_PROBE_CONFIG_IS_RETPROBE = 1,
+	PERF_UPROBE_REF_CTR_OFFSET_BITS = 32,
+	PERF_UPROBE_REF_CTR_OFFSET_SHIFT = 32,
+};
+
+enum {
+	IF_ACT_NONE = 4294967295,
+	IF_ACT_FILTER = 0,
+	IF_ACT_START = 1,
+	IF_ACT_STOP = 2,
+	IF_SRC_FILE = 3,
+	IF_SRC_KERNEL = 4,
+	IF_SRC_FILEADDR = 5,
+	IF_SRC_KERNELADDR = 6,
+};
+
+enum {
+	IF_STATE_ACTION = 0,
+	IF_STATE_SOURCE = 1,
+	IF_STATE_END = 2,
+};
+
+struct perf_aux_event {
+	struct perf_event_header header;
+	u64 hw_id;
+};
+
+struct perf_aux_event___2 {
+	struct perf_event_header header;
+	u32 pid;
+	u32 tid;
+};
+
+struct perf_aux_event___3 {
+	struct perf_event_header header;
+	u64 offset;
+	u64 size;
+	u64 flags;
+};
+
+struct callchain_cpus_entries {
+	struct callback_head callback_head;
+	struct perf_callchain_entry *cpu_entries[0];
+};
+
+enum bp_type_idx {
+	TYPE_INST = 0,
+	TYPE_DATA = 0,
+	TYPE_MAX = 1,
+};
+
+struct bp_cpuinfo {
+	unsigned int cpu_pinned;
+	unsigned int *tsk_pinned;
+	unsigned int flexible;
+};
+
+struct bp_busy_slots {
+	unsigned int pinned;
+	unsigned int flexible;
+};
+
+typedef u8 uprobe_opcode_t;
+
+struct uprobe {
+	struct rb_node rb_node;
+	refcount_t ref;
+	struct rw_semaphore register_rwsem;
+	struct rw_semaphore consumer_rwsem;
+	struct list_head pending_list;
+	struct uprobe_consumer *consumers;
+	struct inode *inode;
+	loff_t offset;
+	loff_t ref_ctr_offset;
+	long unsigned int flags;
+	struct arch_uprobe arch;
+};
+
+struct xol_area {
+	wait_queue_head_t wq;
+	atomic_t slot_count;
+	long unsigned int *bitmap;
+	struct vm_special_mapping xol_mapping;
+	struct page *pages[2];
+	long unsigned int vaddr;
+};
+
+typedef long unsigned int vm_flags_t;
+
+struct compact_control;
+
+struct capture_control {
+	struct compact_control *cc;
+	struct page *page;
+};
+
+struct page_vma_mapped_walk {
+	long unsigned int pfn;
+	long unsigned int nr_pages;
+	long unsigned int pgoff;
+	struct vm_area_struct *vma;
+	long unsigned int address;
+	pmd_t *pmd;
+	pte_t *pte;
+	spinlock_t *ptl;
+	unsigned int flags;
+};
+
+struct compact_control {
+	struct list_head freepages;
+	struct list_head migratepages;
+	unsigned int nr_freepages;
+	unsigned int nr_migratepages;
+	long unsigned int free_pfn;
+	long unsigned int migrate_pfn;
+	long unsigned int fast_start_pfn;
+	struct zone *zone;
+	long unsigned int total_migrate_scanned;
+	long unsigned int total_free_scanned;
+	short unsigned int fast_search_fail;
+	short int search_order;
+	const gfp_t gfp_mask;
+	int order;
+	int migratetype;
+	const unsigned int alloc_flags;
+	const int highest_zoneidx;
+	enum migrate_mode mode;
+	bool ignore_skip_hint;
+	bool no_set_skip_hint;
+	bool ignore_block_suitable;
+	bool direct_compaction;
+	bool proactive_compaction;
+	bool whole_zone;
+	bool contended;
+	bool rescan;
+	bool alloc_contig;
+};
+
+struct delayed_uprobe {
+	struct list_head list;
+	struct uprobe *uprobe;
+	struct mm_struct *mm;
+};
+
+struct __uprobe_key {
+	struct inode *inode;
+	loff_t offset;
+};
+
+struct map_info {
+	struct map_info *next;
+	struct mm_struct *mm;
+	long unsigned int vaddr;
+};
+
+struct user_return_notifier {
+	void (*on_user_return)(struct user_return_notifier *);
+	struct hlist_node link;
+};
+
+struct parallel_data;
+
+struct padata_priv {
+	struct list_head list;
+	struct parallel_data *pd;
+	int cb_cpu;
+	unsigned int seq_nr;
+	int info;
+	void (*parallel)(struct padata_priv *);
+	void (*serial)(struct padata_priv *);
+};
+
+struct padata_cpumask {
+	cpumask_var_t pcpu;
+	cpumask_var_t cbcpu;
+};
+
+struct padata_shell;
+
+struct padata_list;
+
+struct padata_serial_queue;
+
+struct parallel_data {
+	struct padata_shell *ps;
+	struct padata_list *reorder_list;
+	struct padata_serial_queue *squeue;
+	refcount_t refcnt;
+	unsigned int seq_nr;
+	unsigned int processed;
+	int cpu;
+	struct padata_cpumask cpumask;
+	struct work_struct reorder_work;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	spinlock_t lock;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct padata_list {
+	struct list_head list;
+	spinlock_t lock;
+};
+
+struct padata_serial_queue {
+	struct padata_list serial;
+	struct work_struct work;
+	struct parallel_data *pd;
+};
+
+struct padata_instance;
+
+struct padata_shell {
+	struct padata_instance *pinst;
+	struct parallel_data *pd;
+	struct parallel_data *opd;
+	struct list_head list;
+};
+
+struct padata_instance {
+	struct hlist_node cpu_online_node;
+	struct hlist_node cpu_dead_node;
+	struct workqueue_struct *parallel_wq;
+	struct workqueue_struct *serial_wq;
+	struct list_head pslist;
+	struct padata_cpumask cpumask;
+	struct kobject kobj;
+	struct mutex lock;
+	u8 flags;
+};
+
+struct padata_mt_job {
+	void (*thread_fn)(long unsigned int, long unsigned int, void *);
+	void *fn_arg;
+	long unsigned int start;
+	long unsigned int size;
+	long unsigned int align;
+	long unsigned int min_chunk;
+	int max_threads;
+};
+
+struct padata_work {
+	struct work_struct pw_work;
+	struct list_head pw_list;
+	void *pw_data;
+};
+
+struct padata_mt_job_state {
+	spinlock_t lock;
+	struct completion completion;
+	struct padata_mt_job *job;
+	int nworks;
+	int nworks_fini;
+	long unsigned int chunk_size;
+};
+
+struct padata_sysfs_entry {
+	struct attribute attr;
+	ssize_t (*show)(struct padata_instance *, struct attribute *, char *);
+	ssize_t (*store)(struct padata_instance *, struct attribute *, const char *, size_t);
+};
+
+struct static_key_mod {
+	struct static_key_mod *next;
+	struct jump_entry *entries;
+	struct module *mod;
+};
+
+struct static_key_deferred {
+	struct static_key key;
+	long unsigned int timeout;
+	struct delayed_work work;
+};
+
+enum rseq_cpu_id_state {
+	RSEQ_CPU_ID_UNINITIALIZED = 4294967295,
+	RSEQ_CPU_ID_REGISTRATION_FAILED = 4294967294,
+};
+
+enum rseq_flags {
+	RSEQ_FLAG_UNREGISTER = 1,
+};
+
+enum rseq_cs_flags {
+	RSEQ_CS_FLAG_NO_RESTART_ON_PREEMPT = 1,
+	RSEQ_CS_FLAG_NO_RESTART_ON_SIGNAL = 2,
+	RSEQ_CS_FLAG_NO_RESTART_ON_MIGRATE = 4,
+};
+
+struct rseq_cs {
+	__u32 version;
+	__u32 flags;
+	__u64 start_ip;
+	__u64 post_commit_offset;
+	__u64 abort_ip;
+};
+
+struct trace_event_raw_rseq_update {
+	struct trace_entry ent;
+	s32 cpu_id;
+	char __data[0];
+};
+
+struct trace_event_raw_rseq_ip_fixup {
+	struct trace_entry ent;
+	long unsigned int regs_ip;
+	long unsigned int start_ip;
+	long unsigned int post_commit_offset;
+	long unsigned int abort_ip;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_rseq_update {};
+
+struct trace_event_data_offsets_rseq_ip_fixup {};
+
+typedef void (*btf_trace_rseq_update)(void *, struct task_struct *);
+
+typedef void (*btf_trace_rseq_ip_fixup)(void *, long unsigned int, long unsigned int, long unsigned int, long unsigned int);
+
+struct watch;
+
+struct watch_list {
+	struct callback_head rcu;
+	struct hlist_head watchers;
+	void (*release_watch)(struct watch *);
+	spinlock_t lock;
+};
+
+enum watch_notification_type {
+	WATCH_TYPE_META = 0,
+	WATCH_TYPE_KEY_NOTIFY = 1,
+	WATCH_TYPE__NR = 2,
+};
+
+enum watch_meta_notification_subtype {
+	WATCH_META_REMOVAL_NOTIFICATION = 0,
+	WATCH_META_LOSS_NOTIFICATION = 1,
+};
+
+struct watch_notification {
+	__u32 type: 24;
+	__u32 subtype: 8;
+	__u32 info;
+};
+
+struct watch_notification_type_filter {
+	__u32 type;
+	__u32 info_filter;
+	__u32 info_mask;
+	__u32 subtype_filter[8];
+};
+
+struct watch_notification_filter {
+	__u32 nr_filters;
+	__u32 __reserved;
+	struct watch_notification_type_filter filters[0];
+};
+
+struct watch_notification_removal {
+	struct watch_notification watch;
+	__u64 id;
+};
+
+struct watch_type_filter {
+	enum watch_notification_type type;
+	__u32 subtype_filter[1];
+	__u32 info_filter;
+	__u32 info_mask;
+};
+
+struct watch_filter {
+	union {
+		struct callback_head rcu;
+		long unsigned int type_filter[1];
+	};
+	u32 nr_filters;
+	struct watch_type_filter filters[0];
+};
+
+struct watch_queue {
+	struct callback_head rcu;
+	struct watch_filter *filter;
+	struct pipe_inode_info *pipe;
+	struct hlist_head watches;
+	struct page **notes;
+	long unsigned int *notes_bitmap;
+	struct kref usage;
+	spinlock_t lock;
+	unsigned int nr_notes;
+	unsigned int nr_pages;
+	bool defunct;
+};
+
+struct watch {
+	union {
+		struct callback_head rcu;
+		u32 info_id;
+	};
+	struct watch_queue *queue;
+	struct hlist_node queue_node;
+	struct watch_list *watch_list;
+	struct hlist_node list_node;
+	const struct cred *cred;
+	void *private;
+	u64 id;
+	struct kref usage;
+};
+
+struct pkcs7_message;
+
+enum blacklist_hash_type {
+	BLACKLIST_HASH_X509_TBS = 1,
+	BLACKLIST_HASH_BINARY = 2,
+};
+
+typedef int __kernel_rwf_t;
+
+enum positive_aop_returns {
+	AOP_WRITEPAGE_ACTIVATE = 524288,
+	AOP_TRUNCATED_PAGE = 524289,
+};
+
+enum iter_type {
+	ITER_IOVEC = 0,
+	ITER_KVEC = 1,
+	ITER_BVEC = 2,
+	ITER_PIPE = 3,
+	ITER_XARRAY = 4,
+	ITER_DISCARD = 5,
+};
+
+enum mapping_flags {
+	AS_EIO = 0,
+	AS_ENOSPC = 1,
+	AS_MM_ALL_LOCKS = 2,
+	AS_UNEVICTABLE = 3,
+	AS_EXITING = 4,
+	AS_NO_WRITEBACK_TAGS = 5,
+	AS_LARGE_FOLIO_SUPPORT = 6,
+};
+
+typedef int filler_t(struct file *, struct folio *);
+
+struct wait_page_key {
+	struct folio *folio;
+	int bit_nr;
+	int page_match;
+};
+
+struct pagevec {
+	unsigned char nr;
+	bool percpu_pvec_drained;
+	struct page *pages[15];
+};
+
+struct folio_batch {
+	unsigned char nr;
+	bool percpu_pvec_drained;
+	struct folio *folios[15];
+};
+
+struct trace_event_raw_mm_filemap_op_page_cache {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	long unsigned int i_ino;
+	long unsigned int index;
+	dev_t s_dev;
+	unsigned char order;
+	char __data[0];
+};
+
+struct trace_event_raw_filemap_set_wb_err {
+	struct trace_entry ent;
+	long unsigned int i_ino;
+	dev_t s_dev;
+	errseq_t errseq;
+	char __data[0];
+};
+
+struct trace_event_raw_file_check_and_advance_wb_err {
+	struct trace_entry ent;
+	struct file *file;
+	long unsigned int i_ino;
+	dev_t s_dev;
+	errseq_t old;
+	errseq_t new;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mm_filemap_op_page_cache {};
+
+struct trace_event_data_offsets_filemap_set_wb_err {};
+
+struct trace_event_data_offsets_file_check_and_advance_wb_err {};
+
+typedef void (*btf_trace_mm_filemap_delete_from_page_cache)(void *, struct folio *);
+
+typedef void (*btf_trace_mm_filemap_add_to_page_cache)(void *, struct folio *);
+
+typedef void (*btf_trace_filemap_set_wb_err)(void *, struct address_space *, errseq_t);
+
+typedef void (*btf_trace_file_check_and_advance_wb_err)(void *, struct file *, errseq_t);
+
+enum behavior {
+	EXCLUSIVE = 0,
+	SHARED = 1,
+	DROP = 2,
+};
+
+struct reciprocal_value {
+	u32 m;
+	u8 sh1;
+	u8 sh2;
+};
+
+struct kmem_cache_order_objects {
+	unsigned int x;
+};
+
+struct kmem_cache_cpu;
+
+struct kmem_cache_node;
+
+struct kmem_cache {
+	struct kmem_cache_cpu *cpu_slab;
+	slab_flags_t flags;
+	long unsigned int min_partial;
+	unsigned int size;
+	unsigned int object_size;
+	struct reciprocal_value reciprocal_size;
+	unsigned int offset;
+	unsigned int cpu_partial;
+	unsigned int cpu_partial_slabs;
+	struct kmem_cache_order_objects oo;
+	struct kmem_cache_order_objects min;
+	gfp_t allocflags;
+	int refcount;
+	void (*ctor)(void *);
+	unsigned int inuse;
+	unsigned int align;
+	unsigned int red_left_pad;
+	const char *name;
+	struct list_head list;
+	struct kobject kobj;
+	long unsigned int random;
+	unsigned int remote_node_defrag_ratio;
+	unsigned int *random_seq;
+	unsigned int useroffset;
+	unsigned int usersize;
+	struct kmem_cache_node *node[1024];
+};
+
+struct slab {
+	long unsigned int __page_flags;
+	union {
+		struct list_head slab_list;
+		struct callback_head callback_head;
+		struct {
+			struct slab *next;
+			int slabs;
+		};
+	};
+	struct kmem_cache *slab_cache;
+	void *freelist;
+	union {
+		long unsigned int counters;
+		struct {
+			unsigned int inuse: 16;
+			unsigned int objects: 15;
+			unsigned int frozen: 1;
+		};
+	};
+	unsigned int __unused;
+	atomic_t __page_refcount;
+	long unsigned int memcg_data;
+};
+
+struct kmem_cache_cpu {
+	void **freelist;
+	long unsigned int tid;
+	struct slab *slab;
+	struct slab *partial;
+	local_lock_t lock;
+};
+
+struct kmem_cache_node {
+	spinlock_t list_lock;
+	long unsigned int nr_partial;
+	struct list_head partial;
+	atomic_long_t nr_slabs;
+	atomic_long_t total_objects;
+	struct list_head full;
+};
+
+enum oom_constraint {
+	CONSTRAINT_NONE = 0,
+	CONSTRAINT_CPUSET = 1,
+	CONSTRAINT_MEMORY_POLICY = 2,
+	CONSTRAINT_MEMCG = 3,
+};
+
+struct oom_control {
+	struct zonelist *zonelist;
+	nodemask_t *nodemask;
+	struct mem_cgroup *memcg;
+	const gfp_t gfp_mask;
+	const int order;
+	long unsigned int totalpages;
+	struct task_struct *chosen;
+	long int chosen_points;
+	enum oom_constraint constraint;
+};
+
+enum compact_priority {
+	COMPACT_PRIO_SYNC_FULL = 0,
+	MIN_COMPACT_PRIORITY = 0,
+	COMPACT_PRIO_SYNC_LIGHT = 1,
+	MIN_COMPACT_COSTLY_PRIORITY = 1,
+	DEF_COMPACT_PRIORITY = 1,
+	COMPACT_PRIO_ASYNC = 2,
+	INIT_COMPACT_PRIORITY = 2,
+};
+
+enum compact_result {
+	COMPACT_NOT_SUITABLE_ZONE = 0,
+	COMPACT_SKIPPED = 1,
+	COMPACT_DEFERRED = 2,
+	COMPACT_NO_SUITABLE_PAGE = 3,
+	COMPACT_CONTINUE = 4,
+	COMPACT_COMPLETE = 5,
+	COMPACT_PARTIAL_SKIPPED = 6,
+	COMPACT_CONTENDED = 7,
+	COMPACT_SUCCESS = 8,
+};
+
+struct trace_event_raw_oom_score_adj_update {
+	struct trace_entry ent;
+	pid_t pid;
+	char comm[16];
+	short int oom_score_adj;
+	char __data[0];
+};
+
+struct trace_event_raw_reclaim_retry_zone {
+	struct trace_entry ent;
+	int node;
+	int zone_idx;
+	int order;
+	long unsigned int reclaimable;
+	long unsigned int available;
+	long unsigned int min_wmark;
+	int no_progress_loops;
+	bool wmark_check;
+	char __data[0];
+};
+
+struct trace_event_raw_mark_victim {
+	struct trace_entry ent;
+	int pid;
+	char __data[0];
+};
+
+struct trace_event_raw_wake_reaper {
+	struct trace_entry ent;
+	int pid;
+	char __data[0];
+};
+
+struct trace_event_raw_start_task_reaping {
+	struct trace_entry ent;
+	int pid;
+	char __data[0];
+};
+
+struct trace_event_raw_finish_task_reaping {
+	struct trace_entry ent;
+	int pid;
+	char __data[0];
+};
+
+struct trace_event_raw_skip_task_reaping {
+	struct trace_entry ent;
+	int pid;
+	char __data[0];
+};
+
+struct trace_event_raw_compact_retry {
+	struct trace_entry ent;
+	int order;
+	int priority;
+	int result;
+	int retries;
+	int max_retries;
+	bool ret;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_oom_score_adj_update {};
+
+struct trace_event_data_offsets_reclaim_retry_zone {};
+
+struct trace_event_data_offsets_mark_victim {};
+
+struct trace_event_data_offsets_wake_reaper {};
+
+struct trace_event_data_offsets_start_task_reaping {};
+
+struct trace_event_data_offsets_finish_task_reaping {};
+
+struct trace_event_data_offsets_skip_task_reaping {};
+
+struct trace_event_data_offsets_compact_retry {};
+
+typedef void (*btf_trace_oom_score_adj_update)(void *, struct task_struct *);
+
+typedef void (*btf_trace_reclaim_retry_zone)(void *, struct zoneref *, int, long unsigned int, long unsigned int, long unsigned int, int, bool);
+
+typedef void (*btf_trace_mark_victim)(void *, int);
+
+typedef void (*btf_trace_wake_reaper)(void *, int);
+
+typedef void (*btf_trace_start_task_reaping)(void *, int);
+
+typedef void (*btf_trace_finish_task_reaping)(void *, int);
+
+typedef void (*btf_trace_skip_task_reaping)(void *, int);
+
+typedef void (*btf_trace_compact_retry)(void *, int, enum compact_priority, enum compact_result, int, int, bool);
+
+enum wb_state {
+	WB_registered = 0,
+	WB_writeback_running = 1,
+	WB_has_dirty_io = 2,
+	WB_start_all = 3,
+};
+
+struct wb_lock_cookie {
+	bool locked;
+	long unsigned int flags;
+};
+
+typedef int (*writepage_t)(struct page *, struct writeback_control *, void *);
+
+enum page_memcg_data_flags {
+	MEMCG_DATA_OBJCGS = 1,
+	MEMCG_DATA_KMEM = 2,
+	__NR_MEMCG_DATA_FLAGS = 4,
+};
+
+struct dirty_throttle_control {
+	struct wb_domain *dom;
+	struct dirty_throttle_control *gdtc;
+	struct bdi_writeback *wb;
+	struct fprop_local_percpu *wb_completions;
+	long unsigned int avail;
+	long unsigned int dirty;
+	long unsigned int thresh;
+	long unsigned int bg_thresh;
+	long unsigned int wb_dirty;
+	long unsigned int wb_thresh;
+	long unsigned int wb_bg_thresh;
+	long unsigned int pos_ratio;
+};
+
+typedef void compound_page_dtor(struct page *);
+
+struct trace_event_raw_mm_lru_insertion {
+	struct trace_entry ent;
+	struct folio *folio;
+	long unsigned int pfn;
+	enum lru_list lru;
+	long unsigned int flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_lru_activate {
+	struct trace_entry ent;
+	struct folio *folio;
+	long unsigned int pfn;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mm_lru_insertion {};
+
+struct trace_event_data_offsets_mm_lru_activate {};
+
+typedef void (*btf_trace_mm_lru_insertion)(void *, struct folio *);
+
+typedef void (*btf_trace_mm_lru_activate)(void *, struct folio *);
+
+struct lru_rotate {
+	local_lock_t lock;
+	struct pagevec pvec;
+};
+
+struct lru_pvecs {
+	local_lock_t lock;
+	struct pagevec lru_add;
+	struct pagevec lru_deactivate_file;
+	struct pagevec lru_deactivate;
+	struct pagevec lru_lazyfree;
+	struct pagevec activate_page;
+};
+
+enum lruvec_flags {
+	LRUVEC_CONGESTED = 0,
+};
+
+enum pgdat_flags {
+	PGDAT_DIRTY = 0,
+	PGDAT_WRITEBACK = 1,
+	PGDAT_RECLAIM_LOCKED = 2,
+};
+
+enum zone_flags {
+	ZONE_BOOSTED_WATERMARK = 0,
+	ZONE_RECLAIM_ACTIVE = 1,
+};
+
+struct reclaim_stat {
+	unsigned int nr_dirty;
+	unsigned int nr_unqueued_dirty;
+	unsigned int nr_congested;
+	unsigned int nr_writeback;
+	unsigned int nr_immediate;
+	unsigned int nr_pageout;
+	unsigned int nr_activate[2];
+	unsigned int nr_ref_keep;
+	unsigned int nr_unmap_fail;
+	unsigned int nr_lazyfree_fail;
+};
+
+enum {
+	SWP_USED = 1,
+	SWP_WRITEOK = 2,
+	SWP_DISCARDABLE = 4,
+	SWP_DISCARDING = 8,
+	SWP_SOLIDSTATE = 16,
+	SWP_CONTINUED = 32,
+	SWP_BLKDEV = 64,
+	SWP_ACTIVATED = 128,
+	SWP_FS_OPS = 256,
+	SWP_AREA_DISCARD = 512,
+	SWP_PAGE_DISCARD = 1024,
+	SWP_STABLE_WRITES = 2048,
+	SWP_SYNCHRONOUS_IO = 4096,
+	SWP_SCANNING = 16384,
+};
+
+enum ttu_flags {
+	TTU_SPLIT_HUGE_PMD = 4,
+	TTU_IGNORE_MLOCK = 8,
+	TTU_SYNC = 16,
+	TTU_IGNORE_HWPOISON = 32,
+	TTU_BATCH_FLUSH = 64,
+	TTU_RMAP_LOCKED = 128,
+};
+
+struct migration_target_control {
+	int nid;
+	nodemask_t *nmask;
+	gfp_t gfp_mask;
+};
+
+struct trace_event_raw_mm_vmscan_kswapd_sleep {
+	struct trace_entry ent;
+	int nid;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_kswapd_wake {
+	struct trace_entry ent;
+	int nid;
+	int zid;
+	int order;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_wakeup_kswapd {
+	struct trace_entry ent;
+	int nid;
+	int zid;
+	int order;
+	long unsigned int gfp_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_direct_reclaim_begin_template {
+	struct trace_entry ent;
+	int order;
+	long unsigned int gfp_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_direct_reclaim_end_template {
+	struct trace_entry ent;
+	long unsigned int nr_reclaimed;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_shrink_slab_start {
+	struct trace_entry ent;
+	struct shrinker *shr;
+	void *shrink;
+	int nid;
+	long int nr_objects_to_shrink;
+	long unsigned int gfp_flags;
+	long unsigned int cache_items;
+	long long unsigned int delta;
+	long unsigned int total_scan;
+	int priority;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_shrink_slab_end {
+	struct trace_entry ent;
+	struct shrinker *shr;
+	int nid;
+	void *shrink;
+	long int unused_scan;
+	long int new_scan;
+	int retval;
+	long int total_scan;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_lru_isolate {
+	struct trace_entry ent;
+	int highest_zoneidx;
+	int order;
+	long unsigned int nr_requested;
+	long unsigned int nr_scanned;
+	long unsigned int nr_skipped;
+	long unsigned int nr_taken;
+	unsigned int isolate_mode;
+	int lru;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_write_folio {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	int reclaim_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_lru_shrink_inactive {
+	struct trace_entry ent;
+	int nid;
+	long unsigned int nr_scanned;
+	long unsigned int nr_reclaimed;
+	long unsigned int nr_dirty;
+	long unsigned int nr_writeback;
+	long unsigned int nr_congested;
+	long unsigned int nr_immediate;
+	unsigned int nr_activate0;
+	unsigned int nr_activate1;
+	long unsigned int nr_ref_keep;
+	long unsigned int nr_unmap_fail;
+	int priority;
+	int reclaim_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_lru_shrink_active {
+	struct trace_entry ent;
+	int nid;
+	long unsigned int nr_taken;
+	long unsigned int nr_active;
+	long unsigned int nr_deactivated;
+	long unsigned int nr_referenced;
+	int priority;
+	int reclaim_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_node_reclaim_begin {
+	struct trace_entry ent;
+	int nid;
+	int order;
+	long unsigned int gfp_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_vmscan_throttled {
+	struct trace_entry ent;
+	int nid;
+	int usec_timeout;
+	int usec_delayed;
+	int reason;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mm_vmscan_kswapd_sleep {};
+
+struct trace_event_data_offsets_mm_vmscan_kswapd_wake {};
+
+struct trace_event_data_offsets_mm_vmscan_wakeup_kswapd {};
+
+struct trace_event_data_offsets_mm_vmscan_direct_reclaim_begin_template {};
+
+struct trace_event_data_offsets_mm_vmscan_direct_reclaim_end_template {};
+
+struct trace_event_data_offsets_mm_shrink_slab_start {};
+
+struct trace_event_data_offsets_mm_shrink_slab_end {};
+
+struct trace_event_data_offsets_mm_vmscan_lru_isolate {};
+
+struct trace_event_data_offsets_mm_vmscan_write_folio {};
+
+struct trace_event_data_offsets_mm_vmscan_lru_shrink_inactive {};
+
+struct trace_event_data_offsets_mm_vmscan_lru_shrink_active {};
+
+struct trace_event_data_offsets_mm_vmscan_node_reclaim_begin {};
+
+struct trace_event_data_offsets_mm_vmscan_throttled {};
+
+typedef void (*btf_trace_mm_vmscan_kswapd_sleep)(void *, int);
+
+typedef void (*btf_trace_mm_vmscan_kswapd_wake)(void *, int, int, int);
+
+typedef void (*btf_trace_mm_vmscan_wakeup_kswapd)(void *, int, int, int, gfp_t);
+
+typedef void (*btf_trace_mm_vmscan_direct_reclaim_begin)(void *, int, gfp_t);
+
+typedef void (*btf_trace_mm_vmscan_memcg_reclaim_begin)(void *, int, gfp_t);
+
+typedef void (*btf_trace_mm_vmscan_memcg_softlimit_reclaim_begin)(void *, int, gfp_t);
+
+typedef void (*btf_trace_mm_vmscan_direct_reclaim_end)(void *, long unsigned int);
+
+typedef void (*btf_trace_mm_vmscan_memcg_reclaim_end)(void *, long unsigned int);
+
+typedef void (*btf_trace_mm_vmscan_memcg_softlimit_reclaim_end)(void *, long unsigned int);
+
+typedef void (*btf_trace_mm_shrink_slab_start)(void *, struct shrinker *, struct shrink_control *, long int, long unsigned int, long long unsigned int, long unsigned int, int);
+
+typedef void (*btf_trace_mm_shrink_slab_end)(void *, struct shrinker *, int, int, long int, long int, long int);
+
+typedef void (*btf_trace_mm_vmscan_lru_isolate)(void *, int, int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, isolate_mode_t, int);
+
+typedef void (*btf_trace_mm_vmscan_write_folio)(void *, struct folio *);
+
+typedef void (*btf_trace_mm_vmscan_lru_shrink_inactive)(void *, int, long unsigned int, long unsigned int, struct reclaim_stat *, int, int);
+
+typedef void (*btf_trace_mm_vmscan_lru_shrink_active)(void *, int, long unsigned int, long unsigned int, long unsigned int, long unsigned int, int, int);
+
+typedef void (*btf_trace_mm_vmscan_node_reclaim_begin)(void *, int, int, gfp_t);
+
+typedef void (*btf_trace_mm_vmscan_node_reclaim_end)(void *, long unsigned int);
+
+typedef void (*btf_trace_mm_vmscan_throttled)(void *, int, int, int, int);
+
+struct scan_control {
+	long unsigned int nr_to_reclaim;
+	nodemask_t *nodemask;
+	struct mem_cgroup *target_mem_cgroup;
+	long unsigned int anon_cost;
+	long unsigned int file_cost;
+	unsigned int may_deactivate: 2;
+	unsigned int force_deactivate: 1;
+	unsigned int skipped_deactivate: 1;
+	unsigned int may_writepage: 1;
+	unsigned int may_unmap: 1;
+	unsigned int may_swap: 1;
+	unsigned int memcg_low_reclaim: 1;
+	unsigned int memcg_low_skipped: 1;
+	unsigned int hibernation_mode: 1;
+	unsigned int compaction_ready: 1;
+	unsigned int cache_trim_mode: 1;
+	unsigned int file_is_tiny: 1;
+	unsigned int no_demotion: 1;
+	s8 order;
+	s8 priority;
+	s8 reclaim_idx;
+	gfp_t gfp_mask;
+	long unsigned int nr_scanned;
+	long unsigned int nr_reclaimed;
+	struct {
+		unsigned int dirty;
+		unsigned int unqueued_dirty;
+		unsigned int congested;
+		unsigned int writeback;
+		unsigned int immediate;
+		unsigned int file_taken;
+		unsigned int taken;
+	} nr;
+	struct reclaim_state reclaim_state;
+};
+
+typedef enum {
+	PAGE_KEEP = 0,
+	PAGE_ACTIVATE = 1,
+	PAGE_SUCCESS = 2,
+	PAGE_CLEAN = 3,
+} pageout_t;
+
+enum page_references {
+	PAGEREF_RECLAIM = 0,
+	PAGEREF_RECLAIM_CLEAN = 1,
+	PAGEREF_KEEP = 2,
+	PAGEREF_ACTIVATE = 3,
+};
+
+enum scan_balance {
+	SCAN_EQUAL = 0,
+	SCAN_FRACT = 1,
+	SCAN_ANON = 2,
+	SCAN_FILE = 3,
+};
+
+typedef __u64 __le64;
+
+struct xattr {
+	const char *name;
+	void *value;
+	size_t value_len;
+};
+
+struct constant_table {
+	const char *name;
+	int value;
+};
+
+enum {
+	MPOL_DEFAULT = 0,
+	MPOL_PREFERRED = 1,
+	MPOL_BIND = 2,
+	MPOL_INTERLEAVE = 3,
+	MPOL_LOCAL = 4,
+	MPOL_PREFERRED_MANY = 5,
+	MPOL_MAX = 6,
+};
+
+struct shared_policy {
+	struct rb_root root;
+	rwlock_t lock;
+};
+
+struct simple_xattrs {
+	struct list_head head;
+	spinlock_t lock;
+};
+
+struct simple_xattr {
+	struct list_head list;
+	char *name;
+	size_t size;
+	char value[0];
+};
+
+enum fid_type {
+	FILEID_ROOT = 0,
+	FILEID_INO32_GEN = 1,
+	FILEID_INO32_GEN_PARENT = 2,
+	FILEID_BTRFS_WITHOUT_PARENT = 77,
+	FILEID_BTRFS_WITH_PARENT = 78,
+	FILEID_BTRFS_WITH_PARENT_ROOT = 79,
+	FILEID_UDF_WITHOUT_PARENT = 81,
+	FILEID_UDF_WITH_PARENT = 82,
+	FILEID_NILFS_WITHOUT_PARENT = 97,
+	FILEID_NILFS_WITH_PARENT = 98,
+	FILEID_FAT_WITHOUT_PARENT = 113,
+	FILEID_FAT_WITH_PARENT = 114,
+	FILEID_LUSTRE = 151,
+	FILEID_KERNFS = 254,
+	FILEID_INVALID = 255,
+};
+
+struct fid {
+	union {
+		struct {
+			u32 ino;
+			u32 gen;
+			u32 parent_ino;
+			u32 parent_gen;
+		} i32;
+		struct {
+			u32 block;
+			u16 partref;
+			u16 parent_partref;
+			u32 generation;
+			u32 parent_block;
+			u32 parent_generation;
+		} udf;
+		__u32 raw[0];
+	};
+};
+
+struct shmem_inode_info {
+	spinlock_t lock;
+	unsigned int seals;
+	long unsigned int flags;
+	long unsigned int alloced;
+	long unsigned int swapped;
+	long unsigned int fallocend;
+	struct list_head shrinklist;
+	struct list_head swaplist;
+	struct shared_policy policy;
+	struct simple_xattrs xattrs;
+	atomic_t stop_eviction;
+	struct timespec64 i_crtime;
+	struct inode vfs_inode;
+};
+
+struct shmem_sb_info {
+	long unsigned int max_blocks;
+	struct percpu_counter used_blocks;
+	long unsigned int max_inodes;
+	long unsigned int free_inodes;
+	raw_spinlock_t stat_lock;
+	umode_t mode;
+	unsigned char huge;
+	kuid_t uid;
+	kgid_t gid;
+	bool full_inums;
+	ino_t next_ino;
+	ino_t *ino_batch;
+	struct mempolicy *mpol;
+	spinlock_t shrinklist_lock;
+	struct list_head shrinklist;
+	long unsigned int shrinklist_len;
+};
+
+enum sgp_type {
+	SGP_READ = 0,
+	SGP_NOALLOC = 1,
+	SGP_CACHE = 2,
+	SGP_WRITE = 3,
+	SGP_FALLOC = 4,
+};
+
+struct shmem_falloc {
+	wait_queue_head_t *waitq;
+	long unsigned int start;
+	long unsigned int next;
+	long unsigned int nr_falloced;
+	long unsigned int nr_unswapped;
+};
+
+struct shmem_options {
+	long long unsigned int blocks;
+	long long unsigned int inodes;
+	struct mempolicy *mpol;
+	kuid_t uid;
+	kgid_t gid;
+	umode_t mode;
+	bool full_inums;
+	int huge;
+	int seen;
+};
+
+enum shmem_param {
+	Opt_gid = 0,
+	Opt_huge = 1,
+	Opt_mode = 2,
+	Opt_mpol = 3,
+	Opt_nr_blocks = 4,
+	Opt_nr_inodes = 5,
+	Opt_size = 6,
+	Opt_uid = 7,
+	Opt_inode32 = 8,
+	Opt_inode64 = 9,
+};
+
+enum writeback_stat_item {
+	NR_DIRTY_THRESHOLD = 0,
+	NR_DIRTY_BG_THRESHOLD = 1,
+	NR_VM_WRITEBACK_STAT_ITEMS = 2,
+};
+
+struct contig_page_info {
+	long unsigned int free_pages;
+	long unsigned int free_blocks_total;
+	long unsigned int free_blocks_suitable;
+};
+
+struct radix_tree_iter {
+	long unsigned int index;
+	long unsigned int next_index;
+	long unsigned int tags;
+	struct xa_node *node;
+};
+
+enum {
+	RADIX_TREE_ITER_TAG_MASK = 15,
+	RADIX_TREE_ITER_TAGGED = 16,
+	RADIX_TREE_ITER_CONTIG = 32,
+};
+
+struct pcpu_group_info {
+	int nr_units;
+	long unsigned int base_offset;
+	unsigned int *cpu_map;
+};
+
+struct pcpu_alloc_info {
+	size_t static_size;
+	size_t reserved_size;
+	size_t dyn_size;
+	size_t unit_size;
+	size_t atom_size;
+	size_t alloc_size;
+	size_t __ai_size;
+	int nr_groups;
+	struct pcpu_group_info groups[0];
+};
+
+typedef int pcpu_fc_cpu_to_node_fn_t(int);
+
+typedef int pcpu_fc_cpu_distance_fn_t(unsigned int, unsigned int);
+
+struct trace_event_raw_percpu_alloc_percpu {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	bool reserved;
+	bool is_atomic;
+	size_t size;
+	size_t align;
+	void *base_addr;
+	int off;
+	void *ptr;
+	size_t bytes_alloc;
+	long unsigned int gfp_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_percpu_free_percpu {
+	struct trace_entry ent;
+	void *base_addr;
+	int off;
+	void *ptr;
+	char __data[0];
+};
+
+struct trace_event_raw_percpu_alloc_percpu_fail {
+	struct trace_entry ent;
+	bool reserved;
+	bool is_atomic;
+	size_t size;
+	size_t align;
+	char __data[0];
+};
+
+struct trace_event_raw_percpu_create_chunk {
+	struct trace_entry ent;
+	void *base_addr;
+	char __data[0];
+};
+
+struct trace_event_raw_percpu_destroy_chunk {
+	struct trace_entry ent;
+	void *base_addr;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_percpu_alloc_percpu {};
+
+struct trace_event_data_offsets_percpu_free_percpu {};
+
+struct trace_event_data_offsets_percpu_alloc_percpu_fail {};
+
+struct trace_event_data_offsets_percpu_create_chunk {};
+
+struct trace_event_data_offsets_percpu_destroy_chunk {};
+
+typedef void (*btf_trace_percpu_alloc_percpu)(void *, long unsigned int, bool, bool, size_t, size_t, void *, int, void *, size_t, gfp_t);
+
+typedef void (*btf_trace_percpu_free_percpu)(void *, void *, int, void *);
+
+typedef void (*btf_trace_percpu_alloc_percpu_fail)(void *, bool, bool, size_t, size_t);
+
+typedef void (*btf_trace_percpu_create_chunk)(void *, void *);
+
+typedef void (*btf_trace_percpu_destroy_chunk)(void *, void *);
+
+struct pcpu_block_md {
+	int scan_hint;
+	int scan_hint_start;
+	int contig_hint;
+	int contig_hint_start;
+	int left_free;
+	int right_free;
+	int first_free;
+	int nr_bits;
+};
+
+struct pcpu_chunk {
+	struct list_head list;
+	int free_bytes;
+	struct pcpu_block_md chunk_md;
+	void *base_addr;
+	long unsigned int *alloc_map;
+	long unsigned int *bound_map;
+	struct pcpu_block_md *md_blocks;
+	void *data;
+	bool immutable;
+	bool isolated;
+	int start_offset;
+	int end_offset;
+	struct obj_cgroup **obj_cgroups;
+	int nr_pages;
+	int nr_populated;
+	int nr_empty_pop_pages;
+	long unsigned int populated[0];
+};
+
+struct trace_event_raw_kmem_alloc {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	size_t bytes_req;
+	size_t bytes_alloc;
+	long unsigned int gfp_flags;
+	char __data[0];
+};
+
+struct trace_event_raw_kmem_alloc_node {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	size_t bytes_req;
+	size_t bytes_alloc;
+	long unsigned int gfp_flags;
+	int node;
+	char __data[0];
+};
+
+struct trace_event_raw_kfree {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	char __data[0];
+};
+
+struct trace_event_raw_kmem_cache_free {
+	struct trace_entry ent;
+	long unsigned int call_site;
+	const void *ptr;
+	u32 __data_loc_name;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_free {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_free_batched {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_alloc {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	long unsigned int gfp_flags;
+	int migratetype;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	int migratetype;
+	int percpu_refill;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_pcpu_drain {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	unsigned int order;
+	int migratetype;
+	char __data[0];
+};
+
+struct trace_event_raw_mm_page_alloc_extfrag {
+	struct trace_entry ent;
+	long unsigned int pfn;
+	int alloc_order;
+	int fallback_order;
+	int alloc_migratetype;
+	int fallback_migratetype;
+	int change_ownership;
+	char __data[0];
+};
+
+struct trace_event_raw_rss_stat {
+	struct trace_entry ent;
+	unsigned int mm_id;
+	unsigned int curr;
+	int member;
+	long int size;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_kmem_alloc {};
+
+struct trace_event_data_offsets_kmem_alloc_node {};
+
+struct trace_event_data_offsets_kfree {};
+
+struct trace_event_data_offsets_kmem_cache_free {
+	u32 name;
+};
+
+struct trace_event_data_offsets_mm_page_free {};
+
+struct trace_event_data_offsets_mm_page_free_batched {};
+
+struct trace_event_data_offsets_mm_page_alloc {};
+
+struct trace_event_data_offsets_mm_page {};
