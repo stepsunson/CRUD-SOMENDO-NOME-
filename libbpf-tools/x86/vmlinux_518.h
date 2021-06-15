@@ -61587,3 +61587,2163 @@ struct msdos_sb_info {
 	unsigned char fats;
 	unsigned char fat_bits;
 	short unsigned int fat_start;
+	long unsigned int fat_length;
+	long unsigned int dir_start;
+	short unsigned int dir_entries;
+	long unsigned int data_start;
+	long unsigned int max_cluster;
+	long unsigned int root_cluster;
+	long unsigned int fsinfo_sector;
+	struct mutex fat_lock;
+	struct mutex nfs_build_inode_lock;
+	struct mutex s_lock;
+	unsigned int prev_free;
+	unsigned int free_clusters;
+	unsigned int free_clus_valid;
+	struct fat_mount_options options;
+	struct nls_table *nls_disk;
+	struct nls_table *nls_io;
+	const void *dir_ops;
+	int dir_per_block;
+	int dir_per_block_bits;
+	unsigned int vol_id;
+	int fatent_shift;
+	const struct fatent_operations *fatent_ops;
+	struct inode *fat_inode;
+	struct inode *fsinfo_inode;
+	struct ratelimit_state ratelimit;
+	spinlock_t inode_hash_lock;
+	struct hlist_head inode_hashtable[256];
+	spinlock_t dir_hash_lock;
+	struct hlist_head dir_hashtable[256];
+	unsigned int dirty;
+	struct callback_head rcu;
+};
+
+struct fat_entry;
+
+struct fatent_operations {
+	void (*ent_blocknr)(struct super_block *, int, int *, sector_t *);
+	void (*ent_set_ptr)(struct fat_entry *, int);
+	int (*ent_bread)(struct super_block *, struct fat_entry *, int, sector_t);
+	int (*ent_get)(struct fat_entry *);
+	void (*ent_put)(struct fat_entry *, int);
+	int (*ent_next)(struct fat_entry *);
+};
+
+struct msdos_inode_info {
+	spinlock_t cache_lru_lock;
+	struct list_head cache_lru;
+	int nr_caches;
+	unsigned int cache_valid_id;
+	loff_t mmu_private;
+	int i_start;
+	int i_logstart;
+	int i_attrs;
+	loff_t i_pos;
+	struct hlist_node i_fat_hash;
+	struct hlist_node i_dir_hash;
+	struct rw_semaphore truncate_lock;
+	struct timespec64 i_crtime;
+	struct inode vfs_inode;
+};
+
+struct fat_entry {
+	int entry;
+	union {
+		u8 *ent12_p[2];
+		__le16 *ent16_p;
+		__le32 *ent32_p;
+	} u;
+	int nr_bhs;
+	struct buffer_head *bhs[2];
+	struct inode *fat_inode;
+};
+
+struct fat_cache {
+	struct list_head cache_list;
+	int nr_contig;
+	int fcluster;
+	int dcluster;
+};
+
+struct fat_cache_id {
+	unsigned int id;
+	int nr_contig;
+	int fcluster;
+	int dcluster;
+};
+
+struct compat_dirent {
+	u32 d_ino;
+	compat_off_t d_off;
+	u16 d_reclen;
+	char d_name[256];
+};
+
+enum utf16_endian {
+	UTF16_HOST_ENDIAN = 0,
+	UTF16_LITTLE_ENDIAN = 1,
+	UTF16_BIG_ENDIAN = 2,
+};
+
+struct __fat_dirent {
+	long int d_ino;
+	__kernel_off_t d_off;
+	short unsigned int d_reclen;
+	char d_name[256];
+};
+
+struct msdos_dir_entry {
+	__u8 name[11];
+	__u8 attr;
+	__u8 lcase;
+	__u8 ctime_cs;
+	__le16 ctime;
+	__le16 cdate;
+	__le16 adate;
+	__le16 starthi;
+	__le16 time;
+	__le16 date;
+	__le16 start;
+	__le32 size;
+};
+
+struct msdos_dir_slot {
+	__u8 id;
+	__u8 name0_4[10];
+	__u8 attr;
+	__u8 reserved;
+	__u8 alias_checksum;
+	__u8 name5_10[12];
+	__le16 start;
+	__u8 name11_12[4];
+};
+
+struct fat_slot_info {
+	loff_t i_pos;
+	loff_t slot_off;
+	int nr_slots;
+	struct msdos_dir_entry *de;
+	struct buffer_head *bh;
+};
+
+typedef long long unsigned int llu;
+
+enum {
+	PARSE_INVALID = 1,
+	PARSE_NOT_LONGNAME = 2,
+	PARSE_EOF = 3,
+};
+
+struct fat_ioctl_filldir_callback {
+	struct dir_context ctx;
+	void *dirent;
+	int result;
+	const char *longname;
+	int long_len;
+	const char *shortname;
+	int short_len;
+};
+
+struct fatent_ra {
+	sector_t cur;
+	sector_t limit;
+	unsigned int ra_blocks;
+	sector_t ra_advance;
+	sector_t ra_next;
+	sector_t ra_limit;
+};
+
+struct fat_boot_sector {
+	__u8 ignored[3];
+	__u8 system_id[8];
+	__u8 sector_size[2];
+	__u8 sec_per_clus;
+	__le16 reserved;
+	__u8 fats;
+	__u8 dir_entries[2];
+	__u8 sectors[2];
+	__u8 media;
+	__le16 fat_length;
+	__le16 secs_track;
+	__le16 heads;
+	__le32 hidden;
+	__le32 total_sect;
+	union {
+		struct {
+			__u8 drive_number;
+			__u8 state;
+			__u8 signature;
+			__u8 vol_id[4];
+			__u8 vol_label[11];
+			__u8 fs_type[8];
+		} fat16;
+		struct {
+			__le32 length;
+			__le16 flags;
+			__u8 version[2];
+			__le32 root_cluster;
+			__le16 info_sector;
+			__le16 backup_boot;
+			__le16 reserved2[6];
+			__u8 drive_number;
+			__u8 state;
+			__u8 signature;
+			__u8 vol_id[4];
+			__u8 vol_label[11];
+			__u8 fs_type[8];
+		} fat32;
+	};
+};
+
+struct fat_boot_fsinfo {
+	__le32 signature1;
+	__le32 reserved1[120];
+	__le32 signature2;
+	__le32 free_clusters;
+	__le32 next_cluster;
+	__le32 reserved2[4];
+};
+
+struct fat_bios_param_block {
+	u16 fat_sector_size;
+	u8 fat_sec_per_clus;
+	u16 fat_reserved;
+	u8 fat_fats;
+	u16 fat_dir_entries;
+	u16 fat_sectors;
+	u16 fat_fat_length;
+	u32 fat_total_sect;
+	u8 fat16_state;
+	u32 fat16_vol_id;
+	u32 fat32_length;
+	u32 fat32_root_cluster;
+	u16 fat32_info_sector;
+	u8 fat32_state;
+	u32 fat32_vol_id;
+};
+
+struct fat_floppy_defaults {
+	unsigned int nr_sectors;
+	unsigned int sec_per_clus;
+	unsigned int dir_entries;
+	unsigned int media;
+	unsigned int fat_length;
+};
+
+enum {
+	Opt_check_n = 0,
+	Opt_check_r = 1,
+	Opt_check_s = 2,
+	Opt_uid___4 = 3,
+	Opt_gid___5 = 4,
+	Opt_umask = 5,
+	Opt_dmask = 6,
+	Opt_fmask = 7,
+	Opt_allow_utime = 8,
+	Opt_codepage = 9,
+	Opt_usefree = 10,
+	Opt_nocase = 11,
+	Opt_quiet = 12,
+	Opt_showexec = 13,
+	Opt_debug___2 = 14,
+	Opt_immutable = 15,
+	Opt_dots = 16,
+	Opt_nodots = 17,
+	Opt_charset = 18,
+	Opt_shortname_lower = 19,
+	Opt_shortname_win95 = 20,
+	Opt_shortname_winnt = 21,
+	Opt_shortname_mixed = 22,
+	Opt_utf8_no = 23,
+	Opt_utf8_yes = 24,
+	Opt_uni_xl_no = 25,
+	Opt_uni_xl_yes = 26,
+	Opt_nonumtail_no = 27,
+	Opt_nonumtail_yes = 28,
+	Opt_obsolete = 29,
+	Opt_flush = 30,
+	Opt_tz_utc = 31,
+	Opt_rodir = 32,
+	Opt_err_cont = 33,
+	Opt_err_panic = 34,
+	Opt_err_ro = 35,
+	Opt_discard___2 = 36,
+	Opt_nfs = 37,
+	Opt_time_offset = 38,
+	Opt_nfs_stale_rw = 39,
+	Opt_nfs_nostale_ro = 40,
+	Opt_err___3 = 41,
+	Opt_dos1xfloppy = 42,
+};
+
+struct fat_fid {
+	u32 i_gen;
+	u32 i_pos_low;
+	u16 i_pos_hi;
+	u16 parent_i_pos_hi;
+	u32 parent_i_pos_low;
+	u32 parent_i_gen;
+};
+
+struct shortname_info {
+	unsigned char lower: 1;
+	unsigned char upper: 1;
+	unsigned char valid: 1;
+};
+
+struct ecryptfs_mount_crypt_stat;
+
+struct ecryptfs_crypt_stat {
+	u32 flags;
+	unsigned int file_version;
+	size_t iv_bytes;
+	size_t metadata_size;
+	size_t extent_size;
+	size_t key_size;
+	size_t extent_shift;
+	unsigned int extent_mask;
+	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+	struct crypto_skcipher *tfm;
+	struct crypto_shash *hash_tfm;
+	unsigned char cipher[32];
+	unsigned char key[64];
+	unsigned char root_iv[16];
+	struct list_head keysig_list;
+	struct mutex keysig_list_mutex;
+	struct mutex cs_tfm_mutex;
+	struct mutex cs_mutex;
+};
+
+struct ecryptfs_mount_crypt_stat {
+	u32 flags;
+	struct list_head global_auth_tok_list;
+	struct mutex global_auth_tok_list_mutex;
+	size_t global_default_cipher_key_size;
+	size_t global_default_fn_cipher_key_bytes;
+	unsigned char global_default_cipher_name[32];
+	unsigned char global_default_fn_cipher_name[32];
+	char global_default_fnek_sig[17];
+};
+
+struct ecryptfs_inode_info {
+	struct inode vfs_inode;
+	struct inode *wii_inode;
+	struct mutex lower_file_mutex;
+	atomic_t lower_file_count;
+	struct file *lower_file;
+	struct ecryptfs_crypt_stat crypt_stat;
+};
+
+struct ecryptfs_dentry_info {
+	struct path lower_path;
+	struct callback_head rcu;
+};
+
+struct ecryptfs_sb_info {
+	struct super_block *wsi_sb;
+	struct ecryptfs_mount_crypt_stat mount_crypt_stat;
+};
+
+struct ecryptfs_file_info {
+	struct file *wfi_file;
+	struct ecryptfs_crypt_stat *crypt_stat;
+};
+
+struct ecryptfs_getdents_callback {
+	struct dir_context ctx;
+	struct dir_context *caller;
+	struct super_block *sb;
+	int filldir_called;
+	int entries_written;
+};
+
+struct ecryptfs_session_key {
+	u32 flags;
+	u32 encrypted_key_size;
+	u32 decrypted_key_size;
+	u8 encrypted_key[512];
+	u8 decrypted_key[64];
+};
+
+struct ecryptfs_password {
+	u32 password_bytes;
+	s32 hash_algo;
+	u32 hash_iterations;
+	u32 session_key_encryption_key_bytes;
+	u32 flags;
+	u8 session_key_encryption_key[64];
+	u8 signature[17];
+	u8 salt[8];
+};
+
+struct ecryptfs_private_key {
+	u32 key_size;
+	u32 data_len;
+	u8 signature[17];
+	char pki_type[17];
+	u8 data[0];
+};
+
+struct ecryptfs_auth_tok {
+	u16 version;
+	u16 token_type;
+	u32 flags;
+	struct ecryptfs_session_key session_key;
+	u8 reserved[32];
+	union {
+		struct ecryptfs_password password;
+		struct ecryptfs_private_key private_key;
+	} token;
+};
+
+struct ecryptfs_global_auth_tok {
+	u32 flags;
+	struct list_head mount_crypt_stat_list;
+	struct key *global_auth_tok_key;
+	unsigned char sig[17];
+};
+
+enum {
+	ecryptfs_opt_sig = 0,
+	ecryptfs_opt_ecryptfs_sig = 1,
+	ecryptfs_opt_cipher = 2,
+	ecryptfs_opt_ecryptfs_cipher = 3,
+	ecryptfs_opt_ecryptfs_key_bytes = 4,
+	ecryptfs_opt_passthrough = 5,
+	ecryptfs_opt_xattr_metadata = 6,
+	ecryptfs_opt_encrypted_view = 7,
+	ecryptfs_opt_fnek_sig = 8,
+	ecryptfs_opt_fn_cipher = 9,
+	ecryptfs_opt_fn_cipher_key_bytes = 10,
+	ecryptfs_opt_unlink_sigs = 11,
+	ecryptfs_opt_mount_auth_tok_only = 12,
+	ecryptfs_opt_check_dev_ruid = 13,
+	ecryptfs_opt_err = 14,
+};
+
+struct ecryptfs_cache_info {
+	struct kmem_cache **cache;
+	const char *name;
+	size_t size;
+	slab_flags_t flags;
+	void (*ctor)(void *);
+};
+
+struct ecryptfs_key_sig {
+	struct list_head crypt_stat_list;
+	char keysig[17];
+};
+
+struct ecryptfs_filename {
+	struct list_head crypt_stat_list;
+	u32 flags;
+	u32 seq_no;
+	char *filename;
+	char *encrypted_filename;
+	size_t filename_size;
+	size_t encrypted_filename_size;
+	char fnek_sig[16];
+	char dentry_name[57];
+};
+
+struct ecryptfs_key_tfm {
+	struct crypto_skcipher *key_tfm;
+	size_t key_size;
+	struct mutex key_tfm_mutex;
+	struct list_head key_tfm_list;
+	unsigned char cipher_name[32];
+};
+
+struct extent_crypt_result {
+	struct completion completion;
+	int rc;
+};
+
+struct ecryptfs_flag_map_elem {
+	u32 file_flag;
+	u32 local_flag;
+};
+
+struct ecryptfs_cipher_code_str_map_elem {
+	char cipher_str[16];
+	u8 cipher_code;
+};
+
+struct encrypted_key_payload {
+	struct callback_head rcu;
+	char *format;
+	char *master_desc;
+	char *datalen;
+	u8 *iv;
+	u8 *encrypted_data;
+	short unsigned int datablob_len;
+	short unsigned int decrypted_datalen;
+	short unsigned int payload_datalen;
+	short unsigned int encrypted_key_format;
+	u8 *decrypted_data;
+	u8 payload_data[0];
+};
+
+enum ecryptfs_token_types {
+	ECRYPTFS_PASSWORD = 0,
+	ECRYPTFS_PRIVATE_KEY = 1,
+};
+
+struct ecryptfs_key_record {
+	unsigned char type;
+	size_t enc_key_size;
+	unsigned char sig[8];
+	unsigned char enc_key[512];
+};
+
+struct ecryptfs_auth_tok_list_item {
+	unsigned char encrypted_session_key[64];
+	struct list_head list;
+	struct ecryptfs_auth_tok auth_tok;
+};
+
+struct ecryptfs_message {
+	u32 index;
+	u32 data_len;
+	u8 data[0];
+};
+
+struct ecryptfs_msg_ctx {
+	u8 state;
+	u8 type;
+	u32 index;
+	u32 counter;
+	size_t msg_size;
+	struct ecryptfs_message *msg;
+	struct task_struct *task;
+	struct list_head node;
+	struct list_head daemon_out_list;
+	struct mutex mux;
+};
+
+struct ecryptfs_write_tag_70_packet_silly_stack {
+	u8 cipher_code;
+	size_t max_packet_size;
+	size_t packet_size_len;
+	size_t block_aligned_filename_size;
+	size_t block_size;
+	size_t i;
+	size_t j;
+	size_t num_rand_bytes;
+	struct mutex *tfm_mutex;
+	char *block_aligned_filename;
+	struct ecryptfs_auth_tok *auth_tok;
+	struct scatterlist src_sg[2];
+	struct scatterlist dst_sg[2];
+	struct crypto_skcipher *skcipher_tfm;
+	struct skcipher_request *skcipher_req;
+	char iv[16];
+	char hash[16];
+	char tmp_hash[16];
+	struct crypto_shash *hash_tfm;
+	struct shash_desc *hash_desc;
+};
+
+struct ecryptfs_parse_tag_70_packet_silly_stack {
+	u8 cipher_code;
+	size_t max_packet_size;
+	size_t packet_size_len;
+	size_t parsed_tag_70_packet_size;
+	size_t block_aligned_filename_size;
+	size_t block_size;
+	size_t i;
+	struct mutex *tfm_mutex;
+	char *decrypted_filename;
+	struct ecryptfs_auth_tok *auth_tok;
+	struct scatterlist src_sg[2];
+	struct scatterlist dst_sg[2];
+	struct crypto_skcipher *skcipher_tfm;
+	struct skcipher_request *skcipher_req;
+	char fnek_sig_hex[17];
+	char iv[16];
+	char cipher_string[32];
+};
+
+struct ecryptfs_open_req {
+	struct file **lower_file;
+	struct path path;
+	struct completion done;
+	struct list_head kthread_ctl_list;
+};
+
+struct ecryptfs_kthread_ctl {
+	u32 flags;
+	struct mutex mux;
+	struct list_head req_list;
+	wait_queue_head_t wait;
+};
+
+struct ecryptfs_daemon {
+	u32 flags;
+	u32 num_queued_msg_ctx;
+	struct file *file;
+	struct mutex mux;
+	struct list_head msg_ctx_out_queue;
+	wait_queue_head_t wait;
+	struct hlist_node euid_chain;
+};
+
+struct getdents_callback___2 {
+	struct dir_context ctx;
+	char *name;
+	u64 ino;
+	int found;
+	int sequence;
+};
+
+typedef u32 unicode_t;
+
+struct utf8_table {
+	int cmask;
+	int cval;
+	int shift;
+	long int lmask;
+	long int lval;
+};
+
+struct utf8cursor {
+	const struct unicode_map *um;
+	enum utf8_normalization n;
+	const char *s;
+	const char *p;
+	const char *ss;
+	const char *sp;
+	unsigned int len;
+	unsigned int slen;
+	short int ccc;
+	short int nccc;
+	unsigned char hangul[12];
+};
+
+typedef const unsigned char utf8trie_t;
+
+typedef const unsigned char utf8leaf_t;
+
+enum fuse_opcode {
+	FUSE_LOOKUP = 1,
+	FUSE_FORGET = 2,
+	FUSE_GETATTR = 3,
+	FUSE_SETATTR = 4,
+	FUSE_READLINK = 5,
+	FUSE_SYMLINK = 6,
+	FUSE_MKNOD = 8,
+	FUSE_MKDIR = 9,
+	FUSE_UNLINK = 10,
+	FUSE_RMDIR = 11,
+	FUSE_RENAME = 12,
+	FUSE_LINK = 13,
+	FUSE_OPEN = 14,
+	FUSE_READ = 15,
+	FUSE_WRITE = 16,
+	FUSE_STATFS = 17,
+	FUSE_RELEASE = 18,
+	FUSE_FSYNC = 20,
+	FUSE_SETXATTR = 21,
+	FUSE_GETXATTR = 22,
+	FUSE_LISTXATTR = 23,
+	FUSE_REMOVEXATTR = 24,
+	FUSE_FLUSH = 25,
+	FUSE_INIT = 26,
+	FUSE_OPENDIR = 27,
+	FUSE_READDIR = 28,
+	FUSE_RELEASEDIR = 29,
+	FUSE_FSYNCDIR = 30,
+	FUSE_GETLK = 31,
+	FUSE_SETLK = 32,
+	FUSE_SETLKW = 33,
+	FUSE_ACCESS = 34,
+	FUSE_CREATE = 35,
+	FUSE_INTERRUPT = 36,
+	FUSE_BMAP = 37,
+	FUSE_DESTROY = 38,
+	FUSE_IOCTL = 39,
+	FUSE_POLL = 40,
+	FUSE_NOTIFY_REPLY = 41,
+	FUSE_BATCH_FORGET = 42,
+	FUSE_FALLOCATE = 43,
+	FUSE_READDIRPLUS = 44,
+	FUSE_RENAME2 = 45,
+	FUSE_LSEEK = 46,
+	FUSE_COPY_FILE_RANGE = 47,
+	FUSE_SETUPMAPPING = 48,
+	FUSE_REMOVEMAPPING = 49,
+	FUSE_SYNCFS = 50,
+	CUSE_INIT = 4096,
+	CUSE_INIT_BSWAP_RESERVED = 1048576,
+	FUSE_INIT_BSWAP_RESERVED = 436207616,
+};
+
+enum fuse_notify_code {
+	FUSE_NOTIFY_POLL = 1,
+	FUSE_NOTIFY_INVAL_INODE = 2,
+	FUSE_NOTIFY_INVAL_ENTRY = 3,
+	FUSE_NOTIFY_STORE = 4,
+	FUSE_NOTIFY_RETRIEVE = 5,
+	FUSE_NOTIFY_DELETE = 6,
+	FUSE_NOTIFY_CODE_MAX = 7,
+};
+
+struct fuse_forget_in {
+	uint64_t nlookup;
+};
+
+struct fuse_forget_one {
+	uint64_t nodeid;
+	uint64_t nlookup;
+};
+
+struct fuse_batch_forget_in {
+	uint32_t count;
+	uint32_t dummy;
+};
+
+struct fuse_interrupt_in {
+	uint64_t unique;
+};
+
+struct fuse_notify_poll_wakeup_out {
+	uint64_t kh;
+};
+
+struct fuse_in_header {
+	uint32_t len;
+	uint32_t opcode;
+	uint64_t unique;
+	uint64_t nodeid;
+	uint32_t uid;
+	uint32_t gid;
+	uint32_t pid;
+	uint32_t padding;
+};
+
+struct fuse_out_header {
+	uint32_t len;
+	int32_t error;
+	uint64_t unique;
+};
+
+struct fuse_notify_inval_inode_out {
+	uint64_t ino;
+	int64_t off;
+	int64_t len;
+};
+
+struct fuse_notify_inval_entry_out {
+	uint64_t parent;
+	uint32_t namelen;
+	uint32_t padding;
+};
+
+struct fuse_notify_delete_out {
+	uint64_t parent;
+	uint64_t child;
+	uint32_t namelen;
+	uint32_t padding;
+};
+
+struct fuse_notify_store_out {
+	uint64_t nodeid;
+	uint64_t offset;
+	uint32_t size;
+	uint32_t padding;
+};
+
+struct fuse_notify_retrieve_out {
+	uint64_t notify_unique;
+	uint64_t nodeid;
+	uint64_t offset;
+	uint32_t size;
+	uint32_t padding;
+};
+
+struct fuse_notify_retrieve_in {
+	uint64_t dummy1;
+	uint64_t offset;
+	uint32_t size;
+	uint32_t dummy2;
+	uint64_t dummy3;
+	uint64_t dummy4;
+};
+
+struct fuse_forget_link {
+	struct fuse_forget_one forget_one;
+	struct fuse_forget_link *next;
+};
+
+struct fuse_mount;
+
+struct fuse_release_args;
+
+struct fuse_file {
+	struct fuse_mount *fm;
+	struct fuse_release_args *release_args;
+	u64 kh;
+	u64 fh;
+	u64 nodeid;
+	refcount_t count;
+	u32 open_flags;
+	struct list_head write_entry;
+	struct {
+		struct mutex lock;
+		loff_t pos;
+		loff_t cache_off;
+		u64 version;
+	} readdir;
+	struct rb_node polled_node;
+	wait_queue_head_t poll_wait;
+	bool flock: 1;
+};
+
+struct fuse_conn;
+
+struct fuse_mount {
+	struct fuse_conn *fc;
+	struct super_block *sb;
+	struct list_head fc_entry;
+};
+
+struct fuse_in_arg {
+	unsigned int size;
+	const void *value;
+};
+
+struct fuse_arg {
+	unsigned int size;
+	void *value;
+};
+
+struct fuse_page_desc {
+	unsigned int length;
+	unsigned int offset;
+};
+
+struct fuse_args {
+	uint64_t nodeid;
+	uint32_t opcode;
+	short unsigned int in_numargs;
+	short unsigned int out_numargs;
+	bool force: 1;
+	bool noreply: 1;
+	bool nocreds: 1;
+	bool in_pages: 1;
+	bool out_pages: 1;
+	bool user_pages: 1;
+	bool out_argvar: 1;
+	bool page_zeroing: 1;
+	bool page_replace: 1;
+	bool may_block: 1;
+	struct fuse_in_arg in_args[3];
+	struct fuse_arg out_args[2];
+	void (*end)(struct fuse_mount *, struct fuse_args *, int);
+};
+
+struct fuse_args_pages {
+	struct fuse_args args;
+	struct page **pages;
+	struct fuse_page_desc *descs;
+	unsigned int num_pages;
+};
+
+enum fuse_req_flag {
+	FR_ISREPLY = 0,
+	FR_FORCE = 1,
+	FR_BACKGROUND = 2,
+	FR_WAITING = 3,
+	FR_ABORTED = 4,
+	FR_INTERRUPTED = 5,
+	FR_LOCKED = 6,
+	FR_PENDING = 7,
+	FR_SENT = 8,
+	FR_FINISHED = 9,
+	FR_PRIVATE = 10,
+	FR_ASYNC = 11,
+};
+
+struct fuse_req {
+	struct list_head list;
+	struct list_head intr_entry;
+	struct fuse_args *args;
+	refcount_t count;
+	long unsigned int flags;
+	struct {
+		struct fuse_in_header h;
+	} in;
+	struct {
+		struct fuse_out_header h;
+	} out;
+	wait_queue_head_t waitq;
+	void *argbuf;
+	struct fuse_mount *fm;
+};
+
+struct fuse_iqueue;
+
+struct fuse_iqueue_ops {
+	void (*wake_forget_and_unlock)(struct fuse_iqueue *);
+	void (*wake_interrupt_and_unlock)(struct fuse_iqueue *);
+	void (*wake_pending_and_unlock)(struct fuse_iqueue *);
+	void (*release)(struct fuse_iqueue *);
+};
+
+struct fuse_iqueue {
+	unsigned int connected;
+	spinlock_t lock;
+	wait_queue_head_t waitq;
+	u64 reqctr;
+	struct list_head pending;
+	struct list_head interrupts;
+	struct fuse_forget_link forget_list_head;
+	struct fuse_forget_link *forget_list_tail;
+	int forget_batch;
+	struct fasync_struct *fasync;
+	const struct fuse_iqueue_ops *ops;
+	void *priv;
+};
+
+struct fuse_pqueue {
+	unsigned int connected;
+	spinlock_t lock;
+	struct list_head *processing;
+	struct list_head io;
+};
+
+struct fuse_dev {
+	struct fuse_conn *fc;
+	struct fuse_pqueue pq;
+	struct list_head entry;
+};
+
+enum fuse_dax_mode {
+	FUSE_DAX_INODE_DEFAULT = 0,
+	FUSE_DAX_ALWAYS = 1,
+	FUSE_DAX_NEVER = 2,
+	FUSE_DAX_INODE_USER = 3,
+};
+
+struct fuse_conn_dax;
+
+struct fuse_sync_bucket;
+
+struct fuse_conn {
+	spinlock_t lock;
+	refcount_t count;
+	atomic_t dev_count;
+	struct callback_head rcu;
+	kuid_t user_id;
+	kgid_t group_id;
+	struct pid_namespace *pid_ns;
+	struct user_namespace *user_ns;
+	unsigned int max_read;
+	unsigned int max_write;
+	unsigned int max_pages;
+	unsigned int max_pages_limit;
+	struct fuse_iqueue iq;
+	atomic64_t khctr;
+	struct rb_root polled_files;
+	unsigned int max_background;
+	unsigned int congestion_threshold;
+	unsigned int num_background;
+	unsigned int active_background;
+	struct list_head bg_queue;
+	spinlock_t bg_lock;
+	int initialized;
+	int blocked;
+	wait_queue_head_t blocked_waitq;
+	unsigned int connected;
+	bool aborted;
+	unsigned int conn_error: 1;
+	unsigned int conn_init: 1;
+	unsigned int async_read: 1;
+	unsigned int abort_err: 1;
+	unsigned int atomic_o_trunc: 1;
+	unsigned int export_support: 1;
+	unsigned int writeback_cache: 1;
+	unsigned int parallel_dirops: 1;
+	unsigned int handle_killpriv: 1;
+	unsigned int cache_symlinks: 1;
+	unsigned int legacy_opts_show: 1;
+	unsigned int handle_killpriv_v2: 1;
+	unsigned int no_open: 1;
+	unsigned int no_opendir: 1;
+	unsigned int no_fsync: 1;
+	unsigned int no_fsyncdir: 1;
+	unsigned int no_flush: 1;
+	unsigned int no_setxattr: 1;
+	unsigned int setxattr_ext: 1;
+	unsigned int no_getxattr: 1;
+	unsigned int no_listxattr: 1;
+	unsigned int no_removexattr: 1;
+	unsigned int no_lock: 1;
+	unsigned int no_access: 1;
+	unsigned int no_create: 1;
+	unsigned int no_interrupt: 1;
+	unsigned int no_bmap: 1;
+	unsigned int no_poll: 1;
+	unsigned int big_writes: 1;
+	unsigned int dont_mask: 1;
+	unsigned int no_flock: 1;
+	unsigned int no_fallocate: 1;
+	unsigned int no_rename2: 1;
+	unsigned int auto_inval_data: 1;
+	unsigned int explicit_inval_data: 1;
+	unsigned int do_readdirplus: 1;
+	unsigned int readdirplus_auto: 1;
+	unsigned int async_dio: 1;
+	unsigned int no_lseek: 1;
+	unsigned int posix_acl: 1;
+	unsigned int default_permissions: 1;
+	unsigned int allow_other: 1;
+	unsigned int no_copy_file_range: 1;
+	unsigned int destroy: 1;
+	unsigned int delete_stale: 1;
+	unsigned int no_control: 1;
+	unsigned int no_force_umount: 1;
+	unsigned int auto_submounts: 1;
+	unsigned int sync_fs: 1;
+	unsigned int init_security: 1;
+	unsigned int inode_dax: 1;
+	atomic_t num_waiting;
+	unsigned int minor;
+	struct list_head entry;
+	dev_t dev;
+	struct dentry *ctl_dentry[5];
+	int ctl_ndents;
+	u32 scramble_key[4];
+	atomic64_t attr_version;
+	void (*release)(struct fuse_conn *);
+	struct rw_semaphore killsb;
+	struct list_head devices;
+	enum fuse_dax_mode dax_mode;
+	struct fuse_conn_dax *dax;
+	struct list_head mounts;
+	struct fuse_sync_bucket *curr_bucket;
+};
+
+struct fuse_sync_bucket {
+	atomic_t count;
+	wait_queue_head_t waitq;
+	struct callback_head rcu;
+};
+
+struct fuse_copy_state {
+	int write;
+	struct fuse_req *req;
+	struct iov_iter *iter;
+	struct pipe_buffer *pipebufs;
+	struct pipe_buffer *currbuf;
+	struct pipe_inode_info *pipe;
+	long unsigned int nr_segs;
+	struct page *pg;
+	unsigned int len;
+	unsigned int offset;
+	unsigned int move_pages: 1;
+};
+
+struct fuse_retrieve_args {
+	struct fuse_args_pages ap;
+	struct fuse_notify_retrieve_in inarg;
+};
+
+struct fuse_attr {
+	uint64_t ino;
+	uint64_t size;
+	uint64_t blocks;
+	uint64_t atime;
+	uint64_t mtime;
+	uint64_t ctime;
+	uint32_t atimensec;
+	uint32_t mtimensec;
+	uint32_t ctimensec;
+	uint32_t mode;
+	uint32_t nlink;
+	uint32_t uid;
+	uint32_t gid;
+	uint32_t rdev;
+	uint32_t blksize;
+	uint32_t flags;
+};
+
+struct fuse_entry_out {
+	uint64_t nodeid;
+	uint64_t generation;
+	uint64_t entry_valid;
+	uint64_t attr_valid;
+	uint32_t entry_valid_nsec;
+	uint32_t attr_valid_nsec;
+	struct fuse_attr attr;
+};
+
+struct fuse_getattr_in {
+	uint32_t getattr_flags;
+	uint32_t dummy;
+	uint64_t fh;
+};
+
+struct fuse_attr_out {
+	uint64_t attr_valid;
+	uint32_t attr_valid_nsec;
+	uint32_t dummy;
+	struct fuse_attr attr;
+};
+
+struct fuse_mknod_in {
+	uint32_t mode;
+	uint32_t rdev;
+	uint32_t umask;
+	uint32_t padding;
+};
+
+struct fuse_mkdir_in {
+	uint32_t mode;
+	uint32_t umask;
+};
+
+struct fuse_rename2_in {
+	uint64_t newdir;
+	uint32_t flags;
+	uint32_t padding;
+};
+
+struct fuse_link_in {
+	uint64_t oldnodeid;
+};
+
+struct fuse_setattr_in {
+	uint32_t valid;
+	uint32_t padding;
+	uint64_t fh;
+	uint64_t size;
+	uint64_t lock_owner;
+	uint64_t atime;
+	uint64_t mtime;
+	uint64_t ctime;
+	uint32_t atimensec;
+	uint32_t mtimensec;
+	uint32_t ctimensec;
+	uint32_t mode;
+	uint32_t unused4;
+	uint32_t uid;
+	uint32_t gid;
+	uint32_t unused5;
+};
+
+struct fuse_create_in {
+	uint32_t flags;
+	uint32_t mode;
+	uint32_t umask;
+	uint32_t open_flags;
+};
+
+struct fuse_open_out {
+	uint64_t fh;
+	uint32_t open_flags;
+	uint32_t padding;
+};
+
+struct fuse_access_in {
+	uint32_t mask;
+	uint32_t padding;
+};
+
+struct fuse_secctx {
+	uint32_t size;
+	uint32_t padding;
+};
+
+struct fuse_secctx_header {
+	uint32_t size;
+	uint32_t nr_secctx;
+};
+
+struct fuse_inode_dax;
+
+struct fuse_inode {
+	struct inode inode;
+	u64 nodeid;
+	u64 nlookup;
+	struct fuse_forget_link *forget;
+	u64 i_time;
+	u32 inval_mask;
+	umode_t orig_i_mode;
+	u64 orig_ino;
+	u64 attr_version;
+	union {
+		struct {
+			struct list_head write_files;
+			struct list_head queued_writes;
+			int writectr;
+			wait_queue_head_t page_waitq;
+			struct rb_root writepages;
+		};
+		struct {
+			bool cached;
+			loff_t size;
+			loff_t pos;
+			u64 version;
+			struct timespec64 mtime;
+			u64 iversion;
+			spinlock_t lock;
+		} rdc;
+	};
+	long unsigned int state;
+	struct mutex mutex;
+	spinlock_t lock;
+	struct fuse_inode_dax *dax;
+};
+
+enum {
+	FUSE_I_ADVISE_RDPLUS = 0,
+	FUSE_I_INIT_RDPLUS = 1,
+	FUSE_I_SIZE_UNSTABLE = 2,
+	FUSE_I_BAD = 3,
+};
+
+struct fuse_file_lock {
+	uint64_t start;
+	uint64_t end;
+	uint32_t type;
+	uint32_t pid;
+};
+
+struct fuse_open_in {
+	uint32_t flags;
+	uint32_t open_flags;
+};
+
+struct fuse_release_in {
+	uint64_t fh;
+	uint32_t flags;
+	uint32_t release_flags;
+	uint64_t lock_owner;
+};
+
+struct fuse_flush_in {
+	uint64_t fh;
+	uint32_t unused;
+	uint32_t padding;
+	uint64_t lock_owner;
+};
+
+struct fuse_read_in {
+	uint64_t fh;
+	uint64_t offset;
+	uint32_t size;
+	uint32_t read_flags;
+	uint64_t lock_owner;
+	uint32_t flags;
+	uint32_t padding;
+};
+
+struct fuse_write_in {
+	uint64_t fh;
+	uint64_t offset;
+	uint32_t size;
+	uint32_t write_flags;
+	uint64_t lock_owner;
+	uint32_t flags;
+	uint32_t padding;
+};
+
+struct fuse_write_out {
+	uint32_t size;
+	uint32_t padding;
+};
+
+struct fuse_fsync_in {
+	uint64_t fh;
+	uint32_t fsync_flags;
+	uint32_t padding;
+};
+
+struct fuse_lk_in {
+	uint64_t fh;
+	uint64_t owner;
+	struct fuse_file_lock lk;
+	uint32_t lk_flags;
+	uint32_t padding;
+};
+
+struct fuse_lk_out {
+	struct fuse_file_lock lk;
+};
+
+struct fuse_bmap_in {
+	uint64_t block;
+	uint32_t blocksize;
+	uint32_t padding;
+};
+
+struct fuse_bmap_out {
+	uint64_t block;
+};
+
+struct fuse_poll_in {
+	uint64_t fh;
+	uint64_t kh;
+	uint32_t flags;
+	uint32_t events;
+};
+
+struct fuse_poll_out {
+	uint32_t revents;
+	uint32_t padding;
+};
+
+struct fuse_fallocate_in {
+	uint64_t fh;
+	uint64_t offset;
+	uint64_t length;
+	uint32_t mode;
+	uint32_t padding;
+};
+
+struct fuse_lseek_in {
+	uint64_t fh;
+	uint64_t offset;
+	uint32_t whence;
+	uint32_t padding;
+};
+
+struct fuse_lseek_out {
+	uint64_t offset;
+};
+
+struct fuse_copy_file_range_in {
+	uint64_t fh_in;
+	uint64_t off_in;
+	uint64_t nodeid_out;
+	uint64_t fh_out;
+	uint64_t off_out;
+	uint64_t len;
+	uint64_t flags;
+};
+
+struct fuse_release_args {
+	struct fuse_args args;
+	struct fuse_release_in inarg;
+	struct inode *inode;
+};
+
+struct fuse_io_priv {
+	struct kref refcnt;
+	int async;
+	spinlock_t lock;
+	unsigned int reqs;
+	ssize_t bytes;
+	size_t size;
+	__u64 offset;
+	bool write;
+	bool should_dirty;
+	int err;
+	struct kiocb *iocb;
+	struct completion *done;
+	bool blocking;
+};
+
+struct fuse_io_args {
+	union {
+		struct {
+			struct fuse_read_in in;
+			u64 attr_ver;
+		} read;
+		struct {
+			struct fuse_write_in in;
+			struct fuse_write_out out;
+			bool page_locked;
+		} write;
+	};
+	struct fuse_args_pages ap;
+	struct fuse_io_priv *io;
+	struct fuse_file *ff;
+};
+
+struct fuse_writepage_args {
+	struct fuse_io_args ia;
+	struct rb_node writepages_entry;
+	struct list_head queue_entry;
+	struct fuse_writepage_args *next;
+	struct inode *inode;
+	struct fuse_sync_bucket *bucket;
+};
+
+struct fuse_fill_wb_data {
+	struct fuse_writepage_args *wpa;
+	struct fuse_file *ff;
+	struct inode *inode;
+	struct page **orig_pages;
+	unsigned int max_pages;
+};
+
+struct fuse_kstatfs {
+	uint64_t blocks;
+	uint64_t bfree;
+	uint64_t bavail;
+	uint64_t files;
+	uint64_t ffree;
+	uint32_t bsize;
+	uint32_t namelen;
+	uint32_t frsize;
+	uint32_t padding;
+	uint32_t spare[6];
+};
+
+struct fuse_statfs_out {
+	struct fuse_kstatfs st;
+};
+
+struct fuse_init_in {
+	uint32_t major;
+	uint32_t minor;
+	uint32_t max_readahead;
+	uint32_t flags;
+	uint32_t flags2;
+	uint32_t unused[11];
+};
+
+struct fuse_init_out {
+	uint32_t major;
+	uint32_t minor;
+	uint32_t max_readahead;
+	uint32_t flags;
+	uint16_t max_background;
+	uint16_t congestion_threshold;
+	uint32_t max_write;
+	uint32_t time_gran;
+	uint16_t max_pages;
+	uint16_t map_alignment;
+	uint32_t flags2;
+	uint32_t unused[7];
+};
+
+struct fuse_syncfs_in {
+	uint64_t padding;
+};
+
+struct fuse_fs_context {
+	int fd;
+	struct file *file;
+	unsigned int rootmode;
+	kuid_t user_id;
+	kgid_t group_id;
+	bool is_bdev: 1;
+	bool fd_present: 1;
+	bool rootmode_present: 1;
+	bool user_id_present: 1;
+	bool group_id_present: 1;
+	bool default_permissions: 1;
+	bool allow_other: 1;
+	bool destroy: 1;
+	bool no_control: 1;
+	bool no_force_umount: 1;
+	bool legacy_opts_show: 1;
+	enum fuse_dax_mode dax_mode;
+	unsigned int max_read;
+	unsigned int blksize;
+	const char *subtype;
+	struct dax_device *dax_dev;
+	void **fudptr;
+};
+
+enum {
+	OPT_SOURCE = 0,
+	OPT_SUBTYPE = 1,
+	OPT_FD = 2,
+	OPT_ROOTMODE = 3,
+	OPT_USER_ID = 4,
+	OPT_GROUP_ID = 5,
+	OPT_DEFAULT_PERMISSIONS = 6,
+	OPT_ALLOW_OTHER = 7,
+	OPT_MAX_READ = 8,
+	OPT_BLKSIZE = 9,
+	OPT_ERR = 10,
+};
+
+struct fuse_inode_handle {
+	u64 nodeid;
+	u32 generation;
+};
+
+struct fuse_init_args {
+	struct fuse_args args;
+	struct fuse_init_in in;
+	struct fuse_init_out out;
+};
+
+struct fuse_setxattr_in {
+	uint32_t size;
+	uint32_t flags;
+	uint32_t setxattr_flags;
+	uint32_t padding;
+};
+
+struct fuse_getxattr_in {
+	uint32_t size;
+	uint32_t padding;
+};
+
+struct fuse_getxattr_out {
+	uint32_t size;
+	uint32_t padding;
+};
+
+struct fuse_dirent {
+	uint64_t ino;
+	uint64_t off;
+	uint32_t namelen;
+	uint32_t type;
+	char name[0];
+};
+
+struct fuse_direntplus {
+	struct fuse_entry_out entry_out;
+	struct fuse_dirent dirent;
+};
+
+enum fuse_parse_result {
+	FOUND_ERR = 4294967295,
+	FOUND_NONE = 0,
+	FOUND_SOME = 1,
+	FOUND_ALL = 2,
+};
+
+struct fuse_ioctl_in {
+	uint64_t fh;
+	uint32_t flags;
+	uint32_t cmd;
+	uint64_t arg;
+	uint32_t in_size;
+	uint32_t out_size;
+};
+
+struct fuse_ioctl_iovec {
+	uint64_t base;
+	uint64_t len;
+};
+
+struct fuse_ioctl_out {
+	int32_t result;
+	uint32_t flags;
+	uint32_t in_iovs;
+	uint32_t out_iovs;
+};
+
+struct fuse_setupmapping_in {
+	uint64_t fh;
+	uint64_t foffset;
+	uint64_t len;
+	uint64_t flags;
+	uint64_t moffset;
+};
+
+struct fuse_removemapping_in {
+	uint32_t count;
+};
+
+struct fuse_removemapping_one {
+	uint64_t moffset;
+	uint64_t len;
+};
+
+struct fuse_inode_dax {
+	struct rw_semaphore sem;
+	struct rb_root_cached tree;
+	long unsigned int nr;
+};
+
+struct fuse_conn_dax {
+	struct dax_device *dev;
+	spinlock_t lock;
+	long unsigned int nr_busy_ranges;
+	struct list_head busy_ranges;
+	struct delayed_work free_work;
+	wait_queue_head_t range_waitq;
+	long int nr_free_ranges;
+	struct list_head free_ranges;
+	long unsigned int nr_ranges;
+};
+
+struct fuse_dax_mapping {
+	struct inode *inode;
+	struct list_head list;
+	struct interval_tree_node itn;
+	struct list_head busy_list;
+	u64 window_offset;
+	loff_t length;
+	bool writable;
+	refcount_t refcnt;
+};
+
+typedef struct vfsmount * (*debugfs_automount_t)(struct dentry *, void *);
+
+struct debugfs_fsdata {
+	const struct file_operations *real_fops;
+	refcount_t active_users;
+	struct completion active_users_drained;
+};
+
+struct debugfs_mount_opts {
+	kuid_t uid;
+	kgid_t gid;
+	umode_t mode;
+};
+
+enum {
+	Opt_uid___5 = 0,
+	Opt_gid___6 = 1,
+	Opt_mode___5 = 2,
+	Opt_err___4 = 3,
+};
+
+struct debugfs_fs_info {
+	struct debugfs_mount_opts mount_opts;
+};
+
+struct debugfs_blob_wrapper {
+	void *data;
+	long unsigned int size;
+};
+
+struct debugfs_reg32 {
+	char *name;
+	long unsigned int offset;
+};
+
+struct debugfs_regset32 {
+	const struct debugfs_reg32 *regs;
+	int nregs;
+	void *base;
+	struct device *dev;
+};
+
+struct debugfs_u32_array {
+	u32 *array;
+	u32 n_elements;
+};
+
+struct debugfs_devm_entry {
+	int (*read)(struct seq_file *, void *);
+	struct device *dev;
+};
+
+struct tracefs_dir_ops {
+	int (*mkdir)(const char *);
+	int (*rmdir)(const char *);
+};
+
+struct tracefs_mount_opts {
+	kuid_t uid;
+	kgid_t gid;
+	umode_t mode;
+};
+
+struct tracefs_fs_info {
+	struct tracefs_mount_opts mount_opts;
+};
+
+enum pstore_type_id {
+	PSTORE_TYPE_DMESG = 0,
+	PSTORE_TYPE_MCE = 1,
+	PSTORE_TYPE_CONSOLE = 2,
+	PSTORE_TYPE_FTRACE = 3,
+	PSTORE_TYPE_PPC_RTAS = 4,
+	PSTORE_TYPE_PPC_OF = 5,
+	PSTORE_TYPE_PPC_COMMON = 6,
+	PSTORE_TYPE_PMSG = 7,
+	PSTORE_TYPE_PPC_OPAL = 8,
+	PSTORE_TYPE_MAX = 9,
+};
+
+struct pstore_info;
+
+struct pstore_record {
+	struct pstore_info *psi;
+	enum pstore_type_id type;
+	u64 id;
+	struct timespec64 time;
+	char *buf;
+	ssize_t size;
+	ssize_t ecc_notice_size;
+	int count;
+	enum kmsg_dump_reason reason;
+	unsigned int part;
+	bool compressed;
+};
+
+struct pstore_info {
+	struct module *owner;
+	const char *name;
+	spinlock_t buf_lock;
+	char *buf;
+	size_t bufsize;
+	struct mutex read_mutex;
+	int flags;
+	int max_reason;
+	void *data;
+	int (*open)(struct pstore_info *);
+	int (*close)(struct pstore_info *);
+	ssize_t (*read)(struct pstore_record *);
+	int (*write)(struct pstore_record *);
+	int (*write_user)(struct pstore_record *, const char *);
+	int (*erase)(struct pstore_record *);
+};
+
+struct pstore_ftrace_record {
+	long unsigned int ip;
+	long unsigned int parent_ip;
+	u64 ts;
+};
+
+struct pstore_private {
+	struct list_head list;
+	struct dentry *dentry;
+	struct pstore_record *record;
+	size_t total_size;
+};
+
+struct pstore_ftrace_seq_data {
+	const void *ptr;
+	size_t off;
+	size_t size;
+};
+
+enum {
+	Opt_kmsg_bytes = 0,
+	Opt_err___5 = 1,
+};
+
+struct crypto_comp {
+	struct crypto_tfm base;
+};
+
+struct pstore_zbackend {
+	int (*zbufsize)(size_t);
+	const char *name;
+};
+
+struct efi_variable {
+	efi_char16_t VariableName[512];
+	efi_guid_t VendorGuid;
+	long unsigned int DataSize;
+	__u8 Data[1024];
+	efi_status_t Status;
+	__u32 Attributes;
+} __attribute__((packed));
+
+struct efivar_entry {
+	struct efi_variable var;
+	struct list_head list;
+	struct kobject kobj;
+	bool scanning;
+	bool deleting;
+};
+
+struct ipc64_perm {
+	__kernel_key_t key;
+	__kernel_uid32_t uid;
+	__kernel_gid32_t gid;
+	__kernel_uid32_t cuid;
+	__kernel_gid32_t cgid;
+	__kernel_mode_t mode;
+	unsigned char __pad1[0];
+	short unsigned int seq;
+	short unsigned int __pad2;
+	__kernel_ulong_t __unused1;
+	__kernel_ulong_t __unused2;
+};
+
+typedef s32 compat_key_t;
+
+typedef u16 compat_ushort_t;
+
+typedef u32 __compat_gid32_t;
+
+struct compat_ipc64_perm {
+	compat_key_t key;
+	__compat_uid32_t uid;
+	__compat_gid32_t gid;
+	__compat_uid32_t cuid;
+	__compat_gid32_t cgid;
+	compat_mode_t mode;
+	unsigned char __pad1[2];
+	compat_ushort_t seq;
+	compat_ushort_t __pad2;
+	compat_ulong_t unused1;
+	compat_ulong_t unused2;
+};
+
+struct compat_ipc_perm {
+	key_t key;
+	__compat_uid_t uid;
+	__compat_gid_t gid;
+	__compat_uid_t cuid;
+	__compat_gid_t cgid;
+	compat_mode_t mode;
+	short unsigned int seq;
+};
+
+struct ipc_perm {
+	__kernel_key_t key;
+	__kernel_uid_t uid;
+	__kernel_gid_t gid;
+	__kernel_uid_t cuid;
+	__kernel_gid_t cgid;
+	__kernel_mode_t mode;
+	short unsigned int seq;
+};
+
+struct ipc_params {
+	key_t key;
+	int flg;
+	union {
+		size_t size;
+		int nsems;
+	} u;
+};
+
+struct ipc_ops {
+	int (*getnew)(struct ipc_namespace *, struct ipc_params *);
+	int (*associate)(struct kern_ipc_perm *, int);
+	int (*more_checks)(struct kern_ipc_perm *, struct ipc_params *);
+};
+
+struct ipc_proc_iface {
+	const char *path;
+	const char *header;
+	int ids;
+	int (*show)(struct seq_file *, void *);
+};
+
+struct ipc_proc_iter {
+	struct ipc_namespace *ns;
+	struct pid_namespace *pid_ns;
+	struct ipc_proc_iface *iface;
+};
+
+struct msg_msgseg;
+
+struct msg_msg {
+	struct list_head m_list;
+	long int m_type;
+	size_t m_ts;
+	struct msg_msgseg *next;
+	void *security;
+};
+
+struct msg_msgseg {
+	struct msg_msgseg *next;
+};
+
+typedef int __kernel_ipc_pid_t;
+
+struct msgbuf {
+	__kernel_long_t mtype;
+	char mtext[1];
+};
+
+struct msg;
+
+struct msqid_ds {
+	struct ipc_perm msg_perm;
+	struct msg *msg_first;
+	struct msg *msg_last;
+	__kernel_old_time_t msg_stime;
+	__kernel_old_time_t msg_rtime;
+	__kernel_old_time_t msg_ctime;
+	long unsigned int msg_lcbytes;
+	long unsigned int msg_lqbytes;
+	short unsigned int msg_cbytes;
+	short unsigned int msg_qnum;
+	short unsigned int msg_qbytes;
+	__kernel_ipc_pid_t msg_lspid;
+	__kernel_ipc_pid_t msg_lrpid;
+};
+
+struct msqid64_ds {
+	struct ipc64_perm msg_perm;
+	long int msg_stime;
+	long int msg_rtime;
+	long int msg_ctime;
+	long unsigned int msg_cbytes;
+	long unsigned int msg_qnum;
+	long unsigned int msg_qbytes;
+	__kernel_pid_t msg_lspid;
+	__kernel_pid_t msg_lrpid;
+	long unsigned int __unused4;
+	long unsigned int __unused5;
+};
+
+struct msginfo {
+	int msgpool;
+	int msgmap;
+	int msgmax;
+	int msgmnb;
+	int msgmni;
+	int msgssz;
+	int msgtql;
+	short unsigned int msgseg;
+};
+
+typedef u16 compat_ipc_pid_t;
+
+struct compat_msqid64_ds {
+	struct compat_ipc64_perm msg_perm;
+	compat_ulong_t msg_stime;
+	compat_ulong_t msg_stime_high;
+	compat_ulong_t msg_rtime;
+	compat_ulong_t msg_rtime_high;
+	compat_ulong_t msg_ctime;
+	compat_ulong_t msg_ctime_high;
+	compat_ulong_t msg_cbytes;
+	compat_ulong_t msg_qnum;
+	compat_ulong_t msg_qbytes;
+	compat_pid_t msg_lspid;
+	compat_pid_t msg_lrpid;
+	compat_ulong_t __unused4;
+	compat_ulong_t __unused5;
+};
+
+struct msg_queue {
+	struct kern_ipc_perm q_perm;
+	time64_t q_stime;
+	time64_t q_rtime;
+	time64_t q_ctime;
+	long unsigned int q_cbytes;
+	long unsigned int q_qnum;
+	long unsigned int q_qbytes;
+	struct pid *q_lspid;
+	struct pid *q_lrpid;
+	struct list_head q_messages;
+	struct list_head q_receivers;
+	struct list_head q_senders;
+	long: 64;
+	long: 64;
+};
+
+struct msg_receiver {
+	struct list_head r_list;
+	struct task_struct *r_tsk;
+	int r_mode;
+	long int r_msgtype;
+	long int r_maxsize;
+	struct msg_msg *r_msg;
+};
+
+struct msg_sender {
+	struct list_head list;
+	struct task_struct *tsk;
+	size_t msgsz;
+};
+
+struct compat_msqid_ds {
+	struct compat_ipc_perm msg_perm;
+	compat_uptr_t msg_first;
+	compat_uptr_t msg_last;
+	old_time32_t msg_stime;
+	old_time32_t msg_rtime;
+	old_time32_t msg_ctime;
+	compat_ulong_t msg_lcbytes;
+	compat_ulong_t msg_lqbytes;
+	short unsigned int msg_cbytes;
+	short unsigned int msg_qnum;
+	short unsigned int msg_qbytes;
+	compat_ipc_pid_t msg_lspid;
+	compat_ipc_pid_t msg_lrpid;
+};
+
+struct compat_msgbuf {
+	compat_long_t mtype;
+	char mtext[1];
+};
+
+struct sem;
+
+struct sem_queue;
+
+struct sem_undo;
+
+struct semid_ds {
+	struct ipc_perm sem_perm;
+	__kernel_old_time_t sem_otime;
+	__kernel_old_time_t sem_ctime;
+	struct sem *sem_base;
+	struct sem_queue *sem_pending;
+	struct sem_queue **sem_pending_last;
+	struct sem_undo *undo;
+	short unsigned int sem_nsems;
+};
+
+struct sem {
+	int semval;
+	struct pid *sempid;
+	spinlock_t lock;
+	struct list_head pending_alter;
+	struct list_head pending_const;
+	time64_t sem_otime;
+};
+
+struct sem_queue {
+	struct list_head list;
+	struct task_struct *sleeper;
+	struct sem_undo *undo;
+	struct pid *pid;
+	int status;
+	struct sembuf *sops;
+	struct sembuf *blocking;
+	int nsops;
+	bool alter;
+	bool dupsop;
+};
+
+struct sem_undo {
+	struct list_head list_proc;
+	struct callback_head rcu;
+	struct sem_undo_list *ulp;
+	struct list_head list_id;
+	int semid;
+	short int *semadj;
+};
+
+struct semid64_ds {
+	struct ipc64_perm sem_perm;
+	__kernel_long_t sem_otime;
+	__kernel_ulong_t __unused1;
+	__kernel_long_t sem_ctime;
+	__kernel_ulong_t __unused2;
+	__kernel_ulong_t sem_nsems;
+	__kernel_ulong_t __unused3;
+	__kernel_ulong_t __unused4;
+};
+
+struct seminfo {
+	int semmap;
+	int semmni;
+	int semmns;
+	int semmnu;
+	int semmsl;
+	int semopm;
+	int semume;
+	int semusz;
+	int semvmx;
+	int semaem;
+};
+
+struct sem_undo_list {
+	refcount_t refcnt;
+	spinlock_t lock;
+	struct list_head list_proc;
+};
+
+struct compat_semid64_ds {
+	struct compat_ipc64_perm sem_perm;
+	compat_ulong_t sem_otime;
+	compat_ulong_t sem_otime_high;
+	compat_ulong_t sem_ctime;
+	compat_ulong_t sem_ctime_high;
+	compat_ulong_t sem_nsems;
+	compat_ulong_t __unused3;
+	compat_ulong_t __unused4;
+};
+
+struct sem_array {
+	struct kern_ipc_perm sem_perm;
+	time64_t sem_ctime;
+	struct list_head pending_alter;
+	struct list_head pending_const;
+	struct list_head list_id;
+	int sem_nsems;
+	int complex_count;
+	unsigned int use_global_lock;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct sem sems[0];
+};
+
+struct compat_semid_ds {
+	struct compat_ipc_perm sem_perm;
+	old_time32_t sem_otime;
+	old_time32_t sem_ctime;
+	compat_uptr_t sem_base;
+	compat_uptr_t sem_pending;
+	compat_uptr_t sem_pending_last;
+	compat_uptr_t undo;
+	short unsigned int sem_nsems;
+};
+
+struct shmid_ds {
+	struct ipc_perm shm_perm;
+	int shm_segsz;
+	__kernel_old_time_t shm_atime;
+	__kernel_old_time_t shm_dtime;
+	__kernel_old_time_t shm_ctime;
+	__kernel_ipc_pid_t shm_cpid;
+	__kernel_ipc_pid_t shm_lpid;
+	short unsigned int shm_nattch;
+	short unsigned int shm_unused;
+	void *shm_unused2;
+	void *shm_unused3;
+};
+
+struct shmid64_ds {
+	struct ipc64_perm shm_perm;
+	__kernel_size_t shm_segsz;
+	long int shm_atime;
+	long int shm_dtime;
+	long int shm_ctime;
+	__kernel_pid_t shm_cpid;
+	__kernel_pid_t shm_lpid;
+	long unsigned int shm_nattch;
+	long unsigned int __unused4;
+	long unsigned int __unused5;
+};
+
+struct shminfo64 {
+	long unsigned int shmmax;
+	long unsigned int shmmin;
+	long unsigned int shmmni;
+	long unsigned int shmseg;
+	long unsigned int shmall;
+	long unsigned int __unused1;
+	long unsigned int __unused2;
+	long unsigned int __unused3;
+	long unsigned int __unused4;
+};
+
+struct shminfo {
+	int shmmax;
+	int shmmin;
+	int shmmni;
+	int shmseg;
+	int shmall;
+};
+
+struct shm_info {
+	int used_ids;
+	__kernel_ulong_t shm_tot;
+	__kernel_ulong_t shm_rss;
+	__kernel_ulong_t shm_swp;
+	__kernel_ulong_t swap_attempts;
+	__kernel_ulong_t swap_successes;
+};
+
+struct compat_shmid64_ds {
+	struct compat_ipc64_perm shm_perm;
+	compat_size_t shm_segsz;
+	compat_ulong_t shm_atime;
+	compat_ulong_t shm_atime_high;
+	compat_ulong_t shm_dtime;
+	compat_ulong_t shm_dtime_high;
+	compat_ulong_t shm_ctime;
+	compat_ulong_t shm_ctime_high;
