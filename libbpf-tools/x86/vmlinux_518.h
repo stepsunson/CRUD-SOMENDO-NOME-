@@ -76327,3 +76327,2027 @@ struct opal_data_subpacket {
 	__be16 kind;
 	__be32 length;
 };
+
+struct opal_header {
+	struct opal_compacket cp;
+	struct opal_packet pkt;
+	struct opal_data_subpacket subpkt;
+};
+
+struct d0_header {
+	__be32 length;
+	__be32 revision;
+	__be32 reserved01;
+	__be32 reserved02;
+	u8 ignored[32];
+};
+
+struct d0_tper_features {
+	u8 supported_features;
+	u8 reserved01[3];
+	__be32 reserved02;
+	__be32 reserved03;
+};
+
+struct d0_locking_features {
+	u8 supported_features;
+	u8 reserved01[3];
+	__be32 reserved02;
+	__be32 reserved03;
+};
+
+struct d0_geometry_features {
+	u8 header[4];
+	u8 reserved01;
+	u8 reserved02[7];
+	__be32 logical_block_size;
+	__be64 alignment_granularity;
+	__be64 lowest_aligned_lba;
+};
+
+struct d0_opal_v100 {
+	__be16 baseComID;
+	__be16 numComIDs;
+};
+
+struct d0_single_user_mode {
+	__be32 num_locking_objects;
+	u8 reserved01;
+	u8 reserved02;
+	__be16 reserved03;
+	__be32 reserved04;
+};
+
+struct d0_opal_v200 {
+	__be16 baseComID;
+	__be16 numComIDs;
+	u8 range_crossing;
+	u8 num_locking_admin_auth[2];
+	u8 num_locking_user_auth[2];
+	u8 initialPIN;
+	u8 revertedPIN;
+	u8 reserved01;
+	__be32 reserved02;
+};
+
+struct d0_features {
+	__be16 code;
+	u8 r_version;
+	u8 length;
+	u8 features[0];
+};
+
+struct opal_dev;
+
+struct opal_step {
+	int (*fn)(struct opal_dev *, void *);
+	void *data;
+};
+
+enum opal_atom_width {
+	OPAL_WIDTH_TINY = 0,
+	OPAL_WIDTH_SHORT = 1,
+	OPAL_WIDTH_MEDIUM = 2,
+	OPAL_WIDTH_LONG = 3,
+	OPAL_WIDTH_TOKEN = 4,
+};
+
+struct opal_resp_tok {
+	const u8 *pos;
+	size_t len;
+	enum opal_response_token type;
+	enum opal_atom_width width;
+	union {
+		u64 u;
+		s64 s;
+	} stored;
+};
+
+struct parsed_resp {
+	int num;
+	struct opal_resp_tok toks[64];
+};
+
+struct opal_dev {
+	bool supported;
+	bool mbr_enabled;
+	void *data;
+	sec_send_recv *send_recv;
+	struct mutex dev_lock;
+	u16 comid;
+	u32 hsn;
+	u32 tsn;
+	u64 align;
+	u64 lowest_lba;
+	size_t pos;
+	u8 cmd[2048];
+	u8 resp[2048];
+	struct parsed_resp parsed;
+	size_t prev_d_len;
+	void *prev_data;
+	struct list_head unlk_lst;
+};
+
+typedef int cont_fn(struct opal_dev *);
+
+struct opal_suspend_data {
+	struct opal_lock_unlock unlk;
+	u8 lr;
+	struct list_head node;
+};
+
+struct blk_crypto_mode {
+	const char *name;
+	const char *cipher_str;
+	unsigned int keysize;
+	unsigned int ivsize;
+};
+
+struct blk_crypto_keyslot {
+	atomic_t slot_refs;
+	struct list_head idle_slot_node;
+	struct hlist_node hash_node;
+	const struct blk_crypto_key *key;
+	struct blk_crypto_profile *profile;
+};
+
+struct blk_crypto_kobj {
+	struct kobject kobj;
+	struct blk_crypto_profile *profile;
+};
+
+struct blk_crypto_attr {
+	struct attribute attr;
+	ssize_t (*show)(struct blk_crypto_profile *, struct blk_crypto_attr *, char *);
+};
+
+struct bio_fallback_crypt_ctx {
+	struct bio_crypt_ctx crypt_ctx;
+	struct bvec_iter crypt_iter;
+	union {
+		struct {
+			struct work_struct work;
+			struct bio *bio;
+		};
+		struct {
+			void *bi_private_orig;
+			bio_end_io_t *bi_end_io_orig;
+		};
+	};
+};
+
+struct blk_crypto_fallback_keyslot {
+	enum blk_crypto_mode_num crypto_mode;
+	struct crypto_skcipher *tfms[4];
+};
+
+union blk_crypto_iv {
+	__le64 dun[4];
+	u8 bytes[32];
+};
+
+struct bd_holder_disk {
+	struct list_head list;
+	struct block_device *bdev;
+	int refcnt;
+};
+
+typedef void (*swap_r_func_t)(void *, void *, int, const void *);
+
+typedef void (*swap_func_t)(void *, void *, int);
+
+typedef int (*cmp_r_func_t)(const void *, const void *, const void *);
+
+struct wrapper {
+	cmp_func_t cmp;
+	swap_func_t swap;
+};
+
+struct region {
+	unsigned int start;
+	unsigned int off;
+	unsigned int group_len;
+	unsigned int end;
+	unsigned int nbits;
+};
+
+enum {
+	REG_OP_ISFREE = 0,
+	REG_OP_ALLOC = 1,
+	REG_OP_RELEASE = 2,
+};
+
+struct sg_append_table {
+	struct sg_table sgt;
+	struct scatterlist *prv;
+	unsigned int total_nents;
+};
+
+typedef struct scatterlist *sg_alloc_fn(unsigned int, gfp_t);
+
+typedef void sg_free_fn(struct scatterlist *, unsigned int);
+
+struct sg_page_iter {
+	struct scatterlist *sg;
+	unsigned int sg_pgoffset;
+	unsigned int __nents;
+	int __pg_advance;
+};
+
+struct sg_dma_page_iter {
+	struct sg_page_iter base;
+};
+
+struct sg_mapping_iter {
+	struct page *page;
+	void *addr;
+	size_t length;
+	size_t consumed;
+	struct sg_page_iter piter;
+	unsigned int __offset;
+	unsigned int __remaining;
+	unsigned int __flags;
+};
+
+typedef int (*list_cmp_func_t)(void *, const struct list_head *, const struct list_head *);
+
+struct csum_state {
+	__wsum csum;
+	size_t off;
+};
+
+struct rhltable {
+	struct rhashtable ht;
+};
+
+struct rhashtable_walker {
+	struct list_head list;
+	struct bucket_table *tbl;
+};
+
+struct rhashtable_iter {
+	struct rhashtable *ht;
+	struct rhash_head *p;
+	struct rhlist_head *list;
+	struct rhashtable_walker walker;
+	unsigned int slot;
+	unsigned int skip;
+	bool end_of_table;
+};
+
+union nested_table {
+	union nested_table *table;
+	struct rhash_lock_head *bucket;
+};
+
+struct once_work {
+	struct work_struct work;
+	struct static_key_true *key;
+	struct module *module;
+};
+
+struct genradix_iter {
+	size_t offset;
+	size_t pos;
+};
+
+struct genradix_node {
+	union {
+		struct genradix_node *children[512];
+		u8 data[4096];
+	};
+};
+
+struct strarray {
+	char **array;
+	size_t n;
+};
+
+struct reciprocal_value_adv {
+	u32 m;
+	u8 sh;
+	u8 exp;
+	bool is_wide_m;
+};
+
+enum blake2s_iv {
+	BLAKE2S_IV0 = 1779033703,
+	BLAKE2S_IV1 = 3144134277,
+	BLAKE2S_IV2 = 1013904242,
+	BLAKE2S_IV3 = 2773480762,
+	BLAKE2S_IV4 = 1359893119,
+	BLAKE2S_IV5 = 2600822924,
+	BLAKE2S_IV6 = 528734635,
+	BLAKE2S_IV7 = 1541459225,
+};
+
+enum devm_ioremap_type {
+	DEVM_IOREMAP = 0,
+	DEVM_IOREMAP_UC = 1,
+	DEVM_IOREMAP_WC = 2,
+	DEVM_IOREMAP_NP = 3,
+};
+
+struct pcim_iomap_devres {
+	void *table[6];
+};
+
+struct arch_io_reserve_memtype_wc_devres {
+	resource_size_t start;
+	resource_size_t size;
+};
+
+struct btree_head {
+	long unsigned int *node;
+	mempool_t *mempool;
+	int height;
+};
+
+struct btree_geo {
+	int keylen;
+	int no_pairs;
+	int no_longs;
+};
+
+typedef void (*visitor128_t)(void *, long unsigned int, u64, u64, size_t);
+
+typedef void (*visitorl_t)(void *, long unsigned int, long unsigned int, size_t);
+
+typedef void (*visitor32_t)(void *, long unsigned int, u32, size_t);
+
+typedef void (*visitor64_t)(void *, long unsigned int, u64, size_t);
+
+enum assoc_array_walk_status {
+	assoc_array_walk_tree_empty = 0,
+	assoc_array_walk_found_terminal_node = 1,
+	assoc_array_walk_found_wrong_shortcut = 2,
+};
+
+struct assoc_array_walk_result {
+	struct {
+		struct assoc_array_node *node;
+		int level;
+		int slot;
+	} terminal_node;
+	struct {
+		struct assoc_array_shortcut *shortcut;
+		int level;
+		int sc_level;
+		long unsigned int sc_segments;
+		long unsigned int dissimilarity;
+	} wrong_shortcut;
+};
+
+struct assoc_array_delete_collapse_context {
+	struct assoc_array_node *node;
+	const void *skip_leaf;
+	int slot;
+};
+
+struct linear_range {
+	unsigned int min;
+	unsigned int min_sel;
+	unsigned int max_sel;
+	unsigned int step;
+};
+
+enum packing_op {
+	PACK = 0,
+	UNPACK = 1,
+};
+
+struct xxh32_state {
+	uint32_t total_len_32;
+	uint32_t large_len;
+	uint32_t v1;
+	uint32_t v2;
+	uint32_t v3;
+	uint32_t v4;
+	uint32_t mem32[4];
+	uint32_t memsize;
+};
+
+struct xxh64_state {
+	uint64_t total_len;
+	uint64_t v1;
+	uint64_t v2;
+	uint64_t v3;
+	uint64_t v4;
+	uint64_t mem64[4];
+	uint32_t memsize;
+};
+
+struct gen_pool_chunk {
+	struct list_head next_chunk;
+	atomic_long_t avail;
+	phys_addr_t phys_addr;
+	void *owner;
+	long unsigned int start_addr;
+	long unsigned int end_addr;
+	long unsigned int bits[0];
+};
+
+struct genpool_data_align {
+	int align;
+};
+
+struct genpool_data_fixed {
+	long unsigned int offset;
+};
+
+typedef z_stream *z_streamp;
+
+typedef struct {
+	unsigned char op;
+	unsigned char bits;
+	short unsigned int val;
+} code;
+
+typedef enum {
+	HEAD = 0,
+	FLAGS = 1,
+	TIME = 2,
+	OS = 3,
+	EXLEN = 4,
+	EXTRA = 5,
+	NAME = 6,
+	COMMENT = 7,
+	HCRC = 8,
+	DICTID = 9,
+	DICT = 10,
+	TYPE = 11,
+	TYPEDO = 12,
+	STORED = 13,
+	COPY = 14,
+	TABLE = 15,
+	LENLENS = 16,
+	CODELENS = 17,
+	LEN = 18,
+	LENEXT = 19,
+	DIST = 20,
+	DISTEXT = 21,
+	MATCH = 22,
+	LIT = 23,
+	CHECK = 24,
+	LENGTH = 25,
+	DONE = 26,
+	BAD = 27,
+	MEM = 28,
+	SYNC = 29,
+} inflate_mode;
+
+struct inflate_state {
+	inflate_mode mode;
+	int last;
+	int wrap;
+	int havedict;
+	int flags;
+	unsigned int dmax;
+	long unsigned int check;
+	long unsigned int total;
+	unsigned int wbits;
+	unsigned int wsize;
+	unsigned int whave;
+	unsigned int write;
+	unsigned char *window;
+	long unsigned int hold;
+	unsigned int bits;
+	unsigned int length;
+	unsigned int offset;
+	unsigned int extra;
+	const code *lencode;
+	const code *distcode;
+	unsigned int lenbits;
+	unsigned int distbits;
+	unsigned int ncode;
+	unsigned int nlen;
+	unsigned int ndist;
+	unsigned int have;
+	code *next;
+	short unsigned int lens[320];
+	short unsigned int work[288];
+	code codes[2048];
+};
+
+union uu {
+	short unsigned int us;
+	unsigned char b[2];
+};
+
+typedef unsigned int uInt;
+
+struct inflate_workspace {
+	struct inflate_state inflate_state;
+	unsigned char working_window[32768];
+};
+
+typedef enum {
+	CODES = 0,
+	LENS = 1,
+	DISTS = 2,
+} codetype;
+
+typedef unsigned char uch;
+
+typedef short unsigned int ush;
+
+typedef long unsigned int ulg;
+
+struct ct_data_s {
+	union {
+		ush freq;
+		ush code;
+	} fc;
+	union {
+		ush dad;
+		ush len;
+	} dl;
+};
+
+typedef struct ct_data_s ct_data;
+
+struct static_tree_desc_s {
+	const ct_data *static_tree;
+	const int *extra_bits;
+	int extra_base;
+	int elems;
+	int max_length;
+};
+
+typedef struct static_tree_desc_s static_tree_desc;
+
+struct tree_desc_s {
+	ct_data *dyn_tree;
+	int max_code;
+	static_tree_desc *stat_desc;
+};
+
+typedef ush Pos;
+
+typedef unsigned int IPos;
+
+struct deflate_state {
+	z_streamp strm;
+	int status;
+	Byte *pending_buf;
+	ulg pending_buf_size;
+	Byte *pending_out;
+	int pending;
+	int noheader;
+	Byte data_type;
+	Byte method;
+	int last_flush;
+	uInt w_size;
+	uInt w_bits;
+	uInt w_mask;
+	Byte *window;
+	ulg window_size;
+	Pos *prev;
+	Pos *head;
+	uInt ins_h;
+	uInt hash_size;
+	uInt hash_bits;
+	uInt hash_mask;
+	uInt hash_shift;
+	long int block_start;
+	uInt match_length;
+	IPos prev_match;
+	int match_available;
+	uInt strstart;
+	uInt match_start;
+	uInt lookahead;
+	uInt prev_length;
+	uInt max_chain_length;
+	uInt max_lazy_match;
+	int level;
+	int strategy;
+	uInt good_match;
+	int nice_match;
+	struct ct_data_s dyn_ltree[573];
+	struct ct_data_s dyn_dtree[61];
+	struct ct_data_s bl_tree[39];
+	struct tree_desc_s l_desc;
+	struct tree_desc_s d_desc;
+	struct tree_desc_s bl_desc;
+	ush bl_count[16];
+	int heap[573];
+	int heap_len;
+	int heap_max;
+	uch depth[573];
+	uch *l_buf;
+	uInt lit_bufsize;
+	uInt last_lit;
+	ush *d_buf;
+	ulg opt_len;
+	ulg static_len;
+	ulg compressed_len;
+	uInt matches;
+	int last_eob_len;
+	ush bi_buf;
+	int bi_valid;
+};
+
+typedef struct deflate_state deflate_state;
+
+typedef enum {
+	need_more = 0,
+	block_done = 1,
+	finish_started = 2,
+	finish_done = 3,
+} block_state;
+
+typedef block_state (*compress_func)(deflate_state *, int);
+
+struct deflate_workspace {
+	deflate_state deflate_memory;
+	Byte *window_memory;
+	Pos *prev_memory;
+	Pos *head_memory;
+	char *overlay_memory;
+};
+
+typedef struct deflate_workspace deflate_workspace;
+
+struct config_s {
+	ush good_length;
+	ush max_lazy;
+	ush nice_length;
+	ush max_chain;
+	compress_func func;
+};
+
+typedef struct config_s config;
+
+typedef struct tree_desc_s tree_desc;
+
+typedef struct {
+	const uint8_t *externalDict;
+	size_t extDictSize;
+	const uint8_t *prefixEnd;
+	size_t prefixSize;
+} LZ4_streamDecode_t_internal;
+
+typedef union {
+	long long unsigned int table[4];
+	LZ4_streamDecode_t_internal internal_donotuse;
+} LZ4_streamDecode_t;
+
+typedef uint8_t BYTE;
+
+typedef uint16_t U16;
+
+typedef uint32_t U32;
+
+typedef uint64_t U64;
+
+typedef uintptr_t uptrval;
+
+typedef enum {
+	noDict = 0,
+	withPrefix64k = 1,
+	usingExtDict = 2,
+} dict_directive;
+
+typedef enum {
+	endOnOutputSize = 0,
+	endOnInputSize = 1,
+} endCondition_directive;
+
+typedef enum {
+	decode_full_block = 0,
+	partial_decode = 1,
+} earlyEnd_directive;
+
+typedef enum {
+	ZSTD_error_no_error = 0,
+	ZSTD_error_GENERIC = 1,
+	ZSTD_error_prefix_unknown = 10,
+	ZSTD_error_version_unsupported = 12,
+	ZSTD_error_frameParameter_unsupported = 14,
+	ZSTD_error_frameParameter_windowTooLarge = 16,
+	ZSTD_error_corruption_detected = 20,
+	ZSTD_error_checksum_wrong = 22,
+	ZSTD_error_dictionary_corrupted = 30,
+	ZSTD_error_dictionary_wrong = 32,
+	ZSTD_error_dictionaryCreation_failed = 34,
+	ZSTD_error_parameter_unsupported = 40,
+	ZSTD_error_parameter_outOfBound = 42,
+	ZSTD_error_tableLog_tooLarge = 44,
+	ZSTD_error_maxSymbolValue_tooLarge = 46,
+	ZSTD_error_maxSymbolValue_tooSmall = 48,
+	ZSTD_error_stage_wrong = 60,
+	ZSTD_error_init_missing = 62,
+	ZSTD_error_memory_allocation = 64,
+	ZSTD_error_workSpace_tooSmall = 66,
+	ZSTD_error_dstSize_tooSmall = 70,
+	ZSTD_error_srcSize_wrong = 72,
+	ZSTD_error_dstBuffer_null = 74,
+	ZSTD_error_frameIndex_tooLarge = 100,
+	ZSTD_error_seekableIO = 102,
+	ZSTD_error_dstBuffer_wrong = 104,
+	ZSTD_error_srcBuffer_wrong = 105,
+	ZSTD_error_maxCode = 120,
+} ZSTD_ErrorCode;
+
+typedef enum {
+	ZSTD_frame = 0,
+	ZSTD_skippableFrame = 1,
+} ZSTD_frameType_e;
+
+typedef struct {
+	long long unsigned int frameContentSize;
+	long long unsigned int windowSize;
+	unsigned int blockSizeMax;
+	ZSTD_frameType_e frameType;
+	unsigned int headerSize;
+	unsigned int dictID;
+	unsigned int checksumFlag;
+} ZSTD_frameHeader;
+
+typedef ZSTD_ErrorCode zstd_error_code;
+
+typedef ZSTD_DCtx zstd_dctx;
+
+typedef ZSTD_frameHeader zstd_frame_header;
+
+typedef ZSTD_ErrorCode ERR_enum;
+
+typedef int16_t S16;
+
+typedef struct {
+	size_t bitContainer;
+	unsigned int bitsConsumed;
+	const char *ptr;
+	const char *start;
+	const char *limitPtr;
+} BIT_DStream_t;
+
+typedef enum {
+	BIT_DStream_unfinished = 0,
+	BIT_DStream_endOfBuffer = 1,
+	BIT_DStream_completed = 2,
+	BIT_DStream_overflow = 3,
+} BIT_DStream_status;
+
+typedef unsigned int FSE_DTable;
+
+typedef struct {
+	size_t state;
+	const void *table;
+} FSE_DState_t;
+
+typedef struct {
+	U16 tableLog;
+	U16 fastMode;
+} FSE_DTableHeader;
+
+typedef struct {
+	short unsigned int newState;
+	unsigned char symbol;
+	unsigned char nbBits;
+} FSE_decode_t;
+
+typedef struct {
+	short int ncount[256];
+	FSE_DTable dtable[1];
+} FSE_DecompressWksp;
+
+typedef U32 HUF_DTable;
+
+typedef struct {
+	BYTE maxTableLog;
+	BYTE tableType;
+	BYTE tableLog;
+	BYTE reserved;
+} DTableDesc;
+
+typedef struct {
+	BYTE byte;
+	BYTE nbBits;
+} HUF_DEltX1;
+
+typedef struct {
+	U32 rankVal[16];
+	U32 rankStart[16];
+	U32 statsWksp[218];
+	BYTE symbols[256];
+	BYTE huffWeight[256];
+} HUF_ReadDTableX1_Workspace;
+
+typedef struct {
+	U16 sequence;
+	BYTE nbBits;
+	BYTE length;
+} HUF_DEltX2;
+
+typedef struct {
+	BYTE symbol;
+	BYTE weight;
+} sortedSymbol_t;
+
+typedef U32 rankValCol_t[13];
+
+typedef struct {
+	U32 rankVal[156];
+	U32 rankStats[13];
+	U32 rankStart0[14];
+	sortedSymbol_t sortedSymbol[256];
+	BYTE weightList[256];
+	U32 calleeWksp[218];
+} HUF_ReadDTableX2_Workspace;
+
+typedef struct {
+	U32 tableTime;
+	U32 decode256Time;
+} algo_time_t;
+
+typedef struct {
+	U16 nextState;
+	BYTE nbAdditionalBits;
+	BYTE nbBits;
+	U32 baseValue;
+} ZSTD_seqSymbol;
+
+typedef struct {
+	ZSTD_seqSymbol LLTable[513];
+	ZSTD_seqSymbol OFTable[257];
+	ZSTD_seqSymbol MLTable[513];
+	HUF_DTable hufTable[4097];
+	U32 rep[3];
+	U32 workspace[157];
+} ZSTD_entropyDTables_t;
+
+typedef enum {
+	bt_raw = 0,
+	bt_rle = 1,
+	bt_compressed = 2,
+	bt_reserved = 3,
+} blockType_e;
+
+typedef enum {
+	ZSTDds_getFrameHeaderSize = 0,
+	ZSTDds_decodeFrameHeader = 1,
+	ZSTDds_decodeBlockHeader = 2,
+	ZSTDds_decompressBlock = 3,
+	ZSTDds_decompressLastBlock = 4,
+	ZSTDds_checkChecksum = 5,
+	ZSTDds_decodeSkippableHeader = 6,
+	ZSTDds_skipFrame = 7,
+} ZSTD_dStage;
+
+typedef enum {
+	ZSTD_f_zstd1 = 0,
+	ZSTD_f_zstd1_magicless = 1,
+} ZSTD_format_e;
+
+typedef enum {
+	ZSTD_d_validateChecksum = 0,
+	ZSTD_d_ignoreChecksum = 1,
+} ZSTD_forceIgnoreChecksum_e;
+
+typedef enum {
+	ZSTD_use_indefinitely = 4294967295,
+	ZSTD_dont_use = 0,
+	ZSTD_use_once = 1,
+} ZSTD_dictUses_e;
+
+struct ZSTD_DDict_s;
+
+typedef struct ZSTD_DDict_s ZSTD_DDict;
+
+typedef struct {
+	const ZSTD_DDict **ddictPtrTable;
+	size_t ddictPtrTableSize;
+	size_t ddictPtrCount;
+} ZSTD_DDictHashSet;
+
+typedef enum {
+	ZSTD_rmd_refSingleDDict = 0,
+	ZSTD_rmd_refMultipleDDicts = 1,
+} ZSTD_refMultipleDDicts_e;
+
+typedef enum {
+	zdss_init = 0,
+	zdss_loadHeader = 1,
+	zdss_read = 2,
+	zdss_load = 3,
+	zdss_flush = 4,
+} ZSTD_dStreamStage;
+
+typedef enum {
+	ZSTD_bm_buffered = 0,
+	ZSTD_bm_stable = 1,
+} ZSTD_bufferMode_e;
+
+struct ZSTD_DCtx_s___2 {
+	const ZSTD_seqSymbol *LLTptr;
+	const ZSTD_seqSymbol *MLTptr;
+	const ZSTD_seqSymbol *OFTptr;
+	const HUF_DTable *HUFptr;
+	ZSTD_entropyDTables_t entropy;
+	U32 workspace[640];
+	const void *previousDstEnd;
+	const void *prefixStart;
+	const void *virtualStart;
+	const void *dictEnd;
+	size_t expected;
+	ZSTD_frameHeader fParams;
+	U64 processedCSize;
+	U64 decodedSize;
+	blockType_e bType;
+	ZSTD_dStage stage;
+	U32 litEntropy;
+	U32 fseEntropy;
+	struct xxh64_state xxhState;
+	size_t headerSize;
+	ZSTD_format_e format;
+	ZSTD_forceIgnoreChecksum_e forceIgnoreChecksum;
+	U32 validateChecksum;
+	const BYTE *litPtr;
+	ZSTD_customMem customMem;
+	size_t litSize;
+	size_t rleSize;
+	size_t staticSize;
+	int bmi2;
+	ZSTD_DDict *ddictLocal;
+	const ZSTD_DDict *ddict;
+	U32 dictID;
+	int ddictIsCold;
+	ZSTD_dictUses_e dictUses;
+	ZSTD_DDictHashSet *ddictSet;
+	ZSTD_refMultipleDDicts_e refMultipleDDicts;
+	ZSTD_dStreamStage streamStage;
+	char *inBuff;
+	size_t inBuffSize;
+	size_t inPos;
+	size_t maxWindowSize;
+	char *outBuff;
+	size_t outBuffSize;
+	size_t outStart;
+	size_t outEnd;
+	size_t lhSize;
+	void *legacyContext;
+	U32 previousLegacyVersion;
+	U32 legacyVersion;
+	U32 hostageByte;
+	int noForwardProgress;
+	ZSTD_bufferMode_e outBufferMode;
+	ZSTD_outBuffer expectedOutBuffer;
+	BYTE litBuffer[131104];
+	BYTE headerBuffer[18];
+	size_t oversizedDuration;
+};
+
+typedef struct ZSTD_DCtx_s___2 ZSTD_DCtx___2;
+
+struct ZSTD_DDict_s {
+	void *dictBuffer;
+	const void *dictContent;
+	size_t dictSize;
+	ZSTD_entropyDTables_t entropy;
+	U32 dictID;
+	U32 entropyPresent;
+	ZSTD_customMem cMem;
+};
+
+typedef enum {
+	ZSTD_dct_auto = 0,
+	ZSTD_dct_rawContent = 1,
+	ZSTD_dct_fullDict = 2,
+} ZSTD_dictContentType_e;
+
+typedef enum {
+	ZSTD_dlm_byCopy = 0,
+	ZSTD_dlm_byRef = 1,
+} ZSTD_dictLoadMethod_e;
+
+typedef struct {
+	U32 f1c;
+	U32 f1d;
+	U32 f7b;
+	U32 f7c;
+} ZSTD_cpuid_t;
+
+typedef struct {
+	size_t error;
+	int lowerBound;
+	int upperBound;
+} ZSTD_bounds;
+
+typedef enum {
+	ZSTD_reset_session_only = 1,
+	ZSTD_reset_parameters = 2,
+	ZSTD_reset_session_and_parameters = 3,
+} ZSTD_ResetDirective;
+
+typedef enum {
+	ZSTD_d_windowLogMax = 100,
+	ZSTD_d_experimentalParam1 = 1000,
+	ZSTD_d_experimentalParam2 = 1001,
+	ZSTD_d_experimentalParam3 = 1002,
+	ZSTD_d_experimentalParam4 = 1003,
+} ZSTD_dParameter;
+
+typedef ZSTD_DCtx___2 ZSTD_DStream___2;
+
+typedef enum {
+	ZSTDnit_frameHeader = 0,
+	ZSTDnit_blockHeader = 1,
+	ZSTDnit_block = 2,
+	ZSTDnit_lastBlock = 3,
+	ZSTDnit_checksum = 4,
+	ZSTDnit_skippableFrame = 5,
+} ZSTD_nextInputType_e;
+
+typedef struct {
+	size_t compressedSize;
+	long long unsigned int decompressedBound;
+} ZSTD_frameSizeInfo;
+
+typedef struct {
+	blockType_e blockType;
+	U32 lastBlock;
+	U32 origSize;
+} blockProperties_t;
+
+typedef enum {
+	set_basic = 0,
+	set_rle = 1,
+	set_compressed = 2,
+	set_repeat = 3,
+} symbolEncodingType_e;
+
+typedef enum {
+	ZSTD_no_overlap = 0,
+	ZSTD_overlap_src_before_dst = 1,
+} ZSTD_overlap_e;
+
+typedef struct {
+	U32 fastMode;
+	U32 tableLog;
+} ZSTD_seqSymbol_header;
+
+typedef struct {
+	size_t litLength;
+	size_t matchLength;
+	size_t offset;
+	const BYTE *match;
+} seq_t;
+
+typedef struct {
+	size_t state;
+	const ZSTD_seqSymbol *table;
+} ZSTD_fseState;
+
+typedef struct {
+	BIT_DStream_t DStream;
+	ZSTD_fseState stateLL;
+	ZSTD_fseState stateOffb;
+	ZSTD_fseState stateML;
+	size_t prevOffset[3];
+	const BYTE *prefixStart;
+	const BYTE *dictEnd;
+	size_t pos;
+} seqState_t;
+
+typedef enum {
+	ZSTD_lo_isRegularOffset = 0,
+	ZSTD_lo_isLongOffset = 1,
+} ZSTD_longOffset_e;
+
+typedef enum {
+	ZSTD_p_noPrefetch = 0,
+	ZSTD_p_prefetch = 1,
+} ZSTD_prefetch_e;
+
+typedef uint64_t vli_type;
+
+enum xz_check {
+	XZ_CHECK_NONE = 0,
+	XZ_CHECK_CRC32 = 1,
+	XZ_CHECK_CRC64 = 4,
+	XZ_CHECK_SHA256 = 10,
+};
+
+struct xz_dec_hash {
+	vli_type unpadded;
+	vli_type uncompressed;
+	uint32_t crc32;
+};
+
+struct xz_dec_lzma2;
+
+struct xz_dec_bcj;
+
+struct xz_dec___2 {
+	enum {
+		SEQ_STREAM_HEADER = 0,
+		SEQ_BLOCK_START = 1,
+		SEQ_BLOCK_HEADER = 2,
+		SEQ_BLOCK_UNCOMPRESS = 3,
+		SEQ_BLOCK_PADDING = 4,
+		SEQ_BLOCK_CHECK = 5,
+		SEQ_INDEX = 6,
+		SEQ_INDEX_PADDING = 7,
+		SEQ_INDEX_CRC32 = 8,
+		SEQ_STREAM_FOOTER = 9,
+	} sequence;
+	uint32_t pos;
+	vli_type vli;
+	size_t in_start;
+	size_t out_start;
+	uint32_t crc32;
+	enum xz_check check_type;
+	enum xz_mode mode;
+	bool allow_buf_error;
+	struct {
+		vli_type compressed;
+		vli_type uncompressed;
+		uint32_t size;
+	} block_header;
+	struct {
+		vli_type compressed;
+		vli_type uncompressed;
+		vli_type count;
+		struct xz_dec_hash hash;
+	} block;
+	struct {
+		enum {
+			SEQ_INDEX_COUNT = 0,
+			SEQ_INDEX_UNPADDED = 1,
+			SEQ_INDEX_UNCOMPRESSED = 2,
+		} sequence;
+		vli_type size;
+		vli_type count;
+		struct xz_dec_hash hash;
+	} index;
+	struct {
+		size_t pos;
+		size_t size;
+		uint8_t buf[1024];
+	} temp;
+	struct xz_dec_lzma2 *lzma2;
+	struct xz_dec_bcj *bcj;
+	bool bcj_active;
+};
+
+enum lzma_state {
+	STATE_LIT_LIT = 0,
+	STATE_MATCH_LIT_LIT = 1,
+	STATE_REP_LIT_LIT = 2,
+	STATE_SHORTREP_LIT_LIT = 3,
+	STATE_MATCH_LIT = 4,
+	STATE_REP_LIT = 5,
+	STATE_SHORTREP_LIT = 6,
+	STATE_LIT_MATCH = 7,
+	STATE_LIT_LONGREP = 8,
+	STATE_LIT_SHORTREP = 9,
+	STATE_NONLIT_MATCH = 10,
+	STATE_NONLIT_REP = 11,
+};
+
+struct dictionary {
+	uint8_t *buf;
+	size_t start;
+	size_t pos;
+	size_t full;
+	size_t limit;
+	size_t end;
+	uint32_t size;
+	uint32_t size_max;
+	uint32_t allocated;
+	enum xz_mode mode;
+};
+
+struct rc_dec {
+	uint32_t range;
+	uint32_t code;
+	uint32_t init_bytes_left;
+	const uint8_t *in;
+	size_t in_pos;
+	size_t in_limit;
+};
+
+struct lzma_len_dec {
+	uint16_t choice;
+	uint16_t choice2;
+	uint16_t low[128];
+	uint16_t mid[128];
+	uint16_t high[256];
+};
+
+struct lzma_dec {
+	uint32_t rep0;
+	uint32_t rep1;
+	uint32_t rep2;
+	uint32_t rep3;
+	enum lzma_state state;
+	uint32_t len;
+	uint32_t lc;
+	uint32_t literal_pos_mask;
+	uint32_t pos_mask;
+	uint16_t is_match[192];
+	uint16_t is_rep[12];
+	uint16_t is_rep0[12];
+	uint16_t is_rep1[12];
+	uint16_t is_rep2[12];
+	uint16_t is_rep0_long[192];
+	uint16_t dist_slot[256];
+	uint16_t dist_special[114];
+	uint16_t dist_align[16];
+	struct lzma_len_dec match_len_dec;
+	struct lzma_len_dec rep_len_dec;
+	uint16_t literal[12288];
+};
+
+enum lzma2_seq {
+	SEQ_CONTROL = 0,
+	SEQ_UNCOMPRESSED_1 = 1,
+	SEQ_UNCOMPRESSED_2 = 2,
+	SEQ_COMPRESSED_0 = 3,
+	SEQ_COMPRESSED_1 = 4,
+	SEQ_PROPERTIES = 5,
+	SEQ_LZMA_PREPARE = 6,
+	SEQ_LZMA_RUN = 7,
+	SEQ_COPY = 8,
+};
+
+struct lzma2_dec {
+	enum lzma2_seq sequence;
+	enum lzma2_seq next_sequence;
+	uint32_t uncompressed;
+	uint32_t compressed;
+	bool need_dict_reset;
+	bool need_props;
+};
+
+struct xz_dec_lzma2___2 {
+	struct rc_dec rc;
+	struct dictionary dict;
+	struct lzma2_dec lzma2;
+	struct lzma_dec lzma;
+	struct {
+		uint32_t size;
+		uint8_t buf[63];
+	} temp;
+};
+
+struct xz_dec_bcj___2 {
+	enum {
+		BCJ_X86 = 4,
+		BCJ_POWERPC = 5,
+		BCJ_IA64 = 6,
+		BCJ_ARM = 7,
+		BCJ_ARMTHUMB = 8,
+		BCJ_SPARC = 9,
+	} type;
+	enum xz_ret ret;
+	bool single_call;
+	uint32_t pos;
+	uint32_t x86_prev_mask;
+	uint8_t *out;
+	size_t out_pos;
+	size_t out_size;
+	struct {
+		size_t filtered;
+		size_t size;
+		uint8_t buf[16];
+	} temp;
+};
+
+struct ts_state {
+	unsigned int offset;
+	char cb[48];
+};
+
+struct ts_config;
+
+struct ts_ops {
+	const char *name;
+	struct ts_config * (*init)(const void *, unsigned int, gfp_t, int);
+	unsigned int (*find)(struct ts_config *, struct ts_state *);
+	void (*destroy)(struct ts_config *);
+	void * (*get_pattern)(struct ts_config *);
+	unsigned int (*get_pattern_len)(struct ts_config *);
+	struct module *owner;
+	struct list_head list;
+};
+
+struct ts_config {
+	struct ts_ops *ops;
+	int flags;
+	unsigned int (*get_next_block)(unsigned int, const u8 **, struct ts_config *, struct ts_state *);
+	void (*finish)(struct ts_config *, struct ts_state *);
+};
+
+struct ts_linear_state {
+	unsigned int len;
+	const void *data;
+};
+
+struct ei_entry {
+	struct list_head list;
+	long unsigned int start_addr;
+	long unsigned int end_addr;
+	int etype;
+	void *priv;
+};
+
+struct ddebug_table {
+	struct list_head link;
+	const char *mod_name;
+	unsigned int num_ddebugs;
+	struct _ddebug *ddebugs;
+};
+
+struct ddebug_query {
+	const char *filename;
+	const char *module;
+	const char *function;
+	const char *format;
+	unsigned int first_lineno;
+	unsigned int last_lineno;
+};
+
+struct ddebug_iter {
+	struct ddebug_table *table;
+	unsigned int idx;
+};
+
+struct flag_settings {
+	unsigned int flags;
+	unsigned int mask;
+};
+
+struct flagsbuf {
+	char buf[7];
+};
+
+struct nla_bitfield32 {
+	__u32 value;
+	__u32 selector;
+};
+
+enum nla_policy_validation {
+	NLA_VALIDATE_NONE = 0,
+	NLA_VALIDATE_RANGE = 1,
+	NLA_VALIDATE_RANGE_WARN_TOO_LONG = 2,
+	NLA_VALIDATE_MIN = 3,
+	NLA_VALIDATE_MAX = 4,
+	NLA_VALIDATE_MASK = 5,
+	NLA_VALIDATE_RANGE_PTR = 6,
+	NLA_VALIDATE_FUNCTION = 7,
+};
+
+enum netlink_validation {
+	NL_VALIDATE_LIBERAL = 0,
+	NL_VALIDATE_TRAILING = 1,
+	NL_VALIDATE_MAXTYPE = 2,
+	NL_VALIDATE_UNSPEC = 4,
+	NL_VALIDATE_STRICT_ATTRS = 8,
+	NL_VALIDATE_NESTED = 16,
+};
+
+struct cpu_rmap {
+	struct kref refcount;
+	u16 size;
+	u16 used;
+	void **obj;
+	struct {
+		u16 index;
+		u16 dist;
+	} near[0];
+};
+
+struct irq_glue {
+	struct irq_affinity_notify notify;
+	struct cpu_rmap *rmap;
+	u16 index;
+};
+
+typedef mpi_limb_t *mpi_ptr_t;
+
+typedef int mpi_size_t;
+
+typedef mpi_limb_t UWtype;
+
+typedef unsigned int UHWtype;
+
+enum gcry_mpi_constants {
+	MPI_C_ZERO = 0,
+	MPI_C_ONE = 1,
+	MPI_C_TWO = 2,
+	MPI_C_THREE = 3,
+	MPI_C_FOUR = 4,
+	MPI_C_EIGHT = 5,
+};
+
+struct barrett_ctx_s;
+
+typedef struct barrett_ctx_s *mpi_barrett_t;
+
+struct gcry_mpi_point {
+	MPI x;
+	MPI y;
+	MPI z;
+};
+
+typedef struct gcry_mpi_point *MPI_POINT;
+
+enum gcry_mpi_ec_models {
+	MPI_EC_WEIERSTRASS = 0,
+	MPI_EC_MONTGOMERY = 1,
+	MPI_EC_EDWARDS = 2,
+};
+
+enum ecc_dialects {
+	ECC_DIALECT_STANDARD = 0,
+	ECC_DIALECT_ED25519 = 1,
+	ECC_DIALECT_SAFECURVE = 2,
+};
+
+struct mpi_ec_ctx {
+	enum gcry_mpi_ec_models model;
+	enum ecc_dialects dialect;
+	int flags;
+	unsigned int nbits;
+	MPI p;
+	MPI a;
+	MPI b;
+	MPI_POINT G;
+	MPI n;
+	unsigned int h;
+	MPI_POINT Q;
+	MPI d;
+	const char *name;
+	struct {
+		struct {
+			unsigned int a_is_pminus3: 1;
+			unsigned int two_inv_p: 1;
+		} valid;
+		int a_is_pminus3;
+		MPI two_inv_p;
+		mpi_barrett_t p_barrett;
+		MPI scratch[11];
+	} t;
+	void (*addm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*subm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*mulm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*pow2)(MPI, const MPI, struct mpi_ec_ctx *);
+	void (*mul2)(MPI, MPI, struct mpi_ec_ctx *);
+};
+
+struct field_table {
+	const char *p;
+	void (*addm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*subm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*mulm)(MPI, MPI, MPI, struct mpi_ec_ctx *);
+	void (*mul2)(MPI, MPI, struct mpi_ec_ctx *);
+	void (*pow2)(MPI, const MPI, struct mpi_ec_ctx *);
+};
+
+enum gcry_mpi_format {
+	GCRYMPI_FMT_NONE = 0,
+	GCRYMPI_FMT_STD = 1,
+	GCRYMPI_FMT_PGP = 2,
+	GCRYMPI_FMT_SSH = 3,
+	GCRYMPI_FMT_HEX = 4,
+	GCRYMPI_FMT_USG = 5,
+	GCRYMPI_FMT_OPAQUE = 8,
+};
+
+struct barrett_ctx_s___2;
+
+typedef struct barrett_ctx_s___2 *mpi_barrett_t___2;
+
+struct barrett_ctx_s___2 {
+	MPI m;
+	int m_copied;
+	int k;
+	MPI y;
+	MPI r1;
+	MPI r2;
+	MPI r3;
+};
+
+struct karatsuba_ctx {
+	struct karatsuba_ctx *next;
+	mpi_ptr_t tspace;
+	mpi_size_t tspace_size;
+	mpi_ptr_t tp;
+	mpi_size_t tp_size;
+};
+
+typedef long int mpi_limb_signed_t;
+
+enum dim_tune_state {
+	DIM_PARKING_ON_TOP = 0,
+	DIM_PARKING_TIRED = 1,
+	DIM_GOING_RIGHT = 2,
+	DIM_GOING_LEFT = 3,
+};
+
+struct dim_cq_moder {
+	u16 usec;
+	u16 pkts;
+	u16 comps;
+	u8 cq_period_mode;
+};
+
+enum dim_cq_period_mode {
+	DIM_CQ_PERIOD_MODE_START_FROM_EQE = 0,
+	DIM_CQ_PERIOD_MODE_START_FROM_CQE = 1,
+	DIM_CQ_PERIOD_NUM_MODES = 2,
+};
+
+enum dim_state {
+	DIM_START_MEASURE = 0,
+	DIM_MEASURE_IN_PROGRESS = 1,
+	DIM_APPLY_NEW_PROFILE = 2,
+};
+
+enum dim_stats_state {
+	DIM_STATS_WORSE = 0,
+	DIM_STATS_SAME = 1,
+	DIM_STATS_BETTER = 2,
+};
+
+enum dim_step_result {
+	DIM_STEPPED = 0,
+	DIM_TOO_TIRED = 1,
+	DIM_ON_EDGE = 2,
+};
+
+enum pubkey_algo {
+	PUBKEY_ALGO_RSA = 0,
+	PUBKEY_ALGO_MAX = 1,
+};
+
+struct pubkey_hdr {
+	uint8_t version;
+	uint32_t timestamp;
+	uint8_t algo;
+	uint8_t nmpi;
+	char mpi[0];
+} __attribute__((packed));
+
+struct signature_hdr {
+	uint8_t version;
+	uint32_t timestamp;
+	uint8_t algo;
+	uint8_t hash;
+	uint8_t keyid[8];
+	uint8_t nmpi;
+	char mpi[0];
+} __attribute__((packed));
+
+struct sg_pool {
+	size_t size;
+	char *name;
+	struct kmem_cache *slab;
+	mempool_t *pool;
+};
+
+enum {
+	IRQ_POLL_F_SCHED = 0,
+	IRQ_POLL_F_DISABLE = 1,
+};
+
+union handle_parts {
+	depot_stack_handle_t handle;
+	struct {
+		u32 slabindex: 21;
+		u32 offset: 10;
+		u32 valid: 1;
+	};
+};
+
+struct stack_record {
+	struct stack_record *next;
+	u32 hash;
+	u32 size;
+	union handle_parts handle;
+	long unsigned int entries[0];
+};
+
+struct font_desc {
+	int idx;
+	const char *name;
+	unsigned int width;
+	unsigned int height;
+	unsigned int charcount;
+	const void *data;
+	int pref;
+};
+
+struct font_data {
+	unsigned int extra[4];
+	const unsigned char data[0];
+};
+
+typedef u16 ucs2_char_t;
+
+struct pldmfw_record {
+	struct list_head entry;
+	struct list_head descs;
+	const u8 *version_string;
+	u8 version_type;
+	u8 version_len;
+	u16 package_data_len;
+	u32 device_update_flags;
+	const u8 *package_data;
+	long unsigned int *component_bitmap;
+	u16 component_bitmap_len;
+};
+
+struct pldmfw_desc_tlv {
+	struct list_head entry;
+	const u8 *data;
+	u16 type;
+	u16 size;
+};
+
+struct pldmfw_component {
+	struct list_head entry;
+	u16 classification;
+	u16 identifier;
+	u16 options;
+	u16 activation_method;
+	u32 comparison_stamp;
+	u32 component_size;
+	const u8 *component_data;
+	const u8 *version_string;
+	u8 version_type;
+	u8 version_len;
+	u8 index;
+};
+
+struct pldmfw_ops;
+
+struct pldmfw {
+	const struct pldmfw_ops *ops;
+	struct device *dev;
+};
+
+struct pldmfw_ops {
+	bool (*match_record)(struct pldmfw *, struct pldmfw_record *);
+	int (*send_package_data)(struct pldmfw *, const u8 *, u16);
+	int (*send_component_table)(struct pldmfw *, struct pldmfw_component *, u8);
+	int (*flash_component)(struct pldmfw *, struct pldmfw_component *);
+	int (*finalize_update)(struct pldmfw *);
+};
+
+struct __pldm_timestamp {
+	u8 b[13];
+};
+
+struct __pldm_header {
+	uuid_t id;
+	u8 revision;
+	__le16 size;
+	struct __pldm_timestamp release_date;
+	__le16 component_bitmap_len;
+	u8 version_type;
+	u8 version_len;
+	u8 version_string[0];
+} __attribute__((packed));
+
+struct __pldmfw_record_info {
+	__le16 record_len;
+	u8 descriptor_count;
+	__le32 device_update_flags;
+	u8 version_type;
+	u8 version_len;
+	__le16 package_data_len;
+	u8 variable_record_data[0];
+} __attribute__((packed));
+
+struct __pldmfw_desc_tlv {
+	__le16 type;
+	__le16 size;
+	u8 data[0];
+};
+
+struct __pldmfw_record_area {
+	u8 record_count;
+	u8 records[0];
+};
+
+struct __pldmfw_component_info {
+	__le16 classification;
+	__le16 identifier;
+	__le32 comparison_stamp;
+	__le16 options;
+	__le16 activation_method;
+	__le32 location_offset;
+	__le32 size;
+	u8 version_type;
+	u8 version_len;
+	u8 version_string[0];
+} __attribute__((packed));
+
+struct __pldmfw_component_area {
+	__le16 component_image_count;
+	u8 components[0];
+};
+
+struct pldmfw_priv {
+	struct pldmfw *context;
+	const struct firmware *fw;
+	size_t offset;
+	struct list_head records;
+	struct list_head components;
+	const struct __pldm_header *header;
+	u16 total_header_size;
+	u16 component_bitmap_len;
+	u16 bitmap_size;
+	u16 component_count;
+	const u8 *component_start;
+	const u8 *record_start;
+	u8 record_count;
+	u32 header_crc;
+	struct pldmfw_record *matching_record;
+};
+
+struct pldm_pci_record_id {
+	int vendor;
+	int device;
+	int subsystem_vendor;
+	int subsystem_device;
+};
+
+struct msr {
+	union {
+		struct {
+			u32 l;
+			u32 h;
+		};
+		u64 q;
+	};
+};
+
+struct msr_info {
+	u32 msr_no;
+	struct msr reg;
+	struct msr *msrs;
+	int err;
+};
+
+struct msr_regs_info {
+	u32 *regs;
+	int err;
+};
+
+struct msr_info_completion {
+	struct msr_info msr;
+	struct completion done;
+};
+
+struct trace_event_raw_msr_trace_class {
+	struct trace_entry ent;
+	unsigned int msr;
+	u64 val;
+	int failed;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_msr_trace_class {};
+
+typedef void (*btf_trace_read_msr)(void *, unsigned int, u64, int);
+
+typedef void (*btf_trace_write_msr)(void *, unsigned int, u64, int);
+
+typedef void (*btf_trace_rdpmc)(void *, unsigned int, u64, int);
+
+struct compress_format {
+	unsigned char magic[2];
+	const char *name;
+	decompress_fn decompressor;
+};
+
+struct group_data {
+	int limit[21];
+	int base[20];
+	int permute[258];
+	int minLen;
+	int maxLen;
+};
+
+struct bunzip_data {
+	int writeCopies;
+	int writePos;
+	int writeRunCountdown;
+	int writeCount;
+	int writeCurrent;
+	long int (*fill)(void *, long unsigned int);
+	long int inbufCount;
+	long int inbufPos;
+	unsigned char *inbuf;
+	unsigned int inbufBitCount;
+	unsigned int inbufBits;
+	unsigned int crc32Table[256];
+	unsigned int headerCRC;
+	unsigned int totalCRC;
+	unsigned int writeCRC;
+	unsigned int *dbuf;
+	unsigned int dbufSize;
+	unsigned char selectors[32768];
+	struct group_data groups[6];
+	int io_error;
+	int byteCount[256];
+	unsigned char symToByte[256];
+	unsigned char mtfSymbol[256];
+};
+
+struct rc {
+	long int (*fill)(void *, long unsigned int);
+	uint8_t *ptr;
+	uint8_t *buffer;
+	uint8_t *buffer_end;
+	long int buffer_size;
+	uint32_t code;
+	uint32_t range;
+	uint32_t bound;
+	void (*error)(char *);
+};
+
+struct lzma_header {
+	uint8_t pos;
+	uint32_t dict_size;
+	uint64_t dst_size;
+} __attribute__((packed));
+
+struct writer {
+	uint8_t *buffer;
+	uint8_t previous_byte;
+	size_t buffer_pos;
+	int bufsize;
+	size_t global_pos;
+	long int (*flush)(void *, long unsigned int);
+	struct lzma_header *header;
+};
+
+struct cstate {
+	int state;
+	uint32_t rep0;
+	uint32_t rep1;
+	uint32_t rep2;
+	uint32_t rep3;
+};
+
+enum cpio_fields {
+	C_MAGIC = 0,
+	C_INO = 1,
+	C_MODE = 2,
+	C_UID = 3,
+	C_GID = 4,
+	C_NLINK = 5,
+	C_MTIME = 6,
+	C_FILESIZE = 7,
+	C_MAJ = 8,
+	C_MIN = 9,
+	C_RMAJ = 10,
+	C_RMIN = 11,
+	C_NAMESIZE = 12,
+	C_CHKSUM = 13,
+	C_NFIELDS = 14,
+};
+
+struct fprop_local_single {
+	long unsigned int events;
+	unsigned int period;
+	raw_spinlock_t lock;
+};
+
+struct ida_bitmap {
+	long unsigned int bitmap[16];
+};
+
+struct klist_waiter {
+	struct list_head list;
+	struct klist_node *node;
+	struct task_struct *process;
+	int woken;
+};
+
+struct uevent_sock {
+	struct list_head list;
+	struct sock *sk;
+};
+
+enum {
+	LOGIC_PIO_INDIRECT = 0,
+	LOGIC_PIO_CPU_MMIO = 1,
+};
+
+struct logic_pio_host_ops;
+
+struct logic_pio_hwaddr {
+	struct list_head list;
+	struct fwnode_handle *fwnode;
+	resource_size_t hw_start;
+	resource_size_t io_start;
+	resource_size_t size;
+	long unsigned int flags;
+	void *hostdata;
+	const struct logic_pio_host_ops *ops;
+};
+
+struct logic_pio_host_ops {
+	u32 (*in)(void *, long unsigned int, size_t);
+	void (*out)(void *, long unsigned int, u32, size_t);
+	u32 (*ins)(void *, long unsigned int, void *, size_t, unsigned int);
+	void (*outs)(void *, long unsigned int, const void *, size_t, unsigned int);
+};
+
+typedef struct {
+	long unsigned int key[2];
+} hsiphash_key_t;
+
+enum format_type {
+	FORMAT_TYPE_NONE = 0,
+	FORMAT_TYPE_WIDTH = 1,
+	FORMAT_TYPE_PRECISION = 2,
+	FORMAT_TYPE_CHAR = 3,
+	FORMAT_TYPE_STR = 4,
+	FORMAT_TYPE_PTR = 5,
+	FORMAT_TYPE_PERCENT_CHAR = 6,
+	FORMAT_TYPE_INVALID = 7,
+	FORMAT_TYPE_LONG_LONG = 8,
+	FORMAT_TYPE_ULONG = 9,
+	FORMAT_TYPE_LONG = 10,
+	FORMAT_TYPE_UBYTE = 11,
+	FORMAT_TYPE_BYTE = 12,
+	FORMAT_TYPE_USHORT = 13,
+	FORMAT_TYPE_SHORT = 14,
+	FORMAT_TYPE_UINT = 15,
+	FORMAT_TYPE_INT = 16,
+	FORMAT_TYPE_SIZE_T = 17,
+	FORMAT_TYPE_PTRDIFF = 18,
+};
+
+struct printf_spec {
+	unsigned int type: 8;
+	int field_width: 24;
+	unsigned int flags: 8;
+	unsigned int base: 8;
+	int precision: 16;
+};
+
+struct page_flags_fields {
+	int width;
+	int shift;
+	int mask;
+	const struct printf_spec *spec;
+	const char *name;
+};
+
+struct minmax_sample {
+	u32 t;
+	u32 v;
+};
+
+struct minmax {
+	struct minmax_sample s[3];
+};
+
+enum {
+	st_wordstart = 0,
+	st_wordcmp = 1,
+	st_wordskip = 2,
+	st_bufcpy = 3,
+};
+
+enum {
+	st_wordstart___2 = 0,
+	st_wordcmp___2 = 1,
+	st_wordskip___2 = 2,
+};
+
+struct in6_addr___2;
+
+enum reg_type {
+	REG_TYPE_RM = 0,
+	REG_TYPE_REG = 1,
+	REG_TYPE_INDEX = 2,
+	REG_TYPE_BASE = 3,
+};
+
+enum device_link_state {
+	DL_STATE_NONE = 4294967295,
+	DL_STATE_DORMANT = 0,
+	DL_STATE_AVAILABLE = 1,
+	DL_STATE_CONSUMER_PROBE = 2,
+	DL_STATE_ACTIVE = 3,
+	DL_STATE_SUPPLIER_UNBIND = 4,
+};
+
+struct device_link {
+	struct device *supplier;
+	struct list_head s_node;
+	struct device *consumer;
+	struct list_head c_node;
+	struct device link_dev;
+	enum device_link_state status;
+	u32 flags;
+	refcount_t rpm_active;
