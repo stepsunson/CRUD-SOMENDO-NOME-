@@ -84668,3 +84668,2035 @@ struct acpi_device_info {
 	u64 address;
 	struct acpi_pnp_device_id hardware_id;
 	struct acpi_pnp_device_id unique_id;
+	struct acpi_pnp_device_id class_code;
+	struct acpi_pnp_device_id_list compatible_id_list;
+};
+
+struct acpi_table_spcr {
+	struct acpi_table_header header;
+	u8 interface_type;
+	u8 reserved[3];
+	struct acpi_generic_address serial_port;
+	u8 interrupt_type;
+	u8 pc_interrupt;
+	u32 interrupt;
+	u8 baud_rate;
+	u8 parity;
+	u8 stop_bits;
+	u8 flow_control;
+	u8 terminal_type;
+	u8 reserved1;
+	u16 pci_device_id;
+	u16 pci_vendor_id;
+	u8 pci_bus;
+	u8 pci_device;
+	u8 pci_function;
+	u32 pci_flags;
+	u8 pci_segment;
+	u32 reserved2;
+} __attribute__((packed));
+
+struct acpi_table_stao {
+	struct acpi_table_header header;
+	u8 ignore_uart;
+} __attribute__((packed));
+
+struct acpi_dep_data {
+	struct list_head node;
+	acpi_handle supplier;
+	acpi_handle consumer;
+	bool honor_dep;
+};
+
+enum acpi_reconfig_event {
+	ACPI_RECONFIG_DEVICE_ADD = 0,
+	ACPI_RECONFIG_DEVICE_REMOVE = 1,
+};
+
+struct acpi_probe_entry;
+
+typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *, struct acpi_probe_entry *);
+
+struct acpi_probe_entry {
+	__u8 id[5];
+	__u8 type;
+	acpi_probe_entry_validate_subtbl subtable_valid;
+	union {
+		acpi_tbl_table_handler probe_table;
+		acpi_tbl_entry_handler probe_subtbl;
+	};
+	kernel_ulong_t driver_data;
+};
+
+struct acpi_scan_clear_dep_work {
+	struct work_struct work;
+	struct acpi_device *adev;
+};
+
+struct resource_win {
+	struct resource res;
+	resource_size_t offset;
+};
+
+struct irq_override_cmp {
+	const struct dmi_system_id *system;
+	unsigned char irq;
+	unsigned char triggering;
+	unsigned char polarity;
+	unsigned char shareable;
+};
+
+struct res_proc_context {
+	struct list_head *list;
+	int (*preproc)(struct acpi_resource *, void *);
+	void *preproc_data;
+	int count;
+	int error;
+};
+
+struct acpi_processor_errata {
+	u8 smp;
+	struct {
+		u8 throttle: 1;
+		u8 fdma: 1;
+		u8 reserved: 6;
+		u32 bmisx;
+	} piix4;
+};
+
+struct acpi_table_ecdt {
+	struct acpi_table_header header;
+	struct acpi_generic_address control;
+	struct acpi_generic_address data;
+	u32 uid;
+	u8 gpe;
+	u8 id[1];
+} __attribute__((packed));
+
+enum acpi_ec_event_state {
+	EC_EVENT_READY = 0,
+	EC_EVENT_IN_PROGRESS = 1,
+	EC_EVENT_COMPLETE = 2,
+};
+
+struct transaction;
+
+struct acpi_ec {
+	acpi_handle handle;
+	int gpe;
+	int irq;
+	long unsigned int command_addr;
+	long unsigned int data_addr;
+	bool global_lock;
+	long unsigned int flags;
+	long unsigned int reference_count;
+	struct mutex mutex;
+	wait_queue_head_t wait;
+	struct list_head list;
+	struct transaction *curr;
+	spinlock_t lock;
+	struct work_struct work;
+	long unsigned int timestamp;
+	enum acpi_ec_event_state event_state;
+	unsigned int events_to_process;
+	unsigned int events_in_progress;
+	unsigned int queries_in_progress;
+	bool busy_polling;
+	unsigned int polling_guard;
+};
+
+struct transaction {
+	const u8 *wdata;
+	u8 *rdata;
+	short unsigned int irq_count;
+	u8 command;
+	u8 wi;
+	u8 ri;
+	u8 wlen;
+	u8 rlen;
+	u8 flags;
+};
+
+typedef int (*acpi_ec_query_func)(void *);
+
+enum ec_command {
+	ACPI_EC_COMMAND_READ = 128,
+	ACPI_EC_COMMAND_WRITE = 129,
+	ACPI_EC_BURST_ENABLE = 130,
+	ACPI_EC_BURST_DISABLE = 131,
+	ACPI_EC_COMMAND_QUERY = 132,
+};
+
+enum {
+	EC_FLAGS_QUERY_ENABLED = 0,
+	EC_FLAGS_EVENT_HANDLER_INSTALLED = 1,
+	EC_FLAGS_EC_HANDLER_INSTALLED = 2,
+	EC_FLAGS_QUERY_METHODS_INSTALLED = 3,
+	EC_FLAGS_STARTED = 4,
+	EC_FLAGS_STOPPED = 5,
+	EC_FLAGS_EVENTS_MASKED = 6,
+};
+
+struct acpi_ec_query_handler {
+	struct list_head node;
+	acpi_ec_query_func func;
+	acpi_handle handle;
+	void *data;
+	u8 query_bit;
+	struct kref kref;
+};
+
+struct acpi_ec_query {
+	struct transaction transaction;
+	struct work_struct work;
+	struct acpi_ec_query_handler *handler;
+	struct acpi_ec *ec;
+};
+
+struct dock_station {
+	acpi_handle handle;
+	long unsigned int last_dock_time;
+	u32 flags;
+	struct list_head dependent_devices;
+	struct list_head sibling;
+	struct platform_device *dock_device;
+};
+
+struct dock_dependent_device {
+	struct list_head list;
+	struct acpi_device *adev;
+};
+
+enum dock_callback_type {
+	DOCK_CALL_HANDLER = 0,
+	DOCK_CALL_FIXUP = 1,
+	DOCK_CALL_UEVENT = 2,
+};
+
+enum acpi_bridge_type {
+	ACPI_BRIDGE_TYPE_PCIE = 1,
+	ACPI_BRIDGE_TYPE_CXL = 2,
+};
+
+struct acpi_pci_root_ops;
+
+struct acpi_pci_root_info {
+	struct acpi_pci_root *root;
+	struct acpi_device *bridge;
+	struct acpi_pci_root_ops *ops;
+	struct list_head resources;
+	char name[16];
+};
+
+struct acpi_pci_root_ops {
+	struct pci_ops *pci_ops;
+	int (*init_info)(struct acpi_pci_root_info *);
+	void (*release_info)(struct acpi_pci_root_info *);
+	int (*prepare_resources)(struct acpi_pci_root_info *);
+};
+
+struct pci_osc_bit_struct {
+	u32 bit;
+	char *desc;
+};
+
+struct acpi_handle_node {
+	struct list_head node;
+	acpi_handle handle;
+};
+
+struct acpi_pci_link_irq {
+	u32 active;
+	u8 triggering;
+	u8 polarity;
+	u8 resource_type;
+	u8 possible_count;
+	u32 possible[16];
+	u8 initialized: 1;
+	u8 reserved: 7;
+};
+
+struct acpi_pci_link {
+	struct list_head list;
+	struct acpi_device *device;
+	struct acpi_pci_link_irq irq;
+	int refcnt;
+};
+
+struct acpi_pci_routing_table {
+	u32 length;
+	u32 pin;
+	u64 address;
+	u32 source_index;
+	char source[4];
+};
+
+struct acpi_prt_entry {
+	struct acpi_pci_id id;
+	u8 pin;
+	acpi_handle link;
+	u32 index;
+};
+
+struct prt_quirk {
+	const struct dmi_system_id *system;
+	unsigned int segment;
+	unsigned int bus;
+	unsigned int device;
+	unsigned char pin;
+	const char *source;
+	const char *actual_source;
+};
+
+struct lpss_clk_data {
+	const char *name;
+	struct clk *clk;
+};
+
+enum pxa_ssp_type {
+	SSP_UNDEFINED = 0,
+	PXA25x_SSP = 1,
+	PXA25x_NSSP = 2,
+	PXA27x_SSP = 3,
+	PXA3xx_SSP = 4,
+	PXA168_SSP = 5,
+	MMP2_SSP = 6,
+	PXA910_SSP = 7,
+	CE4100_SSP = 8,
+	MRFLD_SSP = 9,
+	QUARK_X1000_SSP = 10,
+	LPSS_LPT_SSP = 11,
+	LPSS_BYT_SSP = 12,
+	LPSS_BSW_SSP = 13,
+	LPSS_SPT_SSP = 14,
+	LPSS_BXT_SSP = 15,
+	LPSS_CNL_SSP = 16,
+};
+
+struct lpss_private_data;
+
+struct lpss_device_desc {
+	unsigned int flags;
+	const char *clk_con_id;
+	unsigned int prv_offset;
+	size_t prv_size_override;
+	const struct property_entry *properties;
+	void (*setup)(struct lpss_private_data *);
+	bool resume_from_noirq;
+};
+
+struct lpss_private_data {
+	struct acpi_device *adev;
+	void *mmio_base;
+	resource_size_t mmio_size;
+	unsigned int fixed_clk_rate;
+	struct clk *clk;
+	const struct lpss_device_desc *dev_desc;
+	u32 prv_reg_ctx[9];
+};
+
+struct lpss_device_links {
+	const char *supplier_hid;
+	const char *supplier_uid;
+	const char *consumer_hid;
+	const char *consumer_uid;
+	u32 flags;
+	const struct dmi_system_id *dep_missing_ids;
+};
+
+struct hid_uid {
+	const char *hid;
+	const char *uid;
+};
+
+struct fch_clk_data {
+	void *base;
+	char *name;
+};
+
+struct apd_private_data;
+
+struct apd_device_desc {
+	unsigned int fixed_clk_rate;
+	struct property_entry *properties;
+	int (*setup)(struct apd_private_data *);
+};
+
+struct apd_private_data {
+	struct clk *clk;
+	struct acpi_device *adev;
+	const struct apd_device_desc *dev_desc;
+};
+
+struct acpi_power_dependent_device {
+	struct device *dev;
+	struct list_head node;
+};
+
+struct acpi_power_resource {
+	struct acpi_device device;
+	struct list_head list_node;
+	u32 system_level;
+	u32 order;
+	unsigned int ref_count;
+	u8 state;
+	struct mutex resource_lock;
+	struct list_head dependents;
+};
+
+struct acpi_power_resource_entry {
+	struct list_head node;
+	struct acpi_power_resource *resource;
+};
+
+struct acpi_bus_event {
+	struct list_head node;
+	acpi_device_class device_class;
+	acpi_bus_id bus_id;
+	u32 type;
+	u32 data;
+};
+
+struct acpi_genl_event {
+	acpi_device_class device_class;
+	char bus_id[15];
+	u32 type;
+	u32 data;
+};
+
+enum {
+	ACPI_GENL_ATTR_UNSPEC = 0,
+	ACPI_GENL_ATTR_EVENT = 1,
+	__ACPI_GENL_ATTR_MAX = 2,
+};
+
+enum {
+	ACPI_GENL_CMD_UNSPEC = 0,
+	ACPI_GENL_CMD_EVENT = 1,
+	__ACPI_GENL_CMD_MAX = 2,
+};
+
+struct acpi_ged_device {
+	struct device *dev;
+	struct list_head event_list;
+};
+
+struct acpi_ged_event {
+	struct list_head node;
+	struct device *dev;
+	unsigned int gsi;
+	unsigned int irq;
+	acpi_handle handle;
+};
+
+struct acpi_table_bert {
+	struct acpi_table_header header;
+	u32 region_length;
+	u64 address;
+};
+
+struct acpi_dlayer {
+	const char *name;
+	long unsigned int value;
+};
+
+struct acpi_dlevel {
+	const char *name;
+	long unsigned int value;
+};
+
+struct acpi_table_attr {
+	struct bin_attribute attr;
+	char name[4];
+	int instance;
+	char filename[8];
+	struct list_head node;
+};
+
+struct acpi_data_attr {
+	struct bin_attribute attr;
+	u64 addr;
+};
+
+struct acpi_data_obj {
+	char *name;
+	int (*fn)(void *, struct acpi_data_attr *);
+};
+
+struct event_counter {
+	u32 count;
+	u32 flags;
+};
+
+struct acpi_device_properties {
+	const guid_t *guid;
+	const union acpi_object *properties;
+	struct list_head list;
+};
+
+struct override_status_id {
+	struct acpi_device_id hid[2];
+	struct x86_cpu_id cpu_ids[2];
+	struct dmi_system_id dmi_ids[2];
+	const char *uid;
+	const char *path;
+	long long unsigned int status;
+};
+
+struct acpi_s2idle_dev_ops {
+	struct list_head list_node;
+	void (*prepare)();
+	void (*restore)();
+};
+
+struct lpi_device_info {
+	char *name;
+	int enabled;
+	union acpi_object *package;
+};
+
+struct lpi_device_constraint {
+	int uid;
+	int min_dstate;
+	int function_states;
+};
+
+struct lpi_constraints {
+	acpi_handle handle;
+	int min_dstate;
+};
+
+struct lpi_device_constraint_amd {
+	char *name;
+	int enabled;
+	int function_states;
+	int min_dstate;
+};
+
+struct acpi_lpat {
+	int temp;
+	int raw;
+};
+
+struct acpi_lpat_conversion_table {
+	struct acpi_lpat *lpat;
+	int lpat_count;
+};
+
+enum fpdt_subtable_type {
+	SUBTABLE_FBPT = 0,
+	SUBTABLE_S3PT = 1,
+};
+
+struct fpdt_subtable_entry {
+	u16 type;
+	u8 length;
+	u8 revision;
+	u32 reserved;
+	u64 address;
+};
+
+struct fpdt_subtable_header {
+	u32 signature;
+	u32 length;
+};
+
+enum fpdt_record_type {
+	RECORD_S3_RESUME = 0,
+	RECORD_S3_SUSPEND = 1,
+	RECORD_BOOT = 2,
+};
+
+struct fpdt_record_header {
+	u16 type;
+	u8 length;
+	u8 revision;
+};
+
+struct resume_performance_record {
+	struct fpdt_record_header header;
+	u32 resume_count;
+	u64 resume_prev;
+	u64 resume_avg;
+};
+
+struct boot_performance_record {
+	struct fpdt_record_header header;
+	u32 reserved;
+	u64 firmware_start;
+	u64 bootloader_load;
+	u64 bootloader_launch;
+	u64 exitbootservice_start;
+	u64 exitbootservice_end;
+};
+
+struct suspend_performance_record {
+	struct fpdt_record_header header;
+	u64 suspend_start;
+	u64 suspend_end;
+} __attribute__((packed));
+
+struct acpi_table_lpit {
+	struct acpi_table_header header;
+};
+
+struct acpi_lpit_header {
+	u32 type;
+	u32 length;
+	u16 unique_id;
+	u16 reserved;
+	u32 flags;
+};
+
+struct acpi_lpit_native {
+	struct acpi_lpit_header header;
+	struct acpi_generic_address entry_trigger;
+	u32 residency;
+	u32 latency;
+	struct acpi_generic_address residency_counter;
+	u64 counter_frequency;
+} __attribute__((packed));
+
+struct lpit_residency_info {
+	struct acpi_generic_address gaddr;
+	u64 frequency;
+	void *iomem_addr;
+};
+
+struct acpi_table_wdat {
+	struct acpi_table_header header;
+	u32 header_length;
+	u16 pci_segment;
+	u8 pci_bus;
+	u8 pci_device;
+	u8 pci_function;
+	u8 reserved[3];
+	u32 timer_period;
+	u32 max_count;
+	u32 min_count;
+	u8 flags;
+	u8 reserved2[3];
+	u32 entries;
+};
+
+struct acpi_wdat_entry {
+	u8 action;
+	u8 instruction;
+	u16 reserved;
+	struct acpi_generic_address register_region;
+	u32 value;
+	u32 mask;
+} __attribute__((packed));
+
+typedef u64 acpi_integer;
+
+struct acpi_prmt_module_info {
+	u16 revision;
+	u16 length;
+	u8 module_guid[16];
+	u16 major_rev;
+	u16 minor_rev;
+	u16 handler_info_count;
+	u32 handler_info_offset;
+	u64 mmio_list_pointer;
+} __attribute__((packed));
+
+struct acpi_prmt_handler_info {
+	u16 revision;
+	u16 length;
+	u8 handler_guid[16];
+	u64 handler_address;
+	u64 static_data_buffer_address;
+	u64 acpi_param_buffer_address;
+} __attribute__((packed));
+
+struct prm_mmio_addr_range {
+	u64 phys_addr;
+	u64 virt_addr;
+	u32 length;
+} __attribute__((packed));
+
+struct prm_mmio_info {
+	u64 mmio_count;
+	struct prm_mmio_addr_range addr_ranges[0];
+};
+
+struct prm_buffer {
+	u8 prm_status;
+	u64 efi_status;
+	u8 prm_cmd;
+	guid_t handler_guid;
+} __attribute__((packed));
+
+struct prm_context_buffer {
+	char signature[4];
+	u16 revision;
+	u16 reserved;
+	guid_t identifier;
+	u64 static_data_buffer;
+	struct prm_mmio_info *mmio_ranges;
+};
+
+struct prm_handler_info {
+	guid_t guid;
+	u64 handler_addr;
+	u64 static_data_buffer_addr;
+	u64 acpi_param_buffer_addr;
+	struct list_head handler_list;
+};
+
+struct prm_module_info {
+	guid_t guid;
+	u16 major_rev;
+	u16 minor_rev;
+	u16 handler_count;
+	struct prm_mmio_info *mmio_info;
+	bool updatable;
+	struct list_head module_list;
+	struct prm_handler_info handlers[0];
+};
+
+struct acpi_pcc_info {
+	u8 subspace_id;
+	u16 length;
+	u8 *internal_buffer;
+};
+
+struct mbox_chan;
+
+struct mbox_chan_ops {
+	int (*send_data)(struct mbox_chan *, void *);
+	int (*flush)(struct mbox_chan *, long unsigned int);
+	int (*startup)(struct mbox_chan *);
+	void (*shutdown)(struct mbox_chan *);
+	bool (*last_tx_done)(struct mbox_chan *);
+	bool (*peek_data)(struct mbox_chan *);
+};
+
+struct mbox_controller;
+
+struct mbox_client;
+
+struct mbox_chan {
+	struct mbox_controller *mbox;
+	unsigned int txdone_method;
+	struct mbox_client *cl;
+	struct completion tx_complete;
+	void *active_req;
+	unsigned int msg_count;
+	unsigned int msg_free;
+	void *msg_data[20];
+	spinlock_t lock;
+	void *con_priv;
+};
+
+struct mbox_controller {
+	struct device *dev;
+	const struct mbox_chan_ops *ops;
+	struct mbox_chan *chans;
+	int num_chans;
+	bool txdone_irq;
+	bool txdone_poll;
+	unsigned int txpoll_period;
+	struct mbox_chan * (*of_xlate)(struct mbox_controller *, const struct of_phandle_args *);
+	struct hrtimer poll_hrt;
+	spinlock_t poll_hrt_lock;
+	struct list_head node;
+};
+
+struct mbox_client {
+	struct device *dev;
+	bool tx_block;
+	long unsigned int tx_tout;
+	bool knows_txdone;
+	void (*rx_callback)(struct mbox_client *, void *);
+	void (*tx_prepare)(struct mbox_client *, void *);
+	void (*tx_done)(struct mbox_client *, void *, int);
+};
+
+struct pcc_mbox_chan {
+	struct mbox_chan *mchan;
+	u64 shmem_base_addr;
+	u64 shmem_size;
+	u32 latency;
+	u32 max_access_rate;
+	u16 min_turnaround_time;
+};
+
+struct pcc_data {
+	struct pcc_mbox_chan *pcc_chan;
+	void *pcc_comm_addr;
+	struct completion done;
+	struct mbox_client cl;
+	struct acpi_pcc_info ctx;
+};
+
+typedef u32 (*acpi_gpe_handler)(acpi_handle, u32, void *);
+
+typedef void (*acpi_notify_handler)(acpi_handle, u32, void *);
+
+typedef void (*acpi_object_handler)(acpi_handle, void *);
+
+typedef acpi_status (*acpi_adr_space_handler)(u32, acpi_physical_address, u32, u64 *, void *, void *);
+
+typedef acpi_status (*acpi_adr_space_setup)(acpi_handle, u32, void *, void **);
+
+union acpi_operand_object;
+
+struct acpi_namespace_node {
+	union acpi_operand_object *object;
+	u8 descriptor_type;
+	u8 type;
+	u16 flags;
+	union acpi_name_union name;
+	struct acpi_namespace_node *parent;
+	struct acpi_namespace_node *child;
+	struct acpi_namespace_node *peer;
+	acpi_owner_id owner_id;
+};
+
+struct acpi_object_common {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+};
+
+struct acpi_object_integer {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 fill[3];
+	u64 value;
+};
+
+struct acpi_object_string {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	char *pointer;
+	u32 length;
+};
+
+struct acpi_object_buffer {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 *pointer;
+	u32 length;
+	u32 aml_length;
+	u8 *aml_start;
+	struct acpi_namespace_node *node;
+};
+
+struct acpi_object_package {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	struct acpi_namespace_node *node;
+	union acpi_operand_object **elements;
+	u8 *aml_start;
+	u32 aml_length;
+	u32 count;
+};
+
+struct acpi_object_event {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	void *os_semaphore;
+};
+
+struct acpi_walk_state;
+
+typedef acpi_status (*acpi_internal_method)(struct acpi_walk_state *);
+
+struct acpi_object_method {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 info_flags;
+	u8 param_count;
+	u8 sync_level;
+	union acpi_operand_object *mutex;
+	union acpi_operand_object *node;
+	u8 *aml_start;
+	union {
+		acpi_internal_method implementation;
+		union acpi_operand_object *handler;
+	} dispatch;
+	u32 aml_length;
+	acpi_owner_id owner_id;
+	u8 thread_count;
+};
+
+struct acpi_thread_state;
+
+struct acpi_object_mutex {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 sync_level;
+	u16 acquisition_depth;
+	void *os_mutex;
+	u64 thread_id;
+	struct acpi_thread_state *owner_thread;
+	union acpi_operand_object *prev;
+	union acpi_operand_object *next;
+	struct acpi_namespace_node *node;
+	u8 original_sync_level;
+};
+
+struct acpi_object_region {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 space_id;
+	struct acpi_namespace_node *node;
+	union acpi_operand_object *handler;
+	union acpi_operand_object *next;
+	acpi_physical_address address;
+	u32 length;
+	void *pointer;
+};
+
+struct acpi_object_notify_common {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	union acpi_operand_object *notify_list[2];
+	union acpi_operand_object *handler;
+};
+
+struct acpi_gpe_block_info;
+
+struct acpi_object_device {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	union acpi_operand_object *notify_list[2];
+	union acpi_operand_object *handler;
+	struct acpi_gpe_block_info *gpe_block;
+};
+
+struct acpi_object_power_resource {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	union acpi_operand_object *notify_list[2];
+	union acpi_operand_object *handler;
+	u32 system_level;
+	u32 resource_order;
+};
+
+struct acpi_object_processor {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 proc_id;
+	u8 length;
+	union acpi_operand_object *notify_list[2];
+	union acpi_operand_object *handler;
+	acpi_io_address address;
+};
+
+struct acpi_object_thermal_zone {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	union acpi_operand_object *notify_list[2];
+	union acpi_operand_object *handler;
+};
+
+struct acpi_object_field_common {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 field_flags;
+	u8 attribute;
+	u8 access_byte_width;
+	struct acpi_namespace_node *node;
+	u32 bit_length;
+	u32 base_byte_offset;
+	u32 value;
+	u8 start_field_bit_offset;
+	u8 access_length;
+	union acpi_operand_object *region_obj;
+};
+
+struct acpi_object_region_field {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 field_flags;
+	u8 attribute;
+	u8 access_byte_width;
+	struct acpi_namespace_node *node;
+	u32 bit_length;
+	u32 base_byte_offset;
+	u32 value;
+	u8 start_field_bit_offset;
+	u8 access_length;
+	u16 resource_length;
+	union acpi_operand_object *region_obj;
+	u8 *resource_buffer;
+	u16 pin_number_index;
+	u8 *internal_pcc_buffer;
+};
+
+struct acpi_object_buffer_field {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 field_flags;
+	u8 attribute;
+	u8 access_byte_width;
+	struct acpi_namespace_node *node;
+	u32 bit_length;
+	u32 base_byte_offset;
+	u32 value;
+	u8 start_field_bit_offset;
+	u8 access_length;
+	u8 is_create_field;
+	union acpi_operand_object *buffer_obj;
+};
+
+struct acpi_object_bank_field {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 field_flags;
+	u8 attribute;
+	u8 access_byte_width;
+	struct acpi_namespace_node *node;
+	u32 bit_length;
+	u32 base_byte_offset;
+	u32 value;
+	u8 start_field_bit_offset;
+	u8 access_length;
+	union acpi_operand_object *region_obj;
+	union acpi_operand_object *bank_obj;
+};
+
+struct acpi_object_index_field {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 field_flags;
+	u8 attribute;
+	u8 access_byte_width;
+	struct acpi_namespace_node *node;
+	u32 bit_length;
+	u32 base_byte_offset;
+	u32 value;
+	u8 start_field_bit_offset;
+	u8 access_length;
+	union acpi_operand_object *index_obj;
+	union acpi_operand_object *data_obj;
+};
+
+struct acpi_object_notify_handler {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	struct acpi_namespace_node *node;
+	u32 handler_type;
+	acpi_notify_handler handler;
+	void *context;
+	union acpi_operand_object *next[2];
+};
+
+struct acpi_object_addr_handler {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 space_id;
+	u8 handler_flags;
+	acpi_adr_space_handler handler;
+	struct acpi_namespace_node *node;
+	void *context;
+	void *context_mutex;
+	acpi_adr_space_setup setup;
+	union acpi_operand_object *region_list;
+	union acpi_operand_object *next;
+};
+
+struct acpi_object_reference {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	u8 class;
+	u8 target_type;
+	u8 resolved;
+	void *object;
+	struct acpi_namespace_node *node;
+	union acpi_operand_object **where;
+	u8 *index_pointer;
+	u8 *aml;
+	u32 value;
+};
+
+struct acpi_object_extra {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	struct acpi_namespace_node *method_REG;
+	struct acpi_namespace_node *scope_node;
+	void *region_context;
+	u8 *aml_start;
+	u32 aml_length;
+};
+
+struct acpi_object_data {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	acpi_object_handler handler;
+	void *pointer;
+};
+
+struct acpi_object_cache_list {
+	union acpi_operand_object *next_object;
+	u8 descriptor_type;
+	u8 type;
+	u16 reference_count;
+	u8 flags;
+	union acpi_operand_object *next;
+};
+
+union acpi_operand_object {
+	struct acpi_object_common common;
+	struct acpi_object_integer integer;
+	struct acpi_object_string string;
+	struct acpi_object_buffer buffer;
+	struct acpi_object_package package;
+	struct acpi_object_event event;
+	struct acpi_object_method method;
+	struct acpi_object_mutex mutex;
+	struct acpi_object_region region;
+	struct acpi_object_notify_common common_notify;
+	struct acpi_object_device device;
+	struct acpi_object_power_resource power_resource;
+	struct acpi_object_processor processor;
+	struct acpi_object_thermal_zone thermal_zone;
+	struct acpi_object_field_common common_field;
+	struct acpi_object_region_field field;
+	struct acpi_object_buffer_field buffer_field;
+	struct acpi_object_bank_field bank_field;
+	struct acpi_object_index_field index_field;
+	struct acpi_object_notify_handler notify;
+	struct acpi_object_addr_handler address_space;
+	struct acpi_object_reference reference;
+	struct acpi_object_extra extra;
+	struct acpi_object_data data;
+	struct acpi_object_cache_list cache;
+	struct acpi_namespace_node node;
+};
+
+union acpi_parse_object;
+
+union acpi_generic_state;
+
+struct acpi_parse_state {
+	u8 *aml_start;
+	u8 *aml;
+	u8 *aml_end;
+	u8 *pkg_start;
+	u8 *pkg_end;
+	union acpi_parse_object *start_op;
+	struct acpi_namespace_node *start_node;
+	union acpi_generic_state *scope;
+	union acpi_parse_object *start_scope;
+	u32 aml_size;
+};
+
+typedef acpi_status (*acpi_parse_downwards)(struct acpi_walk_state *, union acpi_parse_object **);
+
+typedef acpi_status (*acpi_parse_upwards)(struct acpi_walk_state *);
+
+struct acpi_opcode_info;
+
+struct acpi_walk_state {
+	struct acpi_walk_state *next;
+	u8 descriptor_type;
+	u8 walk_type;
+	u16 opcode;
+	u8 next_op_info;
+	u8 num_operands;
+	u8 operand_index;
+	acpi_owner_id owner_id;
+	u8 last_predicate;
+	u8 current_result;
+	u8 return_used;
+	u8 scope_depth;
+	u8 pass_number;
+	u8 namespace_override;
+	u8 result_size;
+	u8 result_count;
+	u8 *aml;
+	u32 arg_types;
+	u32 method_breakpoint;
+	u32 user_breakpoint;
+	u32 parse_flags;
+	struct acpi_parse_state parser_state;
+	u32 prev_arg_types;
+	u32 arg_count;
+	u16 method_nesting_depth;
+	u8 method_is_nested;
+	struct acpi_namespace_node arguments[7];
+	struct acpi_namespace_node local_variables[8];
+	union acpi_operand_object *operands[9];
+	union acpi_operand_object **params;
+	u8 *aml_last_while;
+	union acpi_operand_object **caller_return_desc;
+	union acpi_generic_state *control_state;
+	struct acpi_namespace_node *deferred_node;
+	union acpi_operand_object *implicit_return_obj;
+	struct acpi_namespace_node *method_call_node;
+	union acpi_parse_object *method_call_op;
+	union acpi_operand_object *method_desc;
+	struct acpi_namespace_node *method_node;
+	char *method_pathname;
+	union acpi_parse_object *op;
+	const struct acpi_opcode_info *op_info;
+	union acpi_parse_object *origin;
+	union acpi_operand_object *result_obj;
+	union acpi_generic_state *results;
+	union acpi_operand_object *return_desc;
+	union acpi_generic_state *scope_info;
+	union acpi_parse_object *prev_op;
+	union acpi_parse_object *next_op;
+	struct acpi_thread_state *thread;
+	acpi_parse_downwards descending_callback;
+	acpi_parse_upwards ascending_callback;
+};
+
+struct acpi_gpe_handler_info {
+	acpi_gpe_handler address;
+	void *context;
+	struct acpi_namespace_node *method_node;
+	u8 original_flags;
+	u8 originally_enabled;
+};
+
+struct acpi_gpe_notify_info {
+	struct acpi_namespace_node *device_node;
+	struct acpi_gpe_notify_info *next;
+};
+
+union acpi_gpe_dispatch_info {
+	struct acpi_namespace_node *method_node;
+	struct acpi_gpe_handler_info *handler;
+	struct acpi_gpe_notify_info *notify_list;
+};
+
+struct acpi_gpe_register_info;
+
+struct acpi_gpe_event_info {
+	union acpi_gpe_dispatch_info dispatch;
+	struct acpi_gpe_register_info *register_info;
+	u8 flags;
+	u8 gpe_number;
+	u8 runtime_count;
+	u8 disable_for_dispatch;
+};
+
+struct acpi_gpe_address {
+	u8 space_id;
+	u64 address;
+};
+
+struct acpi_gpe_register_info {
+	struct acpi_gpe_address status_address;
+	struct acpi_gpe_address enable_address;
+	u16 base_gpe_number;
+	u8 enable_for_wake;
+	u8 enable_for_run;
+	u8 mask_for_run;
+	u8 enable_mask;
+};
+
+struct acpi_gpe_xrupt_info;
+
+struct acpi_gpe_block_info {
+	struct acpi_namespace_node *node;
+	struct acpi_gpe_block_info *previous;
+	struct acpi_gpe_block_info *next;
+	struct acpi_gpe_xrupt_info *xrupt_block;
+	struct acpi_gpe_register_info *register_info;
+	struct acpi_gpe_event_info *event_info;
+	u64 address;
+	u32 register_count;
+	u16 gpe_count;
+	u16 block_base_number;
+	u8 space_id;
+	u8 initialized;
+};
+
+struct acpi_gpe_xrupt_info {
+	struct acpi_gpe_xrupt_info *previous;
+	struct acpi_gpe_xrupt_info *next;
+	struct acpi_gpe_block_info *gpe_block_list_head;
+	u32 interrupt_number;
+};
+
+struct acpi_common_state {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+};
+
+struct acpi_update_state {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	union acpi_operand_object *object;
+};
+
+struct acpi_pkg_state {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	u32 index;
+	union acpi_operand_object *source_object;
+	union acpi_operand_object *dest_object;
+	struct acpi_walk_state *walk_state;
+	void *this_target_obj;
+	u32 num_packages;
+};
+
+struct acpi_control_state {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	u16 opcode;
+	union acpi_parse_object *predicate_op;
+	u8 *aml_predicate_start;
+	u8 *package_end;
+	u64 loop_timeout;
+};
+
+union acpi_parse_value {
+	u64 integer;
+	u32 size;
+	char *string;
+	u8 *buffer;
+	char *name;
+	union acpi_parse_object *arg;
+};
+
+struct acpi_parse_obj_common {
+	union acpi_parse_object *parent;
+	u8 descriptor_type;
+	u8 flags;
+	u16 aml_opcode;
+	u8 *aml;
+	union acpi_parse_object *next;
+	struct acpi_namespace_node *node;
+	union acpi_parse_value value;
+	u8 arg_list_length;
+	u16 disasm_flags;
+	u8 disasm_opcode;
+	char *operator_symbol;
+	char aml_op_name[16];
+};
+
+struct acpi_parse_obj_named {
+	union acpi_parse_object *parent;
+	u8 descriptor_type;
+	u8 flags;
+	u16 aml_opcode;
+	u8 *aml;
+	union acpi_parse_object *next;
+	struct acpi_namespace_node *node;
+	union acpi_parse_value value;
+	u8 arg_list_length;
+	u16 disasm_flags;
+	u8 disasm_opcode;
+	char *operator_symbol;
+	char aml_op_name[16];
+	char *path;
+	u8 *data;
+	u32 length;
+	u32 name;
+};
+
+struct acpi_parse_obj_asl {
+	union acpi_parse_object *parent;
+	u8 descriptor_type;
+	u8 flags;
+	u16 aml_opcode;
+	u8 *aml;
+	union acpi_parse_object *next;
+	struct acpi_namespace_node *node;
+	union acpi_parse_value value;
+	u8 arg_list_length;
+	u16 disasm_flags;
+	u8 disasm_opcode;
+	char *operator_symbol;
+	char aml_op_name[16];
+	union acpi_parse_object *child;
+	union acpi_parse_object *parent_method;
+	char *filename;
+	u8 file_changed;
+	char *parent_filename;
+	char *external_name;
+	char *namepath;
+	char name_seg[4];
+	u32 extra_value;
+	u32 column;
+	u32 line_number;
+	u32 logical_line_number;
+	u32 logical_byte_offset;
+	u32 end_line;
+	u32 end_logical_line;
+	u32 acpi_btype;
+	u32 aml_length;
+	u32 aml_subtree_length;
+	u32 final_aml_length;
+	u32 final_aml_offset;
+	u32 compile_flags;
+	u16 parse_opcode;
+	u8 aml_opcode_length;
+	u8 aml_pkg_len_bytes;
+	u8 extra;
+	char parse_op_name[20];
+};
+
+union acpi_parse_object {
+	struct acpi_parse_obj_common common;
+	struct acpi_parse_obj_named named;
+	struct acpi_parse_obj_asl asl;
+};
+
+struct acpi_scope_state {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	struct acpi_namespace_node *node;
+};
+
+struct acpi_pscope_state {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	u32 arg_count;
+	union acpi_parse_object *op;
+	u8 *arg_end;
+	u8 *pkg_end;
+	u32 arg_list;
+};
+
+struct acpi_thread_state {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	u8 current_sync_level;
+	struct acpi_walk_state *walk_state_list;
+	union acpi_operand_object *acquired_mutex_list;
+	u64 thread_id;
+};
+
+struct acpi_result_values {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	union acpi_operand_object *obj_desc[8];
+};
+
+struct acpi_global_notify_handler {
+	acpi_notify_handler handler;
+	void *context;
+};
+
+struct acpi_notify_info {
+	void *next;
+	u8 descriptor_type;
+	u8 flags;
+	u16 value;
+	u16 state;
+	u8 handler_list_id;
+	struct acpi_namespace_node *node;
+	union acpi_operand_object *handler_list_head;
+	struct acpi_global_notify_handler *global;
+};
+
+union acpi_generic_state {
+	struct acpi_common_state common;
+	struct acpi_control_state control;
+	struct acpi_update_state update;
+	struct acpi_scope_state scope;
+	struct acpi_pscope_state parse_scope;
+	struct acpi_pkg_state pkg;
+	struct acpi_thread_state thread;
+	struct acpi_result_values results;
+	struct acpi_notify_info notify;
+};
+
+struct acpi_opcode_info {
+	char *name;
+	u32 parse_args;
+	u32 runtime_args;
+	u16 flags;
+	u8 object_type;
+	u8 class;
+	u8 type;
+};
+
+enum {
+	ACPI_REFCLASS_LOCAL = 0,
+	ACPI_REFCLASS_ARG = 1,
+	ACPI_REFCLASS_REFOF = 2,
+	ACPI_REFCLASS_INDEX = 3,
+	ACPI_REFCLASS_TABLE = 4,
+	ACPI_REFCLASS_NAME = 5,
+	ACPI_REFCLASS_DEBUG = 6,
+	ACPI_REFCLASS_MAX = 6,
+};
+
+struct acpi_common_descriptor {
+	void *common_pointer;
+	u8 descriptor_type;
+};
+
+union acpi_descriptor {
+	struct acpi_common_descriptor common;
+	union acpi_operand_object object;
+	struct acpi_namespace_node node;
+	union acpi_parse_object op;
+};
+
+struct acpi_create_field_info {
+	struct acpi_namespace_node *region_node;
+	struct acpi_namespace_node *field_node;
+	struct acpi_namespace_node *register_node;
+	struct acpi_namespace_node *data_register_node;
+	struct acpi_namespace_node *connection_node;
+	u8 *resource_buffer;
+	u32 bank_value;
+	u32 field_bit_position;
+	u32 field_bit_length;
+	u16 resource_length;
+	u16 pin_number_index;
+	u8 field_flags;
+	u8 attribute;
+	u8 field_type;
+	u8 access_length;
+};
+
+struct acpi_init_walk_info {
+	u32 table_index;
+	u32 object_count;
+	u32 method_count;
+	u32 serial_method_count;
+	u32 non_serial_method_count;
+	u32 serialized_method_count;
+	u32 device_count;
+	u32 op_region_count;
+	u32 field_count;
+	u32 buffer_count;
+	u32 package_count;
+	u32 op_region_init;
+	u32 field_init;
+	u32 buffer_init;
+	u32 package_init;
+	acpi_owner_id owner_id;
+};
+
+typedef u32 acpi_name;
+
+typedef acpi_status (*acpi_exception_handler)(acpi_status, acpi_name, u16, u32, void *);
+
+struct acpi_name_info {
+	char name[4];
+	u16 argument_list;
+	u8 expected_btypes;
+} __attribute__((packed));
+
+struct acpi_package_info {
+	u8 type;
+	u8 object_type1;
+	u8 count1;
+	u8 object_type2;
+	u8 count2;
+	u16 reserved;
+} __attribute__((packed));
+
+struct acpi_package_info2 {
+	u8 type;
+	u8 count;
+	u8 object_type[4];
+	u8 reserved;
+};
+
+struct acpi_package_info3 {
+	u8 type;
+	u8 count;
+	u8 object_type[2];
+	u8 tail_object_type;
+	u16 reserved;
+} __attribute__((packed));
+
+struct acpi_package_info4 {
+	u8 type;
+	u8 object_type1;
+	u8 count1;
+	u8 sub_object_types;
+	u8 pkg_count;
+	u16 reserved;
+} __attribute__((packed));
+
+union acpi_predefined_info {
+	struct acpi_name_info info;
+	struct acpi_package_info ret_info;
+	struct acpi_package_info2 ret_info2;
+	struct acpi_package_info3 ret_info3;
+	struct acpi_package_info4 ret_info4;
+};
+
+struct acpi_evaluate_info {
+	struct acpi_namespace_node *prefix_node;
+	const char *relative_pathname;
+	union acpi_operand_object **parameters;
+	struct acpi_namespace_node *node;
+	union acpi_operand_object *obj_desc;
+	char *full_pathname;
+	const union acpi_predefined_info *predefined;
+	union acpi_operand_object *return_object;
+	union acpi_operand_object *parent_package;
+	u32 return_flags;
+	u32 return_btype;
+	u16 param_count;
+	u16 node_flags;
+	u8 pass_number;
+	u8 return_object_type;
+	u8 flags;
+};
+
+enum {
+	AML_FIELD_ACCESS_ANY = 0,
+	AML_FIELD_ACCESS_BYTE = 1,
+	AML_FIELD_ACCESS_WORD = 2,
+	AML_FIELD_ACCESS_DWORD = 3,
+	AML_FIELD_ACCESS_QWORD = 4,
+	AML_FIELD_ACCESS_BUFFER = 5,
+};
+
+typedef enum {
+	ACPI_IMODE_LOAD_PASS1 = 1,
+	ACPI_IMODE_LOAD_PASS2 = 2,
+	ACPI_IMODE_EXECUTE = 3,
+} acpi_interpreter_mode;
+
+typedef acpi_status (*acpi_execute_op)(struct acpi_walk_state *);
+
+typedef void (*acpi_gbl_event_handler)(u32, acpi_handle, u32, void *);
+
+typedef u32 (*acpi_event_handler)(void *);
+
+struct acpi_fixed_event_handler {
+	acpi_event_handler handler;
+	void *context;
+};
+
+struct acpi_fixed_event_info {
+	u8 status_register_id;
+	u8 enable_register_id;
+	u16 status_bit_mask;
+	u16 enable_bit_mask;
+};
+
+struct acpi_gpe_walk_info {
+	struct acpi_namespace_node *gpe_device;
+	struct acpi_gpe_block_info *gpe_block;
+	u16 count;
+	acpi_owner_id owner_id;
+	u8 execute_by_owner_id;
+};
+
+struct acpi_gpe_device_info {
+	u32 index;
+	u32 next_block_base_index;
+	acpi_status status;
+	struct acpi_namespace_node *gpe_device;
+};
+
+typedef acpi_status (*acpi_gpe_callback)(struct acpi_gpe_xrupt_info *, struct acpi_gpe_block_info *, void *);
+
+struct acpi_reg_walk_info {
+	u32 function;
+	u32 reg_run_count;
+	acpi_adr_space_type space_id;
+};
+
+struct acpi_mem_mapping {
+	acpi_physical_address physical_address;
+	u8 *logical_address;
+	acpi_size length;
+	struct acpi_mem_mapping *next_mm;
+};
+
+struct acpi_mem_space_context {
+	u32 length;
+	acpi_physical_address address;
+	struct acpi_mem_mapping *cur_mm;
+	struct acpi_mem_mapping *first_mm;
+};
+
+struct acpi_data_table_space_context {
+	void *pointer;
+};
+
+typedef u32 (*acpi_sci_handler)(void *);
+
+struct acpi_sci_handler_info {
+	struct acpi_sci_handler_info *next;
+	acpi_sci_handler address;
+	void *context;
+};
+
+struct acpi_exdump_info {
+	u8 opcode;
+	u8 offset;
+	const char *name;
+} __attribute__((packed));
+
+enum {
+	AML_FIELD_UPDATE_PRESERVE = 0,
+	AML_FIELD_UPDATE_WRITE_AS_ONES = 32,
+	AML_FIELD_UPDATE_WRITE_AS_ZEROS = 64,
+};
+
+struct acpi_signal_fatal_info {
+	u32 type;
+	u32 code;
+	u32 argument;
+};
+
+enum {
+	MATCH_MTR = 0,
+	MATCH_MEQ = 1,
+	MATCH_MLE = 2,
+	MATCH_MLT = 3,
+	MATCH_MGE = 4,
+	MATCH_MGT = 5,
+};
+
+enum {
+	AML_FIELD_ATTRIB_QUICK = 2,
+	AML_FIELD_ATTRIB_SEND_RECEIVE = 4,
+	AML_FIELD_ATTRIB_BYTE = 6,
+	AML_FIELD_ATTRIB_WORD = 8,
+	AML_FIELD_ATTRIB_BLOCK = 10,
+	AML_FIELD_ATTRIB_BYTES = 11,
+	AML_FIELD_ATTRIB_PROCESS_CALL = 12,
+	AML_FIELD_ATTRIB_BLOCK_PROCESS_CALL = 13,
+	AML_FIELD_ATTRIB_RAW_BYTES = 14,
+	AML_FIELD_ATTRIB_RAW_PROCESS_BYTES = 15,
+};
+
+typedef enum {
+	ACPI_TRACE_AML_METHOD = 0,
+	ACPI_TRACE_AML_OPCODE = 1,
+	ACPI_TRACE_AML_REGION = 2,
+} acpi_trace_event_type;
+
+struct acpi_gpe_block_status_context {
+	struct acpi_gpe_register_info *gpe_skip_register_info;
+	u8 gpe_skip_mask;
+	u8 retval;
+};
+
+struct acpi_bit_register_info {
+	u8 parent_register;
+	u8 bit_position;
+	u16 access_bit_mask;
+};
+
+struct acpi_port_info {
+	char *name;
+	u16 start;
+	u16 end;
+	u8 osi_dependency;
+};
+
+struct acpi_pci_device {
+	acpi_handle device;
+	struct acpi_pci_device *next;
+};
+
+struct acpi_walk_info {
+	u32 debug_level;
+	u32 count;
+	acpi_owner_id owner_id;
+	u8 display_type;
+};
+
+typedef acpi_status (*acpi_init_handler)(acpi_handle, u32);
+
+struct acpi_device_walk_info {
+	struct acpi_table_desc *table_desc;
+	struct acpi_evaluate_info *evaluate_info;
+	u32 device_count;
+	u32 num_STA;
+	u32 num_INI;
+};
+
+struct acpi_table_list {
+	struct acpi_table_desc *tables;
+	u32 current_table_count;
+	u32 max_table_count;
+	u8 flags;
+};
+
+enum acpi_return_package_types {
+	ACPI_PTYPE1_FIXED = 1,
+	ACPI_PTYPE1_VAR = 2,
+	ACPI_PTYPE1_OPTION = 3,
+	ACPI_PTYPE2 = 4,
+	ACPI_PTYPE2_COUNT = 5,
+	ACPI_PTYPE2_PKG_COUNT = 6,
+	ACPI_PTYPE2_FIXED = 7,
+	ACPI_PTYPE2_MIN = 8,
+	ACPI_PTYPE2_REV_FIXED = 9,
+	ACPI_PTYPE2_FIX_VAR = 10,
+	ACPI_PTYPE2_VAR_VAR = 11,
+	ACPI_PTYPE2_UUID_PAIR = 12,
+	ACPI_PTYPE_CUSTOM = 13,
+};
+
+typedef acpi_status (*acpi_object_converter)(struct acpi_namespace_node *, union acpi_operand_object *, union acpi_operand_object **);
+
+struct acpi_simple_repair_info {
+	char name[4];
+	u32 unexpected_btypes;
+	u32 package_index;
+	acpi_object_converter object_converter;
+};
+
+typedef acpi_status (*acpi_repair_function)(struct acpi_evaluate_info *, union acpi_operand_object **);
+
+struct acpi_repair_info {
+	char name[4];
+	acpi_repair_function repair_function;
+};
+
+struct acpi_namestring_info {
+	const char *external_name;
+	const char *next_external_char;
+	char *internal_name;
+	u32 length;
+	u32 num_segments;
+	u32 num_carats;
+	u8 fully_qualified;
+};
+
+typedef acpi_status (*acpi_walk_callback)(acpi_handle, u32, void *, void **);
+
+struct acpi_rw_lock {
+	void *writer_mutex;
+	void *reader_mutex;
+	u32 num_readers;
+};
+
+struct acpi_get_devices_info {
+	acpi_walk_callback user_function;
+	void *context;
+	const char *hid;
+};
+
+struct aml_resource_small_header {
+	u8 descriptor_type;
+};
+
+struct aml_resource_irq {
+	u8 descriptor_type;
+	u16 irq_mask;
+	u8 flags;
+} __attribute__((packed));
+
+struct aml_resource_dma {
+	u8 descriptor_type;
+	u8 dma_channel_mask;
+	u8 flags;
+};
+
+struct aml_resource_start_dependent {
+	u8 descriptor_type;
+	u8 flags;
+};
+
+struct aml_resource_end_dependent {
+	u8 descriptor_type;
+};
+
+struct aml_resource_io {
+	u8 descriptor_type;
+	u8 flags;
+	u16 minimum;
+	u16 maximum;
+	u8 alignment;
+	u8 address_length;
+};
+
+struct aml_resource_fixed_io {
+	u8 descriptor_type;
+	u16 address;
+	u8 address_length;
+} __attribute__((packed));
+
+struct aml_resource_vendor_small {
+	u8 descriptor_type;
+};
+
+struct aml_resource_end_tag {
+	u8 descriptor_type;
+	u8 checksum;
+};
+
+struct aml_resource_fixed_dma {
+	u8 descriptor_type;
+	u16 request_lines;
+	u16 channels;
+	u8 width;
+} __attribute__((packed));
+
+struct aml_resource_large_header {
+	u8 descriptor_type;
+	u16 resource_length;
+} __attribute__((packed));
+
+struct aml_resource_memory24 {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 flags;
+	u16 minimum;
+	u16 maximum;
+	u16 alignment;
+	u16 address_length;
+} __attribute__((packed));
+
+struct aml_resource_vendor_large {
+	u8 descriptor_type;
+	u16 resource_length;
+} __attribute__((packed));
+
+struct aml_resource_memory32 {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 flags;
+	u32 minimum;
+	u32 maximum;
+	u32 alignment;
+	u32 address_length;
+} __attribute__((packed));
+
+struct aml_resource_fixed_memory32 {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 flags;
+	u32 address;
+	u32 address_length;
+} __attribute__((packed));
+
+struct aml_resource_address {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 resource_type;
+	u8 flags;
+	u8 specific_flags;
+} __attribute__((packed));
+
+struct aml_resource_extended_address64 {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 resource_type;
+	u8 flags;
+	u8 specific_flags;
+	u8 revision_ID;
+	u8 reserved;
+	u64 granularity;
+	u64 minimum;
+	u64 maximum;
+	u64 translation_offset;
+	u64 address_length;
+	u64 type_specific;
+} __attribute__((packed));
+
+struct aml_resource_address64 {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 resource_type;
+	u8 flags;
+	u8 specific_flags;
+	u64 granularity;
+	u64 minimum;
+	u64 maximum;
+	u64 translation_offset;
+	u64 address_length;
+} __attribute__((packed));
+
+struct aml_resource_address32 {
