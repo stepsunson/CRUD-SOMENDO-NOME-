@@ -86700,3 +86700,2143 @@ struct aml_resource_address64 {
 } __attribute__((packed));
 
 struct aml_resource_address32 {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 resource_type;
+	u8 flags;
+	u8 specific_flags;
+	u32 granularity;
+	u32 minimum;
+	u32 maximum;
+	u32 translation_offset;
+	u32 address_length;
+} __attribute__((packed));
+
+struct aml_resource_address16 {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 resource_type;
+	u8 flags;
+	u8 specific_flags;
+	u16 granularity;
+	u16 minimum;
+	u16 maximum;
+	u16 translation_offset;
+	u16 address_length;
+} __attribute__((packed));
+
+struct aml_resource_extended_irq {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 flags;
+	u8 interrupt_count;
+	u32 interrupts[1];
+} __attribute__((packed));
+
+struct aml_resource_generic_register {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 address_space_id;
+	u8 bit_width;
+	u8 bit_offset;
+	u8 access_size;
+	u64 address;
+} __attribute__((packed));
+
+struct aml_resource_gpio {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u8 connection_type;
+	u16 flags;
+	u16 int_flags;
+	u8 pin_config;
+	u16 drive_strength;
+	u16 debounce_timeout;
+	u16 pin_table_offset;
+	u8 res_source_index;
+	u16 res_source_offset;
+	u16 vendor_offset;
+	u16 vendor_length;
+} __attribute__((packed));
+
+struct aml_resource_common_serialbus {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u8 res_source_index;
+	u8 type;
+	u8 flags;
+	u16 type_specific_flags;
+	u8 type_revision_id;
+	u16 type_data_length;
+} __attribute__((packed));
+
+struct aml_resource_csi2_serialbus {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u8 res_source_index;
+	u8 type;
+	u8 flags;
+	u16 type_specific_flags;
+	u8 type_revision_id;
+	u16 type_data_length;
+} __attribute__((packed));
+
+struct aml_resource_i2c_serialbus {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u8 res_source_index;
+	u8 type;
+	u8 flags;
+	u16 type_specific_flags;
+	u8 type_revision_id;
+	u16 type_data_length;
+	u32 connection_speed;
+	u16 slave_address;
+} __attribute__((packed));
+
+struct aml_resource_spi_serialbus {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u8 res_source_index;
+	u8 type;
+	u8 flags;
+	u16 type_specific_flags;
+	u8 type_revision_id;
+	u16 type_data_length;
+	u32 connection_speed;
+	u8 data_bit_length;
+	u8 clock_phase;
+	u8 clock_polarity;
+	u16 device_selection;
+} __attribute__((packed));
+
+struct aml_resource_uart_serialbus {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u8 res_source_index;
+	u8 type;
+	u8 flags;
+	u16 type_specific_flags;
+	u8 type_revision_id;
+	u16 type_data_length;
+	u32 default_baud_rate;
+	u16 rx_fifo_size;
+	u16 tx_fifo_size;
+	u8 parity;
+	u8 lines_enabled;
+} __attribute__((packed));
+
+struct aml_resource_pin_function {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u16 flags;
+	u8 pin_config;
+	u16 function_number;
+	u16 pin_table_offset;
+	u8 res_source_index;
+	u16 res_source_offset;
+	u16 vendor_offset;
+	u16 vendor_length;
+} __attribute__((packed));
+
+struct aml_resource_pin_config {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u16 flags;
+	u8 pin_config_type;
+	u32 pin_config_value;
+	u16 pin_table_offset;
+	u8 res_source_index;
+	u16 res_source_offset;
+	u16 vendor_offset;
+	u16 vendor_length;
+} __attribute__((packed));
+
+struct aml_resource_pin_group {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u16 flags;
+	u16 pin_table_offset;
+	u16 label_offset;
+	u16 vendor_offset;
+	u16 vendor_length;
+} __attribute__((packed));
+
+struct aml_resource_pin_group_function {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u16 flags;
+	u16 function_number;
+	u8 res_source_index;
+	u16 res_source_offset;
+	u16 res_source_label_offset;
+	u16 vendor_offset;
+	u16 vendor_length;
+} __attribute__((packed));
+
+struct aml_resource_pin_group_config {
+	u8 descriptor_type;
+	u16 resource_length;
+	u8 revision_id;
+	u16 flags;
+	u8 pin_config_type;
+	u32 pin_config_value;
+	u8 res_source_index;
+	u16 res_source_offset;
+	u16 res_source_label_offset;
+	u16 vendor_offset;
+	u16 vendor_length;
+} __attribute__((packed));
+
+union aml_resource {
+	u8 descriptor_type;
+	struct aml_resource_small_header small_header;
+	struct aml_resource_large_header large_header;
+	struct aml_resource_irq irq;
+	struct aml_resource_dma dma;
+	struct aml_resource_start_dependent start_dpf;
+	struct aml_resource_end_dependent end_dpf;
+	struct aml_resource_io io;
+	struct aml_resource_fixed_io fixed_io;
+	struct aml_resource_fixed_dma fixed_dma;
+	struct aml_resource_vendor_small vendor_small;
+	struct aml_resource_end_tag end_tag;
+	struct aml_resource_memory24 memory24;
+	struct aml_resource_generic_register generic_reg;
+	struct aml_resource_vendor_large vendor_large;
+	struct aml_resource_memory32 memory32;
+	struct aml_resource_fixed_memory32 fixed_memory32;
+	struct aml_resource_address16 address16;
+	struct aml_resource_address32 address32;
+	struct aml_resource_address64 address64;
+	struct aml_resource_extended_address64 ext_address64;
+	struct aml_resource_extended_irq extended_irq;
+	struct aml_resource_gpio gpio;
+	struct aml_resource_i2c_serialbus i2c_serial_bus;
+	struct aml_resource_spi_serialbus spi_serial_bus;
+	struct aml_resource_uart_serialbus uart_serial_bus;
+	struct aml_resource_csi2_serialbus csi2_serial_bus;
+	struct aml_resource_common_serialbus common_serial_bus;
+	struct aml_resource_pin_function pin_function;
+	struct aml_resource_pin_config pin_config;
+	struct aml_resource_pin_group pin_group;
+	struct aml_resource_pin_group_function pin_group_function;
+	struct aml_resource_pin_group_config pin_group_config;
+	struct aml_resource_address address;
+	u32 dword_item;
+	u16 word_item;
+	u8 byte_item;
+};
+
+struct acpi_rsconvert_info {
+	u8 opcode;
+	u8 resource_offset;
+	u8 aml_offset;
+	u8 value;
+};
+
+enum {
+	ACPI_RSC_INITGET = 0,
+	ACPI_RSC_INITSET = 1,
+	ACPI_RSC_FLAGINIT = 2,
+	ACPI_RSC_1BITFLAG = 3,
+	ACPI_RSC_2BITFLAG = 4,
+	ACPI_RSC_3BITFLAG = 5,
+	ACPI_RSC_6BITFLAG = 6,
+	ACPI_RSC_ADDRESS = 7,
+	ACPI_RSC_BITMASK = 8,
+	ACPI_RSC_BITMASK16 = 9,
+	ACPI_RSC_COUNT = 10,
+	ACPI_RSC_COUNT16 = 11,
+	ACPI_RSC_COUNT_GPIO_PIN = 12,
+	ACPI_RSC_COUNT_GPIO_RES = 13,
+	ACPI_RSC_COUNT_GPIO_VEN = 14,
+	ACPI_RSC_COUNT_SERIAL_RES = 15,
+	ACPI_RSC_COUNT_SERIAL_VEN = 16,
+	ACPI_RSC_DATA8 = 17,
+	ACPI_RSC_EXIT_EQ = 18,
+	ACPI_RSC_EXIT_LE = 19,
+	ACPI_RSC_EXIT_NE = 20,
+	ACPI_RSC_LENGTH = 21,
+	ACPI_RSC_MOVE_GPIO_PIN = 22,
+	ACPI_RSC_MOVE_GPIO_RES = 23,
+	ACPI_RSC_MOVE_SERIAL_RES = 24,
+	ACPI_RSC_MOVE_SERIAL_VEN = 25,
+	ACPI_RSC_MOVE8 = 26,
+	ACPI_RSC_MOVE16 = 27,
+	ACPI_RSC_MOVE32 = 28,
+	ACPI_RSC_MOVE64 = 29,
+	ACPI_RSC_SET8 = 30,
+	ACPI_RSC_SOURCE = 31,
+	ACPI_RSC_SOURCEX = 32,
+};
+
+typedef u16 acpi_rs_length;
+
+struct acpi_rsdump_info {
+	u8 opcode;
+	u8 offset;
+	const char *name;
+	const char **pointer;
+} __attribute__((packed));
+
+enum {
+	ACPI_RSD_TITLE = 0,
+	ACPI_RSD_1BITFLAG = 1,
+	ACPI_RSD_2BITFLAG = 2,
+	ACPI_RSD_3BITFLAG = 3,
+	ACPI_RSD_6BITFLAG = 4,
+	ACPI_RSD_ADDRESS = 5,
+	ACPI_RSD_DWORDLIST = 6,
+	ACPI_RSD_LITERAL = 7,
+	ACPI_RSD_LONGLIST = 8,
+	ACPI_RSD_SHORTLIST = 9,
+	ACPI_RSD_SHORTLISTX = 10,
+	ACPI_RSD_SOURCE = 11,
+	ACPI_RSD_STRING = 12,
+	ACPI_RSD_UINT8 = 13,
+	ACPI_RSD_UINT16 = 14,
+	ACPI_RSD_UINT32 = 15,
+	ACPI_RSD_UINT64 = 16,
+	ACPI_RSD_WORDLIST = 17,
+	ACPI_RSD_LABEL = 18,
+	ACPI_RSD_SOURCE_LABEL = 19,
+};
+
+typedef u32 acpi_rsdesc_size;
+
+struct acpi_vendor_uuid {
+	u8 subtype;
+	u8 data[16];
+};
+
+typedef acpi_status (*acpi_walk_resource_callback)(struct acpi_resource *, void *);
+
+struct acpi_vendor_walk_info {
+	struct acpi_vendor_uuid *uuid;
+	struct acpi_buffer *buffer;
+	acpi_status status;
+};
+
+typedef acpi_status (*acpi_table_handler)(u32, void *, void *);
+
+struct acpi_fadt_info {
+	const char *name;
+	u16 address64;
+	u16 address32;
+	u16 length;
+	u8 default_length;
+	u8 flags;
+};
+
+struct acpi_fadt_pm_info {
+	struct acpi_generic_address *target;
+	u16 source;
+	u8 register_num;
+};
+
+struct acpi_table_rsdp {
+	char signature[8];
+	u8 checksum;
+	char oem_id[6];
+	u8 revision;
+	u32 rsdt_physical_address;
+	u32 length;
+	u64 xsdt_physical_address;
+	u8 extended_checksum;
+	u8 reserved[3];
+} __attribute__((packed));
+
+struct acpi_address_range {
+	struct acpi_address_range *next;
+	struct acpi_namespace_node *region_node;
+	acpi_physical_address start_address;
+	acpi_physical_address end_address;
+};
+
+struct acpi_pkg_info {
+	u8 *free_space;
+	acpi_size length;
+	u32 object_space;
+	u32 num_packages;
+};
+
+struct acpi_exception_info {
+	char *name;
+};
+
+typedef u32 (*acpi_interface_handler)(acpi_string, u32);
+
+struct acpi_mutex_info {
+	void *mutex;
+	u32 use_count;
+	u64 thread_id;
+};
+
+struct acpi_comment_node {
+	char *comment;
+	struct acpi_comment_node *next;
+};
+
+struct acpi_interface_info {
+	char *name;
+	struct acpi_interface_info *next;
+	u8 flags;
+	u8 value;
+};
+
+typedef acpi_status (*acpi_pkg_callback)(u8, union acpi_operand_object *, union acpi_generic_state *, void *);
+
+typedef u32 acpi_mutex_handle;
+
+typedef acpi_status (*acpi_walk_aml_callback)(u8 *, u32, u32, u8, void **);
+
+struct acpi_handler_info {
+	void *handler;
+	char *name;
+};
+
+struct acpi_db_method_info {
+	acpi_handle method;
+	acpi_handle main_thread_gate;
+	acpi_handle thread_complete_gate;
+	acpi_handle info_gate;
+	u64 *threads;
+	u32 num_threads;
+	u32 num_created;
+	u32 num_completed;
+	char *name;
+	u32 flags;
+	u32 num_loops;
+	char pathname[512];
+	char **args;
+	acpi_object_type *types;
+	char init_args;
+	acpi_object_type arg_types[7];
+	char *arguments[7];
+	char num_threads_str[11];
+	char id_of_thread_str[11];
+	char index_of_thread_str[11];
+};
+
+struct history_info {
+	char *command;
+	u32 cmd_num;
+};
+
+typedef struct history_info HISTORY_INFO;
+
+struct acpi_db_command_info {
+	const char *name;
+	u8 min_args;
+};
+
+struct acpi_db_command_help {
+	u8 line_count;
+	char *invocation;
+	char *description;
+};
+
+enum acpi_ex_debugger_commands {
+	CMD_NOT_FOUND = 0,
+	CMD_NULL = 1,
+	CMD_ALL = 2,
+	CMD_ALLOCATIONS = 3,
+	CMD_ARGS = 4,
+	CMD_ARGUMENTS = 5,
+	CMD_BREAKPOINT = 6,
+	CMD_BUSINFO = 7,
+	CMD_CALL = 8,
+	CMD_DEBUG = 9,
+	CMD_DISASSEMBLE = 10,
+	CMD_DISASM = 11,
+	CMD_DUMP = 12,
+	CMD_EVALUATE = 13,
+	CMD_EXECUTE = 14,
+	CMD_EXIT = 15,
+	CMD_FIELDS = 16,
+	CMD_FIND = 17,
+	CMD_GO = 18,
+	CMD_HANDLERS = 19,
+	CMD_HELP = 20,
+	CMD_HELP2 = 21,
+	CMD_HISTORY = 22,
+	CMD_HISTORY_EXE = 23,
+	CMD_HISTORY_LAST = 24,
+	CMD_INFORMATION = 25,
+	CMD_INTEGRITY = 26,
+	CMD_INTO = 27,
+	CMD_LEVEL = 28,
+	CMD_LIST = 29,
+	CMD_LOCALS = 30,
+	CMD_LOCKS = 31,
+	CMD_METHODS = 32,
+	CMD_NAMESPACE = 33,
+	CMD_NOTIFY = 34,
+	CMD_OBJECTS = 35,
+	CMD_OSI = 36,
+	CMD_OWNER = 37,
+	CMD_PATHS = 38,
+	CMD_PREDEFINED = 39,
+	CMD_PREFIX = 40,
+	CMD_QUIT = 41,
+	CMD_REFERENCES = 42,
+	CMD_RESOURCES = 43,
+	CMD_RESULTS = 44,
+	CMD_SET = 45,
+	CMD_STATS = 46,
+	CMD_STOP = 47,
+	CMD_TABLES = 48,
+	CMD_TEMPLATE = 49,
+	CMD_TRACE = 50,
+	CMD_TREE = 51,
+	CMD_TYPE = 52,
+};
+
+struct acpi_db_execute_walk {
+	u32 count;
+	u32 max_count;
+	char name_seg[5];
+};
+
+struct acpi_integrity_info {
+	u32 nodes;
+	u32 objects;
+};
+
+struct acpi_object_info {
+	u32 types[28];
+};
+
+struct acpi_region_walk_info {
+	u32 debug_level;
+	u32 count;
+	acpi_owner_id owner_id;
+	u8 display_type;
+	u32 address_space_id;
+};
+
+struct acpi_db_argument_info {
+	const char *name;
+};
+
+enum led_brightness {
+	LED_OFF = 0,
+	LED_ON = 1,
+	LED_HALF = 127,
+	LED_FULL = 255,
+};
+
+struct led_hw_trigger_type {
+	int dummy;
+};
+
+struct led_pattern;
+
+struct led_trigger;
+
+struct led_classdev {
+	const char *name;
+	unsigned int brightness;
+	unsigned int max_brightness;
+	int flags;
+	long unsigned int work_flags;
+	void (*brightness_set)(struct led_classdev *, enum led_brightness);
+	int (*brightness_set_blocking)(struct led_classdev *, enum led_brightness);
+	enum led_brightness (*brightness_get)(struct led_classdev *);
+	int (*blink_set)(struct led_classdev *, long unsigned int *, long unsigned int *);
+	int (*pattern_set)(struct led_classdev *, struct led_pattern *, u32, int);
+	int (*pattern_clear)(struct led_classdev *);
+	struct device *dev;
+	const struct attribute_group **groups;
+	struct list_head node;
+	const char *default_trigger;
+	long unsigned int blink_delay_on;
+	long unsigned int blink_delay_off;
+	struct timer_list blink_timer;
+	int blink_brightness;
+	int new_blink_brightness;
+	void (*flash_resume)(struct led_classdev *);
+	struct work_struct set_brightness_work;
+	int delayed_set_value;
+	struct rw_semaphore trigger_lock;
+	struct led_trigger *trigger;
+	struct list_head trig_list;
+	void *trigger_data;
+	bool activated;
+	struct led_hw_trigger_type *trigger_type;
+	int brightness_hw_changed;
+	struct kernfs_node *brightness_hw_changed_kn;
+	struct mutex led_access;
+};
+
+struct led_pattern {
+	u32 delta_t;
+	int brightness;
+};
+
+struct led_trigger {
+	const char *name;
+	int (*activate)(struct led_classdev *);
+	void (*deactivate)(struct led_classdev *);
+	struct led_hw_trigger_type *trigger_type;
+	spinlock_t leddev_list_lock;
+	struct list_head led_cdevs;
+	struct list_head next_trig;
+	const struct attribute_group **groups;
+};
+
+enum power_supply_property {
+	POWER_SUPPLY_PROP_STATUS = 0,
+	POWER_SUPPLY_PROP_CHARGE_TYPE = 1,
+	POWER_SUPPLY_PROP_HEALTH = 2,
+	POWER_SUPPLY_PROP_PRESENT = 3,
+	POWER_SUPPLY_PROP_ONLINE = 4,
+	POWER_SUPPLY_PROP_AUTHENTIC = 5,
+	POWER_SUPPLY_PROP_TECHNOLOGY = 6,
+	POWER_SUPPLY_PROP_CYCLE_COUNT = 7,
+	POWER_SUPPLY_PROP_VOLTAGE_MAX = 8,
+	POWER_SUPPLY_PROP_VOLTAGE_MIN = 9,
+	POWER_SUPPLY_PROP_VOLTAGE_MAX_DESIGN = 10,
+	POWER_SUPPLY_PROP_VOLTAGE_MIN_DESIGN = 11,
+	POWER_SUPPLY_PROP_VOLTAGE_NOW = 12,
+	POWER_SUPPLY_PROP_VOLTAGE_AVG = 13,
+	POWER_SUPPLY_PROP_VOLTAGE_OCV = 14,
+	POWER_SUPPLY_PROP_VOLTAGE_BOOT = 15,
+	POWER_SUPPLY_PROP_CURRENT_MAX = 16,
+	POWER_SUPPLY_PROP_CURRENT_NOW = 17,
+	POWER_SUPPLY_PROP_CURRENT_AVG = 18,
+	POWER_SUPPLY_PROP_CURRENT_BOOT = 19,
+	POWER_SUPPLY_PROP_POWER_NOW = 20,
+	POWER_SUPPLY_PROP_POWER_AVG = 21,
+	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN = 22,
+	POWER_SUPPLY_PROP_CHARGE_EMPTY_DESIGN = 23,
+	POWER_SUPPLY_PROP_CHARGE_FULL = 24,
+	POWER_SUPPLY_PROP_CHARGE_EMPTY = 25,
+	POWER_SUPPLY_PROP_CHARGE_NOW = 26,
+	POWER_SUPPLY_PROP_CHARGE_AVG = 27,
+	POWER_SUPPLY_PROP_CHARGE_COUNTER = 28,
+	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT = 29,
+	POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX = 30,
+	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE = 31,
+	POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX = 32,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT = 33,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_LIMIT_MAX = 34,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_START_THRESHOLD = 35,
+	POWER_SUPPLY_PROP_CHARGE_CONTROL_END_THRESHOLD = 36,
+	POWER_SUPPLY_PROP_CHARGE_BEHAVIOUR = 37,
+	POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT = 38,
+	POWER_SUPPLY_PROP_INPUT_VOLTAGE_LIMIT = 39,
+	POWER_SUPPLY_PROP_INPUT_POWER_LIMIT = 40,
+	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN = 41,
+	POWER_SUPPLY_PROP_ENERGY_EMPTY_DESIGN = 42,
+	POWER_SUPPLY_PROP_ENERGY_FULL = 43,
+	POWER_SUPPLY_PROP_ENERGY_EMPTY = 44,
+	POWER_SUPPLY_PROP_ENERGY_NOW = 45,
+	POWER_SUPPLY_PROP_ENERGY_AVG = 46,
+	POWER_SUPPLY_PROP_CAPACITY = 47,
+	POWER_SUPPLY_PROP_CAPACITY_ALERT_MIN = 48,
+	POWER_SUPPLY_PROP_CAPACITY_ALERT_MAX = 49,
+	POWER_SUPPLY_PROP_CAPACITY_ERROR_MARGIN = 50,
+	POWER_SUPPLY_PROP_CAPACITY_LEVEL = 51,
+	POWER_SUPPLY_PROP_TEMP = 52,
+	POWER_SUPPLY_PROP_TEMP_MAX = 53,
+	POWER_SUPPLY_PROP_TEMP_MIN = 54,
+	POWER_SUPPLY_PROP_TEMP_ALERT_MIN = 55,
+	POWER_SUPPLY_PROP_TEMP_ALERT_MAX = 56,
+	POWER_SUPPLY_PROP_TEMP_AMBIENT = 57,
+	POWER_SUPPLY_PROP_TEMP_AMBIENT_ALERT_MIN = 58,
+	POWER_SUPPLY_PROP_TEMP_AMBIENT_ALERT_MAX = 59,
+	POWER_SUPPLY_PROP_TIME_TO_EMPTY_NOW = 60,
+	POWER_SUPPLY_PROP_TIME_TO_EMPTY_AVG = 61,
+	POWER_SUPPLY_PROP_TIME_TO_FULL_NOW = 62,
+	POWER_SUPPLY_PROP_TIME_TO_FULL_AVG = 63,
+	POWER_SUPPLY_PROP_TYPE = 64,
+	POWER_SUPPLY_PROP_USB_TYPE = 65,
+	POWER_SUPPLY_PROP_SCOPE = 66,
+	POWER_SUPPLY_PROP_PRECHARGE_CURRENT = 67,
+	POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT = 68,
+	POWER_SUPPLY_PROP_CALIBRATE = 69,
+	POWER_SUPPLY_PROP_MANUFACTURE_YEAR = 70,
+	POWER_SUPPLY_PROP_MANUFACTURE_MONTH = 71,
+	POWER_SUPPLY_PROP_MANUFACTURE_DAY = 72,
+	POWER_SUPPLY_PROP_MODEL_NAME = 73,
+	POWER_SUPPLY_PROP_MANUFACTURER = 74,
+	POWER_SUPPLY_PROP_SERIAL_NUMBER = 75,
+};
+
+enum power_supply_type {
+	POWER_SUPPLY_TYPE_UNKNOWN = 0,
+	POWER_SUPPLY_TYPE_BATTERY = 1,
+	POWER_SUPPLY_TYPE_UPS = 2,
+	POWER_SUPPLY_TYPE_MAINS = 3,
+	POWER_SUPPLY_TYPE_USB = 4,
+	POWER_SUPPLY_TYPE_USB_DCP = 5,
+	POWER_SUPPLY_TYPE_USB_CDP = 6,
+	POWER_SUPPLY_TYPE_USB_ACA = 7,
+	POWER_SUPPLY_TYPE_USB_TYPE_C = 8,
+	POWER_SUPPLY_TYPE_USB_PD = 9,
+	POWER_SUPPLY_TYPE_USB_PD_DRP = 10,
+	POWER_SUPPLY_TYPE_APPLE_BRICK_ID = 11,
+	POWER_SUPPLY_TYPE_WIRELESS = 12,
+};
+
+enum power_supply_usb_type {
+	POWER_SUPPLY_USB_TYPE_UNKNOWN = 0,
+	POWER_SUPPLY_USB_TYPE_SDP = 1,
+	POWER_SUPPLY_USB_TYPE_DCP = 2,
+	POWER_SUPPLY_USB_TYPE_CDP = 3,
+	POWER_SUPPLY_USB_TYPE_ACA = 4,
+	POWER_SUPPLY_USB_TYPE_C = 5,
+	POWER_SUPPLY_USB_TYPE_PD = 6,
+	POWER_SUPPLY_USB_TYPE_PD_DRP = 7,
+	POWER_SUPPLY_USB_TYPE_PD_PPS = 8,
+	POWER_SUPPLY_USB_TYPE_APPLE_BRICK_ID = 9,
+};
+
+union power_supply_propval {
+	int intval;
+	const char *strval;
+};
+
+struct power_supply_config {
+	struct device_node *of_node;
+	struct fwnode_handle *fwnode;
+	void *drv_data;
+	const struct attribute_group **attr_grp;
+	char **supplied_to;
+	size_t num_supplicants;
+};
+
+struct power_supply;
+
+struct power_supply_desc {
+	const char *name;
+	enum power_supply_type type;
+	const enum power_supply_usb_type *usb_types;
+	size_t num_usb_types;
+	const enum power_supply_property *properties;
+	size_t num_properties;
+	int (*get_property)(struct power_supply *, enum power_supply_property, union power_supply_propval *);
+	int (*set_property)(struct power_supply *, enum power_supply_property, const union power_supply_propval *);
+	int (*property_is_writeable)(struct power_supply *, enum power_supply_property);
+	void (*external_power_changed)(struct power_supply *);
+	void (*set_charged)(struct power_supply *);
+	bool no_thermal;
+	int use_for_apm;
+};
+
+struct thermal_zone_device;
+
+struct power_supply {
+	const struct power_supply_desc *desc;
+	char **supplied_to;
+	size_t num_supplicants;
+	char **supplied_from;
+	size_t num_supplies;
+	struct device_node *of_node;
+	void *drv_data;
+	struct device dev;
+	struct work_struct changed_work;
+	struct delayed_work deferred_register_work;
+	spinlock_t changed_lock;
+	bool changed;
+	bool initialized;
+	bool removing;
+	atomic_t use_cnt;
+	struct thermal_zone_device *tzd;
+	struct thermal_cooling_device *tcd;
+	struct led_trigger *charging_full_trig;
+	char *charging_full_trig_name;
+	struct led_trigger *charging_trig;
+	char *charging_trig_name;
+	struct led_trigger *full_trig;
+	char *full_trig_name;
+	struct led_trigger *online_trig;
+	char *online_trig_name;
+	struct led_trigger *charging_blink_full_solid_trig;
+	char *charging_blink_full_solid_trig_name;
+};
+
+struct acpi_ac {
+	struct power_supply *charger;
+	struct power_supply_desc charger_desc;
+	struct acpi_device *device;
+	long long unsigned int state;
+	struct notifier_block battery_nb;
+};
+
+struct input_id {
+	__u16 bustype;
+	__u16 vendor;
+	__u16 product;
+	__u16 version;
+};
+
+struct input_absinfo {
+	__s32 value;
+	__s32 minimum;
+	__s32 maximum;
+	__s32 fuzz;
+	__s32 flat;
+	__s32 resolution;
+};
+
+struct input_keymap_entry {
+	__u8 flags;
+	__u8 len;
+	__u16 index;
+	__u32 keycode;
+	__u8 scancode[32];
+};
+
+struct ff_replay {
+	__u16 length;
+	__u16 delay;
+};
+
+struct ff_trigger {
+	__u16 button;
+	__u16 interval;
+};
+
+struct ff_envelope {
+	__u16 attack_length;
+	__u16 attack_level;
+	__u16 fade_length;
+	__u16 fade_level;
+};
+
+struct ff_constant_effect {
+	__s16 level;
+	struct ff_envelope envelope;
+};
+
+struct ff_ramp_effect {
+	__s16 start_level;
+	__s16 end_level;
+	struct ff_envelope envelope;
+};
+
+struct ff_condition_effect {
+	__u16 right_saturation;
+	__u16 left_saturation;
+	__s16 right_coeff;
+	__s16 left_coeff;
+	__u16 deadband;
+	__s16 center;
+};
+
+struct ff_periodic_effect {
+	__u16 waveform;
+	__u16 period;
+	__s16 magnitude;
+	__s16 offset;
+	__u16 phase;
+	struct ff_envelope envelope;
+	__u32 custom_len;
+	__s16 *custom_data;
+};
+
+struct ff_rumble_effect {
+	__u16 strong_magnitude;
+	__u16 weak_magnitude;
+};
+
+struct ff_effect {
+	__u16 type;
+	__s16 id;
+	__u16 direction;
+	struct ff_trigger trigger;
+	struct ff_replay replay;
+	union {
+		struct ff_constant_effect constant;
+		struct ff_ramp_effect ramp;
+		struct ff_periodic_effect periodic;
+		struct ff_condition_effect condition[2];
+		struct ff_rumble_effect rumble;
+	} u;
+};
+
+struct input_device_id {
+	kernel_ulong_t flags;
+	__u16 bustype;
+	__u16 vendor;
+	__u16 product;
+	__u16 version;
+	kernel_ulong_t evbit[1];
+	kernel_ulong_t keybit[12];
+	kernel_ulong_t relbit[1];
+	kernel_ulong_t absbit[1];
+	kernel_ulong_t mscbit[1];
+	kernel_ulong_t ledbit[1];
+	kernel_ulong_t sndbit[1];
+	kernel_ulong_t ffbit[2];
+	kernel_ulong_t swbit[1];
+	kernel_ulong_t propbit[1];
+	kernel_ulong_t driver_info;
+};
+
+struct input_value {
+	__u16 type;
+	__u16 code;
+	__s32 value;
+};
+
+enum input_clock_type {
+	INPUT_CLK_REAL = 0,
+	INPUT_CLK_MONO = 1,
+	INPUT_CLK_BOOT = 2,
+	INPUT_CLK_MAX = 3,
+};
+
+struct ff_device;
+
+struct input_dev_poller;
+
+struct input_mt;
+
+struct input_handle;
+
+struct input_dev {
+	const char *name;
+	const char *phys;
+	const char *uniq;
+	struct input_id id;
+	long unsigned int propbit[1];
+	long unsigned int evbit[1];
+	long unsigned int keybit[12];
+	long unsigned int relbit[1];
+	long unsigned int absbit[1];
+	long unsigned int mscbit[1];
+	long unsigned int ledbit[1];
+	long unsigned int sndbit[1];
+	long unsigned int ffbit[2];
+	long unsigned int swbit[1];
+	unsigned int hint_events_per_packet;
+	unsigned int keycodemax;
+	unsigned int keycodesize;
+	void *keycode;
+	int (*setkeycode)(struct input_dev *, const struct input_keymap_entry *, unsigned int *);
+	int (*getkeycode)(struct input_dev *, struct input_keymap_entry *);
+	struct ff_device *ff;
+	struct input_dev_poller *poller;
+	unsigned int repeat_key;
+	struct timer_list timer;
+	int rep[2];
+	struct input_mt *mt;
+	struct input_absinfo *absinfo;
+	long unsigned int key[12];
+	long unsigned int led[1];
+	long unsigned int snd[1];
+	long unsigned int sw[1];
+	int (*open)(struct input_dev *);
+	void (*close)(struct input_dev *);
+	int (*flush)(struct input_dev *, struct file *);
+	int (*event)(struct input_dev *, unsigned int, unsigned int, int);
+	struct input_handle *grab;
+	spinlock_t event_lock;
+	struct mutex mutex;
+	unsigned int users;
+	bool going_away;
+	struct device dev;
+	struct list_head h_list;
+	struct list_head node;
+	unsigned int num_vals;
+	unsigned int max_vals;
+	struct input_value *vals;
+	bool devres_managed;
+	ktime_t timestamp[3];
+	bool inhibited;
+};
+
+struct ff_device {
+	int (*upload)(struct input_dev *, struct ff_effect *, struct ff_effect *);
+	int (*erase)(struct input_dev *, int);
+	int (*playback)(struct input_dev *, int, int);
+	void (*set_gain)(struct input_dev *, u16);
+	void (*set_autocenter)(struct input_dev *, u16);
+	void (*destroy)(struct ff_device *);
+	void *private;
+	long unsigned int ffbit[2];
+	struct mutex mutex;
+	int max_effects;
+	struct ff_effect *effects;
+	struct file *effect_owners[0];
+};
+
+struct input_handler;
+
+struct input_handle {
+	void *private;
+	int open;
+	const char *name;
+	struct input_dev *dev;
+	struct input_handler *handler;
+	struct list_head d_node;
+	struct list_head h_node;
+};
+
+struct input_handler {
+	void *private;
+	void (*event)(struct input_handle *, unsigned int, unsigned int, int);
+	void (*events)(struct input_handle *, const struct input_value *, unsigned int);
+	bool (*filter)(struct input_handle *, unsigned int, unsigned int, int);
+	bool (*match)(struct input_handler *, struct input_dev *);
+	int (*connect)(struct input_handler *, struct input_dev *, const struct input_device_id *);
+	void (*disconnect)(struct input_handle *);
+	void (*start)(struct input_handle *);
+	bool legacy_minors;
+	int minor;
+	const char *name;
+	const struct input_device_id *id_table;
+	struct list_head h_list;
+	struct list_head node;
+};
+
+enum {
+	ACPI_BUTTON_LID_INIT_IGNORE = 0,
+	ACPI_BUTTON_LID_INIT_OPEN = 1,
+	ACPI_BUTTON_LID_INIT_METHOD = 2,
+	ACPI_BUTTON_LID_INIT_DISABLED = 3,
+};
+
+struct acpi_button {
+	unsigned int type;
+	struct input_dev *input;
+	char phys[32];
+	long unsigned int pushed;
+	int last_state;
+	ktime_t last_time;
+	bool suspended;
+	bool lid_state_initialized;
+};
+
+struct acpi_fan_fps {
+	u64 control;
+	u64 trip_point;
+	u64 speed;
+	u64 noise_level;
+	u64 power;
+	char name[20];
+	struct device_attribute dev_attr;
+};
+
+struct acpi_fan_fif {
+	u8 revision;
+	u8 fine_grain_ctrl;
+	u8 step_size;
+	u8 low_speed_notification;
+};
+
+struct acpi_fan_fst {
+	u64 revision;
+	u64 control;
+	u64 speed;
+};
+
+struct acpi_fan {
+	bool acpi4;
+	struct acpi_fan_fif fif;
+	struct acpi_fan_fps *fps;
+	int fps_count;
+	struct thermal_cooling_device *cdev;
+	struct device_attribute fst_speed;
+	struct device_attribute fine_grain_control;
+};
+
+struct acpi_pci_slot {
+	struct pci_slot *pci_slot;
+	struct list_head list;
+};
+
+struct acpi_lpi_states_array {
+	unsigned int size;
+	unsigned int composite_states_size;
+	struct acpi_lpi_state *entries;
+	struct acpi_lpi_state *composite_states[8];
+};
+
+struct throttling_tstate {
+	unsigned int cpu;
+	int target_state;
+};
+
+struct acpi_processor_throttling_arg {
+	struct acpi_processor *pr;
+	int target_state;
+	bool force;
+};
+
+struct container_dev {
+	struct device dev;
+	int (*offline)(struct container_dev *);
+};
+
+enum thermal_device_mode {
+	THERMAL_DEVICE_DISABLED = 0,
+	THERMAL_DEVICE_ENABLED = 1,
+};
+
+enum thermal_trip_type {
+	THERMAL_TRIP_ACTIVE = 0,
+	THERMAL_TRIP_PASSIVE = 1,
+	THERMAL_TRIP_HOT = 2,
+	THERMAL_TRIP_CRITICAL = 3,
+};
+
+enum thermal_trend {
+	THERMAL_TREND_STABLE = 0,
+	THERMAL_TREND_RAISING = 1,
+	THERMAL_TREND_DROPPING = 2,
+	THERMAL_TREND_RAISE_FULL = 3,
+	THERMAL_TREND_DROP_FULL = 4,
+};
+
+enum thermal_notify_event {
+	THERMAL_EVENT_UNSPECIFIED = 0,
+	THERMAL_EVENT_TEMP_SAMPLE = 1,
+	THERMAL_TRIP_VIOLATED = 2,
+	THERMAL_TRIP_CHANGED = 3,
+	THERMAL_DEVICE_DOWN = 4,
+	THERMAL_DEVICE_UP = 5,
+	THERMAL_DEVICE_POWER_CAPABILITY_CHANGED = 6,
+	THERMAL_TABLE_CHANGED = 7,
+	THERMAL_EVENT_KEEP_ALIVE = 8,
+};
+
+struct thermal_zone_device_ops {
+	int (*bind)(struct thermal_zone_device *, struct thermal_cooling_device *);
+	int (*unbind)(struct thermal_zone_device *, struct thermal_cooling_device *);
+	int (*get_temp)(struct thermal_zone_device *, int *);
+	int (*set_trips)(struct thermal_zone_device *, int, int);
+	int (*change_mode)(struct thermal_zone_device *, enum thermal_device_mode);
+	int (*get_trip_type)(struct thermal_zone_device *, int, enum thermal_trip_type *);
+	int (*get_trip_temp)(struct thermal_zone_device *, int, int *);
+	int (*set_trip_temp)(struct thermal_zone_device *, int, int);
+	int (*get_trip_hyst)(struct thermal_zone_device *, int, int *);
+	int (*set_trip_hyst)(struct thermal_zone_device *, int, int);
+	int (*get_crit_temp)(struct thermal_zone_device *, int *);
+	int (*set_emul_temp)(struct thermal_zone_device *, int);
+	int (*get_trend)(struct thermal_zone_device *, int, enum thermal_trend *);
+	void (*hot)(struct thermal_zone_device *);
+	void (*critical)(struct thermal_zone_device *);
+};
+
+struct thermal_attr;
+
+struct thermal_zone_params;
+
+struct thermal_governor;
+
+struct thermal_zone_device {
+	int id;
+	char type[20];
+	struct device device;
+	struct attribute_group trips_attribute_group;
+	struct thermal_attr *trip_temp_attrs;
+	struct thermal_attr *trip_type_attrs;
+	struct thermal_attr *trip_hyst_attrs;
+	enum thermal_device_mode mode;
+	void *devdata;
+	int trips;
+	long unsigned int trips_disabled;
+	long unsigned int passive_delay_jiffies;
+	long unsigned int polling_delay_jiffies;
+	int temperature;
+	int last_temperature;
+	int emul_temperature;
+	int passive;
+	int prev_low_trip;
+	int prev_high_trip;
+	atomic_t need_update;
+	struct thermal_zone_device_ops *ops;
+	struct thermal_zone_params *tzp;
+	struct thermal_governor *governor;
+	void *governor_data;
+	struct list_head thermal_instances;
+	struct ida ida;
+	struct mutex lock;
+	struct list_head node;
+	struct delayed_work poll_queue;
+	enum thermal_notify_event notify_event;
+};
+
+struct thermal_bind_params;
+
+struct thermal_zone_params {
+	char governor_name[20];
+	bool no_hwmon;
+	int num_tbps;
+	struct thermal_bind_params *tbp;
+	u32 sustainable_power;
+	s32 k_po;
+	s32 k_pu;
+	s32 k_i;
+	s32 k_d;
+	s32 integral_cutoff;
+	int slope;
+	int offset;
+};
+
+struct thermal_governor {
+	char name[20];
+	int (*bind_to_tz)(struct thermal_zone_device *);
+	void (*unbind_from_tz)(struct thermal_zone_device *);
+	int (*throttle)(struct thermal_zone_device *, int);
+	struct list_head governor_list;
+};
+
+struct thermal_bind_params {
+	struct thermal_cooling_device *cdev;
+	int weight;
+	int trip_mask;
+	long unsigned int *binding_limits;
+	int (*match)(struct thermal_zone_device *, struct thermal_cooling_device *);
+};
+
+struct acpi_thermal_state {
+	u8 critical: 1;
+	u8 hot: 1;
+	u8 passive: 1;
+	u8 active: 1;
+	u8 reserved: 4;
+	int active_index;
+};
+
+struct acpi_thermal_state_flags {
+	u8 valid: 1;
+	u8 enabled: 1;
+	u8 reserved: 6;
+};
+
+struct acpi_thermal_critical {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+};
+
+struct acpi_thermal_hot {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+};
+
+struct acpi_thermal_passive {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+	long unsigned int tc1;
+	long unsigned int tc2;
+	long unsigned int tsp;
+	struct acpi_handle_list devices;
+};
+
+struct acpi_thermal_active {
+	struct acpi_thermal_state_flags flags;
+	long unsigned int temperature;
+	struct acpi_handle_list devices;
+};
+
+struct acpi_thermal_trips {
+	struct acpi_thermal_critical critical;
+	struct acpi_thermal_hot hot;
+	struct acpi_thermal_passive passive;
+	struct acpi_thermal_active active[10];
+};
+
+struct acpi_thermal_flags {
+	u8 cooling_mode: 1;
+	u8 devices: 1;
+	u8 reserved: 6;
+};
+
+struct acpi_thermal {
+	struct acpi_device *device;
+	acpi_bus_id name;
+	long unsigned int temperature;
+	long unsigned int last_temperature;
+	long unsigned int polling_frequency;
+	volatile u8 zombie;
+	struct acpi_thermal_flags flags;
+	struct acpi_thermal_state state;
+	struct acpi_thermal_trips trips;
+	struct acpi_handle_list devices;
+	struct thermal_zone_device *thermal_zone;
+	int kelvin_offset;
+	struct work_struct thermal_check_work;
+	struct mutex thermal_check_lock;
+	refcount_t thermal_check_count;
+};
+
+struct acpi_cedt_cfmws {
+	struct acpi_cedt_header header;
+	u32 reserved1;
+	u64 base_hpa;
+	u64 window_size;
+	u8 interleave_ways;
+	u8 interleave_arithmetic;
+	u16 reserved2;
+	u32 granularity;
+	u16 restrictions;
+	u16 qtg_id;
+	u32 interleave_targets[0];
+} __attribute__((packed));
+
+struct acpi_table_slit {
+	struct acpi_table_header header;
+	u64 locality_count;
+	u8 entry[1];
+} __attribute__((packed));
+
+struct acpi_table_srat {
+	struct acpi_table_header header;
+	u32 table_revision;
+	u64 reserved;
+};
+
+enum acpi_srat_type {
+	ACPI_SRAT_TYPE_CPU_AFFINITY = 0,
+	ACPI_SRAT_TYPE_MEMORY_AFFINITY = 1,
+	ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY = 2,
+	ACPI_SRAT_TYPE_GICC_AFFINITY = 3,
+	ACPI_SRAT_TYPE_GIC_ITS_AFFINITY = 4,
+	ACPI_SRAT_TYPE_GENERIC_AFFINITY = 5,
+	ACPI_SRAT_TYPE_GENERIC_PORT_AFFINITY = 6,
+	ACPI_SRAT_TYPE_RESERVED = 7,
+};
+
+struct acpi_srat_mem_affinity {
+	struct acpi_subtable_header header;
+	u32 proximity_domain;
+	u16 reserved;
+	u64 base_address;
+	u64 length;
+	u32 reserved1;
+	u32 flags;
+	u64 reserved2;
+} __attribute__((packed));
+
+struct acpi_srat_gicc_affinity {
+	struct acpi_subtable_header header;
+	u32 proximity_domain;
+	u32 acpi_processor_uid;
+	u32 flags;
+	u32 clock_domain;
+} __attribute__((packed));
+
+struct acpi_srat_generic_affinity {
+	struct acpi_subtable_header header;
+	u8 reserved;
+	u8 device_handle_type;
+	u32 proximity_domain;
+	u8 device_handle[16];
+	u32 flags;
+	u32 reserved1;
+};
+
+enum acpi_hmat_type {
+	ACPI_HMAT_TYPE_PROXIMITY = 0,
+	ACPI_HMAT_TYPE_LOCALITY = 1,
+	ACPI_HMAT_TYPE_CACHE = 2,
+	ACPI_HMAT_TYPE_RESERVED = 3,
+};
+
+struct acpi_hmat_proximity_domain {
+	struct acpi_hmat_structure header;
+	u16 flags;
+	u16 reserved1;
+	u32 processor_PD;
+	u32 memory_PD;
+	u32 reserved2;
+	u64 reserved3;
+	u64 reserved4;
+};
+
+struct acpi_hmat_locality {
+	struct acpi_hmat_structure header;
+	u8 flags;
+	u8 data_type;
+	u8 min_transfer_size;
+	u8 reserved1;
+	u32 number_of_initiator_Pds;
+	u32 number_of_target_Pds;
+	u32 reserved2;
+	u64 entry_base_unit;
+};
+
+struct acpi_hmat_cache {
+	struct acpi_hmat_structure header;
+	u32 memory_PD;
+	u32 reserved1;
+	u64 cache_size;
+	u32 cache_attributes;
+	u16 reserved2;
+	u16 number_of_SMBIOShandles;
+};
+
+struct node_hmem_attrs {
+	unsigned int read_bandwidth;
+	unsigned int write_bandwidth;
+	unsigned int read_latency;
+	unsigned int write_latency;
+};
+
+enum cache_indexing {
+	NODE_CACHE_DIRECT_MAP = 0,
+	NODE_CACHE_INDEXED = 1,
+	NODE_CACHE_OTHER = 2,
+};
+
+enum cache_write_policy {
+	NODE_CACHE_WRITE_BACK = 0,
+	NODE_CACHE_WRITE_THROUGH = 1,
+	NODE_CACHE_WRITE_OTHER = 2,
+};
+
+struct node_cache_attrs {
+	enum cache_indexing indexing;
+	enum cache_write_policy write_policy;
+	u64 size;
+	u16 line_size;
+	u8 level;
+};
+
+enum locality_types {
+	WRITE_LATENCY = 0,
+	READ_LATENCY = 1,
+	WRITE_BANDWIDTH = 2,
+	READ_BANDWIDTH = 3,
+};
+
+struct memory_locality {
+	struct list_head node;
+	struct acpi_hmat_locality *hmat_loc;
+};
+
+struct target_cache {
+	struct list_head node;
+	struct node_cache_attrs cache_attrs;
+};
+
+struct memory_target {
+	struct list_head node;
+	unsigned int memory_pxm;
+	unsigned int processor_pxm;
+	struct resource memregions;
+	struct node_hmem_attrs hmem_attrs[2];
+	struct list_head caches;
+	struct node_cache_attrs cache_attrs;
+	bool registered;
+};
+
+struct memory_initiator {
+	struct list_head node;
+	unsigned int processor_pxm;
+	bool has_cpu;
+};
+
+struct acpi_memory_info {
+	struct list_head list;
+	u64 start_addr;
+	u64 length;
+	short unsigned int caching;
+	short unsigned int write_protect;
+	unsigned int enabled: 1;
+};
+
+struct acpi_memory_device {
+	struct acpi_device *device;
+	struct list_head res_list;
+	int mgid;
+};
+
+struct acpi_pci_ioapic {
+	acpi_handle root_handle;
+	acpi_handle handle;
+	u32 gsi_base;
+	struct resource res;
+	struct pci_dev *pdev;
+	struct list_head list;
+};
+
+enum dmi_entry_type {
+	DMI_ENTRY_BIOS = 0,
+	DMI_ENTRY_SYSTEM = 1,
+	DMI_ENTRY_BASEBOARD = 2,
+	DMI_ENTRY_CHASSIS = 3,
+	DMI_ENTRY_PROCESSOR = 4,
+	DMI_ENTRY_MEM_CONTROLLER = 5,
+	DMI_ENTRY_MEM_MODULE = 6,
+	DMI_ENTRY_CACHE = 7,
+	DMI_ENTRY_PORT_CONNECTOR = 8,
+	DMI_ENTRY_SYSTEM_SLOT = 9,
+	DMI_ENTRY_ONBOARD_DEVICE = 10,
+	DMI_ENTRY_OEMSTRINGS = 11,
+	DMI_ENTRY_SYSCONF = 12,
+	DMI_ENTRY_BIOS_LANG = 13,
+	DMI_ENTRY_GROUP_ASSOC = 14,
+	DMI_ENTRY_SYSTEM_EVENT_LOG = 15,
+	DMI_ENTRY_PHYS_MEM_ARRAY = 16,
+	DMI_ENTRY_MEM_DEVICE = 17,
+	DMI_ENTRY_32_MEM_ERROR = 18,
+	DMI_ENTRY_MEM_ARRAY_MAPPED_ADDR = 19,
+	DMI_ENTRY_MEM_DEV_MAPPED_ADDR = 20,
+	DMI_ENTRY_BUILTIN_POINTING_DEV = 21,
+	DMI_ENTRY_PORTABLE_BATTERY = 22,
+	DMI_ENTRY_SYSTEM_RESET = 23,
+	DMI_ENTRY_HW_SECURITY = 24,
+	DMI_ENTRY_SYSTEM_POWER_CONTROLS = 25,
+	DMI_ENTRY_VOLTAGE_PROBE = 26,
+	DMI_ENTRY_COOLING_DEV = 27,
+	DMI_ENTRY_TEMP_PROBE = 28,
+	DMI_ENTRY_ELECTRICAL_CURRENT_PROBE = 29,
+	DMI_ENTRY_OOB_REMOTE_ACCESS = 30,
+	DMI_ENTRY_BIS_ENTRY = 31,
+	DMI_ENTRY_SYSTEM_BOOT = 32,
+	DMI_ENTRY_MGMT_DEV = 33,
+	DMI_ENTRY_MGMT_DEV_COMPONENT = 34,
+	DMI_ENTRY_MGMT_DEV_THRES = 35,
+	DMI_ENTRY_MEM_CHANNEL = 36,
+	DMI_ENTRY_IPMI_DEV = 37,
+	DMI_ENTRY_SYS_POWER_SUPPLY = 38,
+	DMI_ENTRY_ADDITIONAL = 39,
+	DMI_ENTRY_ONBOARD_DEV_EXT = 40,
+	DMI_ENTRY_MGMT_CONTROLLER_HOST = 41,
+	DMI_ENTRY_INACTIVE = 126,
+	DMI_ENTRY_END_OF_TABLE = 127,
+};
+
+enum {
+	POWER_SUPPLY_STATUS_UNKNOWN = 0,
+	POWER_SUPPLY_STATUS_CHARGING = 1,
+	POWER_SUPPLY_STATUS_DISCHARGING = 2,
+	POWER_SUPPLY_STATUS_NOT_CHARGING = 3,
+	POWER_SUPPLY_STATUS_FULL = 4,
+};
+
+enum {
+	POWER_SUPPLY_TECHNOLOGY_UNKNOWN = 0,
+	POWER_SUPPLY_TECHNOLOGY_NiMH = 1,
+	POWER_SUPPLY_TECHNOLOGY_LION = 2,
+	POWER_SUPPLY_TECHNOLOGY_LIPO = 3,
+	POWER_SUPPLY_TECHNOLOGY_LiFe = 4,
+	POWER_SUPPLY_TECHNOLOGY_NiCd = 5,
+	POWER_SUPPLY_TECHNOLOGY_LiMn = 6,
+};
+
+enum {
+	POWER_SUPPLY_CAPACITY_LEVEL_UNKNOWN = 0,
+	POWER_SUPPLY_CAPACITY_LEVEL_CRITICAL = 1,
+	POWER_SUPPLY_CAPACITY_LEVEL_LOW = 2,
+	POWER_SUPPLY_CAPACITY_LEVEL_NORMAL = 3,
+	POWER_SUPPLY_CAPACITY_LEVEL_HIGH = 4,
+	POWER_SUPPLY_CAPACITY_LEVEL_FULL = 5,
+};
+
+struct acpi_battery_hook {
+	const char *name;
+	int (*add_battery)(struct power_supply *);
+	int (*remove_battery)(struct power_supply *);
+	struct list_head list;
+};
+
+enum {
+	ACPI_BATTERY_ALARM_PRESENT = 0,
+	ACPI_BATTERY_XINFO_PRESENT = 1,
+	ACPI_BATTERY_QUIRK_PERCENTAGE_CAPACITY = 2,
+	ACPI_BATTERY_QUIRK_THINKPAD_MAH = 3,
+	ACPI_BATTERY_QUIRK_DEGRADED_FULL_CHARGE = 4,
+};
+
+struct acpi_battery {
+	struct mutex lock;
+	struct mutex sysfs_lock;
+	struct power_supply *bat;
+	struct power_supply_desc bat_desc;
+	struct acpi_device *device;
+	struct notifier_block pm_nb;
+	struct list_head list;
+	long unsigned int update_time;
+	int revision;
+	int rate_now;
+	int capacity_now;
+	int voltage_now;
+	int design_capacity;
+	int full_charge_capacity;
+	int technology;
+	int design_voltage;
+	int design_capacity_warning;
+	int design_capacity_low;
+	int cycle_count;
+	int measurement_accuracy;
+	int max_sampling_time;
+	int min_sampling_time;
+	int max_averaging_interval;
+	int min_averaging_interval;
+	int capacity_granularity_1;
+	int capacity_granularity_2;
+	int alarm;
+	char model_number[32];
+	char serial_number[32];
+	char type[32];
+	char oem_info[32];
+	int state;
+	int power_unit;
+	long unsigned int flags;
+};
+
+struct acpi_offsets {
+	size_t offset;
+	u8 mode;
+};
+
+struct acpi_pcct_shared_memory {
+	u32 signature;
+	u16 command;
+	u16 status;
+};
+
+struct cpc_register_resource {
+	acpi_object_type type;
+	u64 *sys_mem_vaddr;
+	union {
+		struct cpc_reg reg;
+		u64 int_value;
+	} cpc_entry;
+};
+
+struct cpc_desc {
+	int num_entries;
+	int version;
+	int cpu_id;
+	int write_cmd_status;
+	int write_cmd_id;
+	struct cpc_register_resource cpc_regs[21];
+	struct acpi_psd_package domain_info;
+	struct kobject kobj;
+};
+
+enum cppc_regs {
+	HIGHEST_PERF = 0,
+	NOMINAL_PERF = 1,
+	LOW_NON_LINEAR_PERF = 2,
+	LOWEST_PERF = 3,
+	GUARANTEED_PERF = 4,
+	DESIRED_PERF = 5,
+	MIN_PERF = 6,
+	MAX_PERF = 7,
+	PERF_REDUC_TOLERANCE = 8,
+	TIME_WINDOW = 9,
+	CTR_WRAP_TIME = 10,
+	REFERENCE_CTR = 11,
+	DELIVERED_CTR = 12,
+	PERF_LIMITED = 13,
+	ENABLE = 14,
+	AUTO_SEL_ENABLE = 15,
+	AUTO_ACT_WINDOW = 16,
+	ENERGY_PERF = 17,
+	REFERENCE_PERF = 18,
+	LOWEST_FREQ = 19,
+	NOMINAL_FREQ = 20,
+};
+
+struct cppc_perf_ctrls {
+	u32 max_perf;
+	u32 min_perf;
+	u32 desired_perf;
+};
+
+struct cppc_perf_fb_ctrs {
+	u64 reference;
+	u64 delivered;
+	u64 reference_perf;
+	u64 wraparound_time;
+};
+
+struct cppc_cpudata {
+	struct list_head node;
+	struct cppc_perf_caps perf_caps;
+	struct cppc_perf_ctrls perf_ctrls;
+	struct cppc_perf_fb_ctrs perf_fb_ctrs;
+	unsigned int shared_type;
+	cpumask_var_t shared_cpu_map;
+};
+
+struct cppc_pcc_data {
+	struct pcc_mbox_chan *pcc_channel;
+	void *pcc_comm_addr;
+	bool pcc_channel_acquired;
+	unsigned int deadline_us;
+	unsigned int pcc_mpar;
+	unsigned int pcc_mrtt;
+	unsigned int pcc_nominal;
+	bool pending_pcc_write_cmd;
+	bool platform_owns_pcc;
+	unsigned int pcc_write_cnt;
+	struct rw_semaphore pcc_lock;
+	wait_queue_head_t pcc_write_wait_q;
+	ktime_t last_cmd_cmpl_time;
+	ktime_t last_mpar_reset;
+	int mpar_count;
+	int refcount;
+};
+
+struct acpi_aml_io {
+	wait_queue_head_t wait;
+	long unsigned int flags;
+	long unsigned int users;
+	struct mutex lock;
+	struct task_struct *thread;
+	char out_buf[4096];
+	struct circ_buf out_crc;
+	char in_buf[4096];
+	struct circ_buf in_crc;
+	acpi_osd_exec_callback function;
+	void *context;
+	long unsigned int usages;
+};
+
+struct acpi_whea_header {
+	u8 action;
+	u8 instruction;
+	u8 flags;
+	u8 reserved;
+	struct acpi_generic_address register_region;
+	u64 value;
+	u64 mask;
+} __attribute__((packed));
+
+struct apei_exec_context;
+
+typedef int (*apei_exec_ins_func_t)(struct apei_exec_context *, struct acpi_whea_header *);
+
+struct apei_exec_ins_type;
+
+struct apei_exec_context {
+	u32 ip;
+	u64 value;
+	u64 var1;
+	u64 var2;
+	u64 src_base;
+	u64 dst_base;
+	struct apei_exec_ins_type *ins_table;
+	u32 instructions;
+	struct acpi_whea_header *action_table;
+	u32 entries;
+};
+
+struct apei_exec_ins_type {
+	u32 flags;
+	apei_exec_ins_func_t run;
+};
+
+struct apei_resources {
+	struct list_head iomem;
+	struct list_head ioport;
+};
+
+typedef int (*apei_exec_entry_func_t)(struct apei_exec_context *, struct acpi_whea_header *, void *);
+
+struct apei_res {
+	struct list_head list;
+	long unsigned int start;
+	long unsigned int end;
+};
+
+struct acpi_table_hest {
+	struct acpi_table_header header;
+	u32 error_source_count;
+};
+
+enum acpi_hest_types {
+	ACPI_HEST_TYPE_IA32_CHECK = 0,
+	ACPI_HEST_TYPE_IA32_CORRECTED_CHECK = 1,
+	ACPI_HEST_TYPE_IA32_NMI = 2,
+	ACPI_HEST_TYPE_NOT_USED3 = 3,
+	ACPI_HEST_TYPE_NOT_USED4 = 4,
+	ACPI_HEST_TYPE_NOT_USED5 = 5,
+	ACPI_HEST_TYPE_AER_ROOT_PORT = 6,
+	ACPI_HEST_TYPE_AER_ENDPOINT = 7,
+	ACPI_HEST_TYPE_AER_BRIDGE = 8,
+	ACPI_HEST_TYPE_GENERIC_ERROR = 9,
+	ACPI_HEST_TYPE_GENERIC_ERROR_V2 = 10,
+	ACPI_HEST_TYPE_IA32_DEFERRED_CHECK = 11,
+	ACPI_HEST_TYPE_RESERVED = 12,
+};
+
+struct acpi_hest_ia_machine_check {
+	struct acpi_hest_header header;
+	u16 reserved1;
+	u8 flags;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	u64 global_capability_data;
+	u64 global_control_data;
+	u8 num_hardware_banks;
+	u8 reserved3[7];
+};
+
+struct acpi_hest_generic {
+	struct acpi_hest_header header;
+	u16 related_source_id;
+	u8 reserved;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	u32 max_raw_data_length;
+	struct acpi_generic_address error_status_address;
+	struct acpi_hest_notify notify;
+	u32 error_block_length;
+} __attribute__((packed));
+
+struct acpi_hest_ia_deferred_check {
+	struct acpi_hest_header header;
+	u16 reserved1;
+	u8 flags;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	struct acpi_hest_notify notify;
+	u8 num_hardware_banks;
+	u8 reserved2[3];
+};
+
+enum hest_status {
+	HEST_ENABLED = 0,
+	HEST_DISABLED = 1,
+	HEST_NOT_FOUND = 2,
+};
+
+typedef int (*apei_hest_func_t)(struct acpi_hest_header *, void *);
+
+struct ghes_arr {
+	struct platform_device **ghes_devs;
+	unsigned int count;
+};
+
+struct acpi_table_erst {
+	struct acpi_table_header header;
+	u32 header_length;
+	u32 reserved;
+	u32 entries;
+};
+
+enum acpi_erst_actions {
+	ACPI_ERST_BEGIN_WRITE = 0,
+	ACPI_ERST_BEGIN_READ = 1,
+	ACPI_ERST_BEGIN_CLEAR = 2,
+	ACPI_ERST_END = 3,
+	ACPI_ERST_SET_RECORD_OFFSET = 4,
+	ACPI_ERST_EXECUTE_OPERATION = 5,
+	ACPI_ERST_CHECK_BUSY_STATUS = 6,
+	ACPI_ERST_GET_COMMAND_STATUS = 7,
+	ACPI_ERST_GET_RECORD_ID = 8,
+	ACPI_ERST_SET_RECORD_ID = 9,
+	ACPI_ERST_GET_RECORD_COUNT = 10,
+	ACPI_ERST_BEGIN_DUMMY_WRIITE = 11,
+	ACPI_ERST_NOT_USED = 12,
+	ACPI_ERST_GET_ERROR_RANGE = 13,
+	ACPI_ERST_GET_ERROR_LENGTH = 14,
+	ACPI_ERST_GET_ERROR_ATTRIBUTES = 15,
+	ACPI_ERST_EXECUTE_TIMINGS = 16,
+	ACPI_ERST_ACTION_RESERVED = 17,
+};
+
+enum acpi_erst_instructions {
+	ACPI_ERST_READ_REGISTER = 0,
+	ACPI_ERST_READ_REGISTER_VALUE = 1,
+	ACPI_ERST_WRITE_REGISTER = 2,
+	ACPI_ERST_WRITE_REGISTER_VALUE = 3,
+	ACPI_ERST_NOOP = 4,
+	ACPI_ERST_LOAD_VAR1 = 5,
+	ACPI_ERST_LOAD_VAR2 = 6,
+	ACPI_ERST_STORE_VAR1 = 7,
+	ACPI_ERST_ADD = 8,
+	ACPI_ERST_SUBTRACT = 9,
+	ACPI_ERST_ADD_VALUE = 10,
+	ACPI_ERST_SUBTRACT_VALUE = 11,
+	ACPI_ERST_STALL = 12,
+	ACPI_ERST_STALL_WHILE_TRUE = 13,
+	ACPI_ERST_SKIP_NEXT_IF_TRUE = 14,
+	ACPI_ERST_GOTO = 15,
+	ACPI_ERST_SET_SRC_ADDRESS_BASE = 16,
+	ACPI_ERST_SET_DST_ADDRESS_BASE = 17,
+	ACPI_ERST_MOVE_DATA = 18,
+	ACPI_ERST_INSTRUCTION_RESERVED = 19,
+};
+
+struct erst_erange {
+	u64 base;
+	u64 size;
+	void *vaddr;
+	u32 attr;
+};
+
+struct erst_record_id_cache {
+	struct mutex lock;
+	u64 *entries;
+	int len;
+	int size;
+	int refcount;
+};
+
+struct cper_pstore_record {
+	struct cper_record_header hdr;
+	struct cper_section_descriptor sec_hdr;
+	char data[0];
+};
+
+struct acpi_bert_region {
+	u32 block_status;
+	u32 raw_data_offset;
+	u32 raw_data_length;
+	u32 data_length;
+	u32 error_severity;
+};
+
+struct acpi_hest_generic_status {
+	u32 block_status;
+	u32 raw_data_offset;
+	u32 raw_data_length;
+	u32 data_length;
+	u32 error_severity;
+};
+
+enum acpi_hest_notify_types {
+	ACPI_HEST_NOTIFY_POLLED = 0,
+	ACPI_HEST_NOTIFY_EXTERNAL = 1,
+	ACPI_HEST_NOTIFY_LOCAL = 2,
+	ACPI_HEST_NOTIFY_SCI = 3,
+	ACPI_HEST_NOTIFY_NMI = 4,
+	ACPI_HEST_NOTIFY_CMCI = 5,
+	ACPI_HEST_NOTIFY_MCE = 6,
+	ACPI_HEST_NOTIFY_GPIO = 7,
+	ACPI_HEST_NOTIFY_SEA = 8,
+	ACPI_HEST_NOTIFY_SEI = 9,
+	ACPI_HEST_NOTIFY_GSIV = 10,
+	ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED = 11,
+	ACPI_HEST_NOTIFY_RESERVED = 12,
+};
+
+struct acpi_hest_generic_v2 {
+	struct acpi_hest_header header;
+	u16 related_source_id;
+	u8 reserved;
+	u8 enabled;
+	u32 records_to_preallocate;
+	u32 max_sections_per_record;
+	u32 max_raw_data_length;
+	struct acpi_generic_address error_status_address;
+	struct acpi_hest_notify notify;
+	u32 error_block_length;
+	struct acpi_generic_address read_ack_register;
+	u64 read_ack_preserve;
+	u64 read_ack_write;
+} __attribute__((packed));
+
+struct acpi_hest_generic_data {
+	u8 section_type[16];
+	u32 error_severity;
+	u16 revision;
+	u8 validation_bits;
+	u8 flags;
+	u32 error_data_length;
+	u8 fru_id[16];
+	u8 fru_text[20];
+};
+
+struct acpi_hest_generic_data_v300 {
+	u8 section_type[16];
+	u32 error_severity;
+	u16 revision;
+	u8 validation_bits;
+	u8 flags;
+	u32 error_data_length;
+	u8 fru_id[16];
+	u8 fru_text[20];
+	u64 time_stamp;
+};
+
+struct cper_sec_proc_arm {
+	u32 validation_bits;
+	u16 err_info_num;
+	u16 context_info_num;
+	u32 section_length;
+	u8 affinity_level;
+	u8 reserved[3];
+	u64 mpidr;
+	u64 midr;
+	u32 running_state;
+	u32 psci_state;
+};
+
+struct cper_arm_err_info {
+	u8 version;
+	u8 length;
+	u16 validation_bits;
+	u8 type;
+	u16 multiple_error;
+	u8 flags;
+	u64 error_info;
+	u64 virt_fault_addr;
+	u64 physical_fault_addr;
+} __attribute__((packed));
+
+struct cper_sec_pcie {
+	u64 validation_bits;
+	u32 port_type;
+	struct {
+		u8 minor;
+		u8 major;
+		u8 reserved[2];
+	} version;
+	u16 command;
+	u16 status;
+	u32 reserved;
+	struct {
+		u16 vendor_id;
+		u16 device_id;
+		u8 class_code[3];
+		u8 function;
+		u8 device;
+		u16 segment;
+		u8 bus;
+		u8 secondary_bus;
+		u16 slot;
+		u8 reserved;
+	} __attribute__((packed)) device_id;
+	struct {
+		u32 lower;
+		u32 upper;
+	} serial_number;
+	struct {
+		u16 secondary_status;
+		u16 control;
+	} bridge;
+	u8 capability[60];
+	u8 aer_info[96];
+};
+
+struct ghes {
+	union {
+		struct acpi_hest_generic *generic;
+		struct acpi_hest_generic_v2 *generic_v2;
+	};
+	struct acpi_hest_generic_status *estatus;
+	long unsigned int flags;
+	union {
+		struct list_head list;
+		struct timer_list timer;
+		unsigned int irq;
+	};
+};
+
+struct ghes_estatus_node {
+	struct llist_node llnode;
+	struct acpi_hest_generic *generic;
+	struct ghes *ghes;
+	int task_work_cpu;
+	struct callback_head task_work;
+};
+
+struct ghes_estatus_cache {
+	u32 estatus_len;
+	atomic_t count;
+	struct acpi_hest_generic *generic;
+	long long unsigned int time_in;
+	struct callback_head rcu;
+};
+
+struct ghes_vendor_record_entry {
+	struct work_struct work;
+	int error_severity;
+	char vendor_record[0];
+};
+
+struct pmic_table {
+	int address;
+	int reg;
+	int bit;
+};
+
+struct intel_pmic_opregion_data {
+	int (*get_power)(struct regmap *, int, int, u64 *);
+	int (*update_power)(struct regmap *, int, int, bool);
+	int (*get_raw_temp)(struct regmap *, int);
+	int (*update_aux)(struct regmap *, int, int);
+	int (*get_policy)(struct regmap *, int, int, u64 *);
+	int (*update_policy)(struct regmap *, int, int, int);
+	int (*exec_mipi_pmic_seq_element)(struct regmap *, u16, u32, u32, u32);
+	int (*lpat_raw_to_temp)(struct acpi_lpat_conversion_table *, int);
+	struct pmic_table *power_table;
+	int power_table_count;
+	struct pmic_table *thermal_table;
+	int thermal_table_count;
+	int pmic_i2c_address;
+};
+
+struct intel_pmic_regs_handler_ctx {
+	unsigned int val;
+	u16 addr;
+};
+
+struct intel_pmic_opregion {
+	struct mutex lock;
+	struct acpi_lpat_conversion_table *lpat_table;
+	struct regmap *regmap;
+	const struct intel_pmic_opregion_data *data;
+	struct intel_pmic_regs_handler_ctx ctx;
+};
+
+struct regmap_irq_type {
+	unsigned int type_reg_offset;
+	unsigned int type_reg_mask;
+	unsigned int type_rising_val;
+	unsigned int type_falling_val;
+	unsigned int type_level_low_val;
+	unsigned int type_level_high_val;
+	unsigned int types_supported;
+};
+
+struct regmap_irq {
+	unsigned int reg_offset;
+	unsigned int mask;
+	struct regmap_irq_type type;
+};
+
+struct regmap_irq_sub_irq_map {
+	unsigned int num_regs;
+	unsigned int *offset;
+};
+
+struct regmap_irq_chip {
+	const char *name;
+	unsigned int main_status;
+	unsigned int num_main_status_bits;
+	struct regmap_irq_sub_irq_map *sub_reg_offsets;
+	int num_main_regs;
+	unsigned int status_base;
+	unsigned int mask_base;
+	unsigned int unmask_base;
+	unsigned int ack_base;
+	unsigned int wake_base;
+	unsigned int type_base;
+	unsigned int *virt_reg_base;
+	unsigned int irq_reg_stride;
+	bool mask_writeonly: 1;
+	bool init_ack_masked: 1;
+	bool mask_invert: 1;
+	bool use_ack: 1;
+	bool ack_invert: 1;
+	bool clear_ack: 1;
+	bool wake_invert: 1;
+	bool runtime_pm: 1;
