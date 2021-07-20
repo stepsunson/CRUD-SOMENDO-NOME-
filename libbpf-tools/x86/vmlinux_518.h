@@ -92928,3 +92928,2164 @@ struct timer_rand_state {
 };
 
 enum chacha_constants {
+	CHACHA_CONSTANT_EXPA = 1634760805,
+	CHACHA_CONSTANT_ND_3 = 857760878,
+	CHACHA_CONSTANT_2_BY = 2036477234,
+	CHACHA_CONSTANT_TE_K = 1797285236,
+};
+
+enum {
+	CRNG_EMPTY = 0,
+	CRNG_EARLY = 1,
+	CRNG_READY = 2,
+};
+
+enum {
+	CRNG_RESEED_START_INTERVAL = 250,
+	CRNG_RESEED_INTERVAL = 15000,
+};
+
+struct crng {
+	u8 key[32];
+	long unsigned int generation;
+	local_lock_t lock;
+};
+
+struct batch_u64 {
+	u64 entropy[12];
+	local_lock_t lock;
+	long unsigned int generation;
+	unsigned int position;
+};
+
+struct batch_u32 {
+	u32 entropy[24];
+	local_lock_t lock;
+	long unsigned int generation;
+	unsigned int position;
+};
+
+enum {
+	POOL_BITS = 256,
+	POOL_READY_BITS = 256,
+	POOL_EARLY_BITS = 128,
+};
+
+struct fast_pool {
+	struct work_struct mix;
+	long unsigned int pool[4];
+	long unsigned int last;
+	unsigned int count;
+};
+
+struct entropy_timer_state {
+	long unsigned int entropy;
+	struct timer_list timer;
+	unsigned int samples;
+	unsigned int samples_per_bit;
+};
+
+enum {
+	NUM_TRIAL_SAMPLES = 8192,
+	MAX_SAMPLES_PER_BIT = 32,
+};
+
+enum {
+	MIX_INFLIGHT = 2147483648,
+};
+
+struct ttyprintk_port {
+	struct tty_port port;
+	spinlock_t spinlock;
+};
+
+struct virtio_console_config {
+	__virtio16 cols;
+	__virtio16 rows;
+	__virtio32 max_nr_ports;
+	__virtio32 emerg_wr;
+};
+
+struct virtio_console_control {
+	__virtio32 id;
+	__virtio16 event;
+	__virtio16 value;
+};
+
+struct ports_driver_data {
+	struct class *class;
+	struct dentry *debugfs_dir;
+	struct list_head portdevs;
+	unsigned int next_vtermno;
+	struct list_head consoles;
+};
+
+struct console___2 {
+	struct list_head list;
+	struct hvc_struct *hvc;
+	struct winsize ws;
+	u32 vtermno;
+};
+
+struct port_buffer {
+	char *buf;
+	size_t size;
+	size_t len;
+	size_t offset;
+	dma_addr_t dma;
+	struct device *dev;
+	struct list_head list;
+	unsigned int sgpages;
+	struct scatterlist sg[0];
+};
+
+struct ports_device {
+	struct list_head list;
+	struct work_struct control_work;
+	struct work_struct config_work;
+	struct list_head ports;
+	spinlock_t ports_lock;
+	spinlock_t c_ivq_lock;
+	spinlock_t c_ovq_lock;
+	u32 max_nr_ports;
+	struct virtio_device *vdev;
+	struct virtqueue *c_ivq;
+	struct virtqueue *c_ovq;
+	struct virtio_console_control cpkt;
+	struct virtqueue **in_vqs;
+	struct virtqueue **out_vqs;
+	int chr_major;
+};
+
+struct port_stats {
+	long unsigned int bytes_sent;
+	long unsigned int bytes_received;
+	long unsigned int bytes_discarded;
+};
+
+struct port {
+	struct list_head list;
+	struct ports_device *portdev;
+	struct port_buffer *inbuf;
+	spinlock_t inbuf_lock;
+	spinlock_t outvq_lock;
+	struct virtqueue *in_vq;
+	struct virtqueue *out_vq;
+	struct dentry *debugfs_file;
+	struct port_stats stats;
+	struct console___2 cons;
+	struct cdev *cdev;
+	struct device *dev;
+	struct kref kref;
+	wait_queue_head_t waitqueue;
+	char *name;
+	struct fasync_struct *async_queue;
+	u32 id;
+	bool outvq_full;
+	bool host_connected;
+	bool guest_connected;
+};
+
+struct sg_list {
+	unsigned int n;
+	unsigned int size;
+	size_t len;
+	struct scatterlist *sg;
+};
+
+struct hpet_info {
+	long unsigned int hi_ireqfreq;
+	long unsigned int hi_flags;
+	short unsigned int hi_hpet;
+	short unsigned int hi_timer;
+};
+
+struct hpet_timer {
+	u64 hpet_config;
+	union {
+		u64 _hpet_hc64;
+		u32 _hpet_hc32;
+		long unsigned int _hpet_compare;
+	} _u1;
+	u64 hpet_fsb[2];
+};
+
+struct hpet {
+	u64 hpet_cap;
+	u64 res0;
+	u64 hpet_config;
+	u64 res1;
+	u64 hpet_isr;
+	u64 res2[25];
+	union {
+		u64 _hpet_mc64;
+		u32 _hpet_mc32;
+		long unsigned int _hpet_mc;
+	} _u0;
+	u64 res3;
+	struct hpet_timer hpet_timers[1];
+};
+
+struct hpets;
+
+struct hpet_dev {
+	struct hpets *hd_hpets;
+	struct hpet *hd_hpet;
+	struct hpet_timer *hd_timer;
+	long unsigned int hd_ireqfreq;
+	long unsigned int hd_irqdata;
+	wait_queue_head_t hd_waitqueue;
+	struct fasync_struct *hd_async_queue;
+	unsigned int hd_flags;
+	unsigned int hd_irq;
+	unsigned int hd_hdwirq;
+	char hd_name[7];
+};
+
+struct hpets {
+	struct hpets *hp_next;
+	struct hpet *hp_hpet;
+	long unsigned int hp_hpet_phys;
+	struct clocksource *hp_clocksource;
+	long long unsigned int hp_tick_freq;
+	long unsigned int hp_delta;
+	unsigned int hp_ntimer;
+	unsigned int hp_which;
+	struct hpet_dev hp_dev[0];
+};
+
+struct compat_hpet_info {
+	compat_ulong_t hi_ireqfreq;
+	compat_ulong_t hi_flags;
+	short unsigned int hi_hpet;
+	short unsigned int hi_timer;
+};
+
+struct agp_bridge_data___2;
+
+struct agp_memory {
+	struct agp_memory *next;
+	struct agp_memory *prev;
+	struct agp_bridge_data___2 *bridge;
+	struct page **pages;
+	size_t page_count;
+	int key;
+	int num_scratch_pages;
+	off_t pg_start;
+	u32 type;
+	u32 physical;
+	bool is_bound;
+	bool is_flushed;
+	struct list_head mapped_list;
+	struct scatterlist *sg_list;
+	int num_sg;
+};
+
+struct agp_bridge_driver;
+
+struct agp_bridge_data___2 {
+	const struct agp_version *version;
+	const struct agp_bridge_driver *driver;
+	const struct vm_operations_struct *vm_ops;
+	void *previous_size;
+	void *current_size;
+	void *dev_private_data;
+	struct pci_dev *dev;
+	u32 *gatt_table;
+	u32 *gatt_table_real;
+	long unsigned int scratch_page;
+	struct page *scratch_page_page;
+	dma_addr_t scratch_page_dma;
+	long unsigned int gart_bus_addr;
+	long unsigned int gatt_bus_addr;
+	u32 mode;
+	enum chipset_type type;
+	long unsigned int *key_list;
+	atomic_t current_memory_agp;
+	atomic_t agp_in_use;
+	int max_memory_agp;
+	int aperture_size_idx;
+	int capndx;
+	int flags;
+	char major_version;
+	char minor_version;
+	struct list_head list;
+	u32 apbase_config;
+	struct list_head mapped_list;
+	spinlock_t mapped_lock;
+};
+
+enum aper_size_type {
+	U8_APER_SIZE = 0,
+	U16_APER_SIZE = 1,
+	U32_APER_SIZE = 2,
+	LVL2_APER_SIZE = 3,
+	FIXED_APER_SIZE = 4,
+};
+
+struct gatt_mask {
+	long unsigned int mask;
+	u32 type;
+};
+
+struct agp_bridge_driver {
+	struct module *owner;
+	const void *aperture_sizes;
+	int num_aperture_sizes;
+	enum aper_size_type size_type;
+	bool cant_use_aperture;
+	bool needs_scratch_page;
+	const struct gatt_mask *masks;
+	int (*fetch_size)();
+	int (*configure)();
+	void (*agp_enable)(struct agp_bridge_data___2 *, u32);
+	void (*cleanup)();
+	void (*tlb_flush)(struct agp_memory *);
+	long unsigned int (*mask_memory)(struct agp_bridge_data___2 *, dma_addr_t, int);
+	void (*cache_flush)();
+	int (*create_gatt_table)(struct agp_bridge_data___2 *);
+	int (*free_gatt_table)(struct agp_bridge_data___2 *);
+	int (*insert_memory)(struct agp_memory *, off_t, int);
+	int (*remove_memory)(struct agp_memory *, off_t, int);
+	struct agp_memory * (*alloc_by_type)(size_t, int);
+	void (*free_by_type)(struct agp_memory *);
+	struct page * (*agp_alloc_page)(struct agp_bridge_data___2 *);
+	int (*agp_alloc_pages)(struct agp_bridge_data___2 *, struct agp_memory *, size_t);
+	void (*agp_destroy_page)(struct page *, int);
+	void (*agp_destroy_pages)(struct agp_memory *);
+	int (*agp_type_to_mask_type)(struct agp_bridge_data___2 *, int);
+};
+
+struct aper_size_info_8 {
+	int size;
+	int num_entries;
+	int page_order;
+	u8 size_value;
+};
+
+struct aper_size_info_16 {
+	int size;
+	int num_entries;
+	int page_order;
+	u16 size_value;
+};
+
+struct aper_size_info_32 {
+	int size;
+	int num_entries;
+	int page_order;
+	u32 size_value;
+};
+
+struct aper_size_info_lvl2 {
+	int size;
+	int num_entries;
+	u32 size_value;
+};
+
+struct aper_size_info_fixed {
+	int size;
+	int num_entries;
+	int page_order;
+};
+
+struct agp_3_5_dev {
+	struct list_head list;
+	u8 capndx;
+	u32 maxbw;
+	struct pci_dev *dev;
+};
+
+struct isoch_data {
+	u32 maxbw;
+	u32 n;
+	u32 y;
+	u32 l;
+	u32 rq;
+	struct agp_3_5_dev *dev;
+};
+
+struct intel_agp_driver_description {
+	unsigned int chip_id;
+	char *name;
+	const struct agp_bridge_driver *driver;
+};
+
+struct intel_gtt_driver {
+	unsigned int gen: 8;
+	unsigned int is_g33: 1;
+	unsigned int is_pineview: 1;
+	unsigned int is_ironlake: 1;
+	unsigned int has_pgtbl_enable: 1;
+	unsigned int dma_mask_size: 8;
+	int (*setup)();
+	void (*cleanup)();
+	void (*write_entry)(dma_addr_t, unsigned int, unsigned int);
+	bool (*check_flags)(unsigned int);
+	void (*chipset_flush)();
+};
+
+struct _intel_private {
+	const struct intel_gtt_driver *driver;
+	struct pci_dev *pcidev;
+	struct pci_dev *bridge_dev;
+	u8 *registers;
+	phys_addr_t gtt_phys_addr;
+	u32 PGETBL_save;
+	u32 *gtt;
+	bool clear_fake_agp;
+	int num_dcache_entries;
+	void *i9xx_flush_page;
+	char *i81x_gtt_table;
+	struct resource ifp_resource;
+	int resource_valid;
+	struct page *scratch_page;
+	phys_addr_t scratch_page_dma;
+	int refcount;
+	unsigned int needs_dmar: 1;
+	phys_addr_t gma_bus_addr;
+	resource_size_t stolen_size;
+	unsigned int gtt_total_entries;
+	unsigned int gtt_mappable_entries;
+};
+
+struct intel_gtt_driver_description {
+	unsigned int gmch_chip_id;
+	char *name;
+	const struct intel_gtt_driver *gtt_driver;
+};
+
+struct agp_device_ids {
+	short unsigned int device_id;
+	enum chipset_type chipset;
+	const char *chipset_name;
+	int (*chipset_setup)(struct pci_dev *);
+};
+
+enum tpm2_startup_types {
+	TPM2_SU_CLEAR = 0,
+	TPM2_SU_STATE = 1,
+};
+
+enum tpm_chip_flags {
+	TPM_CHIP_FLAG_TPM2 = 2,
+	TPM_CHIP_FLAG_IRQ = 4,
+	TPM_CHIP_FLAG_VIRTUAL = 8,
+	TPM_CHIP_FLAG_HAVE_TIMEOUTS = 16,
+	TPM_CHIP_FLAG_ALWAYS_POWERED = 32,
+	TPM_CHIP_FLAG_FIRMWARE_POWER_MANAGED = 64,
+	TPM_CHIP_FLAG_FIRMWARE_UPGRADE = 128,
+};
+
+struct file_priv {
+	struct tpm_chip *chip;
+	struct tpm_space *space;
+	struct mutex buffer_mutex;
+	struct timer_list user_read_timer;
+	struct work_struct timeout_work;
+	struct work_struct async_work;
+	wait_queue_head_t async_wait;
+	ssize_t response_length;
+	bool response_read;
+	bool command_enqueued;
+	u8 data_buffer[4096];
+};
+
+enum TPM_OPS_FLAGS {
+	TPM_OPS_AUTO_STARTUP = 1,
+};
+
+enum tpm2_timeouts {
+	TPM2_TIMEOUT_A = 750,
+	TPM2_TIMEOUT_B = 2000,
+	TPM2_TIMEOUT_C = 200,
+	TPM2_TIMEOUT_D = 30,
+	TPM2_DURATION_SHORT = 20,
+	TPM2_DURATION_MEDIUM = 750,
+	TPM2_DURATION_LONG = 2000,
+	TPM2_DURATION_LONG_LONG = 300000,
+	TPM2_DURATION_DEFAULT = 120000,
+};
+
+enum tpm_timeout {
+	TPM_TIMEOUT = 5,
+	TPM_TIMEOUT_RETRY = 100,
+	TPM_TIMEOUT_RANGE_US = 300,
+	TPM_TIMEOUT_POLL = 1,
+	TPM_TIMEOUT_USECS_MIN = 100,
+	TPM_TIMEOUT_USECS_MAX = 500,
+};
+
+struct stclear_flags_t {
+	__be16 tag;
+	u8 deactivated;
+	u8 disableForceClear;
+	u8 physicalPresence;
+	u8 physicalPresenceLock;
+	u8 bGlobalLock;
+} __attribute__((packed));
+
+struct tpm1_version {
+	u8 major;
+	u8 minor;
+	u8 rev_major;
+	u8 rev_minor;
+};
+
+struct tpm1_version2 {
+	__be16 tag;
+	struct tpm1_version version;
+};
+
+struct timeout_t {
+	__be32 a;
+	__be32 b;
+	__be32 c;
+	__be32 d;
+};
+
+struct duration_t {
+	__be32 tpm_short;
+	__be32 tpm_medium;
+	__be32 tpm_long;
+};
+
+struct permanent_flags_t {
+	__be16 tag;
+	u8 disable;
+	u8 ownership;
+	u8 deactivated;
+	u8 readPubek;
+	u8 disableOwnerClear;
+	u8 allowMaintenance;
+	u8 physicalPresenceLifetimeLock;
+	u8 physicalPresenceHWEnable;
+	u8 physicalPresenceCMDEnable;
+	u8 CEKPUsed;
+	u8 TPMpost;
+	u8 TPMpostLock;
+	u8 FIPS;
+	u8 operator;
+	u8 enableRevokeEK;
+	u8 nvLocked;
+	u8 readSRKPub;
+	u8 tpmEstablished;
+	u8 maintenanceDone;
+	u8 disableFullDALogicInfo;
+};
+
+typedef union {
+	struct permanent_flags_t perm_flags;
+	struct stclear_flags_t stclear_flags;
+	__u8 owned;
+	__be32 num_pcrs;
+	struct tpm1_version version1;
+	struct tpm1_version2 version2;
+	__be32 manufacturer_id;
+	struct timeout_t timeout;
+	struct duration_t duration;
+} cap_t;
+
+enum tpm_capabilities {
+	TPM_CAP_FLAG = 4,
+	TPM_CAP_PROP = 5,
+	TPM_CAP_VERSION_1_1 = 6,
+	TPM_CAP_VERSION_1_2 = 26,
+};
+
+enum tpm_sub_capabilities {
+	TPM_CAP_PROP_PCR = 257,
+	TPM_CAP_PROP_MANUFACTURER = 259,
+	TPM_CAP_FLAG_PERM = 264,
+	TPM_CAP_FLAG_VOL = 265,
+	TPM_CAP_PROP_OWNER = 273,
+	TPM_CAP_PROP_TIS_TIMEOUT = 277,
+	TPM_CAP_PROP_TIS_DURATION = 288,
+};
+
+struct tpm1_get_random_out {
+	__be32 rng_data_len;
+	u8 rng_data[128];
+};
+
+enum tpm2_const {
+	TPM2_PLATFORM_PCR = 24,
+	TPM2_PCR_SELECT_MIN = 3,
+};
+
+enum tpm2_capabilities {
+	TPM2_CAP_HANDLES = 1,
+	TPM2_CAP_COMMANDS = 2,
+	TPM2_CAP_PCRS = 5,
+	TPM2_CAP_TPM_PROPERTIES = 6,
+};
+
+enum tpm2_properties {
+	TPM_PT_TOTAL_COMMANDS = 297,
+};
+
+enum tpm2_cc_attrs {
+	TPM2_CC_ATTR_CHANDLES = 25,
+	TPM2_CC_ATTR_RHANDLE = 28,
+};
+
+struct tpm2_pcr_read_out {
+	__be32 update_cnt;
+	__be32 pcr_selects_cnt;
+	__be16 hash_alg;
+	u8 pcr_select_size;
+	u8 pcr_select[3];
+	__be32 digests_cnt;
+	__be16 digest_size;
+	u8 digest[0];
+} __attribute__((packed));
+
+struct tpm2_null_auth_area {
+	__be32 handle;
+	__be16 nonce_size;
+	u8 attributes;
+	__be16 auth_size;
+} __attribute__((packed));
+
+struct tpm2_get_random_out {
+	__be16 size;
+	u8 buffer[128];
+};
+
+struct tpm2_get_cap_out {
+	u8 more_data;
+	__be32 subcap_id;
+	__be32 property_cnt;
+	__be32 property_id;
+	__be32 value;
+} __attribute__((packed));
+
+struct tpm2_pcr_selection {
+	__be16 hash_alg;
+	u8 size_of_select;
+	u8 pcr_select[3];
+};
+
+struct tpmrm_priv {
+	struct file_priv priv;
+	struct tpm_space space;
+};
+
+enum tpm2_handle_types {
+	TPM2_HT_HMAC_SESSION = 33554432,
+	TPM2_HT_POLICY_SESSION = 50331648,
+	TPM2_HT_TRANSIENT = 2147483648,
+};
+
+struct tpm2_context {
+	__be64 sequence;
+	__be32 saved_handle;
+	__be32 hierarchy;
+	__be16 blob_size;
+} __attribute__((packed));
+
+struct tpm2_cap_handles {
+	u8 more_data;
+	__be32 capability;
+	__be32 count;
+	__be32 handles[0];
+} __attribute__((packed));
+
+struct tpm_readpubek_out {
+	u8 algorithm[4];
+	u8 encscheme[2];
+	u8 sigscheme[2];
+	__be32 paramsize;
+	u8 parameters[12];
+	__be32 keysize;
+	u8 modulus[256];
+	u8 checksum[20];
+};
+
+struct tpm_pcr_attr {
+	int alg_id;
+	int pcr;
+	struct device_attribute attr;
+};
+
+struct tcpa_event {
+	u32 pcr_index;
+	u32 event_type;
+	u8 pcr_value[20];
+	u32 event_size;
+	u8 event_data[0];
+};
+
+enum tcpa_event_types {
+	PREBOOT = 0,
+	POST_CODE = 1,
+	UNUSED = 2,
+	NO_ACTION = 3,
+	SEPARATOR = 4,
+	ACTION = 5,
+	EVENT_TAG = 6,
+	SCRTM_CONTENTS = 7,
+	SCRTM_VERSION = 8,
+	CPU_MICROCODE = 9,
+	PLATFORM_CONFIG_FLAGS = 10,
+	TABLE_OF_DEVICES = 11,
+	COMPACT_HASH = 12,
+	IPL = 13,
+	IPL_PARTITION_DATA = 14,
+	NONHOST_CODE = 15,
+	NONHOST_CONFIG = 16,
+	NONHOST_INFO = 17,
+};
+
+struct tcpa_pc_event {
+	u32 event_id;
+	u32 event_size;
+	u8 event_data[0];
+};
+
+enum tcpa_pc_event_ids {
+	SMBIOS = 1,
+	BIS_CERT = 2,
+	POST_BIOS_ROM = 3,
+	ESCD = 4,
+	CMOS = 5,
+	NVRAM = 6,
+	OPTION_ROM_EXEC = 7,
+	OPTION_ROM_CONFIG = 8,
+	OPTION_ROM_MICROCODE = 10,
+	S_CRTM_VERSION = 11,
+	S_CRTM_CONTENTS = 12,
+	POST_CONTENTS = 13,
+	HOST_TABLE_OF_DEVICES = 14,
+};
+
+struct tcg_efi_specid_event_algs {
+	u16 alg_id;
+	u16 digest_size;
+};
+
+struct tcg_efi_specid_event_head {
+	u8 signature[16];
+	u32 platform_class;
+	u8 spec_version_minor;
+	u8 spec_version_major;
+	u8 spec_errata;
+	u8 uintnsize;
+	u32 num_algs;
+	struct tcg_efi_specid_event_algs digest_sizes[0];
+};
+
+struct tcg_pcr_event {
+	u32 pcr_idx;
+	u32 event_type;
+	u8 digest[20];
+	u32 event_size;
+	u8 event[0];
+};
+
+struct tcg_event_field {
+	u32 event_size;
+	u8 event[0];
+};
+
+struct tcg_pcr_event2_head {
+	u32 pcr_idx;
+	u32 event_type;
+	u32 count;
+	struct tpm_digest digests[0];
+};
+
+struct acpi_table_tpm2 {
+	struct acpi_table_header header;
+	u16 platform_class;
+	u16 reserved;
+	u64 control_address;
+	u32 start_method;
+} __attribute__((packed));
+
+struct acpi_tpm2_phy {
+	u8 start_method_specific[12];
+	u32 log_area_minimum_length;
+	u64 log_area_start_address;
+};
+
+enum bios_platform_class {
+	BIOS_CLIENT = 0,
+	BIOS_SERVER = 1,
+};
+
+struct client_hdr {
+	u32 log_max_len;
+	u64 log_start_addr;
+} __attribute__((packed));
+
+struct server_hdr {
+	u16 reserved;
+	u64 log_max_len;
+	u64 log_start_addr;
+} __attribute__((packed));
+
+struct acpi_tcpa {
+	struct acpi_table_header hdr;
+	u16 platform_class;
+	union {
+		struct client_hdr client;
+		struct server_hdr server;
+	};
+} __attribute__((packed));
+
+struct linux_efi_tpm_eventlog {
+	u32 size;
+	u32 final_events_preboot_size;
+	u8 version;
+	u8 log[0];
+};
+
+struct efi_tcg2_final_events_table {
+	u64 version;
+	u64 nr_events;
+	u8 events[0];
+};
+
+enum tis_access {
+	TPM_ACCESS_VALID = 128,
+	TPM_ACCESS_ACTIVE_LOCALITY = 32,
+	TPM_ACCESS_REQUEST_PENDING = 4,
+	TPM_ACCESS_REQUEST_USE = 2,
+};
+
+enum tis_status {
+	TPM_STS_VALID = 128,
+	TPM_STS_COMMAND_READY = 64,
+	TPM_STS_GO = 32,
+	TPM_STS_DATA_AVAIL = 16,
+	TPM_STS_DATA_EXPECT = 8,
+	TPM_STS_READ_ZERO = 35,
+};
+
+enum tis_int_flags {
+	TPM_GLOBAL_INT_ENABLE = 2147483648,
+	TPM_INTF_BURST_COUNT_STATIC = 256,
+	TPM_INTF_CMD_READY_INT = 128,
+	TPM_INTF_INT_EDGE_FALLING = 64,
+	TPM_INTF_INT_EDGE_RISING = 32,
+	TPM_INTF_INT_LEVEL_LOW = 16,
+	TPM_INTF_INT_LEVEL_HIGH = 8,
+	TPM_INTF_LOCALITY_CHANGE_INT = 4,
+	TPM_INTF_STS_VALID_INT = 2,
+	TPM_INTF_DATA_AVAIL_INT = 1,
+};
+
+enum tis_defaults {
+	TIS_MEM_LEN = 20480,
+	TIS_SHORT_TIMEOUT = 750,
+	TIS_LONG_TIMEOUT = 2000,
+	TIS_TIMEOUT_MIN_ATML = 14700,
+	TIS_TIMEOUT_MAX_ATML = 15000,
+};
+
+enum tpm_tis_flags {
+	TPM_TIS_ITPM_WORKAROUND = 1,
+	TPM_TIS_INVALID_STATUS = 2,
+};
+
+struct tpm_tis_phy_ops;
+
+struct tpm_tis_data {
+	u16 manufacturer_id;
+	int locality;
+	int irq;
+	bool irq_tested;
+	long unsigned int flags;
+	void *ilb_base_addr;
+	u16 clkrun_enabled;
+	wait_queue_head_t int_queue;
+	wait_queue_head_t read_queue;
+	const struct tpm_tis_phy_ops *phy_ops;
+	short unsigned int rng_quality;
+	unsigned int timeout_min;
+	unsigned int timeout_max;
+};
+
+enum tpm_tis_io_mode {
+	TPM_TIS_PHYS_8 = 0,
+	TPM_TIS_PHYS_16 = 1,
+	TPM_TIS_PHYS_32 = 2,
+};
+
+struct tpm_tis_phy_ops {
+	int (*read_bytes)(struct tpm_tis_data *, u32, u16, u8 *, enum tpm_tis_io_mode);
+	int (*write_bytes)(struct tpm_tis_data *, u32, u16, const u8 *, enum tpm_tis_io_mode);
+};
+
+struct tis_vendor_durations_override {
+	u32 did_vid;
+	struct tpm1_version version;
+	long unsigned int durations[3];
+};
+
+struct tis_vendor_timeout_override {
+	u32 did_vid;
+	long unsigned int timeout_us[4];
+};
+
+struct tpm_info {
+	struct resource res;
+	int irq;
+};
+
+struct tpm_tis_tcg_phy {
+	struct tpm_tis_data priv;
+	void *iobase;
+};
+
+enum crb_defaults {
+	CRB_ACPI_START_REVISION_ID = 1,
+	CRB_ACPI_START_INDEX = 1,
+};
+
+enum crb_loc_ctrl {
+	CRB_LOC_CTRL_REQUEST_ACCESS = 1,
+	CRB_LOC_CTRL_RELINQUISH = 2,
+};
+
+enum crb_loc_state {
+	CRB_LOC_STATE_LOC_ASSIGNED = 2,
+	CRB_LOC_STATE_TPM_REG_VALID_STS = 128,
+};
+
+enum crb_ctrl_req {
+	CRB_CTRL_REQ_CMD_READY = 1,
+	CRB_CTRL_REQ_GO_IDLE = 2,
+};
+
+enum crb_ctrl_sts {
+	CRB_CTRL_STS_ERROR = 1,
+	CRB_CTRL_STS_TPM_IDLE = 2,
+};
+
+enum crb_start {
+	CRB_START_INVOKE = 1,
+};
+
+enum crb_cancel {
+	CRB_CANCEL_INVOKE = 1,
+};
+
+struct crb_regs_head {
+	u32 loc_state;
+	u32 reserved1;
+	u32 loc_ctrl;
+	u32 loc_sts;
+	u8 reserved2[32];
+	u64 intf_id;
+	u64 ctrl_ext;
+};
+
+struct crb_regs_tail {
+	u32 ctrl_req;
+	u32 ctrl_sts;
+	u32 ctrl_cancel;
+	u32 ctrl_start;
+	u32 ctrl_int_enable;
+	u32 ctrl_int_sts;
+	u32 ctrl_cmd_size;
+	u32 ctrl_cmd_pa_low;
+	u32 ctrl_cmd_pa_high;
+	u32 ctrl_rsp_size;
+	u64 ctrl_rsp_pa;
+};
+
+enum crb_status {
+	CRB_DRV_STS_COMPLETE = 1,
+};
+
+struct crb_priv {
+	u32 sm;
+	const char *hid;
+	struct crb_regs_head *regs_h;
+	struct crb_regs_tail *regs_t;
+	u8 *cmd;
+	u8 *rsp;
+	u32 cmd_size;
+	u32 smc_func_id;
+};
+
+struct tpm2_crb_smc {
+	u32 interrupt;
+	u8 interrupt_flags;
+	u8 op_flags;
+	u16 reserved2;
+	u32 smc_func_id;
+};
+
+enum iommu_resv_type {
+	IOMMU_RESV_DIRECT = 0,
+	IOMMU_RESV_DIRECT_RELAXABLE = 1,
+	IOMMU_RESV_RESERVED = 2,
+	IOMMU_RESV_MSI = 3,
+	IOMMU_RESV_SW_MSI = 4,
+};
+
+struct iommu_resv_region {
+	struct list_head list;
+	phys_addr_t start;
+	size_t length;
+	int prot;
+	enum iommu_resv_type type;
+};
+
+struct vcpu_data;
+
+struct amd_iommu_pi_data {
+	u32 ga_tag;
+	u32 prev_ga_tag;
+	u64 base;
+	bool is_guest_mode;
+	struct vcpu_data *vcpu_data;
+	void *ir_data;
+};
+
+struct vcpu_data {
+	u64 pi_desc_addr;
+	u32 vector;
+};
+
+struct amd_iommu_device_info {
+	int max_pasids;
+	u32 flags;
+};
+
+enum io_pgtable_fmt {
+	ARM_32_LPAE_S1 = 0,
+	ARM_32_LPAE_S2 = 1,
+	ARM_64_LPAE_S1 = 2,
+	ARM_64_LPAE_S2 = 3,
+	ARM_V7S = 4,
+	ARM_MALI_LPAE = 5,
+	AMD_IOMMU_V1 = 6,
+	APPLE_DART = 7,
+	IO_PGTABLE_NUM_FMTS = 8,
+};
+
+struct iommu_flush_ops {
+	void (*tlb_flush_all)(void *);
+	void (*tlb_flush_walk)(long unsigned int, size_t, size_t, void *);
+	void (*tlb_add_page)(struct iommu_iotlb_gather *, long unsigned int, size_t, void *);
+};
+
+struct io_pgtable_cfg {
+	long unsigned int quirks;
+	long unsigned int pgsize_bitmap;
+	unsigned int ias;
+	unsigned int oas;
+	bool coherent_walk;
+	const struct iommu_flush_ops *tlb;
+	struct device *iommu_dev;
+	union {
+		struct {
+			u64 ttbr;
+			struct {
+				u32 ips: 3;
+				u32 tg: 2;
+				u32 sh: 2;
+				u32 orgn: 2;
+				u32 irgn: 2;
+				u32 tsz: 6;
+			} tcr;
+			u64 mair;
+		} arm_lpae_s1_cfg;
+		struct {
+			u64 vttbr;
+			struct {
+				u32 ps: 3;
+				u32 tg: 2;
+				u32 sh: 2;
+				u32 orgn: 2;
+				u32 irgn: 2;
+				u32 sl: 2;
+				u32 tsz: 6;
+			} vtcr;
+		} arm_lpae_s2_cfg;
+		struct {
+			u32 ttbr;
+			u32 tcr;
+			u32 nmrr;
+			u32 prrr;
+		} arm_v7s_cfg;
+		struct {
+			u64 transtab;
+			u64 memattr;
+		} arm_mali_lpae_cfg;
+		struct {
+			u64 ttbr[4];
+			u32 n_ttbrs;
+		} apple_dart_cfg;
+	};
+};
+
+struct io_pgtable_ops {
+	int (*map)(struct io_pgtable_ops *, long unsigned int, phys_addr_t, size_t, int, gfp_t);
+	int (*map_pages)(struct io_pgtable_ops *, long unsigned int, phys_addr_t, size_t, size_t, int, gfp_t, size_t *);
+	size_t (*unmap)(struct io_pgtable_ops *, long unsigned int, size_t, struct iommu_iotlb_gather *);
+	size_t (*unmap_pages)(struct io_pgtable_ops *, long unsigned int, size_t, size_t, struct iommu_iotlb_gather *);
+	phys_addr_t (*iova_to_phys)(struct io_pgtable_ops *, long unsigned int);
+};
+
+struct io_pgtable {
+	enum io_pgtable_fmt fmt;
+	void *cookie;
+	struct io_pgtable_cfg cfg;
+	struct io_pgtable_ops ops;
+};
+
+struct irq_remap_table {
+	raw_spinlock_t lock;
+	unsigned int min_index;
+	u32 *table;
+};
+
+struct amd_iommu_fault {
+	u64 address;
+	u32 pasid;
+	u16 device_id;
+	u16 tag;
+	u16 flags;
+};
+
+struct amd_io_pgtable {
+	struct io_pgtable_cfg pgtbl_cfg;
+	struct io_pgtable iop;
+	int mode;
+	u64 *root;
+	atomic64_t pt_root;
+};
+
+struct protection_domain {
+	struct list_head dev_list;
+	struct iommu_domain domain;
+	struct amd_io_pgtable iop;
+	spinlock_t lock;
+	u16 id;
+	int glx;
+	u64 *gcr3_tbl;
+	long unsigned int flags;
+	unsigned int dev_cnt;
+	unsigned int dev_iommu[32];
+};
+
+struct amd_irte_ops;
+
+struct amd_iommu___2 {
+	struct list_head list;
+	int index;
+	raw_spinlock_t lock;
+	struct pci_dev *dev;
+	struct pci_dev *root_pdev;
+	u64 mmio_phys;
+	u64 mmio_phys_end;
+	u8 *mmio_base;
+	u32 cap;
+	u8 acpi_flags;
+	u64 features;
+	bool is_iommu_v2;
+	u16 devid;
+	u16 cap_ptr;
+	u16 pci_seg;
+	u64 exclusion_start;
+	u64 exclusion_length;
+	u8 *cmd_buf;
+	u32 cmd_buf_head;
+	u32 cmd_buf_tail;
+	u8 *evt_buf;
+	u8 *ppr_log;
+	u8 *ga_log;
+	u8 *ga_log_tail;
+	bool int_enabled;
+	bool need_sync;
+	struct iommu_device iommu;
+	u32 stored_addr_lo;
+	u32 stored_addr_hi;
+	u32 stored_l1[108];
+	u32 stored_l2[131];
+	u8 max_banks;
+	u8 max_counters;
+	struct irq_domain *ir_domain;
+	struct irq_domain *msi_domain;
+	struct amd_irte_ops *irte_ops;
+	u32 flags;
+	volatile u64 *cmd_sem;
+	u64 cmd_sem_val;
+};
+
+struct amd_irte_ops {
+	void (*prepare)(void *, u32, bool, u8, u32, int);
+	void (*activate)(void *, u16, u16);
+	void (*deactivate)(void *, u16, u16);
+	void (*set_affinity)(void *, u16, u16, u8, u32);
+	void * (*get)(struct irq_remap_table *, int);
+	void (*set_allocated)(struct irq_remap_table *, int);
+	bool (*is_allocated)(struct irq_remap_table *, int);
+	void (*clear_allocated)(struct irq_remap_table *, int);
+};
+
+struct acpihid_map_entry {
+	struct list_head list;
+	u8 uid[256];
+	u8 hid[9];
+	u16 devid;
+	u16 root_devid;
+	bool cmd_line;
+	struct iommu_group *group;
+};
+
+struct devid_map {
+	struct list_head list;
+	u8 id;
+	u16 devid;
+	bool cmd_line;
+};
+
+struct iommu_dev_data {
+	spinlock_t lock;
+	struct list_head list;
+	struct llist_node dev_data_list;
+	struct protection_domain *domain;
+	struct pci_dev *pdev;
+	u16 devid;
+	bool iommu_v2;
+	struct {
+		bool enabled;
+		int qdep;
+	} ats;
+	bool pri_tlp;
+	bool use_vapic;
+	bool defer_attach;
+	struct ratelimit_state rs;
+};
+
+struct dev_table_entry {
+	u64 data[4];
+};
+
+struct unity_map_entry {
+	struct list_head list;
+	u16 devid_start;
+	u16 devid_end;
+	u64 address_start;
+	u64 address_end;
+	int prot;
+};
+
+enum amd_iommu_intr_mode_type {
+	AMD_IOMMU_GUEST_IR_LEGACY = 0,
+	AMD_IOMMU_GUEST_IR_LEGACY_GA = 1,
+	AMD_IOMMU_GUEST_IR_VAPIC = 2,
+};
+
+union irte {
+	u32 val;
+	struct {
+		u32 valid: 1;
+		u32 no_fault: 1;
+		u32 int_type: 3;
+		u32 rq_eoi: 1;
+		u32 dm: 1;
+		u32 rsvd_1: 1;
+		u32 destination: 8;
+		u32 vector: 8;
+		u32 rsvd_2: 8;
+	} fields;
+};
+
+union irte_ga_lo {
+	u64 val;
+	struct {
+		u64 valid: 1;
+		u64 no_fault: 1;
+		u64 int_type: 3;
+		u64 rq_eoi: 1;
+		u64 dm: 1;
+		u64 guest_mode: 1;
+		u64 destination: 24;
+		u64 ga_tag: 32;
+	} fields_remap;
+	struct {
+		u64 valid: 1;
+		u64 no_fault: 1;
+		u64 ga_log_intr: 1;
+		u64 rsvd1: 3;
+		u64 is_run: 1;
+		u64 guest_mode: 1;
+		u64 destination: 24;
+		u64 ga_tag: 32;
+	} fields_vapic;
+};
+
+union irte_ga_hi {
+	u64 val;
+	struct {
+		u64 vector: 8;
+		u64 rsvd_1: 4;
+		u64 ga_root_ptr: 40;
+		u64 rsvd_2: 4;
+		u64 destination: 8;
+	} fields;
+};
+
+struct irte_ga {
+	union irte_ga_lo lo;
+	union irte_ga_hi hi;
+};
+
+struct irq_2_irte {
+	u16 devid;
+	u16 index;
+};
+
+struct amd_ir_data {
+	u32 cached_ga_tag;
+	struct irq_2_irte irq_2_irte;
+	struct msi_msg msi_entry;
+	void *entry;
+	void *ref;
+	struct irq_cfg *cfg;
+	int ga_vector;
+	int ga_root_ptr;
+	int ga_tag;
+};
+
+struct irq_remap_ops {
+	int capability;
+	int (*prepare)();
+	int (*enable)();
+	void (*disable)();
+	int (*reenable)(int);
+	int (*enable_faulting)();
+};
+
+struct iommu_cmd {
+	u32 data[4];
+};
+
+enum irq_remap_cap {
+	IRQ_POSTING_CAP = 0,
+};
+
+struct ivhd_header {
+	u8 type;
+	u8 flags;
+	u16 length;
+	u16 devid;
+	u16 cap_ptr;
+	u64 mmio_phys;
+	u16 pci_seg;
+	u16 info;
+	u32 efr_attr;
+	u64 efr_reg;
+	u64 res;
+};
+
+struct ivhd_entry {
+	u8 type;
+	u16 devid;
+	u8 flags;
+	union {
+		struct {
+			u32 ext;
+			u32 hidh;
+		};
+		struct {
+			u32 ext;
+			u32 hidh;
+		} ext_hid;
+	};
+	u64 cid;
+	u8 uidf;
+	u8 uidl;
+	u8 uid;
+} __attribute__((packed));
+
+struct ivmd_header {
+	u8 type;
+	u8 flags;
+	u16 length;
+	u16 devid;
+	u16 aux;
+	u64 resv;
+	u64 range_start;
+	u64 range_length;
+};
+
+enum iommu_init_state {
+	IOMMU_START_STATE = 0,
+	IOMMU_IVRS_DETECTED = 1,
+	IOMMU_ACPI_FINISHED = 2,
+	IOMMU_ENABLED = 3,
+	IOMMU_PCI_INIT = 4,
+	IOMMU_INTERRUPTS_EN = 5,
+	IOMMU_INITIALIZED = 6,
+	IOMMU_NOT_FOUND = 7,
+	IOMMU_INIT_ERROR = 8,
+	IOMMU_CMDLINE_DISABLED = 9,
+};
+
+union intcapxt {
+	u64 capxt;
+	struct {
+		u64 reserved_0: 2;
+		u64 dest_mode_logical: 1;
+		u64 reserved_1: 5;
+		u64 destid_0_23: 24;
+		u64 vector: 8;
+		u64 reserved_2: 16;
+		u64 destid_24_31: 8;
+	};
+};
+
+struct ivrs_quirk_entry {
+	u8 id;
+	u16 devid;
+};
+
+enum {
+	DELL_INSPIRON_7375 = 0,
+	DELL_LATITUDE_5495 = 1,
+	LENOVO_IDEAPAD_330S_15ARR = 2,
+};
+
+struct io_pgtable_init_fns {
+	struct io_pgtable * (*alloc)(struct io_pgtable_cfg *, void *);
+	void (*free)(struct io_pgtable *);
+};
+
+struct acpi_table_dmar {
+	struct acpi_table_header header;
+	u8 width;
+	u8 flags;
+	u8 reserved[10];
+};
+
+struct acpi_dmar_header {
+	u16 type;
+	u16 length;
+};
+
+enum acpi_dmar_type {
+	ACPI_DMAR_TYPE_HARDWARE_UNIT = 0,
+	ACPI_DMAR_TYPE_RESERVED_MEMORY = 1,
+	ACPI_DMAR_TYPE_ROOT_ATS = 2,
+	ACPI_DMAR_TYPE_HARDWARE_AFFINITY = 3,
+	ACPI_DMAR_TYPE_NAMESPACE = 4,
+	ACPI_DMAR_TYPE_SATC = 5,
+	ACPI_DMAR_TYPE_RESERVED = 6,
+};
+
+struct acpi_dmar_device_scope {
+	u8 entry_type;
+	u8 length;
+	u16 reserved;
+	u8 enumeration_id;
+	u8 bus;
+};
+
+enum acpi_dmar_scope_type {
+	ACPI_DMAR_SCOPE_TYPE_NOT_USED = 0,
+	ACPI_DMAR_SCOPE_TYPE_ENDPOINT = 1,
+	ACPI_DMAR_SCOPE_TYPE_BRIDGE = 2,
+	ACPI_DMAR_SCOPE_TYPE_IOAPIC = 3,
+	ACPI_DMAR_SCOPE_TYPE_HPET = 4,
+	ACPI_DMAR_SCOPE_TYPE_NAMESPACE = 5,
+	ACPI_DMAR_SCOPE_TYPE_RESERVED = 6,
+};
+
+struct acpi_dmar_pci_path {
+	u8 device;
+	u8 function;
+};
+
+struct acpi_dmar_hardware_unit {
+	struct acpi_dmar_header header;
+	u8 flags;
+	u8 reserved;
+	u16 segment;
+	u64 address;
+};
+
+struct acpi_dmar_reserved_memory {
+	struct acpi_dmar_header header;
+	u16 reserved;
+	u16 segment;
+	u64 base_address;
+	u64 end_address;
+};
+
+struct acpi_dmar_atsr {
+	struct acpi_dmar_header header;
+	u8 flags;
+	u8 reserved;
+	u16 segment;
+};
+
+struct acpi_dmar_rhsa {
+	struct acpi_dmar_header header;
+	u32 reserved;
+	u64 base_address;
+	u32 proximity_domain;
+} __attribute__((packed));
+
+struct acpi_dmar_andd {
+	struct acpi_dmar_header header;
+	u8 reserved[3];
+	u8 device_number;
+	char device_name[1];
+} __attribute__((packed));
+
+struct acpi_dmar_satc {
+	struct acpi_dmar_header header;
+	u8 flags;
+	u8 reserved;
+	u16 segment;
+};
+
+struct dmar_dev_scope {
+	struct device *dev;
+	u8 bus;
+	u8 devfn;
+};
+
+struct intel_iommu;
+
+struct dmar_drhd_unit {
+	struct list_head list;
+	struct acpi_dmar_header *hdr;
+	u64 reg_base_addr;
+	struct dmar_dev_scope *devices;
+	int devices_cnt;
+	u16 segment;
+	u8 ignored: 1;
+	u8 include_all: 1;
+	u8 gfx_dedicated: 1;
+	struct intel_iommu *iommu;
+};
+
+struct iommu_flush {
+	void (*flush_context)(struct intel_iommu *, u16, u16, u8, u64);
+	void (*flush_iotlb)(struct intel_iommu *, u16, u64, unsigned int, u64);
+};
+
+typedef ioasid_t (*ioasid_alloc_fn_t)(ioasid_t, ioasid_t, void *);
+
+typedef void (*ioasid_free_fn_t)(ioasid_t, void *);
+
+struct ioasid_allocator_ops {
+	ioasid_alloc_fn_t alloc;
+	ioasid_free_fn_t free;
+	struct list_head list;
+	void *pdata;
+};
+
+struct iopf_queue;
+
+struct root_entry;
+
+struct page_req_dsc;
+
+struct q_inval;
+
+struct ir_table;
+
+struct intel_iommu {
+	void *reg;
+	u64 reg_phys;
+	u64 reg_size;
+	u64 cap;
+	u64 ecap;
+	u64 vccap;
+	u32 gcmd;
+	raw_spinlock_t register_lock;
+	int seq_id;
+	int agaw;
+	int msagaw;
+	unsigned int irq;
+	unsigned int pr_irq;
+	u16 segment;
+	unsigned char name[13];
+	long unsigned int *domain_ids;
+	spinlock_t lock;
+	struct root_entry *root_entry;
+	struct iommu_flush flush;
+	struct page_req_dsc *prq;
+	unsigned char prq_name[16];
+	struct completion prq_complete;
+	struct ioasid_allocator_ops pasid_allocator;
+	struct iopf_queue *iopf_queue;
+	unsigned char iopfq_name[16];
+	struct q_inval *qi;
+	u32 *iommu_state;
+	struct ir_table *ir_table;
+	struct irq_domain *ir_domain;
+	struct irq_domain *ir_msi_domain;
+	struct iommu_device iommu;
+	int node;
+	u32 flags;
+	struct dmar_drhd_unit *drhd;
+	void *perf_statistic;
+};
+
+struct dmar_pci_path {
+	u8 bus;
+	u8 device;
+	u8 function;
+};
+
+struct dmar_pci_notify_info {
+	struct pci_dev *dev;
+	long unsigned int event;
+	int bus;
+	u16 seg;
+	u16 level;
+	struct dmar_pci_path path[0];
+};
+
+struct irte___2 {
+	union {
+		struct {
+			__u64 present: 1;
+			__u64 fpd: 1;
+			__u64 __res0: 6;
+			__u64 avail: 4;
+			__u64 __res1: 3;
+			__u64 pst: 1;
+			__u64 vector: 8;
+			__u64 __res2: 40;
+		};
+		struct {
+			__u64 r_present: 1;
+			__u64 r_fpd: 1;
+			__u64 dst_mode: 1;
+			__u64 redir_hint: 1;
+			__u64 trigger_mode: 1;
+			__u64 dlvry_mode: 3;
+			__u64 r_avail: 4;
+			__u64 r_res0: 4;
+			__u64 r_vector: 8;
+			__u64 r_res1: 8;
+			__u64 dest_id: 32;
+		};
+		struct {
+			__u64 p_present: 1;
+			__u64 p_fpd: 1;
+			__u64 p_res0: 6;
+			__u64 p_avail: 4;
+			__u64 p_res1: 2;
+			__u64 p_urgent: 1;
+			__u64 p_pst: 1;
+			__u64 p_vector: 8;
+			__u64 p_res2: 14;
+			__u64 pda_l: 26;
+		};
+		__u64 low;
+	};
+	union {
+		struct {
+			__u64 sid: 16;
+			__u64 sq: 2;
+			__u64 svt: 2;
+			__u64 __res3: 44;
+		};
+		struct {
+			__u64 p_sid: 16;
+			__u64 p_sq: 2;
+			__u64 p_svt: 2;
+			__u64 p_res3: 12;
+			__u64 pda_h: 32;
+		};
+		__u64 high;
+	};
+};
+
+enum {
+	QI_FREE = 0,
+	QI_IN_USE = 1,
+	QI_DONE = 2,
+	QI_ABORT = 3,
+};
+
+struct qi_desc {
+	u64 qw0;
+	u64 qw1;
+	u64 qw2;
+	u64 qw3;
+};
+
+struct q_inval {
+	raw_spinlock_t q_lock;
+	void *desc;
+	int *desc_status;
+	int free_head;
+	int free_tail;
+	int free_cnt;
+};
+
+struct ir_table {
+	struct irte___2 *base;
+	long unsigned int *bitmap;
+};
+
+struct root_entry {
+	u64 lo;
+	u64 hi;
+};
+
+enum latency_type {
+	DMAR_LATENCY_INV_IOTLB = 0,
+	DMAR_LATENCY_INV_DEVTLB = 1,
+	DMAR_LATENCY_INV_IEC = 2,
+	DMAR_LATENCY_PRQ = 3,
+	DMAR_LATENCY_NUM = 4,
+};
+
+enum latency_count {
+	COUNTS_10e2 = 0,
+	COUNTS_10e3 = 1,
+	COUNTS_10e4 = 2,
+	COUNTS_10e5 = 3,
+	COUNTS_10e6 = 4,
+	COUNTS_10e7 = 5,
+	COUNTS_10e8_plus = 6,
+	COUNTS_MIN = 7,
+	COUNTS_MAX = 8,
+	COUNTS_SUM = 9,
+	COUNTS_NUM = 10,
+};
+
+typedef int (*dmar_res_handler_t)(struct acpi_dmar_header *, void *);
+
+struct dmar_res_callback {
+	dmar_res_handler_t cb[6];
+	void *arg[6];
+	bool ignore_unhandled;
+	bool print_entry;
+};
+
+enum faulttype {
+	DMA_REMAP = 0,
+	INTR_REMAP = 1,
+	UNKNOWN = 2,
+};
+
+struct iova {
+	struct rb_node node;
+	long unsigned int pfn_hi;
+	long unsigned int pfn_lo;
+};
+
+struct iova_rcache;
+
+struct iova_domain {
+	spinlock_t iova_rbtree_lock;
+	struct rb_root rbroot;
+	struct rb_node *cached_node;
+	struct rb_node *cached32_node;
+	long unsigned int granule;
+	long unsigned int start_pfn;
+	long unsigned int dma_32bit_pfn;
+	long unsigned int max32_alloc_size;
+	struct iova anchor;
+	struct iova_rcache *rcaches;
+	struct hlist_node cpuhp_dead;
+};
+
+enum {
+	SR_DMAR_FECTL_REG = 0,
+	SR_DMAR_FEDATA_REG = 1,
+	SR_DMAR_FEADDR_REG = 2,
+	SR_DMAR_FEUADDR_REG = 3,
+	MAX_SR_DMAR_REGS = 4,
+};
+
+struct context_entry {
+	u64 lo;
+	u64 hi;
+};
+
+struct dma_pte;
+
+struct dmar_domain {
+	int nid;
+	unsigned int iommu_refcnt[128];
+	u16 iommu_did[128];
+	u8 has_iotlb_device: 1;
+	u8 iommu_coherency: 1;
+	u8 force_snooping: 1;
+	u8 set_pte_snp: 1;
+	struct list_head devices;
+	struct iova_domain iovad;
+	struct dma_pte *pgd;
+	int gaw;
+	int agaw;
+	int flags;
+	int iommu_superpage;
+	u64 max_addr;
+	struct iommu_domain domain;
+};
+
+struct dma_pte {
+	u64 val;
+};
+
+struct pasid_table;
+
+struct device_domain_info {
+	struct list_head link;
+	struct list_head global;
+	struct list_head table;
+	u32 segment;
+	u8 bus;
+	u8 devfn;
+	u16 pfsid;
+	u8 pasid_supported: 3;
+	u8 pasid_enabled: 1;
+	u8 pri_supported: 1;
+	u8 pri_enabled: 1;
+	u8 ats_supported: 1;
+	u8 ats_enabled: 1;
+	u8 ats_qdep;
+	struct device *dev;
+	struct intel_iommu *iommu;
+	struct dmar_domain *domain;
+	struct pasid_table *pasid_table;
+};
+
+struct pasid_table {
+	void *table;
+	int order;
+	u32 max_pasid;
+	struct list_head dev;
+};
+
+enum cap_audit_type {
+	CAP_AUDIT_STATIC_DMAR = 0,
+	CAP_AUDIT_STATIC_IRQR = 1,
+	CAP_AUDIT_HOTPLUG_DMAR = 2,
+	CAP_AUDIT_HOTPLUG_IRQR = 3,
+};
+
+struct dmar_rmrr_unit {
+	struct list_head list;
+	struct acpi_dmar_header *hdr;
+	u64 base_address;
+	u64 end_address;
+	struct dmar_dev_scope *devices;
+	int devices_cnt;
+};
+
+struct dmar_atsr_unit {
+	struct list_head list;
+	struct acpi_dmar_header *hdr;
+	struct dmar_dev_scope *devices;
+	int devices_cnt;
+	u8 include_all: 1;
+};
+
+struct dmar_satc_unit {
+	struct list_head list;
+	struct acpi_dmar_header *hdr;
+	struct dmar_dev_scope *devices;
+	struct intel_iommu *iommu;
+	int devices_cnt;
+	u8 atc_required: 1;
+};
+
+struct domain_context_mapping_data {
+	struct dmar_domain *domain;
+	struct intel_iommu *iommu;
+	struct pasid_table *table;
+};
+
+struct pasid_dir_entry {
+	u64 val;
+};
+
+struct pasid_entry {
+	u64 val[8];
+};
+
+struct pasid_table_opaque {
+	struct pasid_table **pasid_table;
+	int segment;
+	int bus;
+	int devfn;
+};
+
+struct trace_event_raw_qi_submit {
+	struct trace_entry ent;
+	u64 qw0;
+	u64 qw1;
+	u64 qw2;
+	u64 qw3;
+	u32 __data_loc_iommu;
+	char __data[0];
+};
+
+struct trace_event_raw_prq_report {
+	struct trace_entry ent;
+	u64 dw0;
+	u64 dw1;
+	u64 dw2;
+	u64 dw3;
+	long unsigned int seq;
+	u32 __data_loc_iommu;
+	u32 __data_loc_dev;
+	u32 __data_loc_buff;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_qi_submit {
+	u32 iommu;
+};
+
+struct trace_event_data_offsets_prq_report {
+	u32 iommu;
+	u32 dev;
+	u32 buff;
+};
+
+typedef void (*btf_trace_qi_submit)(void *, struct intel_iommu *, u64, u64, u64, u64);
+
+typedef void (*btf_trace_prq_report)(void *, struct intel_iommu *, struct device *, u64, u64, u64, u64, long unsigned int);
+
+enum iommu_fault_type {
+	IOMMU_FAULT_DMA_UNRECOV = 1,
+	IOMMU_FAULT_PAGE_REQ = 2,
+};
+
+struct page_req_dsc {
+	union {
+		struct {
+			u64 type: 8;
+			u64 pasid_present: 1;
+			u64 priv_data_present: 1;
+			u64 rsvd: 6;
+			u64 rid: 16;
+			u64 pasid: 20;
+			u64 exe_req: 1;
+			u64 pm_req: 1;
+			u64 rsvd2: 10;
+		};
+		u64 qw_0;
+	};
+	union {
+		struct {
+			u64 rd_req: 1;
+			u64 wr_req: 1;
+			u64 lpig: 1;
+			u64 prg_index: 9;
+			u64 addr: 52;
+		};
+		u64 qw_1;
+	};
+	u64 priv_data[2];
+};
+
+struct intel_svm_dev {
+	struct list_head list;
+	struct callback_head rcu;
+	struct device *dev;
+	struct intel_iommu *iommu;
+	struct iommu_sva sva;
+	long unsigned int prq_seq_number;
+	u32 pasid;
+	int users;
+	u16 did;
+	u16 dev_iotlb: 1;
+	u16 sid;
+	u16 qdep;
+};
+
+struct intel_svm {
+	struct mmu_notifier notifier;
+	struct mm_struct *mm;
+	unsigned int flags;
+	u32 pasid;
+	struct list_head devs;
+};
+
+enum irq_mode {
+	IRQ_REMAPPING = 0,
+	IRQ_POSTING = 1,
+};
+
+struct ioapic_scope {
+	struct intel_iommu *iommu;
+	unsigned int id;
+	unsigned int bus;
+	unsigned int devfn;
+};
+
+struct hpet_scope {
+	struct intel_iommu *iommu;
+	u8 id;
+	unsigned int bus;
+	unsigned int devfn;
+};
+
+struct irq_2_iommu {
+	struct intel_iommu *iommu;
+	u16 irte_index;
+	u16 sub_handle;
+	u8 irte_mask;
+	enum irq_mode mode;
+};
+
+struct intel_ir_data {
+	struct irq_2_iommu irq_2_iommu;
+	struct irte___2 irte_entry;
+	union {
+		struct msi_msg msi_entry;
+	};
+};
+
+struct set_msi_sid_data {
+	struct pci_dev *pdev;
+	u16 alias;
+	int count;
+	int busmatch_count;
+};
+
+struct iommu_group {
+	struct kobject kobj;
+	struct kobject *devices_kobj;
+	struct list_head devices;
+	struct mutex mutex;
+	void *iommu_data;
+	void (*iommu_data_release)(void *);
+	char *name;
+	int id;
+	struct iommu_domain *default_domain;
+	struct iommu_domain *blocking_domain;
+	struct iommu_domain *domain;
+	struct list_head entry;
+	unsigned int owner_cnt;
+	void *owner;
+};
+
+struct fsl_mc_obj_desc {
+	char type[16];
+	int id;
+	u16 vendor;
+	u16 ver_major;
+	u16 ver_minor;
+	u8 irq_count;
+	u8 region_count;
+	u32 state;
+	char label[16];
+	u16 flags;
+};
+
+struct fsl_mc_io;
+
+struct fsl_mc_device_irq;
+
+struct fsl_mc_resource;
+
+struct fsl_mc_device {
+	struct device dev;
+	u64 dma_mask;
+	u16 flags;
+	u32 icid;
+	u16 mc_handle;
+	struct fsl_mc_io *mc_io;
+	struct fsl_mc_obj_desc obj_desc;
+	struct resource *regions;
+	struct fsl_mc_device_irq **irqs;
+	struct fsl_mc_resource *resource;
+	struct device_link *consumer_link;
+	const char *driver_override;
+};
+
+enum fsl_mc_pool_type {
+	FSL_MC_POOL_DPMCP = 0,
+	FSL_MC_POOL_DPBP = 1,
+	FSL_MC_POOL_DPCON = 2,
+	FSL_MC_POOL_IRQ = 3,
+	FSL_MC_NUM_POOL_TYPES = 4,
+};
+
+struct fsl_mc_resource_pool;
+
+struct fsl_mc_resource {
+	enum fsl_mc_pool_type type;
+	s32 id;
+	void *data;
+	struct fsl_mc_resource_pool *parent_pool;
+	struct list_head node;
+};
+
+struct fsl_mc_device_irq {
+	unsigned int virq;
+	struct fsl_mc_device *mc_dev;
+	u8 dev_irq_index;
+	struct fsl_mc_resource resource;
+};
+
+struct fsl_mc_io {
+	struct device *dev;
+	u16 flags;
+	u32 portal_size;
+	phys_addr_t portal_phys_addr;
+	void *portal_virt_addr;
+	struct fsl_mc_device *dpmcp_dev;
+	union {
+		struct mutex mutex;
+		raw_spinlock_t spinlock;
+	};
+};
+
+struct group_device {
+	struct list_head list;
+	struct device *dev;
+	char *name;
+};
+
+struct iommu_group_attribute {
+	struct attribute attr;
+	ssize_t (*show)(struct iommu_group *, char *);
+	ssize_t (*store)(struct iommu_group *, const char *, size_t);
+};
+
+struct group_for_pci_data {
+	struct pci_dev *pdev;
+	struct iommu_group *group;
+};
+
+struct __group_domain_type {
+	struct device *dev;
+	unsigned int type;
+};
+
+struct trace_event_raw_iommu_group_event {
+	struct trace_entry ent;
+	int gid;
+	u32 __data_loc_device;
+	char __data[0];
+};
+
+struct trace_event_raw_iommu_device_event {
+	struct trace_entry ent;
+	u32 __data_loc_device;
+	char __data[0];
+};
+
+struct trace_event_raw_map {
+	struct trace_entry ent;
+	u64 iova;
+	u64 paddr;
+	size_t size;
+	char __data[0];
+};
+
+struct trace_event_raw_unmap {
+	struct trace_entry ent;
+	u64 iova;
