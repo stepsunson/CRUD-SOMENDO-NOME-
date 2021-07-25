@@ -97191,3 +97191,2043 @@ struct blkfront_ring_info {
 	struct work_struct work;
 	struct gnttab_free_callback callback;
 	struct list_head indirect_pages;
+	struct list_head grants;
+	unsigned int persistent_gnts_c;
+	long unsigned int shadow_free;
+	struct blkfront_info *dev_info;
+	struct blk_shadow shadow[0];
+};
+
+struct blkfront_info {
+	struct mutex mutex;
+	struct xenbus_device *xbdev;
+	struct gendisk *gd;
+	u16 sector_size;
+	unsigned int physical_sector_size;
+	long unsigned int vdisk_info;
+	int vdevice;
+	blkif_vdev_t handle;
+	enum blkif_state connected;
+	unsigned int nr_ring_pages;
+	struct request_queue *rq;
+	unsigned int feature_flush: 1;
+	unsigned int feature_fua: 1;
+	unsigned int feature_discard: 1;
+	unsigned int feature_secdiscard: 1;
+	unsigned int feature_persistent: 1;
+	unsigned int discard_granularity;
+	unsigned int discard_alignment;
+	unsigned int max_indirect_segments;
+	int is_ready;
+	struct blk_mq_tag_set tag_set;
+	struct blkfront_ring_info *rinfo;
+	unsigned int nr_rings;
+	unsigned int rinfo_size;
+	struct list_head requests;
+	struct bio_list bio_list;
+	struct list_head info_list;
+};
+
+struct setup_rw_req {
+	unsigned int grant_idx;
+	struct blkif_request_segment *segments;
+	struct blkfront_ring_info *rinfo;
+	struct blkif_request *ring_req;
+	grant_ref_t gref_head;
+	unsigned int id;
+	bool need_copy;
+	unsigned int bvec_off;
+	char *bvec_data;
+	bool require_extra_req;
+	struct blkif_request *extra_ring_req;
+};
+
+struct copy_from_grant {
+	const struct blk_shadow *s;
+	unsigned int grant_idx;
+	unsigned int bvec_offset;
+	char *bvec_data;
+};
+
+struct sram_config {
+	int (*init)();
+	bool map_only_reserved;
+};
+
+struct sram_partition {
+	void *base;
+	struct gen_pool *pool;
+	struct bin_attribute battr;
+	struct mutex lock;
+	struct list_head list;
+};
+
+struct sram_dev {
+	const struct sram_config *config;
+	struct device *dev;
+	void *virt_base;
+	bool no_memory_wc;
+	struct gen_pool *pool;
+	struct clk *clk;
+	struct sram_partition *partition;
+	u32 partitions;
+};
+
+struct sram_reserve {
+	struct list_head list;
+	u32 start;
+	u32 size;
+	struct resource res;
+	bool export;
+	bool pool;
+	bool protect_exec;
+	const char *label;
+};
+
+struct mfd_cell_acpi_match {
+	const char *pnpid;
+	const long long unsigned int adr;
+};
+
+enum {
+	CHIP_INVALID = 0,
+	CHIP_PM8606 = 1,
+	CHIP_PM8607 = 2,
+	CHIP_MAX = 3,
+};
+
+enum pm8606_ref_gp_and_osc_clients {
+	REF_GP_NO_CLIENTS = 0,
+	WLED1_DUTY = 1,
+	WLED2_DUTY = 2,
+	WLED3_DUTY = 4,
+	RGB1_ENABLE = 8,
+	RGB2_ENABLE = 16,
+	LDO_VBR_EN = 32,
+	REF_GP_MAX_CLIENT = 65535,
+};
+
+enum {
+	PM8607_IRQ_ONKEY = 0,
+	PM8607_IRQ_EXTON = 1,
+	PM8607_IRQ_CHG = 2,
+	PM8607_IRQ_BAT = 3,
+	PM8607_IRQ_RTC = 4,
+	PM8607_IRQ_CC = 5,
+	PM8607_IRQ_VBAT = 6,
+	PM8607_IRQ_VCHG = 7,
+	PM8607_IRQ_VSYS = 8,
+	PM8607_IRQ_TINT = 9,
+	PM8607_IRQ_GPADC0 = 10,
+	PM8607_IRQ_GPADC1 = 11,
+	PM8607_IRQ_GPADC2 = 12,
+	PM8607_IRQ_GPADC3 = 13,
+	PM8607_IRQ_AUDIO_SHORT = 14,
+	PM8607_IRQ_PEN = 15,
+	PM8607_IRQ_HEADSET = 16,
+	PM8607_IRQ_HOOK = 17,
+	PM8607_IRQ_MICIN = 18,
+	PM8607_IRQ_CHG_FAIL = 19,
+	PM8607_IRQ_CHG_DONE = 20,
+	PM8607_IRQ_CHG_FAULT = 21,
+};
+
+struct pm860x_chip {
+	struct device *dev;
+	struct mutex irq_lock;
+	struct mutex osc_lock;
+	struct i2c_client *client;
+	struct i2c_client *companion;
+	struct regmap *regmap;
+	struct regmap *regmap_companion;
+	int buck3_double;
+	int companion_addr;
+	short unsigned int osc_vote;
+	int id;
+	int irq_mode;
+	int irq_base;
+	int core_irq;
+	unsigned char chip_version;
+	unsigned char osc_status;
+	unsigned int wakeup_flag;
+};
+
+enum {
+	GI2C_PORT = 0,
+	PI2C_PORT = 1,
+};
+
+struct pm860x_backlight_pdata {
+	int pwm;
+	int iset;
+};
+
+struct pm860x_led_pdata {
+	int iset;
+};
+
+struct pm860x_rtc_pdata {
+	int (*sync)(unsigned int);
+	int vrtc;
+};
+
+struct pm860x_touch_pdata {
+	int gpadc_prebias;
+	int slot_cycle;
+	int off_scale;
+	int sw_cal;
+	int tsi_prebias;
+	int pen_prebias;
+	int pen_prechg;
+	int res_x;
+	long unsigned int flags;
+};
+
+struct pm860x_power_pdata {
+	int max_capacity;
+	int resistor;
+};
+
+struct charger_desc;
+
+struct pm860x_platform_data {
+	struct pm860x_backlight_pdata *backlight;
+	struct pm860x_led_pdata *led;
+	struct pm860x_rtc_pdata *rtc;
+	struct pm860x_touch_pdata *touch;
+	struct pm860x_power_pdata *power;
+	struct regulator_init_data *buck1;
+	struct regulator_init_data *buck2;
+	struct regulator_init_data *buck3;
+	struct regulator_init_data *ldo1;
+	struct regulator_init_data *ldo2;
+	struct regulator_init_data *ldo3;
+	struct regulator_init_data *ldo4;
+	struct regulator_init_data *ldo5;
+	struct regulator_init_data *ldo6;
+	struct regulator_init_data *ldo7;
+	struct regulator_init_data *ldo8;
+	struct regulator_init_data *ldo9;
+	struct regulator_init_data *ldo10;
+	struct regulator_init_data *ldo12;
+	struct regulator_init_data *ldo_vibrator;
+	struct regulator_init_data *ldo14;
+	struct charger_desc *chg_desc;
+	int companion_addr;
+	int i2c_port;
+	int irq_mode;
+	int irq_base;
+	int num_leds;
+	int num_backlights;
+};
+
+enum polling_modes {
+	CM_POLL_DISABLE = 0,
+	CM_POLL_ALWAYS = 1,
+	CM_POLL_EXTERNAL_POWER_ONLY = 2,
+	CM_POLL_CHARGING_ONLY = 3,
+};
+
+enum data_source {
+	CM_BATTERY_PRESENT = 0,
+	CM_NO_BATTERY = 1,
+	CM_FUEL_GAUGE = 2,
+	CM_CHARGER_STAT = 3,
+};
+
+struct charger_regulator;
+
+struct charger_desc {
+	const char *psy_name;
+	enum polling_modes polling_mode;
+	unsigned int polling_interval_ms;
+	unsigned int fullbatt_vchkdrop_uV;
+	unsigned int fullbatt_uV;
+	unsigned int fullbatt_soc;
+	unsigned int fullbatt_full_capacity;
+	enum data_source battery_present;
+	const char **psy_charger_stat;
+	int num_charger_regulators;
+	struct charger_regulator *charger_regulators;
+	const struct attribute_group **sysfs_groups;
+	const char *psy_fuel_gauge;
+	const char *thermal_zone;
+	int temp_min;
+	int temp_max;
+	int temp_diff;
+	bool measure_battery_temp;
+	u32 charging_max_duration_ms;
+	u32 discharging_max_duration_ms;
+};
+
+struct charger_manager;
+
+struct charger_cable {
+	const char *extcon_name;
+	const char *name;
+	struct extcon_dev *extcon_dev;
+	u64 extcon_type;
+	struct work_struct wq;
+	struct notifier_block nb;
+	bool attached;
+	struct charger_regulator *charger;
+	int min_uA;
+	int max_uA;
+	struct charger_manager *cm;
+};
+
+struct charger_regulator {
+	const char *regulator_name;
+	struct regulator *consumer;
+	int externally_control;
+	struct charger_cable *cables;
+	int num_cables;
+	struct attribute_group attr_grp;
+	struct device_attribute attr_name;
+	struct device_attribute attr_state;
+	struct device_attribute attr_externally_control;
+	struct attribute *attrs[4];
+	struct charger_manager *cm;
+};
+
+struct charger_manager {
+	struct list_head entry;
+	struct device *dev;
+	struct charger_desc *desc;
+	struct thermal_zone_device *tzd_batt;
+	bool charger_enabled;
+	int emergency_stop;
+	char psy_name_buf[31];
+	struct power_supply_desc charger_psy_desc;
+	struct power_supply *charger_psy;
+	u64 charging_start_time;
+	u64 charging_end_time;
+	int battery_status;
+};
+
+struct pm860x_irq_data {
+	int reg;
+	int mask_reg;
+	int enable;
+	int offs;
+};
+
+struct htcpld_chip_platform_data {
+	unsigned int addr;
+	unsigned int reset;
+	unsigned int num_gpios;
+	unsigned int gpio_out_base;
+	unsigned int gpio_in_base;
+	unsigned int irq_base;
+	unsigned int num_irqs;
+};
+
+struct htcpld_core_platform_data {
+	unsigned int int_reset_gpio_hi;
+	unsigned int int_reset_gpio_lo;
+	unsigned int i2c_adapter_id;
+	struct htcpld_chip_platform_data *chip;
+	unsigned int num_chip;
+};
+
+struct htcpld_chip {
+	spinlock_t lock;
+	u8 reset;
+	u8 addr;
+	struct device *dev;
+	struct i2c_client *client;
+	u8 cache_out;
+	struct gpio_chip chip_out;
+	u8 cache_in;
+	struct gpio_chip chip_in;
+	u16 irqs_enabled;
+	uint irq_start;
+	int nirqs;
+	unsigned int flow_type;
+	struct work_struct set_val_work;
+};
+
+struct htcpld_data {
+	u16 irqs_enabled;
+	uint irq_start;
+	int nirqs;
+	uint chained_irq;
+	unsigned int int_reset_gpio_hi;
+	unsigned int int_reset_gpio_lo;
+	struct htcpld_chip *chip;
+	unsigned int nchips;
+};
+
+struct wm8400_platform_data {
+	int (*platform_init)(struct device *);
+};
+
+struct wm8400 {
+	struct device *dev;
+	struct regmap *regmap;
+	struct platform_device regulators[6];
+};
+
+enum wm831x_auxadc {
+	WM831X_AUX_CAL = 15,
+	WM831X_AUX_BKUP_BATT = 10,
+	WM831X_AUX_WALL = 9,
+	WM831X_AUX_BATT = 8,
+	WM831X_AUX_USB = 7,
+	WM831X_AUX_SYSVDD = 6,
+	WM831X_AUX_BATT_TEMP = 5,
+	WM831X_AUX_CHIP_TEMP = 4,
+	WM831X_AUX_AUX4 = 3,
+	WM831X_AUX_AUX3 = 2,
+	WM831X_AUX_AUX2 = 1,
+	WM831X_AUX_AUX1 = 0,
+};
+
+struct wm831x_backlight_pdata {
+	int isink;
+	int max_uA;
+};
+
+struct wm831x_backup_pdata {
+	int charger_enable;
+	int no_constant_voltage;
+	int vlim;
+	int ilim;
+};
+
+struct wm831x_battery_pdata {
+	int enable;
+	int fast_enable;
+	int off_mask;
+	int trickle_ilim;
+	int vsel;
+	int eoc_iterm;
+	int fast_ilim;
+	int timeout;
+};
+
+enum wm831x_status_src {
+	WM831X_STATUS_PRESERVE = 0,
+	WM831X_STATUS_OTP = 1,
+	WM831X_STATUS_POWER = 2,
+	WM831X_STATUS_CHARGER = 3,
+	WM831X_STATUS_MANUAL = 4,
+};
+
+struct wm831x_status_pdata {
+	enum wm831x_status_src default_src;
+	const char *name;
+	const char *default_trigger;
+};
+
+struct wm831x_touch_pdata {
+	int fivewire;
+	int isel;
+	int rpu;
+	int pressure;
+	unsigned int data_irq;
+	int data_irqf;
+	unsigned int pd_irq;
+	int pd_irqf;
+};
+
+enum wm831x_watchdog_action {
+	WM831X_WDOG_NONE = 0,
+	WM831X_WDOG_INTERRUPT = 1,
+	WM831X_WDOG_RESET = 2,
+	WM831X_WDOG_WAKE = 3,
+};
+
+struct wm831x_watchdog_pdata {
+	enum wm831x_watchdog_action primary;
+	enum wm831x_watchdog_action secondary;
+	unsigned int software: 1;
+};
+
+struct wm831x;
+
+struct wm831x_pdata {
+	int wm831x_num;
+	int (*pre_init)(struct wm831x *);
+	int (*post_init)(struct wm831x *);
+	bool irq_cmos;
+	bool disable_touch;
+	bool soft_shutdown;
+	int irq_base;
+	int gpio_base;
+	int gpio_defaults[16];
+	struct wm831x_backlight_pdata *backlight;
+	struct wm831x_backup_pdata *backup;
+	struct wm831x_battery_pdata *battery;
+	struct wm831x_touch_pdata *touch;
+	struct wm831x_watchdog_pdata *watchdog;
+	struct wm831x_status_pdata *status[2];
+	struct regulator_init_data *dcdc[4];
+	struct regulator_init_data *epe[2];
+	struct regulator_init_data *ldo[11];
+	struct regulator_init_data *isink[2];
+};
+
+enum wm831x_parent {
+	WM8310 = 33552,
+	WM8311 = 33553,
+	WM8312 = 33554,
+	WM8320 = 33568,
+	WM8321 = 33569,
+	WM8325 = 33573,
+	WM8326 = 33574,
+};
+
+typedef int (*wm831x_auxadc_read_fn)(struct wm831x *, enum wm831x_auxadc);
+
+struct wm831x {
+	struct mutex io_lock;
+	struct device *dev;
+	struct regmap *regmap;
+	struct wm831x_pdata pdata;
+	enum wm831x_parent type;
+	int irq;
+	struct mutex irq_lock;
+	struct irq_domain *irq_domain;
+	int irq_masks_cur[5];
+	int irq_masks_cache[5];
+	bool soft_shutdown;
+	unsigned int has_gpio_ena: 1;
+	unsigned int has_cs_sts: 1;
+	unsigned int charger_irq_wake: 1;
+	int num_gpio;
+	int gpio_update[16];
+	bool gpio_level_high[16];
+	bool gpio_level_low[16];
+	struct mutex auxadc_lock;
+	struct list_head auxadc_pending;
+	u16 auxadc_active;
+	wm831x_auxadc_read_fn auxadc_read;
+	struct mutex key_lock;
+	unsigned int locked: 1;
+};
+
+struct wm831x_irq_data {
+	int primary;
+	int reg;
+	int mask;
+};
+
+struct wm831x_auxadc_req {
+	struct list_head list;
+	enum wm831x_auxadc input;
+	int val;
+	struct completion done;
+};
+
+struct wm8350_audio_platform_data {
+	int vmid_discharge_msecs;
+	int drain_msecs;
+	int cap_discharge_msecs;
+	int vmid_charge_msecs;
+	u32 vmid_s_curve: 2;
+	u32 dis_out4: 2;
+	u32 dis_out3: 2;
+	u32 dis_out2: 2;
+	u32 dis_out1: 2;
+	u32 vroi_out4: 1;
+	u32 vroi_out3: 1;
+	u32 vroi_out2: 1;
+	u32 vroi_out1: 1;
+	u32 vroi_enable: 1;
+	u32 codec_current_on: 2;
+	u32 codec_current_standby: 2;
+	u32 codec_current_charge: 2;
+};
+
+struct wm8350_codec {
+	struct platform_device *pdev;
+	struct wm8350_audio_platform_data *platform_data;
+};
+
+struct wm8350_gpio {
+	struct platform_device *pdev;
+};
+
+struct wm8350_led {
+	struct platform_device *pdev;
+	struct work_struct work;
+	spinlock_t value_lock;
+	enum led_brightness value;
+	struct led_classdev cdev;
+	int max_uA_index;
+	int enabled;
+	struct regulator *isink;
+	struct regulator_consumer_supply isink_consumer;
+	struct regulator_init_data isink_init;
+	struct regulator *dcdc;
+	struct regulator_consumer_supply dcdc_consumer;
+	struct regulator_init_data dcdc_init;
+};
+
+struct wm8350_pmic {
+	int max_dcdc;
+	int max_isink;
+	int isink_A_dcdc;
+	int isink_B_dcdc;
+	u16 dcdc1_hib_mode;
+	u16 dcdc3_hib_mode;
+	u16 dcdc4_hib_mode;
+	u16 dcdc6_hib_mode;
+	struct platform_device *pdev[12];
+	struct wm8350_led led[2];
+};
+
+struct rtc_device___2;
+
+struct wm8350_rtc {
+	struct platform_device *pdev;
+	struct rtc_device___2 *rtc;
+	int alarm_enabled;
+	int update_enabled;
+};
+
+struct wm8350_charger_policy {
+	int eoc_mA;
+	int charge_mV;
+	int fast_limit_mA;
+	int fast_limit_USB_mA;
+	int charge_timeout;
+	int trickle_start_mV;
+	int trickle_charge_mA;
+	int trickle_charge_USB_mA;
+};
+
+struct wm8350_power {
+	struct platform_device *pdev;
+	struct power_supply *battery;
+	struct power_supply *usb;
+	struct power_supply *ac;
+	struct wm8350_charger_policy *policy;
+	int rev_g_coeff;
+};
+
+struct wm8350_wdt {
+	struct platform_device *pdev;
+};
+
+struct wm8350_hwmon {
+	struct platform_device *pdev;
+	struct device *classdev;
+};
+
+struct wm8350 {
+	struct device *dev;
+	struct regmap *regmap;
+	bool unlocked;
+	struct mutex auxadc_mutex;
+	struct completion auxadc_done;
+	struct mutex irq_lock;
+	int chip_irq;
+	int irq_base;
+	u16 irq_masks[7];
+	struct wm8350_codec codec;
+	struct wm8350_gpio gpio;
+	struct wm8350_hwmon hwmon;
+	struct wm8350_pmic pmic;
+	struct wm8350_power power;
+	struct wm8350_rtc rtc;
+	struct wm8350_wdt wdt;
+};
+
+struct wm8350_platform_data {
+	int (*init)(struct wm8350 *);
+	int irq_high;
+	int irq_base;
+	int gpio_base;
+};
+
+struct wm8350_reg_access {
+	u16 readable;
+	u16 writable;
+	u16 vol;
+};
+
+struct wm8350_irq_data {
+	int primary;
+	int reg;
+	int mask;
+	int primary_only;
+};
+
+struct tps65910_platform_data {
+	int irq;
+	int irq_base;
+};
+
+enum tps65912_irqs {
+	TPS65912_IRQ_PWRHOLD_F = 0,
+	TPS65912_IRQ_VMON = 1,
+	TPS65912_IRQ_PWRON = 2,
+	TPS65912_IRQ_PWRON_LP = 3,
+	TPS65912_IRQ_PWRHOLD_R = 4,
+	TPS65912_IRQ_HOTDIE = 5,
+	TPS65912_IRQ_GPIO1_R = 6,
+	TPS65912_IRQ_GPIO1_F = 7,
+	TPS65912_IRQ_GPIO2_R = 8,
+	TPS65912_IRQ_GPIO2_F = 9,
+	TPS65912_IRQ_GPIO3_R = 10,
+	TPS65912_IRQ_GPIO3_F = 11,
+	TPS65912_IRQ_GPIO4_R = 12,
+	TPS65912_IRQ_GPIO4_F = 13,
+	TPS65912_IRQ_GPIO5_R = 14,
+	TPS65912_IRQ_GPIO5_F = 15,
+	TPS65912_IRQ_PGOOD_DCDC1 = 16,
+	TPS65912_IRQ_PGOOD_DCDC2 = 17,
+	TPS65912_IRQ_PGOOD_DCDC3 = 18,
+	TPS65912_IRQ_PGOOD_DCDC4 = 19,
+	TPS65912_IRQ_PGOOD_LDO1 = 20,
+	TPS65912_IRQ_PGOOD_LDO2 = 21,
+	TPS65912_IRQ_PGOOD_LDO3 = 22,
+	TPS65912_IRQ_PGOOD_LDO4 = 23,
+	TPS65912_IRQ_PGOOD_LDO5 = 24,
+	TPS65912_IRQ_PGOOD_LDO6 = 25,
+	TPS65912_IRQ_PGOOD_LDO7 = 26,
+	TPS65912_IRQ_PGOOD_LDO8 = 27,
+	TPS65912_IRQ_PGOOD_LDO9 = 28,
+	TPS65912_IRQ_PGOOD_LDO10 = 29,
+};
+
+struct tps65912 {
+	struct device *dev;
+	struct regmap *regmap;
+	int irq;
+	struct regmap_irq_chip_data *irq_data;
+};
+
+struct of_dev_auxdata {
+	char *compatible;
+	resource_size_t phys_addr;
+	char *name;
+	void *platform_data;
+};
+
+struct matrix_keymap_data {
+	const uint32_t *keymap;
+	unsigned int keymap_size;
+};
+
+enum twl_module_ids {
+	TWL_MODULE_USB = 0,
+	TWL_MODULE_PIH = 1,
+	TWL_MODULE_MAIN_CHARGE = 2,
+	TWL_MODULE_PM_MASTER = 3,
+	TWL_MODULE_PM_RECEIVER = 4,
+	TWL_MODULE_RTC = 5,
+	TWL_MODULE_PWM = 6,
+	TWL_MODULE_LED = 7,
+	TWL_MODULE_SECURED_REG = 8,
+	TWL_MODULE_LAST = 9,
+};
+
+enum twl4030_module_ids {
+	TWL4030_MODULE_AUDIO_VOICE = 9,
+	TWL4030_MODULE_GPIO = 10,
+	TWL4030_MODULE_INTBR = 11,
+	TWL4030_MODULE_TEST = 12,
+	TWL4030_MODULE_KEYPAD = 13,
+	TWL4030_MODULE_MADC = 14,
+	TWL4030_MODULE_INTERRUPTS = 15,
+	TWL4030_MODULE_PRECHARGE = 16,
+	TWL4030_MODULE_BACKUP = 17,
+	TWL4030_MODULE_INT = 18,
+	TWL5031_MODULE_ACCESSORY = 19,
+	TWL5031_MODULE_INTERRUPTS = 20,
+	TWL4030_MODULE_LAST = 21,
+};
+
+enum twl6030_module_ids {
+	TWL6030_MODULE_ID0 = 9,
+	TWL6030_MODULE_ID1 = 10,
+	TWL6030_MODULE_ID2 = 11,
+	TWL6030_MODULE_GPADC = 12,
+	TWL6030_MODULE_GASGAUGE = 13,
+	TWL6030_MODULE_LAST = 14,
+};
+
+struct twl4030_clock_init_data {
+	bool ck32k_lowpwr_enable;
+};
+
+struct twl4030_bci_platform_data {
+	int *battery_tmp_tbl;
+	unsigned int tblsize;
+	int bb_uvolt;
+	int bb_uamp;
+};
+
+struct twl4030_gpio_platform_data {
+	bool use_leds;
+	u8 mmc_cd;
+	u32 debounce;
+	u32 pullups;
+	u32 pulldowns;
+	int (*setup)(struct device *, unsigned int, unsigned int);
+	int (*teardown)(struct device *, unsigned int, unsigned int);
+};
+
+struct twl4030_madc_platform_data {
+	int irq_line;
+};
+
+struct twl4030_keypad_data {
+	const struct matrix_keymap_data *keymap_data;
+	unsigned int rows;
+	unsigned int cols;
+	bool rep;
+};
+
+enum twl4030_usb_mode {
+	T2_USB_MODE_ULPI = 1,
+	T2_USB_MODE_CEA2011_3PIN = 2,
+};
+
+struct twl4030_usb_data {
+	enum twl4030_usb_mode usb_mode;
+	long unsigned int features;
+	int (*phy_init)(struct device *);
+	int (*phy_exit)(struct device *);
+	int (*phy_power)(struct device *, int, int);
+	int (*phy_set_clock)(struct device *, int);
+	int (*phy_suspend)(struct device *, int);
+};
+
+struct twl4030_ins {
+	u16 pmb_message;
+	u8 delay;
+};
+
+struct twl4030_script {
+	struct twl4030_ins *script;
+	unsigned int size;
+	u8 flags;
+};
+
+struct twl4030_resconfig {
+	u8 resource;
+	u8 devgroup;
+	u8 type;
+	u8 type2;
+	u8 remap_off;
+	u8 remap_sleep;
+};
+
+struct twl4030_power_data {
+	struct twl4030_script **scripts;
+	unsigned int num;
+	struct twl4030_resconfig *resource_config;
+	struct twl4030_resconfig *board_config;
+	bool use_poweroff;
+	bool ac_charger_quirk;
+};
+
+struct twl4030_codec_data {
+	unsigned int digimic_delay;
+	unsigned int ramp_delay_value;
+	unsigned int offset_cncl_path;
+	unsigned int hs_extmute: 1;
+	int hs_extmute_gpio;
+};
+
+struct twl4030_vibra_data {
+	unsigned int coexist;
+};
+
+struct twl4030_audio_data {
+	unsigned int audio_mclk;
+	struct twl4030_codec_data *codec;
+	struct twl4030_vibra_data *vibra;
+	int audpwron_gpio;
+	int naudint_irq;
+	unsigned int irq_base;
+};
+
+struct twl4030_platform_data {
+	struct twl4030_clock_init_data *clock;
+	struct twl4030_bci_platform_data *bci;
+	struct twl4030_gpio_platform_data *gpio;
+	struct twl4030_madc_platform_data *madc;
+	struct twl4030_keypad_data *keypad;
+	struct twl4030_usb_data *usb;
+	struct twl4030_power_data *power;
+	struct twl4030_audio_data *audio;
+	struct regulator_init_data *vdac;
+	struct regulator_init_data *vaux1;
+	struct regulator_init_data *vaux2;
+	struct regulator_init_data *vaux3;
+	struct regulator_init_data *vdd1;
+	struct regulator_init_data *vdd2;
+	struct regulator_init_data *vdd3;
+	struct regulator_init_data *vpll1;
+	struct regulator_init_data *vpll2;
+	struct regulator_init_data *vmmc1;
+	struct regulator_init_data *vmmc2;
+	struct regulator_init_data *vsim;
+	struct regulator_init_data *vaux4;
+	struct regulator_init_data *vio;
+	struct regulator_init_data *vintana1;
+	struct regulator_init_data *vintana2;
+	struct regulator_init_data *vintdig;
+	struct regulator_init_data *vmmc;
+	struct regulator_init_data *vpp;
+	struct regulator_init_data *vusim;
+	struct regulator_init_data *vana;
+	struct regulator_init_data *vcxio;
+	struct regulator_init_data *vusb;
+	struct regulator_init_data *clk32kg;
+	struct regulator_init_data *v1v8;
+	struct regulator_init_data *v2v1;
+	struct regulator_init_data *ldo1;
+	struct regulator_init_data *ldo2;
+	struct regulator_init_data *ldo3;
+	struct regulator_init_data *ldo4;
+	struct regulator_init_data *ldo5;
+	struct regulator_init_data *ldo6;
+	struct regulator_init_data *ldo7;
+	struct regulator_init_data *ldoln;
+	struct regulator_init_data *ldousb;
+	struct regulator_init_data *smps3;
+	struct regulator_init_data *smps4;
+	struct regulator_init_data *vio6025;
+};
+
+struct twl_regulator_driver_data {
+	int (*set_voltage)(void *, int);
+	int (*get_voltage)(void *);
+	void *data;
+	long unsigned int features;
+};
+
+struct twl_client {
+	struct i2c_client *client;
+	struct regmap *regmap;
+};
+
+struct twl_mapping {
+	unsigned char sid;
+	unsigned char base;
+};
+
+struct twl_private {
+	bool ready;
+	u32 twl_idcode;
+	unsigned int twl_id;
+	struct twl_mapping *twl_map;
+	struct twl_client *twl_modules;
+};
+
+struct sih_irq_data {
+	u8 isr_offset;
+	u8 imr_offset;
+};
+
+struct sih {
+	char name[8];
+	u8 module;
+	u8 control_offset;
+	bool set_cor;
+	u8 bits;
+	u8 bytes_ixr;
+	u8 edr_offset;
+	u8 bytes_edr;
+	u8 irq_lines;
+	struct sih_irq_data mask[2];
+};
+
+struct sih_agent {
+	int irq_base;
+	const struct sih *sih;
+	u32 imr;
+	bool imr_change_pending;
+	u32 edge_change;
+	struct mutex irq_lock;
+	char *irq_name;
+};
+
+struct twl6030_irq {
+	unsigned int irq_base;
+	int twl_irq;
+	bool irq_wake_enabled;
+	atomic_t wakeirqs;
+	struct notifier_block pm_nb;
+	struct irq_chip irq_chip;
+	struct irq_domain *irq_domain;
+	const int *irq_mapping_tbl;
+};
+
+enum twl4030_audio_res {
+	TWL4030_AUDIO_RES_POWER = 0,
+	TWL4030_AUDIO_RES_APLL = 1,
+	TWL4030_AUDIO_RES_MAX = 2,
+};
+
+struct twl4030_audio_resource {
+	int request_count;
+	u8 reg;
+	u8 mask;
+};
+
+struct twl4030_audio {
+	unsigned int audio_mclk;
+	struct mutex mutex;
+	struct twl4030_audio_resource resource[2];
+	struct mfd_cell cells[2];
+};
+
+enum of_gpio_flags {
+	OF_GPIO_ACTIVE_LOW = 1,
+	OF_GPIO_SINGLE_ENDED = 2,
+	OF_GPIO_OPEN_DRAIN = 4,
+	OF_GPIO_TRANSITORY = 8,
+	OF_GPIO_PULL_UP = 16,
+	OF_GPIO_PULL_DOWN = 32,
+};
+
+struct twl6040 {
+	struct device *dev;
+	struct regmap *regmap;
+	struct regmap_irq_chip_data *irq_data;
+	struct regulator_bulk_data supplies[2];
+	struct clk *clk32k;
+	struct clk *mclk;
+	struct mutex mutex;
+	struct mutex irq_mutex;
+	struct mfd_cell cells[4];
+	struct completion ready;
+	int audpwron;
+	int power_count;
+	int rev;
+	int pll;
+	unsigned int sysclk_rate;
+	unsigned int mclk_rate;
+	unsigned int irq;
+	unsigned int irq_ready;
+	unsigned int irq_th;
+};
+
+struct mfd_of_node_entry {
+	struct list_head list;
+	struct device *dev;
+	struct device_node *np;
+};
+
+struct pcap_subdev {
+	int id;
+	const char *name;
+	void *platform_data;
+};
+
+struct pcap_platform_data {
+	unsigned int irq_base;
+	unsigned int config;
+	int gpio;
+	void (*init)(void *);
+	int num_subdevs;
+	struct pcap_subdev *subdevs;
+};
+
+struct pcap_adc_request {
+	u8 bank;
+	u8 ch[2];
+	u32 flags;
+	void (*callback)(void *, u16 *);
+	void *data;
+};
+
+struct pcap_adc_sync_request {
+	u16 res[2];
+	struct completion completion;
+};
+
+struct pcap_chip {
+	struct spi_device *spi;
+	u32 buf;
+	spinlock_t io_lock;
+	unsigned int irq_base;
+	u32 msr;
+	struct work_struct isr_work;
+	struct work_struct msr_work;
+	struct workqueue_struct *workqueue;
+	struct pcap_adc_request *adc_queue[8];
+	u8 adc_head;
+	u8 adc_tail;
+	spinlock_t adc_lock;
+};
+
+struct da903x_subdev_info {
+	int id;
+	const char *name;
+	void *platform_data;
+};
+
+struct da903x_platform_data {
+	int num_subdevs;
+	struct da903x_subdev_info *subdevs;
+};
+
+struct da903x_chip;
+
+struct da903x_chip_ops {
+	int (*init_chip)(struct da903x_chip *);
+	int (*unmask_events)(struct da903x_chip *, unsigned int);
+	int (*mask_events)(struct da903x_chip *, unsigned int);
+	int (*read_events)(struct da903x_chip *, unsigned int *);
+	int (*read_status)(struct da903x_chip *, unsigned int *);
+};
+
+struct da903x_chip {
+	struct i2c_client *client;
+	struct device *dev;
+	const struct da903x_chip_ops *ops;
+	int type;
+	uint32_t events_mask;
+	struct mutex lock;
+	struct work_struct irq_work;
+	struct blocking_notifier_head notifier_list;
+};
+
+struct da9052 {
+	struct device *dev;
+	struct regmap *regmap;
+	struct mutex auxadc_lock;
+	struct completion done;
+	int irq_base;
+	struct regmap_irq_chip_data *irq_data;
+	u8 chip_id;
+	int chip_irq;
+	int (*fix_io)(struct da9052 *, unsigned char);
+};
+
+struct led_platform_data;
+
+struct da9052_pdata {
+	struct led_platform_data *pled;
+	int (*init)(struct da9052 *);
+	int irq_base;
+	int gpio_base;
+	int use_for_apm;
+	struct regulator_init_data *regulators[14];
+};
+
+enum da9052_chip_id {
+	DA9052 = 0,
+	DA9053_AA = 1,
+	DA9053_BA = 2,
+	DA9053_BB = 3,
+	DA9053_BC = 4,
+};
+
+enum lp8788_int_id {
+	LP8788_INT_TSDL = 0,
+	LP8788_INT_TSDH = 1,
+	LP8788_INT_UVLO = 2,
+	LP8788_INT_FLAGMON = 3,
+	LP8788_INT_PWRON_TIME = 4,
+	LP8788_INT_PWRON = 5,
+	LP8788_INT_COMP1 = 6,
+	LP8788_INT_COMP2 = 7,
+	LP8788_INT_CHG_INPUT_STATE = 8,
+	LP8788_INT_CHG_STATE = 9,
+	LP8788_INT_EOC = 10,
+	LP8788_INT_CHG_RESTART = 11,
+	LP8788_INT_RESTART_TIMEOUT = 12,
+	LP8788_INT_FULLCHG_TIMEOUT = 13,
+	LP8788_INT_PRECHG_TIMEOUT = 14,
+	LP8788_INT_RTC_ALARM1 = 17,
+	LP8788_INT_RTC_ALARM2 = 18,
+	LP8788_INT_ENTER_SYS_SUPPORT = 19,
+	LP8788_INT_EXIT_SYS_SUPPORT = 20,
+	LP8788_INT_BATT_LOW = 21,
+	LP8788_INT_NO_BATT = 22,
+	LP8788_INT_MAX = 24,
+};
+
+enum lp8788_dvs_sel {
+	DVS_SEL_V0 = 0,
+	DVS_SEL_V1 = 1,
+	DVS_SEL_V2 = 2,
+	DVS_SEL_V3 = 3,
+};
+
+enum lp8788_charger_event {
+	NO_CHARGER = 0,
+	CHARGER_DETECTED = 1,
+};
+
+enum lp8788_bl_ctrl_mode {
+	LP8788_BL_REGISTER_ONLY = 0,
+	LP8788_BL_COMB_PWM_BASED = 1,
+	LP8788_BL_COMB_REGISTER_BASED = 2,
+};
+
+enum lp8788_bl_dim_mode {
+	LP8788_DIM_EXPONENTIAL = 0,
+	LP8788_DIM_LINEAR = 1,
+};
+
+enum lp8788_bl_full_scale_current {
+	LP8788_FULLSCALE_5000uA = 0,
+	LP8788_FULLSCALE_8500uA = 1,
+	LP8788_FULLSCALE_1200uA = 2,
+	LP8788_FULLSCALE_1550uA = 3,
+	LP8788_FULLSCALE_1900uA = 4,
+	LP8788_FULLSCALE_2250uA = 5,
+	LP8788_FULLSCALE_2600uA = 6,
+	LP8788_FULLSCALE_2950uA = 7,
+};
+
+enum lp8788_bl_ramp_step {
+	LP8788_RAMP_8us = 0,
+	LP8788_RAMP_1024us = 1,
+	LP8788_RAMP_2048us = 2,
+	LP8788_RAMP_4096us = 3,
+	LP8788_RAMP_8192us = 4,
+	LP8788_RAMP_16384us = 5,
+	LP8788_RAMP_32768us = 6,
+	LP8788_RAMP_65538us = 7,
+};
+
+enum lp8788_isink_scale {
+	LP8788_ISINK_SCALE_100mA = 0,
+	LP8788_ISINK_SCALE_120mA = 1,
+};
+
+enum lp8788_isink_number {
+	LP8788_ISINK_1 = 0,
+	LP8788_ISINK_2 = 1,
+	LP8788_ISINK_3 = 2,
+};
+
+enum lp8788_alarm_sel {
+	LP8788_ALARM_1 = 0,
+	LP8788_ALARM_2 = 1,
+	LP8788_ALARM_MAX = 2,
+};
+
+struct lp8788_buck1_dvs {
+	int gpio;
+	enum lp8788_dvs_sel vsel;
+};
+
+struct lp8788_buck2_dvs {
+	int gpio[2];
+	enum lp8788_dvs_sel vsel;
+};
+
+struct lp8788_chg_param {
+	u8 addr;
+	u8 val;
+};
+
+struct lp8788;
+
+struct lp8788_charger_platform_data {
+	const char *adc_vbatt;
+	const char *adc_batt_temp;
+	unsigned int max_vbatt_mv;
+	struct lp8788_chg_param *chg_params;
+	int num_chg_params;
+	void (*charger_event)(struct lp8788 *, enum lp8788_charger_event);
+};
+
+struct lp8788_platform_data;
+
+struct lp8788 {
+	struct device *dev;
+	struct regmap *regmap;
+	struct irq_domain *irqdm;
+	int irq;
+	struct lp8788_platform_data *pdata;
+};
+
+struct lp8788_backlight_platform_data {
+	char *name;
+	int initial_brightness;
+	enum lp8788_bl_ctrl_mode bl_mode;
+	enum lp8788_bl_dim_mode dim_mode;
+	enum lp8788_bl_full_scale_current full_scale;
+	enum lp8788_bl_ramp_step rise_time;
+	enum lp8788_bl_ramp_step fall_time;
+	enum pwm_polarity pwm_pol;
+	unsigned int period_ns;
+};
+
+struct lp8788_led_platform_data {
+	char *name;
+	enum lp8788_isink_scale scale;
+	enum lp8788_isink_number num;
+	int iout_code;
+};
+
+struct lp8788_vib_platform_data {
+	char *name;
+	enum lp8788_isink_scale scale;
+	enum lp8788_isink_number num;
+	int iout_code;
+	int pwm_code;
+};
+
+struct iio_map;
+
+struct lp8788_platform_data {
+	int (*init_func)(struct lp8788 *);
+	struct regulator_init_data *buck_data[4];
+	struct regulator_init_data *dldo_data[12];
+	struct regulator_init_data *aldo_data[10];
+	struct lp8788_buck1_dvs *buck1_dvs;
+	struct lp8788_buck2_dvs *buck2_dvs;
+	struct lp8788_charger_platform_data *chg_pdata;
+	enum lp8788_alarm_sel alarm_sel;
+	struct lp8788_backlight_platform_data *bl_pdata;
+	struct lp8788_led_platform_data *led_pdata;
+	struct lp8788_vib_platform_data *vib_pdata;
+	struct iio_map *adc_pdata;
+};
+
+struct lp8788_irq_data {
+	struct lp8788 *lp;
+	struct mutex irq_lock;
+	struct irq_domain *domain;
+	int enabled[24];
+};
+
+struct da9055 {
+	struct regmap *regmap;
+	struct regmap_irq_chip_data *irq_data;
+	struct device *dev;
+	struct i2c_client *i2c_client;
+	int irq_base;
+	int chip_irq;
+};
+
+enum gpio_select {
+	NO_GPIO = 0,
+	GPIO_1 = 1,
+	GPIO_2 = 2,
+};
+
+struct da9055_pdata {
+	int (*init)(struct da9055 *);
+	int irq_base;
+	int gpio_base;
+	struct regulator_init_data *regulators[8];
+	bool reset_enable;
+	int *gpio_ren;
+	int *gpio_rsel;
+	enum gpio_select *reg_ren;
+	enum gpio_select *reg_rsel;
+	struct gpio_desc **ena_gpiods;
+};
+
+enum da9063_type {
+	PMIC_TYPE_DA9063 = 0,
+	PMIC_TYPE_DA9063L = 1,
+};
+
+enum da9063_irqs {
+	DA9063_IRQ_ONKEY = 0,
+	DA9063_IRQ_ALARM = 1,
+	DA9063_IRQ_TICK = 2,
+	DA9063_IRQ_ADC_RDY = 3,
+	DA9063_IRQ_SEQ_RDY = 4,
+	DA9063_IRQ_WAKE = 5,
+	DA9063_IRQ_TEMP = 6,
+	DA9063_IRQ_COMP_1V2 = 7,
+	DA9063_IRQ_LDO_LIM = 8,
+	DA9063_IRQ_REG_UVOV = 9,
+	DA9063_IRQ_DVC_RDY = 10,
+	DA9063_IRQ_VDD_MON = 11,
+	DA9063_IRQ_WARN = 12,
+	DA9063_IRQ_GPI0 = 13,
+	DA9063_IRQ_GPI1 = 14,
+	DA9063_IRQ_GPI2 = 15,
+	DA9063_IRQ_GPI3 = 16,
+	DA9063_IRQ_GPI4 = 17,
+	DA9063_IRQ_GPI5 = 18,
+	DA9063_IRQ_GPI6 = 19,
+	DA9063_IRQ_GPI7 = 20,
+	DA9063_IRQ_GPI8 = 21,
+	DA9063_IRQ_GPI9 = 22,
+	DA9063_IRQ_GPI10 = 23,
+	DA9063_IRQ_GPI11 = 24,
+	DA9063_IRQ_GPI12 = 25,
+	DA9063_IRQ_GPI13 = 26,
+	DA9063_IRQ_GPI14 = 27,
+	DA9063_IRQ_GPI15 = 28,
+};
+
+struct da9063 {
+	struct device *dev;
+	enum da9063_type type;
+	unsigned char variant_code;
+	unsigned int flags;
+	struct regmap *regmap;
+	int chip_irq;
+	unsigned int irq_base;
+	struct regmap_irq_chip_data *regmap_irq;
+};
+
+enum da9063_variant_codes {
+	PMIC_DA9063_AD = 3,
+	PMIC_DA9063_BB = 5,
+	PMIC_DA9063_CA = 6,
+	PMIC_DA9063_DA = 7,
+	PMIC_DA9063_EA = 8,
+};
+
+enum da9063_page_sel_buf_fmt {
+	DA9063_PAGE_SEL_BUF_PAGE_REG = 0,
+	DA9063_PAGE_SEL_BUF_PAGE_VAL = 1,
+	DA9063_PAGE_SEL_BUF_SIZE = 2,
+};
+
+enum da9063_paged_read_msgs {
+	DA9063_PAGED_READ_MSG_PAGE_SEL = 0,
+	DA9063_PAGED_READ_MSG_REG_SEL = 1,
+	DA9063_PAGED_READ_MSG_DATA = 2,
+	DA9063_PAGED_READ_MSG_CNT = 3,
+};
+
+enum {
+	DA9063_DEV_ID_REG = 0,
+	DA9063_VAR_ID_REG = 1,
+	DA9063_CHIP_ID_REGS = 2,
+};
+
+struct max14577_regulator_platform_data {
+	int id;
+	struct regulator_init_data *initdata;
+	struct device_node *of_node;
+};
+
+struct max14577_platform_data {
+	int irq_base;
+	int gpio_pogo_vbatt_en;
+	int gpio_pogo_vbus_en;
+	int (*set_gpio_pogo_vbatt_en)(int);
+	int (*set_gpio_pogo_vbus_en)(int);
+	int (*set_gpio_pogo_cb)(int);
+	struct max14577_regulator_platform_data *regulators;
+};
+
+struct maxim_charger_current {
+	unsigned int min;
+	unsigned int high_start;
+	unsigned int high_step;
+	unsigned int max;
+};
+
+enum maxim_device_type {
+	MAXIM_DEVICE_TYPE_UNKNOWN = 0,
+	MAXIM_DEVICE_TYPE_MAX14577 = 1,
+	MAXIM_DEVICE_TYPE_MAX77836 = 2,
+	MAXIM_DEVICE_TYPE_NUM = 3,
+};
+
+enum max14577_reg {
+	MAX14577_REG_DEVICEID = 0,
+	MAX14577_REG_INT1 = 1,
+	MAX14577_REG_INT2 = 2,
+	MAX14577_REG_INT3 = 3,
+	MAX14577_REG_STATUS1 = 4,
+	MAX14577_REG_STATUS2 = 5,
+	MAX14577_REG_STATUS3 = 6,
+	MAX14577_REG_INTMASK1 = 7,
+	MAX14577_REG_INTMASK2 = 8,
+	MAX14577_REG_INTMASK3 = 9,
+	MAX14577_REG_CDETCTRL1 = 10,
+	MAX14577_REG_RFU = 11,
+	MAX14577_REG_CONTROL1 = 12,
+	MAX14577_REG_CONTROL2 = 13,
+	MAX14577_REG_CONTROL3 = 14,
+	MAX14577_REG_CHGCTRL1 = 15,
+	MAX14577_REG_CHGCTRL2 = 16,
+	MAX14577_REG_CHGCTRL3 = 17,
+	MAX14577_REG_CHGCTRL4 = 18,
+	MAX14577_REG_CHGCTRL5 = 19,
+	MAX14577_REG_CHGCTRL6 = 20,
+	MAX14577_REG_CHGCTRL7 = 21,
+	MAX14577_REG_END = 22,
+};
+
+enum max77836_pmic_reg {
+	MAX77836_PMIC_REG_PMIC_ID = 32,
+	MAX77836_PMIC_REG_PMIC_REV = 33,
+	MAX77836_PMIC_REG_INTSRC = 34,
+	MAX77836_PMIC_REG_INTSRC_MASK = 35,
+	MAX77836_PMIC_REG_TOPSYS_INT = 36,
+	MAX77836_PMIC_REG_TOPSYS_INT_MASK = 38,
+	MAX77836_PMIC_REG_TOPSYS_STAT = 40,
+	MAX77836_PMIC_REG_MRSTB_CNTL = 42,
+	MAX77836_PMIC_REG_LSCNFG = 43,
+	MAX77836_LDO_REG_CNFG1_LDO1 = 81,
+	MAX77836_LDO_REG_CNFG2_LDO1 = 82,
+	MAX77836_LDO_REG_CNFG1_LDO2 = 83,
+	MAX77836_LDO_REG_CNFG2_LDO2 = 84,
+	MAX77836_LDO_REG_CNFG_LDO_BIAS = 85,
+	MAX77836_COMP_REG_COMP1 = 96,
+	MAX77836_PMIC_REG_END = 97,
+};
+
+enum max77836_fg_reg {
+	MAX77836_FG_REG_VCELL_MSB = 2,
+	MAX77836_FG_REG_VCELL_LSB = 3,
+	MAX77836_FG_REG_SOC_MSB = 4,
+	MAX77836_FG_REG_SOC_LSB = 5,
+	MAX77836_FG_REG_MODE_H = 6,
+	MAX77836_FG_REG_MODE_L = 7,
+	MAX77836_FG_REG_VERSION_MSB = 8,
+	MAX77836_FG_REG_VERSION_LSB = 9,
+	MAX77836_FG_REG_HIBRT_H = 10,
+	MAX77836_FG_REG_HIBRT_L = 11,
+	MAX77836_FG_REG_CONFIG_H = 12,
+	MAX77836_FG_REG_CONFIG_L = 13,
+	MAX77836_FG_REG_VALRT_MIN = 20,
+	MAX77836_FG_REG_VALRT_MAX = 21,
+	MAX77836_FG_REG_CRATE_MSB = 22,
+	MAX77836_FG_REG_CRATE_LSB = 23,
+	MAX77836_FG_REG_VRESET = 24,
+	MAX77836_FG_REG_FGID = 25,
+	MAX77836_FG_REG_STATUS_H = 26,
+	MAX77836_FG_REG_STATUS_L = 27,
+	MAX77836_FG_REG_END = 28,
+};
+
+struct max14577 {
+	struct device *dev;
+	struct i2c_client *i2c;
+	struct i2c_client *i2c_pmic;
+	enum maxim_device_type dev_type;
+	struct regmap *regmap;
+	struct regmap *regmap_pmic;
+	struct regmap_irq_chip_data *irq_data;
+	struct regmap_irq_chip_data *irq_data_pmic;
+	int irq;
+};
+
+enum max77693_types {
+	TYPE_MAX77693_UNKNOWN = 0,
+	TYPE_MAX77693 = 1,
+	TYPE_MAX77843 = 2,
+	TYPE_MAX77693_NUM = 3,
+};
+
+struct max77693_dev {
+	struct device *dev;
+	struct i2c_client *i2c;
+	struct i2c_client *i2c_muic;
+	struct i2c_client *i2c_haptic;
+	struct i2c_client *i2c_chg;
+	enum max77693_types type;
+	struct regmap *regmap;
+	struct regmap *regmap_muic;
+	struct regmap *regmap_haptic;
+	struct regmap *regmap_chg;
+	struct regmap_irq_chip_data *irq_data_led;
+	struct regmap_irq_chip_data *irq_data_topsys;
+	struct regmap_irq_chip_data *irq_data_chg;
+	struct regmap_irq_chip_data *irq_data_muic;
+	int irq;
+};
+
+enum max77693_pmic_reg {
+	MAX77693_LED_REG_IFLASH1 = 0,
+	MAX77693_LED_REG_IFLASH2 = 1,
+	MAX77693_LED_REG_ITORCH = 2,
+	MAX77693_LED_REG_ITORCHTIMER = 3,
+	MAX77693_LED_REG_FLASH_TIMER = 4,
+	MAX77693_LED_REG_FLASH_EN = 5,
+	MAX77693_LED_REG_MAX_FLASH1 = 6,
+	MAX77693_LED_REG_MAX_FLASH2 = 7,
+	MAX77693_LED_REG_MAX_FLASH3 = 8,
+	MAX77693_LED_REG_MAX_FLASH4 = 9,
+	MAX77693_LED_REG_VOUT_CNTL = 10,
+	MAX77693_LED_REG_VOUT_FLASH1 = 11,
+	MAX77693_LED_REG_VOUT_FLASH2 = 12,
+	MAX77693_LED_REG_FLASH_INT = 14,
+	MAX77693_LED_REG_FLASH_INT_MASK = 15,
+	MAX77693_LED_REG_FLASH_STATUS = 16,
+	MAX77693_PMIC_REG_PMIC_ID1 = 32,
+	MAX77693_PMIC_REG_PMIC_ID2 = 33,
+	MAX77693_PMIC_REG_INTSRC = 34,
+	MAX77693_PMIC_REG_INTSRC_MASK = 35,
+	MAX77693_PMIC_REG_TOPSYS_INT = 36,
+	MAX77693_PMIC_REG_TOPSYS_INT_MASK = 38,
+	MAX77693_PMIC_REG_TOPSYS_STAT = 40,
+	MAX77693_PMIC_REG_MAINCTRL1 = 42,
+	MAX77693_PMIC_REG_LSCNFG = 43,
+	MAX77693_CHG_REG_CHG_INT = 176,
+	MAX77693_CHG_REG_CHG_INT_MASK = 177,
+	MAX77693_CHG_REG_CHG_INT_OK = 178,
+	MAX77693_CHG_REG_CHG_DETAILS_00 = 179,
+	MAX77693_CHG_REG_CHG_DETAILS_01 = 180,
+	MAX77693_CHG_REG_CHG_DETAILS_02 = 181,
+	MAX77693_CHG_REG_CHG_DETAILS_03 = 182,
+	MAX77693_CHG_REG_CHG_CNFG_00 = 183,
+	MAX77693_CHG_REG_CHG_CNFG_01 = 184,
+	MAX77693_CHG_REG_CHG_CNFG_02 = 185,
+	MAX77693_CHG_REG_CHG_CNFG_03 = 186,
+	MAX77693_CHG_REG_CHG_CNFG_04 = 187,
+	MAX77693_CHG_REG_CHG_CNFG_05 = 188,
+	MAX77693_CHG_REG_CHG_CNFG_06 = 189,
+	MAX77693_CHG_REG_CHG_CNFG_07 = 190,
+	MAX77693_CHG_REG_CHG_CNFG_08 = 191,
+	MAX77693_CHG_REG_CHG_CNFG_09 = 192,
+	MAX77693_CHG_REG_CHG_CNFG_10 = 193,
+	MAX77693_CHG_REG_CHG_CNFG_11 = 194,
+	MAX77693_CHG_REG_CHG_CNFG_12 = 195,
+	MAX77693_CHG_REG_CHG_CNFG_13 = 196,
+	MAX77693_CHG_REG_CHG_CNFG_14 = 197,
+	MAX77693_CHG_REG_SAFEOUT_CTRL = 198,
+	MAX77693_PMIC_REG_END = 199,
+};
+
+enum max77693_muic_reg {
+	MAX77693_MUIC_REG_ID = 0,
+	MAX77693_MUIC_REG_INT1 = 1,
+	MAX77693_MUIC_REG_INT2 = 2,
+	MAX77693_MUIC_REG_INT3 = 3,
+	MAX77693_MUIC_REG_STATUS1 = 4,
+	MAX77693_MUIC_REG_STATUS2 = 5,
+	MAX77693_MUIC_REG_STATUS3 = 6,
+	MAX77693_MUIC_REG_INTMASK1 = 7,
+	MAX77693_MUIC_REG_INTMASK2 = 8,
+	MAX77693_MUIC_REG_INTMASK3 = 9,
+	MAX77693_MUIC_REG_CDETCTRL1 = 10,
+	MAX77693_MUIC_REG_CDETCTRL2 = 11,
+	MAX77693_MUIC_REG_CTRL1 = 12,
+	MAX77693_MUIC_REG_CTRL2 = 13,
+	MAX77693_MUIC_REG_CTRL3 = 14,
+	MAX77693_MUIC_REG_END = 15,
+};
+
+enum max77693_haptic_reg {
+	MAX77693_HAPTIC_REG_STATUS = 0,
+	MAX77693_HAPTIC_REG_CONFIG1 = 1,
+	MAX77693_HAPTIC_REG_CONFIG2 = 2,
+	MAX77693_HAPTIC_REG_CONFIG_CHNL = 3,
+	MAX77693_HAPTIC_REG_CONFG_CYC1 = 4,
+	MAX77693_HAPTIC_REG_CONFG_CYC2 = 5,
+	MAX77693_HAPTIC_REG_CONFIG_PER1 = 6,
+	MAX77693_HAPTIC_REG_CONFIG_PER2 = 7,
+	MAX77693_HAPTIC_REG_CONFIG_PER3 = 8,
+	MAX77693_HAPTIC_REG_CONFIG_PER4 = 9,
+	MAX77693_HAPTIC_REG_CONFIG_DUTY1 = 10,
+	MAX77693_HAPTIC_REG_CONFIG_DUTY2 = 11,
+	MAX77693_HAPTIC_REG_CONFIG_PWM1 = 12,
+	MAX77693_HAPTIC_REG_CONFIG_PWM2 = 13,
+	MAX77693_HAPTIC_REG_CONFIG_PWM3 = 14,
+	MAX77693_HAPTIC_REG_CONFIG_PWM4 = 15,
+	MAX77693_HAPTIC_REG_REV = 16,
+	MAX77693_HAPTIC_REG_END = 17,
+};
+
+enum max77843_sys_reg {
+	MAX77843_SYS_REG_PMICID = 0,
+	MAX77843_SYS_REG_PMICREV = 1,
+	MAX77843_SYS_REG_MAINCTRL1 = 2,
+	MAX77843_SYS_REG_INTSRC = 34,
+	MAX77843_SYS_REG_INTSRCMASK = 35,
+	MAX77843_SYS_REG_SYSINTSRC = 36,
+	MAX77843_SYS_REG_SYSINTMASK = 38,
+	MAX77843_SYS_REG_TOPSYS_STAT = 40,
+	MAX77843_SYS_REG_SAFEOUTCTRL = 198,
+	MAX77843_SYS_REG_END = 199,
+};
+
+enum max77843_charger_reg {
+	MAX77843_CHG_REG_CHG_INT = 176,
+	MAX77843_CHG_REG_CHG_INT_MASK = 177,
+	MAX77843_CHG_REG_CHG_INT_OK = 178,
+	MAX77843_CHG_REG_CHG_DTLS_00 = 179,
+	MAX77843_CHG_REG_CHG_DTLS_01 = 180,
+	MAX77843_CHG_REG_CHG_DTLS_02 = 181,
+	MAX77843_CHG_REG_CHG_CNFG_00 = 183,
+	MAX77843_CHG_REG_CHG_CNFG_01 = 184,
+	MAX77843_CHG_REG_CHG_CNFG_02 = 185,
+	MAX77843_CHG_REG_CHG_CNFG_03 = 186,
+	MAX77843_CHG_REG_CHG_CNFG_04 = 187,
+	MAX77843_CHG_REG_CHG_CNFG_06 = 189,
+	MAX77843_CHG_REG_CHG_CNFG_07 = 190,
+	MAX77843_CHG_REG_CHG_CNFG_09 = 192,
+	MAX77843_CHG_REG_CHG_CNFG_10 = 193,
+	MAX77843_CHG_REG_CHG_CNFG_11 = 194,
+	MAX77843_CHG_REG_CHG_CNFG_12 = 195,
+	MAX77843_CHG_REG_END = 196,
+};
+
+enum {
+	MAX8925_IRQ_VCHG_DC_OVP = 0,
+	MAX8925_IRQ_VCHG_DC_F = 1,
+	MAX8925_IRQ_VCHG_DC_R = 2,
+	MAX8925_IRQ_VCHG_THM_OK_R = 3,
+	MAX8925_IRQ_VCHG_THM_OK_F = 4,
+	MAX8925_IRQ_VCHG_SYSLOW_F = 5,
+	MAX8925_IRQ_VCHG_SYSLOW_R = 6,
+	MAX8925_IRQ_VCHG_RST = 7,
+	MAX8925_IRQ_VCHG_DONE = 8,
+	MAX8925_IRQ_VCHG_TOPOFF = 9,
+	MAX8925_IRQ_VCHG_TMR_FAULT = 10,
+	MAX8925_IRQ_GPM_RSTIN = 11,
+	MAX8925_IRQ_GPM_MPL = 12,
+	MAX8925_IRQ_GPM_SW_3SEC = 13,
+	MAX8925_IRQ_GPM_EXTON_F = 14,
+	MAX8925_IRQ_GPM_EXTON_R = 15,
+	MAX8925_IRQ_GPM_SW_1SEC = 16,
+	MAX8925_IRQ_GPM_SW_F = 17,
+	MAX8925_IRQ_GPM_SW_R = 18,
+	MAX8925_IRQ_GPM_SYSCKEN_F = 19,
+	MAX8925_IRQ_GPM_SYSCKEN_R = 20,
+	MAX8925_IRQ_RTC_ALARM1 = 21,
+	MAX8925_IRQ_RTC_ALARM0 = 22,
+	MAX8925_IRQ_TSC_STICK = 23,
+	MAX8925_IRQ_TSC_NSTICK = 24,
+	MAX8925_NR_IRQS = 25,
+};
+
+struct max8925_chip {
+	struct device *dev;
+	struct i2c_client *i2c;
+	struct i2c_client *adc;
+	struct i2c_client *rtc;
+	struct mutex io_lock;
+	struct mutex irq_lock;
+	int irq_base;
+	int core_irq;
+	int tsc_irq;
+	unsigned int wakeup_flag;
+};
+
+struct max8925_backlight_pdata {
+	int lxw_scl;
+	int lxw_freq;
+	int dual_string;
+};
+
+struct max8925_touch_pdata {
+	unsigned int flags;
+};
+
+struct max8925_power_pdata {
+	int (*set_charger)(int);
+	unsigned int batt_detect: 1;
+	unsigned int topoff_threshold: 2;
+	unsigned int fast_charge: 3;
+	unsigned int no_temp_support: 1;
+	unsigned int no_insert_detect: 1;
+	char **supplied_to;
+	int num_supplicants;
+};
+
+struct max8925_platform_data {
+	struct max8925_backlight_pdata *backlight;
+	struct max8925_touch_pdata *touch;
+	struct max8925_power_pdata *power;
+	struct regulator_init_data *sd1;
+	struct regulator_init_data *sd2;
+	struct regulator_init_data *sd3;
+	struct regulator_init_data *ldo1;
+	struct regulator_init_data *ldo2;
+	struct regulator_init_data *ldo3;
+	struct regulator_init_data *ldo4;
+	struct regulator_init_data *ldo5;
+	struct regulator_init_data *ldo6;
+	struct regulator_init_data *ldo7;
+	struct regulator_init_data *ldo8;
+	struct regulator_init_data *ldo9;
+	struct regulator_init_data *ldo10;
+	struct regulator_init_data *ldo11;
+	struct regulator_init_data *ldo12;
+	struct regulator_init_data *ldo13;
+	struct regulator_init_data *ldo14;
+	struct regulator_init_data *ldo15;
+	struct regulator_init_data *ldo16;
+	struct regulator_init_data *ldo17;
+	struct regulator_init_data *ldo18;
+	struct regulator_init_data *ldo19;
+	struct regulator_init_data *ldo20;
+	int irq_base;
+	int tsc_irq;
+};
+
+enum {
+	FLAGS_ADC = 1,
+	FLAGS_RTC = 2,
+};
+
+struct max8925_irq_data {
+	int reg;
+	int mask_reg;
+	int enable;
+	int offs;
+	int flags;
+	int tsc_irq;
+};
+
+struct max8997_regulator_data {
+	int id;
+	struct regulator_init_data *initdata;
+	struct device_node *reg_node;
+};
+
+struct max8997_muic_reg_data {
+	u8 addr;
+	u8 data;
+};
+
+struct max8997_muic_platform_data {
+	struct max8997_muic_reg_data *init_data;
+	int num_init_data;
+	int detcable_delay_ms;
+	int path_usb;
+	int path_uart;
+};
+
+enum max8997_haptic_motor_type {
+	MAX8997_HAPTIC_ERM = 0,
+	MAX8997_HAPTIC_LRA = 1,
+};
+
+enum max8997_haptic_pulse_mode {
+	MAX8997_EXTERNAL_MODE = 0,
+	MAX8997_INTERNAL_MODE = 1,
+};
+
+enum max8997_haptic_pwm_divisor {
+	MAX8997_PWM_DIVISOR_32 = 0,
+	MAX8997_PWM_DIVISOR_64 = 1,
+	MAX8997_PWM_DIVISOR_128 = 2,
+	MAX8997_PWM_DIVISOR_256 = 3,
+};
+
+struct max8997_haptic_platform_data {
+	unsigned int pwm_channel_id;
+	unsigned int pwm_period;
+	enum max8997_haptic_motor_type type;
+	enum max8997_haptic_pulse_mode mode;
+	enum max8997_haptic_pwm_divisor pwm_divisor;
+	unsigned int internal_mode_pattern;
+	unsigned int pattern_cycle;
+	unsigned int pattern_signal_period;
+};
+
+enum max8997_led_mode {
+	MAX8997_NONE = 0,
+	MAX8997_FLASH_MODE = 1,
+	MAX8997_MOVIE_MODE = 2,
+	MAX8997_FLASH_PIN_CONTROL_MODE = 3,
+	MAX8997_MOVIE_PIN_CONTROL_MODE = 4,
+};
+
+struct max8997_led_platform_data {
+	enum max8997_led_mode mode[2];
+	u8 brightness[2];
+};
+
+struct max8997_platform_data {
+	int ono;
+	struct max8997_regulator_data *regulators;
+	int num_regulators;
+	bool ignore_gpiodvs_side_effect;
+	int buck125_gpios[3];
+	int buck125_default_idx;
+	unsigned int buck1_voltage[8];
+	bool buck1_gpiodvs;
+	unsigned int buck2_voltage[8];
+	bool buck2_gpiodvs;
+	unsigned int buck5_voltage[8];
+	bool buck5_gpiodvs;
+	int eoc_mA;
+	int timeout;
+	struct max8997_muic_platform_data *muic_pdata;
+	struct max8997_haptic_platform_data *haptic_pdata;
+	struct max8997_led_platform_data *led_pdata;
+};
+
+enum max8997_pmic_reg {
+	MAX8997_REG_PMIC_ID0 = 0,
+	MAX8997_REG_PMIC_ID1 = 1,
+	MAX8997_REG_INTSRC = 2,
+	MAX8997_REG_INT1 = 3,
+	MAX8997_REG_INT2 = 4,
+	MAX8997_REG_INT3 = 5,
+	MAX8997_REG_INT4 = 6,
+	MAX8997_REG_INT1MSK = 8,
+	MAX8997_REG_INT2MSK = 9,
+	MAX8997_REG_INT3MSK = 10,
+	MAX8997_REG_INT4MSK = 11,
+	MAX8997_REG_STATUS1 = 13,
+	MAX8997_REG_STATUS2 = 14,
+	MAX8997_REG_STATUS3 = 15,
+	MAX8997_REG_STATUS4 = 16,
+	MAX8997_REG_MAINCON1 = 19,
+	MAX8997_REG_MAINCON2 = 20,
+	MAX8997_REG_BUCKRAMP = 21,
+	MAX8997_REG_BUCK1CTRL = 24,
+	MAX8997_REG_BUCK1DVS1 = 25,
+	MAX8997_REG_BUCK1DVS2 = 26,
+	MAX8997_REG_BUCK1DVS3 = 27,
+	MAX8997_REG_BUCK1DVS4 = 28,
+	MAX8997_REG_BUCK1DVS5 = 29,
+	MAX8997_REG_BUCK1DVS6 = 30,
+	MAX8997_REG_BUCK1DVS7 = 31,
+	MAX8997_REG_BUCK1DVS8 = 32,
+	MAX8997_REG_BUCK2CTRL = 33,
+	MAX8997_REG_BUCK2DVS1 = 34,
+	MAX8997_REG_BUCK2DVS2 = 35,
+	MAX8997_REG_BUCK2DVS3 = 36,
+	MAX8997_REG_BUCK2DVS4 = 37,
+	MAX8997_REG_BUCK2DVS5 = 38,
+	MAX8997_REG_BUCK2DVS6 = 39,
+	MAX8997_REG_BUCK2DVS7 = 40,
+	MAX8997_REG_BUCK2DVS8 = 41,
+	MAX8997_REG_BUCK3CTRL = 42,
+	MAX8997_REG_BUCK3DVS = 43,
+	MAX8997_REG_BUCK4CTRL = 44,
+	MAX8997_REG_BUCK4DVS = 45,
+	MAX8997_REG_BUCK5CTRL = 46,
+	MAX8997_REG_BUCK5DVS1 = 47,
+	MAX8997_REG_BUCK5DVS2 = 48,
+	MAX8997_REG_BUCK5DVS3 = 49,
+	MAX8997_REG_BUCK5DVS4 = 50,
+	MAX8997_REG_BUCK5DVS5 = 51,
+	MAX8997_REG_BUCK5DVS6 = 52,
+	MAX8997_REG_BUCK5DVS7 = 53,
+	MAX8997_REG_BUCK5DVS8 = 54,
+	MAX8997_REG_BUCK6CTRL = 55,
+	MAX8997_REG_BUCK6BPSKIPCTRL = 56,
+	MAX8997_REG_BUCK7CTRL = 57,
+	MAX8997_REG_BUCK7DVS = 58,
+	MAX8997_REG_LDO1CTRL = 59,
+	MAX8997_REG_LDO2CTRL = 60,
+	MAX8997_REG_LDO3CTRL = 61,
+	MAX8997_REG_LDO4CTRL = 62,
+	MAX8997_REG_LDO5CTRL = 63,
+	MAX8997_REG_LDO6CTRL = 64,
+	MAX8997_REG_LDO7CTRL = 65,
+	MAX8997_REG_LDO8CTRL = 66,
+	MAX8997_REG_LDO9CTRL = 67,
+	MAX8997_REG_LDO10CTRL = 68,
+	MAX8997_REG_LDO11CTRL = 69,
+	MAX8997_REG_LDO12CTRL = 70,
+	MAX8997_REG_LDO13CTRL = 71,
+	MAX8997_REG_LDO14CTRL = 72,
+	MAX8997_REG_LDO15CTRL = 73,
+	MAX8997_REG_LDO16CTRL = 74,
+	MAX8997_REG_LDO17CTRL = 75,
+	MAX8997_REG_LDO18CTRL = 76,
+	MAX8997_REG_LDO21CTRL = 77,
+	MAX8997_REG_MBCCTRL1 = 80,
+	MAX8997_REG_MBCCTRL2 = 81,
+	MAX8997_REG_MBCCTRL3 = 82,
+	MAX8997_REG_MBCCTRL4 = 83,
+	MAX8997_REG_MBCCTRL5 = 84,
+	MAX8997_REG_MBCCTRL6 = 85,
+	MAX8997_REG_OTPCGHCVS = 86,
+	MAX8997_REG_SAFEOUTCTRL = 90,
+	MAX8997_REG_LBCNFG1 = 94,
+	MAX8997_REG_LBCNFG2 = 95,
+	MAX8997_REG_BBCCTRL = 96,
+	MAX8997_REG_FLASH1_CUR = 99,
+	MAX8997_REG_FLASH2_CUR = 100,
+	MAX8997_REG_MOVIE_CUR = 101,
+	MAX8997_REG_GSMB_CUR = 102,
+	MAX8997_REG_BOOST_CNTL = 103,
+	MAX8997_REG_LEN_CNTL = 104,
+	MAX8997_REG_FLASH_CNTL = 105,
+	MAX8997_REG_WDT_CNTL = 106,
+	MAX8997_REG_MAXFLASH1 = 107,
+	MAX8997_REG_MAXFLASH2 = 108,
+	MAX8997_REG_FLASHSTATUS = 109,
+	MAX8997_REG_FLASHSTATUSMASK = 110,
+	MAX8997_REG_GPIOCNTL1 = 112,
+	MAX8997_REG_GPIOCNTL2 = 113,
+	MAX8997_REG_GPIOCNTL3 = 114,
+	MAX8997_REG_GPIOCNTL4 = 115,
+	MAX8997_REG_GPIOCNTL5 = 116,
+	MAX8997_REG_GPIOCNTL6 = 117,
+	MAX8997_REG_GPIOCNTL7 = 118,
+	MAX8997_REG_GPIOCNTL8 = 119,
+	MAX8997_REG_GPIOCNTL9 = 120,
+	MAX8997_REG_GPIOCNTL10 = 121,
+	MAX8997_REG_GPIOCNTL11 = 122,
+	MAX8997_REG_GPIOCNTL12 = 123,
+	MAX8997_REG_LDO1CONFIG = 128,
+	MAX8997_REG_LDO2CONFIG = 129,
+	MAX8997_REG_LDO3CONFIG = 130,
+	MAX8997_REG_LDO4CONFIG = 131,
+	MAX8997_REG_LDO5CONFIG = 132,
+	MAX8997_REG_LDO6CONFIG = 133,
+	MAX8997_REG_LDO7CONFIG = 134,
+	MAX8997_REG_LDO8CONFIG = 135,
+	MAX8997_REG_LDO9CONFIG = 136,
+	MAX8997_REG_LDO10CONFIG = 137,
+	MAX8997_REG_LDO11CONFIG = 138,
+	MAX8997_REG_LDO12CONFIG = 139,
+	MAX8997_REG_LDO13CONFIG = 140,
+	MAX8997_REG_LDO14CONFIG = 141,
+	MAX8997_REG_LDO15CONFIG = 142,
+	MAX8997_REG_LDO16CONFIG = 143,
+	MAX8997_REG_LDO17CONFIG = 144,
+	MAX8997_REG_LDO18CONFIG = 145,
+	MAX8997_REG_LDO21CONFIG = 146,
+	MAX8997_REG_DVSOKTIMER1 = 151,
+	MAX8997_REG_DVSOKTIMER2 = 152,
+	MAX8997_REG_DVSOKTIMER4 = 153,
+	MAX8997_REG_DVSOKTIMER5 = 154,
+	MAX8997_REG_PMIC_END = 155,
+};
+
+enum max8997_muic_reg {
+	MAX8997_MUIC_REG_ID = 0,
+	MAX8997_MUIC_REG_INT1 = 1,
+	MAX8997_MUIC_REG_INT2 = 2,
+	MAX8997_MUIC_REG_INT3 = 3,
+	MAX8997_MUIC_REG_STATUS1 = 4,
+	MAX8997_MUIC_REG_STATUS2 = 5,
+	MAX8997_MUIC_REG_STATUS3 = 6,
+	MAX8997_MUIC_REG_INTMASK1 = 7,
+	MAX8997_MUIC_REG_INTMASK2 = 8,
+	MAX8997_MUIC_REG_INTMASK3 = 9,
+	MAX8997_MUIC_REG_CDETCTRL = 10,
+	MAX8997_MUIC_REG_CONTROL1 = 12,
+	MAX8997_MUIC_REG_CONTROL2 = 13,
+	MAX8997_MUIC_REG_CONTROL3 = 14,
+	MAX8997_MUIC_REG_END = 15,
+};
+
+enum max8997_haptic_reg {
+	MAX8997_HAPTIC_REG_GENERAL = 0,
+	MAX8997_HAPTIC_REG_CONF1 = 1,
+	MAX8997_HAPTIC_REG_CONF2 = 2,
+	MAX8997_HAPTIC_REG_DRVCONF = 3,
+	MAX8997_HAPTIC_REG_CYCLECONF1 = 4,
+	MAX8997_HAPTIC_REG_CYCLECONF2 = 5,
+	MAX8997_HAPTIC_REG_SIGCONF1 = 6,
+	MAX8997_HAPTIC_REG_SIGCONF2 = 7,
+	MAX8997_HAPTIC_REG_SIGCONF3 = 8,
+	MAX8997_HAPTIC_REG_SIGCONF4 = 9,
+	MAX8997_HAPTIC_REG_SIGDC1 = 10,
+	MAX8997_HAPTIC_REG_SIGDC2 = 11,
+	MAX8997_HAPTIC_REG_SIGPWMDC1 = 12,
+	MAX8997_HAPTIC_REG_SIGPWMDC2 = 13,
+	MAX8997_HAPTIC_REG_SIGPWMDC3 = 14,
+	MAX8997_HAPTIC_REG_SIGPWMDC4 = 15,
+	MAX8997_HAPTIC_REG_MTR_REV = 16,
+	MAX8997_HAPTIC_REG_END = 17,
+};
+
+enum max8997_irq_source {
+	PMIC_INT1 = 0,
+	PMIC_INT2 = 1,
+	PMIC_INT3 = 2,
+	PMIC_INT4 = 3,
+	FUEL_GAUGE = 4,
+	MUIC_INT1 = 5,
+	MUIC_INT2 = 6,
+	MUIC_INT3 = 7,
