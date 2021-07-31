@@ -105598,3 +105598,2140 @@ struct ppp {
 	enum NPmode npmode[6];
 	struct sk_buff *xmit_pending;
 	struct compressor *xcomp;
+	void *xc_state;
+	struct compressor *rcomp;
+	void *rc_state;
+	long unsigned int last_xmit;
+	long unsigned int last_recv;
+	struct net_device *dev;
+	int closing;
+	int nxchan;
+	u32 nxseq;
+	int mrru;
+	u32 nextseq;
+	u32 minseq;
+	struct sk_buff_head mrq;
+	struct bpf_prog *pass_filter;
+	struct bpf_prog *active_filter;
+	struct net *ppp_net;
+	struct ppp_link_stats stats64;
+};
+
+struct channel {
+	struct ppp_file file;
+	struct list_head list;
+	struct ppp_channel *chan;
+	struct rw_semaphore chan_sem;
+	spinlock_t downl;
+	struct ppp *ppp;
+	struct net *chan_net;
+	netns_tracker ns_tracker;
+	struct list_head clist;
+	rwlock_t upl;
+	struct channel *bridge;
+	u8 avail;
+	u8 had_frag;
+	u32 lastseq;
+	int speed;
+};
+
+struct ppp_config {
+	struct file *file;
+	s32 unit;
+	bool ifname_is_set;
+};
+
+struct ppp_net {
+	struct idr units_idr;
+	struct mutex all_ppp_mutex;
+	struct list_head all_channels;
+	struct list_head new_channels;
+	int last_channel_index;
+	spinlock_t all_channels_lock;
+};
+
+struct sock_fprog32 {
+	short unsigned int len;
+	compat_caddr_t filter;
+};
+
+struct ppp_option_data32 {
+	compat_uptr_t ptr;
+	u32 length;
+	compat_int_t transmit;
+};
+
+struct ppp_mp_skb_parm {
+	u32 sequence;
+	u8 BEbits;
+};
+
+struct compressor_entry {
+	struct list_head list;
+	struct compressor *comp;
+};
+
+struct wl1251_platform_data {
+	int power_gpio;
+	int irq;
+	bool use_eeprom;
+};
+
+enum {
+	IFLA_INFO_UNSPEC = 0,
+	IFLA_INFO_KIND = 1,
+	IFLA_INFO_DATA = 2,
+	IFLA_INFO_XSTATS = 3,
+	IFLA_INFO_SLAVE_KIND = 4,
+	IFLA_INFO_SLAVE_DATA = 5,
+	__IFLA_INFO_MAX = 6,
+};
+
+enum wwan_port_type {
+	WWAN_PORT_AT = 0,
+	WWAN_PORT_MBIM = 1,
+	WWAN_PORT_QMI = 2,
+	WWAN_PORT_QCDM = 3,
+	WWAN_PORT_FIREHOSE = 4,
+	__WWAN_PORT_MAX = 5,
+	WWAN_PORT_MAX = 4,
+	WWAN_PORT_UNKNOWN = 5,
+};
+
+struct wwan_port;
+
+struct wwan_port_ops {
+	int (*start)(struct wwan_port *);
+	void (*stop)(struct wwan_port *);
+	int (*tx)(struct wwan_port *, struct sk_buff *);
+	int (*tx_blocking)(struct wwan_port *, struct sk_buff *);
+	__poll_t (*tx_poll)(struct wwan_port *, struct file *, poll_table *);
+};
+
+struct wwan_port {
+	enum wwan_port_type type;
+	unsigned int start_count;
+	long unsigned int flags;
+	const struct wwan_port_ops *ops;
+	struct mutex ops_lock;
+	struct device dev;
+	struct sk_buff_head rxq;
+	wait_queue_head_t waitqueue;
+	struct mutex data_lock;
+	union {
+		struct {
+			struct ktermios termios;
+			int mdmbits;
+		} at_data;
+	};
+};
+
+struct wwan_netdev_priv {
+	u32 link_id;
+	int: 32;
+	u8 drv_priv[0];
+};
+
+struct wwan_ops {
+	unsigned int priv_size;
+	void (*setup)(struct net_device *);
+	int (*newlink)(void *, struct net_device *, u32, struct netlink_ext_ack *);
+	void (*dellink)(void *, struct net_device *, struct list_head *);
+};
+
+enum {
+	IFLA_WWAN_UNSPEC = 0,
+	IFLA_WWAN_LINK_ID = 1,
+	__IFLA_WWAN_MAX = 2,
+};
+
+struct wwan_device {
+	unsigned int id;
+	struct device dev;
+	atomic_t port_id;
+	const struct wwan_ops *ops;
+	void *ops_ctxt;
+	struct dentry *debugfs_dir;
+};
+
+enum skb_free_reason {
+	SKB_REASON_CONSUMED = 0,
+	SKB_REASON_DROPPED = 1,
+};
+
+enum ethtool_stringset {
+	ETH_SS_TEST = 0,
+	ETH_SS_STATS = 1,
+	ETH_SS_PRIV_FLAGS = 2,
+	ETH_SS_NTUPLE_FILTERS = 3,
+	ETH_SS_FEATURES = 4,
+	ETH_SS_RSS_HASH_FUNCS = 5,
+	ETH_SS_TUNABLES = 6,
+	ETH_SS_PHY_STATS = 7,
+	ETH_SS_PHY_TUNABLES = 8,
+	ETH_SS_LINK_MODES = 9,
+	ETH_SS_MSG_CLASSES = 10,
+	ETH_SS_WOL_MODES = 11,
+	ETH_SS_SOF_TIMESTAMPING = 12,
+	ETH_SS_TS_TX_TYPES = 13,
+	ETH_SS_TS_RX_FILTERS = 14,
+	ETH_SS_UDP_TUNNEL_TYPES = 15,
+	ETH_SS_STATS_STD = 16,
+	ETH_SS_STATS_ETH_PHY = 17,
+	ETH_SS_STATS_ETH_MAC = 18,
+	ETH_SS_STATS_ETH_CTRL = 19,
+	ETH_SS_STATS_RMON = 20,
+	ETH_SS_COUNT = 21,
+};
+
+struct xen_netif_tx_request {
+	grant_ref_t gref;
+	uint16_t offset;
+	uint16_t flags;
+	uint16_t id;
+	uint16_t size;
+};
+
+struct xen_netif_extra_info {
+	uint8_t type;
+	uint8_t flags;
+	union {
+		struct {
+			uint16_t size;
+			uint8_t type;
+			uint8_t pad;
+			uint16_t features;
+		} gso;
+		struct {
+			uint8_t addr[6];
+		} mcast;
+		struct {
+			uint8_t type;
+			uint8_t algorithm;
+			uint8_t value[4];
+		} hash;
+		struct {
+			uint16_t headroom;
+			uint16_t pad[2];
+		} xdp;
+		uint16_t pad[3];
+	} u;
+};
+
+struct xen_netif_tx_response {
+	uint16_t id;
+	int16_t status;
+};
+
+struct xen_netif_rx_request {
+	uint16_t id;
+	uint16_t pad;
+	grant_ref_t gref;
+};
+
+struct xen_netif_rx_response {
+	uint16_t id;
+	uint16_t offset;
+	uint16_t flags;
+	int16_t status;
+};
+
+union xen_netif_tx_sring_entry {
+	struct xen_netif_tx_request req;
+	struct xen_netif_tx_response rsp;
+};
+
+struct xen_netif_tx_sring {
+	RING_IDX req_prod;
+	RING_IDX req_event;
+	RING_IDX rsp_prod;
+	RING_IDX rsp_event;
+	uint8_t __pad[48];
+	union xen_netif_tx_sring_entry ring[1];
+};
+
+struct xen_netif_tx_front_ring {
+	RING_IDX req_prod_pvt;
+	RING_IDX rsp_cons;
+	unsigned int nr_ents;
+	struct xen_netif_tx_sring *sring;
+};
+
+union xen_netif_rx_sring_entry {
+	struct xen_netif_rx_request req;
+	struct xen_netif_rx_response rsp;
+};
+
+struct xen_netif_rx_sring {
+	RING_IDX req_prod;
+	RING_IDX req_event;
+	RING_IDX rsp_prod;
+	RING_IDX rsp_event;
+	uint8_t __pad[48];
+	union xen_netif_rx_sring_entry ring[1];
+};
+
+struct xen_netif_rx_front_ring {
+	RING_IDX req_prod_pvt;
+	RING_IDX rsp_cons;
+	unsigned int nr_ents;
+	struct xen_netif_rx_sring *sring;
+};
+
+struct netfront_cb {
+	int pull_to;
+};
+
+struct netfront_stats {
+	u64 packets;
+	u64 bytes;
+	struct u64_stats_sync syncp;
+};
+
+struct netfront_info;
+
+struct netfront_queue {
+	unsigned int id;
+	char name[22];
+	struct netfront_info *info;
+	struct bpf_prog *xdp_prog;
+	struct napi_struct napi;
+	unsigned int tx_evtchn;
+	unsigned int rx_evtchn;
+	unsigned int tx_irq;
+	unsigned int rx_irq;
+	char tx_irq_name[25];
+	char rx_irq_name[25];
+	spinlock_t tx_lock;
+	struct xen_netif_tx_front_ring tx;
+	int tx_ring_ref;
+	struct sk_buff *tx_skbs[256];
+	short unsigned int tx_link[256];
+	grant_ref_t gref_tx_head;
+	grant_ref_t grant_tx_ref[256];
+	struct page *grant_tx_page[256];
+	unsigned int tx_skb_freelist;
+	unsigned int tx_pend_queue;
+	long: 64;
+	spinlock_t rx_lock;
+	struct xen_netif_rx_front_ring rx;
+	int rx_ring_ref;
+	struct timer_list rx_refill_timer;
+	struct sk_buff *rx_skbs[256];
+	grant_ref_t gref_rx_head;
+	grant_ref_t grant_rx_ref[256];
+	unsigned int rx_rsp_unconsumed;
+	spinlock_t rx_cons_lock;
+	struct page_pool *page_pool;
+	long: 64;
+	long: 64;
+	long: 64;
+	struct xdp_rxq_info xdp_rxq;
+};
+
+struct netfront_info {
+	struct list_head list;
+	struct net_device *netdev;
+	struct xenbus_device *xbdev;
+	struct netfront_queue *queues;
+	struct netfront_stats *rx_stats;
+	struct netfront_stats *tx_stats;
+	bool netback_has_xdp_headroom;
+	bool netfront_xdp_enabled;
+	bool broken;
+	atomic_t rx_gso_checksum_fixup;
+};
+
+struct netfront_rx_info {
+	struct xen_netif_rx_response rx;
+	struct xen_netif_extra_info extras[5];
+};
+
+struct xennet_gnttab_make_txreq {
+	struct netfront_queue *queue;
+	struct sk_buff *skb;
+	struct page *page;
+	struct xen_netif_tx_request *tx;
+	struct xen_netif_tx_request tx_local;
+	unsigned int size;
+};
+
+struct xennet_stat {
+	char name[32];
+	u16 offset;
+};
+
+struct vfio_info_cap_header {
+	__u16 id;
+	__u16 version;
+	__u32 next;
+};
+
+struct vfio_group_status {
+	__u32 argsz;
+	__u32 flags;
+};
+
+struct vfio_irq_set {
+	__u32 argsz;
+	__u32 flags;
+	__u32 index;
+	__u32 start;
+	__u32 count;
+	__u8 data[0];
+};
+
+struct vfio_device_feature {
+	__u32 argsz;
+	__u32 flags;
+	__u8 data[0];
+};
+
+struct vfio_device_feature_migration {
+	__u64 flags;
+};
+
+struct vfio_device_feature_mig_state {
+	__u32 device_state;
+	__s32 data_fd;
+};
+
+enum vfio_device_mig_state {
+	VFIO_DEVICE_STATE_ERROR = 0,
+	VFIO_DEVICE_STATE_STOP = 1,
+	VFIO_DEVICE_STATE_RUNNING = 2,
+	VFIO_DEVICE_STATE_STOP_COPY = 3,
+	VFIO_DEVICE_STATE_RESUMING = 4,
+	VFIO_DEVICE_STATE_RUNNING_P2P = 5,
+};
+
+struct vfio_device_set {
+	void *set_id;
+	struct mutex lock;
+	struct list_head device_list;
+	unsigned int device_count;
+};
+
+struct kvm___2;
+
+struct vfio_device_ops;
+
+struct vfio_group;
+
+struct vfio_device {
+	struct device *dev;
+	const struct vfio_device_ops *ops;
+	struct vfio_group *group;
+	struct vfio_device_set *dev_set;
+	struct list_head dev_set_list;
+	unsigned int migration_flags;
+	struct kvm___2 *kvm;
+	refcount_t refcount;
+	unsigned int open_count;
+	struct completion comp;
+	struct list_head group_next;
+};
+
+struct vfio_device_ops {
+	char *name;
+	int (*open_device)(struct vfio_device *);
+	void (*close_device)(struct vfio_device *);
+	ssize_t (*read)(struct vfio_device *, char *, size_t, loff_t *);
+	ssize_t (*write)(struct vfio_device *, const char *, size_t, loff_t *);
+	long int (*ioctl)(struct vfio_device *, unsigned int, long unsigned int);
+	int (*mmap)(struct vfio_device *, struct vm_area_struct *);
+	void (*request)(struct vfio_device *, unsigned int);
+	int (*match)(struct vfio_device *, char *);
+	int (*device_feature)(struct vfio_device *, u32, void *, size_t);
+	struct file * (*migration_set_state)(struct vfio_device *, enum vfio_device_mig_state);
+	int (*migration_get_state)(struct vfio_device *, enum vfio_device_mig_state *);
+};
+
+enum vfio_group_type {
+	VFIO_IOMMU = 0,
+	VFIO_EMULATED_IOMMU = 1,
+	VFIO_NO_IOMMU = 2,
+};
+
+struct vfio_container;
+
+struct vfio_group {
+	struct device dev;
+	struct cdev cdev;
+	refcount_t users;
+	unsigned int container_users;
+	struct iommu_group *iommu_group;
+	struct vfio_container *container;
+	struct list_head device_list;
+	struct mutex device_lock;
+	struct list_head vfio_next;
+	struct list_head container_next;
+	enum vfio_group_type type;
+	unsigned int dev_counter;
+	struct rw_semaphore group_rwsem;
+	struct kvm___2 *kvm;
+	struct file *opened_file;
+	struct blocking_notifier_head notifier;
+};
+
+enum vfio_notify_type {
+	VFIO_IOMMU_NOTIFY = 0,
+};
+
+struct vfio_info_cap {
+	struct vfio_info_cap_header *buf;
+	size_t size;
+};
+
+enum vfio_iommu_notify_type {
+	VFIO_IOMMU_CONTAINER_CLOSE = 0,
+};
+
+struct vfio_iommu_driver_ops {
+	char *name;
+	struct module *owner;
+	void * (*open)(long unsigned int);
+	void (*release)(void *);
+	long int (*ioctl)(void *, unsigned int, long unsigned int);
+	int (*attach_group)(void *, struct iommu_group *, enum vfio_group_type);
+	void (*detach_group)(void *, struct iommu_group *);
+	int (*pin_pages)(void *, struct iommu_group *, long unsigned int *, int, int, long unsigned int *);
+	int (*unpin_pages)(void *, long unsigned int *, int);
+	int (*register_notifier)(void *, long unsigned int *, struct notifier_block *);
+	int (*unregister_notifier)(void *, struct notifier_block *);
+	int (*dma_rw)(void *, dma_addr_t, void *, size_t, bool);
+	struct iommu_domain * (*group_iommu_domain)(void *, struct iommu_group *);
+	void (*notify)(void *, enum vfio_iommu_notify_type);
+};
+
+struct vfio {
+	struct class *class;
+	struct list_head iommu_drivers_list;
+	struct mutex iommu_drivers_lock;
+	struct list_head group_list;
+	struct mutex group_lock;
+	struct ida group_ida;
+	dev_t group_devt;
+};
+
+struct vfio_iommu_driver {
+	const struct vfio_iommu_driver_ops *ops;
+	struct list_head vfio_next;
+};
+
+struct vfio_container {
+	struct kref kref;
+	struct list_head group_list;
+	struct rw_semaphore group_lock;
+	struct vfio_iommu_driver *iommu_driver;
+	void *iommu_data;
+	bool noiommu;
+};
+
+enum {
+	VFIO_DEVICE_NUM_STATES = 6,
+};
+
+struct virqfd {
+	void *opaque;
+	struct eventfd_ctx *eventfd;
+	int (*handler)(void *, void *);
+	void (*thread)(void *, void *);
+	void *data;
+	struct work_struct inject;
+	wait_queue_entry_t wait;
+	poll_table pt;
+	struct work_struct shutdown;
+	struct virqfd **pvirqfd;
+};
+
+struct vfio_iommu_type1_info {
+	__u32 argsz;
+	__u32 flags;
+	__u64 iova_pgsizes;
+	__u32 cap_offset;
+};
+
+struct vfio_iova_range {
+	__u64 start;
+	__u64 end;
+};
+
+struct vfio_iommu_type1_info_cap_iova_range {
+	struct vfio_info_cap_header header;
+	__u32 nr_iovas;
+	__u32 reserved;
+	struct vfio_iova_range iova_ranges[0];
+};
+
+struct vfio_iommu_type1_info_cap_migration {
+	struct vfio_info_cap_header header;
+	__u32 flags;
+	__u64 pgsize_bitmap;
+	__u64 max_dirty_bitmap_size;
+};
+
+struct vfio_iommu_type1_info_dma_avail {
+	struct vfio_info_cap_header header;
+	__u32 avail;
+};
+
+struct vfio_iommu_type1_dma_map {
+	__u32 argsz;
+	__u32 flags;
+	__u64 vaddr;
+	__u64 iova;
+	__u64 size;
+};
+
+struct vfio_bitmap {
+	__u64 pgsize;
+	__u64 size;
+	__u64 *data;
+};
+
+struct vfio_iommu_type1_dma_unmap {
+	__u32 argsz;
+	__u32 flags;
+	__u64 iova;
+	__u64 size;
+	__u8 data[0];
+};
+
+struct vfio_iommu_type1_dirty_bitmap {
+	__u32 argsz;
+	__u32 flags;
+	__u8 data[0];
+};
+
+struct vfio_iommu_type1_dirty_bitmap_get {
+	__u64 iova;
+	__u64 size;
+	struct vfio_bitmap bitmap;
+};
+
+struct vfio_iommu {
+	struct list_head domain_list;
+	struct list_head iova_list;
+	struct mutex lock;
+	struct rb_root dma_list;
+	struct blocking_notifier_head notifier;
+	unsigned int dma_avail;
+	unsigned int vaddr_invalid_count;
+	uint64_t pgsize_bitmap;
+	uint64_t num_non_pinned_groups;
+	wait_queue_head_t vaddr_wait;
+	bool v2;
+	bool nesting;
+	bool dirty_page_tracking;
+	bool container_open;
+	struct list_head emulated_iommu_groups;
+};
+
+struct vfio_domain {
+	struct iommu_domain *domain;
+	struct list_head next;
+	struct list_head group_list;
+	bool fgsp: 1;
+	bool enforce_cache_coherency: 1;
+};
+
+struct vfio_dma {
+	struct rb_node node;
+	dma_addr_t iova;
+	long unsigned int vaddr;
+	size_t size;
+	int prot;
+	bool iommu_mapped;
+	bool lock_cap;
+	bool vaddr_invalid;
+	struct task_struct *task;
+	struct rb_root pfn_list;
+	long unsigned int *bitmap;
+};
+
+struct vfio_batch {
+	struct page **pages;
+	struct page *fallback_page;
+	int capacity;
+	int size;
+	int offset;
+};
+
+struct vfio_iommu_group {
+	struct iommu_group *iommu_group;
+	struct list_head next;
+	bool pinned_page_dirty_scope;
+};
+
+struct vfio_iova {
+	struct list_head list;
+	dma_addr_t start;
+	dma_addr_t end;
+};
+
+struct vfio_pfn {
+	struct rb_node node;
+	dma_addr_t iova;
+	long unsigned int pfn;
+	unsigned int ref_count;
+};
+
+struct vfio_regions {
+	struct list_head list;
+	dma_addr_t iova;
+	phys_addr_t phys;
+	size_t len;
+};
+
+struct vfio_device_info {
+	__u32 argsz;
+	__u32 flags;
+	__u32 num_regions;
+	__u32 num_irqs;
+	__u32 cap_offset;
+};
+
+struct vfio_region_info {
+	__u32 argsz;
+	__u32 flags;
+	__u32 index;
+	__u32 cap_offset;
+	__u64 size;
+	__u64 offset;
+};
+
+struct vfio_region_info_cap_type {
+	struct vfio_info_cap_header header;
+	__u32 type;
+	__u32 subtype;
+};
+
+struct vfio_irq_info {
+	__u32 argsz;
+	__u32 flags;
+	__u32 index;
+	__u32 count;
+};
+
+enum {
+	VFIO_PCI_BAR0_REGION_INDEX = 0,
+	VFIO_PCI_BAR1_REGION_INDEX = 1,
+	VFIO_PCI_BAR2_REGION_INDEX = 2,
+	VFIO_PCI_BAR3_REGION_INDEX = 3,
+	VFIO_PCI_BAR4_REGION_INDEX = 4,
+	VFIO_PCI_BAR5_REGION_INDEX = 5,
+	VFIO_PCI_ROM_REGION_INDEX = 6,
+	VFIO_PCI_CONFIG_REGION_INDEX = 7,
+	VFIO_PCI_VGA_REGION_INDEX = 8,
+	VFIO_PCI_NUM_REGIONS = 9,
+};
+
+enum {
+	VFIO_PCI_INTX_IRQ_INDEX = 0,
+	VFIO_PCI_MSI_IRQ_INDEX = 1,
+	VFIO_PCI_MSIX_IRQ_INDEX = 2,
+	VFIO_PCI_ERR_IRQ_INDEX = 3,
+	VFIO_PCI_REQ_IRQ_INDEX = 4,
+	VFIO_PCI_NUM_IRQS = 5,
+};
+
+struct vfio_pci_dependent_device {
+	__u32 group_id;
+	__u16 segment;
+	__u8 bus;
+	__u8 devfn;
+};
+
+struct vfio_pci_hot_reset_info {
+	__u32 argsz;
+	__u32 flags;
+	__u32 count;
+	struct vfio_pci_dependent_device devices[0];
+};
+
+struct vfio_pci_hot_reset {
+	__u32 argsz;
+	__u32 flags;
+	__u32 count;
+	__s32 group_fds[0];
+};
+
+struct vfio_device_ioeventfd {
+	__u32 argsz;
+	__u32 flags;
+	__u64 offset;
+	__u64 data;
+	__s32 fd;
+};
+
+struct irq_bypass_consumer;
+
+struct irq_bypass_producer {
+	struct list_head node;
+	void *token;
+	int irq;
+	int (*add_consumer)(struct irq_bypass_producer *, struct irq_bypass_consumer *);
+	void (*del_consumer)(struct irq_bypass_producer *, struct irq_bypass_consumer *);
+	void (*stop)(struct irq_bypass_producer *);
+	void (*start)(struct irq_bypass_producer *);
+};
+
+struct irq_bypass_consumer {
+	struct list_head node;
+	void *token;
+	int (*add_producer)(struct irq_bypass_consumer *, struct irq_bypass_producer *);
+	void (*del_producer)(struct irq_bypass_consumer *, struct irq_bypass_producer *);
+	void (*stop)(struct irq_bypass_consumer *);
+	void (*start)(struct irq_bypass_consumer *);
+};
+
+struct vfio_pci_core_device;
+
+struct vfio_pci_ioeventfd {
+	struct list_head next;
+	struct vfio_pci_core_device *vdev;
+	struct virqfd *virqfd;
+	void *addr;
+	uint64_t data;
+	loff_t pos;
+	int bar;
+	int count;
+	bool test_mem;
+};
+
+struct pci_saved_state___2;
+
+struct perm_bits;
+
+struct vfio_pci_irq_ctx;
+
+struct vfio_pci_region;
+
+struct vfio_pci_vf_token;
+
+struct vfio_pci_core_device {
+	struct vfio_device vdev;
+	struct pci_dev *pdev;
+	void *barmap[6];
+	bool bar_mmap_supported[6];
+	u8 *pci_config_map;
+	u8 *vconfig;
+	struct perm_bits *msi_perm;
+	spinlock_t irqlock;
+	struct mutex igate;
+	struct vfio_pci_irq_ctx *ctx;
+	int num_ctx;
+	int irq_type;
+	int num_regions;
+	struct vfio_pci_region *region;
+	u8 msi_qmax;
+	u8 msix_bar;
+	u16 msix_size;
+	u32 msix_offset;
+	u32 rbar[7];
+	bool pci_2_3;
+	bool virq_disabled;
+	bool reset_works;
+	bool extended_caps;
+	bool bardirty;
+	bool has_vga;
+	bool needs_reset;
+	bool nointx;
+	bool needs_pm_restore;
+	struct pci_saved_state___2 *pci_saved_state;
+	struct pci_saved_state___2 *pm_save;
+	int ioeventfds_nr;
+	struct eventfd_ctx *err_trigger;
+	struct eventfd_ctx *req_trigger;
+	struct list_head dummy_resources_list;
+	struct mutex ioeventfds_lock;
+	struct list_head ioeventfds_list;
+	struct vfio_pci_vf_token *vf_token;
+	struct list_head sriov_pfs_item;
+	struct vfio_pci_core_device *sriov_pf_core_dev;
+	struct notifier_block nb;
+	struct mutex vma_lock;
+	struct list_head vma_list;
+	struct rw_semaphore memory_lock;
+};
+
+struct vfio_pci_irq_ctx {
+	struct eventfd_ctx *trigger;
+	struct virqfd *unmask;
+	struct virqfd *mask;
+	char *name;
+	bool masked;
+	struct irq_bypass_producer producer;
+};
+
+struct vfio_pci_regops {
+	ssize_t (*rw)(struct vfio_pci_core_device *, char *, size_t, loff_t *, bool);
+	void (*release)(struct vfio_pci_core_device *, struct vfio_pci_region *);
+	int (*mmap)(struct vfio_pci_core_device *, struct vfio_pci_region *, struct vm_area_struct *);
+	int (*add_capability)(struct vfio_pci_core_device *, struct vfio_pci_region *, struct vfio_info_cap *);
+};
+
+struct vfio_pci_region {
+	u32 type;
+	u32 subtype;
+	const struct vfio_pci_regops *ops;
+	void *data;
+	size_t size;
+	u32 flags;
+};
+
+struct vfio_pci_dummy_resource {
+	struct resource resource;
+	int index;
+	struct list_head res_next;
+};
+
+struct vfio_pci_vf_token {
+	struct mutex lock;
+	uuid_t uuid;
+	int users;
+};
+
+struct vfio_pci_mmap_vma {
+	struct vm_area_struct *vma;
+	struct list_head vma_next;
+};
+
+struct vfio_pci_fill_info {
+	int max;
+	int cur;
+	struct vfio_pci_dependent_device *devices;
+};
+
+struct vfio_pci_group_info {
+	int count;
+	struct file **files;
+};
+
+struct vfio_pci_walk_info {
+	int (*fn)(struct pci_dev *, void *);
+	void *data;
+	struct pci_dev *pdev;
+	bool slot;
+	int ret;
+};
+
+struct perm_bits {
+	u8 *virt;
+	u8 *write;
+	int (*readfn)(struct vfio_pci_core_device *, int, int, struct perm_bits *, int, __le32 *);
+	int (*writefn)(struct vfio_pci_core_device *, int, int, struct perm_bits *, int, __le32);
+};
+
+enum {
+	PCI_ID_F_VFIO_DRIVER_OVERRIDE = 1,
+};
+
+struct igd_opregion_vbt {
+	void *opregion;
+	void *vbt_ex;
+};
+
+struct cdrom_msf {
+	__u8 cdmsf_min0;
+	__u8 cdmsf_sec0;
+	__u8 cdmsf_frame0;
+	__u8 cdmsf_min1;
+	__u8 cdmsf_sec1;
+	__u8 cdmsf_frame1;
+};
+
+struct cdrom_volctrl {
+	__u8 channel0;
+	__u8 channel1;
+	__u8 channel2;
+	__u8 channel3;
+};
+
+struct cdrom_subchnl {
+	__u8 cdsc_format;
+	__u8 cdsc_audiostatus;
+	__u8 cdsc_adr: 4;
+	__u8 cdsc_ctrl: 4;
+	__u8 cdsc_trk;
+	__u8 cdsc_ind;
+	union cdrom_addr cdsc_absaddr;
+	union cdrom_addr cdsc_reladdr;
+};
+
+struct cdrom_read_audio {
+	union cdrom_addr addr;
+	__u8 addr_format;
+	int nframes;
+	__u8 *buf;
+};
+
+struct cdrom_blk {
+	unsigned int from;
+	short unsigned int len;
+};
+
+struct cdrom_timed_media_change_info {
+	__s64 last_media_change;
+	__u64 media_flags;
+};
+
+struct dvd_layer {
+	__u8 book_version: 4;
+	__u8 book_type: 4;
+	__u8 min_rate: 4;
+	__u8 disc_size: 4;
+	__u8 layer_type: 4;
+	__u8 track_path: 1;
+	__u8 nlayers: 2;
+	char: 1;
+	__u8 track_density: 4;
+	__u8 linear_density: 4;
+	__u8 bca: 1;
+	__u32 start_sector;
+	__u32 end_sector;
+	__u32 end_sector_l0;
+};
+
+struct dvd_physical {
+	__u8 type;
+	__u8 layer_num;
+	struct dvd_layer layer[4];
+};
+
+struct dvd_copyright {
+	__u8 type;
+	__u8 layer_num;
+	__u8 cpst;
+	__u8 rmi;
+};
+
+struct dvd_disckey {
+	__u8 type;
+	unsigned int agid: 2;
+	__u8 value[2048];
+};
+
+struct dvd_bca {
+	__u8 type;
+	int len;
+	__u8 value[188];
+};
+
+struct dvd_manufact {
+	__u8 type;
+	__u8 layer_num;
+	int len;
+	__u8 value[2048];
+};
+
+typedef union {
+	__u8 type;
+	struct dvd_physical physical;
+	struct dvd_copyright copyright;
+	struct dvd_disckey disckey;
+	struct dvd_bca bca;
+	struct dvd_manufact manufact;
+} dvd_struct;
+
+typedef __u8 dvd_key[5];
+
+typedef __u8 dvd_challenge[10];
+
+struct dvd_lu_send_agid {
+	__u8 type;
+	unsigned int agid: 2;
+};
+
+struct dvd_host_send_challenge {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_challenge chal;
+};
+
+struct dvd_send_key {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_key key;
+};
+
+struct dvd_lu_send_challenge {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_challenge chal;
+};
+
+struct dvd_lu_send_title_key {
+	__u8 type;
+	unsigned int agid: 2;
+	dvd_key title_key;
+	int lba;
+	unsigned int cpm: 1;
+	unsigned int cp_sec: 1;
+	unsigned int cgms: 2;
+};
+
+struct dvd_lu_send_asf {
+	__u8 type;
+	unsigned int agid: 2;
+	unsigned int asf: 1;
+};
+
+struct dvd_host_send_rpcstate {
+	__u8 type;
+	__u8 pdrc;
+};
+
+struct dvd_lu_send_rpcstate {
+	__u8 type: 2;
+	__u8 vra: 3;
+	__u8 ucca: 3;
+	__u8 region_mask;
+	__u8 rpc_scheme;
+};
+
+typedef union {
+	__u8 type;
+	struct dvd_lu_send_agid lsa;
+	struct dvd_host_send_challenge hsc;
+	struct dvd_send_key lsk;
+	struct dvd_lu_send_challenge lsc;
+	struct dvd_send_key hsk;
+	struct dvd_lu_send_title_key lstk;
+	struct dvd_lu_send_asf lsasf;
+	struct dvd_host_send_rpcstate hrpcs;
+	struct dvd_lu_send_rpcstate lrpcs;
+} dvd_authinfo;
+
+struct mrw_feature_desc {
+	__be16 feature_code;
+	__u8 curr: 1;
+	__u8 persistent: 1;
+	__u8 feature_version: 4;
+	__u8 reserved1: 2;
+	__u8 add_len;
+	__u8 write: 1;
+	__u8 reserved2: 7;
+	__u8 reserved3;
+	__u8 reserved4;
+	__u8 reserved5;
+};
+
+struct rwrt_feature_desc {
+	__be16 feature_code;
+	__u8 curr: 1;
+	__u8 persistent: 1;
+	__u8 feature_version: 4;
+	__u8 reserved1: 2;
+	__u8 add_len;
+	__u32 last_lba;
+	__u32 block_size;
+	__u16 blocking;
+	__u8 page_present: 1;
+	__u8 reserved2: 7;
+	__u8 reserved3;
+};
+
+typedef struct {
+	__be16 disc_information_length;
+	__u8 disc_status: 2;
+	__u8 border_status: 2;
+	__u8 erasable: 1;
+	__u8 reserved1: 3;
+	__u8 n_first_track;
+	__u8 n_sessions_lsb;
+	__u8 first_track_lsb;
+	__u8 last_track_lsb;
+	__u8 mrw_status: 2;
+	__u8 dbit: 1;
+	__u8 reserved2: 2;
+	__u8 uru: 1;
+	__u8 dbc_v: 1;
+	__u8 did_v: 1;
+	__u8 disc_type;
+	__u8 n_sessions_msb;
+	__u8 first_track_msb;
+	__u8 last_track_msb;
+	__u32 disc_id;
+	__u32 lead_in;
+	__u32 lead_out;
+	__u8 disc_bar_code[8];
+	__u8 reserved3;
+	__u8 n_opc;
+} disc_information;
+
+typedef struct {
+	__be16 track_information_length;
+	__u8 track_lsb;
+	__u8 session_lsb;
+	__u8 reserved1;
+	__u8 track_mode: 4;
+	__u8 copy: 1;
+	__u8 damage: 1;
+	__u8 reserved2: 2;
+	__u8 data_mode: 4;
+	__u8 fp: 1;
+	__u8 packet: 1;
+	__u8 blank: 1;
+	__u8 rt: 1;
+	__u8 nwa_v: 1;
+	__u8 lra_v: 1;
+	__u8 reserved3: 6;
+	__be32 track_start;
+	__be32 next_writable;
+	__be32 free_blocks;
+	__be32 fixed_packet_size;
+	__be32 track_size;
+	__be32 last_rec_address;
+} track_information;
+
+struct mode_page_header {
+	__be16 mode_data_length;
+	__u8 medium_type;
+	__u8 reserved1;
+	__u8 reserved2;
+	__u8 reserved3;
+	__be16 desc_length;
+};
+
+typedef struct {
+	int data;
+	int audio;
+	int cdi;
+	int xa;
+	long int error;
+} tracktype;
+
+struct cdrom_mechstat_header {
+	__u8 curslot: 5;
+	__u8 changer_state: 2;
+	__u8 fault: 1;
+	__u8 reserved1: 4;
+	__u8 door_open: 1;
+	__u8 mech_state: 3;
+	__u8 curlba[3];
+	__u8 nslots;
+	__u16 slot_tablelen;
+};
+
+struct cdrom_slot {
+	__u8 change: 1;
+	__u8 reserved1: 6;
+	__u8 disc_present: 1;
+	__u8 reserved2[3];
+};
+
+struct cdrom_changer_info {
+	struct cdrom_mechstat_header hdr;
+	struct cdrom_slot slots[256];
+};
+
+struct modesel_head {
+	__u8 reserved1;
+	__u8 medium;
+	__u8 reserved2;
+	__u8 block_desc_length;
+	__u8 density;
+	__u8 number_of_blocks_hi;
+	__u8 number_of_blocks_med;
+	__u8 number_of_blocks_lo;
+	__u8 reserved3;
+	__u8 block_length_hi;
+	__u8 block_length_med;
+	__u8 block_length_lo;
+};
+
+typedef struct {
+	__u16 report_key_length;
+	__u8 reserved1;
+	__u8 reserved2;
+	__u8 ucca: 3;
+	__u8 vra: 3;
+	__u8 type_code: 2;
+	__u8 region_mask;
+	__u8 rpc_scheme;
+	__u8 reserved3;
+} rpc_state_t;
+
+struct cdrom_sysctl_settings {
+	char info[1000];
+	int autoclose;
+	int autoeject;
+	int debug;
+	int lock;
+	int check;
+};
+
+enum cdrom_print_option {
+	CTL_NAME = 0,
+	CTL_SPEED = 1,
+	CTL_SLOTS = 2,
+	CTL_CAPABILITY = 3,
+};
+
+struct compat_cdrom_read_audio {
+	union cdrom_addr addr;
+	u8 addr_format;
+	compat_int_t nframes;
+	compat_caddr_t buf;
+};
+
+enum usb_otg_state {
+	OTG_STATE_UNDEFINED = 0,
+	OTG_STATE_B_IDLE = 1,
+	OTG_STATE_B_SRP_INIT = 2,
+	OTG_STATE_B_PERIPHERAL = 3,
+	OTG_STATE_B_WAIT_ACON = 4,
+	OTG_STATE_B_HOST = 5,
+	OTG_STATE_A_IDLE = 6,
+	OTG_STATE_A_WAIT_VRISE = 7,
+	OTG_STATE_A_WAIT_BCON = 8,
+	OTG_STATE_A_HOST = 9,
+	OTG_STATE_A_SUSPEND = 10,
+	OTG_STATE_A_PERIPHERAL = 11,
+	OTG_STATE_A_WAIT_VFALL = 12,
+	OTG_STATE_A_VBUS_ERR = 13,
+};
+
+enum usb_dr_mode {
+	USB_DR_MODE_UNKNOWN = 0,
+	USB_DR_MODE_HOST = 1,
+	USB_DR_MODE_PERIPHERAL = 2,
+	USB_DR_MODE_OTG = 3,
+};
+
+enum usb_led_event {
+	USB_LED_EVENT_HOST = 0,
+	USB_LED_EVENT_GADGET = 1,
+};
+
+struct usb_device_id {
+	__u16 match_flags;
+	__u16 idVendor;
+	__u16 idProduct;
+	__u16 bcdDevice_lo;
+	__u16 bcdDevice_hi;
+	__u8 bDeviceClass;
+	__u8 bDeviceSubClass;
+	__u8 bDeviceProtocol;
+	__u8 bInterfaceClass;
+	__u8 bInterfaceSubClass;
+	__u8 bInterfaceProtocol;
+	__u8 bInterfaceNumber;
+	kernel_ulong_t driver_info;
+};
+
+struct usb_descriptor_header {
+	__u8 bLength;
+	__u8 bDescriptorType;
+};
+
+enum usb_port_connect_type {
+	USB_PORT_CONNECT_TYPE_UNKNOWN = 0,
+	USB_PORT_CONNECT_TYPE_HOT_PLUG = 1,
+	USB_PORT_CONNECT_TYPE_HARD_WIRED = 2,
+	USB_PORT_NOT_USED = 3,
+};
+
+struct usb_dynids {
+	spinlock_t lock;
+	struct list_head list;
+};
+
+struct usbdrv_wrap {
+	struct device_driver driver;
+	int for_devices;
+};
+
+struct usb_driver {
+	const char *name;
+	int (*probe)(struct usb_interface *, const struct usb_device_id *);
+	void (*disconnect)(struct usb_interface *);
+	int (*unlocked_ioctl)(struct usb_interface *, unsigned int, void *);
+	int (*suspend)(struct usb_interface *, pm_message_t);
+	int (*resume)(struct usb_interface *);
+	int (*reset_resume)(struct usb_interface *);
+	int (*pre_reset)(struct usb_interface *);
+	int (*post_reset)(struct usb_interface *);
+	const struct usb_device_id *id_table;
+	const struct attribute_group **dev_groups;
+	struct usb_dynids dynids;
+	struct usbdrv_wrap drvwrap;
+	unsigned int no_dynamic_id: 1;
+	unsigned int supports_autosuspend: 1;
+	unsigned int disable_hub_initiated_lpm: 1;
+	unsigned int soft_unbind: 1;
+};
+
+struct usb_device_driver {
+	const char *name;
+	bool (*match)(struct usb_device *);
+	int (*probe)(struct usb_device *);
+	void (*disconnect)(struct usb_device *);
+	int (*suspend)(struct usb_device *, pm_message_t);
+	int (*resume)(struct usb_device *, pm_message_t);
+	const struct attribute_group **dev_groups;
+	struct usbdrv_wrap drvwrap;
+	const struct usb_device_id *id_table;
+	unsigned int supports_autosuspend: 1;
+	unsigned int generic_subclass: 1;
+};
+
+enum usb_phy_type {
+	USB_PHY_TYPE_UNDEFINED = 0,
+	USB_PHY_TYPE_USB2 = 1,
+	USB_PHY_TYPE_USB3 = 2,
+};
+
+enum usb_phy_events {
+	USB_EVENT_NONE = 0,
+	USB_EVENT_VBUS = 1,
+	USB_EVENT_ID = 2,
+	USB_EVENT_CHARGER = 3,
+	USB_EVENT_ENUMERATED = 4,
+};
+
+enum usb_charger_type {
+	UNKNOWN_TYPE = 0,
+	SDP_TYPE = 1,
+	DCP_TYPE = 2,
+	CDP_TYPE = 3,
+	ACA_TYPE = 4,
+};
+
+enum usb_charger_state {
+	USB_CHARGER_DEFAULT = 0,
+	USB_CHARGER_PRESENT = 1,
+	USB_CHARGER_ABSENT = 2,
+};
+
+struct usb_charger_current {
+	unsigned int sdp_min;
+	unsigned int sdp_max;
+	unsigned int dcp_min;
+	unsigned int dcp_max;
+	unsigned int cdp_min;
+	unsigned int cdp_max;
+	unsigned int aca_min;
+	unsigned int aca_max;
+};
+
+struct usb_otg;
+
+struct usb_phy_io_ops;
+
+struct usb_phy {
+	struct device *dev;
+	const char *label;
+	unsigned int flags;
+	enum usb_phy_type type;
+	enum usb_phy_events last_event;
+	struct usb_otg *otg;
+	struct device *io_dev;
+	struct usb_phy_io_ops *io_ops;
+	void *io_priv;
+	struct extcon_dev *edev;
+	struct extcon_dev *id_edev;
+	struct notifier_block vbus_nb;
+	struct notifier_block id_nb;
+	struct notifier_block type_nb;
+	enum usb_charger_type chg_type;
+	enum usb_charger_state chg_state;
+	struct usb_charger_current chg_cur;
+	struct work_struct chg_work;
+	struct atomic_notifier_head notifier;
+	u16 port_status;
+	u16 port_change;
+	struct list_head head;
+	int (*init)(struct usb_phy *);
+	void (*shutdown)(struct usb_phy *);
+	int (*set_vbus)(struct usb_phy *, int);
+	int (*set_power)(struct usb_phy *, unsigned int);
+	int (*set_suspend)(struct usb_phy *, int);
+	int (*set_wakeup)(struct usb_phy *, bool);
+	int (*notify_connect)(struct usb_phy *, enum usb_device_speed);
+	int (*notify_disconnect)(struct usb_phy *, enum usb_device_speed);
+	enum usb_charger_type (*charger_detect)(struct usb_phy *);
+};
+
+struct usb_port_status {
+	__le16 wPortStatus;
+	__le16 wPortChange;
+	__le32 dwExtPortStatus;
+};
+
+struct usb_hub_status {
+	__le16 wHubStatus;
+	__le16 wHubChange;
+};
+
+struct usb_hub_descriptor {
+	__u8 bDescLength;
+	__u8 bDescriptorType;
+	__u8 bNbrPorts;
+	__le16 wHubCharacteristics;
+	__u8 bPwrOn2PwrGood;
+	__u8 bHubContrCurrent;
+	union {
+		struct {
+			__u8 DeviceRemovable[4];
+			__u8 PortPwrCtrlMask[4];
+		} hs;
+		struct {
+			__u8 bHubHdrDecLat;
+			__le16 wHubDelay;
+			__le16 DeviceRemovable;
+		} __attribute__((packed)) ss;
+	} u;
+} __attribute__((packed));
+
+struct usb_phy_io_ops {
+	int (*read)(struct usb_phy *, u32);
+	int (*write)(struct usb_phy *, u32, u32);
+};
+
+struct usb_gadget;
+
+struct usb_otg {
+	u8 default_a;
+	struct phy *phy;
+	struct usb_phy *usb_phy;
+	struct usb_bus *host;
+	struct usb_gadget *gadget;
+	enum usb_otg_state state;
+	int (*set_host)(struct usb_otg *, struct usb_bus *);
+	int (*set_peripheral)(struct usb_otg *, struct usb_gadget *);
+	int (*set_vbus)(struct usb_otg *, bool);
+	int (*start_srp)(struct usb_otg *);
+	int (*start_hnp)(struct usb_otg *);
+};
+
+typedef u32 usb_port_location_t;
+
+struct usb_port;
+
+struct usb_hub {
+	struct device *intfdev;
+	struct usb_device *hdev;
+	struct kref kref;
+	struct urb *urb;
+	u8 (*buffer)[8];
+	union {
+		struct usb_hub_status hub;
+		struct usb_port_status port;
+	} *status;
+	struct mutex status_mutex;
+	int error;
+	int nerrors;
+	long unsigned int event_bits[1];
+	long unsigned int change_bits[1];
+	long unsigned int removed_bits[1];
+	long unsigned int wakeup_bits[1];
+	long unsigned int power_bits[1];
+	long unsigned int child_usage_bits[1];
+	long unsigned int warm_reset_bits[1];
+	struct usb_hub_descriptor *descriptor;
+	struct usb_tt tt;
+	unsigned int mA_per_port;
+	unsigned int wakeup_enabled_descendants;
+	unsigned int limited_power: 1;
+	unsigned int quiescing: 1;
+	unsigned int disconnected: 1;
+	unsigned int in_reset: 1;
+	unsigned int quirk_disable_autosuspend: 1;
+	unsigned int quirk_check_port_auto_suspend: 1;
+	unsigned int has_indicators: 1;
+	u8 indicator[31];
+	struct delayed_work leds;
+	struct delayed_work init_work;
+	struct work_struct events;
+	spinlock_t irq_urb_lock;
+	struct timer_list irq_urb_retry;
+	struct usb_port **ports;
+};
+
+struct usb_dev_state;
+
+struct usb_port {
+	struct usb_device *child;
+	struct device dev;
+	struct usb_dev_state *port_owner;
+	struct usb_port *peer;
+	struct dev_pm_qos_request *req;
+	enum usb_port_connect_type connect_type;
+	usb_port_location_t location;
+	struct mutex status_lock;
+	u32 over_current_count;
+	u8 portnum;
+	u32 quirks;
+	unsigned int is_superspeed: 1;
+	unsigned int usb3_lpm_u1_permit: 1;
+	unsigned int usb3_lpm_u2_permit: 1;
+};
+
+struct find_interface_arg {
+	int minor;
+	struct device_driver *drv;
+};
+
+struct each_dev_arg {
+	void *data;
+	int (*fn)(struct usb_device *, void *);
+};
+
+struct usb_qualifier_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 bcdUSB;
+	__u8 bDeviceClass;
+	__u8 bDeviceSubClass;
+	__u8 bDeviceProtocol;
+	__u8 bMaxPacketSize0;
+	__u8 bNumConfigurations;
+	__u8 bRESERVED;
+};
+
+struct usb_set_sel_req {
+	__u8 u1_sel;
+	__u8 u1_pel;
+	__le16 u2_sel;
+	__le16 u2_pel;
+};
+
+struct usbdevfs_hub_portinfo {
+	char nports;
+	char port[127];
+};
+
+enum hub_led_mode {
+	INDICATOR_AUTO = 0,
+	INDICATOR_CYCLE = 1,
+	INDICATOR_GREEN_BLINK = 2,
+	INDICATOR_GREEN_BLINK_OFF = 3,
+	INDICATOR_AMBER_BLINK = 4,
+	INDICATOR_AMBER_BLINK_OFF = 5,
+	INDICATOR_ALT_BLINK = 6,
+	INDICATOR_ALT_BLINK_OFF = 7,
+};
+
+struct usb_tt_clear {
+	struct list_head clear_list;
+	unsigned int tt;
+	u16 devinfo;
+	struct usb_hcd *hcd;
+	struct usb_host_endpoint *ep;
+};
+
+enum hub_activation_type {
+	HUB_INIT = 0,
+	HUB_INIT2 = 1,
+	HUB_INIT3 = 2,
+	HUB_POST_RESET = 3,
+	HUB_RESUME = 4,
+	HUB_RESET_RESUME = 5,
+};
+
+enum hub_quiescing_type {
+	HUB_DISCONNECT = 0,
+	HUB_PRE_RESET = 1,
+	HUB_SUSPEND = 2,
+};
+
+struct usb_ctrlrequest {
+	__u8 bRequestType;
+	__u8 bRequest;
+	__le16 wValue;
+	__le16 wIndex;
+	__le16 wLength;
+};
+
+struct usb_mon_operations {
+	void (*urb_submit)(struct usb_bus *, struct urb *);
+	void (*urb_submit_error)(struct usb_bus *, struct urb *, int);
+	void (*urb_complete)(struct usb_bus *, struct urb *, int);
+};
+
+struct usb_sg_request {
+	int status;
+	size_t bytes;
+	spinlock_t lock;
+	struct usb_device *dev;
+	int pipe;
+	int entries;
+	struct urb **urbs;
+	int count;
+	struct completion complete;
+};
+
+struct usb_cdc_header_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdCDC;
+} __attribute__((packed));
+
+struct usb_cdc_call_mgmt_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bmCapabilities;
+	__u8 bDataInterface;
+};
+
+struct usb_cdc_acm_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bmCapabilities;
+};
+
+struct usb_cdc_union_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bMasterInterface0;
+	__u8 bSlaveInterface0;
+};
+
+struct usb_cdc_country_functional_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 iCountryCodeRelDate;
+	__le16 wCountyCode0;
+};
+
+struct usb_cdc_network_terminal_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bEntityId;
+	__u8 iName;
+	__u8 bChannelIndex;
+	__u8 bPhysicalInterface;
+};
+
+struct usb_cdc_ether_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 iMACAddress;
+	__le32 bmEthernetStatistics;
+	__le16 wMaxSegmentSize;
+	__le16 wNumberMCFilters;
+	__u8 bNumberPowerFilters;
+} __attribute__((packed));
+
+struct usb_cdc_dmm_desc {
+	__u8 bFunctionLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubtype;
+	__u16 bcdVersion;
+	__le16 wMaxCommand;
+} __attribute__((packed));
+
+struct usb_cdc_mdlm_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdVersion;
+	__u8 bGUID[16];
+} __attribute__((packed));
+
+struct usb_cdc_mdlm_detail_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__u8 bGuidDescriptorType;
+	__u8 bDetailData[0];
+};
+
+struct usb_cdc_obex_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdVersion;
+} __attribute__((packed));
+
+struct usb_cdc_ncm_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdNcmVersion;
+	__u8 bmNetworkCapabilities;
+} __attribute__((packed));
+
+struct usb_cdc_mbim_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdMBIMVersion;
+	__le16 wMaxControlMessage;
+	__u8 bNumberFilters;
+	__u8 bMaxFilterSize;
+	__le16 wMaxSegmentSize;
+	__u8 bmNetworkCapabilities;
+} __attribute__((packed));
+
+struct usb_cdc_mbim_extended_desc {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDescriptorSubType;
+	__le16 bcdMBIMExtendedVersion;
+	__u8 bMaxOutstandingCommandMessages;
+	__le16 wMTU;
+} __attribute__((packed));
+
+struct usb_cdc_parsed_header {
+	struct usb_cdc_union_desc *usb_cdc_union_desc;
+	struct usb_cdc_header_desc *usb_cdc_header_desc;
+	struct usb_cdc_call_mgmt_descriptor *usb_cdc_call_mgmt_descriptor;
+	struct usb_cdc_acm_descriptor *usb_cdc_acm_descriptor;
+	struct usb_cdc_country_functional_desc *usb_cdc_country_functional_desc;
+	struct usb_cdc_network_terminal_desc *usb_cdc_network_terminal_desc;
+	struct usb_cdc_ether_desc *usb_cdc_ether_desc;
+	struct usb_cdc_dmm_desc *usb_cdc_dmm_desc;
+	struct usb_cdc_mdlm_desc *usb_cdc_mdlm_desc;
+	struct usb_cdc_mdlm_detail_desc *usb_cdc_mdlm_detail_desc;
+	struct usb_cdc_obex_desc *usb_cdc_obex_desc;
+	struct usb_cdc_ncm_desc *usb_cdc_ncm_desc;
+	struct usb_cdc_mbim_desc *usb_cdc_mbim_desc;
+	struct usb_cdc_mbim_extended_desc *usb_cdc_mbim_extended_desc;
+	bool phonet_magic_present;
+};
+
+struct api_context {
+	struct completion done;
+	int status;
+};
+
+struct set_config_request {
+	struct usb_device *udev;
+	int config;
+	struct work_struct work;
+	struct list_head node;
+};
+
+struct usb_dynid {
+	struct list_head node;
+	struct usb_device_id id;
+};
+
+struct usb_dev_cap_header {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__u8 bDevCapabilityType;
+};
+
+struct usb_class_driver {
+	char *name;
+	char * (*devnode)(struct device *, umode_t *);
+	const struct file_operations *fops;
+	int minor_base;
+};
+
+struct usb_class {
+	struct kref kref;
+	struct class *class;
+};
+
+struct ep_device {
+	struct usb_endpoint_descriptor *desc;
+	struct usb_device *udev;
+	struct device dev;
+};
+
+struct usbdevfs_ctrltransfer {
+	__u8 bRequestType;
+	__u8 bRequest;
+	__u16 wValue;
+	__u16 wIndex;
+	__u16 wLength;
+	__u32 timeout;
+	void *data;
+};
+
+struct usbdevfs_bulktransfer {
+	unsigned int ep;
+	unsigned int len;
+	unsigned int timeout;
+	void *data;
+};
+
+struct usbdevfs_setinterface {
+	unsigned int interface;
+	unsigned int altsetting;
+};
+
+struct usbdevfs_disconnectsignal {
+	unsigned int signr;
+	void *context;
+};
+
+struct usbdevfs_getdriver {
+	unsigned int interface;
+	char driver[256];
+};
+
+struct usbdevfs_connectinfo {
+	unsigned int devnum;
+	unsigned char slow;
+};
+
+struct usbdevfs_conninfo_ex {
+	__u32 size;
+	__u32 busnum;
+	__u32 devnum;
+	__u32 speed;
+	__u8 num_ports;
+	__u8 ports[7];
+};
+
+struct usbdevfs_iso_packet_desc {
+	unsigned int length;
+	unsigned int actual_length;
+	unsigned int status;
+};
+
+struct usbdevfs_urb {
+	unsigned char type;
+	unsigned char endpoint;
+	int status;
+	unsigned int flags;
+	void *buffer;
+	int buffer_length;
+	int actual_length;
+	int start_frame;
+	union {
+		int number_of_packets;
+		unsigned int stream_id;
+	};
+	int error_count;
+	unsigned int signr;
+	void *usercontext;
+	struct usbdevfs_iso_packet_desc iso_frame_desc[0];
+};
+
+struct usbdevfs_ioctl {
+	int ifno;
+	int ioctl_code;
+	void *data;
+};
+
+struct usbdevfs_disconnect_claim {
+	unsigned int interface;
+	unsigned int flags;
+	char driver[256];
+};
+
+struct usbdevfs_streams {
+	unsigned int num_streams;
+	unsigned int num_eps;
+	unsigned char eps[0];
+};
+
+struct usbdevfs_ctrltransfer32 {
+	u8 bRequestType;
+	u8 bRequest;
+	u16 wValue;
+	u16 wIndex;
+	u16 wLength;
+	u32 timeout;
+	compat_caddr_t data;
+};
+
+struct usbdevfs_bulktransfer32 {
+	compat_uint_t ep;
+	compat_uint_t len;
+	compat_uint_t timeout;
+	compat_caddr_t data;
+};
+
+struct usbdevfs_disconnectsignal32 {
+	compat_int_t signr;
+	compat_caddr_t context;
+};
+
+struct usbdevfs_urb32 {
+	unsigned char type;
+	unsigned char endpoint;
+	compat_int_t status;
+	compat_uint_t flags;
+	compat_caddr_t buffer;
+	compat_int_t buffer_length;
+	compat_int_t actual_length;
+	compat_int_t start_frame;
+	compat_int_t number_of_packets;
+	compat_int_t error_count;
+	compat_uint_t signr;
+	compat_caddr_t usercontext;
+	struct usbdevfs_iso_packet_desc iso_frame_desc[0];
+};
+
+struct usbdevfs_ioctl32 {
+	s32 ifno;
+	s32 ioctl_code;
+	compat_caddr_t data;
+};
+
+struct usb_dev_state___2 {
+	struct list_head list;
+	struct usb_device *dev;
+	struct file *file;
+	spinlock_t lock;
+	struct list_head async_pending;
+	struct list_head async_completed;
+	struct list_head memory_list;
+	wait_queue_head_t wait;
+	wait_queue_head_t wait_for_resume;
+	unsigned int discsignr;
+	struct pid *disc_pid;
+	const struct cred *cred;
+	sigval_t disccontext;
+	long unsigned int ifclaimed;
+	u32 disabled_bulk_eps;
+	long unsigned int interface_allowed_mask;
+	int not_yet_resumed;
+	bool suspend_allowed;
+	bool privileges_dropped;
+};
+
+struct usb_memory {
+	struct list_head memlist;
+	int vma_use_count;
+	int urb_use_count;
+	u32 size;
+	void *mem;
+	dma_addr_t dma_handle;
+	long unsigned int vm_start;
+	struct usb_dev_state___2 *ps;
+};
+
+struct async {
+	struct list_head asynclist;
+	struct usb_dev_state___2 *ps;
+	struct pid *pid;
+	const struct cred *cred;
+	unsigned int signr;
+	unsigned int ifnum;
+	void *userbuffer;
+	void *userurb;
+	sigval_t userurb_sigval;
+	struct urb *urb;
+	struct usb_memory *usbm;
+	unsigned int mem_usage;
+	int status;
+	u8 bulk_addr;
+	u8 bulk_status;
+};
+
+enum snoop_when {
+	SUBMIT = 0,
+	COMPLETE = 1,
+};
+
+struct quirk_entry {
+	u16 vid;
+	u16 pid;
+	u32 flags;
+};
+
+struct class_info {
+	int class;
+	char *class_name;
+};
+
+struct usb_phy_roothub___2 {
+	struct phy *phy;
+	struct list_head list;
+};
+
+typedef void (*companion_fn)(struct pci_dev *, struct usb_hcd *, struct pci_dev *, struct usb_hcd *);
+
+struct phy_devm {
+	struct usb_phy *phy;
+	struct notifier_block *nb;
+};
+
+struct usb_ep;
+
+struct usb_request {
+	void *buf;
+	unsigned int length;
+	dma_addr_t dma;
+	struct scatterlist *sg;
+	unsigned int num_sgs;
+	unsigned int num_mapped_sgs;
+	unsigned int stream_id: 16;
+	unsigned int is_last: 1;
+	unsigned int no_interrupt: 1;
+	unsigned int zero: 1;
+	unsigned int short_not_ok: 1;
+	unsigned int dma_mapped: 1;
+	void (*complete)(struct usb_ep *, struct usb_request *);
+	void *context;
+	struct list_head list;
+	unsigned int frame_number;
+	int status;
+	unsigned int actual;
+};
+
+struct usb_ep_caps {
+	unsigned int type_control: 1;
+	unsigned int type_iso: 1;
+	unsigned int type_bulk: 1;
+	unsigned int type_int: 1;
+	unsigned int dir_in: 1;
+	unsigned int dir_out: 1;
+};
+
+struct usb_ep_ops;
+
+struct usb_ep {
+	void *driver_data;
+	const char *name;
+	const struct usb_ep_ops *ops;
+	struct list_head ep_list;
+	struct usb_ep_caps caps;
+	bool claimed;
+	bool enabled;
+	unsigned int maxpacket: 16;
+	unsigned int maxpacket_limit: 16;
+	unsigned int max_streams: 16;
+	unsigned int mult: 2;
+	unsigned int maxburst: 5;
+	u8 address;
+	const struct usb_endpoint_descriptor *desc;
+	const struct usb_ss_ep_comp_descriptor *comp_desc;
+};
+
+struct usb_ep_ops {
+	int (*enable)(struct usb_ep *, const struct usb_endpoint_descriptor *);
+	int (*disable)(struct usb_ep *);
+	void (*dispose)(struct usb_ep *);
+	struct usb_request * (*alloc_request)(struct usb_ep *, gfp_t);
+	void (*free_request)(struct usb_ep *, struct usb_request *);
+	int (*queue)(struct usb_ep *, struct usb_request *, gfp_t);
+	int (*dequeue)(struct usb_ep *, struct usb_request *);
+	int (*set_halt)(struct usb_ep *, int);
+	int (*set_wedge)(struct usb_ep *);
+	int (*fifo_status)(struct usb_ep *);
+	void (*fifo_flush)(struct usb_ep *);
+};
+
+struct usb_dcd_config_params {
+	__u8 bU1devExitLat;
+	__le16 bU2DevExitLat;
+	__u8 besl_baseline;
+	__u8 besl_deep;
+};
+
+struct usb_gadget_driver;
+
+struct usb_gadget_ops {
+	int (*get_frame)(struct usb_gadget *);
+	int (*wakeup)(struct usb_gadget *);
+	int (*set_selfpowered)(struct usb_gadget *, int);
+	int (*vbus_session)(struct usb_gadget *, int);
+	int (*vbus_draw)(struct usb_gadget *, unsigned int);
