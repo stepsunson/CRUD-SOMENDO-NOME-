@@ -107735,3 +107735,2100 @@ struct usb_gadget_ops {
 	int (*set_selfpowered)(struct usb_gadget *, int);
 	int (*vbus_session)(struct usb_gadget *, int);
 	int (*vbus_draw)(struct usb_gadget *, unsigned int);
+	int (*pullup)(struct usb_gadget *, int);
+	int (*ioctl)(struct usb_gadget *, unsigned int, long unsigned int);
+	void (*get_config_params)(struct usb_gadget *, struct usb_dcd_config_params *);
+	int (*udc_start)(struct usb_gadget *, struct usb_gadget_driver *);
+	int (*udc_stop)(struct usb_gadget *);
+	void (*udc_set_speed)(struct usb_gadget *, enum usb_device_speed);
+	void (*udc_set_ssp_rate)(struct usb_gadget *, enum usb_ssp_rate);
+	void (*udc_async_callbacks)(struct usb_gadget *, bool);
+	struct usb_ep * (*match_ep)(struct usb_gadget *, struct usb_endpoint_descriptor *, struct usb_ss_ep_comp_descriptor *);
+	int (*check_config)(struct usb_gadget *);
+};
+
+struct usb_udc;
+
+struct usb_otg_caps;
+
+struct usb_gadget {
+	struct work_struct work;
+	struct usb_udc *udc;
+	const struct usb_gadget_ops *ops;
+	struct usb_ep *ep0;
+	struct list_head ep_list;
+	enum usb_device_speed speed;
+	enum usb_device_speed max_speed;
+	enum usb_ssp_rate ssp_rate;
+	enum usb_ssp_rate max_ssp_rate;
+	enum usb_device_state state;
+	const char *name;
+	struct device dev;
+	unsigned int isoch_delay;
+	unsigned int out_epnum;
+	unsigned int in_epnum;
+	unsigned int mA;
+	struct usb_otg_caps *otg_caps;
+	unsigned int sg_supported: 1;
+	unsigned int is_otg: 1;
+	unsigned int is_a_peripheral: 1;
+	unsigned int b_hnp_enable: 1;
+	unsigned int a_hnp_support: 1;
+	unsigned int a_alt_hnp_support: 1;
+	unsigned int hnp_polling_support: 1;
+	unsigned int host_request_flag: 1;
+	unsigned int quirk_ep_out_aligned_size: 1;
+	unsigned int quirk_altset_not_supp: 1;
+	unsigned int quirk_stall_not_supp: 1;
+	unsigned int quirk_zlp_not_supp: 1;
+	unsigned int quirk_avoids_skb_reserve: 1;
+	unsigned int is_selfpowered: 1;
+	unsigned int deactivated: 1;
+	unsigned int connected: 1;
+	unsigned int lpm_capable: 1;
+	int irq;
+	int id_number;
+};
+
+struct usb_gadget_driver {
+	char *function;
+	enum usb_device_speed max_speed;
+	int (*bind)(struct usb_gadget *, struct usb_gadget_driver *);
+	void (*unbind)(struct usb_gadget *);
+	int (*setup)(struct usb_gadget *, const struct usb_ctrlrequest *);
+	void (*disconnect)(struct usb_gadget *);
+	void (*suspend)(struct usb_gadget *);
+	void (*resume)(struct usb_gadget *);
+	void (*reset)(struct usb_gadget *);
+	struct device_driver driver;
+	char *udc_name;
+	unsigned int match_existing_only: 1;
+	bool is_bound: 1;
+};
+
+struct usb_otg_caps {
+	u16 otg_rev;
+	bool hnp_support;
+	bool srp_support;
+	bool adp_support;
+};
+
+struct dwc2_dma_desc {
+	u32 status;
+	u32 buf;
+};
+
+struct dwc2_hw_params {
+	unsigned int op_mode: 3;
+	unsigned int arch: 2;
+	unsigned int dma_desc_enable: 1;
+	unsigned int enable_dynamic_fifo: 1;
+	unsigned int en_multiple_tx_fifo: 1;
+	unsigned int rx_fifo_size: 16;
+	char: 8;
+	unsigned int host_nperio_tx_fifo_size: 16;
+	unsigned int dev_nperio_tx_fifo_size: 16;
+	unsigned int host_perio_tx_fifo_size: 16;
+	unsigned int nperio_tx_q_depth: 3;
+	unsigned int host_perio_tx_q_depth: 3;
+	unsigned int dev_token_q_depth: 5;
+	char: 5;
+	unsigned int max_transfer_size: 26;
+	char: 6;
+	unsigned int max_packet_count: 11;
+	unsigned int host_channels: 5;
+	unsigned int hs_phy_type: 2;
+	unsigned int fs_phy_type: 2;
+	unsigned int i2c_enable: 1;
+	unsigned int acg_enable: 1;
+	unsigned int num_dev_ep: 4;
+	unsigned int num_dev_in_eps: 4;
+	char: 2;
+	unsigned int num_dev_perio_in_ep: 4;
+	unsigned int total_fifo_size: 16;
+	unsigned int power_optimized: 1;
+	unsigned int hibernation: 1;
+	unsigned int utmi_phy_data_width: 2;
+	unsigned int lpm_mode: 1;
+	unsigned int ipg_isoc_en: 1;
+	unsigned int service_interval_mode: 1;
+	u32 snpsid;
+	u32 dev_ep_dirs;
+	u32 g_tx_fifo_size[16];
+};
+
+struct dwc2_core_params {
+	struct usb_otg_caps otg_caps;
+	u8 phy_type;
+	u8 speed;
+	u8 phy_utmi_width;
+	bool phy_ulpi_ddr;
+	bool phy_ulpi_ext_vbus;
+	bool enable_dynamic_fifo;
+	bool en_multiple_tx_fifo;
+	bool i2c_enable;
+	bool acg_enable;
+	bool ulpi_fs_ls;
+	bool ts_dline;
+	bool reload_ctl;
+	bool uframe_sched;
+	bool external_id_pin_ctl;
+	int power_down;
+	bool no_clock_gating;
+	bool lpm;
+	bool lpm_clock_gating;
+	bool besl;
+	bool hird_threshold_en;
+	bool service_interval;
+	u8 hird_threshold;
+	bool activate_stm_fs_transceiver;
+	bool activate_stm_id_vb_detection;
+	bool activate_ingenic_overcurrent_detection;
+	bool ipg_isoc_en;
+	u16 max_packet_count;
+	u32 max_transfer_size;
+	u32 ahbcfg;
+	u32 ref_clk_per;
+	u16 sof_cnt_wkup_alert;
+	bool host_dma;
+	bool dma_desc_enable;
+	bool dma_desc_fs_enable;
+	bool host_support_fs_ls_low_power;
+	bool host_ls_low_power_phy_clk;
+	bool oc_disable;
+	u8 host_channels;
+	u16 host_rx_fifo_size;
+	u16 host_nperio_tx_fifo_size;
+	u16 host_perio_tx_fifo_size;
+	bool g_dma;
+	bool g_dma_desc;
+	u32 g_rx_fifo_size;
+	u32 g_np_tx_fifo_size;
+	u32 g_tx_fifo_size[16];
+	bool change_speed_quirk;
+};
+
+enum dwc2_lx_state {
+	DWC2_L0 = 0,
+	DWC2_L1 = 1,
+	DWC2_L2 = 2,
+	DWC2_L3 = 3,
+};
+
+struct dwc2_gregs_backup {
+	u32 gotgctl;
+	u32 gintmsk;
+	u32 gahbcfg;
+	u32 gusbcfg;
+	u32 grxfsiz;
+	u32 gnptxfsiz;
+	u32 gi2cctl;
+	u32 glpmcfg;
+	u32 pcgcctl;
+	u32 pcgcctl1;
+	u32 gdfifocfg;
+	u32 gpwrdn;
+	bool valid;
+};
+
+struct dwc2_dregs_backup {
+	u32 dcfg;
+	u32 dctl;
+	u32 daintmsk;
+	u32 diepmsk;
+	u32 doepmsk;
+	u32 diepctl[16];
+	u32 dieptsiz[16];
+	u32 diepdma[16];
+	u32 doepctl[16];
+	u32 doeptsiz[16];
+	u32 doepdma[16];
+	u32 dtxfsiz[16];
+	bool valid;
+};
+
+struct dwc2_hregs_backup {
+	u32 hcfg;
+	u32 haintmsk;
+	u32 hcintmsk[16];
+	u32 hprt0;
+	u32 hfir;
+	u32 hptxfsiz;
+	bool valid;
+};
+
+union dwc2_hcd_internal_flags {
+	u32 d32;
+	struct {
+		unsigned int port_connect_status_change: 1;
+		unsigned int port_connect_status: 1;
+		unsigned int port_reset_change: 1;
+		unsigned int port_enable_change: 1;
+		unsigned int port_suspend_change: 1;
+		unsigned int port_over_current_change: 1;
+		unsigned int port_l1_change: 1;
+		unsigned int reserved: 25;
+	} b;
+};
+
+struct usb_role_switch;
+
+struct dwc2_hsotg_plat;
+
+struct dwc2_host_chan;
+
+struct dwc2_hsotg {
+	struct device *dev;
+	void *regs;
+	struct dwc2_hw_params hw_params;
+	struct dwc2_core_params params;
+	enum usb_otg_state op_state;
+	enum usb_dr_mode dr_mode;
+	struct usb_role_switch *role_sw;
+	enum usb_dr_mode role_sw_default_mode;
+	unsigned int hcd_enabled: 1;
+	unsigned int gadget_enabled: 1;
+	unsigned int ll_hw_enabled: 1;
+	unsigned int hibernated: 1;
+	unsigned int in_ppd: 1;
+	bool bus_suspended;
+	unsigned int reset_phy_on_wake: 1;
+	unsigned int need_phy_for_wake: 1;
+	unsigned int phy_off_for_suspend: 1;
+	u16 frame_number;
+	struct phy *phy;
+	struct usb_phy *uphy;
+	struct dwc2_hsotg_plat *plat;
+	struct regulator_bulk_data supplies[2];
+	struct regulator *vbus_supply;
+	struct regulator *usb33d;
+	spinlock_t lock;
+	void *priv;
+	int irq;
+	struct clk *clk;
+	struct reset_control *reset;
+	struct reset_control *reset_ecc;
+	unsigned int queuing_high_bandwidth: 1;
+	unsigned int srp_success: 1;
+	struct workqueue_struct *wq_otg;
+	struct work_struct wf_otg;
+	struct timer_list wkp_timer;
+	enum dwc2_lx_state lx_state;
+	struct dwc2_gregs_backup gr_backup;
+	struct dwc2_dregs_backup dr_backup;
+	struct dwc2_hregs_backup hr_backup;
+	struct dentry *debug_root;
+	struct debugfs_regset32 *regset;
+	bool needs_byte_swap;
+	union dwc2_hcd_internal_flags flags;
+	struct list_head non_periodic_sched_inactive;
+	struct list_head non_periodic_sched_waiting;
+	struct list_head non_periodic_sched_active;
+	struct list_head *non_periodic_qh_ptr;
+	struct list_head periodic_sched_inactive;
+	struct list_head periodic_sched_ready;
+	struct list_head periodic_sched_assigned;
+	struct list_head periodic_sched_queued;
+	struct list_head split_order;
+	u16 periodic_usecs;
+	long unsigned int hs_periodic_bitmap[13];
+	u16 periodic_qh_count;
+	bool new_connection;
+	u16 last_frame_num;
+	struct list_head free_hc_list;
+	int periodic_channels;
+	int non_periodic_channels;
+	int available_host_channels;
+	struct dwc2_host_chan *hc_ptr_array[16];
+	u8 *status_buf;
+	dma_addr_t status_buf_dma;
+	struct delayed_work start_work;
+	struct delayed_work reset_work;
+	struct work_struct phy_reset_work;
+	u8 otg_port;
+	u32 *frame_list;
+	dma_addr_t frame_list_dma;
+	u32 frame_list_sz;
+	struct kmem_cache *desc_gen_cache;
+	struct kmem_cache *desc_hsisoc_cache;
+	struct kmem_cache *unaligned_cache;
+};
+
+enum dwc2_halt_status {
+	DWC2_HC_XFER_NO_HALT_STATUS = 0,
+	DWC2_HC_XFER_COMPLETE = 1,
+	DWC2_HC_XFER_URB_COMPLETE = 2,
+	DWC2_HC_XFER_ACK = 3,
+	DWC2_HC_XFER_NAK = 4,
+	DWC2_HC_XFER_NYET = 5,
+	DWC2_HC_XFER_STALL = 6,
+	DWC2_HC_XFER_XACT_ERR = 7,
+	DWC2_HC_XFER_FRAME_OVERRUN = 8,
+	DWC2_HC_XFER_BABBLE_ERR = 9,
+	DWC2_HC_XFER_DATA_TOGGLE_ERR = 10,
+	DWC2_HC_XFER_AHB_ERR = 11,
+	DWC2_HC_XFER_PERIODIC_INCOMPLETE = 12,
+	DWC2_HC_XFER_URB_DEQUEUE = 13,
+};
+
+struct dwc2_qh;
+
+struct dwc2_host_chan {
+	u8 hc_num;
+	unsigned int dev_addr: 7;
+	unsigned int ep_num: 4;
+	unsigned int ep_is_in: 1;
+	unsigned int speed: 4;
+	unsigned int ep_type: 2;
+	char: 6;
+	unsigned int max_packet: 11;
+	unsigned int data_pid_start: 2;
+	unsigned int multi_count: 2;
+	u8 *xfer_buf;
+	dma_addr_t xfer_dma;
+	dma_addr_t align_buf;
+	u32 xfer_len;
+	u32 xfer_count;
+	u16 start_pkt_count;
+	u8 xfer_started;
+	u8 do_ping;
+	u8 error_state;
+	u8 halt_on_queue;
+	u8 halt_pending;
+	u8 do_split;
+	u8 complete_split;
+	u8 hub_addr;
+	u8 hub_port;
+	u8 xact_pos;
+	u8 requests;
+	u8 schinfo;
+	u16 ntd;
+	enum dwc2_halt_status halt_status;
+	u32 hcint;
+	struct dwc2_qh *qh;
+	struct list_head hc_list_entry;
+	dma_addr_t desc_list_addr;
+	u32 desc_list_sz;
+	struct list_head split_order_list_entry;
+};
+
+struct dwc2_hs_transfer_time {
+	u32 start_schedule_us;
+	u16 duration_us;
+};
+
+struct dwc2_tt;
+
+struct dwc2_qh {
+	struct dwc2_hsotg *hsotg;
+	u8 ep_type;
+	u8 ep_is_in;
+	u16 maxp;
+	u16 maxp_mult;
+	u8 dev_speed;
+	u8 data_toggle;
+	u8 ping_state;
+	u8 do_split;
+	u8 td_first;
+	u8 td_last;
+	u16 host_us;
+	u16 device_us;
+	u16 host_interval;
+	u16 device_interval;
+	u16 next_active_frame;
+	u16 start_active_frame;
+	s16 num_hs_transfers;
+	struct dwc2_hs_transfer_time hs_transfers[8];
+	u32 ls_start_schedule_slice;
+	u16 ntd;
+	u8 *dw_align_buf;
+	dma_addr_t dw_align_buf_dma;
+	struct list_head qtd_list;
+	struct dwc2_host_chan *channel;
+	struct list_head qh_list_entry;
+	struct dwc2_dma_desc *desc_list;
+	dma_addr_t desc_list_dma;
+	u32 desc_list_sz;
+	u32 *n_bytes;
+	struct timer_list unreserve_timer;
+	struct hrtimer wait_timer;
+	struct dwc2_tt *dwc_tt;
+	int ttport;
+	unsigned int tt_buffer_dirty: 1;
+	unsigned int unreserve_pending: 1;
+	unsigned int schedule_low_speed: 1;
+	unsigned int want_wait: 1;
+	unsigned int wait_timer_cancel: 1;
+};
+
+struct dwc2_tt {
+	int refcount;
+	struct usb_tt *usb_tt;
+	long unsigned int periodic_bitmaps[0];
+};
+
+enum dwc2_hsotg_dmamode {
+	S3C_HSOTG_DMA_NONE = 0,
+	S3C_HSOTG_DMA_ONLY = 1,
+	S3C_HSOTG_DMA_DRV = 2,
+};
+
+struct dwc2_hsotg_plat {
+	enum dwc2_hsotg_dmamode dma;
+	unsigned int is_osc: 1;
+	int phy_type;
+	int (*phy_init)(struct platform_device *, int);
+	int (*phy_exit)(struct platform_device *, int);
+};
+
+enum usb_role {
+	USB_ROLE_NONE = 0,
+	USB_ROLE_HOST = 1,
+	USB_ROLE_DEVICE = 2,
+};
+
+typedef int (*usb_role_switch_set_t)(struct usb_role_switch *, enum usb_role);
+
+typedef enum usb_role (*usb_role_switch_get_t)(struct usb_role_switch *);
+
+struct usb_role_switch_desc {
+	struct fwnode_handle *fwnode;
+	struct device *usb2_port;
+	struct device *usb3_port;
+	struct device *udc;
+	usb_role_switch_set_t set;
+	usb_role_switch_get_t get;
+	bool allow_userspace_control;
+	void *driver_data;
+	const char *name;
+};
+
+typedef void (*set_params_cb)(struct dwc2_hsotg *);
+
+struct dwc2_hcd_pipe_info {
+	u8 dev_addr;
+	u8 ep_num;
+	u8 pipe_type;
+	u8 pipe_dir;
+	u16 maxp;
+	u16 maxp_mult;
+};
+
+struct dwc2_hcd_iso_packet_desc {
+	u32 offset;
+	u32 length;
+	u32 actual_length;
+	u32 status;
+};
+
+struct dwc2_qtd;
+
+struct dwc2_hcd_urb {
+	void *priv;
+	struct dwc2_qtd *qtd;
+	void *buf;
+	dma_addr_t dma;
+	void *setup_packet;
+	dma_addr_t setup_dma;
+	u32 length;
+	u32 actual_length;
+	u32 status;
+	u32 error_count;
+	u32 packet_count;
+	u32 flags;
+	u16 interval;
+	struct dwc2_hcd_pipe_info pipe_info;
+	struct dwc2_hcd_iso_packet_desc iso_descs[0];
+};
+
+enum dwc2_control_phase {
+	DWC2_CONTROL_SETUP = 0,
+	DWC2_CONTROL_DATA = 1,
+	DWC2_CONTROL_STATUS = 2,
+};
+
+struct dwc2_qtd {
+	enum dwc2_control_phase control_phase;
+	u8 in_process;
+	u8 data_toggle;
+	u8 complete_split;
+	u8 isoc_split_pos;
+	u16 isoc_frame_index;
+	u16 isoc_split_offset;
+	u16 isoc_td_last;
+	u16 isoc_td_first;
+	u32 ssplit_out_xfer_count;
+	u8 error_count;
+	u8 n_desc;
+	u16 isoc_frame_index_last;
+	u16 num_naks;
+	struct dwc2_hcd_urb *urb;
+	struct dwc2_qh *qh;
+	struct list_head qtd_list_entry;
+};
+
+enum dwc2_transaction_type {
+	DWC2_TRANSACTION_NONE = 0,
+	DWC2_TRANSACTION_PERIODIC = 1,
+	DWC2_TRANSACTION_NON_PERIODIC = 2,
+	DWC2_TRANSACTION_ALL = 3,
+};
+
+struct wrapper_priv_data {
+	struct dwc2_hsotg *hsotg;
+};
+
+enum amd_chipset_gen {
+	NOT_AMD_CHIPSET = 0,
+	AMD_CHIPSET_SB600 = 1,
+	AMD_CHIPSET_SB700 = 2,
+	AMD_CHIPSET_SB800 = 3,
+	AMD_CHIPSET_HUDSON2 = 4,
+	AMD_CHIPSET_BOLTON = 5,
+	AMD_CHIPSET_YANGTZE = 6,
+	AMD_CHIPSET_TAISHAN = 7,
+	AMD_CHIPSET_UNKNOWN = 8,
+};
+
+struct amd_chipset_type {
+	enum amd_chipset_gen gen;
+	u8 rev;
+};
+
+struct amd_chipset_info {
+	struct pci_dev *nb_dev;
+	struct pci_dev *smbus_dev;
+	int nb_type;
+	struct amd_chipset_type sb_type;
+	int isoc_reqs;
+	int probe_count;
+	bool need_pll_quirk;
+};
+
+struct ehci_stats {
+	long unsigned int normal;
+	long unsigned int error;
+	long unsigned int iaa;
+	long unsigned int lost_iaa;
+	long unsigned int complete;
+	long unsigned int unlink;
+};
+
+struct ehci_per_sched {
+	struct usb_device *udev;
+	struct usb_host_endpoint *ep;
+	struct list_head ps_list;
+	u16 tt_usecs;
+	u16 cs_mask;
+	u16 period;
+	u16 phase;
+	u8 bw_phase;
+	u8 phase_uf;
+	u8 usecs;
+	u8 c_usecs;
+	u8 bw_uperiod;
+	u8 bw_period;
+};
+
+enum ehci_rh_state {
+	EHCI_RH_HALTED = 0,
+	EHCI_RH_SUSPENDED = 1,
+	EHCI_RH_RUNNING = 2,
+	EHCI_RH_STOPPING = 3,
+};
+
+enum ehci_hrtimer_event {
+	EHCI_HRTIMER_POLL_ASS = 0,
+	EHCI_HRTIMER_POLL_PSS = 1,
+	EHCI_HRTIMER_POLL_DEAD = 2,
+	EHCI_HRTIMER_UNLINK_INTR = 3,
+	EHCI_HRTIMER_FREE_ITDS = 4,
+	EHCI_HRTIMER_ACTIVE_UNLINK = 5,
+	EHCI_HRTIMER_START_UNLINK_INTR = 6,
+	EHCI_HRTIMER_ASYNC_UNLINKS = 7,
+	EHCI_HRTIMER_IAA_WATCHDOG = 8,
+	EHCI_HRTIMER_DISABLE_PERIODIC = 9,
+	EHCI_HRTIMER_DISABLE_ASYNC = 10,
+	EHCI_HRTIMER_IO_WATCHDOG = 11,
+	EHCI_HRTIMER_NUM_EVENTS = 12,
+};
+
+struct ehci_caps;
+
+struct ehci_regs;
+
+struct ehci_dbg_port;
+
+struct ehci_qh;
+
+union ehci_shadow;
+
+struct ehci_itd;
+
+struct ehci_sitd;
+
+struct ehci_hcd {
+	enum ehci_hrtimer_event next_hrtimer_event;
+	unsigned int enabled_hrtimer_events;
+	ktime_t hr_timeouts[12];
+	struct hrtimer hrtimer;
+	int PSS_poll_count;
+	int ASS_poll_count;
+	int died_poll_count;
+	struct ehci_caps *caps;
+	struct ehci_regs *regs;
+	struct ehci_dbg_port *debug;
+	__u32 hcs_params;
+	spinlock_t lock;
+	enum ehci_rh_state rh_state;
+	bool scanning: 1;
+	bool need_rescan: 1;
+	bool intr_unlinking: 1;
+	bool iaa_in_progress: 1;
+	bool async_unlinking: 1;
+	bool shutdown: 1;
+	struct ehci_qh *qh_scan_next;
+	struct ehci_qh *async;
+	struct ehci_qh *dummy;
+	struct list_head async_unlink;
+	struct list_head async_idle;
+	unsigned int async_unlink_cycle;
+	unsigned int async_count;
+	__le32 old_current;
+	__le32 old_token;
+	unsigned int periodic_size;
+	__le32 *periodic;
+	dma_addr_t periodic_dma;
+	struct list_head intr_qh_list;
+	unsigned int i_thresh;
+	union ehci_shadow *pshadow;
+	struct list_head intr_unlink_wait;
+	struct list_head intr_unlink;
+	unsigned int intr_unlink_wait_cycle;
+	unsigned int intr_unlink_cycle;
+	unsigned int now_frame;
+	unsigned int last_iso_frame;
+	unsigned int intr_count;
+	unsigned int isoc_count;
+	unsigned int periodic_count;
+	unsigned int uframe_periodic_max;
+	struct list_head cached_itd_list;
+	struct ehci_itd *last_itd_to_free;
+	struct list_head cached_sitd_list;
+	struct ehci_sitd *last_sitd_to_free;
+	long unsigned int reset_done[15];
+	long unsigned int bus_suspended;
+	long unsigned int companion_ports;
+	long unsigned int owned_ports;
+	long unsigned int port_c_suspend;
+	long unsigned int suspended_ports;
+	long unsigned int resuming_ports;
+	struct dma_pool___2 *qh_pool;
+	struct dma_pool___2 *qtd_pool;
+	struct dma_pool___2 *itd_pool;
+	struct dma_pool___2 *sitd_pool;
+	unsigned int random_frame;
+	long unsigned int next_statechange;
+	ktime_t last_periodic_enable;
+	u32 command;
+	unsigned int no_selective_suspend: 1;
+	unsigned int has_fsl_port_bug: 1;
+	unsigned int has_fsl_hs_errata: 1;
+	unsigned int has_fsl_susp_errata: 1;
+	unsigned int big_endian_mmio: 1;
+	unsigned int big_endian_desc: 1;
+	unsigned int big_endian_capbase: 1;
+	unsigned int has_amcc_usb23: 1;
+	unsigned int need_io_watchdog: 1;
+	unsigned int amd_pll_fix: 1;
+	unsigned int use_dummy_qh: 1;
+	unsigned int has_synopsys_hc_bug: 1;
+	unsigned int frame_index_bug: 1;
+	unsigned int need_oc_pp_cycle: 1;
+	unsigned int imx28_write_fix: 1;
+	unsigned int spurious_oc: 1;
+	unsigned int is_aspeed: 1;
+	unsigned int zx_wakeup_clear_needed: 1;
+	__le32 *ohci_hcctrl_reg;
+	unsigned int has_hostpc: 1;
+	unsigned int has_tdi_phy_lpm: 1;
+	unsigned int has_ppcd: 1;
+	u8 sbrn;
+	struct ehci_stats stats;
+	struct dentry *debug_dir;
+	u8 bandwidth[64];
+	u8 tt_budget[64];
+	struct list_head tt_list;
+	long unsigned int priv[0];
+};
+
+struct ehci_caps {
+	u32 hc_capbase;
+	u32 hcs_params;
+	u32 hcc_params;
+	u8 portroute[8];
+};
+
+struct ehci_regs {
+	u32 command;
+	u32 status;
+	u32 intr_enable;
+	u32 frame_index;
+	u32 segment;
+	u32 frame_list;
+	u32 async_next;
+	u32 reserved1[2];
+	u32 txfill_tuning;
+	u32 reserved2[6];
+	u32 configured_flag;
+	union {
+		u32 port_status[15];
+		struct {
+			u32 reserved3[9];
+			u32 usbmode;
+		};
+	};
+	union {
+		struct {
+			u32 reserved4;
+			u32 hostpc[15];
+		};
+		u32 brcm_insnreg[4];
+	};
+	u32 reserved5[2];
+	u32 usbmode_ex;
+};
+
+struct ehci_dbg_port {
+	u32 control;
+	u32 pids;
+	u32 data03;
+	u32 data47;
+	u32 address;
+};
+
+struct ehci_fstn;
+
+union ehci_shadow {
+	struct ehci_qh *qh;
+	struct ehci_itd *itd;
+	struct ehci_sitd *sitd;
+	struct ehci_fstn *fstn;
+	__le32 *hw_next;
+	void *ptr;
+};
+
+struct ehci_qh_hw;
+
+struct ehci_qtd;
+
+struct ehci_qh {
+	struct ehci_qh_hw *hw;
+	dma_addr_t qh_dma;
+	union ehci_shadow qh_next;
+	struct list_head qtd_list;
+	struct list_head intr_node;
+	struct ehci_qtd *dummy;
+	struct list_head unlink_node;
+	struct ehci_per_sched ps;
+	unsigned int unlink_cycle;
+	u8 qh_state;
+	u8 xacterrs;
+	u8 unlink_reason;
+	u8 gap_uf;
+	unsigned int is_out: 1;
+	unsigned int clearing_tt: 1;
+	unsigned int dequeue_during_giveback: 1;
+	unsigned int should_be_inactive: 1;
+};
+
+struct ehci_iso_stream;
+
+struct ehci_itd {
+	__le32 hw_next;
+	__le32 hw_transaction[8];
+	__le32 hw_bufp[7];
+	__le32 hw_bufp_hi[7];
+	dma_addr_t itd_dma;
+	union ehci_shadow itd_next;
+	struct urb *urb;
+	struct ehci_iso_stream *stream;
+	struct list_head itd_list;
+	unsigned int frame;
+	unsigned int pg;
+	unsigned int index[8];
+	long: 64;
+};
+
+struct ehci_sitd {
+	__le32 hw_next;
+	__le32 hw_fullspeed_ep;
+	__le32 hw_uframe;
+	__le32 hw_results;
+	__le32 hw_buf[2];
+	__le32 hw_backpointer;
+	__le32 hw_buf_hi[2];
+	dma_addr_t sitd_dma;
+	union ehci_shadow sitd_next;
+	struct urb *urb;
+	struct ehci_iso_stream *stream;
+	struct list_head sitd_list;
+	unsigned int frame;
+	unsigned int index;
+};
+
+struct ehci_qtd {
+	__le32 hw_next;
+	__le32 hw_alt_next;
+	__le32 hw_token;
+	__le32 hw_buf[5];
+	__le32 hw_buf_hi[5];
+	dma_addr_t qtd_dma;
+	struct list_head qtd_list;
+	struct urb *urb;
+	size_t length;
+};
+
+struct ehci_fstn {
+	__le32 hw_next;
+	__le32 hw_prev;
+	dma_addr_t fstn_dma;
+	union ehci_shadow fstn_next;
+	long: 64;
+};
+
+struct ehci_qh_hw {
+	__le32 hw_next;
+	__le32 hw_info1;
+	__le32 hw_info2;
+	__le32 hw_current;
+	__le32 hw_qtd_next;
+	__le32 hw_alt_next;
+	__le32 hw_token;
+	__le32 hw_buf[5];
+	__le32 hw_buf_hi[5];
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct ehci_iso_packet {
+	u64 bufp;
+	__le32 transaction;
+	u8 cross;
+	u32 buf1;
+};
+
+struct ehci_iso_sched {
+	struct list_head td_list;
+	unsigned int span;
+	unsigned int first_packet;
+	struct ehci_iso_packet packet[0];
+};
+
+struct ehci_iso_stream {
+	struct ehci_qh_hw *hw;
+	u8 bEndpointAddress;
+	u8 highspeed;
+	struct list_head td_list;
+	struct list_head free_list;
+	struct ehci_per_sched ps;
+	unsigned int next_uframe;
+	__le32 splits;
+	u16 uperiod;
+	u16 maxp;
+	unsigned int bandwidth;
+	__le32 buf0;
+	__le32 buf1;
+	__le32 buf2;
+	__le32 address;
+};
+
+struct ehci_tt {
+	u16 bandwidth[8];
+	struct list_head tt_list;
+	struct list_head ps_list;
+	struct usb_tt *usb_tt;
+	int tt_port;
+};
+
+struct ehci_driver_overrides {
+	size_t extra_priv_size;
+	int (*reset)(struct usb_hcd *);
+	int (*port_power)(struct usb_hcd *, int, bool);
+};
+
+struct debug_buffer {
+	ssize_t (*fill_func)(struct debug_buffer *);
+	struct usb_bus *bus;
+	struct mutex mutex;
+	size_t count;
+	char *output_buf;
+	size_t alloc_size;
+};
+
+struct soc_device_attribute {
+	const char *machine;
+	const char *family;
+	const char *revision;
+	const char *serial_number;
+	const char *soc_id;
+	const void *data;
+	const struct attribute_group *custom_attr_group;
+};
+
+struct usb_ehci_pdata {
+	int caps_offset;
+	unsigned int has_tt: 1;
+	unsigned int has_synopsys_hc_bug: 1;
+	unsigned int big_endian_desc: 1;
+	unsigned int big_endian_mmio: 1;
+	unsigned int no_io_watchdog: 1;
+	unsigned int reset_on_resume: 1;
+	unsigned int dma_mask_64: 1;
+	unsigned int spurious_oc: 1;
+	int (*power_on)(struct platform_device *);
+	void (*power_off)(struct platform_device *);
+	void (*power_suspend)(struct platform_device *);
+	int (*pre_setup)(struct usb_hcd *);
+};
+
+struct ehci_platform_priv {
+	struct clk *clks[4];
+	struct reset_control *rsts;
+	bool reset_on_resume;
+	bool quirk_poll;
+	struct timer_list poll_timer;
+	struct delayed_work poll_work;
+};
+
+typedef __u32 __hc32;
+
+typedef __u16 __hc16;
+
+struct td;
+
+struct ed {
+	__hc32 hwINFO;
+	__hc32 hwTailP;
+	__hc32 hwHeadP;
+	__hc32 hwNextED;
+	dma_addr_t dma;
+	struct td *dummy;
+	struct ed *ed_next;
+	struct ed *ed_prev;
+	struct list_head td_list;
+	struct list_head in_use_list;
+	u8 state;
+	u8 type;
+	u8 branch;
+	u16 interval;
+	u16 load;
+	u16 last_iso;
+	u16 tick;
+	unsigned int takeback_wdh_cnt;
+	struct td *pending_td;
+	long: 64;
+};
+
+struct td {
+	__hc32 hwINFO;
+	__hc32 hwCBP;
+	__hc32 hwNextTD;
+	__hc32 hwBE;
+	__hc16 hwPSW[2];
+	__u8 index;
+	struct ed *ed;
+	struct td *td_hash;
+	struct td *next_dl_td;
+	struct urb *urb;
+	dma_addr_t td_dma;
+	dma_addr_t data_dma;
+	struct list_head td_list;
+	long: 64;
+};
+
+struct ohci_hcca {
+	__hc32 int_table[32];
+	__hc32 frame_no;
+	__hc32 done_head;
+	u8 reserved_for_hc[116];
+	u8 what[4];
+};
+
+struct ohci_roothub_regs {
+	__hc32 a;
+	__hc32 b;
+	__hc32 status;
+	__hc32 portstatus[15];
+};
+
+struct ohci_regs {
+	__hc32 revision;
+	__hc32 control;
+	__hc32 cmdstatus;
+	__hc32 intrstatus;
+	__hc32 intrenable;
+	__hc32 intrdisable;
+	__hc32 hcca;
+	__hc32 ed_periodcurrent;
+	__hc32 ed_controlhead;
+	__hc32 ed_controlcurrent;
+	__hc32 ed_bulkhead;
+	__hc32 ed_bulkcurrent;
+	__hc32 donehead;
+	__hc32 fminterval;
+	__hc32 fmremaining;
+	__hc32 fmnumber;
+	__hc32 periodicstart;
+	__hc32 lsthresh;
+	struct ohci_roothub_regs roothub;
+	long: 64;
+	long: 64;
+};
+
+struct urb_priv {
+	struct ed *ed;
+	u16 length;
+	u16 td_cnt;
+	struct list_head pending;
+	struct td *td[0];
+};
+
+typedef struct urb_priv urb_priv_t;
+
+enum ohci_rh_state {
+	OHCI_RH_HALTED = 0,
+	OHCI_RH_SUSPENDED = 1,
+	OHCI_RH_RUNNING = 2,
+};
+
+struct ohci_hcd {
+	spinlock_t lock;
+	struct ohci_regs *regs;
+	struct ohci_hcca *hcca;
+	dma_addr_t hcca_dma;
+	struct ed *ed_rm_list;
+	struct ed *ed_bulktail;
+	struct ed *ed_controltail;
+	struct ed *periodic[32];
+	void (*start_hnp)(struct ohci_hcd *);
+	struct dma_pool___2 *td_cache;
+	struct dma_pool___2 *ed_cache;
+	struct td *td_hash[64];
+	struct td *dl_start;
+	struct td *dl_end;
+	struct list_head pending;
+	struct list_head eds_in_use;
+	enum ohci_rh_state rh_state;
+	int num_ports;
+	int load[32];
+	u32 hc_control;
+	long unsigned int next_statechange;
+	u32 fminterval;
+	unsigned int autostop: 1;
+	unsigned int working: 1;
+	unsigned int restart_work: 1;
+	long unsigned int flags;
+	unsigned int prev_frame_no;
+	unsigned int wdh_cnt;
+	unsigned int prev_wdh_cnt;
+	u32 prev_donehead;
+	struct timer_list io_watchdog;
+	struct work_struct nec_work;
+	struct dentry *debug_dir;
+	long unsigned int priv[0];
+};
+
+struct ohci_driver_overrides {
+	const char *product_desc;
+	size_t extra_priv_size;
+	int (*reset)(struct usb_hcd *);
+};
+
+struct debug_buffer___2 {
+	ssize_t (*fill_func)(struct debug_buffer___2 *);
+	struct ohci_hcd *ohci;
+	struct mutex mutex;
+	size_t count;
+	char *page;
+};
+
+struct usb_ohci_pdata {
+	unsigned int big_endian_desc: 1;
+	unsigned int big_endian_mmio: 1;
+	unsigned int no_big_frame_no: 1;
+	unsigned int num_ports;
+	int (*power_on)(struct platform_device *);
+	void (*power_off)(struct platform_device *);
+	void (*power_suspend)(struct platform_device *);
+};
+
+struct ohci_platform_priv {
+	struct clk *clks[3];
+	struct reset_control *resets;
+};
+
+struct uhci_td;
+
+struct uhci_qh {
+	__le32 link;
+	__le32 element;
+	dma_addr_t dma_handle;
+	struct list_head node;
+	struct usb_host_endpoint *hep;
+	struct usb_device *udev;
+	struct list_head queue;
+	struct uhci_td *dummy_td;
+	struct uhci_td *post_td;
+	struct usb_iso_packet_descriptor *iso_packet_desc;
+	long unsigned int advance_jiffies;
+	unsigned int unlink_frame;
+	unsigned int period;
+	short int phase;
+	short int load;
+	unsigned int iso_frame;
+	int state;
+	int type;
+	int skel;
+	unsigned int initial_toggle: 1;
+	unsigned int needs_fixup: 1;
+	unsigned int is_stopped: 1;
+	unsigned int wait_expired: 1;
+	unsigned int bandwidth_reserved: 1;
+};
+
+struct uhci_td {
+	__le32 link;
+	__le32 status;
+	__le32 token;
+	__le32 buffer;
+	dma_addr_t dma_handle;
+	struct list_head list;
+	int frame;
+	struct list_head fl_list;
+};
+
+enum uhci_rh_state {
+	UHCI_RH_RESET = 0,
+	UHCI_RH_SUSPENDED = 1,
+	UHCI_RH_AUTO_STOPPED = 2,
+	UHCI_RH_RESUMING = 3,
+	UHCI_RH_SUSPENDING = 4,
+	UHCI_RH_RUNNING = 5,
+	UHCI_RH_RUNNING_NODEVS = 6,
+};
+
+struct uhci_hcd {
+	long unsigned int io_addr;
+	void *regs;
+	struct dma_pool___2 *qh_pool;
+	struct dma_pool___2 *td_pool;
+	struct uhci_td *term_td;
+	struct uhci_qh *skelqh[11];
+	struct uhci_qh *next_qh;
+	spinlock_t lock;
+	dma_addr_t frame_dma_handle;
+	__le32 *frame;
+	void **frame_cpu;
+	enum uhci_rh_state rh_state;
+	long unsigned int auto_stop_time;
+	unsigned int frame_number;
+	unsigned int is_stopped;
+	unsigned int last_iso_frame;
+	unsigned int cur_iso_frame;
+	unsigned int scan_in_progress: 1;
+	unsigned int need_rescan: 1;
+	unsigned int dead: 1;
+	unsigned int RD_enable: 1;
+	unsigned int is_initialized: 1;
+	unsigned int fsbr_is_on: 1;
+	unsigned int fsbr_is_wanted: 1;
+	unsigned int fsbr_expiring: 1;
+	struct timer_list fsbr_timer;
+	unsigned int oc_low: 1;
+	unsigned int wait_for_hp: 1;
+	unsigned int big_endian_mmio: 1;
+	unsigned int big_endian_desc: 1;
+	unsigned int is_aspeed: 1;
+	long unsigned int port_c_suspend;
+	long unsigned int resuming_ports;
+	long unsigned int ports_timeout;
+	struct list_head idle_qh_list;
+	int rh_numports;
+	wait_queue_head_t waitqh;
+	int num_waiting;
+	int total_load;
+	short int load[32];
+	struct clk *clk;
+	void (*reset_hc)(struct uhci_hcd *);
+	int (*check_and_reset_hc)(struct uhci_hcd *);
+	void (*configure_hc)(struct uhci_hcd *);
+	int (*resume_detect_interrupts_are_broken)(struct uhci_hcd *);
+	int (*global_suspend_mode_is_broken)(struct uhci_hcd *);
+};
+
+struct urb_priv___2 {
+	struct list_head node;
+	struct urb *urb;
+	struct uhci_qh *qh;
+	struct list_head td_list;
+	unsigned int fsbr: 1;
+};
+
+struct uhci_debug {
+	int size;
+	char *data;
+};
+
+struct xhci_cap_regs {
+	__le32 hc_capbase;
+	__le32 hcs_params1;
+	__le32 hcs_params2;
+	__le32 hcs_params3;
+	__le32 hcc_params;
+	__le32 db_off;
+	__le32 run_regs_off;
+	__le32 hcc_params2;
+};
+
+struct xhci_op_regs {
+	__le32 command;
+	__le32 status;
+	__le32 page_size;
+	__le32 reserved1;
+	__le32 reserved2;
+	__le32 dev_notification;
+	__le64 cmd_ring;
+	__le32 reserved3[4];
+	__le64 dcbaa_ptr;
+	__le32 config_reg;
+	__le32 reserved4[241];
+	__le32 port_status_base;
+	__le32 port_power_base;
+	__le32 port_link_base;
+	__le32 reserved5;
+	__le32 reserved6[1016];
+};
+
+struct xhci_intr_reg {
+	__le32 irq_pending;
+	__le32 irq_control;
+	__le32 erst_size;
+	__le32 rsvd;
+	__le64 erst_base;
+	__le64 erst_dequeue;
+};
+
+struct xhci_run_regs {
+	__le32 microframe_index;
+	__le32 rsvd[7];
+	struct xhci_intr_reg ir_set[128];
+};
+
+struct xhci_doorbell_array {
+	__le32 doorbell[256];
+};
+
+struct xhci_container_ctx {
+	unsigned int type;
+	int size;
+	u8 *bytes;
+	dma_addr_t dma;
+};
+
+struct xhci_slot_ctx {
+	__le32 dev_info;
+	__le32 dev_info2;
+	__le32 tt_info;
+	__le32 dev_state;
+	__le32 reserved[4];
+};
+
+struct xhci_ep_ctx {
+	__le32 ep_info;
+	__le32 ep_info2;
+	__le64 deq;
+	__le32 tx_info;
+	__le32 reserved[3];
+};
+
+struct xhci_input_control_ctx {
+	__le32 drop_flags;
+	__le32 add_flags;
+	__le32 rsvd2[6];
+};
+
+union xhci_trb;
+
+struct xhci_command {
+	struct xhci_container_ctx *in_ctx;
+	u32 status;
+	int slot_id;
+	struct completion *completion;
+	union xhci_trb *command_trb;
+	struct list_head cmd_list;
+};
+
+struct xhci_link_trb {
+	__le64 segment_ptr;
+	__le32 intr_target;
+	__le32 control;
+};
+
+struct xhci_transfer_event {
+	__le64 buffer;
+	__le32 transfer_len;
+	__le32 flags;
+};
+
+struct xhci_event_cmd {
+	__le64 cmd_trb;
+	__le32 status;
+	__le32 flags;
+};
+
+struct xhci_generic_trb {
+	__le32 field[4];
+};
+
+union xhci_trb {
+	struct xhci_link_trb link;
+	struct xhci_transfer_event trans_event;
+	struct xhci_event_cmd event_cmd;
+	struct xhci_generic_trb generic;
+};
+
+struct xhci_stream_ctx {
+	__le64 stream_ring;
+	__le32 reserved[2];
+};
+
+struct xhci_ring;
+
+struct xhci_stream_info {
+	struct xhci_ring **stream_rings;
+	unsigned int num_streams;
+	struct xhci_stream_ctx *stream_ctx_array;
+	unsigned int num_stream_ctxs;
+	dma_addr_t ctx_array_dma;
+	struct xarray trb_address_map;
+	struct xhci_command *free_streams_command;
+};
+
+enum xhci_ring_type {
+	TYPE_CTRL = 0,
+	TYPE_ISOC = 1,
+	TYPE_BULK = 2,
+	TYPE_INTR = 3,
+	TYPE_STREAM = 4,
+	TYPE_COMMAND = 5,
+	TYPE_EVENT = 6,
+};
+
+struct xhci_segment;
+
+struct xhci_ring {
+	struct xhci_segment *first_seg;
+	struct xhci_segment *last_seg;
+	union xhci_trb *enqueue;
+	struct xhci_segment *enq_seg;
+	union xhci_trb *dequeue;
+	struct xhci_segment *deq_seg;
+	struct list_head td_list;
+	u32 cycle_state;
+	unsigned int err_count;
+	unsigned int stream_id;
+	unsigned int num_segs;
+	unsigned int num_trbs_free;
+	unsigned int num_trbs_free_temp;
+	unsigned int bounce_buf_len;
+	enum xhci_ring_type type;
+	bool last_td_was_short;
+	struct xarray *trb_address_map;
+};
+
+struct xhci_bw_info {
+	unsigned int ep_interval;
+	unsigned int mult;
+	unsigned int num_packets;
+	unsigned int max_packet_size;
+	unsigned int max_esit_payload;
+	unsigned int type;
+};
+
+struct xhci_virt_device;
+
+struct xhci_hcd;
+
+struct xhci_virt_ep {
+	struct xhci_virt_device *vdev;
+	unsigned int ep_index;
+	struct xhci_ring *ring;
+	struct xhci_stream_info *stream_info;
+	struct xhci_ring *new_ring;
+	unsigned int ep_state;
+	struct list_head cancelled_td_list;
+	struct xhci_hcd *xhci;
+	struct xhci_segment *queued_deq_seg;
+	union xhci_trb *queued_deq_ptr;
+	bool skip;
+	struct xhci_bw_info bw_info;
+	struct list_head bw_endpoint_list;
+	int next_frame_id;
+	bool use_extended_tbc;
+};
+
+struct xhci_interval_bw_table;
+
+struct xhci_tt_bw_info;
+
+struct xhci_virt_device {
+	int slot_id;
+	struct usb_device *udev;
+	struct xhci_container_ctx *out_ctx;
+	struct xhci_container_ctx *in_ctx;
+	struct xhci_virt_ep eps[31];
+	u8 fake_port;
+	u8 real_port;
+	struct xhci_interval_bw_table *bw_table;
+	struct xhci_tt_bw_info *tt_info;
+	long unsigned int flags;
+	u16 current_mel;
+	void *debugfs_private;
+};
+
+struct xhci_erst_entry;
+
+struct xhci_erst {
+	struct xhci_erst_entry *entries;
+	unsigned int num_entries;
+	dma_addr_t erst_dma_addr;
+	unsigned int erst_size;
+};
+
+struct s3_save {
+	u32 command;
+	u32 dev_nt;
+	u64 dcbaa_ptr;
+	u32 config_reg;
+	u32 irq_pending;
+	u32 irq_control;
+	u32 erst_size;
+	u64 erst_base;
+	u64 erst_dequeue;
+};
+
+struct xhci_bus_state {
+	long unsigned int bus_suspended;
+	long unsigned int next_statechange;
+	u32 port_c_suspend;
+	u32 suspended_ports;
+	u32 port_remote_wakeup;
+	long unsigned int resume_done[31];
+	long unsigned int resuming_ports;
+	long unsigned int rexit_ports;
+	struct completion rexit_done[31];
+	struct completion u3exit_done[31];
+};
+
+struct xhci_port;
+
+struct xhci_hub {
+	struct xhci_port **ports;
+	unsigned int num_ports;
+	struct usb_hcd *hcd;
+	struct xhci_bus_state bus_state;
+	u8 maj_rev;
+	u8 min_rev;
+};
+
+struct xhci_device_context_array;
+
+struct xhci_scratchpad;
+
+struct xhci_root_port_bw_info;
+
+struct xhci_port_cap;
+
+struct xhci_hcd {
+	struct usb_hcd *main_hcd;
+	struct usb_hcd *shared_hcd;
+	struct xhci_cap_regs *cap_regs;
+	struct xhci_op_regs *op_regs;
+	struct xhci_run_regs *run_regs;
+	struct xhci_doorbell_array *dba;
+	struct xhci_intr_reg *ir_set;
+	__u32 hcs_params1;
+	__u32 hcs_params2;
+	__u32 hcs_params3;
+	__u32 hcc_params;
+	__u32 hcc_params2;
+	spinlock_t lock;
+	u8 sbrn;
+	u16 hci_version;
+	u8 max_slots;
+	u8 max_interrupters;
+	u8 max_ports;
+	u8 isoc_threshold;
+	u32 imod_interval;
+	u32 isoc_bei_interval;
+	int event_ring_max;
+	int page_size;
+	int page_shift;
+	int msix_count;
+	struct clk *clk;
+	struct clk *reg_clk;
+	struct reset_control *reset;
+	struct xhci_device_context_array *dcbaa;
+	struct xhci_ring *cmd_ring;
+	unsigned int cmd_ring_state;
+	struct list_head cmd_list;
+	unsigned int cmd_ring_reserved_trbs;
+	struct delayed_work cmd_timer;
+	struct completion cmd_ring_stop_completion;
+	struct xhci_command *current_cmd;
+	struct xhci_ring *event_ring;
+	struct xhci_erst erst;
+	struct xhci_scratchpad *scratchpad;
+	struct list_head lpm_failed_devs;
+	struct mutex mutex;
+	struct xhci_virt_device *devs[256];
+	struct xhci_root_port_bw_info *rh_bw;
+	struct dma_pool___2 *device_pool;
+	struct dma_pool___2 *segment_pool;
+	struct dma_pool___2 *small_streams_pool;
+	struct dma_pool___2 *medium_streams_pool;
+	unsigned int xhc_state;
+	u32 command;
+	struct s3_save s3;
+	long long unsigned int quirks;
+	unsigned int num_active_eps;
+	unsigned int limit_active_eps;
+	struct xhci_port *hw_ports;
+	struct xhci_hub usb2_rhub;
+	struct xhci_hub usb3_rhub;
+	unsigned int hw_lpm_support: 1;
+	unsigned int broken_suspend: 1;
+	unsigned int allow_single_roothub: 1;
+	u32 *ext_caps;
+	unsigned int num_ext_caps;
+	struct xhci_port_cap *port_caps;
+	unsigned int num_port_caps;
+	struct timer_list comp_mode_recovery_timer;
+	u32 port_status_u0;
+	u16 test_mode;
+	struct dentry *debugfs_root;
+	struct dentry *debugfs_slots;
+	struct list_head regset_list;
+	void *dbc;
+	long unsigned int priv[0];
+};
+
+struct xhci_segment {
+	union xhci_trb *trbs;
+	struct xhci_segment *next;
+	dma_addr_t dma;
+	dma_addr_t bounce_dma;
+	void *bounce_buf;
+	unsigned int bounce_offs;
+	unsigned int bounce_len;
+};
+
+enum xhci_overhead_type {
+	LS_OVERHEAD_TYPE = 0,
+	FS_OVERHEAD_TYPE = 1,
+	HS_OVERHEAD_TYPE = 2,
+};
+
+struct xhci_interval_bw {
+	unsigned int num_packets;
+	struct list_head endpoints;
+	unsigned int overhead[3];
+};
+
+struct xhci_interval_bw_table {
+	unsigned int interval0_esit_payload;
+	struct xhci_interval_bw interval_bw[16];
+	unsigned int bw_used;
+	unsigned int ss_bw_in;
+	unsigned int ss_bw_out;
+};
+
+struct xhci_tt_bw_info {
+	struct list_head tt_list;
+	int slot_id;
+	int ttport;
+	struct xhci_interval_bw_table bw_table;
+	int active_eps;
+};
+
+struct xhci_root_port_bw_info {
+	struct list_head tts;
+	unsigned int num_active_tts;
+	struct xhci_interval_bw_table bw_table;
+};
+
+struct xhci_device_context_array {
+	__le64 dev_context_ptrs[256];
+	dma_addr_t dma;
+};
+
+enum xhci_setup_dev {
+	SETUP_CONTEXT_ONLY = 0,
+	SETUP_CONTEXT_ADDRESS = 1,
+};
+
+enum xhci_cancelled_td_status {
+	TD_DIRTY = 0,
+	TD_HALTED = 1,
+	TD_CLEARING_CACHE = 2,
+	TD_CLEARED = 3,
+};
+
+struct xhci_td {
+	struct list_head td_list;
+	struct list_head cancelled_td_list;
+	int status;
+	enum xhci_cancelled_td_status cancel_status;
+	struct urb *urb;
+	struct xhci_segment *start_seg;
+	union xhci_trb *first_trb;
+	union xhci_trb *last_trb;
+	struct xhci_segment *last_trb_seg;
+	struct xhci_segment *bounce_seg;
+	bool urb_length_set;
+	unsigned int num_trbs;
+};
+
+struct xhci_erst_entry {
+	__le64 seg_addr;
+	__le32 seg_size;
+	__le32 rsvd;
+};
+
+struct xhci_scratchpad {
+	u64 *sp_array;
+	dma_addr_t sp_dma;
+	void **sp_buffers;
+};
+
+struct urb_priv___3 {
+	int num_tds;
+	int num_tds_done;
+	struct xhci_td td[0];
+};
+
+struct xhci_port_cap {
+	u32 *psi;
+	u8 psi_count;
+	u8 psi_uid_count;
+	u8 maj_rev;
+	u8 min_rev;
+};
+
+struct xhci_port {
+	__le32 *addr;
+	int hw_portnum;
+	int hcd_portnum;
+	struct xhci_hub *rhub;
+	struct xhci_port_cap *port_cap;
+};
+
+struct xhci_driver_overrides {
+	size_t extra_priv_size;
+	int (*reset)(struct usb_hcd *);
+	int (*start)(struct usb_hcd *);
+	int (*add_endpoint)(struct usb_hcd *, struct usb_device *, struct usb_host_endpoint *);
+	int (*drop_endpoint)(struct usb_hcd *, struct usb_device *, struct usb_host_endpoint *);
+	int (*check_bandwidth)(struct usb_hcd *, struct usb_device *);
+	void (*reset_bandwidth)(struct usb_hcd *, struct usb_device *);
+};
+
+typedef void (*xhci_get_quirks_t)(struct device *, struct xhci_hcd *);
+
+enum xhci_ep_reset_type {
+	EP_HARD_RESET = 0,
+	EP_SOFT_RESET = 1,
+};
+
+struct dbc_regs {
+	__le32 capability;
+	__le32 doorbell;
+	__le32 ersts;
+	__le32 __reserved_0;
+	__le64 erstba;
+	__le64 erdp;
+	__le32 control;
+	__le32 status;
+	__le32 portsc;
+	__le32 __reserved_1;
+	__le64 dccp;
+	__le32 devinfo1;
+	__le32 devinfo2;
+};
+
+struct dbc_str_descs {
+	char string0[64];
+	char manufacturer[64];
+	char product[64];
+	char serial[64];
+};
+
+enum dbc_state {
+	DS_DISABLED = 0,
+	DS_INITIALIZED = 1,
+	DS_ENABLED = 2,
+	DS_CONNECTED = 3,
+	DS_CONFIGURED = 4,
+	DS_STALLED = 5,
+};
+
+struct xhci_dbc;
+
+struct dbc_ep {
+	struct xhci_dbc *dbc;
+	struct list_head list_pending;
+	struct xhci_ring *ring;
+	unsigned int direction: 1;
+};
+
+struct dbc_driver;
+
+struct xhci_dbc {
+	spinlock_t lock;
+	struct device *dev;
+	struct xhci_hcd *xhci;
+	struct dbc_regs *regs;
+	struct xhci_ring *ring_evt;
+	struct xhci_ring *ring_in;
+	struct xhci_ring *ring_out;
+	struct xhci_erst erst;
+	struct xhci_container_ctx *ctx;
+	struct dbc_str_descs *string;
+	dma_addr_t string_dma;
+	size_t string_size;
+	enum dbc_state state;
+	struct delayed_work event_work;
+	unsigned int resume_required: 1;
+	struct dbc_ep eps[2];
+	const struct dbc_driver *driver;
+	void *priv;
+};
+
+struct dbc_driver {
+	int (*configure)(struct xhci_dbc *);
+	void (*disconnect)(struct xhci_dbc *);
+};
+
+struct dbc_request {
+	void *buf;
+	unsigned int length;
+	dma_addr_t dma;
+	void (*complete)(struct xhci_dbc *, struct dbc_request *);
+	struct list_head list_pool;
+	int status;
+	unsigned int actual;
+	struct xhci_dbc *dbc;
+	struct list_head list_pending;
+	dma_addr_t trb_dma;
+	union xhci_trb *trb;
+	unsigned int direction: 1;
+};
+
+struct trace_event_raw_xhci_log_msg {
+	struct trace_entry ent;
+	u32 __data_loc_msg;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_ctx {
+	struct trace_entry ent;
+	int ctx_64;
+	unsigned int ctx_type;
+	dma_addr_t ctx_dma;
+	u8 *ctx_va;
+	unsigned int ctx_ep_num;
+	int slot_id;
+	u32 __data_loc_ctx_data;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_trb {
+	struct trace_entry ent;
+	u32 type;
+	u32 field0;
+	u32 field1;
+	u32 field2;
+	u32 field3;
+	u32 __data_loc_str;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_free_virt_dev {
+	struct trace_entry ent;
+	void *vdev;
+	long long unsigned int out_ctx;
+	long long unsigned int in_ctx;
+	u8 fake_port;
+	u8 real_port;
+	u16 current_mel;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_virt_dev {
+	struct trace_entry ent;
+	void *vdev;
+	long long unsigned int out_ctx;
+	long long unsigned int in_ctx;
+	int devnum;
+	int state;
+	int speed;
+	u8 portnum;
+	u8 level;
+	int slot_id;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_urb {
+	struct trace_entry ent;
+	void *urb;
+	unsigned int pipe;
+	unsigned int stream;
+	int status;
+	unsigned int flags;
+	int num_mapped_sgs;
+	int num_sgs;
+	int length;
+	int actual;
+	int epnum;
+	int dir_in;
+	int type;
+	int slot_id;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_ep_ctx {
+	struct trace_entry ent;
+	u32 info;
+	u32 info2;
+	u64 deq;
+	u32 tx_info;
+	u32 __data_loc_str;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_slot_ctx {
+	struct trace_entry ent;
+	u32 info;
+	u32 info2;
+	u32 tt_info;
+	u32 state;
+	u32 __data_loc_str;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_ctrl_ctx {
+	struct trace_entry ent;
+	u32 drop;
+	u32 add;
+	u32 __data_loc_str;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_ring {
+	struct trace_entry ent;
+	u32 type;
+	void *ring;
+	dma_addr_t enq;
+	dma_addr_t deq;
+	dma_addr_t enq_seg;
+	dma_addr_t deq_seg;
+	unsigned int num_segs;
+	unsigned int stream_id;
+	unsigned int cycle_state;
+	unsigned int num_trbs_free;
+	unsigned int bounce_buf_len;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_portsc {
+	struct trace_entry ent;
+	u32 portnum;
+	u32 portsc;
+	u32 __data_loc_str;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_log_doorbell {
+	struct trace_entry ent;
+	u32 slot;
+	u32 doorbell;
+	u32 __data_loc_str;
+	char __data[0];
+};
+
+struct trace_event_raw_xhci_dbc_log_request {
+	struct trace_entry ent;
+	struct dbc_request *req;
+	bool dir;
+	unsigned int actual;
+	unsigned int length;
+	int status;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_xhci_log_msg {
+	u32 msg;
+};
+
+struct trace_event_data_offsets_xhci_log_ctx {
+	u32 ctx_data;
+};
+
+struct trace_event_data_offsets_xhci_log_trb {
+	u32 str;
+};
+
+struct trace_event_data_offsets_xhci_log_free_virt_dev {};
+
+struct trace_event_data_offsets_xhci_log_virt_dev {};
+
+struct trace_event_data_offsets_xhci_log_urb {};
+
+struct trace_event_data_offsets_xhci_log_ep_ctx {
+	u32 str;
+};
+
+struct trace_event_data_offsets_xhci_log_slot_ctx {
+	u32 str;
+};
+
+struct trace_event_data_offsets_xhci_log_ctrl_ctx {
+	u32 str;
+};
+
+struct trace_event_data_offsets_xhci_log_ring {};
+
+struct trace_event_data_offsets_xhci_log_portsc {
+	u32 str;
+};
+
+struct trace_event_data_offsets_xhci_log_doorbell {
+	u32 str;
+};
+
+struct trace_event_data_offsets_xhci_dbc_log_request {};
+
+typedef void (*btf_trace_xhci_dbg_address)(void *, struct va_format *);
+
+typedef void (*btf_trace_xhci_dbg_context_change)(void *, struct va_format *);
+
+typedef void (*btf_trace_xhci_dbg_quirks)(void *, struct va_format *);
+
+typedef void (*btf_trace_xhci_dbg_reset_ep)(void *, struct va_format *);
+
+typedef void (*btf_trace_xhci_dbg_cancel_urb)(void *, struct va_format *);
+
+typedef void (*btf_trace_xhci_dbg_init)(void *, struct va_format *);
+
+typedef void (*btf_trace_xhci_dbg_ring_expansion)(void *, struct va_format *);
+
+typedef void (*btf_trace_xhci_address_ctx)(void *, struct xhci_hcd *, struct xhci_container_ctx *, unsigned int);
+
+typedef void (*btf_trace_xhci_handle_event)(void *, struct xhci_ring *, struct xhci_generic_trb *);
+
+typedef void (*btf_trace_xhci_handle_command)(void *, struct xhci_ring *, struct xhci_generic_trb *);
+
+typedef void (*btf_trace_xhci_handle_transfer)(void *, struct xhci_ring *, struct xhci_generic_trb *);
+
+typedef void (*btf_trace_xhci_queue_trb)(void *, struct xhci_ring *, struct xhci_generic_trb *);
+
+typedef void (*btf_trace_xhci_dbc_handle_event)(void *, struct xhci_ring *, struct xhci_generic_trb *);
+
+typedef void (*btf_trace_xhci_dbc_handle_transfer)(void *, struct xhci_ring *, struct xhci_generic_trb *);
+
+typedef void (*btf_trace_xhci_dbc_gadget_ep_queue)(void *, struct xhci_ring *, struct xhci_generic_trb *);
+
+typedef void (*btf_trace_xhci_free_virt_device)(void *, struct xhci_virt_device *);
+
+typedef void (*btf_trace_xhci_alloc_virt_device)(void *, struct xhci_virt_device *);
+
+typedef void (*btf_trace_xhci_setup_device)(void *, struct xhci_virt_device *);
+
+typedef void (*btf_trace_xhci_setup_addressable_virt_device)(void *, struct xhci_virt_device *);
+
+typedef void (*btf_trace_xhci_stop_device)(void *, struct xhci_virt_device *);
+
+typedef void (*btf_trace_xhci_urb_enqueue)(void *, struct urb *);
+
+typedef void (*btf_trace_xhci_urb_giveback)(void *, struct urb *);
+
+typedef void (*btf_trace_xhci_urb_dequeue)(void *, struct urb *);
+
+typedef void (*btf_trace_xhci_handle_cmd_stop_ep)(void *, struct xhci_ep_ctx *);
+
+typedef void (*btf_trace_xhci_handle_cmd_set_deq_ep)(void *, struct xhci_ep_ctx *);
+
+typedef void (*btf_trace_xhci_handle_cmd_reset_ep)(void *, struct xhci_ep_ctx *);
+
+typedef void (*btf_trace_xhci_handle_cmd_config_ep)(void *, struct xhci_ep_ctx *);
+
+typedef void (*btf_trace_xhci_add_endpoint)(void *, struct xhci_ep_ctx *);
+
+typedef void (*btf_trace_xhci_alloc_dev)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_free_dev)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_handle_cmd_disable_slot)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_discover_or_reset_device)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_setup_device_slot)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_handle_cmd_addr_dev)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_handle_cmd_reset_dev)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_handle_cmd_set_deq)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_configure_endpoint)(void *, struct xhci_slot_ctx *);
+
+typedef void (*btf_trace_xhci_address_ctrl_ctx)(void *, struct xhci_input_control_ctx *);
+
+typedef void (*btf_trace_xhci_configure_endpoint_ctrl_ctx)(void *, struct xhci_input_control_ctx *);
+
+typedef void (*btf_trace_xhci_ring_alloc)(void *, struct xhci_ring *);
+
+typedef void (*btf_trace_xhci_ring_free)(void *, struct xhci_ring *);
+
+typedef void (*btf_trace_xhci_ring_expansion)(void *, struct xhci_ring *);
+
+typedef void (*btf_trace_xhci_inc_enq)(void *, struct xhci_ring *);
+
+typedef void (*btf_trace_xhci_inc_deq)(void *, struct xhci_ring *);
+
+typedef void (*btf_trace_xhci_handle_port_status)(void *, u32, u32);
+
+typedef void (*btf_trace_xhci_get_port_status)(void *, u32, u32);
+
+typedef void (*btf_trace_xhci_hub_status_data)(void *, u32, u32);
+
+typedef void (*btf_trace_xhci_ring_ep_doorbell)(void *, u32, u32);
+
+typedef void (*btf_trace_xhci_ring_host_doorbell)(void *, u32, u32);
+
+typedef void (*btf_trace_xhci_dbc_alloc_request)(void *, struct dbc_request *);
+
+typedef void (*btf_trace_xhci_dbc_free_request)(void *, struct dbc_request *);
+
+typedef void (*btf_trace_xhci_dbc_queue_request)(void *, struct dbc_request *);
+
+typedef void (*btf_trace_xhci_dbc_giveback_request)(void *, struct dbc_request *);
+
+struct usb_string_descriptor {
+	__u8 bLength;
+	__u8 bDescriptorType;
+	__le16 wData[1];
+};
