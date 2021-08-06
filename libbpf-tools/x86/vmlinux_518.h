@@ -118172,3 +118172,2119 @@ struct gen_cookie {
 	struct pcpu_gen_cookie *local;
 	long: 64;
 	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	atomic64_t forward_last;
+	atomic64_t reverse_last;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+enum rtnl_link_flags {
+	RTNL_FLAG_DOIT_UNLOCKED = 1,
+	RTNL_FLAG_BULK_DEL_SUPPORTED = 2,
+};
+
+struct net_fill_args {
+	u32 portid;
+	u32 seq;
+	int flags;
+	int cmd;
+	int nsid;
+	bool add_ref;
+	int ref_nsid;
+};
+
+struct rtnl_net_dump_cb {
+	struct net *tgt_net;
+	struct net *ref_net;
+	struct sk_buff *skb;
+	struct net_fill_args fillargs;
+	int idx;
+	int s_idx;
+};
+
+typedef u16 u_int16_t;
+
+typedef u32 u_int32_t;
+
+typedef u64 u_int64_t;
+
+enum flow_dissect_ret {
+	FLOW_DISSECT_RET_OUT_GOOD = 0,
+	FLOW_DISSECT_RET_OUT_BAD = 1,
+	FLOW_DISSECT_RET_PROTO_AGAIN = 2,
+	FLOW_DISSECT_RET_IPPROTO_AGAIN = 3,
+	FLOW_DISSECT_RET_CONTINUE = 4,
+};
+
+struct flow_dissector_key_tags {
+	u32 flow_label;
+};
+
+struct flow_dissector_key_vlan {
+	union {
+		struct {
+			u16 vlan_id: 12;
+			u16 vlan_dei: 1;
+			u16 vlan_priority: 3;
+		};
+		__be16 vlan_tci;
+	};
+	__be16 vlan_tpid;
+	__be16 vlan_eth_type;
+	u16 padding;
+};
+
+struct flow_dissector_mpls_lse {
+	u32 mpls_ttl: 8;
+	u32 mpls_bos: 1;
+	u32 mpls_tc: 3;
+	u32 mpls_label: 20;
+};
+
+struct flow_dissector_key_mpls {
+	struct flow_dissector_mpls_lse ls[7];
+	u8 used_lses;
+};
+
+struct flow_dissector_key_enc_opts {
+	u8 data[255];
+	u8 len;
+	__be16 dst_opt_type;
+};
+
+struct flow_dissector_key_keyid {
+	__be32 keyid;
+};
+
+struct flow_dissector_key_ipv4_addrs {
+	__be32 src;
+	__be32 dst;
+};
+
+struct flow_dissector_key_ipv6_addrs {
+	struct in6_addr src;
+	struct in6_addr dst;
+};
+
+struct flow_dissector_key_tipc {
+	__be32 key;
+};
+
+struct flow_dissector_key_addrs {
+	union {
+		struct flow_dissector_key_ipv4_addrs v4addrs;
+		struct flow_dissector_key_ipv6_addrs v6addrs;
+		struct flow_dissector_key_tipc tipckey;
+	};
+};
+
+struct flow_dissector_key_arp {
+	__u32 sip;
+	__u32 tip;
+	__u8 op;
+	unsigned char sha[6];
+	unsigned char tha[6];
+};
+
+struct flow_dissector_key_ports {
+	union {
+		__be32 ports;
+		struct {
+			__be16 src;
+			__be16 dst;
+		};
+	};
+};
+
+struct flow_dissector_key_icmp {
+	struct {
+		u8 type;
+		u8 code;
+	};
+	u16 id;
+};
+
+struct flow_dissector_key_eth_addrs {
+	unsigned char dst[6];
+	unsigned char src[6];
+};
+
+struct flow_dissector_key_tcp {
+	__be16 flags;
+};
+
+struct flow_dissector_key_ip {
+	__u8 tos;
+	__u8 ttl;
+};
+
+struct flow_dissector_key_meta {
+	int ingress_ifindex;
+	u16 ingress_iftype;
+};
+
+struct flow_dissector_key_ct {
+	u16 ct_state;
+	u16 ct_zone;
+	u32 ct_mark;
+	u32 ct_labels[4];
+};
+
+struct flow_dissector_key_hash {
+	u32 hash;
+};
+
+struct flow_dissector_key_num_of_vlans {
+	u8 num_of_vlans;
+};
+
+struct flow_dissector_key {
+	enum flow_dissector_key_id key_id;
+	size_t offset;
+};
+
+struct flow_keys {
+	struct flow_dissector_key_control control;
+	struct flow_dissector_key_basic basic;
+	struct flow_dissector_key_tags tags;
+	struct flow_dissector_key_vlan vlan;
+	struct flow_dissector_key_vlan cvlan;
+	struct flow_dissector_key_keyid keyid;
+	struct flow_dissector_key_ports ports;
+	struct flow_dissector_key_icmp icmp;
+	struct flow_dissector_key_addrs addrs;
+	int: 32;
+};
+
+struct flow_keys_digest {
+	u8 data[16];
+};
+
+enum ip_conntrack_info {
+	IP_CT_ESTABLISHED = 0,
+	IP_CT_RELATED = 1,
+	IP_CT_NEW = 2,
+	IP_CT_IS_REPLY = 3,
+	IP_CT_ESTABLISHED_REPLY = 3,
+	IP_CT_RELATED_REPLY = 4,
+	IP_CT_NUMBER = 5,
+	IP_CT_UNTRACKED = 7,
+};
+
+union nf_inet_addr {
+	__u32 all[4];
+	__be32 ip;
+	__be32 ip6[4];
+	struct in_addr in;
+	struct in6_addr in6;
+};
+
+struct ip_ct_tcp_state {
+	u_int32_t td_end;
+	u_int32_t td_maxend;
+	u_int32_t td_maxwin;
+	u_int32_t td_maxack;
+	u_int8_t td_scale;
+	u_int8_t flags;
+};
+
+struct ip_ct_tcp {
+	struct ip_ct_tcp_state seen[2];
+	u_int8_t state;
+	u_int8_t last_dir;
+	u_int8_t retrans;
+	u_int8_t last_index;
+	u_int32_t last_seq;
+	u_int32_t last_ack;
+	u_int32_t last_end;
+	u_int16_t last_win;
+	u_int8_t last_wscale;
+	u_int8_t last_flags;
+};
+
+union nf_conntrack_man_proto {
+	__be16 all;
+	struct {
+		__be16 port;
+	} tcp;
+	struct {
+		__be16 port;
+	} udp;
+	struct {
+		__be16 id;
+	} icmp;
+	struct {
+		__be16 port;
+	} dccp;
+	struct {
+		__be16 port;
+	} sctp;
+	struct {
+		__be16 key;
+	} gre;
+};
+
+struct nf_ct_dccp {
+	u_int8_t role[2];
+	u_int8_t state;
+	u_int8_t last_pkt;
+	u_int8_t last_dir;
+	u_int64_t handshake_seq;
+};
+
+struct ip_ct_sctp {
+	enum sctp_conntrack state;
+	__be32 vtag[2];
+	u8 last_dir;
+	u8 flags;
+};
+
+struct nf_ct_event;
+
+struct nf_exp_event;
+
+struct nf_ct_event_notifier {
+	int (*ct_event)(unsigned int, const struct nf_ct_event *);
+	int (*exp_event)(unsigned int, const struct nf_exp_event *);
+};
+
+enum {
+	TCA_FLOWER_KEY_CT_FLAGS_NEW = 1,
+	TCA_FLOWER_KEY_CT_FLAGS_ESTABLISHED = 2,
+	TCA_FLOWER_KEY_CT_FLAGS_RELATED = 4,
+	TCA_FLOWER_KEY_CT_FLAGS_TRACKED = 8,
+	TCA_FLOWER_KEY_CT_FLAGS_INVALID = 16,
+	TCA_FLOWER_KEY_CT_FLAGS_REPLY = 32,
+	__TCA_FLOWER_KEY_CT_FLAGS_MAX = 33,
+};
+
+enum devlink_port_type {
+	DEVLINK_PORT_TYPE_NOTSET = 0,
+	DEVLINK_PORT_TYPE_AUTO = 1,
+	DEVLINK_PORT_TYPE_ETH = 2,
+	DEVLINK_PORT_TYPE_IB = 3,
+};
+
+enum devlink_port_flavour {
+	DEVLINK_PORT_FLAVOUR_PHYSICAL = 0,
+	DEVLINK_PORT_FLAVOUR_CPU = 1,
+	DEVLINK_PORT_FLAVOUR_DSA = 2,
+	DEVLINK_PORT_FLAVOUR_PCI_PF = 3,
+	DEVLINK_PORT_FLAVOUR_PCI_VF = 4,
+	DEVLINK_PORT_FLAVOUR_VIRTUAL = 5,
+	DEVLINK_PORT_FLAVOUR_UNUSED = 6,
+	DEVLINK_PORT_FLAVOUR_PCI_SF = 7,
+};
+
+struct devlink_port_phys_attrs {
+	u32 port_number;
+	u32 split_subport_number;
+};
+
+struct devlink_port_pci_pf_attrs {
+	u32 controller;
+	u16 pf;
+	u8 external: 1;
+};
+
+struct devlink_port_pci_vf_attrs {
+	u32 controller;
+	u16 pf;
+	u16 vf;
+	u8 external: 1;
+};
+
+struct devlink_port_pci_sf_attrs {
+	u32 controller;
+	u32 sf;
+	u16 pf;
+	u8 external: 1;
+};
+
+struct devlink_port_attrs {
+	u8 split: 1;
+	u8 splittable: 1;
+	u32 lanes;
+	enum devlink_port_flavour flavour;
+	struct netdev_phys_item_id switch_id;
+	union {
+		struct devlink_port_phys_attrs phys;
+		struct devlink_port_pci_pf_attrs pci_pf;
+		struct devlink_port_pci_vf_attrs pci_vf;
+		struct devlink_port_pci_sf_attrs pci_sf;
+	};
+};
+
+struct devlink;
+
+struct devlink_rate;
+
+struct devlink_linecard;
+
+struct devlink_port {
+	struct list_head list;
+	struct list_head param_list;
+	struct list_head region_list;
+	struct devlink *devlink;
+	unsigned int index;
+	spinlock_t type_lock;
+	enum devlink_port_type type;
+	enum devlink_port_type desired_type;
+	void *type_dev;
+	struct devlink_port_attrs attrs;
+	u8 attrs_set: 1;
+	u8 switch_port: 1;
+	struct delayed_work type_warn_dw;
+	struct list_head reporter_list;
+	struct mutex reporters_lock;
+	struct devlink_rate *devlink_rate;
+	struct devlink_linecard *linecard;
+};
+
+enum phylink_op_type {
+	PHYLINK_NETDEV = 0,
+	PHYLINK_DEV = 1,
+};
+
+struct phylink_link_state;
+
+struct phylink_config {
+	struct device *dev;
+	enum phylink_op_type type;
+	bool legacy_pre_march2020;
+	bool poll_fixed_state;
+	bool ovr_an_inband;
+	void (*get_fixed_state)(struct phylink_config *, struct phylink_link_state *);
+	long unsigned int supported_interfaces[1];
+	long unsigned int mac_capabilities;
+};
+
+struct dsa_device_ops;
+
+struct dsa_switch_tree;
+
+struct dsa_switch;
+
+struct dsa_bridge;
+
+struct dsa_lag;
+
+struct dsa_netdevice_ops;
+
+struct dsa_port {
+	union {
+		struct net_device *master;
+		struct net_device *slave;
+	};
+	const struct dsa_device_ops *tag_ops;
+	struct dsa_switch_tree *dst;
+	struct sk_buff * (*rcv)(struct sk_buff *, struct net_device *);
+	struct dsa_switch *ds;
+	unsigned int index;
+	enum {
+		DSA_PORT_TYPE_UNUSED = 0,
+		DSA_PORT_TYPE_CPU = 1,
+		DSA_PORT_TYPE_DSA = 2,
+		DSA_PORT_TYPE_USER = 3,
+	} type;
+	const char *name;
+	struct dsa_port *cpu_dp;
+	u8 mac[6];
+	u8 stp_state;
+	u8 vlan_filtering: 1;
+	u8 learning: 1;
+	u8 lag_tx_enabled: 1;
+	u8 devlink_port_setup: 1;
+	u8 master_admin_up: 1;
+	u8 master_oper_up: 1;
+	u8 setup: 1;
+	struct device_node *dn;
+	unsigned int ageing_time;
+	struct dsa_bridge *bridge;
+	struct devlink_port devlink_port;
+	struct phylink *pl;
+	struct phylink_config pl_config;
+	struct dsa_lag *lag;
+	struct net_device *hsr_dev;
+	struct list_head list;
+	const struct ethtool_ops *orig_ethtool_ops;
+	const struct dsa_netdevice_ops *netdev_ops;
+	struct mutex addr_lists_lock;
+	struct list_head fdbs;
+	struct list_head mdbs;
+	struct mutex vlans_lock;
+	struct list_head vlans;
+};
+
+enum netdev_lag_tx_type {
+	NETDEV_LAG_TX_TYPE_UNKNOWN = 0,
+	NETDEV_LAG_TX_TYPE_RANDOM = 1,
+	NETDEV_LAG_TX_TYPE_BROADCAST = 2,
+	NETDEV_LAG_TX_TYPE_ROUNDROBIN = 3,
+	NETDEV_LAG_TX_TYPE_ACTIVEBACKUP = 4,
+	NETDEV_LAG_TX_TYPE_HASH = 5,
+};
+
+enum netdev_lag_hash {
+	NETDEV_LAG_HASH_NONE = 0,
+	NETDEV_LAG_HASH_L2 = 1,
+	NETDEV_LAG_HASH_L34 = 2,
+	NETDEV_LAG_HASH_L23 = 3,
+	NETDEV_LAG_HASH_E23 = 4,
+	NETDEV_LAG_HASH_E34 = 5,
+	NETDEV_LAG_HASH_VLAN_SRCMAC = 6,
+	NETDEV_LAG_HASH_UNKNOWN = 7,
+};
+
+struct netdev_lag_upper_info {
+	enum netdev_lag_tx_type tx_type;
+	enum netdev_lag_hash hash_type;
+};
+
+struct netdev_notifier_changeupper_info {
+	struct netdev_notifier_info info;
+	struct net_device *upper_dev;
+	bool master;
+	bool linking;
+	void *upper_info;
+};
+
+union tcp_word_hdr {
+	struct tcphdr hdr;
+	__be32 words[5];
+};
+
+enum bpf_ret_code {
+	BPF_OK = 0,
+	BPF_DROP = 2,
+	BPF_REDIRECT = 7,
+	BPF_LWT_REROUTE = 128,
+};
+
+enum {
+	BPF_FLOW_DISSECTOR_F_PARSE_1ST_FRAG = 1,
+	BPF_FLOW_DISSECTOR_F_STOP_AT_FLOW_LABEL = 2,
+	BPF_FLOW_DISSECTOR_F_STOP_AT_ENCAP = 4,
+};
+
+struct flow_match {
+	struct flow_dissector *dissector;
+	void *mask;
+	void *key;
+};
+
+enum flow_action_id {
+	FLOW_ACTION_ACCEPT = 0,
+	FLOW_ACTION_DROP = 1,
+	FLOW_ACTION_TRAP = 2,
+	FLOW_ACTION_GOTO = 3,
+	FLOW_ACTION_REDIRECT = 4,
+	FLOW_ACTION_MIRRED = 5,
+	FLOW_ACTION_REDIRECT_INGRESS = 6,
+	FLOW_ACTION_MIRRED_INGRESS = 7,
+	FLOW_ACTION_VLAN_PUSH = 8,
+	FLOW_ACTION_VLAN_POP = 9,
+	FLOW_ACTION_VLAN_MANGLE = 10,
+	FLOW_ACTION_TUNNEL_ENCAP = 11,
+	FLOW_ACTION_TUNNEL_DECAP = 12,
+	FLOW_ACTION_MANGLE = 13,
+	FLOW_ACTION_ADD = 14,
+	FLOW_ACTION_CSUM = 15,
+	FLOW_ACTION_MARK = 16,
+	FLOW_ACTION_PTYPE = 17,
+	FLOW_ACTION_PRIORITY = 18,
+	FLOW_ACTION_WAKE = 19,
+	FLOW_ACTION_QUEUE = 20,
+	FLOW_ACTION_SAMPLE = 21,
+	FLOW_ACTION_POLICE = 22,
+	FLOW_ACTION_CT = 23,
+	FLOW_ACTION_CT_METADATA = 24,
+	FLOW_ACTION_MPLS_PUSH = 25,
+	FLOW_ACTION_MPLS_POP = 26,
+	FLOW_ACTION_MPLS_MANGLE = 27,
+	FLOW_ACTION_GATE = 28,
+	FLOW_ACTION_PPPOE_PUSH = 29,
+	FLOW_ACTION_JUMP = 30,
+	FLOW_ACTION_PIPE = 31,
+	FLOW_ACTION_VLAN_PUSH_ETH = 32,
+	FLOW_ACTION_VLAN_POP_ETH = 33,
+	NUM_FLOW_ACTIONS = 34,
+};
+
+enum flow_action_mangle_base {
+	FLOW_ACT_MANGLE_UNSPEC = 0,
+	FLOW_ACT_MANGLE_HDR_TYPE_ETH = 1,
+	FLOW_ACT_MANGLE_HDR_TYPE_IP4 = 2,
+	FLOW_ACT_MANGLE_HDR_TYPE_IP6 = 3,
+	FLOW_ACT_MANGLE_HDR_TYPE_TCP = 4,
+	FLOW_ACT_MANGLE_HDR_TYPE_UDP = 5,
+};
+
+enum flow_action_hw_stats {
+	FLOW_ACTION_HW_STATS_IMMEDIATE = 1,
+	FLOW_ACTION_HW_STATS_DELAYED = 2,
+	FLOW_ACTION_HW_STATS_ANY = 3,
+	FLOW_ACTION_HW_STATS_DISABLED = 4,
+	FLOW_ACTION_HW_STATS_DONT_CARE = 7,
+};
+
+typedef void (*action_destr)(void *);
+
+struct flow_action_cookie {
+	u32 cookie_len;
+	u8 cookie[0];
+};
+
+struct nf_flowtable;
+
+struct ip_tunnel_key {
+	__be64 tun_id;
+	union {
+		struct {
+			__be32 src;
+			__be32 dst;
+		} ipv4;
+		struct {
+			struct in6_addr src;
+			struct in6_addr dst;
+		} ipv6;
+	} u;
+	__be16 tun_flags;
+	u8 tos;
+	u8 ttl;
+	__be32 label;
+	__be16 tp_src;
+	__be16 tp_dst;
+};
+
+struct dst_cache_pcpu;
+
+struct dst_cache {
+	struct dst_cache_pcpu *cache;
+	long unsigned int reset_ts;
+};
+
+struct ip_tunnel_info {
+	struct ip_tunnel_key key;
+	struct dst_cache dst_cache;
+	u8 options_len;
+	u8 mode;
+};
+
+struct psample_group;
+
+struct action_gate_entry;
+
+struct flow_action_entry {
+	enum flow_action_id id;
+	u32 hw_index;
+	enum flow_action_hw_stats hw_stats;
+	action_destr destructor;
+	void *destructor_priv;
+	union {
+		u32 chain_index;
+		struct net_device *dev;
+		struct {
+			u16 vid;
+			__be16 proto;
+			u8 prio;
+		} vlan;
+		struct {
+			unsigned char dst[6];
+			unsigned char src[6];
+		} vlan_push_eth;
+		struct {
+			enum flow_action_mangle_base htype;
+			u32 offset;
+			u32 mask;
+			u32 val;
+		} mangle;
+		struct ip_tunnel_info *tunnel;
+		u32 csum_flags;
+		u32 mark;
+		u16 ptype;
+		u32 priority;
+		struct {
+			u32 ctx;
+			u32 index;
+			u8 vf;
+		} queue;
+		struct {
+			struct psample_group *psample_group;
+			u32 rate;
+			u32 trunc_size;
+			bool truncate;
+		} sample;
+		struct {
+			u32 burst;
+			u64 rate_bytes_ps;
+			u64 peakrate_bytes_ps;
+			u32 avrate;
+			u16 overhead;
+			u64 burst_pkt;
+			u64 rate_pkt_ps;
+			u32 mtu;
+			struct {
+				enum flow_action_id act_id;
+				u32 extval;
+			} exceed;
+			struct {
+				enum flow_action_id act_id;
+				u32 extval;
+			} notexceed;
+		} police;
+		struct {
+			int action;
+			u16 zone;
+			struct nf_flowtable *flow_table;
+		} ct;
+		struct {
+			long unsigned int cookie;
+			u32 mark;
+			u32 labels[4];
+			bool orig_dir;
+		} ct_metadata;
+		struct {
+			u32 label;
+			__be16 proto;
+			u8 tc;
+			u8 bos;
+			u8 ttl;
+		} mpls_push;
+		struct {
+			__be16 proto;
+		} mpls_pop;
+		struct {
+			u32 label;
+			u8 tc;
+			u8 bos;
+			u8 ttl;
+		} mpls_mangle;
+		struct {
+			s32 prio;
+			u64 basetime;
+			u64 cycletime;
+			u64 cycletimeext;
+			u32 num_entries;
+			struct action_gate_entry *entries;
+		} gate;
+		struct {
+			u16 sid;
+		} pppoe;
+	};
+	struct flow_action_cookie *cookie;
+};
+
+struct flow_action {
+	unsigned int num_entries;
+	struct flow_action_entry entries[0];
+};
+
+struct flow_rule {
+	struct flow_match match;
+	struct flow_action action;
+};
+
+struct flow_stats {
+	u64 pkts;
+	u64 bytes;
+	u64 drops;
+	u64 lastused;
+	enum flow_action_hw_stats used_hw_stats;
+	bool used_hw_stats_valid;
+};
+
+enum flow_cls_command {
+	FLOW_CLS_REPLACE = 0,
+	FLOW_CLS_DESTROY = 1,
+	FLOW_CLS_STATS = 2,
+	FLOW_CLS_TMPLT_CREATE = 3,
+	FLOW_CLS_TMPLT_DESTROY = 4,
+};
+
+struct flow_cls_common_offload {
+	u32 chain_index;
+	__be16 protocol;
+	u32 prio;
+	struct netlink_ext_ack *extack;
+};
+
+struct flow_cls_offload {
+	struct flow_cls_common_offload common;
+	enum flow_cls_command command;
+	long unsigned int cookie;
+	struct flow_rule *rule;
+	struct flow_stats stats;
+	u32 classid;
+};
+
+struct dsa_chip_data {
+	struct device *host_dev;
+	int sw_addr;
+	struct device *netdev[12];
+	int eeprom_len;
+	struct device_node *of_node;
+	char *port_names[12];
+	struct device_node *port_dn[12];
+	s8 rtable[4];
+};
+
+struct dsa_platform_data {
+	struct device *netdev;
+	struct net_device *of_netdev;
+	int nr_chips;
+	struct dsa_chip_data *chip;
+};
+
+struct phylink_link_state {
+	long unsigned int advertising[2];
+	long unsigned int lp_advertising[2];
+	phy_interface_t interface;
+	int speed;
+	int duplex;
+	int pause;
+	unsigned int link: 1;
+	unsigned int an_enabled: 1;
+	unsigned int an_complete: 1;
+};
+
+struct phylink_pcs_ops;
+
+struct phylink_pcs {
+	const struct phylink_pcs_ops *ops;
+	bool poll;
+};
+
+struct phylink_pcs_ops {
+	int (*pcs_validate)(struct phylink_pcs *, long unsigned int *, const struct phylink_link_state *);
+	void (*pcs_get_state)(struct phylink_pcs *, struct phylink_link_state *);
+	int (*pcs_config)(struct phylink_pcs *, unsigned int, phy_interface_t, const long unsigned int *, bool);
+	void (*pcs_an_restart)(struct phylink_pcs *);
+	void (*pcs_link_up)(struct phylink_pcs *, unsigned int, phy_interface_t, int, int);
+};
+
+enum devlink_sb_pool_type {
+	DEVLINK_SB_POOL_TYPE_INGRESS = 0,
+	DEVLINK_SB_POOL_TYPE_EGRESS = 1,
+};
+
+enum devlink_sb_threshold_type {
+	DEVLINK_SB_THRESHOLD_TYPE_STATIC = 0,
+	DEVLINK_SB_THRESHOLD_TYPE_DYNAMIC = 1,
+};
+
+enum devlink_rate_type {
+	DEVLINK_RATE_TYPE_LEAF = 0,
+	DEVLINK_RATE_TYPE_NODE = 1,
+};
+
+enum devlink_param_cmode {
+	DEVLINK_PARAM_CMODE_RUNTIME = 0,
+	DEVLINK_PARAM_CMODE_DRIVERINIT = 1,
+	DEVLINK_PARAM_CMODE_PERMANENT = 2,
+	__DEVLINK_PARAM_CMODE_MAX = 3,
+	DEVLINK_PARAM_CMODE_MAX = 2,
+};
+
+struct devlink_rate {
+	struct list_head list;
+	enum devlink_rate_type type;
+	struct devlink *devlink;
+	void *priv;
+	u64 tx_share;
+	u64 tx_max;
+	struct devlink_rate *parent;
+	union {
+		struct devlink_port *devlink_port;
+		struct {
+			char *name;
+			refcount_t refcnt;
+		};
+	};
+};
+
+struct devlink_sb_pool_info {
+	enum devlink_sb_pool_type pool_type;
+	u32 size;
+	enum devlink_sb_threshold_type threshold_type;
+	u32 cell_size;
+};
+
+union devlink_param_value {
+	u8 vu8;
+	u16 vu16;
+	u32 vu32;
+	char vstr[32];
+	bool vbool;
+};
+
+struct devlink_param_gset_ctx {
+	union devlink_param_value val;
+	enum devlink_param_cmode cmode;
+};
+
+struct devlink_info_req;
+
+struct switchdev_mst_state {
+	u16 msti;
+	u8 state;
+};
+
+struct switchdev_brport_flags {
+	long unsigned int val;
+	long unsigned int mask;
+};
+
+struct switchdev_vlan_msti {
+	u16 vid;
+	u16 msti;
+};
+
+enum switchdev_obj_id {
+	SWITCHDEV_OBJ_ID_UNDEFINED = 0,
+	SWITCHDEV_OBJ_ID_PORT_VLAN = 1,
+	SWITCHDEV_OBJ_ID_PORT_MDB = 2,
+	SWITCHDEV_OBJ_ID_HOST_MDB = 3,
+	SWITCHDEV_OBJ_ID_MRP = 4,
+	SWITCHDEV_OBJ_ID_RING_TEST_MRP = 5,
+	SWITCHDEV_OBJ_ID_RING_ROLE_MRP = 6,
+	SWITCHDEV_OBJ_ID_RING_STATE_MRP = 7,
+	SWITCHDEV_OBJ_ID_IN_TEST_MRP = 8,
+	SWITCHDEV_OBJ_ID_IN_ROLE_MRP = 9,
+	SWITCHDEV_OBJ_ID_IN_STATE_MRP = 10,
+};
+
+struct switchdev_obj {
+	struct list_head list;
+	struct net_device *orig_dev;
+	enum switchdev_obj_id id;
+	u32 flags;
+	void *complete_priv;
+	void (*complete)(struct net_device *, int, void *);
+};
+
+struct switchdev_obj_port_vlan {
+	struct switchdev_obj obj;
+	u16 flags;
+	u16 vid;
+	bool changed;
+};
+
+struct switchdev_obj_port_mdb {
+	struct switchdev_obj obj;
+	unsigned char addr[6];
+	u16 vid;
+};
+
+struct switchdev_obj_mrp {
+	struct switchdev_obj obj;
+	struct net_device *p_port;
+	struct net_device *s_port;
+	u32 ring_id;
+	u16 prio;
+};
+
+struct switchdev_obj_ring_role_mrp {
+	struct switchdev_obj obj;
+	u8 ring_role;
+	u32 ring_id;
+	u8 sw_backup;
+};
+
+enum dsa_tag_protocol {
+	DSA_TAG_PROTO_NONE = 0,
+	DSA_TAG_PROTO_BRCM = 1,
+	DSA_TAG_PROTO_BRCM_LEGACY = 22,
+	DSA_TAG_PROTO_BRCM_PREPEND = 2,
+	DSA_TAG_PROTO_DSA = 3,
+	DSA_TAG_PROTO_EDSA = 4,
+	DSA_TAG_PROTO_GSWIP = 5,
+	DSA_TAG_PROTO_KSZ9477 = 6,
+	DSA_TAG_PROTO_KSZ9893 = 7,
+	DSA_TAG_PROTO_LAN9303 = 8,
+	DSA_TAG_PROTO_MTK = 9,
+	DSA_TAG_PROTO_QCA = 10,
+	DSA_TAG_PROTO_TRAILER = 11,
+	DSA_TAG_PROTO_8021Q = 12,
+	DSA_TAG_PROTO_SJA1105 = 13,
+	DSA_TAG_PROTO_KSZ8795 = 14,
+	DSA_TAG_PROTO_OCELOT = 15,
+	DSA_TAG_PROTO_AR9331 = 16,
+	DSA_TAG_PROTO_RTL4_A = 17,
+	DSA_TAG_PROTO_HELLCREEK = 18,
+	DSA_TAG_PROTO_XRS700X = 19,
+	DSA_TAG_PROTO_OCELOT_8021Q = 20,
+	DSA_TAG_PROTO_SEVILLE = 21,
+	DSA_TAG_PROTO_SJA1110 = 23,
+	DSA_TAG_PROTO_RTL8_4 = 24,
+	DSA_TAG_PROTO_RTL8_4T = 25,
+};
+
+struct dsa_device_ops {
+	struct sk_buff * (*xmit)(struct sk_buff *, struct net_device *);
+	struct sk_buff * (*rcv)(struct sk_buff *, struct net_device *);
+	void (*flow_dissect)(const struct sk_buff *, __be16 *, int *);
+	int (*connect)(struct dsa_switch *);
+	void (*disconnect)(struct dsa_switch *);
+	unsigned int needed_headroom;
+	unsigned int needed_tailroom;
+	const char *name;
+	enum dsa_tag_protocol proto;
+	bool promisc_on_master;
+};
+
+struct dsa_8021q_context;
+
+struct dsa_switch_ops;
+
+struct dsa_switch {
+	struct device *dev;
+	struct dsa_switch_tree *dst;
+	unsigned int index;
+	u32 setup: 1;
+	u32 vlan_filtering_is_global: 1;
+	u32 needs_standalone_vlan_filtering: 1;
+	u32 configure_vlan_while_not_filtering: 1;
+	u32 untag_bridge_pvid: 1;
+	u32 assisted_learning_on_cpu_port: 1;
+	u32 vlan_filtering: 1;
+	u32 mtu_enforcement_ingress: 1;
+	u32 fdb_isolation: 1;
+	struct notifier_block nb;
+	void *priv;
+	void *tagger_data;
+	struct dsa_chip_data *cd;
+	const struct dsa_switch_ops *ops;
+	u32 phys_mii_mask;
+	struct mii_bus *slave_mii_bus;
+	unsigned int ageing_time_min;
+	unsigned int ageing_time_max;
+	struct dsa_8021q_context *tag_8021q_ctx;
+	struct devlink *devlink;
+	unsigned int num_tx_queues;
+	unsigned int num_lag_ids;
+	unsigned int max_num_bridges;
+	unsigned int num_ports;
+};
+
+struct dsa_netdevice_ops {
+	int (*ndo_eth_ioctl)(struct net_device *, struct ifreq *, int);
+};
+
+struct dsa_lag {
+	struct net_device *dev;
+	unsigned int id;
+	struct mutex fdb_lock;
+	struct list_head fdbs;
+	refcount_t refcount;
+};
+
+struct dsa_switch_tree {
+	struct list_head list;
+	struct list_head ports;
+	struct raw_notifier_head nh;
+	unsigned int index;
+	struct kref refcount;
+	struct dsa_lag **lags;
+	const struct dsa_device_ops *tag_ops;
+	enum dsa_tag_protocol default_proto;
+	bool setup;
+	struct dsa_platform_data *pd;
+	struct list_head rtable;
+	unsigned int lags_len;
+	unsigned int last_switch;
+};
+
+struct dsa_mall_mirror_tc_entry {
+	u8 to_local_port;
+	bool ingress;
+};
+
+struct dsa_mall_policer_tc_entry {
+	u32 burst;
+	u64 rate_bytes_per_sec;
+};
+
+struct dsa_bridge {
+	struct net_device *dev;
+	unsigned int num;
+	bool tx_fwd_offload;
+	refcount_t refcount;
+};
+
+enum dsa_db_type {
+	DSA_DB_PORT = 0,
+	DSA_DB_LAG = 1,
+	DSA_DB_BRIDGE = 2,
+};
+
+struct dsa_db {
+	enum dsa_db_type type;
+	union {
+		const struct dsa_port *dp;
+		struct dsa_lag lag;
+		struct dsa_bridge bridge;
+	};
+};
+
+struct fixed_phy_status___2;
+
+typedef int dsa_fdb_dump_cb_t(const unsigned char *, u16, bool, void *);
+
+struct dsa_switch_ops {
+	enum dsa_tag_protocol (*get_tag_protocol)(struct dsa_switch *, int, enum dsa_tag_protocol);
+	int (*change_tag_protocol)(struct dsa_switch *, enum dsa_tag_protocol);
+	int (*connect_tag_protocol)(struct dsa_switch *, enum dsa_tag_protocol);
+	int (*setup)(struct dsa_switch *);
+	void (*teardown)(struct dsa_switch *);
+	int (*port_setup)(struct dsa_switch *, int);
+	void (*port_teardown)(struct dsa_switch *, int);
+	u32 (*get_phy_flags)(struct dsa_switch *, int);
+	int (*phy_read)(struct dsa_switch *, int, int);
+	int (*phy_write)(struct dsa_switch *, int, int, u16);
+	void (*adjust_link)(struct dsa_switch *, int, struct phy_device *);
+	void (*fixed_link_update)(struct dsa_switch *, int, struct fixed_phy_status___2 *);
+	void (*phylink_get_caps)(struct dsa_switch *, int, struct phylink_config *);
+	void (*phylink_validate)(struct dsa_switch *, int, long unsigned int *, struct phylink_link_state *);
+	struct phylink_pcs * (*phylink_mac_select_pcs)(struct dsa_switch *, int, phy_interface_t);
+	int (*phylink_mac_link_state)(struct dsa_switch *, int, struct phylink_link_state *);
+	void (*phylink_mac_config)(struct dsa_switch *, int, unsigned int, const struct phylink_link_state *);
+	void (*phylink_mac_an_restart)(struct dsa_switch *, int);
+	void (*phylink_mac_link_down)(struct dsa_switch *, int, unsigned int, phy_interface_t);
+	void (*phylink_mac_link_up)(struct dsa_switch *, int, unsigned int, phy_interface_t, struct phy_device *, int, int, bool, bool);
+	void (*phylink_fixed_state)(struct dsa_switch *, int, struct phylink_link_state *);
+	void (*get_strings)(struct dsa_switch *, int, u32, uint8_t *);
+	void (*get_ethtool_stats)(struct dsa_switch *, int, uint64_t *);
+	int (*get_sset_count)(struct dsa_switch *, int, int);
+	void (*get_ethtool_phy_stats)(struct dsa_switch *, int, uint64_t *);
+	void (*get_eth_phy_stats)(struct dsa_switch *, int, struct ethtool_eth_phy_stats *);
+	void (*get_eth_mac_stats)(struct dsa_switch *, int, struct ethtool_eth_mac_stats *);
+	void (*get_eth_ctrl_stats)(struct dsa_switch *, int, struct ethtool_eth_ctrl_stats *);
+	void (*get_stats64)(struct dsa_switch *, int, struct rtnl_link_stats64 *);
+	void (*self_test)(struct dsa_switch *, int, struct ethtool_test *, u64 *);
+	void (*get_wol)(struct dsa_switch *, int, struct ethtool_wolinfo *);
+	int (*set_wol)(struct dsa_switch *, int, struct ethtool_wolinfo *);
+	int (*get_ts_info)(struct dsa_switch *, int, struct ethtool_ts_info *);
+	int (*port_get_default_prio)(struct dsa_switch *, int);
+	int (*port_set_default_prio)(struct dsa_switch *, int, u8);
+	int (*port_get_dscp_prio)(struct dsa_switch *, int, u8);
+	int (*port_add_dscp_prio)(struct dsa_switch *, int, u8, u8);
+	int (*port_del_dscp_prio)(struct dsa_switch *, int, u8, u8);
+	int (*suspend)(struct dsa_switch *);
+	int (*resume)(struct dsa_switch *);
+	int (*port_enable)(struct dsa_switch *, int, struct phy_device *);
+	void (*port_disable)(struct dsa_switch *, int);
+	int (*set_mac_eee)(struct dsa_switch *, int, struct ethtool_eee *);
+	int (*get_mac_eee)(struct dsa_switch *, int, struct ethtool_eee *);
+	int (*get_eeprom_len)(struct dsa_switch *);
+	int (*get_eeprom)(struct dsa_switch *, struct ethtool_eeprom *, u8 *);
+	int (*set_eeprom)(struct dsa_switch *, struct ethtool_eeprom *, u8 *);
+	int (*get_regs_len)(struct dsa_switch *, int);
+	void (*get_regs)(struct dsa_switch *, int, struct ethtool_regs *, void *);
+	int (*port_prechangeupper)(struct dsa_switch *, int, struct netdev_notifier_changeupper_info *);
+	int (*set_ageing_time)(struct dsa_switch *, unsigned int);
+	int (*port_bridge_join)(struct dsa_switch *, int, struct dsa_bridge, bool *, struct netlink_ext_ack *);
+	void (*port_bridge_leave)(struct dsa_switch *, int, struct dsa_bridge);
+	void (*port_stp_state_set)(struct dsa_switch *, int, u8);
+	int (*port_mst_state_set)(struct dsa_switch *, int, const struct switchdev_mst_state *);
+	void (*port_fast_age)(struct dsa_switch *, int);
+	int (*port_vlan_fast_age)(struct dsa_switch *, int, u16);
+	int (*port_pre_bridge_flags)(struct dsa_switch *, int, struct switchdev_brport_flags, struct netlink_ext_ack *);
+	int (*port_bridge_flags)(struct dsa_switch *, int, struct switchdev_brport_flags, struct netlink_ext_ack *);
+	void (*port_set_host_flood)(struct dsa_switch *, int, bool, bool);
+	int (*port_vlan_filtering)(struct dsa_switch *, int, bool, struct netlink_ext_ack *);
+	int (*port_vlan_add)(struct dsa_switch *, int, const struct switchdev_obj_port_vlan *, struct netlink_ext_ack *);
+	int (*port_vlan_del)(struct dsa_switch *, int, const struct switchdev_obj_port_vlan *);
+	int (*vlan_msti_set)(struct dsa_switch *, struct dsa_bridge, const struct switchdev_vlan_msti *);
+	int (*port_fdb_add)(struct dsa_switch *, int, const unsigned char *, u16, struct dsa_db);
+	int (*port_fdb_del)(struct dsa_switch *, int, const unsigned char *, u16, struct dsa_db);
+	int (*port_fdb_dump)(struct dsa_switch *, int, dsa_fdb_dump_cb_t *, void *);
+	int (*lag_fdb_add)(struct dsa_switch *, struct dsa_lag, const unsigned char *, u16, struct dsa_db);
+	int (*lag_fdb_del)(struct dsa_switch *, struct dsa_lag, const unsigned char *, u16, struct dsa_db);
+	int (*port_mdb_add)(struct dsa_switch *, int, const struct switchdev_obj_port_mdb *, struct dsa_db);
+	int (*port_mdb_del)(struct dsa_switch *, int, const struct switchdev_obj_port_mdb *, struct dsa_db);
+	int (*get_rxnfc)(struct dsa_switch *, int, struct ethtool_rxnfc *, u32 *);
+	int (*set_rxnfc)(struct dsa_switch *, int, struct ethtool_rxnfc *);
+	int (*cls_flower_add)(struct dsa_switch *, int, struct flow_cls_offload *, bool);
+	int (*cls_flower_del)(struct dsa_switch *, int, struct flow_cls_offload *, bool);
+	int (*cls_flower_stats)(struct dsa_switch *, int, struct flow_cls_offload *, bool);
+	int (*port_mirror_add)(struct dsa_switch *, int, struct dsa_mall_mirror_tc_entry *, bool, struct netlink_ext_ack *);
+	void (*port_mirror_del)(struct dsa_switch *, int, struct dsa_mall_mirror_tc_entry *);
+	int (*port_policer_add)(struct dsa_switch *, int, struct dsa_mall_policer_tc_entry *);
+	void (*port_policer_del)(struct dsa_switch *, int);
+	int (*port_setup_tc)(struct dsa_switch *, int, enum tc_setup_type, void *);
+	int (*crosschip_bridge_join)(struct dsa_switch *, int, int, int, struct dsa_bridge, struct netlink_ext_ack *);
+	void (*crosschip_bridge_leave)(struct dsa_switch *, int, int, int, struct dsa_bridge);
+	int (*crosschip_lag_change)(struct dsa_switch *, int, int);
+	int (*crosschip_lag_join)(struct dsa_switch *, int, int, struct dsa_lag, struct netdev_lag_upper_info *);
+	int (*crosschip_lag_leave)(struct dsa_switch *, int, int, struct dsa_lag);
+	int (*port_hwtstamp_get)(struct dsa_switch *, int, struct ifreq *);
+	int (*port_hwtstamp_set)(struct dsa_switch *, int, struct ifreq *);
+	void (*port_txtstamp)(struct dsa_switch *, int, struct sk_buff *);
+	bool (*port_rxtstamp)(struct dsa_switch *, int, struct sk_buff *, unsigned int);
+	int (*devlink_param_get)(struct dsa_switch *, u32, struct devlink_param_gset_ctx *);
+	int (*devlink_param_set)(struct dsa_switch *, u32, struct devlink_param_gset_ctx *);
+	int (*devlink_info_get)(struct dsa_switch *, struct devlink_info_req *, struct netlink_ext_ack *);
+	int (*devlink_sb_pool_get)(struct dsa_switch *, unsigned int, u16, struct devlink_sb_pool_info *);
+	int (*devlink_sb_pool_set)(struct dsa_switch *, unsigned int, u16, u32, enum devlink_sb_threshold_type, struct netlink_ext_ack *);
+	int (*devlink_sb_port_pool_get)(struct dsa_switch *, int, unsigned int, u16, u32 *);
+	int (*devlink_sb_port_pool_set)(struct dsa_switch *, int, unsigned int, u16, u32, struct netlink_ext_ack *);
+	int (*devlink_sb_tc_pool_bind_get)(struct dsa_switch *, int, unsigned int, u16, enum devlink_sb_pool_type, u16 *, u32 *);
+	int (*devlink_sb_tc_pool_bind_set)(struct dsa_switch *, int, unsigned int, u16, enum devlink_sb_pool_type, u16, u32, struct netlink_ext_ack *);
+	int (*devlink_sb_occ_snapshot)(struct dsa_switch *, unsigned int);
+	int (*devlink_sb_occ_max_clear)(struct dsa_switch *, unsigned int);
+	int (*devlink_sb_occ_port_pool_get)(struct dsa_switch *, int, unsigned int, u16, u32 *, u32 *);
+	int (*devlink_sb_occ_tc_port_bind_get)(struct dsa_switch *, int, unsigned int, u16, enum devlink_sb_pool_type, u32 *, u32 *);
+	int (*port_change_mtu)(struct dsa_switch *, int, int);
+	int (*port_max_mtu)(struct dsa_switch *, int);
+	int (*port_lag_change)(struct dsa_switch *, int);
+	int (*port_lag_join)(struct dsa_switch *, int, struct dsa_lag, struct netdev_lag_upper_info *);
+	int (*port_lag_leave)(struct dsa_switch *, int, struct dsa_lag);
+	int (*port_hsr_join)(struct dsa_switch *, int, struct net_device *);
+	int (*port_hsr_leave)(struct dsa_switch *, int, struct net_device *);
+	int (*port_mrp_add)(struct dsa_switch *, int, const struct switchdev_obj_mrp *);
+	int (*port_mrp_del)(struct dsa_switch *, int, const struct switchdev_obj_mrp *);
+	int (*port_mrp_add_ring_role)(struct dsa_switch *, int, const struct switchdev_obj_ring_role_mrp *);
+	int (*port_mrp_del_ring_role)(struct dsa_switch *, int, const struct switchdev_obj_ring_role_mrp *);
+	int (*tag_8021q_vlan_add)(struct dsa_switch *, int, u16, u16);
+	int (*tag_8021q_vlan_del)(struct dsa_switch *, int, u16);
+	void (*master_state_change)(struct dsa_switch *, const struct net_device *, bool);
+};
+
+enum lwtunnel_encap_types {
+	LWTUNNEL_ENCAP_NONE = 0,
+	LWTUNNEL_ENCAP_MPLS = 1,
+	LWTUNNEL_ENCAP_IP = 2,
+	LWTUNNEL_ENCAP_ILA = 3,
+	LWTUNNEL_ENCAP_IP6 = 4,
+	LWTUNNEL_ENCAP_SEG6 = 5,
+	LWTUNNEL_ENCAP_BPF = 6,
+	LWTUNNEL_ENCAP_SEG6_LOCAL = 7,
+	LWTUNNEL_ENCAP_RPL = 8,
+	LWTUNNEL_ENCAP_IOAM6 = 9,
+	__LWTUNNEL_ENCAP_MAX = 10,
+};
+
+struct arphdr {
+	__be16 ar_hrd;
+	__be16 ar_pro;
+	unsigned char ar_hln;
+	unsigned char ar_pln;
+	__be16 ar_op;
+};
+
+enum metadata_type {
+	METADATA_IP_TUNNEL = 0,
+	METADATA_HW_PORT_MUX = 1,
+};
+
+struct hw_port_info {
+	struct net_device *lower_dev;
+	u32 port_id;
+};
+
+struct metadata_dst {
+	struct dst_entry dst;
+	enum metadata_type type;
+	union {
+		struct ip_tunnel_info tun_info;
+		struct hw_port_info port_info;
+	} u;
+};
+
+struct gre_base_hdr {
+	__be16 flags;
+	__be16 protocol;
+};
+
+struct gre_full_hdr {
+	struct gre_base_hdr fixed_header;
+	__be16 csum;
+	__be16 reserved1;
+	__be32 key;
+	__be32 seq;
+};
+
+struct pptp_gre_header {
+	struct gre_base_hdr gre_hd;
+	__be16 payload_len;
+	__be16 call_id;
+	__be32 seq;
+	__be32 ack;
+};
+
+struct tipc_basic_hdr {
+	__be32 w[4];
+};
+
+struct icmphdr {
+	__u8 type;
+	__u8 code;
+	__sum16 checksum;
+	union {
+		struct {
+			__be16 id;
+			__be16 sequence;
+		} echo;
+		__be32 gateway;
+		struct {
+			__be16 __unused;
+			__be16 mtu;
+		} frag;
+		__u8 reserved[4];
+	} un;
+};
+
+enum l2tp_debug_flags {
+	L2TP_MSG_DEBUG = 1,
+	L2TP_MSG_CONTROL = 2,
+	L2TP_MSG_SEQ = 4,
+	L2TP_MSG_DATA = 8,
+};
+
+struct pppoe_tag {
+	__be16 tag_type;
+	__be16 tag_len;
+	char tag_data[0];
+};
+
+struct pppoe_hdr {
+	__u8 type: 4;
+	__u8 ver: 4;
+	__u8 code;
+	__be16 sid;
+	__be16 length;
+	struct pppoe_tag tag[0];
+};
+
+struct hsr_tag {
+	__be16 path_and_LSDU_size;
+	__be16 sequence_nr;
+	__be16 encap_proto;
+};
+
+struct mpls_label {
+	__be32 entry;
+};
+
+struct clock_identity {
+	u8 id[8];
+};
+
+struct port_identity {
+	struct clock_identity clock_identity;
+	__be16 port_number;
+};
+
+struct ptp_header {
+	u8 tsmt;
+	u8 ver;
+	__be16 message_length;
+	u8 domain_number;
+	u8 reserved1;
+	u8 flag_field[2];
+	__be64 correction;
+	__be32 reserved2;
+	struct port_identity source_port_identity;
+	__be16 sequence_id;
+	u8 control;
+	u8 log_message_interval;
+} __attribute__((packed));
+
+enum batadv_packettype {
+	BATADV_IV_OGM = 0,
+	BATADV_BCAST = 1,
+	BATADV_CODED = 2,
+	BATADV_ELP = 3,
+	BATADV_OGM2 = 4,
+	BATADV_UNICAST = 64,
+	BATADV_UNICAST_FRAG = 65,
+	BATADV_UNICAST_4ADDR = 66,
+	BATADV_ICMP = 67,
+	BATADV_UNICAST_TVLV = 68,
+};
+
+struct batadv_unicast_packet {
+	__u8 packet_type;
+	__u8 version;
+	__u8 ttl;
+	__u8 ttvn;
+	__u8 dest[6];
+};
+
+struct nf_conntrack_zone {
+	u16 id;
+	u8 flags;
+	u8 dir;
+};
+
+struct nf_conntrack_man {
+	union nf_inet_addr u3;
+	union nf_conntrack_man_proto u;
+	u_int16_t l3num;
+};
+
+struct nf_conntrack_tuple {
+	struct nf_conntrack_man src;
+	struct {
+		union nf_inet_addr u3;
+		union {
+			__be16 all;
+			struct {
+				__be16 port;
+			} tcp;
+			struct {
+				__be16 port;
+			} udp;
+			struct {
+				u_int8_t type;
+				u_int8_t code;
+			} icmp;
+			struct {
+				__be16 port;
+			} dccp;
+			struct {
+				__be16 port;
+			} sctp;
+			struct {
+				__be16 key;
+			} gre;
+		} u;
+		u_int8_t protonum;
+		u_int8_t dir;
+	} dst;
+};
+
+struct nf_conntrack_tuple_hash {
+	struct hlist_nulls_node hnnode;
+	struct nf_conntrack_tuple tuple;
+};
+
+struct nf_ct_udp {
+	long unsigned int stream_ts;
+};
+
+struct nf_ct_gre {
+	unsigned int stream_timeout;
+	unsigned int timeout;
+};
+
+union nf_conntrack_proto {
+	struct nf_ct_dccp dccp;
+	struct ip_ct_sctp sctp;
+	struct ip_ct_tcp tcp;
+	struct nf_ct_udp udp;
+	struct nf_ct_gre gre;
+	unsigned int tmpl_padto;
+};
+
+struct nf_ct_ext;
+
+struct nf_conn {
+	struct nf_conntrack ct_general;
+	spinlock_t lock;
+	u32 timeout;
+	struct nf_conntrack_zone zone;
+	struct nf_conntrack_tuple_hash tuplehash[2];
+	long unsigned int status;
+	possible_net_t ct_net;
+	struct hlist_node nat_bysource;
+	struct {	} __nfct_init_offset;
+	struct nf_conn *master;
+	u_int32_t mark;
+	u_int32_t secmark;
+	struct nf_ct_ext *ext;
+	union nf_conntrack_proto proto;
+};
+
+struct nf_conntrack_tuple_mask {
+	struct {
+		union nf_inet_addr u3;
+		union nf_conntrack_man_proto u;
+	} src;
+};
+
+struct nf_ct_ext {
+	u8 offset[10];
+	u8 len;
+	unsigned int gen_id;
+	char data[0];
+};
+
+struct nf_conntrack_helper;
+
+struct nf_conntrack_expect {
+	struct hlist_node lnode;
+	struct hlist_node hnode;
+	struct nf_conntrack_tuple tuple;
+	struct nf_conntrack_tuple_mask mask;
+	void (*expectfn)(struct nf_conn *, struct nf_conntrack_expect *);
+	struct nf_conntrack_helper *helper;
+	struct nf_conn *master;
+	struct timer_list timeout;
+	refcount_t use;
+	unsigned int flags;
+	unsigned int class;
+	union nf_inet_addr saved_addr;
+	union nf_conntrack_man_proto saved_proto;
+	enum ip_conntrack_dir dir;
+	struct callback_head rcu;
+};
+
+enum nf_ct_ext_id {
+	NF_CT_EXT_HELPER = 0,
+	NF_CT_EXT_NAT = 1,
+	NF_CT_EXT_SEQADJ = 2,
+	NF_CT_EXT_ACCT = 3,
+	NF_CT_EXT_ECACHE = 4,
+	NF_CT_EXT_TSTAMP = 5,
+	NF_CT_EXT_TIMEOUT = 6,
+	NF_CT_EXT_LABELS = 7,
+	NF_CT_EXT_SYNPROXY = 8,
+	NF_CT_EXT_ACT_CT = 9,
+	NF_CT_EXT_NUM = 10,
+};
+
+struct nf_ct_event {
+	struct nf_conn *ct;
+	u32 portid;
+	int report;
+};
+
+struct nf_exp_event {
+	struct nf_conntrack_expect *exp;
+	u32 portid;
+	int report;
+};
+
+struct nf_conn_labels {
+	long unsigned int bits[2];
+};
+
+struct _flow_keys_digest_data {
+	__be16 n_proto;
+	u8 ip_proto;
+	u8 padding;
+	__be32 ports;
+	__be32 src;
+	__be32 dst;
+};
+
+struct ipv4_devconf {
+	void *sysctl;
+	int data[33];
+	long unsigned int state[1];
+};
+
+enum nf_dev_hooks {
+	NF_NETDEV_INGRESS = 0,
+	NF_NETDEV_EGRESS = 1,
+	NF_NETDEV_NUMHOOKS = 2,
+};
+
+enum {
+	IF_OPER_UNKNOWN = 0,
+	IF_OPER_NOTPRESENT = 1,
+	IF_OPER_DOWN = 2,
+	IF_OPER_LOWERLAYERDOWN = 3,
+	IF_OPER_TESTING = 4,
+	IF_OPER_DORMANT = 5,
+	IF_OPER_UP = 6,
+};
+
+struct ifbond {
+	__s32 bond_mode;
+	__s32 num_slaves;
+	__s32 miimon;
+};
+
+typedef struct ifbond ifbond;
+
+struct ifslave {
+	__s32 slave_id;
+	char slave_name[16];
+	__s8 link;
+	__s8 state;
+	__u32 link_failure_count;
+};
+
+typedef struct ifslave ifslave;
+
+enum {
+	NAPIF_STATE_SCHED = 1,
+	NAPIF_STATE_MISSED = 2,
+	NAPIF_STATE_DISABLE = 4,
+	NAPIF_STATE_NPSVC = 8,
+	NAPIF_STATE_LISTED = 16,
+	NAPIF_STATE_NO_BUSY_POLL = 32,
+	NAPIF_STATE_IN_BUSY_POLL = 64,
+	NAPIF_STATE_PREFER_BUSY_POLL = 128,
+	NAPIF_STATE_THREADED = 256,
+	NAPIF_STATE_SCHED_THREADED = 512,
+};
+
+struct net_device_path_stack {
+	int num_paths;
+	struct net_device_path path[5];
+};
+
+struct bpf_xdp_link {
+	struct bpf_link link;
+	struct net_device *dev;
+	int flags;
+};
+
+struct netdev_net_notifier {
+	struct list_head list;
+	struct notifier_block *nb;
+};
+
+struct netpoll;
+
+struct netpoll_info {
+	refcount_t refcnt;
+	struct semaphore dev_lock;
+	struct sk_buff_head txq;
+	struct delayed_work tx_work;
+	struct netpoll *netpoll;
+	struct callback_head rcu;
+};
+
+struct in_ifaddr;
+
+struct ip_mc_list;
+
+struct in_device {
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	refcount_t refcnt;
+	int dead;
+	struct in_ifaddr *ifa_list;
+	struct ip_mc_list *mc_list;
+	struct ip_mc_list **mc_hash;
+	int mc_count;
+	spinlock_t mc_tomb_lock;
+	struct ip_mc_list *mc_tomb;
+	long unsigned int mr_v1_seen;
+	long unsigned int mr_v2_seen;
+	long unsigned int mr_maxdelay;
+	long unsigned int mr_qi;
+	long unsigned int mr_qri;
+	unsigned char mr_qrv;
+	unsigned char mr_gq_running;
+	u32 mr_ifc_count;
+	struct timer_list mr_gq_timer;
+	struct timer_list mr_ifc_timer;
+	struct neigh_parms *arp_parms;
+	struct ipv4_devconf cnf;
+	struct callback_head callback_head;
+};
+
+struct packet_type {
+	__be16 type;
+	bool ignore_outgoing;
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	int (*func)(struct sk_buff *, struct net_device *, struct packet_type *, struct net_device *);
+	void (*list_func)(struct list_head *, struct packet_type *, struct net_device *);
+	bool (*id_match)(struct packet_type *, struct sock *);
+	struct net *af_packet_net;
+	void *af_packet_priv;
+	struct list_head list;
+};
+
+struct netdev_notifier_info_ext {
+	struct netdev_notifier_info info;
+	union {
+		u32 mtu;
+	} ext;
+};
+
+struct netdev_notifier_change_info {
+	struct netdev_notifier_info info;
+	unsigned int flags_changed;
+};
+
+struct netdev_notifier_changelowerstate_info {
+	struct netdev_notifier_info info;
+	void *lower_state_info;
+};
+
+struct netdev_notifier_pre_changeaddr_info {
+	struct netdev_notifier_info info;
+	const unsigned char *dev_addr;
+};
+
+enum netdev_offload_xstats_type {
+	NETDEV_OFFLOAD_XSTATS_TYPE_L3 = 1,
+};
+
+struct netdev_notifier_offload_xstats_rd {
+	struct rtnl_hw_stats64 stats;
+	bool used;
+};
+
+struct netdev_notifier_offload_xstats_ru {
+	bool used;
+};
+
+struct netdev_notifier_offload_xstats_info {
+	struct netdev_notifier_info info;
+	enum netdev_offload_xstats_type type;
+	union {
+		struct netdev_notifier_offload_xstats_rd *report_delta;
+		struct netdev_notifier_offload_xstats_ru *report_used;
+	};
+};
+
+enum {
+	NESTED_SYNC_IMM_BIT = 0,
+	NESTED_SYNC_TODO_BIT = 1,
+};
+
+struct netdev_nested_priv {
+	unsigned char flags;
+	void *data;
+};
+
+struct netdev_bonding_info {
+	ifslave slave;
+	ifbond master;
+};
+
+struct netdev_notifier_bonding_info {
+	struct netdev_notifier_info info;
+	struct netdev_bonding_info bonding_info;
+};
+
+union inet_addr {
+	__u32 all[4];
+	__be32 ip;
+	__be32 ip6[4];
+	struct in_addr in;
+	struct in6_addr in6;
+};
+
+struct netpoll {
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	char dev_name[16];
+	const char *name;
+	union inet_addr local_ip;
+	union inet_addr remote_ip;
+	bool ipv6;
+	u16 local_port;
+	u16 remote_port;
+	u8 remote_mac[6];
+};
+
+enum qdisc_state_t {
+	__QDISC_STATE_SCHED = 0,
+	__QDISC_STATE_DEACTIVATED = 1,
+	__QDISC_STATE_MISSED = 2,
+	__QDISC_STATE_DRAINING = 3,
+};
+
+enum qdisc_state2_t {
+	__QDISC_STATE2_RUNNING = 0,
+};
+
+struct tcf_walker {
+	int stop;
+	int skip;
+	int count;
+	bool nonempty;
+	long unsigned int cookie;
+	int (*fn)(struct tcf_proto *, void *, struct tcf_walker *);
+};
+
+enum {
+	IPV4_DEVCONF_FORWARDING = 1,
+	IPV4_DEVCONF_MC_FORWARDING = 2,
+	IPV4_DEVCONF_PROXY_ARP = 3,
+	IPV4_DEVCONF_ACCEPT_REDIRECTS = 4,
+	IPV4_DEVCONF_SECURE_REDIRECTS = 5,
+	IPV4_DEVCONF_SEND_REDIRECTS = 6,
+	IPV4_DEVCONF_SHARED_MEDIA = 7,
+	IPV4_DEVCONF_RP_FILTER = 8,
+	IPV4_DEVCONF_ACCEPT_SOURCE_ROUTE = 9,
+	IPV4_DEVCONF_BOOTP_RELAY = 10,
+	IPV4_DEVCONF_LOG_MARTIANS = 11,
+	IPV4_DEVCONF_TAG = 12,
+	IPV4_DEVCONF_ARPFILTER = 13,
+	IPV4_DEVCONF_MEDIUM_ID = 14,
+	IPV4_DEVCONF_NOXFRM = 15,
+	IPV4_DEVCONF_NOPOLICY = 16,
+	IPV4_DEVCONF_FORCE_IGMP_VERSION = 17,
+	IPV4_DEVCONF_ARP_ANNOUNCE = 18,
+	IPV4_DEVCONF_ARP_IGNORE = 19,
+	IPV4_DEVCONF_PROMOTE_SECONDARIES = 20,
+	IPV4_DEVCONF_ARP_ACCEPT = 21,
+	IPV4_DEVCONF_ARP_NOTIFY = 22,
+	IPV4_DEVCONF_ACCEPT_LOCAL = 23,
+	IPV4_DEVCONF_SRC_VMARK = 24,
+	IPV4_DEVCONF_PROXY_ARP_PVLAN = 25,
+	IPV4_DEVCONF_ROUTE_LOCALNET = 26,
+	IPV4_DEVCONF_IGMPV2_UNSOLICITED_REPORT_INTERVAL = 27,
+	IPV4_DEVCONF_IGMPV3_UNSOLICITED_REPORT_INTERVAL = 28,
+	IPV4_DEVCONF_IGNORE_ROUTES_WITH_LINKDOWN = 29,
+	IPV4_DEVCONF_DROP_UNICAST_IN_L2_MULTICAST = 30,
+	IPV4_DEVCONF_DROP_GRATUITOUS_ARP = 31,
+	IPV4_DEVCONF_BC_FORWARDING = 32,
+	IPV4_DEVCONF_ARP_EVICT_NOCARRIER = 33,
+	__IPV4_DEVCONF_MAX = 34,
+};
+
+struct tc_skb_cb {
+	struct qdisc_skb_cb qdisc_cb;
+	u16 mru;
+	u8 post_ct: 1;
+	u8 post_ct_snat: 1;
+	u8 post_ct_dnat: 1;
+	u16 zone;
+};
+
+struct in_ifaddr {
+	struct hlist_node hash;
+	struct in_ifaddr *ifa_next;
+	struct in_device *ifa_dev;
+	struct callback_head callback_head;
+	__be32 ifa_local;
+	__be32 ifa_address;
+	__be32 ifa_mask;
+	__u32 ifa_rt_priority;
+	__be32 ifa_broadcast;
+	unsigned char ifa_scope;
+	unsigned char ifa_prefixlen;
+	unsigned char ifa_proto;
+	__u32 ifa_flags;
+	char ifa_label[16];
+	__u32 ifa_valid_lft;
+	__u32 ifa_preferred_lft;
+	long unsigned int ifa_cstamp;
+	long unsigned int ifa_tstamp;
+};
+
+struct udp_tunnel_info {
+	short unsigned int type;
+	sa_family_t sa_family;
+	__be16 port;
+	u8 hw_priv;
+};
+
+struct udp_tunnel_nic_shared {
+	struct udp_tunnel_nic *udp_tunnel_nic_info;
+	struct list_head devices;
+};
+
+typedef int (*bpf_op_t)(struct net_device *, struct netdev_bpf *);
+
+struct dev_kfree_skb_cb {
+	enum skb_free_reason reason;
+};
+
+struct netdev_adjacent {
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	bool master;
+	bool ignore;
+	u16 ref_nr;
+	void *private;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct netdev_hw_addr {
+	struct list_head list;
+	struct rb_node node;
+	unsigned char addr[32];
+	unsigned char type;
+	bool global_use;
+	int sync_cnt;
+	int refcount;
+	int synced;
+	struct callback_head callback_head;
+};
+
+enum {
+	NDA_UNSPEC = 0,
+	NDA_DST = 1,
+	NDA_LLADDR = 2,
+	NDA_CACHEINFO = 3,
+	NDA_PROBES = 4,
+	NDA_VLAN = 5,
+	NDA_PORT = 6,
+	NDA_VNI = 7,
+	NDA_IFINDEX = 8,
+	NDA_MASTER = 9,
+	NDA_LINK_NETNSID = 10,
+	NDA_SRC_VNI = 11,
+	NDA_PROTOCOL = 12,
+	NDA_NH_ID = 13,
+	NDA_FDB_EXT_ATTRS = 14,
+	NDA_FLAGS_EXT = 15,
+	NDA_NDM_STATE_MASK = 16,
+	NDA_NDM_FLAGS_MASK = 17,
+	__NDA_MAX = 18,
+};
+
+struct nda_cacheinfo {
+	__u32 ndm_confirmed;
+	__u32 ndm_used;
+	__u32 ndm_updated;
+	__u32 ndm_refcnt;
+};
+
+struct ndt_stats {
+	__u64 ndts_allocs;
+	__u64 ndts_destroys;
+	__u64 ndts_hash_grows;
+	__u64 ndts_res_failed;
+	__u64 ndts_lookups;
+	__u64 ndts_hits;
+	__u64 ndts_rcv_probes_mcast;
+	__u64 ndts_rcv_probes_ucast;
+	__u64 ndts_periodic_gc_runs;
+	__u64 ndts_forced_gc_runs;
+	__u64 ndts_table_fulls;
+};
+
+enum {
+	NDTPA_UNSPEC = 0,
+	NDTPA_IFINDEX = 1,
+	NDTPA_REFCNT = 2,
+	NDTPA_REACHABLE_TIME = 3,
+	NDTPA_BASE_REACHABLE_TIME = 4,
+	NDTPA_RETRANS_TIME = 5,
+	NDTPA_GC_STALETIME = 6,
+	NDTPA_DELAY_PROBE_TIME = 7,
+	NDTPA_QUEUE_LEN = 8,
+	NDTPA_APP_PROBES = 9,
+	NDTPA_UCAST_PROBES = 10,
+	NDTPA_MCAST_PROBES = 11,
+	NDTPA_ANYCAST_DELAY = 12,
+	NDTPA_PROXY_DELAY = 13,
+	NDTPA_PROXY_QLEN = 14,
+	NDTPA_LOCKTIME = 15,
+	NDTPA_QUEUE_LENBYTES = 16,
+	NDTPA_MCAST_REPROBES = 17,
+	NDTPA_PAD = 18,
+	__NDTPA_MAX = 19,
+};
+
+struct ndtmsg {
+	__u8 ndtm_family;
+	__u8 ndtm_pad1;
+	__u16 ndtm_pad2;
+};
+
+struct ndt_config {
+	__u16 ndtc_key_len;
+	__u16 ndtc_entry_size;
+	__u32 ndtc_entries;
+	__u32 ndtc_last_flush;
+	__u32 ndtc_last_rand;
+	__u32 ndtc_hash_rnd;
+	__u32 ndtc_hash_mask;
+	__u32 ndtc_hash_chain_gc;
+	__u32 ndtc_proxy_qlen;
+};
+
+enum {
+	NDTA_UNSPEC = 0,
+	NDTA_NAME = 1,
+	NDTA_THRESH1 = 2,
+	NDTA_THRESH2 = 3,
+	NDTA_THRESH3 = 4,
+	NDTA_CONFIG = 5,
+	NDTA_PARMS = 6,
+	NDTA_STATS = 7,
+	NDTA_GC_INTERVAL = 8,
+	NDTA_PAD = 9,
+	__NDTA_MAX = 10,
+};
+
+enum {
+	RTN_UNSPEC = 0,
+	RTN_UNICAST = 1,
+	RTN_LOCAL = 2,
+	RTN_BROADCAST = 3,
+	RTN_ANYCAST = 4,
+	RTN_MULTICAST = 5,
+	RTN_BLACKHOLE = 6,
+	RTN_UNREACHABLE = 7,
+	RTN_PROHIBIT = 8,
+	RTN_THROW = 9,
+	RTN_NAT = 10,
+	RTN_XRESOLVE = 11,
+	__RTN_MAX = 12,
+};
+
+enum {
+	NEIGH_ARP_TABLE = 0,
+	NEIGH_ND_TABLE = 1,
+	NEIGH_DN_TABLE = 2,
+	NEIGH_NR_TABLES = 3,
+	NEIGH_LINK_TABLE = 3,
+};
+
+struct neigh_seq_state {
+	struct seq_net_private p;
+	struct neigh_table *tbl;
+	struct neigh_hash_table *nht;
+	void * (*neigh_sub_iter)(struct neigh_seq_state *, struct neighbour *, loff_t *);
+	unsigned int bucket;
+	unsigned int flags;
+};
+
+struct neighbour_cb {
+	long unsigned int sched_next;
+	unsigned int flags;
+};
+
+enum netevent_notif_type {
+	NETEVENT_NEIGH_UPDATE = 1,
+	NETEVENT_REDIRECT = 2,
+	NETEVENT_DELAY_PROBE_TIME_UPDATE = 3,
+	NETEVENT_IPV4_MPATH_HASH_UPDATE = 4,
+	NETEVENT_IPV6_MPATH_HASH_UPDATE = 5,
+	NETEVENT_IPV4_FWD_UPDATE_PRIORITY_UPDATE = 6,
+};
+
+struct neigh_dump_filter {
+	int master_idx;
+	int dev_idx;
+};
+
+struct neigh_sysctl_table {
+	struct ctl_table_header *sysctl_header;
+	struct ctl_table neigh_vars[21];
+};
+
+struct netlink_dump_control {
+	int (*start)(struct netlink_callback *);
+	int (*dump)(struct sk_buff *, struct netlink_callback *);
+	int (*done)(struct netlink_callback *);
+	void *data;
+	struct module *module;
+	u32 min_dump_alloc;
+};
+
+struct rtnl_link_stats {
+	__u32 rx_packets;
+	__u32 tx_packets;
+	__u32 rx_bytes;
+	__u32 tx_bytes;
+	__u32 rx_errors;
+	__u32 tx_errors;
+	__u32 rx_dropped;
+	__u32 tx_dropped;
+	__u32 multicast;
+	__u32 collisions;
+	__u32 rx_length_errors;
+	__u32 rx_over_errors;
+	__u32 rx_crc_errors;
+	__u32 rx_frame_errors;
+	__u32 rx_fifo_errors;
+	__u32 rx_missed_errors;
+	__u32 tx_aborted_errors;
+	__u32 tx_carrier_errors;
+	__u32 tx_fifo_errors;
+	__u32 tx_heartbeat_errors;
+	__u32 tx_window_errors;
+	__u32 rx_compressed;
+	__u32 tx_compressed;
+	__u32 rx_nohandler;
+};
+
+struct rtnl_link_ifmap {
+	__u64 mem_start;
+	__u64 mem_end;
+	__u64 base_addr;
+	__u16 irq;
+	__u8 dma;
+	__u8 port;
+};
+
+enum {
+	IFLA_PROTO_DOWN_REASON_UNSPEC = 0,
+	IFLA_PROTO_DOWN_REASON_MASK = 1,
+	IFLA_PROTO_DOWN_REASON_VALUE = 2,
+	__IFLA_PROTO_DOWN_REASON_CNT = 3,
+	IFLA_PROTO_DOWN_REASON_MAX = 2,
+};
+
+enum {
+	IFLA_BRPORT_UNSPEC = 0,
+	IFLA_BRPORT_STATE = 1,
+	IFLA_BRPORT_PRIORITY = 2,
+	IFLA_BRPORT_COST = 3,
+	IFLA_BRPORT_MODE = 4,
+	IFLA_BRPORT_GUARD = 5,
+	IFLA_BRPORT_PROTECT = 6,
+	IFLA_BRPORT_FAST_LEAVE = 7,
+	IFLA_BRPORT_LEARNING = 8,
+	IFLA_BRPORT_UNICAST_FLOOD = 9,
+	IFLA_BRPORT_PROXYARP = 10,
+	IFLA_BRPORT_LEARNING_SYNC = 11,
+	IFLA_BRPORT_PROXYARP_WIFI = 12,
+	IFLA_BRPORT_ROOT_ID = 13,
+	IFLA_BRPORT_BRIDGE_ID = 14,
+	IFLA_BRPORT_DESIGNATED_PORT = 15,
+	IFLA_BRPORT_DESIGNATED_COST = 16,
+	IFLA_BRPORT_ID = 17,
+	IFLA_BRPORT_NO = 18,
+	IFLA_BRPORT_TOPOLOGY_CHANGE_ACK = 19,
+	IFLA_BRPORT_CONFIG_PENDING = 20,
+	IFLA_BRPORT_MESSAGE_AGE_TIMER = 21,
+	IFLA_BRPORT_FORWARD_DELAY_TIMER = 22,
+	IFLA_BRPORT_HOLD_TIMER = 23,
+	IFLA_BRPORT_FLUSH = 24,
+	IFLA_BRPORT_MULTICAST_ROUTER = 25,
+	IFLA_BRPORT_PAD = 26,
+	IFLA_BRPORT_MCAST_FLOOD = 27,
+	IFLA_BRPORT_MCAST_TO_UCAST = 28,
+	IFLA_BRPORT_VLAN_TUNNEL = 29,
+	IFLA_BRPORT_BCAST_FLOOD = 30,
+	IFLA_BRPORT_GROUP_FWD_MASK = 31,
+	IFLA_BRPORT_NEIGH_SUPPRESS = 32,
+	IFLA_BRPORT_ISOLATED = 33,
+	IFLA_BRPORT_BACKUP_PORT = 34,
+	IFLA_BRPORT_MRP_RING_OPEN = 35,
+	IFLA_BRPORT_MRP_IN_OPEN = 36,
+	IFLA_BRPORT_MCAST_EHT_HOSTS_LIMIT = 37,
+	IFLA_BRPORT_MCAST_EHT_HOSTS_CNT = 38,
+	IFLA_BRPORT_LOCKED = 39,
+	__IFLA_BRPORT_MAX = 40,
+};
+
+enum {
+	IFLA_VF_INFO_UNSPEC = 0,
+	IFLA_VF_INFO = 1,
+	__IFLA_VF_INFO_MAX = 2,
+};
+
+enum {
+	IFLA_VF_UNSPEC = 0,
+	IFLA_VF_MAC = 1,
+	IFLA_VF_VLAN = 2,
+	IFLA_VF_TX_RATE = 3,
+	IFLA_VF_SPOOFCHK = 4,
+	IFLA_VF_LINK_STATE = 5,
+	IFLA_VF_RATE = 6,
+	IFLA_VF_RSS_QUERY_EN = 7,
+	IFLA_VF_STATS = 8,
+	IFLA_VF_TRUST = 9,
+	IFLA_VF_IB_NODE_GUID = 10,
+	IFLA_VF_IB_PORT_GUID = 11,
+	IFLA_VF_VLAN_LIST = 12,
+	IFLA_VF_BROADCAST = 13,
