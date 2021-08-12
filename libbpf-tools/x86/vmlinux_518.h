@@ -130619,3 +130619,2139 @@ struct packet_mclist {
 	struct packet_mclist *next;
 	int ifindex;
 	int count;
+	short unsigned int type;
+	short unsigned int alen;
+	unsigned char addr[32];
+};
+
+struct pgv;
+
+struct tpacket_kbdq_core {
+	struct pgv *pkbdq;
+	unsigned int feature_req_word;
+	unsigned int hdrlen;
+	unsigned char reset_pending_on_curr_blk;
+	unsigned char delete_blk_timer;
+	short unsigned int kactive_blk_num;
+	short unsigned int blk_sizeof_priv;
+	short unsigned int last_kactive_blk_num;
+	char *pkblk_start;
+	char *pkblk_end;
+	int kblk_size;
+	unsigned int max_frame_len;
+	unsigned int knum_blocks;
+	uint64_t knxt_seq_num;
+	char *prev;
+	char *nxt_offset;
+	struct sk_buff *skb;
+	rwlock_t blk_fill_in_prog_lock;
+	short unsigned int retire_blk_tov;
+	short unsigned int version;
+	long unsigned int tov_in_jiffies;
+	struct timer_list retire_blk_timer;
+};
+
+struct pgv {
+	char *buffer;
+};
+
+struct packet_ring_buffer {
+	struct pgv *pg_vec;
+	unsigned int head;
+	unsigned int frames_per_block;
+	unsigned int frame_size;
+	unsigned int frame_max;
+	unsigned int pg_vec_order;
+	unsigned int pg_vec_pages;
+	unsigned int pg_vec_len;
+	unsigned int *pending_refcnt;
+	union {
+		long unsigned int *rx_owner_map;
+		struct tpacket_kbdq_core prb_bdqc;
+	};
+};
+
+struct packet_fanout {
+	possible_net_t net;
+	unsigned int num_members;
+	u32 max_num_members;
+	u16 id;
+	u8 type;
+	u8 flags;
+	union {
+		atomic_t rr_cur;
+		struct bpf_prog *bpf_prog;
+	};
+	struct list_head list;
+	spinlock_t lock;
+	refcount_t sk_ref;
+	long: 64;
+	struct packet_type prot_hook;
+	struct sock *arr[0];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct packet_rollover {
+	int sock;
+	atomic_long_t num;
+	atomic_long_t num_huge;
+	atomic_long_t num_failed;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 history[16];
+};
+
+struct packet_sock {
+	struct sock sk;
+	struct packet_fanout *fanout;
+	union tpacket_stats_u stats;
+	struct packet_ring_buffer rx_ring;
+	struct packet_ring_buffer tx_ring;
+	int copy_thresh;
+	spinlock_t bind_lock;
+	struct mutex pg_vec_lock;
+	unsigned int running;
+	unsigned int auxdata: 1;
+	unsigned int origdev: 1;
+	unsigned int has_vnet_hdr: 1;
+	unsigned int tp_loss: 1;
+	unsigned int tp_tx_has_off: 1;
+	int pressure;
+	int ifindex;
+	__be16 num;
+	struct packet_rollover *rollover;
+	struct packet_mclist *mclist;
+	atomic_t mapped;
+	enum tpacket_versions tp_version;
+	unsigned int tp_hdrlen;
+	unsigned int tp_reserve;
+	unsigned int tp_tstamp;
+	struct completion skb_completion;
+	struct net_device *cached_dev;
+	int (*xmit)(struct sk_buff *);
+	long: 64;
+	struct packet_type prot_hook;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	atomic_t tp_drops;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct packet_mreq_max {
+	int mr_ifindex;
+	short unsigned int mr_type;
+	short unsigned int mr_alen;
+	unsigned char mr_address[32];
+};
+
+union tpacket_uhdr {
+	struct tpacket_hdr *h1;
+	struct tpacket2_hdr *h2;
+	struct tpacket3_hdr *h3;
+	void *raw;
+};
+
+struct packet_skb_cb {
+	union {
+		struct sockaddr_pkt pkt;
+		union {
+			unsigned int origlen;
+			struct sockaddr_ll ll;
+		};
+	} sa;
+};
+
+struct vlan_group {
+	unsigned int nr_vlan_devs;
+	struct hlist_node hlist;
+	struct net_device **vlan_devices_arrays[16];
+};
+
+struct vlan_info {
+	struct net_device *real_dev;
+	struct vlan_group grp;
+	struct list_head vid_list;
+	unsigned int nr_vids;
+	struct callback_head rcu;
+};
+
+enum vlan_flags {
+	VLAN_FLAG_REORDER_HDR = 1,
+	VLAN_FLAG_GVRP = 2,
+	VLAN_FLAG_LOOSE_BINDING = 4,
+	VLAN_FLAG_MVRP = 8,
+	VLAN_FLAG_BRIDGE_BINDING = 16,
+};
+
+struct vlan_priority_tci_mapping {
+	u32 priority;
+	u16 vlan_qos;
+	struct vlan_priority_tci_mapping *next;
+};
+
+struct vlan_dev_priv {
+	unsigned int nr_ingress_mappings;
+	u32 ingress_priority_map[8];
+	unsigned int nr_egress_mappings;
+	struct vlan_priority_tci_mapping *egress_priority_map[16];
+	__be16 vlan_proto;
+	u16 vlan_id;
+	u16 flags;
+	struct net_device *real_dev;
+	netdevice_tracker dev_tracker;
+	unsigned char real_dev_addr[6];
+	struct proc_dir_entry *dent;
+	struct vlan_pcpu_stats *vlan_pcpu_stats;
+	struct netpoll *netpoll;
+};
+
+enum vlan_protos {
+	VLAN_PROTO_8021Q = 0,
+	VLAN_PROTO_8021AD = 1,
+	VLAN_PROTO_NUM = 2,
+};
+
+struct vlan_vid_info {
+	struct list_head list;
+	__be16 proto;
+	u16 vid;
+	int refcount;
+};
+
+enum nl80211_iftype {
+	NL80211_IFTYPE_UNSPECIFIED = 0,
+	NL80211_IFTYPE_ADHOC = 1,
+	NL80211_IFTYPE_STATION = 2,
+	NL80211_IFTYPE_AP = 3,
+	NL80211_IFTYPE_AP_VLAN = 4,
+	NL80211_IFTYPE_WDS = 5,
+	NL80211_IFTYPE_MONITOR = 6,
+	NL80211_IFTYPE_MESH_POINT = 7,
+	NL80211_IFTYPE_P2P_CLIENT = 8,
+	NL80211_IFTYPE_P2P_GO = 9,
+	NL80211_IFTYPE_P2P_DEVICE = 10,
+	NL80211_IFTYPE_OCB = 11,
+	NL80211_IFTYPE_NAN = 12,
+	NUM_NL80211_IFTYPES = 13,
+	NL80211_IFTYPE_MAX = 12,
+};
+
+struct cfg80211_conn;
+
+struct cfg80211_cached_keys;
+
+enum ieee80211_bss_type {
+	IEEE80211_BSS_TYPE_ESS = 0,
+	IEEE80211_BSS_TYPE_PBSS = 1,
+	IEEE80211_BSS_TYPE_IBSS = 2,
+	IEEE80211_BSS_TYPE_MBSS = 3,
+	IEEE80211_BSS_TYPE_ANY = 4,
+};
+
+struct cfg80211_internal_bss;
+
+enum nl80211_chan_width {
+	NL80211_CHAN_WIDTH_20_NOHT = 0,
+	NL80211_CHAN_WIDTH_20 = 1,
+	NL80211_CHAN_WIDTH_40 = 2,
+	NL80211_CHAN_WIDTH_80 = 3,
+	NL80211_CHAN_WIDTH_80P80 = 4,
+	NL80211_CHAN_WIDTH_160 = 5,
+	NL80211_CHAN_WIDTH_5 = 6,
+	NL80211_CHAN_WIDTH_10 = 7,
+	NL80211_CHAN_WIDTH_1 = 8,
+	NL80211_CHAN_WIDTH_2 = 9,
+	NL80211_CHAN_WIDTH_4 = 10,
+	NL80211_CHAN_WIDTH_8 = 11,
+	NL80211_CHAN_WIDTH_16 = 12,
+	NL80211_CHAN_WIDTH_320 = 13,
+};
+
+enum ieee80211_edmg_bw_config {
+	IEEE80211_EDMG_BW_CONFIG_4 = 4,
+	IEEE80211_EDMG_BW_CONFIG_5 = 5,
+	IEEE80211_EDMG_BW_CONFIG_6 = 6,
+	IEEE80211_EDMG_BW_CONFIG_7 = 7,
+	IEEE80211_EDMG_BW_CONFIG_8 = 8,
+	IEEE80211_EDMG_BW_CONFIG_9 = 9,
+	IEEE80211_EDMG_BW_CONFIG_10 = 10,
+	IEEE80211_EDMG_BW_CONFIG_11 = 11,
+	IEEE80211_EDMG_BW_CONFIG_12 = 12,
+	IEEE80211_EDMG_BW_CONFIG_13 = 13,
+	IEEE80211_EDMG_BW_CONFIG_14 = 14,
+	IEEE80211_EDMG_BW_CONFIG_15 = 15,
+};
+
+struct ieee80211_edmg {
+	u8 channels;
+	enum ieee80211_edmg_bw_config bw_config;
+};
+
+struct ieee80211_channel;
+
+struct cfg80211_chan_def {
+	struct ieee80211_channel *chan;
+	enum nl80211_chan_width width;
+	u32 center_freq1;
+	u32 center_freq2;
+	struct ieee80211_edmg edmg;
+	u16 freq1_offset;
+};
+
+struct ieee80211_mcs_info {
+	u8 rx_mask[10];
+	__le16 rx_highest;
+	u8 tx_params;
+	u8 reserved[3];
+};
+
+struct ieee80211_ht_cap {
+	__le16 cap_info;
+	u8 ampdu_params_info;
+	struct ieee80211_mcs_info mcs;
+	__le16 extended_ht_cap_info;
+	__le32 tx_BF_cap_info;
+	u8 antenna_selection_info;
+} __attribute__((packed));
+
+struct key_params;
+
+struct cfg80211_ibss_params {
+	const u8 *ssid;
+	const u8 *bssid;
+	struct cfg80211_chan_def chandef;
+	const u8 *ie;
+	u8 ssid_len;
+	u8 ie_len;
+	u16 beacon_interval;
+	u32 basic_rates;
+	bool channel_fixed;
+	bool privacy;
+	bool control_port;
+	bool control_port_over_nl80211;
+	bool userspace_handles_dfs;
+	int: 24;
+	int mcast_rate[6];
+	struct ieee80211_ht_cap ht_capa;
+	struct ieee80211_ht_cap ht_capa_mask;
+	int: 32;
+	struct key_params *wep_keys;
+	int wep_tx_key;
+	int: 32;
+} __attribute__((packed));
+
+enum nl80211_auth_type {
+	NL80211_AUTHTYPE_OPEN_SYSTEM = 0,
+	NL80211_AUTHTYPE_SHARED_KEY = 1,
+	NL80211_AUTHTYPE_FT = 2,
+	NL80211_AUTHTYPE_NETWORK_EAP = 3,
+	NL80211_AUTHTYPE_SAE = 4,
+	NL80211_AUTHTYPE_FILS_SK = 5,
+	NL80211_AUTHTYPE_FILS_SK_PFS = 6,
+	NL80211_AUTHTYPE_FILS_PK = 7,
+	__NL80211_AUTHTYPE_NUM = 8,
+	NL80211_AUTHTYPE_MAX = 7,
+	NL80211_AUTHTYPE_AUTOMATIC = 8,
+};
+
+enum nl80211_mfp {
+	NL80211_MFP_NO = 0,
+	NL80211_MFP_REQUIRED = 1,
+	NL80211_MFP_OPTIONAL = 2,
+};
+
+enum nl80211_sae_pwe_mechanism {
+	NL80211_SAE_PWE_UNSPECIFIED = 0,
+	NL80211_SAE_PWE_HUNT_AND_PECK = 1,
+	NL80211_SAE_PWE_HASH_TO_ELEMENT = 2,
+	NL80211_SAE_PWE_BOTH = 3,
+};
+
+struct cfg80211_crypto_settings {
+	u32 wpa_versions;
+	u32 cipher_group;
+	int n_ciphers_pairwise;
+	u32 ciphers_pairwise[5];
+	int n_akm_suites;
+	u32 akm_suites[2];
+	bool control_port;
+	__be16 control_port_ethertype;
+	bool control_port_no_encrypt;
+	bool control_port_over_nl80211;
+	bool control_port_no_preauth;
+	struct key_params *wep_keys;
+	int wep_tx_key;
+	const u8 *psk;
+	const u8 *sae_pwd;
+	u8 sae_pwd_len;
+	enum nl80211_sae_pwe_mechanism sae_pwe;
+};
+
+struct ieee80211_vht_mcs_info {
+	__le16 rx_mcs_map;
+	__le16 rx_highest;
+	__le16 tx_mcs_map;
+	__le16 tx_highest;
+};
+
+struct ieee80211_vht_cap {
+	__le32 vht_cap_info;
+	struct ieee80211_vht_mcs_info supp_mcs;
+};
+
+enum nl80211_bss_select_attr {
+	__NL80211_BSS_SELECT_ATTR_INVALID = 0,
+	NL80211_BSS_SELECT_ATTR_RSSI = 1,
+	NL80211_BSS_SELECT_ATTR_BAND_PREF = 2,
+	NL80211_BSS_SELECT_ATTR_RSSI_ADJUST = 3,
+	__NL80211_BSS_SELECT_ATTR_AFTER_LAST = 4,
+	NL80211_BSS_SELECT_ATTR_MAX = 3,
+};
+
+enum nl80211_band {
+	NL80211_BAND_2GHZ = 0,
+	NL80211_BAND_5GHZ = 1,
+	NL80211_BAND_60GHZ = 2,
+	NL80211_BAND_6GHZ = 3,
+	NL80211_BAND_S1GHZ = 4,
+	NL80211_BAND_LC = 5,
+	NUM_NL80211_BANDS = 6,
+};
+
+struct cfg80211_bss_select_adjust {
+	enum nl80211_band band;
+	s8 delta;
+};
+
+struct cfg80211_bss_selection {
+	enum nl80211_bss_select_attr behaviour;
+	union {
+		enum nl80211_band band_pref;
+		struct cfg80211_bss_select_adjust adjust;
+	} param;
+};
+
+struct cfg80211_connect_params {
+	struct ieee80211_channel *channel;
+	struct ieee80211_channel *channel_hint;
+	const u8 *bssid;
+	const u8 *bssid_hint;
+	const u8 *ssid;
+	size_t ssid_len;
+	enum nl80211_auth_type auth_type;
+	int: 32;
+	const u8 *ie;
+	size_t ie_len;
+	bool privacy;
+	int: 24;
+	enum nl80211_mfp mfp;
+	struct cfg80211_crypto_settings crypto;
+	const u8 *key;
+	u8 key_len;
+	u8 key_idx;
+	short: 16;
+	u32 flags;
+	int bg_scan_period;
+	struct ieee80211_ht_cap ht_capa;
+	struct ieee80211_ht_cap ht_capa_mask;
+	struct ieee80211_vht_cap vht_capa;
+	struct ieee80211_vht_cap vht_capa_mask;
+	bool pbss;
+	int: 24;
+	struct cfg80211_bss_selection bss_select;
+	const u8 *prev_bssid;
+	const u8 *fils_erp_username;
+	size_t fils_erp_username_len;
+	const u8 *fils_erp_realm;
+	size_t fils_erp_realm_len;
+	u16 fils_erp_next_seq_num;
+	long: 48;
+	const u8 *fils_erp_rrk;
+	size_t fils_erp_rrk_len;
+	bool want_1x;
+	int: 24;
+	struct ieee80211_edmg edmg;
+	int: 32;
+} __attribute__((packed));
+
+struct cfg80211_cqm_config;
+
+struct wiphy;
+
+struct wireless_dev {
+	struct wiphy *wiphy;
+	enum nl80211_iftype iftype;
+	struct list_head list;
+	struct net_device *netdev;
+	u32 identifier;
+	struct list_head mgmt_registrations;
+	u8 mgmt_registrations_need_update: 1;
+	struct mutex mtx;
+	bool use_4addr;
+	bool is_running;
+	bool registered;
+	bool registering;
+	u8 address[6];
+	u8 ssid[32];
+	u8 ssid_len;
+	u8 mesh_id_len;
+	u8 mesh_id_up_len;
+	struct cfg80211_conn *conn;
+	struct cfg80211_cached_keys *connect_keys;
+	enum ieee80211_bss_type conn_bss_type;
+	u32 conn_owner_nlportid;
+	struct work_struct disconnect_wk;
+	u8 disconnect_bssid[6];
+	struct list_head event_list;
+	spinlock_t event_lock;
+	struct cfg80211_internal_bss *current_bss;
+	struct cfg80211_chan_def preset_chandef;
+	struct cfg80211_chan_def chandef;
+	bool ps;
+	int ps_timeout;
+	int beacon_interval;
+	u32 ap_unexpected_nlportid;
+	u32 owner_nlportid;
+	bool nl_owner_dead;
+	bool cac_started;
+	long unsigned int cac_start_time;
+	unsigned int cac_time_ms;
+	struct {
+		struct cfg80211_ibss_params ibss;
+		struct cfg80211_connect_params connect;
+		struct cfg80211_cached_keys *keys;
+		const u8 *ie;
+		size_t ie_len;
+		u8 bssid[6];
+		u8 prev_bssid[6];
+		u8 ssid[32];
+		s8 default_key;
+		s8 default_mgmt_key;
+		bool prev_bssid_valid;
+	} wext;
+	struct cfg80211_cqm_config *cqm_config;
+	struct list_head pmsr_list;
+	spinlock_t pmsr_lock;
+	struct work_struct pmsr_free_wk;
+	long unsigned int unprot_beacon_reported;
+};
+
+struct iw_encode_ext {
+	__u32 ext_flags;
+	__u8 tx_seq[8];
+	__u8 rx_seq[8];
+	struct sockaddr addr;
+	__u16 alg;
+	__u16 key_len;
+	__u8 key[0];
+};
+
+struct iwreq {
+	union {
+		char ifrn_name[16];
+	} ifr_ifrn;
+	union iwreq_data u;
+};
+
+struct iw_event {
+	__u16 len;
+	__u16 cmd;
+	union iwreq_data u;
+};
+
+struct compat_iw_point {
+	compat_caddr_t pointer;
+	__u16 length;
+	__u16 flags;
+};
+
+struct __compat_iw_event {
+	__u16 len;
+	__u16 cmd;
+	compat_caddr_t pointer;
+};
+
+enum nl80211_reg_initiator {
+	NL80211_REGDOM_SET_BY_CORE = 0,
+	NL80211_REGDOM_SET_BY_USER = 1,
+	NL80211_REGDOM_SET_BY_DRIVER = 2,
+	NL80211_REGDOM_SET_BY_COUNTRY_IE = 3,
+};
+
+enum nl80211_dfs_regions {
+	NL80211_DFS_UNSET = 0,
+	NL80211_DFS_FCC = 1,
+	NL80211_DFS_ETSI = 2,
+	NL80211_DFS_JP = 3,
+};
+
+enum nl80211_user_reg_hint_type {
+	NL80211_USER_REG_HINT_USER = 0,
+	NL80211_USER_REG_HINT_CELL_BASE = 1,
+	NL80211_USER_REG_HINT_INDOOR = 2,
+};
+
+enum nl80211_mntr_flags {
+	__NL80211_MNTR_FLAG_INVALID = 0,
+	NL80211_MNTR_FLAG_FCSFAIL = 1,
+	NL80211_MNTR_FLAG_PLCPFAIL = 2,
+	NL80211_MNTR_FLAG_CONTROL = 3,
+	NL80211_MNTR_FLAG_OTHER_BSS = 4,
+	NL80211_MNTR_FLAG_COOK_FRAMES = 5,
+	NL80211_MNTR_FLAG_ACTIVE = 6,
+	__NL80211_MNTR_FLAG_AFTER_LAST = 7,
+	NL80211_MNTR_FLAG_MAX = 6,
+};
+
+enum nl80211_key_mode {
+	NL80211_KEY_RX_TX = 0,
+	NL80211_KEY_NO_TX = 1,
+	NL80211_KEY_SET_TX = 2,
+};
+
+enum nl80211_bss_scan_width {
+	NL80211_BSS_CHAN_WIDTH_20 = 0,
+	NL80211_BSS_CHAN_WIDTH_10 = 1,
+	NL80211_BSS_CHAN_WIDTH_5 = 2,
+	NL80211_BSS_CHAN_WIDTH_1 = 3,
+	NL80211_BSS_CHAN_WIDTH_2 = 4,
+};
+
+struct nl80211_wowlan_tcp_data_seq {
+	__u32 start;
+	__u32 offset;
+	__u32 len;
+};
+
+struct nl80211_wowlan_tcp_data_token {
+	__u32 offset;
+	__u32 len;
+	__u8 token_stream[0];
+};
+
+struct nl80211_wowlan_tcp_data_token_feature {
+	__u32 min_len;
+	__u32 max_len;
+	__u32 bufsize;
+};
+
+enum nl80211_ext_feature_index {
+	NL80211_EXT_FEATURE_VHT_IBSS = 0,
+	NL80211_EXT_FEATURE_RRM = 1,
+	NL80211_EXT_FEATURE_MU_MIMO_AIR_SNIFFER = 2,
+	NL80211_EXT_FEATURE_SCAN_START_TIME = 3,
+	NL80211_EXT_FEATURE_BSS_PARENT_TSF = 4,
+	NL80211_EXT_FEATURE_SET_SCAN_DWELL = 5,
+	NL80211_EXT_FEATURE_BEACON_RATE_LEGACY = 6,
+	NL80211_EXT_FEATURE_BEACON_RATE_HT = 7,
+	NL80211_EXT_FEATURE_BEACON_RATE_VHT = 8,
+	NL80211_EXT_FEATURE_FILS_STA = 9,
+	NL80211_EXT_FEATURE_MGMT_TX_RANDOM_TA = 10,
+	NL80211_EXT_FEATURE_MGMT_TX_RANDOM_TA_CONNECTED = 11,
+	NL80211_EXT_FEATURE_SCHED_SCAN_RELATIVE_RSSI = 12,
+	NL80211_EXT_FEATURE_CQM_RSSI_LIST = 13,
+	NL80211_EXT_FEATURE_FILS_SK_OFFLOAD = 14,
+	NL80211_EXT_FEATURE_4WAY_HANDSHAKE_STA_PSK = 15,
+	NL80211_EXT_FEATURE_4WAY_HANDSHAKE_STA_1X = 16,
+	NL80211_EXT_FEATURE_FILS_MAX_CHANNEL_TIME = 17,
+	NL80211_EXT_FEATURE_ACCEPT_BCAST_PROBE_RESP = 18,
+	NL80211_EXT_FEATURE_OCE_PROBE_REQ_HIGH_TX_RATE = 19,
+	NL80211_EXT_FEATURE_OCE_PROBE_REQ_DEFERRAL_SUPPRESSION = 20,
+	NL80211_EXT_FEATURE_MFP_OPTIONAL = 21,
+	NL80211_EXT_FEATURE_LOW_SPAN_SCAN = 22,
+	NL80211_EXT_FEATURE_LOW_POWER_SCAN = 23,
+	NL80211_EXT_FEATURE_HIGH_ACCURACY_SCAN = 24,
+	NL80211_EXT_FEATURE_DFS_OFFLOAD = 25,
+	NL80211_EXT_FEATURE_CONTROL_PORT_OVER_NL80211 = 26,
+	NL80211_EXT_FEATURE_ACK_SIGNAL_SUPPORT = 27,
+	NL80211_EXT_FEATURE_DATA_ACK_SIGNAL_SUPPORT = 27,
+	NL80211_EXT_FEATURE_TXQS = 28,
+	NL80211_EXT_FEATURE_SCAN_RANDOM_SN = 29,
+	NL80211_EXT_FEATURE_SCAN_MIN_PREQ_CONTENT = 30,
+	NL80211_EXT_FEATURE_CAN_REPLACE_PTK0 = 31,
+	NL80211_EXT_FEATURE_ENABLE_FTM_RESPONDER = 32,
+	NL80211_EXT_FEATURE_AIRTIME_FAIRNESS = 33,
+	NL80211_EXT_FEATURE_AP_PMKSA_CACHING = 34,
+	NL80211_EXT_FEATURE_SCHED_SCAN_BAND_SPECIFIC_RSSI_THOLD = 35,
+	NL80211_EXT_FEATURE_EXT_KEY_ID = 36,
+	NL80211_EXT_FEATURE_STA_TX_PWR = 37,
+	NL80211_EXT_FEATURE_SAE_OFFLOAD = 38,
+	NL80211_EXT_FEATURE_VLAN_OFFLOAD = 39,
+	NL80211_EXT_FEATURE_AQL = 40,
+	NL80211_EXT_FEATURE_BEACON_PROTECTION = 41,
+	NL80211_EXT_FEATURE_CONTROL_PORT_NO_PREAUTH = 42,
+	NL80211_EXT_FEATURE_PROTECTED_TWT = 43,
+	NL80211_EXT_FEATURE_DEL_IBSS_STA = 44,
+	NL80211_EXT_FEATURE_MULTICAST_REGISTRATIONS = 45,
+	NL80211_EXT_FEATURE_BEACON_PROTECTION_CLIENT = 46,
+	NL80211_EXT_FEATURE_SCAN_FREQ_KHZ = 47,
+	NL80211_EXT_FEATURE_CONTROL_PORT_OVER_NL80211_TX_STATUS = 48,
+	NL80211_EXT_FEATURE_OPERATING_CHANNEL_VALIDATION = 49,
+	NL80211_EXT_FEATURE_4WAY_HANDSHAKE_AP_PSK = 50,
+	NL80211_EXT_FEATURE_SAE_OFFLOAD_AP = 51,
+	NL80211_EXT_FEATURE_FILS_DISCOVERY = 52,
+	NL80211_EXT_FEATURE_UNSOL_BCAST_PROBE_RESP = 53,
+	NL80211_EXT_FEATURE_BEACON_RATE_HE = 54,
+	NL80211_EXT_FEATURE_SECURE_LTF = 55,
+	NL80211_EXT_FEATURE_SECURE_RTT = 56,
+	NL80211_EXT_FEATURE_PROT_RANGE_NEGO_AND_MEASURE = 57,
+	NL80211_EXT_FEATURE_BSS_COLOR = 58,
+	NL80211_EXT_FEATURE_FILS_CRYPTO_OFFLOAD = 59,
+	NL80211_EXT_FEATURE_RADAR_BACKGROUND = 60,
+	NUM_NL80211_EXT_FEATURES = 61,
+	MAX_NL80211_EXT_FEATURES = 60,
+};
+
+enum nl80211_dfs_state {
+	NL80211_DFS_USABLE = 0,
+	NL80211_DFS_UNAVAILABLE = 1,
+	NL80211_DFS_AVAILABLE = 2,
+};
+
+struct nl80211_vendor_cmd_info {
+	__u32 vendor_id;
+	__u32 subcmd;
+};
+
+enum nl80211_sar_type {
+	NL80211_SAR_TYPE_POWER = 0,
+	NUM_NL80211_SAR_TYPE = 1,
+};
+
+struct ieee80211_he_cap_elem {
+	u8 mac_cap_info[6];
+	u8 phy_cap_info[11];
+};
+
+struct ieee80211_he_mcs_nss_supp {
+	__le16 rx_mcs_80;
+	__le16 tx_mcs_80;
+	__le16 rx_mcs_160;
+	__le16 tx_mcs_160;
+	__le16 rx_mcs_80p80;
+	__le16 tx_mcs_80p80;
+};
+
+struct ieee80211_eht_mcs_nss_supp_20mhz_only {
+	u8 rx_tx_mcs7_max_nss;
+	u8 rx_tx_mcs9_max_nss;
+	u8 rx_tx_mcs11_max_nss;
+	u8 rx_tx_mcs13_max_nss;
+};
+
+struct ieee80211_eht_mcs_nss_supp_bw {
+	u8 rx_tx_mcs9_max_nss;
+	u8 rx_tx_mcs11_max_nss;
+	u8 rx_tx_mcs13_max_nss;
+};
+
+struct ieee80211_eht_cap_elem_fixed {
+	u8 mac_cap_info[2];
+	u8 phy_cap_info[9];
+};
+
+struct ieee80211_he_6ghz_capa {
+	__le16 capa;
+};
+
+struct rfkill;
+
+enum environment_cap {
+	ENVIRON_ANY = 0,
+	ENVIRON_INDOOR = 1,
+	ENVIRON_OUTDOOR = 2,
+};
+
+struct regulatory_request {
+	struct callback_head callback_head;
+	int wiphy_idx;
+	enum nl80211_reg_initiator initiator;
+	enum nl80211_user_reg_hint_type user_reg_hint_type;
+	char alpha2[3];
+	enum nl80211_dfs_regions dfs_region;
+	bool intersect;
+	bool processed;
+	enum environment_cap country_ie_env;
+	struct list_head list;
+};
+
+struct ieee80211_freq_range {
+	u32 start_freq_khz;
+	u32 end_freq_khz;
+	u32 max_bandwidth_khz;
+};
+
+struct ieee80211_power_rule {
+	u32 max_antenna_gain;
+	u32 max_eirp;
+};
+
+struct ieee80211_wmm_ac {
+	u16 cw_min;
+	u16 cw_max;
+	u16 cot;
+	u8 aifsn;
+};
+
+struct ieee80211_wmm_rule {
+	struct ieee80211_wmm_ac client[4];
+	struct ieee80211_wmm_ac ap[4];
+};
+
+struct ieee80211_reg_rule {
+	struct ieee80211_freq_range freq_range;
+	struct ieee80211_power_rule power_rule;
+	struct ieee80211_wmm_rule wmm_rule;
+	u32 flags;
+	u32 dfs_cac_ms;
+	bool has_wmm;
+};
+
+struct ieee80211_regdomain {
+	struct callback_head callback_head;
+	u32 n_reg_rules;
+	char alpha2[3];
+	enum nl80211_dfs_regions dfs_region;
+	struct ieee80211_reg_rule reg_rules[0];
+};
+
+struct ieee80211_channel {
+	enum nl80211_band band;
+	u32 center_freq;
+	u16 freq_offset;
+	u16 hw_value;
+	u32 flags;
+	int max_antenna_gain;
+	int max_power;
+	int max_reg_power;
+	bool beacon_found;
+	u32 orig_flags;
+	int orig_mag;
+	int orig_mpwr;
+	enum nl80211_dfs_state dfs_state;
+	long unsigned int dfs_state_entered;
+	unsigned int dfs_cac_ms;
+};
+
+struct ieee80211_rate {
+	u32 flags;
+	u16 bitrate;
+	u16 hw_value;
+	u16 hw_value_short;
+};
+
+struct ieee80211_sta_ht_cap {
+	u16 cap;
+	bool ht_supported;
+	u8 ampdu_factor;
+	u8 ampdu_density;
+	struct ieee80211_mcs_info mcs;
+	char: 8;
+} __attribute__((packed));
+
+struct ieee80211_sta_vht_cap {
+	bool vht_supported;
+	u32 cap;
+	struct ieee80211_vht_mcs_info vht_mcs;
+};
+
+struct ieee80211_sta_he_cap {
+	bool has_he;
+	struct ieee80211_he_cap_elem he_cap_elem;
+	struct ieee80211_he_mcs_nss_supp he_mcs_nss_supp;
+	u8 ppe_thres[25];
+} __attribute__((packed));
+
+struct ieee80211_eht_mcs_nss_supp {
+	union {
+		struct ieee80211_eht_mcs_nss_supp_20mhz_only only_20mhz;
+		struct {
+			struct ieee80211_eht_mcs_nss_supp_bw _80;
+			struct ieee80211_eht_mcs_nss_supp_bw _160;
+			struct ieee80211_eht_mcs_nss_supp_bw _320;
+		} bw;
+	};
+};
+
+struct ieee80211_sta_eht_cap {
+	bool has_eht;
+	struct ieee80211_eht_cap_elem_fixed eht_cap_elem;
+	struct ieee80211_eht_mcs_nss_supp eht_mcs_nss_supp;
+	u8 eht_ppe_thres[32];
+};
+
+struct ieee80211_sband_iftype_data {
+	u16 types_mask;
+	struct ieee80211_sta_he_cap he_cap;
+	struct ieee80211_he_6ghz_capa he_6ghz_capa;
+	struct ieee80211_sta_eht_cap eht_cap;
+	struct {
+		const u8 *data;
+		unsigned int len;
+	} vendor_elems;
+} __attribute__((packed));
+
+struct ieee80211_sta_s1g_cap {
+	bool s1g;
+	u8 cap[10];
+	u8 nss_mcs[5];
+};
+
+struct ieee80211_supported_band {
+	struct ieee80211_channel *channels;
+	struct ieee80211_rate *bitrates;
+	enum nl80211_band band;
+	int n_channels;
+	int n_bitrates;
+	struct ieee80211_sta_ht_cap ht_cap;
+	struct ieee80211_sta_vht_cap vht_cap;
+	struct ieee80211_sta_s1g_cap s1g_cap;
+	struct ieee80211_edmg edmg_cap;
+	u16 n_iftype_data;
+	const struct ieee80211_sband_iftype_data *iftype_data;
+};
+
+struct key_params {
+	const u8 *key;
+	const u8 *seq;
+	int key_len;
+	int seq_len;
+	u16 vlan_id;
+	u32 cipher;
+	enum nl80211_key_mode mode;
+};
+
+struct mac_address {
+	u8 addr[6];
+};
+
+struct cfg80211_sar_freq_ranges {
+	u32 start_freq;
+	u32 end_freq;
+};
+
+struct cfg80211_sar_capa {
+	enum nl80211_sar_type type;
+	u32 num_freq_ranges;
+	const struct cfg80211_sar_freq_ranges *freq_ranges;
+};
+
+struct cfg80211_ssid {
+	u8 ssid[32];
+	u8 ssid_len;
+};
+
+enum cfg80211_signal_type {
+	CFG80211_SIGNAL_TYPE_NONE = 0,
+	CFG80211_SIGNAL_TYPE_MBM = 1,
+	CFG80211_SIGNAL_TYPE_UNSPEC = 2,
+};
+
+struct ieee80211_txrx_stypes;
+
+struct ieee80211_iface_combination;
+
+struct wiphy_iftype_akm_suites;
+
+struct wiphy_wowlan_support;
+
+struct cfg80211_wowlan;
+
+struct wiphy_iftype_ext_capab;
+
+struct wiphy_coalesce_support;
+
+struct wiphy_vendor_command;
+
+struct cfg80211_pmsr_capabilities;
+
+struct wiphy {
+	struct mutex mtx;
+	u8 perm_addr[6];
+	u8 addr_mask[6];
+	struct mac_address *addresses;
+	const struct ieee80211_txrx_stypes *mgmt_stypes;
+	const struct ieee80211_iface_combination *iface_combinations;
+	int n_iface_combinations;
+	u16 software_iftypes;
+	u16 n_addresses;
+	u16 interface_modes;
+	u16 max_acl_mac_addrs;
+	u32 flags;
+	u32 regulatory_flags;
+	u32 features;
+	u8 ext_features[8];
+	u32 ap_sme_capa;
+	enum cfg80211_signal_type signal_type;
+	int bss_priv_size;
+	u8 max_scan_ssids;
+	u8 max_sched_scan_reqs;
+	u8 max_sched_scan_ssids;
+	u8 max_match_sets;
+	u16 max_scan_ie_len;
+	u16 max_sched_scan_ie_len;
+	u32 max_sched_scan_plans;
+	u32 max_sched_scan_plan_interval;
+	u32 max_sched_scan_plan_iterations;
+	int n_cipher_suites;
+	const u32 *cipher_suites;
+	int n_akm_suites;
+	const u32 *akm_suites;
+	const struct wiphy_iftype_akm_suites *iftype_akm_suites;
+	unsigned int num_iftype_akm_suites;
+	u8 retry_short;
+	u8 retry_long;
+	u32 frag_threshold;
+	u32 rts_threshold;
+	u8 coverage_class;
+	char fw_version[32];
+	u32 hw_version;
+	const struct wiphy_wowlan_support *wowlan;
+	struct cfg80211_wowlan *wowlan_config;
+	u16 max_remain_on_channel_duration;
+	u8 max_num_pmkids;
+	u32 available_antennas_tx;
+	u32 available_antennas_rx;
+	u32 probe_resp_offload;
+	const u8 *extended_capabilities;
+	const u8 *extended_capabilities_mask;
+	u8 extended_capabilities_len;
+	const struct wiphy_iftype_ext_capab *iftype_ext_capab;
+	unsigned int num_iftype_ext_capab;
+	const void *privid;
+	struct ieee80211_supported_band *bands[6];
+	void (*reg_notifier)(struct wiphy *, struct regulatory_request *);
+	const struct ieee80211_regdomain *regd;
+	struct device dev;
+	bool registered;
+	struct dentry *debugfsdir;
+	const struct ieee80211_ht_cap *ht_capa_mod_mask;
+	const struct ieee80211_vht_cap *vht_capa_mod_mask;
+	struct list_head wdev_list;
+	possible_net_t _net;
+	const struct iw_handler_def *wext;
+	const struct wiphy_coalesce_support *coalesce;
+	const struct wiphy_vendor_command *vendor_commands;
+	const struct nl80211_vendor_cmd_info *vendor_events;
+	int n_vendor_commands;
+	int n_vendor_events;
+	u16 max_ap_assoc_sta;
+	u8 max_num_csa_counters;
+	u32 bss_select_support;
+	u8 nan_supported_bands;
+	u32 txq_limit;
+	u32 txq_memory_limit;
+	u32 txq_quantum;
+	long unsigned int tx_queue_len;
+	u8 support_mbssid: 1;
+	u8 support_only_he_mbssid: 1;
+	const struct cfg80211_pmsr_capabilities *pmsr_capa;
+	struct {
+		u64 peer;
+		u64 vif;
+		u8 max_retry;
+	} tid_config_support;
+	u8 max_data_retry_count;
+	const struct cfg80211_sar_capa *sar_capa;
+	struct rfkill *rfkill;
+	u8 mbssid_max_interfaces;
+	u8 ema_max_profile_periodicity;
+	long: 48;
+	long: 64;
+	long: 64;
+	long: 64;
+	char priv[0];
+};
+
+struct cfg80211_match_set {
+	struct cfg80211_ssid ssid;
+	u8 bssid[6];
+	s32 rssi_thold;
+	s32 per_band_rssi_thold[6];
+};
+
+struct cfg80211_sched_scan_plan {
+	u32 interval;
+	u32 iterations;
+};
+
+struct cfg80211_sched_scan_request {
+	u64 reqid;
+	struct cfg80211_ssid *ssids;
+	int n_ssids;
+	u32 n_channels;
+	enum nl80211_bss_scan_width scan_width;
+	const u8 *ie;
+	size_t ie_len;
+	u32 flags;
+	struct cfg80211_match_set *match_sets;
+	int n_match_sets;
+	s32 min_rssi_thold;
+	u32 delay;
+	struct cfg80211_sched_scan_plan *scan_plans;
+	int n_scan_plans;
+	u8 mac_addr[6];
+	u8 mac_addr_mask[6];
+	bool relative_rssi_set;
+	s8 relative_rssi;
+	struct cfg80211_bss_select_adjust rssi_adjust;
+	struct wiphy *wiphy;
+	struct net_device *dev;
+	long unsigned int scan_start;
+	bool report_results;
+	struct callback_head callback_head;
+	u32 owner_nlportid;
+	bool nl_owner_dead;
+	struct list_head list;
+	struct ieee80211_channel *channels[0];
+};
+
+struct cfg80211_pkt_pattern {
+	const u8 *mask;
+	const u8 *pattern;
+	int pattern_len;
+	int pkt_offset;
+};
+
+struct cfg80211_wowlan_tcp {
+	struct socket *sock;
+	__be32 src;
+	__be32 dst;
+	u16 src_port;
+	u16 dst_port;
+	u8 dst_mac[6];
+	int payload_len;
+	const u8 *payload;
+	struct nl80211_wowlan_tcp_data_seq payload_seq;
+	u32 data_interval;
+	u32 wake_len;
+	const u8 *wake_data;
+	const u8 *wake_mask;
+	u32 tokens_size;
+	struct nl80211_wowlan_tcp_data_token payload_tok;
+};
+
+struct cfg80211_wowlan {
+	bool any;
+	bool disconnect;
+	bool magic_pkt;
+	bool gtk_rekey_failure;
+	bool eap_identity_req;
+	bool four_way_handshake;
+	bool rfkill_release;
+	struct cfg80211_pkt_pattern *patterns;
+	struct cfg80211_wowlan_tcp *tcp;
+	int n_patterns;
+	struct cfg80211_sched_scan_request *nd_config;
+};
+
+struct ieee80211_iface_limit {
+	u16 max;
+	u16 types;
+};
+
+struct ieee80211_iface_combination {
+	const struct ieee80211_iface_limit *limits;
+	u32 num_different_channels;
+	u16 max_interfaces;
+	u8 n_limits;
+	bool beacon_int_infra_match;
+	u8 radar_detect_widths;
+	u8 radar_detect_regions;
+	u32 beacon_int_min_gcd;
+};
+
+struct ieee80211_txrx_stypes {
+	u16 tx;
+	u16 rx;
+};
+
+struct wiphy_wowlan_tcp_support {
+	const struct nl80211_wowlan_tcp_data_token_feature *tok;
+	u32 data_payload_max;
+	u32 data_interval_max;
+	u32 wake_payload_max;
+	bool seq;
+};
+
+struct wiphy_wowlan_support {
+	u32 flags;
+	int n_patterns;
+	int pattern_max_len;
+	int pattern_min_len;
+	int max_pkt_offset;
+	int max_nd_match_sets;
+	const struct wiphy_wowlan_tcp_support *tcp;
+};
+
+struct wiphy_coalesce_support {
+	int n_rules;
+	int max_delay;
+	int n_patterns;
+	int pattern_max_len;
+	int pattern_min_len;
+	int max_pkt_offset;
+};
+
+struct wiphy_vendor_command {
+	struct nl80211_vendor_cmd_info info;
+	u32 flags;
+	int (*doit)(struct wiphy *, struct wireless_dev *, const void *, int);
+	int (*dumpit)(struct wiphy *, struct wireless_dev *, struct sk_buff *, const void *, int, long unsigned int *);
+	const struct nla_policy *policy;
+	unsigned int maxattr;
+};
+
+struct wiphy_iftype_ext_capab {
+	enum nl80211_iftype iftype;
+	const u8 *extended_capabilities;
+	const u8 *extended_capabilities_mask;
+	u8 extended_capabilities_len;
+};
+
+struct cfg80211_pmsr_capabilities {
+	unsigned int max_peers;
+	u8 report_ap_tsf: 1;
+	u8 randomize_mac_addr: 1;
+	struct {
+		u32 preambles;
+		u32 bandwidths;
+		s8 max_bursts_exponent;
+		u8 max_ftms_per_burst;
+		u8 supported: 1;
+		u8 asap: 1;
+		u8 non_asap: 1;
+		u8 request_lci: 1;
+		u8 request_civicloc: 1;
+		u8 trigger_based: 1;
+		u8 non_trigger_based: 1;
+	} ftm;
+};
+
+struct wiphy_iftype_akm_suites {
+	u16 iftypes_mask;
+	const u32 *akm_suites;
+	int n_akm_suites;
+};
+
+struct iw_ioctl_description {
+	__u8 header_type;
+	__u8 token_type;
+	__u16 token_size;
+	__u16 min_tokens;
+	__u16 max_tokens;
+	__u32 flags;
+};
+
+typedef int (*wext_ioctl_func)(struct net_device *, struct iwreq *, unsigned int, struct iw_request_info *, iw_handler);
+
+struct iw_thrspy {
+	struct sockaddr addr;
+	struct iw_quality qual;
+	struct iw_quality low;
+	struct iw_quality high;
+};
+
+struct netlbl_af4list {
+	__be32 addr;
+	__be32 mask;
+	u32 valid;
+	struct list_head list;
+};
+
+struct netlbl_af6list {
+	struct in6_addr addr;
+	struct in6_addr mask;
+	u32 valid;
+	struct list_head list;
+};
+
+struct netlbl_domaddr_map {
+	struct list_head list4;
+	struct list_head list6;
+};
+
+struct netlbl_dommap_def {
+	u32 type;
+	union {
+		struct netlbl_domaddr_map *addrsel;
+		struct cipso_v4_doi *cipso;
+		struct calipso_doi *calipso;
+	};
+};
+
+struct netlbl_domaddr4_map {
+	struct netlbl_dommap_def def;
+	struct netlbl_af4list list;
+};
+
+struct netlbl_domaddr6_map {
+	struct netlbl_dommap_def def;
+	struct netlbl_af6list list;
+};
+
+struct netlbl_dom_map {
+	char *domain;
+	u16 family;
+	struct netlbl_dommap_def def;
+	u32 valid;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct netlbl_domhsh_tbl {
+	struct list_head *tbl;
+	u32 size;
+};
+
+enum {
+	NLBL_MGMT_C_UNSPEC = 0,
+	NLBL_MGMT_C_ADD = 1,
+	NLBL_MGMT_C_REMOVE = 2,
+	NLBL_MGMT_C_LISTALL = 3,
+	NLBL_MGMT_C_ADDDEF = 4,
+	NLBL_MGMT_C_REMOVEDEF = 5,
+	NLBL_MGMT_C_LISTDEF = 6,
+	NLBL_MGMT_C_PROTOCOLS = 7,
+	NLBL_MGMT_C_VERSION = 8,
+	__NLBL_MGMT_C_MAX = 9,
+};
+
+enum {
+	NLBL_MGMT_A_UNSPEC = 0,
+	NLBL_MGMT_A_DOMAIN = 1,
+	NLBL_MGMT_A_PROTOCOL = 2,
+	NLBL_MGMT_A_VERSION = 3,
+	NLBL_MGMT_A_CV4DOI = 4,
+	NLBL_MGMT_A_IPV6ADDR = 5,
+	NLBL_MGMT_A_IPV6MASK = 6,
+	NLBL_MGMT_A_IPV4ADDR = 7,
+	NLBL_MGMT_A_IPV4MASK = 8,
+	NLBL_MGMT_A_ADDRSELECTOR = 9,
+	NLBL_MGMT_A_SELECTORLIST = 10,
+	NLBL_MGMT_A_FAMILY = 11,
+	NLBL_MGMT_A_CLPDOI = 12,
+	__NLBL_MGMT_A_MAX = 13,
+};
+
+struct netlbl_domhsh_walk_arg {
+	struct netlink_callback *nl_cb;
+	struct sk_buff *skb;
+	u32 seq;
+};
+
+enum {
+	NLBL_UNLABEL_C_UNSPEC = 0,
+	NLBL_UNLABEL_C_ACCEPT = 1,
+	NLBL_UNLABEL_C_LIST = 2,
+	NLBL_UNLABEL_C_STATICADD = 3,
+	NLBL_UNLABEL_C_STATICREMOVE = 4,
+	NLBL_UNLABEL_C_STATICLIST = 5,
+	NLBL_UNLABEL_C_STATICADDDEF = 6,
+	NLBL_UNLABEL_C_STATICREMOVEDEF = 7,
+	NLBL_UNLABEL_C_STATICLISTDEF = 8,
+	__NLBL_UNLABEL_C_MAX = 9,
+};
+
+enum {
+	NLBL_UNLABEL_A_UNSPEC = 0,
+	NLBL_UNLABEL_A_ACPTFLG = 1,
+	NLBL_UNLABEL_A_IPV6ADDR = 2,
+	NLBL_UNLABEL_A_IPV6MASK = 3,
+	NLBL_UNLABEL_A_IPV4ADDR = 4,
+	NLBL_UNLABEL_A_IPV4MASK = 5,
+	NLBL_UNLABEL_A_IFACE = 6,
+	NLBL_UNLABEL_A_SECCTX = 7,
+	__NLBL_UNLABEL_A_MAX = 8,
+};
+
+struct netlbl_unlhsh_tbl {
+	struct list_head *tbl;
+	u32 size;
+};
+
+struct netlbl_unlhsh_addr4 {
+	u32 secid;
+	struct netlbl_af4list list;
+	struct callback_head rcu;
+};
+
+struct netlbl_unlhsh_addr6 {
+	u32 secid;
+	struct netlbl_af6list list;
+	struct callback_head rcu;
+};
+
+struct netlbl_unlhsh_iface {
+	int ifindex;
+	struct list_head addr4_list;
+	struct list_head addr6_list;
+	u32 valid;
+	struct list_head list;
+	struct callback_head rcu;
+};
+
+struct netlbl_unlhsh_walk_arg {
+	struct netlink_callback *nl_cb;
+	struct sk_buff *skb;
+	u32 seq;
+};
+
+enum {
+	NLBL_CIPSOV4_C_UNSPEC = 0,
+	NLBL_CIPSOV4_C_ADD = 1,
+	NLBL_CIPSOV4_C_REMOVE = 2,
+	NLBL_CIPSOV4_C_LIST = 3,
+	NLBL_CIPSOV4_C_LISTALL = 4,
+	__NLBL_CIPSOV4_C_MAX = 5,
+};
+
+enum {
+	NLBL_CIPSOV4_A_UNSPEC = 0,
+	NLBL_CIPSOV4_A_DOI = 1,
+	NLBL_CIPSOV4_A_MTYPE = 2,
+	NLBL_CIPSOV4_A_TAG = 3,
+	NLBL_CIPSOV4_A_TAGLST = 4,
+	NLBL_CIPSOV4_A_MLSLVLLOC = 5,
+	NLBL_CIPSOV4_A_MLSLVLREM = 6,
+	NLBL_CIPSOV4_A_MLSLVL = 7,
+	NLBL_CIPSOV4_A_MLSLVLLST = 8,
+	NLBL_CIPSOV4_A_MLSCATLOC = 9,
+	NLBL_CIPSOV4_A_MLSCATREM = 10,
+	NLBL_CIPSOV4_A_MLSCAT = 11,
+	NLBL_CIPSOV4_A_MLSCATLST = 12,
+	__NLBL_CIPSOV4_A_MAX = 13,
+};
+
+struct netlbl_cipsov4_doiwalk_arg {
+	struct netlink_callback *nl_cb;
+	struct sk_buff *skb;
+	u32 seq;
+};
+
+struct netlbl_domhsh_walk_arg___2 {
+	struct netlbl_audit *audit_info;
+	u32 doi;
+};
+
+enum {
+	NLBL_CALIPSO_C_UNSPEC = 0,
+	NLBL_CALIPSO_C_ADD = 1,
+	NLBL_CALIPSO_C_REMOVE = 2,
+	NLBL_CALIPSO_C_LIST = 3,
+	NLBL_CALIPSO_C_LISTALL = 4,
+	__NLBL_CALIPSO_C_MAX = 5,
+};
+
+enum {
+	NLBL_CALIPSO_A_UNSPEC = 0,
+	NLBL_CALIPSO_A_DOI = 1,
+	NLBL_CALIPSO_A_MTYPE = 2,
+	__NLBL_CALIPSO_A_MAX = 3,
+};
+
+struct netlbl_calipso_doiwalk_arg {
+	struct netlink_callback *nl_cb;
+	struct sk_buff *skb;
+	u32 seq;
+};
+
+enum rfkill_type {
+	RFKILL_TYPE_ALL = 0,
+	RFKILL_TYPE_WLAN = 1,
+	RFKILL_TYPE_BLUETOOTH = 2,
+	RFKILL_TYPE_UWB = 3,
+	RFKILL_TYPE_WIMAX = 4,
+	RFKILL_TYPE_WWAN = 5,
+	RFKILL_TYPE_GPS = 6,
+	RFKILL_TYPE_FM = 7,
+	RFKILL_TYPE_NFC = 8,
+	NUM_RFKILL_TYPES = 9,
+};
+
+enum rfkill_operation {
+	RFKILL_OP_ADD = 0,
+	RFKILL_OP_DEL = 1,
+	RFKILL_OP_CHANGE = 2,
+	RFKILL_OP_CHANGE_ALL = 3,
+};
+
+enum rfkill_hard_block_reasons {
+	RFKILL_HARD_BLOCK_SIGNAL = 1,
+	RFKILL_HARD_BLOCK_NOT_OWNER = 2,
+};
+
+struct rfkill_event_ext {
+	__u32 idx;
+	__u8 type;
+	__u8 op;
+	__u8 soft;
+	__u8 hard;
+	__u8 hard_block_reasons;
+} __attribute__((packed));
+
+enum rfkill_user_states {
+	RFKILL_USER_STATE_SOFT_BLOCKED = 0,
+	RFKILL_USER_STATE_UNBLOCKED = 1,
+	RFKILL_USER_STATE_HARD_BLOCKED = 2,
+};
+
+struct rfkill___2;
+
+struct rfkill_ops {
+	void (*poll)(struct rfkill___2 *, void *);
+	void (*query)(struct rfkill___2 *, void *);
+	int (*set_block)(void *, bool);
+};
+
+struct rfkill___2 {
+	spinlock_t lock;
+	enum rfkill_type type;
+	long unsigned int state;
+	long unsigned int hard_block_reasons;
+	u32 idx;
+	bool registered;
+	bool persistent;
+	bool polling_paused;
+	bool suspended;
+	const struct rfkill_ops *ops;
+	void *data;
+	struct led_trigger led_trigger;
+	const char *ledtrigname;
+	struct device dev;
+	struct list_head node;
+	struct delayed_work poll_work;
+	struct work_struct uevent_work;
+	struct work_struct sync_work;
+	char name[0];
+};
+
+struct rfkill_int_event {
+	struct list_head list;
+	struct rfkill_event_ext ev;
+};
+
+struct rfkill_data {
+	struct list_head list;
+	struct list_head events;
+	struct mutex mtx;
+	wait_queue_head_t read_wait;
+	bool input_handler;
+	u8 max_size;
+};
+
+enum rfkill_input_master_mode {
+	RFKILL_INPUT_MASTER_UNLOCK = 0,
+	RFKILL_INPUT_MASTER_RESTORE = 1,
+	RFKILL_INPUT_MASTER_UNBLOCKALL = 2,
+	NUM_RFKILL_INPUT_MASTER_MODES = 3,
+};
+
+enum rfkill_sched_op {
+	RFKILL_GLOBAL_OP_EPO = 0,
+	RFKILL_GLOBAL_OP_RESTORE = 1,
+	RFKILL_GLOBAL_OP_UNLOCK = 2,
+	RFKILL_GLOBAL_OP_UNBLOCK = 3,
+};
+
+struct dcbmsg {
+	__u8 dcb_family;
+	__u8 cmd;
+	__u16 dcb_pad;
+};
+
+enum dcbnl_commands {
+	DCB_CMD_UNDEFINED = 0,
+	DCB_CMD_GSTATE = 1,
+	DCB_CMD_SSTATE = 2,
+	DCB_CMD_PGTX_GCFG = 3,
+	DCB_CMD_PGTX_SCFG = 4,
+	DCB_CMD_PGRX_GCFG = 5,
+	DCB_CMD_PGRX_SCFG = 6,
+	DCB_CMD_PFC_GCFG = 7,
+	DCB_CMD_PFC_SCFG = 8,
+	DCB_CMD_SET_ALL = 9,
+	DCB_CMD_GPERM_HWADDR = 10,
+	DCB_CMD_GCAP = 11,
+	DCB_CMD_GNUMTCS = 12,
+	DCB_CMD_SNUMTCS = 13,
+	DCB_CMD_PFC_GSTATE = 14,
+	DCB_CMD_PFC_SSTATE = 15,
+	DCB_CMD_BCN_GCFG = 16,
+	DCB_CMD_BCN_SCFG = 17,
+	DCB_CMD_GAPP = 18,
+	DCB_CMD_SAPP = 19,
+	DCB_CMD_IEEE_SET = 20,
+	DCB_CMD_IEEE_GET = 21,
+	DCB_CMD_GDCBX = 22,
+	DCB_CMD_SDCBX = 23,
+	DCB_CMD_GFEATCFG = 24,
+	DCB_CMD_SFEATCFG = 25,
+	DCB_CMD_CEE_GET = 26,
+	DCB_CMD_IEEE_DEL = 27,
+	__DCB_CMD_ENUM_MAX = 28,
+	DCB_CMD_MAX = 27,
+};
+
+enum dcbnl_attrs {
+	DCB_ATTR_UNDEFINED = 0,
+	DCB_ATTR_IFNAME = 1,
+	DCB_ATTR_STATE = 2,
+	DCB_ATTR_PFC_STATE = 3,
+	DCB_ATTR_PFC_CFG = 4,
+	DCB_ATTR_NUM_TC = 5,
+	DCB_ATTR_PG_CFG = 6,
+	DCB_ATTR_SET_ALL = 7,
+	DCB_ATTR_PERM_HWADDR = 8,
+	DCB_ATTR_CAP = 9,
+	DCB_ATTR_NUMTCS = 10,
+	DCB_ATTR_BCN = 11,
+	DCB_ATTR_APP = 12,
+	DCB_ATTR_IEEE = 13,
+	DCB_ATTR_DCBX = 14,
+	DCB_ATTR_FEATCFG = 15,
+	DCB_ATTR_CEE = 16,
+	__DCB_ATTR_ENUM_MAX = 17,
+	DCB_ATTR_MAX = 16,
+};
+
+enum ieee_attrs {
+	DCB_ATTR_IEEE_UNSPEC = 0,
+	DCB_ATTR_IEEE_ETS = 1,
+	DCB_ATTR_IEEE_PFC = 2,
+	DCB_ATTR_IEEE_APP_TABLE = 3,
+	DCB_ATTR_IEEE_PEER_ETS = 4,
+	DCB_ATTR_IEEE_PEER_PFC = 5,
+	DCB_ATTR_IEEE_PEER_APP = 6,
+	DCB_ATTR_IEEE_MAXRATE = 7,
+	DCB_ATTR_IEEE_QCN = 8,
+	DCB_ATTR_IEEE_QCN_STATS = 9,
+	DCB_ATTR_DCB_BUFFER = 10,
+	__DCB_ATTR_IEEE_MAX = 11,
+};
+
+enum ieee_attrs_app {
+	DCB_ATTR_IEEE_APP_UNSPEC = 0,
+	DCB_ATTR_IEEE_APP = 1,
+	__DCB_ATTR_IEEE_APP_MAX = 2,
+};
+
+enum cee_attrs {
+	DCB_ATTR_CEE_UNSPEC = 0,
+	DCB_ATTR_CEE_PEER_PG = 1,
+	DCB_ATTR_CEE_PEER_PFC = 2,
+	DCB_ATTR_CEE_PEER_APP_TABLE = 3,
+	DCB_ATTR_CEE_TX_PG = 4,
+	DCB_ATTR_CEE_RX_PG = 5,
+	DCB_ATTR_CEE_PFC = 6,
+	DCB_ATTR_CEE_APP_TABLE = 7,
+	DCB_ATTR_CEE_FEAT = 8,
+	__DCB_ATTR_CEE_MAX = 9,
+};
+
+enum peer_app_attr {
+	DCB_ATTR_CEE_PEER_APP_UNSPEC = 0,
+	DCB_ATTR_CEE_PEER_APP_INFO = 1,
+	DCB_ATTR_CEE_PEER_APP = 2,
+	__DCB_ATTR_CEE_PEER_APP_MAX = 3,
+};
+
+enum dcbnl_pfc_up_attrs {
+	DCB_PFC_UP_ATTR_UNDEFINED = 0,
+	DCB_PFC_UP_ATTR_0 = 1,
+	DCB_PFC_UP_ATTR_1 = 2,
+	DCB_PFC_UP_ATTR_2 = 3,
+	DCB_PFC_UP_ATTR_3 = 4,
+	DCB_PFC_UP_ATTR_4 = 5,
+	DCB_PFC_UP_ATTR_5 = 6,
+	DCB_PFC_UP_ATTR_6 = 7,
+	DCB_PFC_UP_ATTR_7 = 8,
+	DCB_PFC_UP_ATTR_ALL = 9,
+	__DCB_PFC_UP_ATTR_ENUM_MAX = 10,
+	DCB_PFC_UP_ATTR_MAX = 9,
+};
+
+enum dcbnl_pg_attrs {
+	DCB_PG_ATTR_UNDEFINED = 0,
+	DCB_PG_ATTR_TC_0 = 1,
+	DCB_PG_ATTR_TC_1 = 2,
+	DCB_PG_ATTR_TC_2 = 3,
+	DCB_PG_ATTR_TC_3 = 4,
+	DCB_PG_ATTR_TC_4 = 5,
+	DCB_PG_ATTR_TC_5 = 6,
+	DCB_PG_ATTR_TC_6 = 7,
+	DCB_PG_ATTR_TC_7 = 8,
+	DCB_PG_ATTR_TC_MAX = 9,
+	DCB_PG_ATTR_TC_ALL = 10,
+	DCB_PG_ATTR_BW_ID_0 = 11,
+	DCB_PG_ATTR_BW_ID_1 = 12,
+	DCB_PG_ATTR_BW_ID_2 = 13,
+	DCB_PG_ATTR_BW_ID_3 = 14,
+	DCB_PG_ATTR_BW_ID_4 = 15,
+	DCB_PG_ATTR_BW_ID_5 = 16,
+	DCB_PG_ATTR_BW_ID_6 = 17,
+	DCB_PG_ATTR_BW_ID_7 = 18,
+	DCB_PG_ATTR_BW_ID_MAX = 19,
+	DCB_PG_ATTR_BW_ID_ALL = 20,
+	__DCB_PG_ATTR_ENUM_MAX = 21,
+	DCB_PG_ATTR_MAX = 20,
+};
+
+enum dcbnl_tc_attrs {
+	DCB_TC_ATTR_PARAM_UNDEFINED = 0,
+	DCB_TC_ATTR_PARAM_PGID = 1,
+	DCB_TC_ATTR_PARAM_UP_MAPPING = 2,
+	DCB_TC_ATTR_PARAM_STRICT_PRIO = 3,
+	DCB_TC_ATTR_PARAM_BW_PCT = 4,
+	DCB_TC_ATTR_PARAM_ALL = 5,
+	__DCB_TC_ATTR_PARAM_ENUM_MAX = 6,
+	DCB_TC_ATTR_PARAM_MAX = 5,
+};
+
+enum dcbnl_cap_attrs {
+	DCB_CAP_ATTR_UNDEFINED = 0,
+	DCB_CAP_ATTR_ALL = 1,
+	DCB_CAP_ATTR_PG = 2,
+	DCB_CAP_ATTR_PFC = 3,
+	DCB_CAP_ATTR_UP2TC = 4,
+	DCB_CAP_ATTR_PG_TCS = 5,
+	DCB_CAP_ATTR_PFC_TCS = 6,
+	DCB_CAP_ATTR_GSP = 7,
+	DCB_CAP_ATTR_BCN = 8,
+	DCB_CAP_ATTR_DCBX = 9,
+	__DCB_CAP_ATTR_ENUM_MAX = 10,
+	DCB_CAP_ATTR_MAX = 9,
+};
+
+enum dcbnl_numtcs_attrs {
+	DCB_NUMTCS_ATTR_UNDEFINED = 0,
+	DCB_NUMTCS_ATTR_ALL = 1,
+	DCB_NUMTCS_ATTR_PG = 2,
+	DCB_NUMTCS_ATTR_PFC = 3,
+	__DCB_NUMTCS_ATTR_ENUM_MAX = 4,
+	DCB_NUMTCS_ATTR_MAX = 3,
+};
+
+enum dcbnl_bcn_attrs {
+	DCB_BCN_ATTR_UNDEFINED = 0,
+	DCB_BCN_ATTR_RP_0 = 1,
+	DCB_BCN_ATTR_RP_1 = 2,
+	DCB_BCN_ATTR_RP_2 = 3,
+	DCB_BCN_ATTR_RP_3 = 4,
+	DCB_BCN_ATTR_RP_4 = 5,
+	DCB_BCN_ATTR_RP_5 = 6,
+	DCB_BCN_ATTR_RP_6 = 7,
+	DCB_BCN_ATTR_RP_7 = 8,
+	DCB_BCN_ATTR_RP_ALL = 9,
+	DCB_BCN_ATTR_BCNA_0 = 10,
+	DCB_BCN_ATTR_BCNA_1 = 11,
+	DCB_BCN_ATTR_ALPHA = 12,
+	DCB_BCN_ATTR_BETA = 13,
+	DCB_BCN_ATTR_GD = 14,
+	DCB_BCN_ATTR_GI = 15,
+	DCB_BCN_ATTR_TMAX = 16,
+	DCB_BCN_ATTR_TD = 17,
+	DCB_BCN_ATTR_RMIN = 18,
+	DCB_BCN_ATTR_W = 19,
+	DCB_BCN_ATTR_RD = 20,
+	DCB_BCN_ATTR_RU = 21,
+	DCB_BCN_ATTR_WRTT = 22,
+	DCB_BCN_ATTR_RI = 23,
+	DCB_BCN_ATTR_C = 24,
+	DCB_BCN_ATTR_ALL = 25,
+	__DCB_BCN_ATTR_ENUM_MAX = 26,
+	DCB_BCN_ATTR_MAX = 25,
+};
+
+enum dcb_general_attr_values {
+	DCB_ATTR_VALUE_UNDEFINED = 255,
+};
+
+enum dcbnl_app_attrs {
+	DCB_APP_ATTR_UNDEFINED = 0,
+	DCB_APP_ATTR_IDTYPE = 1,
+	DCB_APP_ATTR_ID = 2,
+	DCB_APP_ATTR_PRIORITY = 3,
+	__DCB_APP_ATTR_ENUM_MAX = 4,
+	DCB_APP_ATTR_MAX = 3,
+};
+
+enum dcbnl_featcfg_attrs {
+	DCB_FEATCFG_ATTR_UNDEFINED = 0,
+	DCB_FEATCFG_ATTR_ALL = 1,
+	DCB_FEATCFG_ATTR_PG = 2,
+	DCB_FEATCFG_ATTR_PFC = 3,
+	DCB_FEATCFG_ATTR_APP = 4,
+	__DCB_FEATCFG_ATTR_ENUM_MAX = 5,
+	DCB_FEATCFG_ATTR_MAX = 4,
+};
+
+struct dcb_app_type {
+	int ifindex;
+	struct dcb_app app;
+	struct list_head list;
+	u8 dcbx;
+};
+
+struct dcb_ieee_app_prio_map {
+	u64 map[8];
+};
+
+struct dcb_ieee_app_dscp_map {
+	u8 map[64];
+};
+
+enum dcbevent_notif_type {
+	DCB_APP_EVENT = 1,
+};
+
+struct reply_func {
+	int type;
+	int (*cb)(struct net_device *, struct nlmsghdr *, u32, struct nlattr **, struct sk_buff *);
+};
+
+enum dns_payload_content_type {
+	DNS_PAYLOAD_IS_SERVER_LIST = 0,
+};
+
+struct dns_payload_header {
+	__u8 zero;
+	__u8 content;
+	__u8 version;
+};
+
+enum {
+	dns_key_data = 0,
+	dns_key_error = 1,
+};
+
+enum switchdev_attr_id {
+	SWITCHDEV_ATTR_ID_UNDEFINED = 0,
+	SWITCHDEV_ATTR_ID_PORT_STP_STATE = 1,
+	SWITCHDEV_ATTR_ID_PORT_MST_STATE = 2,
+	SWITCHDEV_ATTR_ID_PORT_BRIDGE_FLAGS = 3,
+	SWITCHDEV_ATTR_ID_PORT_PRE_BRIDGE_FLAGS = 4,
+	SWITCHDEV_ATTR_ID_PORT_MROUTER = 5,
+	SWITCHDEV_ATTR_ID_BRIDGE_AGEING_TIME = 6,
+	SWITCHDEV_ATTR_ID_BRIDGE_VLAN_FILTERING = 7,
+	SWITCHDEV_ATTR_ID_BRIDGE_VLAN_PROTOCOL = 8,
+	SWITCHDEV_ATTR_ID_BRIDGE_MC_DISABLED = 9,
+	SWITCHDEV_ATTR_ID_BRIDGE_MROUTER = 10,
+	SWITCHDEV_ATTR_ID_BRIDGE_MST = 11,
+	SWITCHDEV_ATTR_ID_MRP_PORT_ROLE = 12,
+	SWITCHDEV_ATTR_ID_VLAN_MSTI = 13,
+};
+
+struct switchdev_attr {
+	struct net_device *orig_dev;
+	enum switchdev_attr_id id;
+	u32 flags;
+	void *complete_priv;
+	void (*complete)(struct net_device *, int, void *);
+	union {
+		u8 stp_state;
+		struct switchdev_mst_state mst_state;
+		struct switchdev_brport_flags brport_flags;
+		bool mrouter;
+		clock_t ageing_time;
+		bool vlan_filtering;
+		u16 vlan_protocol;
+		bool mst;
+		bool mc_disabled;
+		u8 mrp_port_role;
+		struct switchdev_vlan_msti vlan_msti;
+	} u;
+};
+
+struct switchdev_brport {
+	struct net_device *dev;
+	const void *ctx;
+	struct notifier_block *atomic_nb;
+	struct notifier_block *blocking_nb;
+	bool tx_fwd_offload;
+};
+
+enum switchdev_notifier_type {
+	SWITCHDEV_FDB_ADD_TO_BRIDGE = 1,
+	SWITCHDEV_FDB_DEL_TO_BRIDGE = 2,
+	SWITCHDEV_FDB_ADD_TO_DEVICE = 3,
+	SWITCHDEV_FDB_DEL_TO_DEVICE = 4,
+	SWITCHDEV_FDB_OFFLOADED = 5,
+	SWITCHDEV_FDB_FLUSH_TO_BRIDGE = 6,
+	SWITCHDEV_PORT_OBJ_ADD = 7,
+	SWITCHDEV_PORT_OBJ_DEL = 8,
+	SWITCHDEV_PORT_ATTR_SET = 9,
+	SWITCHDEV_VXLAN_FDB_ADD_TO_BRIDGE = 10,
+	SWITCHDEV_VXLAN_FDB_DEL_TO_BRIDGE = 11,
+	SWITCHDEV_VXLAN_FDB_ADD_TO_DEVICE = 12,
+	SWITCHDEV_VXLAN_FDB_DEL_TO_DEVICE = 13,
+	SWITCHDEV_VXLAN_FDB_OFFLOADED = 14,
+	SWITCHDEV_BRPORT_OFFLOADED = 15,
+	SWITCHDEV_BRPORT_UNOFFLOADED = 16,
+};
+
+struct switchdev_notifier_info {
+	struct net_device *dev;
+	struct netlink_ext_ack *extack;
+	const void *ctx;
+};
+
+struct switchdev_notifier_fdb_info {
+	struct switchdev_notifier_info info;
+	const unsigned char *addr;
+	u16 vid;
+	u8 added_by_user: 1;
+	u8 is_local: 1;
+	u8 offloaded: 1;
+};
+
+struct switchdev_notifier_port_obj_info {
+	struct switchdev_notifier_info info;
+	const struct switchdev_obj *obj;
+	bool handled;
+};
+
+struct switchdev_notifier_port_attr_info {
+	struct switchdev_notifier_info info;
+	const struct switchdev_attr *attr;
+	bool handled;
+};
+
+struct switchdev_notifier_brport_info {
+	struct switchdev_notifier_info info;
+	const struct switchdev_brport brport;
+};
+
+typedef void switchdev_deferred_func_t(struct net_device *, const void *);
+
+struct switchdev_deferred_item {
+	struct list_head list;
+	struct net_device *dev;
+	netdevice_tracker dev_tracker;
+	switchdev_deferred_func_t *func;
+	long unsigned int data[0];
+};
+
+struct switchdev_nested_priv {
+	bool (*check_cb)(const struct net_device *);
+	bool (*foreign_dev_check_cb)(const struct net_device *, const struct net_device *);
+	const struct net_device *dev;
+	struct net_device *lower_dev;
+};
+
+typedef int (*lookup_by_table_id_t)(struct net *, u32);
+
+struct l3mdev_handler {
+	lookup_by_table_id_t dev_lookup;
+};
+
+struct ncsi_dev {
+	int state;
+	int link_up;
+	struct net_device *dev;
+	void (*handler)(struct ncsi_dev *);
+};
+
+struct ncsi_channel_version {
+	u32 version;
+	u32 alpha2;
+	u8 fw_name[12];
+	u32 fw_version;
+	u16 pci_ids[4];
+	u32 mf_id;
+};
+
+struct ncsi_channel_cap {
+	u32 index;
+	u32 cap;
+};
+
+struct ncsi_channel_mode {
+	u32 index;
+	u32 enable;
+	u32 size;
+	u32 data[8];
+};
+
+struct ncsi_channel_mac_filter {
+	u8 n_uc;
+	u8 n_mc;
+	u8 n_mixed;
+	u64 bitmap;
+	unsigned char *addrs;
+};
+
+struct ncsi_channel_vlan_filter {
+	u8 n_vids;
+	u64 bitmap;
+	u16 *vids;
+};
+
+struct ncsi_channel_stats {
+	u32 hnc_cnt_hi;
+	u32 hnc_cnt_lo;
+	u32 hnc_rx_bytes;
+	u32 hnc_tx_bytes;
+	u32 hnc_rx_uc_pkts;
+	u32 hnc_rx_mc_pkts;
+	u32 hnc_rx_bc_pkts;
+	u32 hnc_tx_uc_pkts;
+	u32 hnc_tx_mc_pkts;
+	u32 hnc_tx_bc_pkts;
+	u32 hnc_fcs_err;
+	u32 hnc_align_err;
+	u32 hnc_false_carrier;
+	u32 hnc_runt_pkts;
+	u32 hnc_jabber_pkts;
+	u32 hnc_rx_pause_xon;
+	u32 hnc_rx_pause_xoff;
+	u32 hnc_tx_pause_xon;
+	u32 hnc_tx_pause_xoff;
+	u32 hnc_tx_s_collision;
+	u32 hnc_tx_m_collision;
+	u32 hnc_l_collision;
+	u32 hnc_e_collision;
+	u32 hnc_rx_ctl_frames;
+	u32 hnc_rx_64_frames;
+	u32 hnc_rx_127_frames;
+	u32 hnc_rx_255_frames;
+	u32 hnc_rx_511_frames;
+	u32 hnc_rx_1023_frames;
+	u32 hnc_rx_1522_frames;
+	u32 hnc_rx_9022_frames;
+	u32 hnc_tx_64_frames;
+	u32 hnc_tx_127_frames;
+	u32 hnc_tx_255_frames;
+	u32 hnc_tx_511_frames;
+	u32 hnc_tx_1023_frames;
+	u32 hnc_tx_1522_frames;
+	u32 hnc_tx_9022_frames;
+	u32 hnc_rx_valid_bytes;
+	u32 hnc_rx_runt_pkts;
+	u32 hnc_rx_jabber_pkts;
+	u32 ncsi_rx_cmds;
+	u32 ncsi_dropped_cmds;
+	u32 ncsi_cmd_type_errs;
+	u32 ncsi_cmd_csum_errs;
+	u32 ncsi_rx_pkts;
+	u32 ncsi_tx_pkts;
+	u32 ncsi_tx_aen_pkts;
+	u32 pt_tx_pkts;
+	u32 pt_tx_dropped;
+	u32 pt_tx_channel_err;
+	u32 pt_tx_us_err;
+	u32 pt_rx_pkts;
+	u32 pt_rx_dropped;
+	u32 pt_rx_channel_err;
+	u32 pt_rx_us_err;
+	u32 pt_rx_os_err;
+};
+
+struct ncsi_package;
+
+struct ncsi_channel {
+	unsigned char id;
+	int state;
+	bool reconfigure_needed;
+	spinlock_t lock;
+	struct ncsi_package *package;
+	struct ncsi_channel_version version;
+	struct ncsi_channel_cap caps[6];
+	struct ncsi_channel_mode modes[8];
+	struct ncsi_channel_mac_filter mac_filter;
+	struct ncsi_channel_vlan_filter vlan_filter;
+	struct ncsi_channel_stats stats;
+	struct {
+		struct timer_list timer;
+		bool enabled;
+		unsigned int state;
+	} monitor;
+	struct list_head node;
+	struct list_head link;
+};
+
+struct ncsi_dev_priv;
+
+struct ncsi_package {
+	unsigned char id;
+	unsigned char uuid[16];
+	struct ncsi_dev_priv *ndp;
+	spinlock_t lock;
+	unsigned int channel_num;
+	struct list_head channels;
+	struct list_head node;
+	bool multi_channel;
+	u32 channel_whitelist;
+	struct ncsi_channel *preferred_channel;
+};
+
+struct ncsi_request {
+	unsigned char id;
+	bool used;
+	unsigned int flags;
+	struct ncsi_dev_priv *ndp;
+	struct sk_buff *cmd;
+	struct sk_buff *rsp;
+	struct timer_list timer;
+	bool enabled;
+	u32 snd_seq;
+	u32 snd_portid;
+	struct nlmsghdr nlhdr;
+};
+
+struct ncsi_dev_priv {
+	struct ncsi_dev ndev;
+	unsigned int flags;
+	unsigned int gma_flag;
+	spinlock_t lock;
+	unsigned int package_probe_id;
+	unsigned int package_num;
+	struct list_head packages;
+	struct ncsi_channel *hot_channel;
+	struct ncsi_request requests[256];
+	unsigned int request_id;
+	unsigned int pending_req_num;
+	struct ncsi_package *active_package;
+	struct ncsi_channel *active_channel;
+	struct list_head channel_queue;
+	struct work_struct work;
+	struct packet_type ptype;
+	struct list_head node;
+	struct list_head vlan_vids;
+	bool multi_package;
+	bool mlx_multi_host;
+	u32 package_whitelist;
+};
+
+struct ncsi_cmd_arg {
+	struct ncsi_dev_priv *ndp;
+	unsigned char type;
+	unsigned char id;
+	unsigned char package;
+	unsigned char channel;
+	short unsigned int payload;
+	unsigned int req_flags;
+	union {
+		unsigned char bytes[16];
+		short unsigned int words[8];
+		unsigned int dwords[4];
