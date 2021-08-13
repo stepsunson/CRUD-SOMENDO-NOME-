@@ -126,3 +126,73 @@ literal string, and the second argument can be a runtime string.
 .B [label]
 The label that will be displayed when printing the probed values. By default,
 this is the probe specifier.
+.SH EXAMPLES
+.TP
+Print a histogram of allocation sizes passed to kmalloc:
+#
+.B argdist -H 'p::__kmalloc(u64 size):u64:size'
+.TP
+Print a count of how many times process 1005 called malloc with an allocation size of 16 bytes:
+#
+.B argdist -p 1005 -C 'p:c:malloc(size_t size):size_t:size:size==16'
+.TP
+Snoop on all strings returned by gets():
+#
+.B argdist -C 'r:c:gets():char*:$retval'
+.TP
+Print a histogram of read sizes that were longer than 1ms:
+#
+.B argdist -H 'r::__vfs_read(void *file, void *buf, size_t count):size_t:$entry(count):$latency > 1000000'
+.TP
+Print frequency counts of how many times writes were issued to a particular file descriptor number, in process 1005:
+#
+.B argdist -p 1005 -C 'p:c:write(int fd):int:fd'
+.TP
+Print a histogram of error codes returned by read() in process 1005:
+#
+.B argdist -p 1005 -H 'r:c:read()'
+.TP
+Print a histogram of buffer sizes passed to write() across all processes, where the file descriptor was 1 (STDOUT):
+#
+.B argdist -H 'p:c:write(int fd, const void *buf, size_t count):size_t:count:fd==1'
+.TP
+Count fork() calls in libc across all processes, grouped by pid:
+#
+.B argdist -C 'p:c:fork():int:$PID;fork per process'
+.TP
+Print histogram of number of sectors in completing block I/O requests:
+#
+.B argdist -H 't:block:block_rq_complete():u32:nr_sector'
+.TP
+Aggregate interrupts by interrupt request (IRQ):
+#
+.B argdist -C 't:irq:irq_handler_entry():int:irq'
+.TP
+Print the functions used as thread entry points and how common they are:
+#
+.B argdist -C 'u:pthread:pthread_start():u64:arg2' -p 1337
+.TP
+Print histograms of sleep() and nanosleep() parameter values:
+#
+.B argdist -H 'p:c:sleep(u32 seconds):u32:seconds' -H 'p:c:nanosleep(struct timespec *req):long:req->tv_nsec'
+.TP
+Spy on writes to STDOUT performed by process 2780, up to a string size of 120 characters:
+#
+.B argdist -p 2780 -z 120 -C 'p:c:write(int fd, char* buf, size_t len):char*:buf:fd==1'
+.TP
+Group files being read from and the read sizes from __vfs_read:
+#
+.B argdist -C 'p::__vfs_read(struct file *file, void *buf, size_t count):char*,size_t:file->f_path.dentry->d_iname,count:file->f_path.dentry->d_iname[0]!=0'
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Sasha Goldshtein
