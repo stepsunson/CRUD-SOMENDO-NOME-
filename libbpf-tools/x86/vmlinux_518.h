@@ -132755,3 +132755,1538 @@ struct ncsi_cmd_arg {
 		unsigned char bytes[16];
 		short unsigned int words[8];
 		unsigned int dwords[4];
+	};
+	unsigned char *data;
+	struct genl_info *info;
+};
+
+struct ncsi_pkt_hdr {
+	unsigned char mc_id;
+	unsigned char revision;
+	unsigned char reserved;
+	unsigned char id;
+	unsigned char type;
+	unsigned char channel;
+	__be16 length;
+	__be32 reserved1[2];
+};
+
+struct ncsi_cmd_pkt_hdr {
+	struct ncsi_pkt_hdr common;
+};
+
+struct ncsi_cmd_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 checksum;
+	unsigned char pad[26];
+};
+
+struct ncsi_cmd_sp_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char reserved[3];
+	unsigned char hw_arbitration;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_dc_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char reserved[3];
+	unsigned char ald;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_rc_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 reserved;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_ae_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char reserved[3];
+	unsigned char mc_id;
+	__be32 mode;
+	__be32 checksum;
+	unsigned char pad[18];
+};
+
+struct ncsi_cmd_sl_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 mode;
+	__be32 oem_mode;
+	__be32 checksum;
+	unsigned char pad[18];
+};
+
+struct ncsi_cmd_svf_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be16 reserved;
+	__be16 vlan;
+	__be16 reserved1;
+	unsigned char index;
+	unsigned char enable;
+	__be32 checksum;
+	unsigned char pad[18];
+};
+
+struct ncsi_cmd_ev_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char reserved[3];
+	unsigned char mode;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_sma_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char mac[6];
+	unsigned char index;
+	unsigned char at_e;
+	__be32 checksum;
+	unsigned char pad[18];
+};
+
+struct ncsi_cmd_ebf_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 mode;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_egmf_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 mode;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_snfc_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	unsigned char reserved[3];
+	unsigned char mode;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_cmd_oem_pkt {
+	struct ncsi_cmd_pkt_hdr cmd;
+	__be32 mfr_id;
+	unsigned char data[0];
+};
+
+struct ncsi_cmd_handler {
+	unsigned char type;
+	int payload;
+	int (*handler)(struct sk_buff *, struct ncsi_cmd_arg *);
+};
+
+enum {
+	NCSI_CAP_BASE = 0,
+	NCSI_CAP_GENERIC = 0,
+	NCSI_CAP_BC = 1,
+	NCSI_CAP_MC = 2,
+	NCSI_CAP_BUFFER = 3,
+	NCSI_CAP_AEN = 4,
+	NCSI_CAP_VLAN = 5,
+	NCSI_CAP_MAX = 6,
+};
+
+enum {
+	NCSI_CAP_GENERIC_HWA = 1,
+	NCSI_CAP_GENERIC_HDS = 2,
+	NCSI_CAP_GENERIC_FC = 4,
+	NCSI_CAP_GENERIC_FC1 = 8,
+	NCSI_CAP_GENERIC_MC = 16,
+	NCSI_CAP_GENERIC_HWA_UNKNOWN = 0,
+	NCSI_CAP_GENERIC_HWA_SUPPORT = 32,
+	NCSI_CAP_GENERIC_HWA_NOT_SUPPORT = 64,
+	NCSI_CAP_GENERIC_HWA_RESERVED = 96,
+	NCSI_CAP_GENERIC_HWA_MASK = 96,
+	NCSI_CAP_GENERIC_MASK = 127,
+	NCSI_CAP_BC_ARP = 1,
+	NCSI_CAP_BC_DHCPC = 2,
+	NCSI_CAP_BC_DHCPS = 4,
+	NCSI_CAP_BC_NETBIOS = 8,
+	NCSI_CAP_BC_MASK = 15,
+	NCSI_CAP_MC_IPV6_NEIGHBOR = 1,
+	NCSI_CAP_MC_IPV6_ROUTER = 2,
+	NCSI_CAP_MC_DHCPV6_RELAY = 4,
+	NCSI_CAP_MC_DHCPV6_WELL_KNOWN = 8,
+	NCSI_CAP_MC_IPV6_MLD = 16,
+	NCSI_CAP_MC_IPV6_NEIGHBOR_S = 32,
+	NCSI_CAP_MC_MASK = 63,
+	NCSI_CAP_AEN_LSC = 1,
+	NCSI_CAP_AEN_CR = 2,
+	NCSI_CAP_AEN_HDS = 4,
+	NCSI_CAP_AEN_MASK = 7,
+	NCSI_CAP_VLAN_ONLY = 1,
+	NCSI_CAP_VLAN_NO = 2,
+	NCSI_CAP_VLAN_ANY = 4,
+	NCSI_CAP_VLAN_MASK = 7,
+};
+
+enum {
+	NCSI_MODE_BASE = 0,
+	NCSI_MODE_ENABLE = 0,
+	NCSI_MODE_TX_ENABLE = 1,
+	NCSI_MODE_LINK = 2,
+	NCSI_MODE_VLAN = 3,
+	NCSI_MODE_BC = 4,
+	NCSI_MODE_MC = 5,
+	NCSI_MODE_AEN = 6,
+	NCSI_MODE_FC = 7,
+	NCSI_MODE_MAX = 8,
+};
+
+struct ncsi_rsp_pkt_hdr {
+	struct ncsi_pkt_hdr common;
+	__be16 code;
+	__be16 reason;
+};
+
+struct ncsi_rsp_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 checksum;
+	unsigned char pad[22];
+};
+
+struct ncsi_rsp_oem_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 mfr_id;
+	unsigned char data[0];
+};
+
+struct ncsi_rsp_oem_mlx_pkt {
+	unsigned char cmd_rev;
+	unsigned char cmd;
+	unsigned char param;
+	unsigned char optional;
+	unsigned char data[0];
+};
+
+struct ncsi_rsp_oem_bcm_pkt {
+	unsigned char ver;
+	unsigned char type;
+	__be16 len;
+	unsigned char data[0];
+};
+
+struct ncsi_rsp_oem_intel_pkt {
+	unsigned char cmd;
+	unsigned char data[0];
+};
+
+struct ncsi_rsp_gls_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 status;
+	__be32 other;
+	__be32 oem_status;
+	__be32 checksum;
+	unsigned char pad[10];
+};
+
+struct ncsi_rsp_gvi_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 ncsi_version;
+	unsigned char reserved[3];
+	unsigned char alpha2;
+	unsigned char fw_name[12];
+	__be32 fw_version;
+	__be16 pci_ids[4];
+	__be32 mf_id;
+	__be32 checksum;
+};
+
+struct ncsi_rsp_gc_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 cap;
+	__be32 bc_cap;
+	__be32 mc_cap;
+	__be32 buf_cap;
+	__be32 aen_cap;
+	unsigned char vlan_cnt;
+	unsigned char mixed_cnt;
+	unsigned char mc_cnt;
+	unsigned char uc_cnt;
+	unsigned char reserved[2];
+	unsigned char vlan_mode;
+	unsigned char channel_cnt;
+	__be32 checksum;
+};
+
+struct ncsi_rsp_gp_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	unsigned char mac_cnt;
+	unsigned char reserved[2];
+	unsigned char mac_enable;
+	unsigned char vlan_cnt;
+	unsigned char reserved1;
+	__be16 vlan_enable;
+	__be32 link_mode;
+	__be32 bc_mode;
+	__be32 valid_modes;
+	unsigned char vlan_mode;
+	unsigned char fc_mode;
+	unsigned char reserved2[2];
+	__be32 aen_mode;
+	unsigned char mac[6];
+	__be16 vlan;
+	__be32 checksum;
+};
+
+struct ncsi_rsp_gcps_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 cnt_hi;
+	__be32 cnt_lo;
+	__be32 rx_bytes;
+	__be32 tx_bytes;
+	__be32 rx_uc_pkts;
+	__be32 rx_mc_pkts;
+	__be32 rx_bc_pkts;
+	__be32 tx_uc_pkts;
+	__be32 tx_mc_pkts;
+	__be32 tx_bc_pkts;
+	__be32 fcs_err;
+	__be32 align_err;
+	__be32 false_carrier;
+	__be32 runt_pkts;
+	__be32 jabber_pkts;
+	__be32 rx_pause_xon;
+	__be32 rx_pause_xoff;
+	__be32 tx_pause_xon;
+	__be32 tx_pause_xoff;
+	__be32 tx_s_collision;
+	__be32 tx_m_collision;
+	__be32 l_collision;
+	__be32 e_collision;
+	__be32 rx_ctl_frames;
+	__be32 rx_64_frames;
+	__be32 rx_127_frames;
+	__be32 rx_255_frames;
+	__be32 rx_511_frames;
+	__be32 rx_1023_frames;
+	__be32 rx_1522_frames;
+	__be32 rx_9022_frames;
+	__be32 tx_64_frames;
+	__be32 tx_127_frames;
+	__be32 tx_255_frames;
+	__be32 tx_511_frames;
+	__be32 tx_1023_frames;
+	__be32 tx_1522_frames;
+	__be32 tx_9022_frames;
+	__be32 rx_valid_bytes;
+	__be32 rx_runt_pkts;
+	__be32 rx_jabber_pkts;
+	__be32 checksum;
+};
+
+struct ncsi_rsp_gns_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 rx_cmds;
+	__be32 dropped_cmds;
+	__be32 cmd_type_errs;
+	__be32 cmd_csum_errs;
+	__be32 rx_pkts;
+	__be32 tx_pkts;
+	__be32 tx_aen_pkts;
+	__be32 checksum;
+};
+
+struct ncsi_rsp_gnpts_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 tx_pkts;
+	__be32 tx_dropped;
+	__be32 tx_channel_err;
+	__be32 tx_us_err;
+	__be32 rx_pkts;
+	__be32 rx_dropped;
+	__be32 rx_channel_err;
+	__be32 rx_us_err;
+	__be32 rx_os_err;
+	__be32 checksum;
+};
+
+struct ncsi_rsp_gps_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	__be32 status;
+	__be32 checksum;
+};
+
+struct ncsi_rsp_gpuuid_pkt {
+	struct ncsi_rsp_pkt_hdr rsp;
+	unsigned char uuid[16];
+	__be32 checksum;
+};
+
+struct ncsi_rsp_oem_handler {
+	unsigned int mfr_id;
+	int (*handler)(struct ncsi_request *);
+};
+
+struct ncsi_rsp_handler {
+	unsigned char type;
+	int payload;
+	int (*handler)(struct ncsi_request *);
+};
+
+struct ncsi_aen_pkt_hdr {
+	struct ncsi_pkt_hdr common;
+	unsigned char reserved2[3];
+	unsigned char type;
+};
+
+struct ncsi_aen_lsc_pkt {
+	struct ncsi_aen_pkt_hdr aen;
+	__be32 status;
+	__be32 oem_status;
+	__be32 checksum;
+	unsigned char pad[14];
+};
+
+struct ncsi_aen_hncdsc_pkt {
+	struct ncsi_aen_pkt_hdr aen;
+	__be32 status;
+	__be32 checksum;
+	unsigned char pad[18];
+};
+
+struct ncsi_aen_handler {
+	unsigned char type;
+	int payload;
+	int (*handler)(struct ncsi_dev_priv *, struct ncsi_aen_pkt_hdr *);
+};
+
+enum {
+	ncsi_dev_state_registered = 0,
+	ncsi_dev_state_functional = 256,
+	ncsi_dev_state_probe = 512,
+	ncsi_dev_state_config = 768,
+	ncsi_dev_state_suspend = 1024,
+};
+
+enum {
+	MLX_MC_RBT_SUPPORT = 1,
+	MLX_MC_RBT_AVL = 8,
+};
+
+enum {
+	ncsi_dev_state_major = 65280,
+	ncsi_dev_state_minor = 255,
+	ncsi_dev_state_probe_deselect = 513,
+	ncsi_dev_state_probe_package = 514,
+	ncsi_dev_state_probe_channel = 515,
+	ncsi_dev_state_probe_mlx_gma = 516,
+	ncsi_dev_state_probe_mlx_smaf = 517,
+	ncsi_dev_state_probe_cis = 518,
+	ncsi_dev_state_probe_keep_phy = 519,
+	ncsi_dev_state_probe_gvi = 520,
+	ncsi_dev_state_probe_gc = 521,
+	ncsi_dev_state_probe_gls = 522,
+	ncsi_dev_state_probe_dp = 523,
+	ncsi_dev_state_config_sp = 769,
+	ncsi_dev_state_config_cis = 770,
+	ncsi_dev_state_config_oem_gma = 771,
+	ncsi_dev_state_config_clear_vids = 772,
+	ncsi_dev_state_config_svf = 773,
+	ncsi_dev_state_config_ev = 774,
+	ncsi_dev_state_config_sma = 775,
+	ncsi_dev_state_config_ebf = 776,
+	ncsi_dev_state_config_dgmf = 777,
+	ncsi_dev_state_config_ecnt = 778,
+	ncsi_dev_state_config_ec = 779,
+	ncsi_dev_state_config_ae = 780,
+	ncsi_dev_state_config_gls = 781,
+	ncsi_dev_state_config_done = 782,
+	ncsi_dev_state_suspend_select = 1025,
+	ncsi_dev_state_suspend_gls = 1026,
+	ncsi_dev_state_suspend_dcnt = 1027,
+	ncsi_dev_state_suspend_dc = 1028,
+	ncsi_dev_state_suspend_deselect = 1029,
+	ncsi_dev_state_suspend_done = 1030,
+};
+
+struct vlan_vid {
+	struct list_head list;
+	__be16 proto;
+	u16 vid;
+};
+
+struct ncsi_oem_gma_handler {
+	unsigned int mfr_id;
+	int (*handler)(struct ncsi_cmd_arg *);
+};
+
+enum ncsi_nl_commands {
+	NCSI_CMD_UNSPEC = 0,
+	NCSI_CMD_PKG_INFO = 1,
+	NCSI_CMD_SET_INTERFACE = 2,
+	NCSI_CMD_CLEAR_INTERFACE = 3,
+	NCSI_CMD_SEND_CMD = 4,
+	NCSI_CMD_SET_PACKAGE_MASK = 5,
+	NCSI_CMD_SET_CHANNEL_MASK = 6,
+	__NCSI_CMD_AFTER_LAST = 7,
+	NCSI_CMD_MAX = 6,
+};
+
+enum ncsi_nl_attrs {
+	NCSI_ATTR_UNSPEC = 0,
+	NCSI_ATTR_IFINDEX = 1,
+	NCSI_ATTR_PACKAGE_LIST = 2,
+	NCSI_ATTR_PACKAGE_ID = 3,
+	NCSI_ATTR_CHANNEL_ID = 4,
+	NCSI_ATTR_DATA = 5,
+	NCSI_ATTR_MULTI_FLAG = 6,
+	NCSI_ATTR_PACKAGE_MASK = 7,
+	NCSI_ATTR_CHANNEL_MASK = 8,
+	__NCSI_ATTR_AFTER_LAST = 9,
+	NCSI_ATTR_MAX = 8,
+};
+
+enum ncsi_nl_pkg_attrs {
+	NCSI_PKG_ATTR_UNSPEC = 0,
+	NCSI_PKG_ATTR = 1,
+	NCSI_PKG_ATTR_ID = 2,
+	NCSI_PKG_ATTR_FORCED = 3,
+	NCSI_PKG_ATTR_CHANNEL_LIST = 4,
+	__NCSI_PKG_ATTR_AFTER_LAST = 5,
+	NCSI_PKG_ATTR_MAX = 4,
+};
+
+enum ncsi_nl_channel_attrs {
+	NCSI_CHANNEL_ATTR_UNSPEC = 0,
+	NCSI_CHANNEL_ATTR = 1,
+	NCSI_CHANNEL_ATTR_ID = 2,
+	NCSI_CHANNEL_ATTR_VERSION_MAJOR = 3,
+	NCSI_CHANNEL_ATTR_VERSION_MINOR = 4,
+	NCSI_CHANNEL_ATTR_VERSION_STR = 5,
+	NCSI_CHANNEL_ATTR_LINK_STATE = 6,
+	NCSI_CHANNEL_ATTR_ACTIVE = 7,
+	NCSI_CHANNEL_ATTR_FORCED = 8,
+	NCSI_CHANNEL_ATTR_VLAN_LIST = 9,
+	NCSI_CHANNEL_ATTR_VLAN_ID = 10,
+	__NCSI_CHANNEL_ATTR_AFTER_LAST = 11,
+	NCSI_CHANNEL_ATTR_MAX = 10,
+};
+
+struct sockaddr_xdp {
+	__u16 sxdp_family;
+	__u16 sxdp_flags;
+	__u32 sxdp_ifindex;
+	__u32 sxdp_queue_id;
+	__u32 sxdp_shared_umem_fd;
+};
+
+struct xdp_ring_offset {
+	__u64 producer;
+	__u64 consumer;
+	__u64 desc;
+	__u64 flags;
+};
+
+struct xdp_mmap_offsets {
+	struct xdp_ring_offset rx;
+	struct xdp_ring_offset tx;
+	struct xdp_ring_offset fr;
+	struct xdp_ring_offset cr;
+};
+
+struct xdp_umem_reg {
+	__u64 addr;
+	__u64 len;
+	__u32 chunk_size;
+	__u32 headroom;
+	__u32 flags;
+};
+
+struct xdp_statistics {
+	__u64 rx_dropped;
+	__u64 rx_invalid_descs;
+	__u64 tx_invalid_descs;
+	__u64 rx_ring_full;
+	__u64 rx_fill_ring_empty_descs;
+	__u64 tx_ring_empty_descs;
+};
+
+struct xdp_options {
+	__u32 flags;
+};
+
+struct xsk_map {
+	struct bpf_map map;
+	spinlock_t lock;
+	struct xdp_sock *xsk_map[0];
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct xdp_ring;
+
+struct xsk_queue {
+	u32 ring_mask;
+	u32 nentries;
+	u32 cached_prod;
+	u32 cached_cons;
+	struct xdp_ring *ring;
+	u64 invalid_descs;
+	u64 queue_empty_descs;
+};
+
+struct xdp_ring_offset_v1 {
+	__u64 producer;
+	__u64 consumer;
+	__u64 desc;
+};
+
+struct xdp_mmap_offsets_v1 {
+	struct xdp_ring_offset_v1 rx;
+	struct xdp_ring_offset_v1 tx;
+	struct xdp_ring_offset_v1 fr;
+	struct xdp_ring_offset_v1 cr;
+};
+
+struct xsk_map_node {
+	struct list_head node;
+	struct xsk_map *map;
+	struct xdp_sock **map_entry;
+};
+
+struct xdp_ring {
+	u32 producer;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 pad1;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 consumer;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 pad2;
+	u32 flags;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	u32 pad3;
+	long: 32;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+	long: 64;
+};
+
+struct xdp_rxtx_ring {
+	struct xdp_ring ptrs;
+	struct xdp_desc desc[0];
+};
+
+struct xdp_umem_ring {
+	struct xdp_ring ptrs;
+	u64 desc[0];
+};
+
+struct xsk_dma_map {
+	dma_addr_t *dma_pages;
+	struct device *dev;
+	struct net_device *netdev;
+	refcount_t users;
+	struct list_head list;
+	u32 dma_pages_cnt;
+	bool dma_need_sync;
+};
+
+struct mptcp_mib {
+	long unsigned int mibs[52];
+};
+
+enum mptcp_event_type {
+	MPTCP_EVENT_UNSPEC = 0,
+	MPTCP_EVENT_CREATED = 1,
+	MPTCP_EVENT_ESTABLISHED = 2,
+	MPTCP_EVENT_CLOSED = 3,
+	MPTCP_EVENT_ANNOUNCED = 6,
+	MPTCP_EVENT_REMOVED = 7,
+	MPTCP_EVENT_SUB_ESTABLISHED = 10,
+	MPTCP_EVENT_SUB_CLOSED = 11,
+	MPTCP_EVENT_SUB_PRIORITY = 13,
+};
+
+struct mptcp_options_received {
+	u64 sndr_key;
+	u64 rcvr_key;
+	u64 data_ack;
+	u64 data_seq;
+	u32 subflow_seq;
+	u16 data_len;
+	__sum16 csum;
+	u16 suboptions;
+	u32 token;
+	u32 nonce;
+	u16 use_map: 1;
+	u16 dsn64: 1;
+	u16 data_fin: 1;
+	u16 use_ack: 1;
+	u16 ack64: 1;
+	u16 mpc_map: 1;
+	u16 reset_reason: 4;
+	u16 reset_transient: 1;
+	u16 echo: 1;
+	u16 backup: 1;
+	u16 deny_join_id0: 1;
+	u16 __unused: 2;
+	u8 join_id;
+	u64 thmac;
+	u8 hmac[20];
+	struct mptcp_addr_info addr;
+	struct mptcp_rm_list rm_list;
+	u64 ahmac;
+	u64 fail_seq;
+};
+
+struct mptcp_pm_data {
+	struct mptcp_addr_info local;
+	struct mptcp_addr_info remote;
+	struct list_head anno_list;
+	struct list_head userspace_pm_local_addr_list;
+	spinlock_t lock;
+	u8 addr_signal;
+	bool server_side;
+	bool work_pending;
+	bool accept_addr;
+	bool accept_subflow;
+	bool remote_deny_join_id0;
+	u8 add_addr_signaled;
+	u8 add_addr_accepted;
+	u8 local_addr_used;
+	u8 pm_type;
+	u8 subflows;
+	u8 status;
+	long unsigned int id_avail_bitmap[4];
+	struct mptcp_rm_list rm_list_tx;
+	struct mptcp_rm_list rm_list_rx;
+};
+
+struct mptcp_data_frag {
+	struct list_head list;
+	u64 data_seq;
+	u16 data_len;
+	u16 offset;
+	u16 overhead;
+	u16 already_sent;
+	struct page *page;
+};
+
+struct mptcp_sock {
+	struct inet_connection_sock sk;
+	u64 local_key;
+	u64 remote_key;
+	u64 write_seq;
+	u64 snd_nxt;
+	u64 ack_seq;
+	atomic64_t rcv_wnd_sent;
+	u64 rcv_data_fin_seq;
+	int rmem_fwd_alloc;
+	struct sock *last_snd;
+	int snd_burst;
+	int old_wspace;
+	u64 recovery_snd_nxt;
+	u64 snd_una;
+	u64 wnd_end;
+	long unsigned int timer_ival;
+	u32 token;
+	int rmem_released;
+	long unsigned int flags;
+	long unsigned int cb_flags;
+	long unsigned int push_pending;
+	bool recovery;
+	bool can_ack;
+	bool fully_established;
+	bool rcv_data_fin;
+	bool snd_data_fin_enable;
+	bool rcv_fastclose;
+	bool use_64bit_ack;
+	bool csum_enabled;
+	bool allow_infinite_fallback;
+	u8 recvmsg_inq: 1;
+	u8 cork: 1;
+	u8 nodelay: 1;
+	struct work_struct work;
+	struct sk_buff *ooo_last_skb;
+	struct rb_root out_of_order_queue;
+	struct sk_buff_head receive_queue;
+	struct list_head conn_list;
+	struct list_head rtx_queue;
+	struct mptcp_data_frag *first_pending;
+	struct list_head join_list;
+	struct socket *subflow;
+	struct sock *first;
+	struct mptcp_pm_data pm;
+	struct {
+		u32 space;
+		u32 copied;
+		u64 time;
+		u64 rtt_us;
+	} rcvq_space;
+	u32 setsockopt_seq;
+	char ca_name[16];
+};
+
+struct mptcp_subflow_request_sock {
+	struct tcp_request_sock sk;
+	u16 mp_capable: 1;
+	u16 mp_join: 1;
+	u16 backup: 1;
+	u16 csum_reqd: 1;
+	u16 allow_join_id0: 1;
+	u8 local_id;
+	u8 remote_id;
+	u64 local_key;
+	u64 idsn;
+	u32 token;
+	u32 ssn_offset;
+	u64 thmac;
+	u32 local_nonce;
+	u32 remote_nonce;
+	struct mptcp_sock *msk;
+	struct hlist_nulls_node token_node;
+};
+
+enum mptcp_data_avail {
+	MPTCP_SUBFLOW_NODATA = 0,
+	MPTCP_SUBFLOW_DATA_AVAIL = 1,
+};
+
+struct mptcp_delegated_action {
+	struct napi_struct napi;
+	struct list_head head;
+};
+
+struct mptcp_subflow_context {
+	struct list_head node;
+	union {
+		struct {
+			long unsigned int avg_pacing_rate;
+			u64 local_key;
+			u64 remote_key;
+			u64 idsn;
+			u64 map_seq;
+			u32 snd_isn;
+			u32 token;
+			u32 rel_write_seq;
+			u32 map_subflow_seq;
+			u32 ssn_offset;
+			u32 map_data_len;
+			__wsum map_data_csum;
+			u32 map_csum_len;
+			u32 request_mptcp: 1;
+			u32 request_join: 1;
+			u32 request_bkup: 1;
+			u32 mp_capable: 1;
+			u32 mp_join: 1;
+			u32 fully_established: 1;
+			u32 pm_notified: 1;
+			u32 conn_finished: 1;
+			u32 map_valid: 1;
+			u32 map_csum_reqd: 1;
+			u32 map_data_fin: 1;
+			u32 mpc_map: 1;
+			u32 backup: 1;
+			u32 send_mp_prio: 1;
+			u32 send_mp_fail: 1;
+			u32 send_fastclose: 1;
+			u32 send_infinite_map: 1;
+			u32 rx_eof: 1;
+			u32 can_ack: 1;
+			u32 disposable: 1;
+			u32 stale: 1;
+			u32 local_id_valid: 1;
+			u32 valid_csum_seen: 1;
+			enum mptcp_data_avail data_avail;
+			bool mp_fail_response_expect;
+			u32 remote_nonce;
+			u64 thmac;
+			u32 local_nonce;
+			u32 remote_token;
+			u8 hmac[20];
+			u8 local_id;
+			u8 remote_id;
+			u8 reset_seen: 1;
+			u8 reset_transient: 1;
+			u8 reset_reason: 4;
+			u8 stale_count;
+			long int delegated_status;
+		};
+		struct {
+			long unsigned int avg_pacing_rate;
+			u64 local_key;
+			u64 remote_key;
+			u64 idsn;
+			u64 map_seq;
+			u32 snd_isn;
+			u32 token;
+			u32 rel_write_seq;
+			u32 map_subflow_seq;
+			u32 ssn_offset;
+			u32 map_data_len;
+			__wsum map_data_csum;
+			u32 map_csum_len;
+			u32 request_mptcp: 1;
+			u32 request_join: 1;
+			u32 request_bkup: 1;
+			u32 mp_capable: 1;
+			u32 mp_join: 1;
+			u32 fully_established: 1;
+			u32 pm_notified: 1;
+			u32 conn_finished: 1;
+			u32 map_valid: 1;
+			u32 map_csum_reqd: 1;
+			u32 map_data_fin: 1;
+			u32 mpc_map: 1;
+			u32 backup: 1;
+			u32 send_mp_prio: 1;
+			u32 send_mp_fail: 1;
+			u32 send_fastclose: 1;
+			u32 send_infinite_map: 1;
+			u32 rx_eof: 1;
+			u32 can_ack: 1;
+			u32 disposable: 1;
+			u32 stale: 1;
+			u32 local_id_valid: 1;
+			u32 valid_csum_seen: 1;
+			enum mptcp_data_avail data_avail;
+			bool mp_fail_response_expect;
+			u32 remote_nonce;
+			u64 thmac;
+			u32 local_nonce;
+			u32 remote_token;
+			u8 hmac[20];
+			u8 local_id;
+			u8 remote_id;
+			u8 reset_seen: 1;
+			u8 reset_transient: 1;
+			u8 reset_reason: 4;
+			u8 stale_count;
+			long int delegated_status;
+		} reset;
+	};
+	struct list_head delegated_node;
+	u32 setsockopt_seq;
+	u32 stale_rcv_tstamp;
+	struct sock *tcp_sock;
+	struct sock *conn;
+	const struct inet_connection_sock_af_ops *icsk_af_ops;
+	void (*tcp_state_change)(struct sock *);
+	void (*tcp_error_report)(struct sock *);
+	struct callback_head rcu;
+};
+
+enum linux_mptcp_mib_field {
+	MPTCP_MIB_NUM = 0,
+	MPTCP_MIB_MPCAPABLEPASSIVE = 1,
+	MPTCP_MIB_MPCAPABLEACTIVE = 2,
+	MPTCP_MIB_MPCAPABLEACTIVEACK = 3,
+	MPTCP_MIB_MPCAPABLEPASSIVEACK = 4,
+	MPTCP_MIB_MPCAPABLEPASSIVEFALLBACK = 5,
+	MPTCP_MIB_MPCAPABLEACTIVEFALLBACK = 6,
+	MPTCP_MIB_TOKENFALLBACKINIT = 7,
+	MPTCP_MIB_RETRANSSEGS = 8,
+	MPTCP_MIB_JOINNOTOKEN = 9,
+	MPTCP_MIB_JOINSYNRX = 10,
+	MPTCP_MIB_JOINSYNACKRX = 11,
+	MPTCP_MIB_JOINSYNACKMAC = 12,
+	MPTCP_MIB_JOINACKRX = 13,
+	MPTCP_MIB_JOINACKMAC = 14,
+	MPTCP_MIB_DSSNOMATCH = 15,
+	MPTCP_MIB_INFINITEMAPTX = 16,
+	MPTCP_MIB_INFINITEMAPRX = 17,
+	MPTCP_MIB_DSSTCPMISMATCH = 18,
+	MPTCP_MIB_DATACSUMERR = 19,
+	MPTCP_MIB_OFOQUEUETAIL = 20,
+	MPTCP_MIB_OFOQUEUE = 21,
+	MPTCP_MIB_OFOMERGE = 22,
+	MPTCP_MIB_NODSSWINDOW = 23,
+	MPTCP_MIB_DUPDATA = 24,
+	MPTCP_MIB_ADDADDR = 25,
+	MPTCP_MIB_ECHOADD = 26,
+	MPTCP_MIB_PORTADD = 27,
+	MPTCP_MIB_ADDADDRDROP = 28,
+	MPTCP_MIB_JOINPORTSYNRX = 29,
+	MPTCP_MIB_JOINPORTSYNACKRX = 30,
+	MPTCP_MIB_JOINPORTACKRX = 31,
+	MPTCP_MIB_MISMATCHPORTSYNRX = 32,
+	MPTCP_MIB_MISMATCHPORTACKRX = 33,
+	MPTCP_MIB_RMADDR = 34,
+	MPTCP_MIB_RMADDRDROP = 35,
+	MPTCP_MIB_RMSUBFLOW = 36,
+	MPTCP_MIB_MPPRIOTX = 37,
+	MPTCP_MIB_MPPRIORX = 38,
+	MPTCP_MIB_MPFAILTX = 39,
+	MPTCP_MIB_MPFAILRX = 40,
+	MPTCP_MIB_MPFASTCLOSETX = 41,
+	MPTCP_MIB_MPFASTCLOSERX = 42,
+	MPTCP_MIB_MPRSTTX = 43,
+	MPTCP_MIB_MPRSTRX = 44,
+	MPTCP_MIB_RCVPRUNED = 45,
+	MPTCP_MIB_SUBFLOWSTALE = 46,
+	MPTCP_MIB_SUBFLOWRECOVER = 47,
+	MPTCP_MIB_SNDWNDSHARED = 48,
+	MPTCP_MIB_RCVWNDSHARED = 49,
+	MPTCP_MIB_RCVWNDCONFLICTUPDATE = 50,
+	MPTCP_MIB_RCVWNDCONFLICT = 51,
+	__MPTCP_MIB_MAX = 52,
+};
+
+struct trace_event_raw_mptcp_subflow_get_send {
+	struct trace_entry ent;
+	bool active;
+	bool free;
+	u32 snd_wnd;
+	u32 pace;
+	u8 backup;
+	u64 ratio;
+	char __data[0];
+};
+
+struct trace_event_raw_mptcp_dump_mpext {
+	struct trace_entry ent;
+	u64 data_ack;
+	u64 data_seq;
+	u32 subflow_seq;
+	u16 data_len;
+	u16 csum;
+	u8 use_map;
+	u8 dsn64;
+	u8 data_fin;
+	u8 use_ack;
+	u8 ack64;
+	u8 mpc_map;
+	u8 frozen;
+	u8 reset_transient;
+	u8 reset_reason;
+	u8 csum_reqd;
+	u8 infinite_map;
+	char __data[0];
+};
+
+struct trace_event_raw_ack_update_msk {
+	struct trace_entry ent;
+	u64 data_ack;
+	u64 old_snd_una;
+	u64 new_snd_una;
+	u64 new_wnd_end;
+	u64 msk_wnd_end;
+	char __data[0];
+};
+
+struct trace_event_raw_subflow_check_data_avail {
+	struct trace_entry ent;
+	u8 status;
+	const void *skb;
+	char __data[0];
+};
+
+struct trace_event_data_offsets_mptcp_subflow_get_send {};
+
+struct trace_event_data_offsets_mptcp_dump_mpext {};
+
+struct trace_event_data_offsets_ack_update_msk {};
+
+struct trace_event_data_offsets_subflow_check_data_avail {};
+
+typedef void (*btf_trace_mptcp_subflow_get_send)(void *, struct mptcp_subflow_context *);
+
+typedef void (*btf_trace_mptcp_sendmsg_frag)(void *, struct mptcp_ext *);
+
+typedef void (*btf_trace_get_mapping_status)(void *, struct mptcp_ext *);
+
+typedef void (*btf_trace_ack_update_msk)(void *, u64, u64, u64, u64, u64);
+
+typedef void (*btf_trace_subflow_check_data_avail)(void *, __u8, struct sk_buff *);
+
+struct mptcp_skb_cb {
+	u64 map_seq;
+	u64 end_seq;
+	u32 offset;
+	u8 has_rxtstamp: 1;
+};
+
+enum {
+	MPTCP_CMSG_TS = 1,
+	MPTCP_CMSG_INQ = 2,
+};
+
+struct mptcp_sendmsg_info {
+	int mss_now;
+	int size_goal;
+	u16 limit;
+	u16 sent;
+	unsigned int flags;
+	bool data_lock_held;
+};
+
+struct subflow_send_info {
+	struct sock *ssk;
+	u64 linger_time;
+};
+
+enum mptcp_pm_type {
+	MPTCP_PM_TYPE_KERNEL = 0,
+	MPTCP_PM_TYPE_USERSPACE = 1,
+	__MPTCP_PM_TYPE_NR = 2,
+	__MPTCP_PM_TYPE_MAX = 1,
+};
+
+enum mapping_status {
+	MAPPING_OK = 0,
+	MAPPING_INVALID = 1,
+	MAPPING_EMPTY = 2,
+	MAPPING_DATA_FIN = 3,
+	MAPPING_DUMMY = 4,
+};
+
+enum mptcp_addr_signal_status {
+	MPTCP_ADD_ADDR_SIGNAL = 0,
+	MPTCP_ADD_ADDR_ECHO = 1,
+	MPTCP_RM_ADDR_SIGNAL = 2,
+};
+
+struct csum_pseudo_header {
+	__be64 data_seq;
+	__be32 subflow_seq;
+	__be16 data_len;
+	__sum16 csum;
+};
+
+struct token_bucket {
+	spinlock_t lock;
+	int chain_len;
+	struct hlist_nulls_head req_chain;
+	struct hlist_nulls_head msk_chain;
+};
+
+struct mptcp_pernet {
+	struct ctl_table_header *ctl_table_hdr;
+	unsigned int add_addr_timeout;
+	unsigned int stale_loss_cnt;
+	u8 mptcp_enabled;
+	u8 checksum_enabled;
+	u8 allow_join_initial_addr_port;
+	u8 pm_type;
+};
+
+enum mptcp_pm_status {
+	MPTCP_PM_ADD_ADDR_RECEIVED = 0,
+	MPTCP_PM_ADD_ADDR_SEND_ACK = 1,
+	MPTCP_PM_RM_ADDR_RECEIVED = 2,
+	MPTCP_PM_ESTABLISHED = 3,
+	MPTCP_PM_SUBFLOW_ESTABLISHED = 4,
+	MPTCP_PM_ALREADY_ESTABLISHED = 5,
+	MPTCP_PM_MPC_ENDPOINT_ACCOUNTED = 6,
+};
+
+enum {
+	INET_ULP_INFO_UNSPEC = 0,
+	INET_ULP_INFO_NAME = 1,
+	INET_ULP_INFO_TLS = 2,
+	INET_ULP_INFO_MPTCP = 3,
+	__INET_ULP_INFO_MAX = 4,
+};
+
+enum {
+	MPTCP_SUBFLOW_ATTR_UNSPEC = 0,
+	MPTCP_SUBFLOW_ATTR_TOKEN_REM = 1,
+	MPTCP_SUBFLOW_ATTR_TOKEN_LOC = 2,
+	MPTCP_SUBFLOW_ATTR_RELWRITE_SEQ = 3,
+	MPTCP_SUBFLOW_ATTR_MAP_SEQ = 4,
+	MPTCP_SUBFLOW_ATTR_MAP_SFSEQ = 5,
+	MPTCP_SUBFLOW_ATTR_SSN_OFFSET = 6,
+	MPTCP_SUBFLOW_ATTR_MAP_DATALEN = 7,
+	MPTCP_SUBFLOW_ATTR_FLAGS = 8,
+	MPTCP_SUBFLOW_ATTR_ID_REM = 9,
+	MPTCP_SUBFLOW_ATTR_ID_LOC = 10,
+	MPTCP_SUBFLOW_ATTR_PAD = 11,
+	__MPTCP_SUBFLOW_ATTR_MAX = 12,
+};
+
+enum {
+	MPTCP_PM_ATTR_UNSPEC = 0,
+	MPTCP_PM_ATTR_ADDR = 1,
+	MPTCP_PM_ATTR_RCV_ADD_ADDRS = 2,
+	MPTCP_PM_ATTR_SUBFLOWS = 3,
+	MPTCP_PM_ATTR_TOKEN = 4,
+	MPTCP_PM_ATTR_LOC_ID = 5,
+	MPTCP_PM_ATTR_ADDR_REMOTE = 6,
+	__MPTCP_PM_ATTR_MAX = 7,
+};
+
+enum {
+	MPTCP_PM_ADDR_ATTR_UNSPEC = 0,
+	MPTCP_PM_ADDR_ATTR_FAMILY = 1,
+	MPTCP_PM_ADDR_ATTR_ID = 2,
+	MPTCP_PM_ADDR_ATTR_ADDR4 = 3,
+	MPTCP_PM_ADDR_ATTR_ADDR6 = 4,
+	MPTCP_PM_ADDR_ATTR_PORT = 5,
+	MPTCP_PM_ADDR_ATTR_FLAGS = 6,
+	MPTCP_PM_ADDR_ATTR_IF_IDX = 7,
+	__MPTCP_PM_ADDR_ATTR_MAX = 8,
+};
+
+enum {
+	MPTCP_PM_CMD_UNSPEC = 0,
+	MPTCP_PM_CMD_ADD_ADDR = 1,
+	MPTCP_PM_CMD_DEL_ADDR = 2,
+	MPTCP_PM_CMD_GET_ADDR = 3,
+	MPTCP_PM_CMD_FLUSH_ADDRS = 4,
+	MPTCP_PM_CMD_SET_LIMITS = 5,
+	MPTCP_PM_CMD_GET_LIMITS = 6,
+	MPTCP_PM_CMD_SET_FLAGS = 7,
+	MPTCP_PM_CMD_ANNOUNCE = 8,
+	MPTCP_PM_CMD_REMOVE = 9,
+	MPTCP_PM_CMD_SUBFLOW_CREATE = 10,
+	MPTCP_PM_CMD_SUBFLOW_DESTROY = 11,
+	__MPTCP_PM_CMD_AFTER_LAST = 12,
+};
+
+enum mptcp_event_attr {
+	MPTCP_ATTR_UNSPEC = 0,
+	MPTCP_ATTR_TOKEN = 1,
+	MPTCP_ATTR_FAMILY = 2,
+	MPTCP_ATTR_LOC_ID = 3,
+	MPTCP_ATTR_REM_ID = 4,
+	MPTCP_ATTR_SADDR4 = 5,
+	MPTCP_ATTR_SADDR6 = 6,
+	MPTCP_ATTR_DADDR4 = 7,
+	MPTCP_ATTR_DADDR6 = 8,
+	MPTCP_ATTR_SPORT = 9,
+	MPTCP_ATTR_DPORT = 10,
+	MPTCP_ATTR_BACKUP = 11,
+	MPTCP_ATTR_ERROR = 12,
+	MPTCP_ATTR_FLAGS = 13,
+	MPTCP_ATTR_TIMEOUT = 14,
+	MPTCP_ATTR_IF_IDX = 15,
+	MPTCP_ATTR_RESET_REASON = 16,
+	MPTCP_ATTR_RESET_FLAGS = 17,
+	MPTCP_ATTR_SERVER_SIDE = 18,
+	__MPTCP_ATTR_AFTER_LAST = 19,
+};
+
+struct mptcp_pm_addr_entry {
+	struct list_head list;
+	struct mptcp_addr_info addr;
+	u8 flags;
+	int ifindex;
+	struct socket *lsk;
+};
+
+struct mptcp_pm_add_entry {
+	struct list_head list;
+	struct mptcp_addr_info addr;
+	struct timer_list add_timer;
+	struct mptcp_sock *sock;
+	u8 retrans_times;
+};
+
+struct pm_nl_pernet {
+	spinlock_t lock;
+	struct list_head local_addr_list;
+	unsigned int addrs;
+	unsigned int stale_loss_cnt;
+	unsigned int add_addr_signal_max;
+	unsigned int add_addr_accept_max;
+	unsigned int local_addr_max;
+	unsigned int subflows_max;
+	unsigned int next_id;
+	long unsigned int id_bitmap[4];
+};
+
+struct mptcp_info {
+	__u8 mptcpi_subflows;
+	__u8 mptcpi_add_addr_signal;
+	__u8 mptcpi_add_addr_accepted;
+	__u8 mptcpi_subflows_max;
+	__u8 mptcpi_add_addr_signal_max;
+	__u8 mptcpi_add_addr_accepted_max;
+	__u32 mptcpi_flags;
+	__u32 mptcpi_token;
+	__u64 mptcpi_write_seq;
+	__u64 mptcpi_snd_una;
+	__u64 mptcpi_rcv_nxt;
+	__u8 mptcpi_local_addr_used;
+	__u8 mptcpi_local_addr_max;
+	__u8 mptcpi_csum_enabled;
+};
+
+struct mptcp_subflow_data {
+	__u32 size_subflow_data;
+	__u32 num_subflows;
+	__u32 size_kernel;
+	__u32 size_user;
+};
+
+struct mptcp_subflow_addrs {
+	union {
+		__kernel_sa_family_t sa_family;
+		struct sockaddr sa_local;
+		struct sockaddr_in sin_local;
+		struct sockaddr_in6 sin6_local;
+		struct __kernel_sockaddr_storage ss_local;
+	};
+	union {
+		struct sockaddr sa_remote;
+		struct sockaddr_in sin_remote;
+		struct sockaddr_in6 sin6_remote;
+		struct __kernel_sockaddr_storage ss_remote;
+	};
+};
+
+struct join_entry {
+	u32 token;
+	u32 remote_nonce;
+	u32 local_nonce;
+	u8 join_id;
+	u8 local_id;
+	u8 backup;
+	u8 valid;
+};
+
+struct pcibios_fwaddrmap {
+	struct list_head list;
+	struct pci_dev *dev;
+	resource_size_t fw_addr[17];
+};
+
+struct pci_check_idx_range {
+	int start;
+	int end;
+};
+
+struct pci_raw_ops {
+	int (*read)(unsigned int, unsigned int, unsigned int, int, int, u32 *);
+	int (*write)(unsigned int, unsigned int, unsigned int, int, int, u32);
+};
+
+struct acpi_table_mcfg {
+	struct acpi_table_header header;
+	u8 reserved[8];
+};
+
+struct acpi_mcfg_allocation {
+	u64 address;
+	u16 pci_segment;
+	u8 start_bus_number;
+	u8 end_bus_number;
+	u32 reserved;
+};
+
+struct pci_mmcfg_hostbridge_probe {
+	u32 bus;
+	u32 devfn;
+	u32 vendor;
+	u32 device;
+	const char * (*probe)();
+};
+
+typedef bool (*check_reserved_t)(u64, u64, enum e820_type);
+
+struct physdev_restore_msi {
+	uint8_t bus;
+	uint8_t devfn;
+};
+
+struct physdev_setup_gsi {
+	int gsi;
+	uint8_t triggering;
+	uint8_t polarity;
+};
+
+struct xen_pci_frontend_ops {
+	int (*enable_msi)(struct pci_dev *, int *);
+	void (*disable_msi)(struct pci_dev *);
+	int (*enable_msix)(struct pci_dev *, int *, int);
+	void (*disable_msix)(struct pci_dev *);
+};
+
+struct xen_msi_ops {
+	int (*setup_msi_irqs)(struct pci_dev *, int, int);
+	void (*teardown_msi_irqs)(struct pci_dev *);
+};
+
+struct pci_root_info {
+	struct acpi_pci_root_info common;
+	struct pci_sysdata sd;
+	bool mcfg_added;
+	u8 start_bus;
+	u8 end_bus;
+};
+
+struct irq_info___3 {
+	u8 bus;
+	u8 devfn;
+	struct {
+		u8 link;
+		u16 bitmap;
+	} __attribute__((packed)) irq[4];
+	u8 slot;
+	u8 rfu;
+};
+
+struct irq_routing_table {
+	u32 signature;
+	u16 version;
+	u16 size;
+	u8 rtr_bus;
+	u8 rtr_devfn;
+	u16 exclusive_irqs;
+	u16 rtr_vendor;
+	u16 rtr_device;
+	u32 miniport_data;
+	u8 rfu[11];
+	u8 checksum;
+	struct irq_info___3 slots[0];
+};
+
+struct irt_routing_table {
+	u32 signature;
+	u8 size;
+	u8 used;
+	u16 exclusive_irqs;
+	struct irq_info___3 slots[0];
+};
+
+struct irq_router {
+	char *name;
+	u16 vendor;
+	u16 device;
+	int (*get)(struct pci_dev *, struct pci_dev *, int);
+	int (*set)(struct pci_dev *, struct pci_dev *, int, int);
+	int (*lvl)(struct pci_dev *, struct pci_dev *, int, int);
+};
+
+struct irq_router_handler {
+	u16 vendor;
+	int (*probe)(struct irq_router *, struct pci_dev *, u16);
+};
+
+struct pci_setup_rom {
+	struct setup_data data;
+	uint16_t vendor;
+	uint16_t devid;
+	uint64_t pcilen;
+	long unsigned int segment;
+	long unsigned int bus;
+	long unsigned int device;
+	long unsigned int function;
+	uint8_t romdata[0];
+};
+
+enum pci_bf_sort_state {
+	pci_bf_sort_default = 0,
+	pci_force_nobf = 1,
+	pci_force_bf = 2,
+	pci_dmi_bf = 3,
+};
+
+struct pci_root_res {
+	struct list_head list;
+	struct resource res;
+};
+
+struct pci_root_info___2 {
+	struct list_head list;
+	char name[12];
+	struct list_head resources;
+	struct resource busn;
+	int node;
+	int link;
+};
+
+struct amd_hostbridge {
+	u32 bus;
+	u32 slot;
+	u32 device;
+};
+
+struct saved_msr {
+	bool valid;
+	struct msr_info info;
+};
+
+struct saved_msrs {
+	unsigned int num;
+	struct saved_msr *array;
+};
+
+struct saved_context {
+	struct pt_regs regs;
+	u16 ds;
+	u16 es;
+	u16 fs;
+	u16 gs;
+	long unsigned int kernelmode_gs_base;
+	long unsigned int usermode_gs_base;
+	long unsigned int fs_base;
+	long unsigned int cr0;
+	long unsigned int cr2;
+	long unsigned int cr3;
+	long unsigned int cr4;
+	u64 misc_enable;
+	struct saved_msrs saved_msrs;
+	long unsigned int efer;
+	u16 gdt_pad;
+	struct desc_ptr gdt_desc;
+	u16 idt_pad;
+	struct desc_ptr idt;
+	u16 ldt;
+	u16 tss;
+	long unsigned int tr;
+	long unsigned int safety;
+	long unsigned int return_address;
+	bool misc_enable_saved;
+} __attribute__((packed));
+
+typedef int (*pm_cpu_match_t)(const struct x86_cpu_id *);
+
+struct restore_data_record {
+	long unsigned int jump_address;
+	long unsigned int jump_address_phys;
+	long unsigned int cr3;
+	long unsigned int magic;
+	long unsigned int e820_checksum;
+};
+
+#ifndef BPF_NO_PRESERVE_ACCESS_INDEX
+#pragma clang attribute pop
+#endif
+
+#endif /* __VMLINUX_H__ */
