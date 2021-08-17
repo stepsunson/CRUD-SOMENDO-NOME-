@@ -56,4 +56,34 @@ Output in json.
 Enable debug output.
 .TP
 DEV
-Target block dev
+Target block device. /dev/DEVNAME, DEVNAME or MAJ:MIN.
+.SH EXAMPLES
+.TP
+Print sda's I/O latency percentiles every second
+#
+.B biolatpcts \-i 1 sda
+.TP
+Print nvme0n1's all-9 I/O latency percentiles in json every second
+#
+.B biolatpcts \-p 99,99.9,99.99,99.999 \-j \-i 1 /dev/nvme0n1
+.SH OVERHEAD
+This traces kernel functions and maintains in-kernel per-cpu latency buckets,
+which are asynchronously copied to user-space. This method is very efficient,
+and the overhead for most storage I/O rates should be negligible. If you have
+an extremely high IOPS storage device, test and quantify the overhead before
+use.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Tejun Heo
+.SH SEE ALSO
+biolatency(8), biosnoop(8)
