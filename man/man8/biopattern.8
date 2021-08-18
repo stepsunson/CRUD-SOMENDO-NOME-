@@ -56,4 +56,23 @@ COUNT
 Number of I/O during the interval.
 .TP
 KBYTES
-Total K
+Total Kbytes for these I/O, during the interval.
+.SH OVERHEAD
+Since block device I/O usually has a relatively low frequency (< 10,000/s),
+the overhead for this tool is expected to be low or negligible. For high IOPS
+storage systems, test and quantify before use.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Rocky Xing
+.SH SEE ALSO
+biosnoop(8), biolatency(8), iostat(1)
