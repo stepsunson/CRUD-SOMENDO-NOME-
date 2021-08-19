@@ -46,4 +46,48 @@ TIME(s)
 Time of the I/O completion, in seconds since the first I/O was seen.
 .TP
 COMM
-Cached pr
+Cached process name, if present. This usually (but isn't guaranteed) to identify
+the responsible process for the I/O.
+.TP
+PID
+Cached process ID, if present. This usually (but isn't guaranteed) to identify
+the responsible process for the I/O.
+.TP
+DISK
+Disk device name.
+.TP
+T
+Type of I/O: R = read, W = write. This is a simplification.
+.TP
+SECTOR
+Device sector for the I/O.
+.TP
+BYTES
+Size of the I/O, in bytes.
+.TP
+QUE(ms)
+Time the I/O was queued in the OS before being issued to the device,
+in milliseconds.
+.TP
+LAT(ms)
+Time for the I/O (latency) from the issue to the device, to its completion,
+in milliseconds.
+.SH OVERHEAD
+Since block device I/O usually has a relatively low frequency (< 10,000/s),
+the overhead for this tool is expected to be negligible. For high IOPS storage
+systems, test and quantify before use.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg, Rocky Xing
+.SH SEE ALSO
+disksnoop(8), iostat(1)
