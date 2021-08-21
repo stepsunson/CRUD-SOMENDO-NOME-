@@ -72,3 +72,27 @@ Write hit percent of page cache usage.
 .TP
 BUFFERS_MB
 Buffers size taken from /proc/meminfo.
+.TP
+CACHED_MB
+Cached amount of data in current page cache taken from /proc/meminfo.
+.SH OVERHEAD
+This traces various kernel page cache functions and maintains in-kernel counts, which
+are asynchronously copied to user-space. While the rate of operations can
+be very high (>1G/sec) we can have up to 34% overhead, this is still a relatively efficient way to trace
+these events, and so the overhead is expected to be small for normal workloads.
+Measure in a test environment.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Emmanuel Bretelle, Rocky Xing
+.SH SEE ALSO
+cachestat (8)
