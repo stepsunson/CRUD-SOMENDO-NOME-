@@ -1,0 +1,71 @@
+.TH execsnoop 8  "2020-02-20" "USER COMMANDS"
+.SH NAME
+execsnoop \- Trace new processes via exec() syscalls. Uses Linux eBPF/bcc.
+.SH SYNOPSIS
+.B execsnoop [\-h] [\-T] [\-t] [\-x] [\-\-cgroupmap CGROUPMAP] [\-\-mntnsmap MAPPATH]
+.B           [\-u USER] [\-q] [\-n NAME] [\-l LINE] [\-U] [\-\-max-args MAX_ARGS]
+.SH DESCRIPTION
+execsnoop traces new processes, showing the filename executed and argument
+list.
+
+It works by traces the execve() system call (commonly used exec() variant).
+This catches new processes that follow the fork->exec sequence, as well as
+processes that re-exec() themselves. Some applications fork() but do not
+exec(), eg, for worker processes, which won't be included in the execsnoop
+output.
+
+This works by tracing the kernel sys_execve() function using dynamic tracing,
+and will need updating to match any changes to this function.
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+.TP
+\-h
+Print usage message.
+.TP
+\-T
+Include a time column (HH:MM:SS).
+.TP
+\-U
+Include UID column.
+.TP
+\-t
+Include a timestamp column.
+.TP
+\-u USER
+Filter by UID (or username)
+.TP
+\-x
+Include failed exec()s
+.TP
+\-q
+Add "quotemarks" around arguments. Escape quotemarks in arguments with a
+backslash. For tracing empty arguments or arguments that contain whitespace.
+.TP
+\-n NAME
+Only print command lines matching this name (regex)
+.TP
+\-l LINE
+Only print commands where arg contains this line (regex)
+.TP
+\--max-args MAXARGS
+Maximum number of arguments parsed and displayed, defaults to 20
+.TP
+\-\-cgroupmap MAPPATH
+Trace cgroups in this BPF map only (filtered in-kernel).
+.TP
+\-\-mntnsmap  MAPPATH
+Trace mount namespaces in this BPF map only (filtered in-kernel).
+.TP
+\-P PPID
+Trace this parent PID only.
+.TP
+.SH EXAMPLES
+.TP
+Trace all exec() syscalls:
+#
+.B execsnoop
+.TP
+T

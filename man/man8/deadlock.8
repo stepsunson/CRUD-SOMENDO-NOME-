@@ -132,3 +132,20 @@ Thread T created by Thread R here:
 Thread S created by Thread Q here:
 .B [stack trace]
 .SH OVERHEAD
+This traces all mutex lock and unlock events and all thread creation events
+on the traced process. The overhead of this can be high if the process has many
+threads and mutexes. You should only run this on a process where the slowdown
+is acceptable.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Kenny Yu
