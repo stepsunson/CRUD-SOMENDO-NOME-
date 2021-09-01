@@ -1,0 +1,8 @@
+.TH ext4slower 8  "2016-02-11" "USER COMMANDS"
+.SH NAME
+ext4slower \- Trace slow ext4 file operations, with per-event details.
+.SH SYNOPSIS
+.B ext4slower [\-h] [\-j] [\-p PID] [min_ms]
+.SH DESCRIPTION
+This tool traces common ext4 file operations: reads, writes, opens, and
+syncs. It measures the time spent in these operations, and prints det
