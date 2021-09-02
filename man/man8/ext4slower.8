@@ -87,4 +87,27 @@ Latency (duration) of the I/O, in microseconds (\-j only).
 .SH OVERHEAD
 This adds low-overhead instrumentation to these ext4 operations,
 including reads and writes from the file system cache. Such reads and writes
-can be very frequent (depending on the workload; eg, 1M/sec), at
+can be very frequent (depending on the workload; eg, 1M/sec), at which
+point the overhead of this tool (even if it prints no "slower" events) can
+begin to become significant. Measure and quantify before use. If this
+continues to be a problem, consider switching to a tool that prints in-kernel
+summaries only.
+.PP
+Note that the overhead of this tool should be less than fileslower(8), as
+this tool targets ext4 functions only, and not all file read/write paths
+(which can include socket I/O).
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg
+.SH SEE ALSO
+biosnoop(8), funccount(8), fileslower(8)
