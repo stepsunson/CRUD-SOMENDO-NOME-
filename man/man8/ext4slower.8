@@ -5,4 +5,86 @@ ext4slower \- Trace slow ext4 file operations, with per-event details.
 .B ext4slower [\-h] [\-j] [\-p PID] [min_ms]
 .SH DESCRIPTION
 This tool traces common ext4 file operations: reads, writes, opens, and
-syncs. It measures the time spent in these operations, and prints det
+syncs. It measures the time spent in these operations, and prints details
+for each that exceeded a threshold.
+
+WARNING: See the OVERHEAD section.
+
+By default, a minimum millisecond threshold of 10 is used. If a threshold of 0
+is used, all events are printed (warning: verbose).
+
+Since this works by tracing the ext4_file_operations interface functions, it
+will need updating to match any changes to these functions.
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+\-p PID
+Trace this PID only.
+.TP
+min_ms
+Minimum I/O latency (duration) to trace, in milliseconds. Default is 10 ms.
+.SH EXAMPLES
+.TP
+Trace synchronous file reads and writes slower than 10 ms:
+#
+.B ext4slower
+.TP
+Trace slower than 1 ms:
+#
+.B ext4slower 1
+.TP
+Trace slower than 1 ms, and output just the fields in parsable format (csv):
+#
+.B ext4slower \-j 1
+.TP
+Trace all file reads and writes (warning: the output will be verbose):
+#
+.B ext4slower 0
+.TP
+Trace slower than 1 ms, for PID 181 only:
+#
+.B ext4slower \-p 181 1
+.SH FIELDS
+.TP
+TIME(s)
+Time of I/O completion since the first I/O seen, in seconds.
+.TP
+COMM
+Process name.
+.TP
+PID
+Process ID.
+.TP
+T
+Type of operation. R == read, W == write, O == open, S == fsync.
+.TP
+OFF_KB
+File offset for the I/O, in Kbytes.
+.TP
+BYTES
+Size of I/O, in bytes.
+.TP
+LAT(ms)
+Latency (duration) of I/O, measured from when it was issued by VFS to the
+filesystem, to when it completed. This time is inclusive of block device I/O,
+file system CPU cycles, file system locks, run queue latency, etc. It's a more
+accurate measure of the latency suffered by applications performing file
+system I/O, than to measure this down at the block device interface.
+.TP
+FILENAME
+A cached kernel file name (comes from dentry->d_name.name).
+.TP
+ENDTIME_us
+Completion timestamp, microseconds (\-j only).
+.TP
+OFFSET_b
+File offset, bytes (\-j only).
+.TP
+LATENCY_us
+Latency (duration) of the I/O, in microseconds (\-j only).
+.SH OVERHEAD
+This adds low-overhead instrumentation to these ext4 operations,
+including reads and writes from the file system cache. Such reads and writes
+can be very frequent (depending on the workload; eg, 1M/sec), at
