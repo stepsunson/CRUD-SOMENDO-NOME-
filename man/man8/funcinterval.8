@@ -1,0 +1,35 @@
+.TH funcinterval 8  "2020-05-27" "USER COMMANDS"
+.SH NAME
+funcinterval \- Time interval between the same function, tracepoint as a histogram.
+.SH SYNOPSIS
+.B funcinterval [\-h] [\-p PID] [\-i INTERVAL] [\-d DURATION] [\-T] [\-u] [\-m] [\-v] pattern
+.SH DESCRIPTION
+This tool times interval between the same function as a histogram.
+
+eBPF/bcc is very suitable for platform performance tuning.
+By funclatency, we can profile specific functions to know how latency
+this function costs. However, sometimes performance drop is not about the
+latency of function but the interval between function calls.
+funcinterval is born for this purpose.
+
+This tool uses in-kernel eBPF maps for storing timestamps and the histogram,
+for efficiency.
+
+WARNING: This uses dynamic tracing of (what can be many) functions, an
+activity that has had issues on some kernel versions (risk of panics or
+freezes). Test, and know what you are doing, before use.
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+pattern
+Function name.
+\-h
+Print usage message.
+.TP
+\-p PID
+Trace this process ID only.
+.TP
+\-i INTERVAL
+Print output every interval

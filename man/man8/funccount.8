@@ -73,4 +73,42 @@ Count calls to the sched_fork tracepoint, indicating a fork() performed:
 .TP
 Count all GC USDT probes in the Node process:
 #
-.B funccount -p 185 u:no
+.B funccount -p 185 u:node:gc*
+.TP
+Count all malloc() calls in libc:
+#
+.B funccount c:malloc
+.TP
+Count kernel functions beginning with "vfs_" on CPU 1 only:
+#
+.B funccount \-c 1 'vfs_*'
+.SH FIELDS
+.TP
+FUNC
+Function name
+.TP
+COUNT
+Number of calls while tracing
+.SH OVERHEAD
+This traces functions and maintains in-kernel counts, which
+are asynchronously copied to user-space. While the rate of calls
+be very high (>1M/sec), this is a relatively efficient way to trace these
+events, and so the overhead is expected to be small for normal workloads.
+Measure in a test environment before use.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg, Sasha Goldshtein
+.SH SEE ALSO
+stackcount(8)
+funclatency(8)
+vfscount(8)
