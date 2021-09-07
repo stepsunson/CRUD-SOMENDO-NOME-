@@ -54,3 +54,87 @@ Output histogram in microseconds.
 \-m
 Output histogram in milliseconds.
 .TP
+\-F
+Print a separate histogram per function matched.
+.TP
+\-r
+Use regular expressions for the search pattern.
+.TP
+\-v
+Print the BPF program (for debugging purposes).
+.SH EXAMPLES
+.TP
+Time the do_sys_open() kernel function, and print the distribution as a histogram:
+#
+.B funclatency do_sys_open
+.TP
+Time the read() function in libc across all processes on the system:
+#
+.B funclatency c:read
+.TP
+Time vfs_read(), and print the histogram in units of microseconds:
+#
+.B funclatency \-u vfs_read
+.TP
+Time do_nanosleep(), and print the histogram in units of milliseconds:
+#
+.B funclatency \-m do_nanosleep
+.TP
+Time libc open(), and print output every 2 seconds, for duration 10 seconds:
+#
+.B funclatency \-i 2 -d 10 c:read
+.TP
+Time vfs_read(), and print output every 5 seconds, with timestamps:
+#
+.B funclatency \-mTi 5 vfs_read
+.TP
+Time vfs_read() for process ID 181 only:
+#
+.B funclatency \-p 181 vfs_read
+.TP
+Time both vfs_fstat() and vfs_fstatat() calls, by use of a wildcard:
+#
+.B funclatency 'vfs_fstat*'
+.TP
+Time both vfs_fstat* calls, and print a separate histogram for each:
+#
+.B funclatency -F 'vfs_fstat*'
+.SH FIELDS
+.TP
+necs
+Nanosecond range
+.TP
+usecs
+Microsecond range
+.TP
+msecs
+Millisecond range
+.TP
+count
+How many calls fell into this range
+.TP
+distribution
+An ASCII bar chart to visualize the distribution (count column)
+.SH OVERHEAD
+This traces kernel functions and maintains in-kernel timestamps and a histogram,
+which are asynchronously copied to user-space. While this method is very
+efficient, the rate of kernel functions can also be very high (>1M/sec), at
+which point the overhead is expected to be measurable. Measure in a test
+environment and understand overheads before use. You can also use funccount
+to measure the rate of kernel functions over a short duration, to set some
+expectations before use.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg, Sasha Goldshtein
+.SH SEE ALSO
+funccount(8)
