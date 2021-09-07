@@ -78,4 +78,26 @@ count
 Number of hard IRQs in this time range.
 .TP
 distribution
-ASCII representation of the distribution (the count
+ASCII representation of the distribution (the count column).
+.SH OVERHEAD
+This traces kernel functions and maintains in-kernel counts, which
+are asynchronously copied to user-space. While the rate of interrupts
+be very high (>1M/sec), this is a relatively efficient way to trace these
+events, and so the overhead is expected to be small for normal workloads, but
+could become noticeable for heavy workloads. Measure in a test environment
+before use.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg, Hengqi Chen, Rocky Xing
+.SH SEE ALSO
+softirqs(8)
