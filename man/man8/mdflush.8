@@ -1,0 +1,20 @@
+.TH mdflush 8  "2016-02-13" "USER COMMANDS"
+.SH NAME
+mdflush \- Trace md flush events. Uses Linux eBPF/bcc.
+.SH SYNOPSIS
+.B mdflush
+.SH DESCRIPTION
+This tool traces flush events by md, the Linux multiple device driver
+(software RAID). The timestamp and md device for the flush are printed.
+Knowing when these flushes happen can be useful for correlation with
+unexplained spikes in disk latency.
+
+This works by tracing the kernel md_flush_request() function using dynamic
+tracing, and will need updating to match any changes to this function.
+
+Note that the flushes themselves are likely to originate from higher in the
+I/O stack, such as from the file systems.
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and
