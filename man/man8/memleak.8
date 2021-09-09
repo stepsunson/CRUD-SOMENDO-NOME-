@@ -1,0 +1,26 @@
+.TH memleak 8  "2016-01-14" "USER COMMANDS"
+.SH NAME
+memleak \- Print a summary of outstanding allocations and their call stacks to detect memory leaks. Uses Linux eBPF/bcc.
+.SH SYNOPSIS
+.B memleak [-h] [-p PID] [-t] [-a] [-o OLDER] [-c COMMAND] [--combined-only]
+[--wa-missing-free] [-s SAMPLE_RATE] [-T TOP] [-z MIN_SIZE] [-Z MAX_SIZE]
+[-O OBJ] [INTERVAL] [COUNT]
+.SH DESCRIPTION
+memleak traces and matches memory allocation and deallocation requests, and
+collects call stacks for each allocation. memleak can then print a summary
+of which call stacks performed allocations that weren't subsequently freed.
+
+When tracing a specific process, memleak instruments a list of allocation
+functions from libc, specifically: malloc, calloc, realloc, posix_memalign,
+valloc, memalign, pvalloc, aligned_alloc, and free.
+When tracing all processes, memleak instruments kmalloc/kfree,
+kmem_cache_alloc/kmem_cache_free, and also page allocations made by
+get_free_pages/free_pages.
+
+memleak may introduce significant overhead when tracing processes that allocate
+and free many blocks very quickly. See the OVERHEAD section below.
+
+This tool only works on Linux 4.6+. Stack traces are obtained using the new BPF_STACK_TRACE` APIs.
+For kernels older than 4.6, see the version under tools/old.
+Kernel memory allocations are intercepted through tracepoints, which are
+availa
