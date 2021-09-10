@@ -23,4 +23,74 @@ and free many blocks very quickly. See the OVERHEAD section below.
 This tool only works on Linux 4.6+. Stack traces are obtained using the new BPF_STACK_TRACE` APIs.
 For kernels older than 4.6, see the version under tools/old.
 Kernel memory allocations are intercepted through tracepoints, which are
-availa
+available on Linux 4.7+.
+
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+.TP
+\-h
+Print usage message.
+.TP
+\-p PID
+Trace this process ID only (filtered in-kernel). This traces libc allocator.
+.TP
+\-t
+Print a trace of all allocation and free requests and results.
+.TP
+\-a
+Print a list of allocations that weren't freed (and their sizes) in addition to their call stacks.
+.TP
+\-o OLDER
+Print only allocations older than OLDER milliseconds. Useful to remove false positives.
+The default value is 500 milliseconds.
+.TP
+\-c COMMAND
+Run the specified command and trace its allocations only. This traces libc allocator.
+.TP
+\-\-combined-only
+Use statistics precalculated in kernel space. Amount of data to be pulled from
+kernel significantly decreases, at the cost of losing capabilities of time-based
+false positives filtering (\-o).
+.TP
+\-\-wa-missing-free
+Make up the action of free to alleviate misjudgments when free is missing.
+.TP
+\-s SAMPLE_RATE
+Record roughly every SAMPLE_RATE-th allocation to reduce overhead.
+.TP
+\-t TOP
+Print only the top TOP stacks (sorted by size).
+The default value is 10.
+.TP
+\-z MIN_SIZE
+Capture only allocations that are larger than or equal to MIN_SIZE bytes.
+.TP
+\-Z MAX_SIZE
+Capture only allocations that are smaller than or equal to MAX_SIZE bytes.
+.TP
+\-O OBJ
+Attach to allocation functions in specified object instead of resolving libc. Ignored when kernel allocations are profiled.
+.TP
+INTERVAL
+Print a summary of outstanding allocations and their call stacks every INTERVAL seconds.
+The default interval is 5 seconds.
+.TP
+COUNT
+Print the outstanding allocations summary COUNT times and then exit.
+.SH EXAMPLES
+.TP
+Print outstanding kernel allocation stacks every 3 seconds:
+#
+.B memleak 3
+.TP
+Print user outstanding allocation stacks and allocation details for the process 1005:
+#
+.B memleak -p 1005 -a
+.TP
+Sample roughly every 5th allocation (~20%) of the call stacks and print the top 5
+stacks 10 times before quitting.
+#
+.B memleak -s 5 --top=5 10
+.TP
+Run ./allocs and print outstanding allocation stack
