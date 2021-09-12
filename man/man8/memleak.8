@@ -93,4 +93,49 @@ stacks 10 times before quitting.
 #
 .B memleak -s 5 --top=5 10
 .TP
-Run ./allocs and print outstanding allocation stack
+Run ./allocs and print outstanding allocation stacks for that process: 
+#
+.B memleak -c "./allocs"
+.TP
+Capture only allocations between 16 and 32 bytes in size:
+#
+.B memleak -z 16 -Z 32
+.SH OVERHEAD
+memleak can have significant overhead if the target process or kernel performs
+allocations at a very high rate. Pathological cases may exhibit up to 100x
+degradation in running time. Most of the time, however, memleak shouldn't cause
+a significant slowdown. You can use the \-s switch to reduce the overhead
+further by capturing only every N-th allocation. The \-z and \-Z switches can
+also reduce overhead by capturing only allocations of specific sizes.
+
+Additionally, option \-\-combined-only saves processing time by reusing already
+calculated allocation statistics from kernel. It's faster, but lacks information
+about particular allocations.
+
+Also, option \-\-wa-missing-free makes memleak more accuracy in the complicated
+environment.
+
+To determine the rate at which your application is calling malloc/free, or the
+rate at which your kernel is calling kmalloc/kfree, place a probe with perf and
+collect statistics. For example, to determine how many calls to __kmalloc are
+placed in a typical period of 10 seconds:
+
+#
+.B perf probe '__kmalloc'
+
+#
+.B perf stat -a -e 'probe:__kmalloc' -- sleep 10
+
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Sasha Goldshtein

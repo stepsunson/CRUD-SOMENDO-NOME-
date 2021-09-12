@@ -1,0 +1,12 @@
+.TH mountsnoop 8  "2016-10-14" "USER COMMANDS"
+.SH NAME
+mountsnoop \- Trace mount() and umount() syscalls. Uses Linux eBPF/bcc.
+.SH SYNOPSIS
+.B mountsnoop
+.SH DESCRIPTION
+mountsnoop traces the mount() and umount() syscalls, showing which processes
+are mounting and unmounting filesystems in what mount namespaces. This can be
+useful for troubleshooting system and container setup.
+
+This works by tracing the kernel sys_mount() and sys_umount() functions using
+dynamic tracing, and will need updating to match any changes to this function.
