@@ -28,4 +28,29 @@ Specify the network interface card
 Print results every INTERVAL seconds.
 The default value is 1.
 .TP
-\-
+\-t THROUGHPUT
+Print BPS and PPS of each queue.
+.SH EXAMPLES
+.TP
+Account statistics of eth0 and output every 2 seconds:
+#
+.B netqtop -n eth0 -i 1
+.SH OVERHEAD
+In performance test, netqtop introduces a overhead up to 30% PPS drop 
+while printing interval is set to 1 second. So be mindful of potential packet drop 
+when using this tool.
+
+It also increases ping-pong latency by about 1 usec. 
+.SH SOURCE
+This is from bcc
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a netqtop_example.txt file containing
+example usage, output and commentary for this tool.
+.SH OS 
+Linux
+.SH STABILITY
+Unstable - in development
+.SH AUTHOR
+Yolandajn

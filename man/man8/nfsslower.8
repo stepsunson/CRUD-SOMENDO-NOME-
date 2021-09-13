@@ -1,0 +1,36 @@
+.TH nfsslower 8  "2017-09-01" "USER COMMANDS"
+.SH NAME
+nfsslower \- Trace slow NFS file operations, with per-event details.
+.SH SYNOPSIS
+.B nfsslower [\-h] [\-j] [\-p PID] [min_ms]
+.SH DESCRIPTION
+This tool traces common NFSv3 & NFSv4 file operations: reads, writes, opens, and
+getattrs. It measures the time spent in these operations, and prints details
+for each that exceeded a threshold.
+
+WARNING: See the OVERHEAD section.
+
+By default, a minimum millisecond threshold of 10 is used. If a threshold of 0
+is used, all events are printed (warning: verbose).
+
+Since this works by tracing the nfs_file_operations interface functions, it
+will need updating to match any changes to these functions.
+
+This tool uses kprobes to instrument the kernel for entry and exit
+information, in the future a preferred way would be to use tracepoints.
+Currently there aren't any tracepoints available for nfs_read_file,
+nfs_write_file and nfs_open_file, nfs_getattr does have entry and exit
+tracepoints but we chose to use kprobes for consistency
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+\-p PID
+Trace this PID only.
+.TP
+\-j
+Trace output in CSV format.
+.TP
+min_ms
+Minimum I/O latency (duration) to trace, in millis
