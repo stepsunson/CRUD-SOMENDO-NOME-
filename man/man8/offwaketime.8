@@ -27,3 +27,76 @@ See http://www.brendangregg.com/FlameGraphs/offcpuflamegraphs.html
 
 .SH REQUIREMENTS
 CONFIG_BPF and bcc.
+.SH OPTIONS
+.TP
+\-h
+Print usage message.
+.TP
+\-f
+Print output in folded stack format.
+.TP
+\-p PID
+Trace this process ID only (filtered in-kernel). Can be a comma separated list
+of PIDS.
+.TP
+\-t TID
+Trace this thread ID only (filtered in-kernel). Can be a comma separated list
+of TIDS.
+.TP
+\-u
+Only trace user threads (no kernel threads).
+.TP
+\-k
+Only trace kernel threads (no user threads).
+.TP
+\-U
+Show stacks from user space only (no kernel space stacks).
+.TP
+\-K
+Show stacks from kernel space only (no user space stacks).
+.TP
+\-d, --delimited
+insert delimiter between kernel/user stacks
+.TP
+\-\-stack-storage-size STACK_STORAGE_SIZE
+Change the number of unique stack traces that can be stored and displayed.
+.TP
+duration
+Duration to trace, in seconds.
+.TP
+\-m MIN_BLOCK_TIME
+The amount of time in microseconds over which we store traces (default 1)
+.TP
+\-M MAX_BLOCK_TIME
+The amount of time in microseconds under which we store traces (default U64_MAX)
+.TP
+\-\-state
+Filter on this thread state bitmask (eg, 2 == TASK_UNINTERRUPTIBLE).
+See include/linux/sched.h for states.
+.SH EXAMPLES
+.TP
+Trace all thread blocking events, and summarize (in-kernel) by user and kernel off-CPU stack trace, waker stack traces, task names, and total blocked time:
+#
+.B offwaketime
+.TP
+Trace for 5 seconds only:
+#
+.B offwaketime 5
+.TP
+Trace for 5 seconds, and emit output in folded stack format (suitable for flame graphs), user-mode threads only:
+#
+.B offwaketime -fu 5
+.TP
+Trace PID 185 only:
+#
+.B offwaketime -p 185
+.SH OVERHEAD
+This summarizes unique stack trace pairs in-kernel for efficiency, allowing it
+to trace a higher rate of events than methods that post-process in user space.
+The stack trace and time data is only copied to user space once, when the output
+is printed. While these techniques greatly lower overhead, scheduler events are
+still a high frequency event, as they can exceed 1 million events per second,
+and so caution should still be used. Test before production use.
+
+If the overhead is still a problem, take a look at the min block option.
+If your aim is to chase down longer blocking eve
