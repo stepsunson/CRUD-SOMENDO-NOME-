@@ -104,4 +104,19 @@ summaries only. This tool has been tested with NFSv3 & NVSv4, but it might work
 with NFSv{1,2}, since it is tracing the generic functions from nfs_file_operations.
 .PP
 Note that the overhead of this tool should be less than fileslower(8), as
-this tool targets
+this tool targets NFS functions only, and not all file read/write paths.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion nfsslower_examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Samuel Nair
+.SH SEE ALSO
+biosnoop(8), funccount(8), fileslower(8)
