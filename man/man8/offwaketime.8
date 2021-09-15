@@ -99,4 +99,20 @@ still a high frequency event, as they can exceed 1 million events per second,
 and so caution should still be used. Test before production use.
 
 If the overhead is still a problem, take a look at the min block option.
-If your aim is to chase down longer blocking eve
+If your aim is to chase down longer blocking events, then this could
+be increased to filter shorter blocking events, further lowering overhead.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg
+.SH SEE ALSO
+offcputime(8), wakeuptime(8)
