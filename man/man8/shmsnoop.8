@@ -1,0 +1,20 @@
+.TH shmsnoop 8  "2018-09-24" "USER COMMANDS"
+.SH NAME
+shmsnoop \- Trace System V shared memory syscalls. Uses Linux eBPF/bcc.
+.SH SYNOPSIS
+.B shmsnoop [\-h] [\-T] [\-p] [\-t] [\-d DURATION] [\-n NAME]
+.SH DESCRIPTION
+shmsnoop traces System V shared memory syscalls: shmget, shmat, shmdt, shmctl
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+.TP
+\-h
+Print usage message.
+.TP
+\-T
+Include a timestamp column.
+.TP
+\-
