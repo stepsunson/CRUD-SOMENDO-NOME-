@@ -17,4 +17,58 @@ Print usage message.
 \-T
 Include a timestamp column.
 .TP
-\-
+\-p PID
+Trace this process ID only (filtered in-kernel).
+.TP
+\-t TID
+Trace this thread ID only (filtered in-kernel).
+.TP
+\-d DURATION
+Total duration of trace in seconds.
+.TP
+\-n NAME
+Only print command lines matching this command name (regex)
+.SH EXAMPLES
+.TP
+Trace all shm* syscalls:
+#
+.B shmsnoop
+.TP
+Trace all shm* syscalls, and include timestamps:
+#
+.B shmsnoop \-T
+.TP
+Only trace shm* syscalls where the process contains "server":
+#
+.B shmsnoop \-n server
+.SH FIELDS
+.TP
+TIME(s)
+Time of shm syscall return, in seconds.
+.TP
+PID
+Process ID
+.TP
+COMM
+Process/command name.
+.TP
+RET
+Return value of shm syscall.
+.TP
+ARGS
+"arg: value" couples that represent given syscall arguments as described in their manpage
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Jiri Olsa
+.SH SEE ALSO
+opensnoop(1)
