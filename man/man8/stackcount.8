@@ -1,0 +1,28 @@
+.TH stackcount 8  "2016-01-14" "USER COMMANDS"
+.SH NAME
+stackcount \- Count function calls and their stack traces. Uses Linux eBPF/bcc.
+.SH SYNOPSIS
+.B stackcount [\-h] [\-p PID] [\-c CPU] [\-i INTERVAL] [\-D DURATION] [\-T]
+              [\-r] [\-s] [\-P] [\-K] [\-U] [\-v] [\-d] [\-f] [\-\-debug] pattern
+.SH DESCRIPTION
+stackcount traces functions and frequency counts them with their entire
+stack trace, kernel stack and user stack, summarized in-kernel for efficiency.
+This allows higher frequency events to be studied. The output consists of
+unique stack traces, and their occurrence counts. In addition to kernel and
+user functions, kernel tracepoints and USDT tracepoint are also supported.
+
+The pattern is a string with optional '*' wildcards, similar to file globbing.
+If you'd prefer to use regular expressions, use the \-r option.
+
+This tool only works on Linux 4.6+. Stack traces are obtained using the new `BPF_STACK_TRACE` APIs.
+For kernels older than 4.6, see the version under tools/old.
+
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+.TP
+\-h
+Print usage message.
+.TP
+\-r
+All

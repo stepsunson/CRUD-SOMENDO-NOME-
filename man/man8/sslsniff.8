@@ -63,4 +63,54 @@ Print all calls to SSL write/send and read/recv system-wide:
 #
 .B sslsniff
 .TP
-Print only OpenSSL calls issued 
+Print only OpenSSL calls issued by user with UID 1000
+#
+.B sslsniff -u 1000 --no-nss --no-gnutls
+.TP
+Print SSL handshake event and latency for all traced functions:
+#
+.B sslsniff -l --handshake
+.TP
+Print only calls to OpenSSL from /some/path/libssl.so
+.B sslsniff --no-openssl --no-gnutls --no-nss --extra-lib
+.B openssl:/some/path/libssl.so
+.SH FIELDS
+.TP
+FUNC
+Which function is being called (write/send or read/recv)
+.TP
+TIME
+Time of the command, in seconds.
+.TP
+COMM
+Entered command.
+.TP
+PID
+Process ID calling SSL.
+.TP
+LEN
+Bytes written or read by SSL functions.
+.TP
+UID
+UID of the process, displayed only if launched with -x.
+.TP
+TID
+Thread ID, displayed only if launched with -x.
+.TP
+LAT(ms)
+Function latency in ms.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHORS
+Adrian Lopez and Mark Drayton
+.SH SEE ALSO
+trace(8)
