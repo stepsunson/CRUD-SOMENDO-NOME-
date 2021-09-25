@@ -25,4 +25,111 @@ CONFIG_BPF and bcc.
 Print usage message.
 .TP
 \-r
-All
+Allow regular expressions for the search pattern. The default allows "*"
+wildcards only.
+.TP
+\-s
+Show address offsets.
+.TP
+\-P
+Display stacks separately for each process.
+.TP
+\-K
+Show kernel stack only.
+.TP
+\-U
+Show user stack only.
+.TP
+\-T
+Include a timestamp with interval output.
+.TP
+\-v
+Show raw addresses.
+.TP
+\-d
+Print a delimiter ("--") in-between the kernel and user stacks.
+.TP
+\-\-debug
+Print the source of the BPF program when loading it (for debugging purposes).
+.TP
+\-i interval
+Summary interval, in seconds.
+.TP
+\-D duration
+Total duration of trace, in seconds.
+\-f
+Folded output format.
+.TP
+\-p PID
+Trace this process ID only (filtered in-kernel).
+.TP
+\-c CPU
+Trace this CPU only (filtered in-kernel).
+.TP
+.TP
+pattern
+A function name, or a search pattern. Can include wildcards ("*"). If the
+\-r option is used, can include regular expressions.
+.SH EXAMPLES
+.TP
+Count kernel and user stack traces for submit_bio():
+#
+.B stackcount submit_bio
+.TP
+Count stacks with a delimiter for submit_bio():
+#
+.B stackcount \-d submit_bio
+.TP
+Count kernel stack trace only for submit_bio():
+#
+.B stackcount \-K submit_bio
+.TP
+Count user stack trace only for submit_bio():
+#
+.B stackcount \-U submit_bio
+.TP
+Count stack traces for ip_output():
+#
+.B stackcount ip_output
+.TP
+Show symbol offsets:
+#
+.B stackcount \-s ip_output
+.TP
+Show offsets and raw addresses (verbose):
+#
+.B stackcount \-sv ip_output
+.TP
+Count stacks for kernel functions matching tcp_send*:
+#
+.B stackcount 'tcp_send*'
+.TP
+Same as previous, but using regular expressions:
+#
+.B stackcount \-r '^tcp_send.*'
+.TP
+Output every 5 seconds, with timestamps:
+#
+.B stackcount \-Ti 5 ip_output
+.TP
+Only count stacks when PID 185 is on-CPU:
+#
+.B stackcount \-p 185 ip_output
+.TP
+Only count stacks for CPU 1:
+#
+.B stackcount \-c 1 put_prev_entity
+.TP
+Count user stacks for dynamic heap allocations with malloc in PID 185:
+#
+.B stackcount \-p 185 c:malloc
+.TP
+Count user stacks for thread creation (USDT tracepoint) in PID 185:
+#
+.B stackcount \-p 185 u:pthread:pthread_create
+.TP
+Count stacks for context switch events using a kernel tracepoint:
+#
+.B stackcount t:sched:sched_switch
+.SH OVERHEAD
+This summarizes unique stack
