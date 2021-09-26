@@ -1,0 +1,74 @@
+
+.TH syscount 8  "2017-02-15" "USER COMMANDS"
+.SH NAME
+syscount \- Summarize syscall counts and latencies.
+.SH SYNOPSIS
+.B syscount [-h] [-p PID] [-t TID] [-c PPID] [-i INTERVAL] [-d DURATION] [-T TOP] [-x] [-e ERRNO] [-L] [-m] [-P] [-l] [--syscall SYSCALL]
+.SH DESCRIPTION
+This tool traces syscall entry and exit tracepoints and summarizes either the
+number of syscalls of each type, or the number of syscalls per process. It can
+also collect latency (invocation time) for each syscall or each process.
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and bcc. Linux 4.7+ is required to attach a BPF program to the
+raw_syscalls:sys_{enter,exit} tracepoints, used by this tool.
+.SH OPTIONS
+.TP
+\-h
+Print usage message.
+.TP
+\-p PID
+Trace only this process.
+.TP
+\-t TID
+Trace only this thread.
+.TP
+\-c PPID
+Trace only child of this pid.
+.TP
+\-i INTERVAL
+Print the summary at the specified interval (in seconds).
+.TP
+\-d DURATION
+Total duration of trace (in seconds).
+.TP
+\-T TOP
+Print only this many entries. Default: 10.
+.TP
+\-x
+Trace only failed syscalls (i.e., the return value from the syscall was < 0).
+.TP
+\-e ERRNO
+Trace only syscalls that failed with that error (e.g. -e EPERM or -e 1).
+.TP
+\-m
+Display times in milliseconds. Default: microseconds.
+.TP
+\-P
+Summarize by process and not by syscall.
+.TP
+\-l
+List the syscalls recognized by the tool (hard-coded list). Syscalls beyond this
+list will still be displayed, as "[unknown: nnn]" where nnn is the syscall
+number.
+.TP
+\--syscall SYSCALL
+Trace this syscall only (use option -l to get all recognized syscalls).
+.SH EXAMPLES
+.TP
+Summarize all syscalls by syscall:
+#
+.B syscount
+.TP
+Summarize all syscalls by process:
+#
+.B syscount \-P
+.TP
+Summarize only failed syscalls:
+#
+.B syscount \-x
+.TP
+Summarize only syscalls that failed with EPERM:
+#
+.B syscount \-e EPERM

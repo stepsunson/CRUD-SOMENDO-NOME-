@@ -38,4 +38,27 @@ The process ID.
 3rd
 The count of swapins during that interval.
 .SH OVERHEAD
-The rate of swapins should be low (bounded by swapin devic
+The rate of swapins should be low (bounded by swapin device IOPS), such that
+the overhead of this tool is expected to be negligible.
+.SH SOURCE
+This originated as a bpftrace tool from the book "BPF Performance Tools",
+published by Addison Wesley (2019):
+.IP
+http://www.brendangregg.com/bpf-performance-tools-book.html
+.PP
+See the book for more documentation on this tool.
+.PP
+This version is in the BCC repository:
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file
+containing example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg
+.SH SEE ALSO
+swapon(8)
