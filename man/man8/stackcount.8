@@ -132,4 +132,27 @@ Count stacks for context switch events using a kernel tracepoint:
 #
 .B stackcount t:sched:sched_switch
 .SH OVERHEAD
-This summarizes unique stack
+This summarizes unique stack traces in-kernel for efficiency, allowing it to
+trace a higher rate of function calls than methods that post-process in user
+space. The stack trace data is only copied to user space when the output is
+printed, which usually only happens once. The stack walking also happens in an
+optimized code path in the kernel thanks to the new BPF_STACK_TRACE table APIs,
+which should be more efficient than the manual walker in the eBPF tracer which
+older versions of this script used. With this in mind, call rates of <
+10,000/sec would incur negligible overhead. Test before production use. You can
+also use funccount to get a handle on function call rates first.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg, Sasha Goldshtein
+.SH SEE ALSO
+stacksnoop(8), funccount(8)
