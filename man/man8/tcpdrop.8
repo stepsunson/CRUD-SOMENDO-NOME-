@@ -66,4 +66,26 @@ Destionation TCP port.
 STATE
 TCP session state ("ESTABLISHED", etc).
 .TP
-FLA
+FLAGS
+TCP flags ("SYN", etc).
+.SH OVERHEAD
+This traces the kernel tcp_drop() function, which should be low frequency,
+and therefore the overhead of this tool should be negligible.
+
+As always, test and understand this tools overhead for your types of
+workloads before production use.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg
+.SH SEE ALSO
+tcplife(8), tcpaccept(8), tcpconnect(8), tcptop(8)
