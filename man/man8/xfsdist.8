@@ -1,0 +1,32 @@
+.TH xfsdist 8  "2016-02-12" "USER COMMANDS"
+.SH NAME
+xfsdist \- Summarize XFS operation latency. Uses Linux eBPF/bcc.
+.SH SYNOPSIS
+.B xfsdist [\-h] [\-T] [\-m] [\-p PID] [interval] [count]
+.SH DESCRIPTION
+This tool summarizes time (latency) spent in common XFS file operations: reads,
+writes, opens, and syncs, and presents it as a power-of-2 histogram. It uses an
+in-kernel eBPF map to store the histogram for efficiency.
+
+Since this works by tracing the xfs_file_operations interface functions, it
+will need updating to match any changes to these functions.
+
+Since this uses BPF, only the root user can use this tool.
+.SH REQUIREMENTS
+CONFIG_BPF and bcc.
+.SH OPTIONS
+.TP
+\-h
+Print usage message.
+.TP
+\-T
+Don't include timestamps on interval output.
+.TP
+\-m
+Output in milliseconds.
+.TP
+\-p PID
+Trace this PID only.
+.SH EXAMPLES
+.TP
+Trace

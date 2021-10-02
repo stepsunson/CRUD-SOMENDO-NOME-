@@ -57,4 +57,48 @@ The amount of time in microseconds over which we store traces (default 1)
 The amount of time in microseconds under which we store traces (default U64_MAX)
 .SH EXAMPLES
 .TP
-Trace all thread blocking events, and summarize (in-kernel) by kernel stack trace and total
+Trace all thread blocking events, and summarize (in-kernel) by kernel stack trace and total blocked time:
+#
+.B wakeuptime
+.TP
+Trace user-mode target threads only:
+#
+.B wakeuptime -u
+.TP
+Trace for 5 seconds only:
+#
+.B wakeuptime 5
+.TP
+Trace for 5 seconds, and emit output in folded stack format (suitable for flame graphs):
+#
+.B wakeuptime -f 5
+.TP
+Trace PID 185 only:
+#
+.B wakeuptime -p 185
+.SH OVERHEAD
+This summarizes unique stack traces in-kernel for efficiency, allowing it to
+trace a higher rate of events than methods that post-process in user space. The
+stack trace and time data is only copied to user space once, when the output is
+printed. While these techniques greatly lower overhead, scheduler events are
+still a high frequency event, as they can exceed 1 million events per second,
+and so caution should still be used. Test before production use.
+
+If the overhead is still a problem, take a look at the min block option.
+If your aim is to chase down longer blocking events, then this could
+be increased to filter shorter blocking events, further lowering overhead.
+.SH SOURCE
+This is from bcc.
+.IP
+https://github.com/iovisor/bcc
+.PP
+Also look in the bcc distribution for a companion _examples.txt file containing
+example usage, output, and commentary for this tool.
+.SH OS
+Linux
+.SH STABILITY
+Unstable - in development.
+.SH AUTHOR
+Brendan Gregg
+.SH SEE ALSO
+offcputime(8), stackcount(8)
