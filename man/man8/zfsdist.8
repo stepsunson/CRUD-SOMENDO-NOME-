@@ -1,16 +1,20 @@
-.TH xfsdist 8  "2016-02-12" "USER COMMANDS"
+
+.TH zfsdist 8  "2016-02-12" "USER COMMANDS"
 .SH NAME
-xfsdist \- Summarize XFS operation latency. Uses Linux eBPF/bcc.
+zfsdist \- Summarize ZFS operation latency. Uses Linux eBPF/bcc.
 .SH SYNOPSIS
-.B xfsdist [\-h] [\-T] [\-m] [\-p PID] [interval] [count]
+.B zfsdist [\-h] [\-T] [\-m] [\-p PID] [interval] [count]
 .SH DESCRIPTION
-This tool summarizes time (latency) spent in common XFS file operations: reads,
+This tool summarizes time (latency) spent in common ZFS file operations: reads,
 writes, opens, and syncs, and presents it as a power-of-2 histogram. It uses an
 in-kernel eBPF map to store the histogram for efficiency.
 
-Since this works by tracing the xfs_file_operations interface functions, it
-will need updating to match any changes to these functions.
-
+This uses kernel dynamic tracing of the ZPL interface (ZFS POSIX
+Layer), and will need updates to match any changes to this interface.
+.TP
+This is intended to work with the ZFS on Linux project:
+http://zfsonlinux.org
+.PP
 Since this uses BPF, only the root user can use this tool.
 .SH REQUIREMENTS
 CONFIG_BPF and bcc.
@@ -29,21 +33,21 @@ Output in milliseconds.
 Trace this PID only.
 .SH EXAMPLES
 .TP
-Trace XFS operation time, and print a summary on Ctrl-C:
+Trace ZFS operation time, and print a summary on Ctrl-C:
 #
-.B xfsdist
+.B zfsdist
 .TP
 Trace PID 181 only:
 #
-.B xfsdist -p 181
+.B zfsdist -p 181
 .TP
 Print 1 second summaries, 10 times:
 #
-.B xfsdist 1 10
+.B zfsdist 1 10
 .TP
 1 second summaries, printed in milliseconds
 #
-.B xfsdist \-m 1
+.B zfsdist \-m 1
 .SH FIELDS
 .TP
 msecs
@@ -58,7 +62,7 @@ Number of operations in this time range.
 distribution
 ASCII representation of the distribution (the count column).
 .SH OVERHEAD
-This adds low-overhead instrumentation to these XFS operations,
+This adds low-overhead instrumentation to these ZFS operations,
 including reads and writes from the file system cache. Such reads and writes
 can be very frequent (depending on the workload; eg, 1M/sec), at which
 point the overhead of this tool may become noticeable.
@@ -77,4 +81,4 @@ Unstable - in development.
 .SH AUTHOR
 Brendan Gregg
 .SH SEE ALSO
-xfssnoop(8)
+zfssnoop(8)
