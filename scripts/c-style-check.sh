@@ -16,3 +16,9 @@ if ! hash $CLANG_FORMAT 2> /dev/null; then
 fi
 
 cmd="git clang-format $GITREF --binary $CLANG_FORMAT --diff --extensions h,c,cc"
+
+n=$($cmd --quiet | wc -l)
+if [ $n -gt 0 ]; then
+  $cmd -v
+  exit 1
+fi
