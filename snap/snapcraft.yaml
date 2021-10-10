@@ -283,3 +283,78 @@ apps:
     stackcount:
         command: bcc-wrapper stackcount
     statsnoop:
+        command: bcc-wrapper statsnoop
+    swapin:
+        command: bcc-wrapper swapin
+    syncsnoop:
+        command: bcc-wrapper syncsnoop
+    syscount:
+        command: bcc-wrapper syscount
+    tclcalls:
+        command: bcc-wrapper tclcalls
+    tclflow:
+        command: bcc-wrapper tclflow
+    tclobjnew:
+        command: bcc-wrapper tclobjnew
+    tclstat:
+        command: bcc-wrapper tclstat
+    tcpaccept:
+        command: bcc-wrapper tcpaccept
+    tcpconnect:
+        command: bcc-wrapper tcpconnect
+    tcpconnlat:
+        command: bcc-wrapper tcpconnlat
+    tcpdrop:
+        command: bcc-wrapper tcpdrop
+    tcplife:
+        command: bcc-wrapper tcplife
+    tcpretrans:
+        command: bcc-wrapper tcpretrans
+    tcprtt:
+        command: bcc-wrapper tcprtt
+    tcpstates:
+        command: bcc-wrapper tcpstates
+    tcpsubnet:
+        command: bcc-wrapper tcpsubnet
+    tcpsynbl:
+        command: bcc-wrapper tcpsynbl
+    tcptop:
+        command: bcc-wrapper tcptop
+    tcptracer:
+        command: bcc-wrapper tcptracer
+    threadsnoop:
+        command: bcc-wrapper threadsnoop
+    tplist:
+        command: bcc-wrapper tplist
+    trace:
+        command: bcc-wrapper trace
+    ttysnoop:
+        command: bcc-wrapper ttysnoop
+    ucalls:
+        command: bcc-wrapper lib/ucalls
+    uflow:
+        command: bcc-wrapper lib/uflow
+    ugc:
+        command: bcc-wrapper lib/ugc
+    uobjnew:
+        command: bcc-wrapper lib/uobjnew
+    ustat:
+        command: bcc-wrapper lib/ustat
+    uthreads:
+        command: bcc-wrapper lib/uthreads
+    vfscount:
+        command: bcc-wrapper vfscount
+    vfsstat:
+        command: bcc-wrapper vfsstat
+    wakeuptime:
+        command: bcc-wrapper wakeuptime
+    xfsdist:
+        command: bcc-wrapper xfsdist
+    xfsslower:
+        command: bcc-wrapper xfsslower
+    zfsdist:
+        command: bcc-wrapper zfsdist
+    zfsslower:
+        command: bcc-wrapper zfsslower
+
+# vim: set ai et sts=4 tabstop=4 sw=4:
