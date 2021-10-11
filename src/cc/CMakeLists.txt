@@ -94,4 +94,52 @@ if(ENABLE_CLANG_JIT)
 add_library(bcc-shared SHARED
   link_all.cc ${bcc_common_sources} ${bcc_table_sources} ${bcc_sym_sources}
   ${bcc_util_sources})
-set_target_properties(bcc-shared
+set_target_properties(bcc-shared PROPERTIES VERSION ${REVISION_LAST} SOVERSION 0)
+set_target_properties(bcc-shared PROPERTIES OUTPUT_NAME bcc)
+
+if(ENABLE_USDT)
+  add_definitions(-DEXPORT_USDT)
+  set(bcc_usdt_sources usdt/usdt.cc usdt/usdt_args.cc)
+  # else undefined
+endif()
+
+add_library(bcc-loader-static STATIC ${bcc_sym_sources} ${bcc_util_sources})
+target_link_libraries(bcc-loader-static elf z)
+add_library(bcc-static STATIC
+  ${bcc_common_sources} ${bcc_table_sources} ${bcc_util_sources} ${bcc_usdt_sources} ${bcc_sym_sources} ${bcc_util_sources})
+set_target_properties(bcc-static PROPERTIES OUTPUT_NAME bcc)
+set(bcc-lua-static
+  ${bcc_common_sources} ${bcc_table_sources} ${bcc_sym_sources} ${bcc_util_sources})
+
+set(bpf_sources libbpf.c perf_reader.c ${libbpf_sources} ${bcc_sym_sources} ${bcc_util_sources} ${bcc_usdt_sources})
+add_library(bpf-static STATIC ${bpf_sources})
+set_target_properties(bpf-static PROPERTIES OUTPUT_NAME bcc_bpf)
+target_link_libraries(bpf-static elf z)
+add_library(bpf-shared SHARED ${bpf_sources})
+set_target_properties(bpf-shared PROPERTIES VERSION ${REVISION_LAST} SOVERSION 0)
+set_target_properties(bpf-shared PROPERTIES OUTPUT_NAME bcc_bpf)
+target_link_libraries(bpf-shared elf z)
+if(LIBLZMA_FOUND)
+  target_link_libraries(bpf-shared ${LIBLZMA_LIBRARIES})
+endif(LIBLZMA_FOUND)
+if(LIBDEBUGINFOD_FOUND)
+  target_link_libraries(bpf-shared ${LIBDEBUGINFOD_LIBRARIES})
+endif(LIBDEBUGINFOD_FOUND)
+if(CMAKE_USE_LIBBPF_PACKAGE AND LIBBPF_FOUND)
+  target_link_libraries(bpf-shared ${LIBBPF_LIBRARIES})
+endif()
+
+include(clang_libs)
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${clang_lib_exclude_flags}")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${llvm_lib_exclude_flags}")
+
+# bcc_common_libs_for_a for archive libraries
+# bcc_common_libs_for_s for shared libraries
+set(bcc_common_libs clang_frontend
+  -Wl,--whole-archive ${clang_libs} ${llvm_libs} -Wl,--no-whole-archive
+  ${LIBELF_LIBRARIES})
+if (LIBLZMA_FOUND)
+  list(APPEND bcc_common_libs ${LIBLZMA_LIBRARIES})
+endif (LIBLZMA_FOUND)
+if (LIBDEBUGINFOD_FOUND)
+  list(APPEND bcc_comm
