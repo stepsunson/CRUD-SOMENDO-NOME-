@@ -142,4 +142,51 @@ if (LIBLZMA_FOUND)
   list(APPEND bcc_common_libs ${LIBLZMA_LIBRARIES})
 endif (LIBLZMA_FOUND)
 if (LIBDEBUGINFOD_FOUND)
-  list(APPEND bcc_comm
+  list(APPEND bcc_common_libs ${LIBDEBUGINFOD_LIBRARIES})
+endif (LIBDEBUGINFOD_FOUND)
+set(bcc_common_libs_for_a ${bcc_common_libs})
+set(bcc_common_libs_for_s ${bcc_common_libs})
+set(bcc_common_libs_for_lua clang_frontend
+  ${clang_libs} ${llvm_libs} ${LIBELF_LIBRARIES})
+if(LIBBPF_FOUND)
+  list(APPEND bcc_common_libs_for_a ${LIBBPF_LIBRARIES})
+  list(APPEND bcc_common_libs_for_s ${LIBBPF_LIBRARIES})
+  list(APPEND bcc_common_libs_for_lua ${LIBBPF_LIBRARIES})
+else()
+  list(APPEND bcc_common_libs_for_a bpf-static)
+  list(APPEND bcc_common_libs_for_s bpf-static)
+  list(APPEND bcc_common_libs_for_lua bpf-static)
+endif()
+
+if(ENABLE_CPP_API)
+  add_subdirectory(api)
+  target_sources(bcc-static PRIVATE $<TARGET_OBJECTS:api-objects>)
+  # Keep all API functions
+  list(APPEND bcc_common_libs_for_s -Wl,--whole-archive api-static -Wl,--no-whole-archive)
+endif()
+
+if(ENABLE_USDT)
+  list(APPEND bcc_api_headers bcc_usdt.h)
+  add_subdirectory(usdt)
+  list(APPEND bcc_common_libs_for_a usdt-static)
+  list(APPEND bcc_common_libs_for_s usdt-static)
+  list(APPEND bcc_common_libs_for_lua usdt-static)
+endif()
+
+add_subdirectory(frontends)
+
+target_sources(bcc-static PRIVATE $<TARGET_OBJECTS:clang_frontend-objects>)
+
+# Link against LLVM libraries
+target_link_libraries(bcc-shared ${bcc_common_libs_for_s})
+target_link_libraries(bcc-static ${bcc_common_libs_for_a} bcc-loader-static)
+set(bcc-lua-static ${bcc-lua-static} ${bcc_common_libs_for_lua})
+
+install(TARGETS bcc-shared bcc-static bcc-loader-static bpf-static LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES ${bcc_table_headers} DESTINATION include/bcc)
+install(FILES ${bcc_api_headers} DESTINATION include/bcc)
+install(DIRECTORY ${libbpf_uapi} DESTINATION include/bcc/compat/linux FILES_MATCHING PATTERN "*.h")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libbcc.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+endif(ENABLE_CLANG_JIT)
+install(FILES ${bcc_common_headers} DESTINATION include/bcc)
+install(TARGETS bpf-shared LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
