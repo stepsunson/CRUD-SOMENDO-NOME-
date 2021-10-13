@@ -324,3 +324,97 @@ class BPF {
   BPFPerfBuffer* get_perf_buffer(const std::string& name);
   // Poll an opened Perf Buffer of given name with given timeout, using callback
   // provided when opening. Do nothing if such open Perf Buffer doesn't exist.
+  // Returns:
+  //   -1 on error or if perf buffer with such name doesn't exist;
+  //   0, if no data was available before timeout;
+  //   number of CPUs that have new data, otherwise.
+  int poll_perf_buffer(const std::string& name, int timeout_ms = -1);
+
+  StatusTuple load_func(const std::string& func_name, enum bpf_prog_type type,
+                        int& fd, unsigned flags = 0, enum bpf_attach_type = (bpf_attach_type) -1);
+  StatusTuple unload_func(const std::string& func_name);
+
+  StatusTuple attach_func(int prog_fd, int attachable_fd,
+                          enum bpf_attach_type attach_type,
+                          uint64_t flags);
+  StatusTuple detach_func(int prog_fd, int attachable_fd,
+                          enum bpf_attach_type attach_type);
+
+  int free_bcc_memory();
+
+ private:
+  std::string get_kprobe_event(const std::string& kernel_func,
+                               bpf_probe_attach_type type);
+  std::string get_uprobe_event(const std::string& binary_path, uint64_t offset,
+                               bpf_probe_attach_type type, pid_t pid);
+
+  StatusTuple attach_usdt_without_validation(const USDT& usdt, pid_t pid);
+  StatusTuple detach_usdt_without_validation(const USDT& usdt, pid_t pid);
+
+  StatusTuple detach_kprobe_event(const std::string& event, open_probe_t& attr);
+  StatusTuple detach_uprobe_event(const std::string& event, open_probe_t& attr);
+  StatusTuple detach_tracepoint_event(const std::string& tracepoint,
+                                      open_probe_t& attr);
+  StatusTuple detach_raw_tracepoint_event(const std::string& tracepoint,
+                                          open_probe_t& attr);
+  StatusTuple detach_perf_event_all_cpu(open_probe_t& attr);
+
+  std::string attach_type_debug(bpf_probe_attach_type type) {
+    switch (type) {
+    case BPF_PROBE_ENTRY:
+      return "";
+    case BPF_PROBE_RETURN:
+      return "return ";
+    }
+    return "ERROR";
+  }
+
+  std::string attach_type_prefix(bpf_probe_attach_type type) {
+    switch (type) {
+    case BPF_PROBE_ENTRY:
+      return "p";
+    case BPF_PROBE_RETURN:
+      return "r";
+    }
+    return "ERROR";
+  }
+
+  static bool kprobe_event_validator(char c) {
+    return (c != '+') && (c != '.');
+  }
+
+  static bool uprobe_path_validator(char c) {
+    return std::isalpha(c) || std::isdigit(c) || (c == '_');
+  }
+
+  StatusTuple check_binary_symbol(const std::string& binary_path,
+                                  const std::string& symbol,
+                                  uint64_t symbol_addr, std::string& module_res,
+                                  uint64_t& offset_res,
+                                  uint64_t symbol_offset = 0);
+
+  void init_fail_reset();
+
+  int flag_;
+
+  void *bsymcache_;
+
+  std::unique_ptr<std::string> syscall_prefix_;
+
+  std::unique_ptr<BPFModule> bpf_module_;
+
+  std::map<std::string, int> funcs_;
+
+  std::vector<USDT> usdt_;
+  std::string all_bpf_program_;
+
+  std::map<std::string, open_probe_t> kprobes_;
+  std::map<std::string, open_probe_t> uprobes_;
+  std::map<std::string, open_probe_t> tracepoints_;
+  std::map<std::string, open_probe_t> raw_tracepoints_;
+  std::map<std::string, BPFPerfBuffer*> perf_buffers_;
+  std::map<std::string, BPFPerfEventArray*> perf_event_arrays_;
+  std::map<std::pair<uint32_t, uint32_t>, open_probe_t> perf_events_;
+};
+
+}  // namespace ebpf
