@@ -82,4 +82,55 @@ static int btf_ext_setup_info(struct btf_ext *btf_ext,
                 return -EINVAL;
         }
 
-        /* At le
+        /* At least a record size */
+        if (info_left < sizeof(uint32_t)) {
+                /*pr_debug(".BTF.ext %s record size not found\n", ext_sec->desc);*/
+                return -EINVAL;
+        }
+
+        /* The record size needs to meet the minimum standard */
+        record_size = *(uint32_t *)info;
+        if (record_size < ext_sec->min_rec_size ||
+            record_size & 0x03) {
+                /*pr_debug("%s section in .BTF.ext has invalid record size %u\n",
+                         ext_sec->desc, record_size);*/
+                return -EINVAL;
+        }
+
+        sinfo = (struct btf_ext_info_sec*)((uint8_t*)info + sizeof(uint32_t));
+        info_left -= sizeof(uint32_t);
+
+        /* If no records, return failure now so .BTF.ext won't be used. */
+        if (!info_left) {
+                /*pr_debug("%s section in .BTF.ext has no records", ext_sec->desc);*/
+                return -EINVAL;
+        }
+
+        while (info_left) {
+                unsigned int sec_hdrlen = sizeof(struct btf_ext_info_sec);
+                uint64_t total_record_size;
+                uint32_t num_records;
+
+                if (info_left < sec_hdrlen) {
+                        /*pr_debug("%s section header is not found in .BTF.ext\n",
+                             ext_sec->desc);*/
+                        return -EINVAL;
+                }
+
+                num_records = sinfo->num_info;
+                if (num_records == 0) {
+                        /*pr_debug("%s section has incorrect num_records in .BTF.ext\n",
+                             ext_sec->desc);*/
+                        return -EINVAL;
+                }
+
+                total_record_size = sec_hdrlen +
+                                    (uint64_t)num_records * record_size;
+                if (info_left < total_record_size) {
+                        /*pr_debug("%s section has incorrect num_records in .BTF.ext\n",
+                             ext_sec->desc);*/
+                        return -EINVAL;
+                }
+
+                info_left -= total_record_size;
+                sinfo = (struct btf_ext_info_sec *)((uint8_t*)sinfo + total
