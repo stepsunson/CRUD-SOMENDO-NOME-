@@ -133,4 +133,69 @@ static int btf_ext_setup_info(struct btf_ext *btf_ext,
                 }
 
                 info_left -= total_record_size;
-                sinfo = (struct btf_ext_info_sec *)((uint8_t*)sinfo + total
+                sinfo = (struct btf_ext_info_sec *)((uint8_t*)sinfo + total_record_size);
+        }
+
+        ext_info = ext_sec->ext_info;
+        ext_info->len = ext_sec->len - sizeof(uint32_t);
+        ext_info->rec_size = record_size;
+        ext_info->info = (uint8_t*)info + sizeof(uint32_t);
+
+        return 0;
+}
+
+static int btf_ext_setup_func_info(struct btf_ext *btf_ext)
+{
+        struct btf_ext_sec_setup_param param = {
+                .off = btf_ext->hdr->func_info_off,
+                .len = btf_ext->hdr->func_info_len,
+                .min_rec_size = sizeof(struct bpf_func_info_min),
+                .ext_info = &btf_ext->func_info,
+                .desc = "func_info"
+        };
+
+        return btf_ext_setup_info(btf_ext, &param);
+}
+
+static int btf_ext_setup_line_info(struct btf_ext *btf_ext)
+{
+        struct btf_ext_sec_setup_param param = {
+                .off = btf_ext->hdr->line_info_off,
+                .len = btf_ext->hdr->line_info_len,
+                .min_rec_size = sizeof(struct bpf_line_info_min),
+                .ext_info = &btf_ext->line_info,
+                .desc = "line_info",
+        };
+
+        return btf_ext_setup_info(btf_ext, &param);
+}
+
+static int btf_ext_setup_core_relos(struct btf_ext *btf_ext)
+{
+        struct btf_ext_sec_setup_param param = {
+                .off = btf_ext->hdr->core_relo_off,
+                .len = btf_ext->hdr->core_relo_len,
+                .min_rec_size = sizeof(struct bpf_core_relo),
+                .ext_info = &btf_ext->core_relo_info,
+                .desc = "core_relo",
+        };
+
+        return btf_ext_setup_info(btf_ext, &param);
+}
+
+static int btf_ext_parse_hdr(uint8_t *data, uint32_t data_size)
+{
+        const struct btf_ext_header *hdr = (struct btf_ext_header *)data;
+
+        if (data_size < offsetofend(struct btf_ext_header, hdr_len) ||
+            data_size < hdr->hdr_len) {
+                //pr_debug("BTF.ext header not found");
+                return -EINVAL;
+        }
+
+        if (hdr->magic == bswap_16(BTF_MAGIC)) {
+                //pr_warn("BTF.ext in non-native endianness is not supported\n");
+                return -ENOTSUP;
+        } else if (hdr->magic != BTF_MAGIC) {
+                //pr_debug("Invalid BTF.ext magic:%x\n", hdr->magic);
+                return -
