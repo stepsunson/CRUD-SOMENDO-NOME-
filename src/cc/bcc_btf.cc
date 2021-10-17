@@ -198,4 +198,85 @@ static int btf_ext_parse_hdr(uint8_t *data, uint32_t data_size)
                 return -ENOTSUP;
         } else if (hdr->magic != BTF_MAGIC) {
                 //pr_debug("Invalid BTF.ext magic:%x\n", hdr->magic);
-                return -
+                return -EINVAL;
+        }
+
+        if (hdr->version != BTF_VERSION) {
+                //pr_debug("Unsupported BTF.ext version:%u\n", hdr->version);
+                return -ENOTSUP;
+        }
+
+        if (hdr->flags) {
+                //pr_debug("Unsupported BTF.ext flags:%x\n", hdr->flags);
+                return -ENOTSUP;
+        }
+
+        if (data_size == hdr->hdr_len) {
+                //pr_debug("BTF.ext has no data\n");
+                return -EINVAL;
+        }
+
+        return 0;
+}
+
+void btf_ext__free(struct btf_ext *btf_ext)
+{
+	if((!btf_ext) || BCC_IS_ERR_VALUE((unsigned long)btf_ext))
+                return;
+        free(btf_ext->data);
+        free(btf_ext);
+}
+
+struct btf_ext *btf_ext__new(const uint8_t *data, uint32_t size)
+{
+        struct btf_ext *btf_ext;
+        int err;
+
+        btf_ext = (struct btf_ext*)calloc(1, sizeof(struct btf_ext));
+        if (!btf_ext)
+                return (struct btf_ext*)-ENOMEM;
+
+        btf_ext->data_size = size;
+        btf_ext->data = malloc(size);
+        if (!btf_ext->data) {
+                err = -ENOMEM;
+                goto done;
+        }
+        memcpy(btf_ext->data, data, size);
+
+        err = btf_ext_parse_hdr((uint8_t*)btf_ext->data, size);
+        if (err)
+                goto done;
+
+        if (btf_ext->hdr->hdr_len < offsetofend(struct btf_ext_header, line_info_len)) {
+                err = -EINVAL;
+                goto done;
+        }
+
+        err = btf_ext_setup_func_info(btf_ext);
+        if (err)
+                goto done;
+
+        err = btf_ext_setup_line_info(btf_ext);
+        if (err)
+                goto done;
+
+        if (btf_ext->hdr->hdr_len < offsetofend(struct btf_ext_header, core_relo_len)) {
+                err = -EINVAL;
+                goto done;
+        }
+
+        err = btf_ext_setup_core_relos(btf_ext);
+        if (err)
+                goto done;
+
+done:
+        if (err) {
+                btf_ext__free(btf_ext);
+                return (struct btf_ext*)(uintptr_t)err;
+        }
+
+        return btf_ext;
+}
+
+static int btf_ext_reloc_info(const struct 
