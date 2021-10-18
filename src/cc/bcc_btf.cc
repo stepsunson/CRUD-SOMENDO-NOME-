@@ -279,4 +279,54 @@ done:
         return btf_ext;
 }
 
-static int btf_ext_reloc_info(const struct 
+static int btf_ext_reloc_info(const struct btf *btf,
+                              const struct btf_ext_info *ext_info,
+                              const char *sec_name, uint32_t insns_cnt,
+                              void **info, uint32_t *cnt)
+{
+        uint32_t sec_hdrlen = sizeof(struct btf_ext_info_sec);
+        uint32_t i, record_size, existing_len, records_len;
+        struct btf_ext_info_sec *sinfo;
+        const char *info_sec_name;
+        uint64_t remain_len;
+        void *data;
+
+        record_size = ext_info->rec_size;
+        sinfo = (struct btf_ext_info_sec*)ext_info->info;
+        remain_len = ext_info->len;
+        while (remain_len > 0) {
+                records_len = sinfo->num_info * record_size;
+                info_sec_name = btf__name_by_offset(btf, sinfo->sec_name_off);
+                if (strcmp(info_sec_name, sec_name)) {
+                        remain_len -= sec_hdrlen + records_len;
+                        sinfo = (struct btf_ext_info_sec*)((uint8_t *)sinfo + sec_hdrlen + records_len);
+                        continue;
+                }
+
+                existing_len = (*cnt) * record_size;
+                data = realloc(*info, existing_len + records_len);
+                if (!data)
+                        return -ENOMEM;
+
+                memcpy((uint8_t*)data + existing_len, sinfo->data, records_len);
+                /* adjust insn_off only, the rest data will be passed
+                 * to the kernel.
+                 */
+                for (i = 0; i < sinfo->num_info; i++) {
+                        uint32_t *insn_off;
+
+                        insn_off = (uint32_t *)((uint8_t*)data + existing_len + (i * record_size));
+                        *insn_off = *insn_off / sizeof(struct bpf_insn) + insns_cnt;
+                }
+                *info = data;
+                *cnt += sinfo->num_info;
+                return 0;
+        }
+
+        return -ENOENT;
+}
+
+int btf_ext__reloc_func_info(const struct btf *btf,
+                             const struct btf_ext *btf_ext,
+                             const char *sec_name, uint32_t insns_cnt,
+                         
