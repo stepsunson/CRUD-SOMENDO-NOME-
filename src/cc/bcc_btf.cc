@@ -405,4 +405,78 @@ void BTF::fixup_btf(uint8_t *type_sec, uintptr_t type_sec_size,
     case BTF_KIND_FWD:
     case BTF_KIND_CONST:
     case BTF_KIND_VOLATILE:
-    case BTF_KIND_RESTRICT
+    case BTF_KIND_RESTRICT:
+    case BTF_KIND_PTR:
+    case BTF_KIND_TYPEDEF:
+      break;
+    case BTF_KIND_FUNC:
+      // sanitize vlen to be 0 since bcc does not
+      // care about func scope (static, global, extern) yet.
+      t->info &= ~0xffff;
+      break;
+    case BTF_KIND_INT:
+      next_type += sizeof(uint32_t);
+      break;
+    case BTF_KIND_ENUM:
+      next_type += vlen * sizeof(struct btf_enum);
+      break;
+    case BTF_KIND_ARRAY:
+      next_type += sizeof(struct btf_array);
+      break;
+    case BTF_KIND_STRUCT:
+    case BTF_KIND_UNION:
+      next_type += vlen * sizeof(struct btf_member);
+      break;
+    case BTF_KIND_FUNC_PROTO:
+      next_type += vlen * sizeof(struct btf_param);
+      break;
+    case BTF_KIND_VAR: {
+      // BTF_KIND_VAR is not used by bcc, so
+      // a sanitization to convert it to an int.
+      // One extra __u32 after btf_type.
+      if (sizeof(struct btf_var) == 4) {
+        t->name_off = 0;
+        t->info = BTF_KIND_INT << 24;
+        t->size = 4;
+
+        unsigned *intp = (unsigned *)next_type;
+        *intp = BTF_INT_BITS(t->size << 3);
+      }
+
+      next_type += sizeof(struct btf_var);
+      break;
+    }
+    case BTF_KIND_DATASEC: {
+      // bcc does not use BTF_KIND_DATASEC, so
+      // a sanitization here to convert it to a list
+      // of void pointers.
+      // btf_var_secinfo is 3 __u32's for each var.
+      if (sizeof(struct btf_var_secinfo) == 12) {
+        t->name_off = 0;
+        t->info = BTF_KIND_PTR << 24;
+        t->type = 0;
+
+        struct btf_type *typep = (struct btf_type *)next_type;
+        for (int i = 0; i < vlen; i++) {
+          typep->name_off = 0;
+          typep->info = BTF_KIND_PTR << 24;
+          typep->type = 0;
+          typep++;
+        }
+      }
+
+      next_type += vlen * sizeof(struct btf_var_secinfo);
+      break;
+    }
+    default:
+      // Something not understood
+      return;
+    }
+  }
+}
+
+// The compiler doesn't have source code for remapped files.
+// So we modify .BTF and .BTF.ext sections here to add these
+// missing line source codes.
+// The .BTF and .BTF.ext ELF section specification can be
+// found at linux repo: linux/Documentatio
