@@ -329,4 +329,80 @@ static int btf_ext_reloc_info(const struct btf *btf,
 int btf_ext__reloc_func_info(const struct btf *btf,
                              const struct btf_ext *btf_ext,
                              const char *sec_name, uint32_t insns_cnt,
-                         
+                             void **func_info, uint32_t *cnt)
+{
+        return btf_ext_vendored::btf_ext_reloc_info(btf, &btf_ext->func_info, sec_name,
+                                  insns_cnt, func_info, cnt);
+}
+
+int btf_ext__reloc_line_info(const struct btf *btf,
+                             const struct btf_ext *btf_ext,
+                             const char *sec_name, uint32_t insns_cnt,
+                             void **line_info, uint32_t *cnt)
+{
+        return btf_ext_vendored::btf_ext_reloc_info(btf, &btf_ext->line_info, sec_name,
+                                  insns_cnt, line_info, cnt);
+}
+
+} // namespace btf_ext_vendored
+
+namespace ebpf {
+
+int32_t BTFStringTable::addString(std::string S) {
+  // Check whether the string already exists.
+  for (auto &OffsetM : OffsetToIdMap) {
+    if (Table[OffsetM.second] == S)
+      return OffsetM.first;
+  }
+
+  // Make sure we do not overflow the string table.
+  if (OrigTblLen + Size + S.size() + 1 >= BTF_MAX_NAME_OFFSET)
+    return -1;
+
+  // Not find, add to the string table.
+  uint32_t Offset = Size;
+  OffsetToIdMap[Offset] = Table.size();
+  Table.push_back(S);
+  Size += S.size() + 1;
+  return Offset;
+}
+
+BTF::BTF(bool debug, sec_map_def &sections) : debug_(debug),
+    btf_(nullptr), btf_ext_(nullptr), sections_(sections) {
+  if (!debug)
+    libbpf_set_print(NULL);
+}
+
+BTF::~BTF() {
+  btf__free(btf_);
+  btf_ext__free(btf_ext_);
+}
+
+void BTF::warning(const char *format, ...) {
+  va_list args;
+
+  if (!debug_)
+    return;
+
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+}
+
+void BTF::fixup_btf(uint8_t *type_sec, uintptr_t type_sec_size,
+                    char *strings) {
+  uint8_t *next_type = type_sec;
+  uint8_t *end_type = type_sec + type_sec_size;
+  int base_size = sizeof(struct btf_type);
+
+  while (next_type < end_type) {
+    struct btf_type *t = (struct btf_type *)next_type;
+    unsigned short vlen = BTF_INFO_VLEN(t->info);
+
+    next_type += base_size;
+
+    switch(BTF_INFO_KIND(t->info)) {
+    case BTF_KIND_FWD:
+    case BTF_KIND_CONST:
+    case BTF_KIND_VOLATILE:
+    case BTF_KIND_RESTRICT
