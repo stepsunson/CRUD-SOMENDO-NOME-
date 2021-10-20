@@ -479,4 +479,52 @@ void BTF::fixup_btf(uint8_t *type_sec, uintptr_t type_sec_size,
 // So we modify .BTF and .BTF.ext sections here to add these
 // missing line source codes.
 // The .BTF and .BTF.ext ELF section specification can be
-// found at linux repo: linux/Documentatio
+// found at linux repo: linux/Documentation/bpf/btf.rst.
+void BTF::adjust(uint8_t *btf_sec, uintptr_t btf_sec_size,
+                 uint8_t *btf_ext_sec, uintptr_t btf_ext_sec_size,
+                 std::map<std::string, std::string> &remapped_sources,
+                 uint8_t **new_btf_sec, uintptr_t *new_btf_sec_size) {
+
+  // Line cache for remapped files
+  std::map<std::string, std::vector<std::string>> LineCaches;
+  for (auto it = remapped_sources.begin(); it != remapped_sources.end(); ++it) {
+    size_t FileBufSize = it->second.size();
+    std::vector<std::string> LineCache;
+
+    for (uint32_t start = 0, end = start; end < FileBufSize; end++) {
+      if (it->second[end] == '\n' || end == FileBufSize - 1 ||
+          (it->second[end] == '\r' && it->second[end + 1] == '\n')) {
+        // Not including the endline
+        LineCache.push_back(std::string(it->second.substr(start, end - start)));
+        if (it->second[end] == '\r')
+          end++;
+        start = end + 1;
+      }
+    }
+    LineCaches[it->first] = std::move(LineCache);
+  }
+
+  struct btf_header *hdr = (struct btf_header *)btf_sec;
+  struct btf_ext_vendored::btf_ext_header *ehdr = (struct btf_ext_vendored::btf_ext_header *)btf_ext_sec;
+
+  // Fixup btf for old kernels or kernel requirements.
+  fixup_btf(btf_sec + hdr->hdr_len + hdr->type_off, hdr->type_len,
+            (char *)(btf_sec + hdr->hdr_len + hdr->str_off));
+
+  // Check the LineInfo table and add missing lines
+  char *strings = (char *)(btf_sec + hdr->hdr_len + hdr->str_off);
+  unsigned orig_strings_len = hdr->str_len;
+  unsigned *linfo_s = (unsigned *)(btf_ext_sec + ehdr->hdr_len + ehdr->line_info_off);
+  unsigned lrec_size = *linfo_s;
+  linfo_s++;
+  unsigned linfo_len = ehdr->line_info_len - 4;
+
+  // Go through all line info. For any line number whose line is in the LineCaches,
+  // Correct the line_off and record the corresponding source line in BTFStringTable,
+  // which later will be merged into .BTF string section.
+  BTFStringTable new_strings(orig_strings_len);
+  bool overflow = false;
+  while (!overflow && linfo_len) {
+    unsigned num_recs = linfo_s[1];
+    linfo_s += 2;
+    for (u
