@@ -527,4 +527,54 @@ void BTF::adjust(uint8_t *btf_sec, uintptr_t btf_sec_size,
   while (!overflow && linfo_len) {
     unsigned num_recs = linfo_s[1];
     linfo_s += 2;
-    for (u
+    for (unsigned i = 0; !overflow && i < num_recs; i++) {
+      struct bpf_line_info *linfo = (struct bpf_line_info *)linfo_s;
+      if (linfo->line_off == 0) {
+        for (auto it = LineCaches.begin(); it != LineCaches.end(); ++it) {
+          if (strcmp(strings + linfo->file_name_off, it->first.c_str()) == 0) {
+            unsigned line_num = BPF_LINE_INFO_LINE_NUM(linfo->line_col);
+            if (line_num > 0 && line_num <= it->second.size()) {
+               int offset = new_strings.addString(it->second[line_num - 1]);
+               if (offset < 0) {
+                 overflow = true;
+                 warning(".BTF string table overflowed, some lines missing\n");
+                 break;
+               }
+               linfo->line_off = orig_strings_len + offset;
+            }
+          }
+        }
+      }
+      linfo_s += lrec_size >> 2;
+    }
+    linfo_len -= 8 + num_recs * lrec_size;
+  }
+
+  // If any new source lines need to be recorded, do not touch the original section,
+  // allocate a new section. The original section is allocated through llvm infra.
+  if (new_strings.getSize() > 0) {
+    // LLVM generated .BTF layout always has type_sec followed by str_sec without holes,
+    // so we can just append the new strings to the end and adjust str_sec size.
+    unsigned tmp_sec_size = btf_sec_size + new_strings.getSize();
+    uint8_t *tmp_sec = new uint8_t[tmp_sec_size];
+    memcpy(tmp_sec, btf_sec, btf_sec_size);
+
+    struct btf_header *nhdr = (struct btf_header *)tmp_sec;
+    nhdr->str_len += new_strings.getSize();
+
+    // Populate new strings to the string table.
+    uint8_t *new_str = tmp_sec + nhdr->hdr_len + nhdr->str_off + orig_strings_len;
+    std::vector<std::string> &Table = new_strings.getTable();
+    for (unsigned i = 0; i < Table.size(); i++) {
+      strcpy((char *)new_str, Table[i].c_str());
+      new_str += Table[i].size() + 1;
+    }
+
+    *new_btf_sec = tmp_sec;
+    *new_btf_sec_size = tmp_sec_size;
+  }
+}
+
+int BTF::load(uint8_t *btf_sec, uintptr_t btf_sec_size,
+              uint8_t *btf_ext_sec, uintptr_t btf_ext_sec_size,
+              std::map<s
