@@ -577,4 +577,80 @@ void BTF::adjust(uint8_t *btf_sec, uintptr_t btf_sec_size,
 
 int BTF::load(uint8_t *btf_sec, uintptr_t btf_sec_size,
               uint8_t *btf_ext_sec, uintptr_t btf_ext_sec_size,
-              std::map<s
+              std::map<std::string, std::string> &remapped_sources) {
+  struct btf *btf;
+  struct btf_ext_vendored::btf_ext *btf_ext;
+  uint8_t *new_btf_sec = NULL;
+  uintptr_t new_btf_sec_size = 0;
+
+  adjust(btf_sec, btf_sec_size, btf_ext_sec, btf_ext_sec_size,
+         remapped_sources, &new_btf_sec, &new_btf_sec_size);
+
+  if (new_btf_sec) {
+    btf = btf__new(new_btf_sec, new_btf_sec_size);
+    delete[] new_btf_sec;
+  } else {
+    btf = btf__new(btf_sec, btf_sec_size);
+  }
+  if (BCC_IS_ERR(btf)) {
+    warning("Processing .BTF section failed\n");
+    return -1;
+  }
+
+  if (btf__load_into_kernel(btf)) {
+    btf__free(btf);
+    warning("Loading .BTF section failed\n");
+    return -1;
+  }
+
+  btf_ext = btf_ext_vendored::btf_ext__new(btf_ext_sec, btf_ext_sec_size);
+  if (BCC_IS_ERR(btf_ext)) {
+    btf__free(btf);
+    warning("Processing .BTF.ext section failed\n");
+    return -1;
+  }
+
+  btf_ = btf;
+  btf_ext_ = btf_ext;
+  return 0;
+}
+
+int BTF::get_fd() {
+  return btf__fd(btf_);
+}
+
+int BTF::get_btf_info(const char *fname,
+                      void **func_info, unsigned *func_info_cnt,
+                      unsigned *finfo_rec_size,
+                      void **line_info, unsigned *line_info_cnt,
+                      unsigned *linfo_rec_size) {
+  int ret;
+
+  *func_info = *line_info = NULL;
+  *func_info_cnt = *line_info_cnt = 0;
+
+  *finfo_rec_size = btf_ext_->func_info.rec_size;
+  *linfo_rec_size = btf_ext_->line_info.rec_size;
+
+  ret = btf_ext_vendored::btf_ext__reloc_func_info(btf_, btf_ext_, fname, 0,
+        func_info, func_info_cnt);
+  if (ret) {
+    warning(".BTF.ext reloc func_info failed\n");
+    return ret;
+  }
+
+  ret = btf_ext_vendored::btf_ext__reloc_line_info(btf_, btf_ext_, fname, 0,
+        line_info, line_info_cnt);
+  if (ret) {
+    warning(".BTF.ext reloc line_info failed\n");
+    return ret;
+  }
+
+  return 0;
+}
+
+int BTF::get_map_tids(std::string map_name,
+                      unsigned expected_ksize, unsigned expected_vsize,
+                      unsigned *key_tid, unsigned *value_tid) {
+  auto struct_name = "____btf_map_" + map_name;
+  auto type_id = btf__find_by_name_kind(btf_, struct_name.c_str(),
