@@ -99,4 +99,64 @@ struct btf_ext_info_sec {
 struct btf_ext *btf_ext__new(const uint8_t *data, uint32_t size);
 void btf_ext__free(struct btf_ext *btf_ext);
 int btf_ext__reloc_func_info(const struct btf *btf,
-                         
+                             const struct btf_ext *btf_ext,
+                             const char *sec_name, uint32_t insns_cnt,
+                             void **func_info, uint32_t *cnt);
+int btf_ext__reloc_line_info(const struct btf *btf,
+                             const struct btf_ext *btf_ext,
+                             const char *sec_name, uint32_t insns_cnt,
+                             void **line_info, uint32_t *cnt);
+
+} // namespace btf_ext_vendored
+
+namespace ebpf {
+
+class BTFStringTable {
+ private:
+  uint32_t Size;
+  uint32_t OrigTblLen;
+  std::map<uint32_t, uint32_t> OffsetToIdMap;
+  std::vector<std::string> Table;
+
+ public:
+  BTFStringTable(uint32_t TblLen): Size(0), OrigTblLen(TblLen) {}
+  uint32_t getSize() { return Size; }
+  std::vector<std::string> &getTable() { return Table; }
+  int32_t addString(std::string Str);
+};
+
+class BTF {
+ public:
+  BTF(bool debug, sec_map_def &sections);
+  ~BTF();
+  int load(uint8_t *btf_sec, uintptr_t btf_sec_size,
+           uint8_t *btf_ext_sec, uintptr_t btf_ext_sec_size,
+           std::map<std::string, std::string> &remapped_sources);
+  int get_fd();
+  int get_btf_info(const char *fname,
+                   void **func_info, unsigned *func_info_cnt,
+                   unsigned *finfo_rec_size,
+                   void **line_info, unsigned *line_info_cnt,
+                   unsigned *linfo_rec_size);
+  int get_map_tids(std::string map_name,
+                   unsigned expected_ksize, unsigned expected_vsize,
+                   unsigned *key_tid, unsigned *value_tid);
+
+ private:
+  void fixup_btf(uint8_t *type_sec, uintptr_t type_sec_size, char *strings);
+  void adjust(uint8_t *btf_sec, uintptr_t btf_sec_size,
+              uint8_t *btf_ext_sec, uintptr_t btf_ext_sec_size,
+              std::map<std::string, std::string> &remapped_sources,
+              uint8_t **new_btf_sec, uintptr_t *new_btf_sec_size);
+  void warning(const char *format, ...);
+
+ private:
+  bool debug_;
+  struct btf *btf_;
+  struct btf_ext_vendored::btf_ext *btf_ext_;
+  sec_map_def &sections_;
+};
+
+} // namespace ebpf
+
+#endif
