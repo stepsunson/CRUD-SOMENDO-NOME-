@@ -67,3 +67,197 @@ void * bpf_function_start(void *program, const char *name) {
 }
 
 void * bpf_function_start_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return nullptr;
+  return mod->function_start(id);
+}
+
+size_t bpf_function_size(void *program, const char *name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->function_size(name);
+}
+
+size_t bpf_function_size_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->function_size(id);
+}
+
+char * bpf_module_license(void *program) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return nullptr;
+  return mod->license();
+}
+
+unsigned bpf_module_kern_version(void *program) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->kern_version();
+}
+
+size_t bpf_num_tables(void *program) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->num_tables();
+}
+
+size_t bpf_table_id(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return ~0ull;
+  return mod->table_id(table_name);
+}
+
+int bpf_table_fd(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_fd(table_name);
+}
+
+int bpf_table_fd_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_fd(id);
+}
+
+int bpf_table_type(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_type(table_name);
+}
+
+int bpf_table_type_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_type(id);
+}
+
+size_t bpf_table_max_entries(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->table_max_entries(table_name);
+}
+
+size_t bpf_table_max_entries_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->table_max_entries(id);
+}
+
+int bpf_table_flags(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_flags(table_name);
+}
+
+int bpf_table_flags_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_flags(id);
+}
+
+const char * bpf_table_name(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return nullptr;
+  return mod->table_name(id);
+}
+
+const char * bpf_table_key_desc(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return nullptr;
+  return mod->table_key_desc(table_name);
+}
+
+const char * bpf_table_key_desc_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return nullptr;
+  return mod->table_key_desc(id);
+}
+
+const char * bpf_table_leaf_desc(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return nullptr;
+  return mod->table_leaf_desc(table_name);
+}
+
+const char * bpf_table_leaf_desc_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return nullptr;
+  return mod->table_leaf_desc(id);
+}
+
+size_t bpf_table_key_size(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->table_key_size(table_name);
+}
+
+size_t bpf_table_key_size_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->table_key_size(id);
+}
+
+size_t bpf_table_leaf_size(void *program, const char *table_name) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->table_leaf_size(table_name);
+}
+
+size_t bpf_table_leaf_size_id(void *program, size_t id) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return 0;
+  return mod->table_leaf_size(id);
+}
+
+int bpf_table_key_snprintf(void *program, size_t id, char *buf, size_t buflen, const void *key) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_key_printf(id, buf, buflen, key);
+}
+int bpf_table_leaf_snprintf(void *program, size_t id, char *buf, size_t buflen, const void *leaf) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_leaf_printf(id, buf, buflen, leaf);
+}
+
+int bpf_table_key_sscanf(void *program, size_t id, const char *buf, void *key) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_key_scanf(id, buf, key);
+}
+
+int bpf_table_leaf_sscanf(void *program, size_t id, const char *buf, void *leaf) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->table_leaf_scanf(id, buf, leaf);
+}
+
+int bcc_func_load(void *program, int prog_type, const char *name,
+                  const struct bpf_insn *insns, int prog_len,
+                  const char *license, unsigned kern_version,
+                  int log_level, char *log_buf, unsigned log_buf_size,
+                  const char *dev_name, int attach_type) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod) return -1;
+  return mod->bcc_func_load(prog_type, name, insns, prog_len,
+                            license, kern_version, log_level,
+                            log_buf, log_buf_size, dev_name, 0, attach_type);
+
+}
+
+size_t bpf_perf_event_fields(void *program, const char *event) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod)
+    return 0;
+  return mod->perf_event_fields(event);
+}
+
+const char * bpf_perf_event_field(void *program, const char *event, size_t i) {
+  auto mod = static_cast<ebpf::BPFModule *>(program);
+  if (!mod)
+    return nullptr;
+  return mod->perf_event_field(event, i);
+}
+
+}
