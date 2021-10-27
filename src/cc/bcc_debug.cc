@@ -59,4 +59,63 @@ using namespace llvm;
 using DWARFLineTable = DWARFDebugLine::LineTable;
 
 void SourceDebugger::adjustInstSize(uint64_t &Size, uint8_t byte0,
-                                   
+                                    uint8_t byte1) {
+#ifdef WORKAROUND_FOR_LD_PSEUDO
+  bool isLittleEndian = mod_->getDataLayout().isLittleEndian();
+  if (byte0 == 0x18 && ((isLittleEndian && (byte1 & 0xf) == 0x1) ||
+                        (!isLittleEndian && (byte1 & 0xf0) == 0x10)))
+    Size = 16;
+#endif
+}
+
+vector<string> SourceDebugger::buildLineCache() {
+  vector<string> LineCache;
+  size_t FileBufSize = mod_src_.size();
+
+  for (uint32_t start = 0, end = start; end < FileBufSize; end++)
+    if (mod_src_[end] == '\n' || end == FileBufSize - 1 ||
+        (mod_src_[end] == '\r' && mod_src_[end + 1] == '\n')) {
+      // Not including the endline
+      LineCache.push_back(string(mod_src_.substr(start, end - start)));
+      if (mod_src_[end] == '\r')
+        end++;
+      start = end + 1;
+    }
+
+  return LineCache;
+}
+
+void SourceDebugger::dumpSrcLine(const vector<string> &LineCache,
+                                 const string &FileName, uint32_t Line,
+                                 uint32_t &CurrentSrcLine,
+                                 llvm::raw_ostream &os) {
+  if (Line != 0 && Line != CurrentSrcLine && Line < LineCache.size() &&
+      FileName == mod_->getSourceFileName()) {
+    os << "; " << StringRef(LineCache[Line - 1]).ltrim()
+       << format(
+              " // Line"
+              "%4" PRIu64 "\n",
+              Line);
+    CurrentSrcLine = Line;
+  }
+}
+
+void SourceDebugger::getDebugSections(
+    StringMap<std::unique_ptr<MemoryBuffer>> &DebugSections) {
+  for (auto section : sections_) {
+    if (strncmp(section.first.c_str(), ".debug", 6) == 0) {
+      StringRef SecData(reinterpret_cast<const char *>(get<0>(section.second)),
+                        get<1>(section.second));
+      DebugSections[section.first.substr(1)] =
+          MemoryBuffer::getMemBufferCopy(SecData);
+    }
+  }
+}
+
+void SourceDebugger::dump() {
+  string Error;
+  string TripleStr(mod_->getTargetTriple());
+  Triple TheTriple(TripleStr);
+  const Target *T = TargetRegistry::lookupTarget(TripleStr, Error);
+  if (!T) {
+    errs() << "Debug Error: cannot get target\n";
