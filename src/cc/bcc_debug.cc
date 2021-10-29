@@ -119,3 +119,71 @@ void SourceDebugger::dump() {
   const Target *T = TargetRegistry::lookupTarget(TripleStr, Error);
   if (!T) {
     errs() << "Debug Error: cannot get target\n";
+    return;
+  }
+
+  std::unique_ptr<MCRegisterInfo> MRI(T->createMCRegInfo(TripleStr));
+  if (!MRI) {
+    errs() << "Debug Error: cannot get register info\n";
+    return;
+  }
+#if LLVM_MAJOR_VERSION >= 10
+  MCTargetOptions MCOptions;
+  std::unique_ptr<MCAsmInfo> MAI(T->createMCAsmInfo(*MRI, TripleStr, MCOptions));
+#else
+  std::unique_ptr<MCAsmInfo> MAI(T->createMCAsmInfo(*MRI, TripleStr));
+#endif
+  if (!MAI) {
+    errs() << "Debug Error: cannot get assembly info\n";
+    return;
+  }
+
+  std::unique_ptr<MCSubtargetInfo> STI(
+      T->createMCSubtargetInfo(TripleStr, "", ""));
+  MCObjectFileInfo MOFI;
+#if LLVM_MAJOR_VERSION >= 13
+  MCContext Ctx(TheTriple, MAI.get(), MRI.get(), STI.get(), nullptr);
+  Ctx.setObjectFileInfo(&MOFI);
+  MOFI.initMCObjectFileInfo(Ctx, false, false);
+#else
+  MCContext Ctx(MAI.get(), MRI.get(), &MOFI, nullptr);
+  MOFI.InitMCObjectFileInfo(TheTriple, false, Ctx, false);
+#endif
+
+  std::unique_ptr<MCInstrInfo> MCII(T->createMCInstrInfo());
+  MCInstPrinter *IP = T->createMCInstPrinter(TheTriple, 0, *MAI, *MCII, *MRI);
+  if (!IP) {
+    errs() << "Debug Error: unable to create instruction printer\n";
+    return;
+  }
+
+  std::unique_ptr<const MCDisassembler> DisAsm(
+      T->createMCDisassembler(*STI, Ctx));
+  if (!DisAsm) {
+    errs() << "Debug Error: no disassembler\n";
+    return;
+  }
+
+  // Set up the dwarf debug context
+  StringMap<std::unique_ptr<MemoryBuffer>> DebugSections;
+  getDebugSections(DebugSections);
+  std::unique_ptr<DWARFContext> DwarfCtx =
+      DWARFContext::create(DebugSections, 8);
+  if (!DwarfCtx) {
+    errs() << "Debug Error: dwarf context creation failed\n";
+    return;
+  }
+
+  // bcc has only one compilation unit
+  // getCompileUnitAtIndex() was gone in llvm 8.0 (https://reviews.llvm.org/D49741)
+#if LLVM_MAJOR_VERSION >= 8
+  DWARFCompileUnit *CU = cast<DWARFCompileUnit>(DwarfCtx->getUnitAtIndex(0));
+#else
+  DWARFCompileUnit *CU = DwarfCtx->getCompileUnitAtIndex(0);
+#endif
+  if (!CU) {
+    errs() << "Debug Error: dwarf context failed to get compile unit\n";
+    return;
+  }
+
+  const DWARFLineTable *LineTable = Dwar
