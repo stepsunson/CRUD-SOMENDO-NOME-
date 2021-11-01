@@ -243,4 +243,20 @@ void SourceDebugger::dump() {
         adjustInstSize(Size, Data[Index], Data[Index + 1]);
         dumpSrcLine(LineCache, LineInfo.FileName, LineInfo.Line, CurrentSrcLine,
                     os);
-        os << format("%4" PRIu64 ":",
+        os << format("%4" PRIu64 ":", Index >> 3) << '\t';
+        dumpBytes(Data.slice(Index, Size), os);
+#if LLVM_MAJOR_VERSION >= 10
+        IP->printInst(&Inst, 0, "", *STI, os);
+#else
+        IP->printInst(&Inst, os, "", *STI);
+#endif
+        os << '\n';
+      }
+    }
+    os.flush();
+    errs() << src_dbg_str << '\n';
+    src_dbg_fmap_[func_name] = src_dbg_str;
+  });
+}
+
+}  // namespace ebpf
