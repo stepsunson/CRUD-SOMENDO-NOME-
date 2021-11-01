@@ -186,4 +186,61 @@ void SourceDebugger::dump() {
     return;
   }
 
-  const DWARFLineTable *LineTable = Dwar
+  const DWARFLineTable *LineTable = DwarfCtx->getLineTableForUnit(CU);
+  if (!LineTable) {
+    errs() << "Debug Error: dwarf context failed to get line table\n";
+    return;
+  }
+
+  // Build LineCache for later source code printing
+  vector<string> LineCache = buildLineCache();
+
+  // Start to disassemble with source code annotation section by section
+  prog_func_info_.for_each_func([&](std::string func_name, FuncInfo &info) {
+    MCDisassembler::DecodeStatus S;
+    MCInst Inst;
+    uint64_t Size;
+    uint8_t *FuncStart = info.start_;
+    uint64_t FuncSize = info.size_;
+#if LLVM_MAJOR_VERSION >= 9
+    auto section = sections_.find(info.section_);
+    if (section == sections_.end()) {
+      errs() << "Debug Error: no section entry for section " << info.section_
+             << '\n';
+      return;
+    }
+    unsigned SectionID = get<2>(section->second);
+#endif
+    ArrayRef<uint8_t> Data(FuncStart, FuncSize);
+    uint32_t CurrentSrcLine = 0;
+
+    errs() << "Disassembly of function " << func_name << "\n";
+
+    string src_dbg_str;
+    llvm::raw_string_ostream os(src_dbg_str);
+    for (uint64_t Index = 0; Index < FuncSize; Index += Size) {
+#if LLVM_MAJOR_VERSION >= 10
+      S = DisAsm->getInstruction(Inst, Size, Data.slice(Index), Index, nulls());
+#else
+      S = DisAsm->getInstruction(Inst, Size, Data.slice(Index), Index, nulls(),
+                                 nulls());
+#endif
+      if (S != MCDisassembler::Success) {
+        os << "Debug Error: disassembler failed: " << std::to_string(S) << '\n';
+        break;
+      } else {
+        DILineInfo LineInfo;
+
+        LineTable->getFileLineInfoForAddress(
+#if LLVM_MAJOR_VERSION >= 9
+            {(uint64_t)FuncStart + Index, SectionID},
+#else
+            (uint64_t)FuncStart + Index,
+#endif
+            CU->getCompilationDir(),
+            DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath, LineInfo);
+
+        adjustInstSize(Size, Data[Index], Data[Index + 1]);
+        dumpSrcLine(LineCache, LineInfo.FileName, LineInfo.Line, CurrentSrcLine,
+                    os);
+        os << format("%4" PRIu64 ":",
