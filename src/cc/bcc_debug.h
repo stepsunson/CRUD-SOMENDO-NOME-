@@ -46,4 +46,18 @@ class SourceDebugger {
                    const std::string &FileName, uint32_t Line,
                    uint32_t &CurrentSrcLine, llvm::raw_ostream &os);
   void getDebugSections(
-      llvm::StringMap<std::unique_p
+      llvm::StringMap<std::unique_ptr<llvm::MemoryBuffer>> &DebugSections);
+#else
+  void dump() {
+  }
+#endif
+
+ private:
+  llvm::Module *mod_;
+  const sec_map_def &sections_;
+  ProgFuncInfo &prog_func_info_;
+  const std::string &mod_src_;
+  std::map<std::string, std::string> &src_dbg_fmap_;
+};
+
+}  // namespace ebpf
