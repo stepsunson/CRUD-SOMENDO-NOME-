@@ -61,4 +61,32 @@ int bcc_elf_foreach_load_section(const char *path,
                                  void *payload);
 // Iterate over symbol table of a binary module
 // Parameter "option" points to a bcc_symbol_option struct to indicate whether
-// and how to use debuginfo file, and what types of symbols t
+// and how to use debuginfo file, and what types of symbols to load.
+// Returns -1 on error, and 0 on success or stopped by callback
+int bcc_elf_foreach_sym(const char *path, bcc_elf_symcb callback, void *option,
+                        void *payload);
+// Similar to bcc_elf_foreach_sym, but pass reference to symbolized string along
+// with symbolized string length
+int bcc_elf_foreach_sym_lazy(const char *path, bcc_elf_symcb_lazy callback,
+                             void *option, void *payload);
+// Iterate over all symbols from current system's vDSO
+// Returns -1 on error, and 0 on success or stopped by callback
+int bcc_elf_foreach_vdso_sym(bcc_elf_symcb callback, void *payload);
+
+int bcc_elf_get_text_scn_info(const char *path, uint64_t *addr,
+                              uint64_t *offset);
+
+int bcc_elf_get_type(const char *path);
+int bcc_elf_is_shared_obj(const char *path);
+int bcc_elf_is_exe(const char *path);
+int bcc_elf_is_vdso(const char *name);
+int bcc_free_memory();
+int bcc_elf_get_buildid(const char *path, char *buildid);
+int bcc_elf_symbol_str(const char *path, size_t section_idx,
+                       size_t str_table_idx, char *out, size_t len,
+                       int debugfile);
+
+#ifdef __cplusplus
+}
+#endif
+#endif
