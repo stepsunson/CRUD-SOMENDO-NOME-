@@ -762,3 +762,286 @@ size_t BPFModule::function_size(const string &name) const {
 char * BPFModule::license() const {
   auto section = sections_.find("license");
   if (section == sections_.end())
+    return nullptr;
+
+  return (char *)get<0>(section->second);
+}
+
+unsigned BPFModule::kern_version() const {
+  auto section = sections_.find("version");
+  if (section == sections_.end())
+    return 0;
+
+  return *(unsigned *)get<0>(section->second);
+}
+
+size_t BPFModule::num_tables() const { return tables_.size(); }
+
+size_t BPFModule::perf_event_fields(const char *event) const {
+  auto it = perf_events_.find(event);
+  if (it == perf_events_.end())
+    return 0;
+  return it->second.size();
+}
+
+const char * BPFModule::perf_event_field(const char *event, size_t i) const {
+  auto it = perf_events_.find(event);
+  if (it == perf_events_.end() || i >= it->second.size())
+    return nullptr;
+  return it->second[i].c_str();
+}
+
+size_t BPFModule::table_id(const string &name) const {
+  auto it = table_names_.find(name);
+  if (it == table_names_.end()) return ~0ull;
+  return it->second;
+}
+
+int BPFModule::table_fd(const string &name) const {
+  return table_fd(table_id(name));
+}
+
+int BPFModule::table_fd(size_t id) const {
+  if (id >= tables_.size())
+    return -1;
+  return tables_[id]->fd;
+}
+
+int BPFModule::table_type(const string &name) const {
+  return table_type(table_id(name));
+}
+
+int BPFModule::table_type(size_t id) const {
+  if (id >= tables_.size())
+    return -1;
+  return tables_[id]->type;
+}
+
+size_t BPFModule::table_max_entries(const string &name) const {
+  return table_max_entries(table_id(name));
+}
+
+size_t BPFModule::table_max_entries(size_t id) const {
+  if (id >= tables_.size())
+    return 0;
+  return tables_[id]->max_entries;
+}
+
+int BPFModule::table_flags(const string &name) const {
+  return table_flags(table_id(name));
+}
+
+int BPFModule::table_flags(size_t id) const {
+  if (id >= tables_.size())
+    return -1;
+  return tables_[id]->flags;
+}
+
+const char * BPFModule::table_name(size_t id) const {
+  if (id >= tables_.size())
+    return nullptr;
+  return tables_[id]->name.c_str();
+}
+
+const char * BPFModule::table_key_desc(size_t id) const {
+  if (used_b_loader_) return nullptr;
+  if (id >= tables_.size())
+    return nullptr;
+  return tables_[id]->key_desc.c_str();
+}
+
+const char * BPFModule::table_key_desc(const string &name) const {
+  return table_key_desc(table_id(name));
+}
+
+const char * BPFModule::table_leaf_desc(size_t id) const {
+  if (used_b_loader_) return nullptr;
+  if (id >= tables_.size())
+    return nullptr;
+  return tables_[id]->leaf_desc.c_str();
+}
+
+const char * BPFModule::table_leaf_desc(const string &name) const {
+  return table_leaf_desc(table_id(name));
+}
+size_t BPFModule::table_key_size(size_t id) const {
+  if (id >= tables_.size())
+    return 0;
+  return tables_[id]->key_size;
+}
+size_t BPFModule::table_key_size(const string &name) const {
+  return table_key_size(table_id(name));
+}
+
+size_t BPFModule::table_leaf_size(size_t id) const {
+  if (id >= tables_.size())
+    return 0;
+  return tables_[id]->leaf_size;
+}
+size_t BPFModule::table_leaf_size(const string &name) const {
+  return table_leaf_size(table_id(name));
+}
+
+struct TableIterator {
+  TableIterator(size_t key_size, size_t leaf_size)
+      : key(new uint8_t[key_size]), leaf(new uint8_t[leaf_size]) {
+  }
+  unique_ptr<uint8_t[]> key;
+  unique_ptr<uint8_t[]> leaf;
+  uint8_t keyb[512];
+};
+
+int BPFModule::table_key_printf(size_t id, char *buf, size_t buflen, const void *key) {
+  if (id >= tables_.size())
+    return -1;
+  const TableDesc &desc = *tables_[id];
+  StatusTuple rc = desc.key_snprintf(buf, buflen, key);
+  if (rc.code() < 0) {
+    fprintf(stderr, "%s\n", rc.msg().c_str());
+    return -1;
+  }
+  return 0;
+}
+
+int BPFModule::table_leaf_printf(size_t id, char *buf, size_t buflen, const void *leaf) {
+  if (id >= tables_.size())
+    return -1;
+  const TableDesc &desc = *tables_[id];
+  StatusTuple rc = desc.leaf_snprintf(buf, buflen, leaf);
+  if (rc.code() < 0) {
+    fprintf(stderr, "%s\n", rc.msg().c_str());
+    return -1;
+  }
+  return 0;
+}
+
+int BPFModule::table_key_scanf(size_t id, const char *key_str, void *key) {
+  if (id >= tables_.size())
+    return -1;
+  const TableDesc &desc = *tables_[id];
+  StatusTuple rc = desc.key_sscanf(key_str, key);
+  if (rc.code() < 0) {
+    fprintf(stderr, "%s\n", rc.msg().c_str());
+    return -1;
+  }
+  return 0;
+}
+
+int BPFModule::table_leaf_scanf(size_t id, const char *leaf_str, void *leaf) {
+  if (id >= tables_.size())
+    return -1;
+  const TableDesc &desc = *tables_[id];
+  StatusTuple rc = desc.leaf_sscanf(leaf_str, leaf);
+  if (rc.code() < 0) {
+    fprintf(stderr, "%s\n", rc.msg().c_str());
+    return -1;
+  }
+  return 0;
+}
+
+// load a C file
+int BPFModule::load_c(const string &filename, const char *cflags[], int ncflags) {
+  if (!sections_.empty()) {
+    fprintf(stderr, "Program already initialized\n");
+    return -1;
+  }
+  if (filename.empty()) {
+    fprintf(stderr, "Invalid filename\n");
+    return -1;
+  }
+  if (int rc = load_cfile(filename, false, cflags, ncflags))
+    return rc;
+  if (rw_engine_enabled_) {
+    if (int rc = annotate())
+      return rc;
+  } else {
+    annotate_light();
+  }
+  if (int rc = finalize())
+    return rc;
+  return 0;
+}
+
+// load a C text string
+int BPFModule::load_string(const string &text, const char *cflags[], int ncflags) {
+  if (!sections_.empty()) {
+    fprintf(stderr, "Program already initialized\n");
+    return -1;
+  }
+  if (int rc = load_cfile(text, true, cflags, ncflags))
+    return rc;
+  if (rw_engine_enabled_) {
+    if (int rc = annotate())
+      return rc;
+  } else {
+    annotate_light();
+  }
+
+  if (int rc = finalize())
+    return rc;
+  return 0;
+}
+
+int BPFModule::bcc_func_load(int prog_type, const char *name,
+                const struct bpf_insn *insns, int prog_len,
+                const char *license, unsigned kern_version,
+                int log_level, char *log_buf, unsigned log_buf_size,
+                const char *dev_name, unsigned flags, int expected_attach_type) {
+  struct bpf_prog_load_opts opts = {};
+  unsigned func_info_cnt, line_info_cnt, finfo_rec_size, linfo_rec_size;
+  void *func_info = NULL, *line_info = NULL;
+  int ret;
+
+  if (expected_attach_type != -1) {
+    opts.expected_attach_type = (enum bpf_attach_type)expected_attach_type;
+  }
+  if (prog_type != BPF_PROG_TYPE_TRACING &&
+      prog_type != BPF_PROG_TYPE_EXT) {
+    opts.kern_version = kern_version;
+  }
+  opts.prog_flags = flags;
+  opts.log_level = log_level;
+  if (dev_name)
+    opts.prog_ifindex = if_nametoindex(dev_name);
+
+  if (btf_) {
+    int btf_fd = btf_->get_fd();
+    char secname[256];
+
+    ::snprintf(secname, sizeof(secname), "%s%s", BPF_FN_PREFIX, name);
+    ret = btf_->get_btf_info(secname, &func_info, &func_info_cnt,
+                             &finfo_rec_size, &line_info,
+                             &line_info_cnt, &linfo_rec_size);
+    if (!ret) {
+      opts.prog_btf_fd = btf_fd;
+      opts.func_info = func_info;
+      opts.func_info_cnt = func_info_cnt;
+      opts.func_info_rec_size = finfo_rec_size;
+      opts.line_info = line_info;
+      opts.line_info_cnt = line_info_cnt;
+      opts.line_info_rec_size = linfo_rec_size;
+    }
+  }
+
+  ret = bcc_prog_load_xattr((enum bpf_prog_type)prog_type, name, license, insns, &opts, prog_len, log_buf, log_buf_size, allow_rlimit_);
+  if (btf_) {
+    free(func_info);
+    free(line_info);
+  }
+
+  return ret;
+}
+
+int BPFModule::bcc_func_attach(int prog_fd, int attachable_fd,
+                               int attach_type, unsigned int flags) {
+  return bpf_prog_attach(prog_fd, attachable_fd,
+                         (enum bpf_attach_type)attach_type, flags);
+}
+
+int BPFModule::bcc_func_detach(int prog_fd, int attachable_fd,
+                               int attach_type) {
+  return bpf_prog_detach2(prog_fd, attachable_fd,
+                          (enum bpf_attach_type)attach_type);
+}
+
+} // namespace ebpf
