@@ -57,4 +57,55 @@ static LoadInst *createLoad(IRBuilder<> &B, Value *addr, bool isVolatile = false
 #elif LLVM_MAJOR_VERSION >= 13
   return B.CreateLoad(addr->getType()->getPointerElementType(), addr, isVolatile);
 #else
-  return B.CreateLoad(addr, isVolati
+  return B.CreateLoad(addr, isVolatile);
+#endif
+}
+
+static Value *createInBoundsGEP(IRBuilder<> &B, Value *ptr, ArrayRef<Value *>idxlist)
+{
+#if LLVM_MAJOR_VERSION >= 15
+  if (isa<GlobalValue>(ptr))
+    return B.CreateInBoundsGEP(dyn_cast<GlobalValue>(ptr)->getValueType(), ptr, idxlist);
+  else
+    return B.CreateInBoundsGEP(ptr->getType(), ptr, idxlist);
+#elif LLVM_MAJOR_VERSION >= 13
+  return B.CreateInBoundsGEP(ptr->getType()->getScalarType()->getPointerElementType(),
+                             ptr, idxlist);
+#else
+  return B.CreateInBoundsGEP(ptr, idxlist);
+#endif
+}
+
+static void debug_printf(Module *mod, IRBuilder<> &B, const string &fmt, vector<Value *> args) {
+  GlobalVariable *fmt_gvar = B.CreateGlobalString(fmt, "fmt");
+  args.insert(args.begin(), createInBoundsGEP(B, fmt_gvar, vector<Value *>({B.getInt64(0), B.getInt64(0)})));
+  args.insert(args.begin(), B.getInt64((uintptr_t)stderr));
+  Function *fprintf_fn = mod->getFunction("fprintf");
+  if (!fprintf_fn) {
+    vector<Type *> fprintf_fn_args({B.getInt64Ty(), B.getInt8PtrTy()});
+    FunctionType *fprintf_fn_type = FunctionType::get(B.getInt32Ty(), fprintf_fn_args, /*isvarArg=*/true);
+    fprintf_fn = Function::Create(fprintf_fn_type, GlobalValue::ExternalLinkage, "fprintf", mod);
+    fprintf_fn->setCallingConv(CallingConv::C);
+    fprintf_fn->addFnAttr(Attribute::NoUnwind);
+  }
+  B.CreateCall(fprintf_fn, args);
+}
+
+static void finish_sscanf(IRBuilder<> &B, vector<Value *> *args, string *fmt,
+                          const map<string, Value *> &locals, bool exact_args) {
+  // fmt += "%n";
+  // int nread = 0;
+  // int n = sscanf(s, fmt, args..., &nread);
+  // if (n < 0) return -1;
+  // s = &s[nread];
+  Value *sptr = locals.at("sptr");
+  Value *nread = locals.at("nread");
+  Function *cur_fn = B.GetInsertBlock()->getParent();
+  Function *sscanf_fn = B.GetInsertBlock()->getModule()->getFunction("sscanf");
+  *fmt += "%n";
+  B.CreateStore(B.getInt32(0), nread);
+  GlobalVariable *fmt_gvar = B.CreateGlobalString(*fmt, "fmt");
+  (*args)[1] = createInBoundsGEP(B, fmt_gvar, {B.getInt64(0), B.getInt64(0)});
+  (*args)[0] = createLoad(B, sptr);
+  args->push_back(nread);
+  CallInst *c
