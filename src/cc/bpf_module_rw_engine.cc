@@ -108,4 +108,62 @@ static void finish_sscanf(IRBuilder<> &B, vector<Value *> *args, string *fmt,
   (*args)[1] = createInBoundsGEP(B, fmt_gvar, {B.getInt64(0), B.getInt64(0)});
   (*args)[0] = createLoad(B, sptr);
   args->push_back(nread);
-  CallInst *c
+  CallInst *call = B.CreateCall(sscanf_fn, *args);
+  call->setTailCall(true);
+
+  BasicBlock *label_true = BasicBlock::Create(B.getContext(), "", cur_fn);
+  BasicBlock *label_false = BasicBlock::Create(B.getContext(), "", cur_fn);
+
+  // exact_args means fail if don't consume exact number of "%" inputs
+  // exact_args is disabled for string parsing (empty case)
+  Value *cond = exact_args ? B.CreateICmpNE(call, B.getInt32(args->size() - 3))
+                           : B.CreateICmpSLT(call, B.getInt32(0));
+  B.CreateCondBr(cond, label_true, label_false);
+
+  B.SetInsertPoint(label_true);
+  B.CreateRet(B.getInt32(-1));
+
+  B.SetInsertPoint(label_false);
+  // s = &s[nread];
+  B.CreateStore(
+      createInBoundsGEP(B, createLoad(B, sptr), {createLoad(B, nread, true)}), sptr);
+
+  args->resize(2);
+  fmt->clear();
+}
+
+// recursive helper to capture the arguments
+static void parse_type(IRBuilder<> &B, vector<Value *> *args, string *fmt,
+                       Type *type, Value *out,
+                       const map<string, Value *> &locals, bool is_writer) {
+  if (StructType *st = dyn_cast<StructType>(type)) {
+    *fmt += "{ ";
+    unsigned idx = 0;
+    for (auto field : st->elements()) {
+      parse_type(B, args, fmt, field, B.CreateStructGEP(type, out, idx++),
+                 locals, is_writer);
+      *fmt += " ";
+    }
+    *fmt += "}";
+  } else if (ArrayType *at = dyn_cast<ArrayType>(type)) {
+    if (at->getElementType() == B.getInt8Ty()) {
+      // treat i8[] as a char string instead of as an array of u8's
+      if (is_writer) {
+        *fmt += "\"%s\"";
+        args->push_back(out);
+      } else {
+        // When reading strings, scanf doesn't support empty "", so we need to
+        // break this up into multiple scanf calls. To understand it, let's take
+        // an example:
+        // struct Event {
+        //   u32 a;
+        //   struct {
+        //     char x[64];
+        //     int y;
+        //   } b[2];
+        //   u32 c;
+        // };
+        // The writer string would look like:
+        //  "{ 0x%x [ { \"%s\" 0x%x } { \"%s\" 0x%x } ] 0x%x }"
+        // But the reader string needs to restart at each \"\".
+        //  reader0(const
