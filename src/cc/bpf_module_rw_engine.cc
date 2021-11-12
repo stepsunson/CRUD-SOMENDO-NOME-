@@ -166,4 +166,69 @@ static void parse_type(IRBuilder<> &B, vector<Value *> *args, string *fmt,
         // The writer string would look like:
         //  "{ 0x%x [ { \"%s\" 0x%x } { \"%s\" 0x%x } ] 0x%x }"
         // But the reader string needs to restart at each \"\".
-        //  reader0(const
+        //  reader0(const char *s, struct Event *val) {
+        //    int nread, rc;
+        //    nread = 0;
+        //    rc = sscanf(s, "{ %i [ { \"%n", &val->a, &nread);
+        //    if (rc != 1) return -1;
+        //    s += nread; nread = 0;
+        //    rc = sscanf(s, "%[^\"]%n", &val->b[0].x, &nread);
+        //    if (rc < 0) return -1;
+        //    s += nread; nread = 0;
+        //    rc = sscanf(s, "\" %i } { \"%n", &val->b[0].y, &nread);
+        //    if (rc != 1) return -1;
+        //    s += nread; nread = 0;
+        //    rc = sscanf(s, "%[^\"]%n", &val->b[1].x, &nread);
+        //    if (rc < 0) return -1;
+        //    s += nread; nread = 0;
+        //    rc = sscanf(s, "\" %i } ] %i }%n", &val->b[1].y, &val->c, &nread);
+        //    if (rc != 2) return -1;
+        //    s += nread; nread = 0;
+        //    return 0;
+        //  }
+        *fmt += "\"";
+        finish_sscanf(B, args, fmt, locals, true);
+
+        *fmt = "%[^\"]";
+        args->push_back(out);
+        finish_sscanf(B, args, fmt, locals, false);
+
+        *fmt = "\"";
+      }
+    } else {
+      *fmt += "[ ";
+      for (size_t i = 0; i < at->getNumElements(); ++i) {
+        parse_type(B, args, fmt, at->getElementType(),
+                   B.CreateStructGEP(type, out, i), locals, is_writer);
+        *fmt += " ";
+      }
+      *fmt += "]";
+    }
+  } else if (isa<PointerType>(type)) {
+    *fmt += "0xl";
+    if (is_writer)
+      *fmt += "x";
+    else
+      *fmt += "i";
+  } else if (IntegerType *it = dyn_cast<IntegerType>(type)) {
+    if (is_writer)
+      *fmt += "0x";
+    if (it->getBitWidth() <= 8)
+      *fmt += "%hh";
+    else if (it->getBitWidth() <= 16)
+      *fmt += "%h";
+    else if (it->getBitWidth() <= 32)
+      *fmt += "%";
+    else
+      *fmt += "%l";
+    if (is_writer)
+      *fmt += "x";
+    else
+      *fmt += "i";
+    args->push_back(is_writer ? createLoad(B, out) : out);
+  }
+}
+
+// make_reader generates a dynamic function in the instruction set of the host
+// (not bpf) that is able to convert c-strings in the pretty-print format of
+// make_writer back into binary representatio
