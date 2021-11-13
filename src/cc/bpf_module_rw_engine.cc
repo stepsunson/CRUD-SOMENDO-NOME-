@@ -231,4 +231,60 @@ static void parse_type(IRBuilder<> &B, vector<Value *> *args, string *fmt,
 
 // make_reader generates a dynamic function in the instruction set of the host
 // (not bpf) that is able to convert c-strings in the pretty-print format of
-// make_writer back into binary representatio
+// make_writer back into binary representations. The encoding of the string
+// takes the llvm ir structure format, which closely maps the c structure but
+// not exactly (no support for unions for instance).
+// The general algorithm is:
+//  pod types (u8..u64)                <= %i
+//  array types
+//   u8[]  no nested quotes :(         <= "..."
+//   !u8[]                             <= [ %i %i ... ]
+//  struct types
+//   struct { u8 a; u64 b; }           <= { %i %i }
+//  nesting is supported
+//   struct { struct { u8 a[]; }; }    <= { "" }
+//   struct { struct { u64 a[]; }; }   <= { [ %i %i .. ] }
+string BPFModule::make_reader(Module *mod, Type *type) {
+  auto fn_it = readers_.find(type);
+  if (fn_it != readers_.end())
+    return fn_it->second;
+
+  // int read(const char *in, Type *out) {
+  //   int n = sscanf(in, "{ %i ... }", &out->field1, ...);
+  //   if (n != num_fields) return -1;
+  //   return 0;
+  // }
+
+  IRBuilder<> B(*ctx_);
+
+  FunctionType *sscanf_fn_type = FunctionType::get(
+      B.getInt32Ty(), {B.getInt8PtrTy(), B.getInt8PtrTy()}, /*isVarArg=*/true);
+  Function *sscanf_fn = mod->getFunction("sscanf");
+  if (!sscanf_fn) {
+    sscanf_fn = Function::Create(sscanf_fn_type, GlobalValue::ExternalLinkage,
+                                 "sscanf", mod);
+    sscanf_fn->setCallingConv(CallingConv::C);
+    sscanf_fn->addFnAttr(Attribute::NoUnwind);
+  }
+
+  string name = "reader" + std::to_string(readers_.size());
+  vector<Type *> fn_args({B.getInt8PtrTy(), PointerType::getUnqual(type)});
+  FunctionType *fn_type = FunctionType::get(B.getInt32Ty(), fn_args, /*isVarArg=*/false);
+  Function *fn =
+      Function::Create(fn_type, GlobalValue::ExternalLinkage, name, mod);
+  auto arg_it = fn->arg_begin();
+  Argument *arg_in = &*arg_it;
+  ++arg_it;
+  arg_in->setName("in");
+  Argument *arg_out = &*arg_it;
+  ++arg_it;
+  arg_out->setName("out");
+
+  BasicBlock *label_entry = BasicBlock::Create(*ctx_, "entry", fn);
+  B.SetInsertPoint(label_entry);
+
+  Value *nread = B.CreateAlloca(B.getInt32Ty());
+  Value *sptr = B.CreateAlloca(B.getInt8PtrTy());
+  map<string, Value *> locals{{"nread", nread}, {"sptr", sptr}};
+  B.CreateStore(arg_in, sptr);
+  vect
