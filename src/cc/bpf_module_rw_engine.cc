@@ -287,4 +287,66 @@ string BPFModule::make_reader(Module *mod, Type *type) {
   Value *sptr = B.CreateAlloca(B.getInt8PtrTy());
   map<string, Value *> locals{{"nread", nread}, {"sptr", sptr}};
   B.CreateStore(arg_in, sptr);
-  vect
+  vector<Value *> args({nullptr, nullptr});
+  string fmt;
+  parse_type(B, &args, &fmt, type, arg_out, locals, false);
+
+  if (0)
+    debug_printf(mod, B, "%p %p\n", vector<Value *>({arg_in, arg_out}));
+
+  finish_sscanf(B, &args, &fmt, locals, true);
+
+  B.CreateRet(B.getInt32(0));
+
+  readers_[type] = name;
+  return name;
+}
+
+// make_writer generates a dynamic function in the instruction set of the host
+// (not bpf) that is able to pretty-print key/leaf entries as a c-string. The
+// encoding of the string takes the llvm ir structure format, which closely maps
+// the c structure but not exactly (no support for unions for instance).
+// The general algorithm is:
+//  pod types (u8..u64)                => 0x%x
+//  array types
+//   u8[]                              => "..."
+//   !u8[]                             => [ 0x%x 0x%x ... ]
+//  struct types
+//   struct { u8 a; u64 b; }           => { 0x%x 0x%x }
+//  nesting is supported
+//   struct { struct { u8 a[]; }; }    => { "" }
+//   struct { struct { u64 a[]; }; }   => { [ 0x%x 0x%x .. ] }
+string BPFModule::make_writer(Module *mod, Type *type) {
+  auto fn_it = writers_.find(type);
+  if (fn_it != writers_.end())
+    return fn_it->second;
+
+  // int write(int len, char *out, Type *in) {
+  //   return snprintf(out, len, "{ %i ... }", out->field1, ...);
+  // }
+
+  IRBuilder<> B(*ctx_);
+
+  string name = "writer" + std::to_string(writers_.size());
+  vector<Type *> fn_args({B.getInt8PtrTy(), B.getInt64Ty(), PointerType::getUnqual(type)});
+  FunctionType *fn_type = FunctionType::get(B.getInt32Ty(), fn_args, /*isVarArg=*/false);
+  Function *fn =
+      Function::Create(fn_type, GlobalValue::ExternalLinkage, name, mod);
+  auto arg_it = fn->arg_begin();
+  Argument *arg_out = &*arg_it;
+  ++arg_it;
+  arg_out->setName("out");
+  Argument *arg_len = &*arg_it;
+  ++arg_it;
+  arg_len->setName("len");
+  Argument *arg_in = &*arg_it;
+  ++arg_it;
+  arg_in->setName("in");
+
+  BasicBlock *label_entry = BasicBlock::Create(*ctx_, "entry", fn);
+  B.SetInsertPoint(label_entry);
+
+  map<string, Value *> locals{
+      {"nread", B.CreateAlloca(B.getInt64Ty())},
+  };
+  vecto
