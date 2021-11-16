@@ -349,4 +349,63 @@ string BPFModule::make_writer(Module *mod, Type *type) {
   map<string, Value *> locals{
       {"nread", B.CreateAlloca(B.getInt64Ty())},
   };
-  vecto
+  vector<Value *> args({arg_out, B.CreateZExt(arg_len, B.getInt64Ty()), nullptr});
+  string fmt;
+  parse_type(B, &args, &fmt, type, arg_in, locals, true);
+
+  GlobalVariable *fmt_gvar = B.CreateGlobalString(fmt, "fmt");
+
+  args[2] = createInBoundsGEP(B, fmt_gvar, vector<Value *>({B.getInt64(0), B.getInt64(0)}));
+
+  if (0)
+    debug_printf(mod, B, "%d %p %p\n", vector<Value *>({arg_len, arg_out, arg_in}));
+
+  vector<Type *> snprintf_fn_args({B.getInt8PtrTy(), B.getInt64Ty(), B.getInt8PtrTy()});
+  FunctionType *snprintf_fn_type = FunctionType::get(B.getInt32Ty(), snprintf_fn_args, /*isVarArg=*/true);
+  Function *snprintf_fn = mod->getFunction("snprintf");
+  if (!snprintf_fn)
+    snprintf_fn = Function::Create(snprintf_fn_type, GlobalValue::ExternalLinkage, "snprintf", mod);
+  snprintf_fn->setCallingConv(CallingConv::C);
+  snprintf_fn->addFnAttr(Attribute::NoUnwind);
+
+  CallInst *call = B.CreateCall(snprintf_fn, args);
+  call->setTailCall(true);
+
+  B.CreateRet(call);
+
+  writers_[type] = name;
+  return name;
+}
+
+unique_ptr<ExecutionEngine> BPFModule::finalize_rw(unique_ptr<Module> m) {
+  Module *mod = &*m;
+
+  run_pass_manager(*mod);
+
+  string err;
+  EngineBuilder builder(move(m));
+  builder.setErrorStr(&err);
+#if LLVM_MAJOR_VERSION <= 11
+  builder.setUseOrcMCJITReplacement(false);
+#endif
+  auto engine = unique_ptr<ExecutionEngine>(builder.create());
+  if (!engine)
+    fprintf(stderr, "Could not create ExecutionEngine: %s\n", err.c_str());
+  return engine;
+}
+
+int BPFModule::annotate() {
+  for (auto fn = mod_->getFunctionList().begin(); fn != mod_->getFunctionList().end(); ++fn)
+    if (!fn->hasFnAttribute(Attribute::NoInline))
+      fn->addFnAttr(Attribute::AlwaysInline);
+
+  // separate module to hold the reader functions
+  auto m = ebpf::make_unique<Module>("sscanf", *ctx_);
+
+  size_t id = 0;
+  Path path({id_});
+  for (auto it = ts_->lower_bound(path), up = ts_->upper_bound(path); it != up; ++it) {
+    TableDesc &table = it->second;
+    tables_.push_back(&it->second);
+    table_names_[table.name] = id++;
+    GlobalValue *gvar = m
