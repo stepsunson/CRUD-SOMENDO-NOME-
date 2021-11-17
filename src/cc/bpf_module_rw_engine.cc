@@ -408,4 +408,59 @@ int BPFModule::annotate() {
     TableDesc &table = it->second;
     tables_.push_back(&it->second);
     table_names_[table.name] = id++;
-    GlobalValue *gvar = m
+    GlobalValue *gvar = mod_->getNamedValue(table.name);
+    if (!gvar) continue;
+#if LLVM_MAJOR_VERSION >= 14
+    {
+      Type *t = gvar->getValueType();
+      StructType *st = dyn_cast<StructType>(t);
+#else
+    if (PointerType *pt = dyn_cast<PointerType>(gvar->getType())) {
+      StructType *st = dyn_cast<StructType>(pt->getElementType());
+#endif
+      if (st) {
+        if (st->getNumElements() < 2) continue;
+        Type *key_type = st->elements()[0];
+        Type *leaf_type = st->elements()[1];
+
+        using std::placeholders::_1;
+        using std::placeholders::_2;
+        using std::placeholders::_3;
+        table.key_sscanf = std::bind(&BPFModule::sscanf, this,
+                                     make_reader(&*m, key_type), _1, _2);
+        table.leaf_sscanf = std::bind(&BPFModule::sscanf, this,
+                                      make_reader(&*m, leaf_type), _1, _2);
+        table.key_snprintf = std::bind(&BPFModule::snprintf, this,
+                                       make_writer(&*m, key_type), _1, _2, _3);
+        table.leaf_snprintf =
+            std::bind(&BPFModule::snprintf, this, make_writer(&*m, leaf_type),
+                      _1, _2, _3);
+      }
+    }
+  }
+
+  rw_engine_ = finalize_rw(move(m));
+  if (!rw_engine_)
+    return -1;
+  return 0;
+}
+
+StatusTuple BPFModule::sscanf(string fn_name, const char *str, void *val) {
+  if (!rw_engine_enabled_)
+    return StatusTuple(-1, "rw_engine not enabled");
+  auto fn =
+      (int (*)(const char *, void *))rw_engine_->getFunctionAddress(fn_name);
+  if (!fn)
+    return StatusTuple(-1, "sscanf not available");
+  int rc = fn(str, val);
+  if (rc < 0)
+    return StatusTuple(rc, "error in sscanf: %s", std::strerror(errno));
+  return StatusTuple(rc);
+}
+
+StatusTuple BPFModule::snprintf(string fn_name, char *str, size_t sz,
+                                const void *val) {
+  if (!rw_engine_enabled_)
+    return StatusTuple(-1, "rw_engine not enabled");
+  auto fn = (int (*)(char *, size_t,
+                     const void *))rw_engine_->getFunctionAddress(fn_n
