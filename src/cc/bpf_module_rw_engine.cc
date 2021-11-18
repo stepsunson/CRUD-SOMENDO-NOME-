@@ -463,4 +463,15 @@ StatusTuple BPFModule::snprintf(string fn_name, char *str, size_t sz,
   if (!rw_engine_enabled_)
     return StatusTuple(-1, "rw_engine not enabled");
   auto fn = (int (*)(char *, size_t,
-                     const void *))rw_engine_->getFunctionAddress(fn_n
+                     const void *))rw_engine_->getFunctionAddress(fn_name);
+  if (!fn)
+    return StatusTuple(-1, "snprintf not available");
+  int rc = fn(str, sz, val);
+  if (rc < 0)
+    return StatusTuple(rc, "error in snprintf: %s", std::strerror(errno));
+  if ((size_t)rc == sz)
+    return StatusTuple(-1, "buffer of size %zd too small", sz);
+  return StatusTuple::OK();
+}
+
+} // namespace ebpf
