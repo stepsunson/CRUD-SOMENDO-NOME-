@@ -128,4 +128,70 @@ static void *kresolver = NULL;
 static void *get_symbol_resolver(void) {
   if (!kresolver)
     kresolver = bcc_symcache_new(-1, nullptr);
-  retu
+  return kresolver;
+}
+
+static std::string check_bpf_probe_read_kernel(void) {
+  bool is_probe_read_kernel;
+  void *resolver = get_symbol_resolver();
+  uint64_t addr = 0;
+  is_probe_read_kernel = bcc_symcache_resolve_name(resolver, nullptr,
+                          "bpf_probe_read_kernel", &addr) >= 0 ? true: false;
+
+  /* If bpf_probe_read is not found (ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE) is
+   * not set in newer kernel, then bcc would anyway fail */
+  if (is_probe_read_kernel)
+    return "bpf_probe_read_kernel";
+  else
+    return "bpf_probe_read";
+}
+
+static std::string check_bpf_probe_read_user(llvm::StringRef probe,
+        bool& overlap_addr) {
+  if (probe.str() == "bpf_probe_read_user" ||
+      probe.str() == "bpf_probe_read_user_str") {
+    // Check for probe_user symbols in backported kernel before fallback
+    void *resolver = get_symbol_resolver();
+    uint64_t addr = 0;
+    bool found = bcc_symcache_resolve_name(resolver, nullptr,
+                  "bpf_probe_read_user", &addr) >= 0 ? true: false;
+    if (found)
+      return probe.str();
+
+    /* For arch with overlapping address space, dont use bpf_probe_read for
+     * user read. Just error out */
+#if defined(__s390x__)
+    overlap_addr = true;
+    return "";
+#endif
+
+    if (probe.str() == "bpf_probe_read_user")
+      return "bpf_probe_read";
+    else
+      return "bpf_probe_read_str";
+  }
+  return "";
+}
+
+using std::map;
+using std::move;
+using std::set;
+using std::tuple;
+using std::make_tuple;
+using std::string;
+using std::to_string;
+using std::unique_ptr;
+using std::vector;
+using namespace clang;
+
+class ProbeChecker : public RecursiveASTVisitor<ProbeChecker> {
+ public:
+  explicit ProbeChecker(Expr *arg, const set<tuple<Decl *, int>> &ptregs,
+                        bool track_helpers, bool is_assign)
+      : needs_probe_(false), is_transitive_(false), ptregs_(ptregs),
+        track_helpers_(track_helpers), nb_derefs_(0), is_assign_(is_assign) {
+    if (arg) {
+      TraverseStmt(arg);
+      if (arg->getType()->isPointerType())
+        is_transitive_ = needs_probe_;
+ 
