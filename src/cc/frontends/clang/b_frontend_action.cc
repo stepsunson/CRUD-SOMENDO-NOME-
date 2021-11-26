@@ -57,4 +57,75 @@ const char *calling_conv_syscall_regs_s390x[] = { "orig_gpr2", "gprs[3]", "gprs[
 					 "gprs[5]", "gprs[6]" };
 
 const char *calling_conv_regs_arm64[] = {"regs[0]", "regs[1]", "regs[2]",
-                                       "regs[3]", "regs[4]",
+                                       "regs[3]", "regs[4]", "regs[5]"};
+const char *calling_conv_syscall_regs_arm64[] = {"orig_x0", "regs[1]", "regs[2]",
+                                       "regs[3]", "regs[4]", "regs[5]"};
+
+const char *calling_conv_regs_mips[] = {"regs[4]", "regs[5]", "regs[6]",
+                                       "regs[7]", "regs[8]", "regs[9]"};
+
+const char *calling_conv_regs_riscv64[] = {"a0", "a1", "a2",
+                                       "a3", "a4", "a5"};
+
+const char *calling_conv_regs_loongarch[] = {"regs[4]", "regs[5]", "regs[6]",
+					     "regs[7]", "regs[8]", "regs[9]"};
+
+
+void *get_call_conv_cb(bcc_arch_t arch, bool for_syscall)
+{
+  const char **ret;
+
+  switch(arch) {
+    case BCC_ARCH_PPC:
+    case BCC_ARCH_PPC_LE:
+      ret = calling_conv_regs_ppc;
+      break;
+    case BCC_ARCH_S390X:
+      ret = calling_conv_regs_s390x;
+      if (for_syscall)
+        ret = calling_conv_syscall_regs_s390x;
+      break;
+    case BCC_ARCH_ARM64:
+      ret = calling_conv_regs_arm64;
+      if (for_syscall)
+        ret = calling_conv_syscall_regs_arm64;
+      break;
+    case BCC_ARCH_MIPS:
+      ret = calling_conv_regs_mips;
+      break;
+    case BCC_ARCH_RISCV64:
+      ret = calling_conv_regs_riscv64;
+      break;
+    case BCC_ARCH_LOONGARCH:
+      ret = calling_conv_regs_loongarch;
+      break;
+    default:
+      if (for_syscall)
+        ret = calling_conv_syscall_regs_x86;
+      else
+        ret = calling_conv_regs_x86;
+  }
+
+  return (void *)ret;
+}
+
+const char **get_call_conv(bool for_syscall = false) {
+  const char **ret;
+
+  ret = (const char **)run_arch_callback(get_call_conv_cb, for_syscall);
+  return ret;
+}
+
+const char *pt_regs_syscall_regs(void) {
+  const char **calling_conv_regs;
+  // Equivalent of PT_REGS_SYSCALL_REGS(ctx) ((struct pt_regs *)PT_REGS_PARM1(ctx))
+  calling_conv_regs = (const char **)run_arch_callback(get_call_conv_cb, false);
+  return calling_conv_regs[0];
+}
+
+/* Use resolver only once per translation */
+static void *kresolver = NULL;
+static void *get_symbol_resolver(void) {
+  if (!kresolver)
+    kresolver = bcc_symcache_new(-1, nullptr);
+  retu
