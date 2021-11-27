@@ -194,4 +194,61 @@ class ProbeChecker : public RecursiveASTVisitor<ProbeChecker> {
       TraverseStmt(arg);
       if (arg->getType()->isPointerType())
         is_transitive_ = needs_probe_;
- 
+    }
+  }
+  explicit ProbeChecker(Expr *arg, const set<tuple<Decl *, int>> &ptregs,
+                        bool is_transitive)
+      : ProbeChecker(arg, ptregs, is_transitive, false) {}
+  bool VisitCallExpr(CallExpr *E) {
+    needs_probe_ = false;
+
+    if (is_assign_) {
+      // We're looking for a function that returns an external pointer,
+      // regardless of the number of dereferences.
+      for(auto p : ptregs_) {
+        if (std::get<0>(p) == E->getDirectCallee()) {
+          needs_probe_ = true;
+          // ptregs_ stores the number of dereferences needed to get the external
+          // pointer, while nb_derefs_ stores the number of dereferences
+          // encountered.  So, any dereference encountered is one less
+          // dereference needed to get the external pointer.
+          nb_derefs_ -= std::get<1>(p);
+          return false;
+        }
+      }
+    } else {
+      tuple<Decl *, int> pt = make_tuple(E->getDirectCallee(), nb_derefs_);
+      if (ptregs_.find(pt) != ptregs_.end())
+        needs_probe_ = true;
+    }
+
+    if (!track_helpers_)
+      return false;
+    if (VarDecl *V = dyn_cast_or_null<VarDecl>(E->getCalleeDecl()))
+      needs_probe_ = V->getName() == "bpf_get_current_task";
+    return false;
+  }
+  bool VisitMemberExpr(MemberExpr *M) {
+    tuple<Decl *, int> pt = make_tuple(M->getMemberDecl(), nb_derefs_);
+    if (ptregs_.find(pt) != ptregs_.end()) {
+      needs_probe_ = true;
+      return false;
+    }
+    if (M->isArrow()) {
+      /* In A->b, if A is an external pointer, then A->b should be considered
+       * one too.  However, if we're taking the address of A->b
+       * (nb_derefs_ < 0), we should take it into account for the number of
+       * indirections; &A->b is a pointer to A with an offset. */
+      if (nb_derefs_ >= 0) {
+        ProbeChecker checker = ProbeChecker(M->getBase(), ptregs_,
+                                            track_helpers_, is_assign_);
+        if (checker.needs_probe() && checker.get_nb_derefs() == 0) {
+          needs_probe_ = true;
+          return false;
+        }
+      }
+      nb_derefs_++;
+    }
+    return true;
+  }
+  bool VisitUnaryOperator(Unary
