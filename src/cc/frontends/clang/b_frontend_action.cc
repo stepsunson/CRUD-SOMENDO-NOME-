@@ -251,4 +251,62 @@ class ProbeChecker : public RecursiveASTVisitor<ProbeChecker> {
     }
     return true;
   }
-  bool VisitUnaryOperator(Unary
+  bool VisitUnaryOperator(UnaryOperator *E) {
+    if (E->getOpcode() == UO_Deref) {
+      /* In *A, if A is an external pointer, then *A should be considered one
+       * too. */
+      ProbeChecker checker = ProbeChecker(E->getSubExpr(), ptregs_,
+                                          track_helpers_, is_assign_);
+      if (checker.needs_probe() && checker.get_nb_derefs() == 0) {
+        needs_probe_ = true;
+        return false;
+      }
+      nb_derefs_++;
+    } else if (E->getOpcode() == UO_AddrOf) {
+      nb_derefs_--;
+    }
+    return true;
+  }
+  bool VisitDeclRefExpr(DeclRefExpr *E) {
+    if (is_assign_) {
+      // We're looking for an external pointer, regardless of the number of
+      // dereferences.
+      for(auto p : ptregs_) {
+        if (std::get<0>(p) == E->getDecl()) {
+          needs_probe_ = true;
+          // ptregs_ stores the number of dereferences needed to get the external
+          // pointer, while nb_derefs_ stores the number of dereferences
+          // encountered.  So, any dereference encountered is one less
+          // dereference needed to get the external pointer.
+          nb_derefs_ -= std::get<1>(p);
+          return false;
+        }
+      }
+    } else {
+      tuple<Decl *, int> pt = make_tuple(E->getDecl(), nb_derefs_);
+      if (ptregs_.find(pt) != ptregs_.end())
+        needs_probe_ = true;
+    }
+    return true;
+  }
+  bool needs_probe() const { return needs_probe_; }
+  bool is_transitive() const { return is_transitive_; }
+  int get_nb_derefs() const { return nb_derefs_; }
+ private:
+  bool needs_probe_;
+  bool is_transitive_;
+  const set<tuple<Decl *, int>> &ptregs_;
+  bool track_helpers_;
+  // Nb of dereferences we go through before finding the external pointer.
+  // A negative number counts the number of addrof.
+  int nb_derefs_;
+  bool is_assign_;
+};
+
+// Visit a piece of the AST and mark it as needing probe reads
+class ProbeSetter : public RecursiveASTVisitor<ProbeSetter> {
+ public:
+  explicit ProbeSetter(set<tuple<Decl *, int>> *ptregs, int nb_derefs)
+      : ptregs_(ptregs), nb_derefs_(nb_derefs) {}
+  bool VisitDeclRefExpr(DeclRefExpr *E) {
+    tuple
