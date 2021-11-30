@@ -309,4 +309,68 @@ class ProbeSetter : public RecursiveASTVisitor<ProbeSetter> {
   explicit ProbeSetter(set<tuple<Decl *, int>> *ptregs, int nb_derefs)
       : ptregs_(ptregs), nb_derefs_(nb_derefs) {}
   bool VisitDeclRefExpr(DeclRefExpr *E) {
-    tuple
+    tuple<Decl *, int> pt = make_tuple(E->getDecl(), nb_derefs_);
+    ptregs_->insert(pt);
+    return true;
+  }
+  explicit ProbeSetter(set<tuple<Decl *, int>> *ptregs)
+      : ProbeSetter(ptregs, 0) {}
+  bool VisitUnaryOperator(UnaryOperator *E) {
+    if (E->getOpcode() == UO_Deref)
+      nb_derefs_++;
+    return true;
+  }
+  bool VisitMemberExpr(MemberExpr *M) {
+    tuple<Decl *, int> pt = make_tuple(M->getMemberDecl(), nb_derefs_);
+    ptregs_->insert(pt);
+    return false;
+  }
+ private:
+  set<tuple<Decl *, int>> *ptregs_;
+  // Nb of dereferences we go through before getting to the actual variable.
+  int nb_derefs_;
+};
+
+MapVisitor::MapVisitor(set<Decl *> &m) : m_(m) {}
+
+bool MapVisitor::VisitCallExpr(CallExpr *Call) {
+  if (MemberExpr *Memb = dyn_cast<MemberExpr>(Call->getCallee()->IgnoreImplicit())) {
+    StringRef memb_name = Memb->getMemberDecl()->getName();
+    if (DeclRefExpr *Ref = dyn_cast<DeclRefExpr>(Memb->getBase())) {
+      if (SectionAttr *A = Ref->getDecl()->getAttr<SectionAttr>()) {
+        if (!A->getName().startswith("maps"))
+          return true;
+
+        if (memb_name == "update" || memb_name == "insert") {
+          ProbeChecker checker = ProbeChecker(Call->getArg(1), ptregs_, true,
+                                              true);
+          if (checker.needs_probe())
+            m_.insert(Ref->getDecl());
+        }
+      }
+    }
+  }
+  return true;
+}
+
+ProbeVisitor::ProbeVisitor(ASTContext &C, Rewriter &rewriter,
+                           set<Decl *> &m, bool track_helpers) :
+  C(C), rewriter_(rewriter), m_(m), ctx_(nullptr), track_helpers_(track_helpers),
+  addrof_stmt_(nullptr), is_addrof_(false) {
+  const char **calling_conv_regs = get_call_conv();
+  cannot_fall_back_safely = (calling_conv_regs == calling_conv_regs_s390x || calling_conv_regs == calling_conv_regs_riscv64);
+}
+
+bool ProbeVisitor::assignsExtPtr(Expr *E, int *nbDerefs) {
+  if (IsContextMemberExpr(E)) {
+    *nbDerefs = 0;
+    return true;
+  }
+
+  /* If the expression contains a call to another function, we need to visit
+  * that function first to know if a rewrite is necessary (i.e., if the
+  * function returns an external pointer). */
+  if (!TraverseStmt(E))
+    return false;
+
+  Probe
