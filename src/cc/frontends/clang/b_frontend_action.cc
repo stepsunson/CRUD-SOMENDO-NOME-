@@ -373,4 +373,58 @@ bool ProbeVisitor::assignsExtPtr(Expr *E, int *nbDerefs) {
   if (!TraverseStmt(E))
     return false;
 
-  Probe
+  ProbeChecker checker = ProbeChecker(E, ptregs_, track_helpers_,
+                                      true);
+  if (checker.is_transitive()) {
+    // The negative of the number of dereferences is the number of addrof.  In
+    // an assignment, if we went through n addrof before getting the external
+    // pointer, then we'll need n dereferences on the left-hand side variable
+    // to get to the external pointer.
+    *nbDerefs = -checker.get_nb_derefs();
+    return true;
+  }
+
+  if (E->IgnoreParenCasts()->getStmtClass() == Stmt::CallExprClass) {
+    CallExpr *Call = dyn_cast<CallExpr>(E->IgnoreParenCasts());
+    if (MemberExpr *Memb = dyn_cast<MemberExpr>(Call->getCallee()->IgnoreImplicit())) {
+      StringRef memb_name = Memb->getMemberDecl()->getName();
+      if (DeclRefExpr *Ref = dyn_cast<DeclRefExpr>(Memb->getBase())) {
+        if (SectionAttr *A = Ref->getDecl()->getAttr<SectionAttr>()) {
+          if (!A->getName().startswith("maps"))
+            return false;
+
+          if (memb_name == "lookup" || memb_name == "lookup_or_init" ||
+              memb_name == "lookup_or_try_init") {
+            if (m_.find(Ref->getDecl()) != m_.end()) {
+              // Retrieved an ext. pointer from a map, mark LHS as ext. pointer.
+              // Pointers from maps always need a single dereference to get the
+              // actual value.  The value may be an external pointer but cannot
+              // be a pointer to an external pointer as the verifier prohibits
+              // storing known pointers (to map values, context, the stack, or
+              // the packet) in maps.
+              *nbDerefs = 1;
+              return true;
+            }
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+bool ProbeVisitor::VisitVarDecl(VarDecl *D) {
+  if (Expr *E = D->getInit()) {
+    int nbDerefs;
+    if (assignsExtPtr(E, &nbDerefs)) {
+      // The negative of the number of addrof is the number of dereferences.
+      tuple<Decl *, int> pt = make_tuple(D, nbDerefs);
+      set_ptreg(pt);
+    }
+  }
+  return true;
+}
+
+bool ProbeVisitor::TraverseStmt(Stmt *S) {
+  if (whitelist_.find(S) != whitelist_.end())
+    return true;
+  auto ret = 
