@@ -488,4 +488,66 @@ bool ProbeVisitor::VisitReturnStmt(ReturnStmt *R) {
 
   /* Reverse order of traversals.  This is needed if, in the return statement,
    * we're calling a function that's returning an external pointer: we need to
-   * know what the function i
+   * know what the function is returning to decide what this function is
+   * returning. */
+  if (!TraverseStmt(R->getRetValue()))
+    return false;
+
+  ProbeChecker checker = ProbeChecker(R->getRetValue(), ptregs_,
+                                      track_helpers_, true);
+  if (checker.needs_probe()) {
+    int curr_nb_derefs = ptregs_returned_.back();
+    int nb_derefs = -checker.get_nb_derefs();
+    /* If the function returns external pointers with different levels of
+     * indirection, we handle the case with the highest level of indirection
+     * and leave it to the user to manually handle other cases. */
+    if (nb_derefs > curr_nb_derefs) {
+      ptregs_returned_.pop_back();
+      ptregs_returned_.push_back(nb_derefs);
+    }
+  }
+  return true;
+}
+bool ProbeVisitor::VisitBinaryOperator(BinaryOperator *E) {
+  if (!E->isAssignmentOp())
+    return true;
+
+  // copy probe attribute from RHS to LHS if present
+  int nbDerefs;
+  if (assignsExtPtr(E->getRHS(), &nbDerefs)) {
+    ProbeSetter setter(&ptregs_, nbDerefs);
+    setter.TraverseStmt(E->getLHS());
+  }
+  return true;
+}
+bool ProbeVisitor::VisitUnaryOperator(UnaryOperator *E) {
+  if (E->getOpcode() == UO_AddrOf) {
+    addrof_stmt_ = E;
+    is_addrof_ = true;
+  }
+  if (E->getOpcode() != UO_Deref)
+    return true;
+  if (memb_visited_.find(E) != memb_visited_.end())
+    return true;
+  Expr *sub = E->getSubExpr();
+  if (!ProbeChecker(sub, ptregs_, track_helpers_).needs_probe())
+    return true;
+  memb_visited_.insert(E);
+  string pre, post;
+  pre = "({ typeof(" + E->getType().getAsString() + ") _val; __builtin_memset(&_val, 0, sizeof(_val));";
+  if (cannot_fall_back_safely)
+    pre += " bpf_probe_read_kernel(&_val, sizeof(_val), (void *)";
+  else
+    pre += " bpf_probe_read(&_val, sizeof(_val), (void *)";
+  post = "); _val; })";
+  rewriter_.ReplaceText(expansionLoc(E->getOperatorLoc()), 1, pre);
+  rewriter_.InsertTextAfterToken(expansionLoc(GET_ENDLOC(sub)), post);
+  return true;
+}
+bool ProbeVisitor::VisitMemberExpr(MemberExpr *E) {
+  if (memb_visited_.find(E) != memb_visited_.end()) return true;
+
+  Expr *base;
+  SourceLocation rhs_start, member;
+  bool found = false;
+  for
