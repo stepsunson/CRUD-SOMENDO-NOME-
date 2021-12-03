@@ -427,4 +427,65 @@ bool ProbeVisitor::VisitVarDecl(VarDecl *D) {
 bool ProbeVisitor::TraverseStmt(Stmt *S) {
   if (whitelist_.find(S) != whitelist_.end())
     return true;
-  auto ret = 
+  auto ret = RecursiveASTVisitor<ProbeVisitor>::TraverseStmt(S);
+  if (addrof_stmt_ == S) {
+    addrof_stmt_ = nullptr;
+    is_addrof_ = false;
+  }
+  return ret;
+}
+
+bool ProbeVisitor::VisitCallExpr(CallExpr *Call) {
+  Decl *decl = Call->getCalleeDecl();
+  if (decl == nullptr)
+      return true;
+
+  // Skip bpf_probe_read for the third argument if it is an AddrOf.
+  if (VarDecl *V = dyn_cast<VarDecl>(decl)) {
+    if (V->getName() == "bpf_probe_read" && Call->getNumArgs() >= 3) {
+      const Expr *E = Call->getArg(2)->IgnoreParenCasts();
+      whitelist_.insert(E);
+      return true;
+    }
+  }
+
+  if (FunctionDecl *F = dyn_cast<FunctionDecl>(decl)) {
+    if (F->hasBody()) {
+      unsigned i = 0;
+      for (auto arg : Call->arguments()) {
+        ProbeChecker checker = ProbeChecker(arg, ptregs_, track_helpers_,
+                                            true);
+        if (checker.needs_probe()) {
+          tuple<Decl *, int> pt = make_tuple(F->getParamDecl(i),
+                                             -checker.get_nb_derefs());
+          ptregs_.insert(pt);
+        }
+        ++i;
+      }
+      if (fn_visited_.find(F) == fn_visited_.end()) {
+        fn_visited_.insert(F);
+        /* Maintains a stack of the number of dereferences for the external
+         * pointers returned by each function in the call stack or -1 if the
+         * function didn't return an external pointer. */
+        ptregs_returned_.push_back(-1);
+        TraverseDecl(F);
+        int nb_derefs = ptregs_returned_.back();
+        ptregs_returned_.pop_back();
+        if (nb_derefs != -1) {
+          tuple<Decl *, int> pt = make_tuple(F, nb_derefs);
+          ptregs_.insert(pt);
+        }
+      }
+    }
+  }
+  return true;
+}
+bool ProbeVisitor::VisitReturnStmt(ReturnStmt *R) {
+  /* If this function wasn't called by another, there's no need to check the
+   * return statement for external pointers. */
+  if (ptregs_returned_.size() == 0)
+    return true;
+
+  /* Reverse order of traversals.  This is needed if, in the return statement,
+   * we're calling a function that's returning an external pointer: we need to
+   * know what the function i
