@@ -550,4 +550,62 @@ bool ProbeVisitor::VisitMemberExpr(MemberExpr *E) {
   Expr *base;
   SourceLocation rhs_start, member;
   bool found = false;
-  for
+  for (MemberExpr *M = E; M; M = dyn_cast<MemberExpr>(M->getBase())) {
+    memb_visited_.insert(M);
+    rhs_start = GET_ENDLOC(M);
+    base = M->getBase();
+    member = M->getMemberLoc();
+    if (M->isArrow()) {
+      found = true;
+      break;
+    }
+  }
+  if (!found)
+    return true;
+  if (member.isInvalid()) {
+    error(GET_ENDLOC(base), "internal error: MemberLoc is invalid while preparing probe rewrite");
+    return false;
+  }
+
+  if (!rewriter_.isRewritable(GET_BEGINLOC(E)))
+    return true;
+
+  // parent expr has addrof, skip the rewrite, set is_addrof_ to flase so
+  // it won't affect next level of indirect address
+  if (is_addrof_) {
+    is_addrof_ = false;
+    return true;
+  }
+
+  /* If the base of the dereference is a call to another function, we need to
+   * visit that function first to know if a rewrite is necessary (i.e., if the
+   * function returns an external pointer). */
+  if (base->IgnoreParenCasts()->getStmtClass() == Stmt::CallExprClass) {
+    CallExpr *Call = dyn_cast<CallExpr>(base->IgnoreParenCasts());
+    if (!TraverseStmt(Call))
+      return false;
+  }
+
+  // Checks to see if the expression references something that needs to be run
+  // through bpf_probe_read.
+  if (!ProbeChecker(base, ptregs_, track_helpers_).needs_probe())
+    return true;
+
+  // If the base is an array, we will skip rewriting. See issue #2352.
+  if (E->getType()->isArrayType())
+    return true;
+
+  string rhs = rewriter_.getRewrittenText(expansionRange(SourceRange(rhs_start, GET_ENDLOC(E))));
+  string base_type = base->getType()->getPointeeType().getAsString();
+  string pre, post;
+  pre = "({ typeof(" + E->getType().getAsString() + ") _val; __builtin_memset(&_val, 0, sizeof(_val));";
+  if (cannot_fall_back_safely)
+    pre += " bpf_probe_read_kernel(&_val, sizeof(_val), (void *)&";
+  else
+    pre += " bpf_probe_read(&_val, sizeof(_val), (void *)&";
+  post = rhs + "); _val; })";
+  rewriter_.InsertText(expansionLoc(GET_BEGINLOC(E)), pre);
+  rewriter_.ReplaceText(expansionRange(SourceRange(member, GET_ENDLOC(E))), post);
+  return true;
+}
+bool ProbeVisitor::VisitArraySubsc
