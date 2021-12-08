@@ -608,4 +608,63 @@ bool ProbeVisitor::VisitMemberExpr(MemberExpr *E) {
   rewriter_.ReplaceText(expansionRange(SourceRange(member, GET_ENDLOC(E))), post);
   return true;
 }
-bool ProbeVisitor::VisitArraySubsc
+bool ProbeVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *E) {
+  if (memb_visited_.find(E) != memb_visited_.end()) return true;
+  if (!ProbeChecker(E, ptregs_, track_helpers_).needs_probe())
+    return true;
+
+  // Parent expr has addrof, skip the rewrite.
+  if (is_addrof_)
+    return true;
+
+  // If the base is an array, we will skip rewriting. See issue #2352.
+  if (E->getType()->isArrayType())
+    return true;
+
+  if (!rewriter_.isRewritable(GET_BEGINLOC(E)))
+    return true;
+
+  Expr *base = E->getBase();
+  Expr *idx = E->getIdx();
+  memb_visited_.insert(E);
+
+  if (!rewriter_.isRewritable(GET_BEGINLOC(base)))
+    return true;
+  if (!rewriter_.isRewritable(GET_BEGINLOC(idx)))
+    return true;
+
+
+  string pre, lbracket, rbracket;
+  LangOptions opts;
+  SourceLocation lbracket_start, lbracket_end;
+  SourceRange lbracket_range;
+
+  /* For cases like daddr->s6_addr[4], clang encodes the end location of "base"
+   * as "]". This makes it hard to rewrite the expression like
+   * "daddr->s6_addr  [ 4 ]" since we do not know the end location
+   * of "addr->s6_addr". Let us abort the operation if this is the case.
+   */
+  lbracket_start = Lexer::getLocForEndOfToken(GET_ENDLOC(base), 1,
+                                              rewriter_.getSourceMgr(),
+                                              opts).getLocWithOffset(1);
+  lbracket_end = GET_BEGINLOC(idx).getLocWithOffset(-1);
+  lbracket_range = expansionRange(SourceRange(lbracket_start, lbracket_end));
+  if (rewriter_.getRewrittenText(lbracket_range).size() == 0)
+    return true;
+
+  pre = "({ typeof(" + E->getType().getAsString() + ") _val; __builtin_memset(&_val, 0, sizeof(_val));";
+  if (cannot_fall_back_safely)
+    pre += " bpf_probe_read_kernel(&_val, sizeof(_val), (void *)((";
+  else
+    pre += " bpf_probe_read(&_val, sizeof(_val), (void *)((";
+  if (isMemberDereference(base)) {
+    pre += "&";
+    // If the base of the array subscript is a member dereference, we'll rewrite
+    // both at the same time.
+    addrof_stmt_ = base;
+    is_addrof_ = true;
+  }
+  rewriter_.InsertText(expansionLoc(GET_BEGINLOC(base)), pre);
+
+  /* Replace left bracket and any space around it.  Since Clang doesn't provide
+   * a method to 
