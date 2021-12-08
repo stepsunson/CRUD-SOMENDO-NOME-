@@ -667,4 +667,80 @@ bool ProbeVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *E) {
   rewriter_.InsertText(expansionLoc(GET_BEGINLOC(base)), pre);
 
   /* Replace left bracket and any space around it.  Since Clang doesn't provide
-   * a method to 
+   * a method to retrieve the left bracket, replace everything from the end of
+   * the base to the start of the index. */
+  lbracket = ") + (";
+  rewriter_.ReplaceText(lbracket_range, lbracket);
+
+  rbracket = "))); _val; })";
+  rewriter_.ReplaceText(expansionLoc(E->getRBracketLoc()), 1, rbracket);
+
+  return true;
+}
+
+bool ProbeVisitor::isMemberDereference(Expr *E) {
+  if (E->IgnoreParenCasts()->getStmtClass() != Stmt::MemberExprClass)
+    return false;
+  for (MemberExpr *M = dyn_cast<MemberExpr>(E->IgnoreParenCasts()); M;
+       M = dyn_cast<MemberExpr>(M->getBase()->IgnoreParenCasts())) {
+    if (M->isArrow())
+      return true;
+  }
+  return false;
+}
+bool ProbeVisitor::IsContextMemberExpr(Expr *E) {
+  if (!E->getType()->isPointerType())
+    return false;
+
+  Expr *base;
+  SourceLocation member;
+  bool found = false;
+  MemberExpr *M;
+  Expr *Ex = E->IgnoreParenCasts();
+  while (Ex->getStmtClass() == Stmt::ArraySubscriptExprClass
+         || Ex->getStmtClass() == Stmt::MemberExprClass) {
+    if (Ex->getStmtClass() == Stmt::ArraySubscriptExprClass) {
+      Ex = dyn_cast<ArraySubscriptExpr>(Ex)->getBase()->IgnoreParenCasts();
+    } else if (Ex->getStmtClass() == Stmt::MemberExprClass) {
+      M = dyn_cast<MemberExpr>(Ex);
+      base = M->getBase()->IgnoreParenCasts();
+      member = M->getMemberLoc();
+      if (M->isArrow()) {
+        found = true;
+        break;
+      }
+      Ex = base;
+    }
+  }
+  if (!found) {
+    return false;
+  }
+  if (member.isInvalid()) {
+    return false;
+  }
+
+  if (DeclRefExpr *base_expr = dyn_cast<DeclRefExpr>(base)) {
+    if (base_expr->getDecl() == ctx_) {
+      return true;
+    }
+  }
+  return false;
+}
+
+SourceRange
+ProbeVisitor::expansionRange(SourceRange range) {
+#if LLVM_MAJOR_VERSION >= 7
+  return rewriter_.getSourceMgr().getExpansionRange(range).getAsRange();
+#else
+  return rewriter_.getSourceMgr().getExpansionRange(range);
+#endif
+}
+
+SourceLocation
+ProbeVisitor::expansionLoc(SourceLocation loc) {
+  return rewriter_.getSourceMgr().getExpansionLoc(loc);
+}
+
+template <unsigned N>
+DiagnosticBuilder ProbeVisitor::error(SourceLocation loc, const char (&fmt)[N]) {
+  unsigned i
