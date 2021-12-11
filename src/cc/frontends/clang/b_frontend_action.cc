@@ -838,4 +838,51 @@ void BTypeVisitor::rewriteFuncParam(FunctionDecl *D) {
 
 bool BTypeVisitor::VisitFunctionDecl(FunctionDecl *D) {
   // put each non-static non-inline function decl in its own section, to be
-  // extracted by the Memor
+  // extracted by the MemoryManager
+  auto real_start_loc = rewriter_.getSourceMgr().getFileLoc(GET_BEGINLOC(D));
+  if (fe_.is_rewritable_ext_func(D)) {
+    current_fn_ = string(D->getName());
+    string bd = rewriter_.getRewrittenText(expansionRange(D->getSourceRange()));
+    auto func_info = fe_.prog_func_info_.add_func(current_fn_);
+    if (!func_info) {
+      // We should only reach add_func above once per function seen, but the
+      // BPF_PROG-helper using macros in export/helpers.h (KFUNC_PROBE ..
+      // LSM_PROBE) break this logic. TODO: adjust export/helpers.h to not
+      // do so and bail out here, or find a better place to do add_func
+      func_info = fe_.prog_func_info_.get_func(current_fn_);
+      //error(GET_BEGINLOC(D), "redefinition of existing function");
+      //return false;
+    }
+    func_info->src_ = bd;
+    fe_.func_range_[current_fn_] = expansionRange(D->getSourceRange());
+    if (!D->getAttr<SectionAttr>()) {
+      string attr = string("__attribute__((section(\"") + BPF_FN_PREFIX +
+                    D->getName().str() + "\")))\n";
+      rewriter_.InsertText(real_start_loc, attr);
+    }
+    if (D->param_size() > MAX_CALLING_CONV_REGS + 1) {
+      error(GET_BEGINLOC(D->getParamDecl(MAX_CALLING_CONV_REGS + 1)),
+            "too many arguments, bcc only supports in-register parameters");
+      return false;
+    }
+
+    fn_args_.clear();
+    for (auto arg_it = D->param_begin(); arg_it != D->param_end(); arg_it++) {
+      auto *arg = *arg_it;
+      if (arg->getName() == "") {
+        error(GET_ENDLOC(arg), "arguments to BPF program definition must be named");
+        return false;
+      }
+      fn_args_.push_back(arg);
+    }
+    rewriteFuncParam(D);
+  } else if (D->hasBody() &&
+             rewriter_.getSourceMgr().getFileID(real_start_loc)
+               == rewriter_.getSourceMgr().getMainFileID()) {
+    // rewritable functions that are static should be always treated as helper
+    rewriter_.InsertText(real_start_loc, "__attribute__((always_inline))\n");
+  }
+  return true;
+}
+
+// Reverse the order of call traversal so that parameters ins
