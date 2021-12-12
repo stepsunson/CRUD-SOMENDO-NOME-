@@ -885,4 +885,49 @@ bool BTypeVisitor::VisitFunctionDecl(FunctionDecl *D) {
   return true;
 }
 
-// Reverse the order of call traversal so that parameters ins
+// Reverse the order of call traversal so that parameters inside of
+// function calls will get rewritten before the call itself, otherwise
+// text mangling will result.
+bool BTypeVisitor::TraverseCallExpr(CallExpr *Call) {
+  for (auto child : Call->children())
+    if (!TraverseStmt(child))
+      return false;
+  if (!WalkUpFromCallExpr(Call))
+    return false;
+  return true;
+}
+
+// convert calls of the type:
+//  table.foo(&key)
+// to:
+//  bpf_table_foo_elem(bpf_pseudo_fd(table), &key [,&leaf])
+bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
+  // make sure node is a reference to a bpf table, which is assured by the
+  // presence of the section("maps/<typename>") GNU __attribute__
+  if (MemberExpr *Memb = dyn_cast<MemberExpr>(Call->getCallee()->IgnoreImplicit())) {
+    StringRef memb_name = Memb->getMemberDecl()->getName();
+    if (DeclRefExpr *Ref = dyn_cast<DeclRefExpr>(Memb->getBase())) {
+      if (SectionAttr *A = Ref->getDecl()->getAttr<SectionAttr>()) {
+        if (!A->getName().startswith("maps"))
+          return true;
+
+        string args = rewriter_.getRewrittenText(expansionRange(SourceRange(GET_BEGINLOC(Call->getArg(0)),
+                                                   GET_ENDLOC(Call->getArg(Call->getNumArgs() - 1)))));
+
+        // find the table fd, which was opened at declaration time
+        TableStorage::iterator desc;
+        Path local_path({fe_.id(), string(Ref->getDecl()->getName())});
+        Path global_path({string(Ref->getDecl()->getName())});
+        if (!fe_.table_storage().Find(local_path, desc)) {
+          if (!fe_.table_storage().Find(global_path, desc)) {
+            error(GET_ENDLOC(Ref), "bpf_table %0 failed to open") << Ref->getDecl()->getName();
+            return false;
+          }
+        }
+        string fd = to_string(desc->second.fd >= 0 ? desc->second.fd : desc->second.fake_fd);
+        string prefix, suffix;
+        string txt;
+        auto rewrite_start = GET_BEGINLOC(Call);
+        auto rewrite_end = GET_ENDLOC(Call);
+        if (memb_name == "lookup_or_init" || memb_name == "lookup_or_try_init") {
+          string name = string(Ref->
