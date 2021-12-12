@@ -930,4 +930,45 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
         auto rewrite_start = GET_BEGINLOC(Call);
         auto rewrite_end = GET_ENDLOC(Call);
         if (memb_name == "lookup_or_init" || memb_name == "lookup_or_try_init") {
-          string name = string(Ref->
+          string name = string(Ref->getDecl()->getName());
+          string arg0 = rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
+          string arg1 = rewriter_.getRewrittenText(expansionRange(Call->getArg(1)->getSourceRange()));
+          string lookup = "bpf_map_lookup_elem_(bpf_pseudo_fd(1, " + fd + ")";
+          string update = "bpf_map_update_elem_(bpf_pseudo_fd(1, " + fd + ")";
+          txt  = "({typeof(" + name + ".leaf) *leaf = " + lookup + ", " + arg0 + "); ";
+          txt += "if (!leaf) {";
+          txt += " " + update + ", " + arg0 + ", " + arg1 + ", BPF_NOEXIST);";
+          txt += " leaf = " + lookup + ", " + arg0 + ");";
+          if (memb_name == "lookup_or_init") {
+            txt += " if (!leaf) return 0;";
+          }
+          txt += "}";
+          txt += "leaf;})";
+        } else if (memb_name == "increment" || memb_name == "atomic_increment") {
+          string name = string(Ref->getDecl()->getName());
+          string arg0 = rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
+
+          string increment_value = "1";
+          if (Call->getNumArgs() == 2) {
+            increment_value = rewriter_.getRewrittenText(expansionRange(Call->getArg(1)->getSourceRange()));
+
+          }
+
+          string lookup = "bpf_map_lookup_elem_(bpf_pseudo_fd(1, " + fd + ")";
+          string update = "bpf_map_update_elem_(bpf_pseudo_fd(1, " + fd + ")";
+          txt  = "({ typeof(" + name + ".key) _key = " + arg0 + "; ";
+          txt += "typeof(" + name + ".leaf) *_leaf = " + lookup + ", &_key); ";
+          txt += "if (_leaf) ";
+
+          if (memb_name == "atomic_increment") {
+            txt += "lock_xadd(_leaf, " + increment_value + ");";
+          } else {
+            txt += "(*_leaf) += " + increment_value + ";";
+          }
+          if (desc->second.type == BPF_MAP_TYPE_HASH) {
+            txt += "else { typeof(" + name + ".leaf) _zleaf; __builtin_memset(&_zleaf, 0, sizeof(_zleaf)); ";
+            txt += "_zleaf += " + increment_value + ";";
+            txt += update + ", &_key, &_zleaf, BPF_NOEXIST); } ";
+          }
+          txt += "})";
+        
