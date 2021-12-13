@@ -1002,4 +1002,40 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
           string skb = rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
           string skb_len = rewriter_.getRewrittenText(expansionRange(Call->getArg(1)->getSourceRange()));
           string meta = rewriter_.getRewrittenText(expansionRange(Call->getArg(2)->getSourceRange()));
-          string meta_len = rewriter_.getRewrittenText(expansionRange(Call->getArg(3)->getSourceRa
+          string meta_len = rewriter_.getRewrittenText(expansionRange(Call->getArg(3)->getSourceRange()));
+          txt = "bpf_perf_event_output(" +
+            skb + ", " +
+            "(void *)bpf_pseudo_fd(1, " + fd + "), " +
+            "((__u64)" + skb_len + " << 32) | BPF_F_CURRENT_CPU, " +
+            meta + ", " +
+            meta_len + ");";
+        } else if (memb_name == "get_stackid") {
+          if (desc->second.type == BPF_MAP_TYPE_STACK_TRACE) {
+            string arg0 =
+                rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
+            txt = "bcc_get_stackid(";
+            txt += "bpf_pseudo_fd(1, " + fd + "), " + arg0;
+            rewrite_end = GET_ENDLOC(Call->getArg(0));
+            } else {
+              error(GET_BEGINLOC(Call), "get_stackid only available on stacktrace maps");
+              return false;
+            }
+        } else if (memb_name == "sock_map_update" || memb_name == "sock_hash_update") {
+          string ctx = rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
+          string keyp = rewriter_.getRewrittenText(expansionRange(Call->getArg(1)->getSourceRange()));
+          string flag = rewriter_.getRewrittenText(expansionRange(Call->getArg(2)->getSourceRange()));
+          txt = "bpf_" + string(memb_name) + "(" + ctx + ", " +
+            "(void *)bpf_pseudo_fd(1, " + fd + "), " + keyp + ", " + flag + ");";
+        } else if (memb_name == "ringbuf_output") {
+          string name = string(Ref->getDecl()->getName());
+          string args = rewriter_.getRewrittenText(expansionRange(SourceRange(GET_BEGINLOC(Call->getArg(0)),
+                                                           GET_ENDLOC(Call->getArg(2)))));
+          txt = "bpf_ringbuf_output((void *)bpf_pseudo_fd(1, " + fd + ")";
+          txt += ", " + args + ")";
+
+          // e.g.
+          // struct data_t { u32 pid; }; data_t data;
+          // events.ringbuf_output(&data, sizeof(data), 0);
+          // ...
+          //                       &data   ->     data    ->  typeof(data)        ->   data_t
+          auto type_arg0 = Call->getArg(0)->IgnoreCasts()->getType().getTypePtr()->getPointeeType().getTypePtr();
