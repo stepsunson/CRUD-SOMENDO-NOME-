@@ -971,4 +971,35 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
             txt += update + ", &_key, &_zleaf, BPF_NOEXIST); } ";
           }
           txt += "})";
-        
+        } else if (memb_name == "perf_submit") {
+          string name = string(Ref->getDecl()->getName());
+          string arg0 = rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
+          string args_other = rewriter_.getRewrittenText(expansionRange(SourceRange(GET_BEGINLOC(Call->getArg(1)),
+                                                           GET_ENDLOC(Call->getArg(2)))));
+          txt = "bpf_perf_event_output(" + arg0 + ", (void *)bpf_pseudo_fd(1, " + fd + ")";
+          txt += ", CUR_CPU_IDENTIFIER, " + args_other + ")";
+
+          // e.g.
+          // struct data_t { u32 pid; }; data_t data;
+          // events.perf_submit(ctx, &data, sizeof(data));
+          // ...
+          //                       &data   ->     data    ->  typeof(data)        ->   data_t
+          auto type_arg1 = Call->getArg(1)->IgnoreCasts()->getType().getTypePtr()->getPointeeType().getTypePtrOrNull();
+          if (type_arg1 && type_arg1->isStructureType()) {
+            auto event_type = type_arg1->getAsTagDecl();
+            const auto *r = dyn_cast<RecordDecl>(event_type);
+            std::vector<std::string> perf_event;
+
+            for (auto it = r->field_begin(); it != r->field_end(); ++it) {
+              // After LLVM commit aee49255074f
+              // (https://github.com/llvm/llvm-project/commit/aee49255074fd4ef38d97e6e70cbfbf2f9fd0fa7)
+              // array type change from `comm#char [16]` to `comm#char[16]`
+              perf_event.push_back(it->getNameAsString() + "#" + it->getType().getAsString()); //"pid#u32"
+            }
+            fe_.perf_events_[name] = perf_event;
+          }
+        } else if (memb_name == "perf_submit_skb") {
+          string skb = rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
+          string skb_len = rewriter_.getRewrittenText(expansionRange(Call->getArg(1)->getSourceRange()));
+          string meta = rewriter_.getRewrittenText(expansionRange(Call->getArg(2)->getSourceRange()));
+          string meta_len = rewriter_.getRewrittenText(expansionRange(Call->getArg(3)->getSourceRa
