@@ -1074,4 +1074,48 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
           auto type_arg0 = Call->getArg(0)->IgnoreCasts()->getType().getTypePtr()->getPointeeType().getTypePtr();
           if (type_arg0->isStructureType()) {
             auto event_type = type_arg0->getAsTagDecl();
-            const auto *r = dyn_cast<RecordDecl>
+            const auto *r = dyn_cast<RecordDecl>(event_type);
+            std::vector<std::string> perf_event;
+
+            for (auto it = r->field_begin(); it != r->field_end(); ++it) {
+              perf_event.push_back(it->getNameAsString() + "#" + it->getType().getAsString()); //"pid#u32"
+            }
+            fe_.perf_events_[name] = perf_event;
+          }
+        } else if (memb_name == "msg_redirect_hash" || memb_name == "sk_redirect_hash") {
+          string arg0 = rewriter_.getRewrittenText(expansionRange(Call->getArg(0)->getSourceRange()));
+          string args_other = rewriter_.getRewrittenText(expansionRange(SourceRange(GET_BEGINLOC(Call->getArg(1)),
+                                                           GET_ENDLOC(Call->getArg(2)))));
+
+          txt = "bpf_" + string(memb_name) + "(" + arg0 + ", (void *)bpf_pseudo_fd(1, " + fd + "), ";
+          txt += args_other + ")";
+        } else {
+          if (memb_name == "lookup") {
+            prefix = "bpf_map_lookup_elem";
+            suffix = ")";
+          } else if (memb_name == "update") {
+            prefix = "bpf_map_update_elem";
+            suffix = ", BPF_ANY)";
+          } else if (memb_name == "insert") {
+            if (desc->second.type == BPF_MAP_TYPE_ARRAY) {
+              warning(GET_BEGINLOC(Call), "all element of an array already exist; insert() will have no effect");
+            }
+            prefix = "bpf_map_update_elem";
+            suffix = ", BPF_NOEXIST)";
+          } else if (memb_name == "delete") {
+            prefix = "bpf_map_delete_elem";
+            suffix = ")";
+          } else if (memb_name == "call") {
+            prefix = "bpf_tail_call_";
+            suffix = ")";
+          } else if (memb_name == "perf_read") {
+            prefix = "bpf_perf_event_read";
+            suffix = ")";
+          } else if (memb_name == "perf_counter_value") {
+            prefix = "bpf_perf_event_read_value";
+            suffix = ")";
+          } else if (memb_name == "check_current_task") {
+            prefix = "bpf_current_task_under_cgroup";
+            suffix = ")";
+          } else if (memb_name == "redirect_map") {
+            prefix = "b
