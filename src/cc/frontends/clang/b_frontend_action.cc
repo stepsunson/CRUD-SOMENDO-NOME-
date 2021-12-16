@@ -1118,4 +1118,58 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
             prefix = "bpf_current_task_under_cgroup";
             suffix = ")";
           } else if (memb_name == "redirect_map") {
-            prefix = "b
+            prefix = "bpf_redirect_map";
+            suffix = ")";
+          } else if (memb_name == "sk_storage_get") {
+            prefix = "bpf_sk_storage_get";
+            suffix = ")";
+          } else if (memb_name == "sk_storage_delete") {
+            prefix = "bpf_sk_storage_delete";
+            suffix = ")";
+          } else if (memb_name == "inode_storage_get") {
+            prefix = "bpf_inode_storage_get";
+            suffix = ")";
+          } else if (memb_name == "inode_storage_delete") {
+            prefix = "bpf_inode_storage_delete";
+            suffix = ")";
+          } else if (memb_name == "task_storage_get") {
+            prefix = "bpf_task_storage_get";
+            suffix = ")";
+          } else if (memb_name == "task_storage_delete") {
+            prefix = "bpf_task_storage_delete";
+            suffix = ")";
+          } else if (memb_name == "get_local_storage") {
+            prefix = "bpf_get_local_storage";
+            suffix = ")";
+          } else if (memb_name == "push") {
+            prefix = "bpf_map_push_elem";
+            suffix = ")";
+          } else if (memb_name == "pop") {
+            prefix = "bpf_map_pop_elem";
+            suffix = ")";
+          } else if (memb_name == "peek") {
+            prefix = "bpf_map_peek_elem";
+            suffix = ")";
+           } else {
+            error(GET_BEGINLOC(Call), "invalid bpf_table operation %0") << memb_name;
+            return false;
+          }
+          prefix += "((void *)bpf_pseudo_fd(1, " + fd + "), ";
+
+          txt = prefix + args + suffix;
+        }
+        if (!rewriter_.isRewritable(rewrite_start) || !rewriter_.isRewritable(rewrite_end)) {
+          error(GET_BEGINLOC(Call), "cannot use map function inside a macro");
+          return false;
+        }
+        rewriter_.ReplaceText(expansionRange(SourceRange(rewrite_start, rewrite_end)), txt);
+        return true;
+      }
+    }
+  } else if (Call->getCalleeDecl()) {
+    NamedDecl *Decl = dyn_cast<NamedDecl>(Call->getCalleeDecl());
+    if (!Decl) return true;
+
+    string text;
+
+    // Bail out when bpf_probe_read_user is unavailable for overlappi
