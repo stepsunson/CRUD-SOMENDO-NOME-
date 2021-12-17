@@ -1172,4 +1172,45 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
 
     string text;
 
-    // Bail out when bpf_probe_read_user is unavailable for overlappi
+    // Bail out when bpf_probe_read_user is unavailable for overlapping address
+    // space arch.
+    bool overlap_addr = false;
+    std::string probe = check_bpf_probe_read_user(Decl->getName(),
+                          overlap_addr);
+    if (overlap_addr) {
+      error(GET_BEGINLOC(Call), "bpf_probe_read_user not found. Use latest kernel");
+      return false;
+    }
+
+    if (AsmLabelAttr *A = Decl->getAttr<AsmLabelAttr>()) {
+      // Functions with the tag asm("llvm.bpf.extra") are implemented in the
+      // rewriter rather than as a macro since they may also include nested
+      // rewrites, and clang::Rewriter does not support rewrites in macros,
+      // unless one preprocesses the entire source file.
+      if (A->getLabel() == "llvm.bpf.extra") {
+        if (!rewriter_.isRewritable(GET_BEGINLOC(Call))) {
+          error(GET_BEGINLOC(Call), "cannot use builtin inside a macro");
+          return false;
+        }
+
+        vector<string> args;
+
+        for (auto arg : Call->arguments())
+          args.push_back(rewriter_.getRewrittenText(expansionRange(arg->getSourceRange())));
+
+        if (Decl->getName() == "incr_cksum_l3") {
+          text = "bpf_l3_csum_replace_(" + fn_args_[0]->getName().str() + ", (u64)";
+          text += args[0] + ", " + args[1] + ", " + args[2] + ", sizeof(" + args[2] + "))";
+          rewriter_.ReplaceText(expansionRange(Call->getSourceRange()), text);
+        } else if (Decl->getName() == "incr_cksum_l4") {
+          text = "bpf_l4_csum_replace_(" + fn_args_[0]->getName().str() + ", (u64)";
+          text += args[0] + ", " + args[1] + ", " + args[2];
+          text += ", ((" + args[3] + " & 0x1) << 4) | sizeof(" + args[2] + "))";
+          rewriter_.ReplaceText(expansionRange(Call->getSourceRange()), text);
+        } else if (Decl->getName() == "bpf_trace_printk") {
+          checkFormatSpecifiers(args[0], GET_BEGINLOC(Call->getArg(0)));
+          //  #define bpf_trace_printk(fmt, args...)
+          //    ({ char _fmt[] = fmt; bpf_trace_printk_(_fmt, sizeof(_fmt), args...); })
+          text = "({ char _fmt[] = " + args[0] + "; bpf_trace_printk_(_fmt, sizeof(_fmt)";
+          if (args.size() <= 1) {
+         
