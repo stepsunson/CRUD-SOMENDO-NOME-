@@ -1213,4 +1213,52 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
           //    ({ char _fmt[] = fmt; bpf_trace_printk_(_fmt, sizeof(_fmt), args...); })
           text = "({ char _fmt[] = " + args[0] + "; bpf_trace_printk_(_fmt, sizeof(_fmt)";
           if (args.size() <= 1) {
-         
+            text += "); })";
+            rewriter_.ReplaceText(expansionRange(Call->getSourceRange()), text);
+          } else {
+            rewriter_.ReplaceText(expansionRange(SourceRange(GET_BEGINLOC(Call), GET_ENDLOC(Call->getArg(0)))), text);
+            rewriter_.InsertTextAfter(GET_ENDLOC(Call), "); }");
+          }
+        } else if (Decl->getName() == "bpf_num_cpus") {
+          int numcpu = sysconf(_SC_NPROCESSORS_ONLN);
+          if (numcpu <= 0)
+            numcpu = 1;
+          text = to_string(numcpu);
+          rewriter_.ReplaceText(expansionRange(Call->getSourceRange()), text);
+        } else if (Decl->getName() == "bpf_usdt_readarg_p") {
+          text = "({ u64 __addr = 0x0; ";
+          text += "_bpf_readarg_" + current_fn_ + "_" + args[0] + "(" +
+                  args[1] + ", &__addr, sizeof(__addr));";
+
+          bool overlap_addr = false;
+          text += check_bpf_probe_read_user(StringRef("bpf_probe_read_user"),
+                  overlap_addr);
+          if (overlap_addr) {
+            error(GET_BEGINLOC(Call), "bpf_probe_read_user not found. Use latest kernel");
+            return false;
+          }
+
+          text += "(" + args[2] + ", " + args[3] + ", (void *)__addr);";
+          text += "})";
+          rewriter_.ReplaceText(expansionRange(Call->getSourceRange()), text);
+        } else if (Decl->getName() == "bpf_usdt_readarg") {
+          text = "_bpf_readarg_" + current_fn_ + "_" + args[0] + "(" + args[1] +
+                 ", " + args[2] + ", sizeof(*(" + args[2] + ")))";
+          rewriter_.ReplaceText(expansionRange(Call->getSourceRange()), text);
+        }
+      }
+    } else if (FunctionDecl *F = dyn_cast<FunctionDecl>(Decl)) {
+      if (F->isExternallyVisible() && !F->getBuiltinID()) {
+        auto start_loc = rewriter_.getSourceMgr().getFileLoc(GET_BEGINLOC(Decl));
+        if (rewriter_.getSourceMgr().getFileID(start_loc)
+            == rewriter_.getSourceMgr().getMainFileID()) {
+          error(GET_BEGINLOC(Call), "cannot call non-static helper function");
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+bool B
