@@ -1261,4 +1261,62 @@ bool BTypeVisitor::VisitCallExpr(CallExpr *Call) {
   return true;
 }
 
-bool B
+bool BTypeVisitor::checkFormatSpecifiers(const string& fmt, SourceLocation loc) {
+  unsigned nb_specifiers = 0, i, j;
+  bool has_s = false;
+  for (i = 0; i < fmt.length(); i++) {
+    if (!isascii(fmt[i]) || (!isprint(fmt[i]) && !isspace(fmt[i]))) {
+      warning(loc.getLocWithOffset(i), "unrecognized character");
+      return false;
+    }
+    if (fmt[i] != '%')
+      continue;
+    if (nb_specifiers >= 3) {
+      warning(loc.getLocWithOffset(i), "cannot use more than 3 conversion specifiers");
+      return false;
+    }
+    nb_specifiers++;
+    i++;
+    if (fmt[i] == 'l') {
+      i++;
+    } else if (fmt[i] == 'p' || fmt[i] == 's') {
+      i++;
+      if (!isspace(fmt[i]) && !ispunct(fmt[i]) && fmt[i] != 0) {
+        warning(loc.getLocWithOffset(i - 2),
+                "only %%d %%u %%x %%ld %%lu %%lx %%lld %%llu %%llx %%p %%s conversion specifiers allowed");
+        return false;
+      }
+      if (fmt[i - 1] == 's') {
+        if (has_s) {
+          warning(loc.getLocWithOffset(i - 2), "cannot use several %%s conversion specifiers");
+          return false;
+        }
+        has_s = true;
+      }
+      continue;
+    }
+    j = 1;
+    if (fmt[i] == 'l') {
+      i++;
+      j++;
+    }
+    if (fmt[i] != 'd' && fmt[i] != 'u' && fmt[i] != 'x') {
+      warning(loc.getLocWithOffset(i - j),
+              "only %%d %%u %%x %%ld %%lu %%lx %%lld %%llu %%llx %%p %%s conversion specifiers allowed");
+      return false;
+    }
+  }
+  return true;
+}
+
+bool BTypeVisitor::VisitBinaryOperator(BinaryOperator *E) {
+  if (!E->isAssignmentOp())
+    return true;
+  Expr *LHS = E->getLHS()->IgnoreImplicit();
+  if (MemberExpr *Memb = dyn_cast<MemberExpr>(LHS)) {
+    if (DeclRefExpr *Base = dyn_cast<DeclRefExpr>(Memb->getBase()->IgnoreImplicit())) {
+      if (DeprecatedAttr *A = Base->getDecl()->getAttr<DeprecatedAttr>()) {
+        if (A->getMessage() == "packet") {
+          if (FieldDecl *F = dyn_cast<FieldDecl>(Memb->getMemberDecl())) {
+            if (!rewriter_.isRewritable(GET_BEGINLOC(E))) {
+              error(GET_BEGINLOC(E), "cannot use \"packe
