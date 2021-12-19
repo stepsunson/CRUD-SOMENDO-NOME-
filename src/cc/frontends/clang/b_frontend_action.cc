@@ -1319,4 +1319,48 @@ bool BTypeVisitor::VisitBinaryOperator(BinaryOperator *E) {
         if (A->getMessage() == "packet") {
           if (FieldDecl *F = dyn_cast<FieldDecl>(Memb->getMemberDecl())) {
             if (!rewriter_.isRewritable(GET_BEGINLOC(E))) {
-              error(GET_BEGINLOC(E), "cannot use \"packe
+              error(GET_BEGINLOC(E), "cannot use \"packet\" header type inside a macro");
+              return false;
+            }
+
+            auto EndLoc = GET_ENDLOC(E);
+            if (EndLoc.isMacroID()) {
+              error(EndLoc, "cannot have macro at the end of expresssion, "
+                            "workaround: put perentheses around macro \"(MARCO)\"");
+              return false;
+            }
+
+            uint64_t ofs = C.getFieldOffset(F);
+            uint64_t sz = F->isBitField() ? F->getBitWidthValue(C) : C.getTypeSize(F->getType());
+            string base = rewriter_.getRewrittenText(expansionRange(Base->getSourceRange()));
+            string text = "bpf_dins_pkt(" + fn_args_[0]->getName().str() + ", (u64)" + base + "+" + to_string(ofs >> 3)
+                + ", " + to_string(ofs & 0x7) + ", " + to_string(sz) + ",";
+            rewriter_.ReplaceText(expansionRange(SourceRange(GET_BEGINLOC(E), E->getOperatorLoc())), text);
+            rewriter_.InsertTextAfterToken(EndLoc, ")");
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+bool BTypeVisitor::VisitImplicitCastExpr(ImplicitCastExpr *E) {
+  // use dext only for RValues
+  if (E->getCastKind() != CK_LValueToRValue)
+    return true;
+  MemberExpr *Memb = dyn_cast<MemberExpr>(E->IgnoreImplicit());
+  if (!Memb)
+    return true;
+  Expr *Base = Memb->getBase()->IgnoreImplicit();
+  if (DeclRefExpr *Ref = dyn_cast<DeclRefExpr>(Base)) {
+    if (DeprecatedAttr *A = Ref->getDecl()->getAttr<DeprecatedAttr>()) {
+      if (A->getMessage() == "packet") {
+        if (FieldDecl *F = dyn_cast<FieldDecl>(Memb->getMemberDecl())) {
+          if (!rewriter_.isRewritable(GET_BEGINLOC(E))) {
+            error(GET_BEGINLOC(E), "cannot use \"packet\" header type inside a macro");
+            return false;
+          }
+          uint64_t ofs = C.getFieldOffset(F);
+          uint64_t sz = F->isBitField() ? F->getBitWidthValue(C) : C.getTypeSize(F->getType());
+          string text = "bpf_dext_pkt(" + fn_args_[0]->getName().str() + ", (u64)" + Ref->getDecl()->getName().str() + "+"
+              + to_string(ofs >> 3) + ", " +
