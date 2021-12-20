@@ -1429,4 +1429,73 @@ bool BTypeVisitor::VisitVarDecl(VarDecl *Decl) {
     TableDesc table;
     TableStorage::iterator table_it;
     table.name = string(Decl->getName());
-    Path local_path({fe_.id(), 
+    Path local_path({fe_.id(), table.name});
+    Path maps_ns_path({"ns", fe_.maps_ns(), table.name});
+    Path global_path({table.name});
+    QualType key_type, leaf_type;
+
+    unsigned i = 0;
+    for (auto F : RD->fields()) {
+      if (F->getType().getTypePtr()->isIncompleteType()) {
+        error(GET_BEGINLOC(F), "unknown type");
+        return false;
+      }
+
+      size_t sz = C.getTypeSize(F->getType()) >> 3;
+      if (F->getName() == "key") {
+        if (sz == 0) {
+          error(GET_BEGINLOC(F), "invalid zero-sized leaf");
+          return false;
+        }
+        table.key_size = sz;
+        key_type = F->getType();
+      } else if (F->getName() == "leaf") {
+        if (sz == 0) {
+          error(GET_BEGINLOC(F), "invalid zero-sized leaf");
+          return false;
+        }
+        table.leaf_size = sz;
+        leaf_type = F->getType();
+      } else if (F->getName() == "max_entries") {
+            table.max_entries = getFieldValue(Decl, F, table.max_entries);
+      } else if (F->getName() == "flags") {
+            table.flags = getFieldValue(Decl, F, table.flags);
+      }
+      ++i;
+    }
+
+    std::string section_attr = string(A->getName()), pinned;
+    size_t pinned_path_pos = section_attr.find(":");
+    // 0 is not a valid map ID, -1 is to create and pin it to file
+    int pinned_id = 0;
+
+    if (pinned_path_pos != std::string::npos) {
+      pinned = section_attr.substr(pinned_path_pos + 1);
+      section_attr = section_attr.substr(0, pinned_path_pos);
+      int fd = bpf_obj_get(pinned.c_str());
+      if (fd < 0) {
+        if (bcc_make_parent_dir(pinned.c_str()) ||
+            bcc_check_bpffs_path(pinned.c_str())) {
+          return false;
+        }
+
+        pinned_id = -1;
+      } else {
+        struct bpf_map_info info = {};
+        unsigned int info_len = sizeof(info);
+
+        if (bpf_obj_get_info_by_fd(fd, &info, &info_len)) {
+          error(GET_BEGINLOC(Decl), "get map info failed: %0")
+                << strerror(errno);
+          return false;
+        }
+
+        pinned_id = info.id;
+      }
+
+      close(fd);
+    }
+
+    // Additional map specific information
+    size_t map_info_pos = section_attr.find("$");
+    std::s
