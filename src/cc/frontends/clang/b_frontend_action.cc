@@ -1363,4 +1363,70 @@ bool BTypeVisitor::VisitImplicitCastExpr(ImplicitCastExpr *E) {
           uint64_t ofs = C.getFieldOffset(F);
           uint64_t sz = F->isBitField() ? F->getBitWidthValue(C) : C.getTypeSize(F->getType());
           string text = "bpf_dext_pkt(" + fn_args_[0]->getName().str() + ", (u64)" + Ref->getDecl()->getName().str() + "+"
-              + to_string(ofs >> 3) + ", " +
+              + to_string(ofs >> 3) + ", " + to_string(ofs & 0x7) + ", " + to_string(sz) + ")";
+          rewriter_.ReplaceText(expansionRange(E->getSourceRange()), text);
+        }
+      }
+    }
+  }
+  return true;
+}
+
+SourceRange
+BTypeVisitor::expansionRange(SourceRange range) {
+#if LLVM_MAJOR_VERSION >= 7
+  return rewriter_.getSourceMgr().getExpansionRange(range).getAsRange();
+#else
+  return rewriter_.getSourceMgr().getExpansionRange(range);
+#endif
+}
+
+template <unsigned N>
+DiagnosticBuilder BTypeVisitor::error(SourceLocation loc, const char (&fmt)[N]) {
+  unsigned int diag_id = C.getDiagnostics().getCustomDiagID(DiagnosticsEngine::Error, fmt);
+  return C.getDiagnostics().Report(loc, diag_id);
+}
+
+template <unsigned N>
+DiagnosticBuilder BTypeVisitor::warning(SourceLocation loc, const char (&fmt)[N]) {
+  unsigned int diag_id = C.getDiagnostics().getCustomDiagID(DiagnosticsEngine::Warning, fmt);
+  return C.getDiagnostics().Report(loc, diag_id);
+}
+
+int64_t BTypeVisitor::getFieldValue(VarDecl *Decl, FieldDecl *FDecl, int64_t OrigFValue) {
+  unsigned idx = FDecl->getFieldIndex();
+
+  if (auto I = dyn_cast_or_null<InitListExpr>(Decl->getInit())) {
+#if LLVM_MAJOR_VERSION >= 8
+    Expr::EvalResult res;
+    if (I->getInit(idx)->EvaluateAsInt(res, C)) {
+      return res.Val.getInt().getExtValue();
+    }
+#else
+    llvm::APSInt res;
+    if (I->getInit(idx)->EvaluateAsInt(res, C)) {
+      return res.getExtValue();
+    }
+#endif
+  }
+
+  return OrigFValue;
+}
+
+// Open table FDs when bpf tables (as denoted by section("maps*") attribute)
+// are declared.
+bool BTypeVisitor::VisitVarDecl(VarDecl *Decl) {
+  const RecordType *R = Decl->getType()->getAs<RecordType>();
+  if (SectionAttr *A = Decl->getAttr<SectionAttr>()) {
+    if (!A->getName().startswith("maps"))
+      return true;
+    if (!R) {
+      error(GET_ENDLOC(Decl), "invalid type for bpf_table, expect struct");
+      return false;
+    }
+    const RecordDecl *RD = R->getDecl()->getDefinition();
+
+    TableDesc table;
+    TableStorage::iterator table_it;
+    table.name = string(Decl->getName());
+    Path local_path({fe_.id(), 
