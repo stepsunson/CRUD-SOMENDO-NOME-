@@ -1498,4 +1498,56 @@ bool BTypeVisitor::VisitVarDecl(VarDecl *Decl) {
 
     // Additional map specific information
     size_t map_info_pos = section_attr.find("$");
-    std::s
+    std::string inner_map_name;
+
+    if (map_info_pos != std::string::npos) {
+      std::string map_info = section_attr.substr(map_info_pos + 1);
+      section_attr = section_attr.substr(0, map_info_pos);
+      if (section_attr == "maps/array_of_maps" ||
+          section_attr == "maps/hash_of_maps") {
+        inner_map_name = map_info;
+      }
+    }
+
+    bpf_map_type map_type = BPF_MAP_TYPE_UNSPEC;
+    if (section_attr == "maps/hash") {
+      map_type = BPF_MAP_TYPE_HASH;
+    } else if (section_attr == "maps/array") {
+      map_type = BPF_MAP_TYPE_ARRAY;
+    } else if (section_attr == "maps/percpu_hash") {
+      map_type = BPF_MAP_TYPE_PERCPU_HASH;
+    } else if (section_attr == "maps/percpu_array") {
+      map_type = BPF_MAP_TYPE_PERCPU_ARRAY;
+    } else if (section_attr == "maps/lru_hash") {
+      map_type = BPF_MAP_TYPE_LRU_HASH;
+    } else if (section_attr == "maps/lru_percpu_hash") {
+      map_type = BPF_MAP_TYPE_LRU_PERCPU_HASH;
+    } else if (section_attr == "maps/lpm_trie") {
+      map_type = BPF_MAP_TYPE_LPM_TRIE;
+    } else if (section_attr == "maps/histogram") {
+      map_type = BPF_MAP_TYPE_HASH;
+      if (key_type->isSpecificBuiltinType(BuiltinType::Int))
+        map_type = BPF_MAP_TYPE_ARRAY;
+      if (!leaf_type->isSpecificBuiltinType(BuiltinType::ULongLong))
+        error(GET_BEGINLOC(Decl), "histogram leaf type must be u64, got %0") << leaf_type;
+    } else if (section_attr == "maps/prog") {
+      map_type = BPF_MAP_TYPE_PROG_ARRAY;
+    } else if (section_attr == "maps/perf_output") {
+      map_type = BPF_MAP_TYPE_PERF_EVENT_ARRAY;
+      int numcpu = get_possible_cpus().size();
+      if (numcpu <= 0)
+        numcpu = 1;
+      table.max_entries = numcpu;
+    } else if (section_attr == "maps/ringbuf") {
+      map_type = BPF_MAP_TYPE_RINGBUF;
+      // values from libbpf/src/libbpf_probes.c
+      table.key_size = 0;
+      table.leaf_size = 0;
+    } else if (section_attr == "maps/perf_array") {
+      map_type = BPF_MAP_TYPE_PERF_EVENT_ARRAY;
+    } else if (section_attr == "maps/queue") {
+      table.key_size = 0;
+      map_type = BPF_MAP_TYPE_QUEUE;
+    } else if (section_attr == "maps/stack") {
+      table.key_size = 0;
+      ma
