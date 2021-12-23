@@ -1550,4 +1550,48 @@ bool BTypeVisitor::VisitVarDecl(VarDecl *Decl) {
       map_type = BPF_MAP_TYPE_QUEUE;
     } else if (section_attr == "maps/stack") {
       table.key_size = 0;
-      ma
+      map_type = BPF_MAP_TYPE_STACK;
+    } else if (section_attr == "maps/cgroup_array") {
+      map_type = BPF_MAP_TYPE_CGROUP_ARRAY;
+    } else if (section_attr == "maps/stacktrace") {
+      map_type = BPF_MAP_TYPE_STACK_TRACE;
+    } else if (section_attr == "maps/devmap") {
+      map_type = BPF_MAP_TYPE_DEVMAP;
+    } else if (section_attr == "maps/cpumap") {
+      map_type = BPF_MAP_TYPE_CPUMAP;
+    } else if (section_attr == "maps/xskmap") {
+      map_type = BPF_MAP_TYPE_XSKMAP;
+    } else if (section_attr == "maps/hash_of_maps") {
+      map_type = BPF_MAP_TYPE_HASH_OF_MAPS;
+    } else if (section_attr == "maps/array_of_maps") {
+      map_type = BPF_MAP_TYPE_ARRAY_OF_MAPS;
+    } else if (section_attr == "maps/sk_storage") {
+      map_type = BPF_MAP_TYPE_SK_STORAGE;
+    } else if (section_attr == "maps/inode_storage") {
+      map_type = BPF_MAP_TYPE_INODE_STORAGE;
+    } else if (section_attr == "maps/task_storage") {
+      map_type = BPF_MAP_TYPE_TASK_STORAGE;
+    } else if (section_attr == "maps/sockmap") {
+      map_type = BPF_MAP_TYPE_SOCKMAP;
+    } else if (section_attr == "maps/sockhash") {
+      map_type = BPF_MAP_TYPE_SOCKHASH;
+    } else if (section_attr == "maps/cgroup_storage") {
+      map_type = BPF_MAP_TYPE_CGROUP_STORAGE;
+    } else if (section_attr == "maps/percpu_cgroup_storage") {
+      map_type = BPF_MAP_TYPE_PERCPU_CGROUP_STORAGE;
+    } else if (section_attr == "maps/extern") {
+      if (!fe_.table_storage().Find(maps_ns_path, table_it)) {
+        if (!fe_.table_storage().Find(global_path, table_it)) {
+          error(GET_BEGINLOC(Decl), "reference to undefined table");
+          return false;
+        }
+      }
+      table = table_it->second.dup();
+      table.is_extern = true;
+    } else if (section_attr == "maps/export") {
+      if (table.name.substr(0, 2) == "__")
+        table.name = table.name.substr(2);
+      Path local_path({fe_.id(), table.name});
+      Path global_path({table.name});
+      if (!fe_.table_storage().Find(local_path, table_it)) {
+        error(GET_BEGINLOC(Dec
