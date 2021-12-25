@@ -1647,4 +1647,54 @@ bool BTypeVisitor::VisitVarDecl(VarDecl *Decl) {
 
 // First traversal of AST to retrieve maps with external pointers.
 BTypeConsumer::BTypeConsumer(ASTContext &C, BFrontendAction &fe,
-    
+                             Rewriter &rewriter, set<Decl *> &m)
+    : fe_(fe),
+      map_visitor_(m),
+      btype_visitor_(C, fe),
+      probe_visitor1_(C, rewriter, m, true),
+      probe_visitor2_(C, rewriter, m, false) {}
+
+void BTypeConsumer::HandleTranslationUnit(ASTContext &Context) {
+  DeclContext::decl_iterator it;
+  DeclContext *DC = TranslationUnitDecl::castToDeclContext(Context.getTranslationUnitDecl());
+
+  /**
+   * In a first traversal, ProbeVisitor tracks external pointers identified
+   * through each function's arguments and replaces their dereferences with
+   * calls to bpf_probe_read. It also passes all identified pointers to
+   * external addresses to MapVisitor.
+   */
+  for (it = DC->decls_begin(); it != DC->decls_end(); it++) {
+    Decl *D = *it;
+    if (FunctionDecl *F = dyn_cast<FunctionDecl>(D)) {
+      if (fe_.is_rewritable_ext_func(F)) {
+        for (auto arg : F->parameters()) {
+          if (arg == F->getParamDecl(0)) {
+            /**
+             * Limit tracing of pointers from context to tracing contexts.
+             * We're whitelisting instead of blacklisting to avoid issues with
+             * existing programs if new context types are added in the future.
+             */
+            string type = arg->getType().getAsString();
+            if (type == "struct pt_regs *" ||
+                type == "struct bpf_raw_tracepoint_args *" ||
+                type.substr(0, 19) == "struct tracepoint__")
+              probe_visitor1_.set_ctx(arg);
+          } else if (!arg->getType()->isFundamentalType()) {
+            tuple<Decl *, int> pt = make_tuple(arg, 0);
+            probe_visitor1_.set_ptreg(pt);
+          }
+        }
+
+        probe_visitor1_.TraverseDecl(D);
+        for (auto ptreg : probe_visitor1_.get_ptregs()) {
+          map_visitor_.set_ptreg(ptreg);
+        }
+      }
+    }
+  }
+
+  /**
+   * MapVisitor uses external pointers identified by the first ProbeVisitor
+   * traversal to identify all maps with external pointers as values.
+   * MapVisitor
