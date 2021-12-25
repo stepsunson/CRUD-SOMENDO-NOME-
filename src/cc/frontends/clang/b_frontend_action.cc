@@ -1594,4 +1594,57 @@ bool BTypeVisitor::VisitVarDecl(VarDecl *Decl) {
       Path local_path({fe_.id(), table.name});
       Path global_path({table.name});
       if (!fe_.table_storage().Find(local_path, table_it)) {
-        error(GET_BEGINLOC(Dec
+        error(GET_BEGINLOC(Decl), "reference to undefined table");
+        return false;
+      }
+      fe_.table_storage().Insert(global_path, table_it->second.dup());
+      return true;
+    } else if(section_attr == "maps/shared") {
+      if (table.name.substr(0, 2) == "__")
+        table.name = table.name.substr(2);
+      Path local_path({fe_.id(), table.name});
+      Path maps_ns_path({"ns", fe_.maps_ns(), table.name});
+      if (!fe_.table_storage().Find(local_path, table_it)) {
+        error(GET_BEGINLOC(Decl), "reference to undefined table");
+        return false;
+      }
+      fe_.table_storage().Insert(maps_ns_path, table_it->second.dup());
+      return true;
+    }
+
+    if (!table.is_extern) {
+      if (map_type == BPF_MAP_TYPE_UNSPEC) {
+        error(GET_BEGINLOC(Decl), "unsupported map type: %0") << section_attr;
+        return false;
+      }
+
+      table.type = map_type;
+      table.fake_fd = fe_.get_next_fake_fd();
+      fe_.add_map_def(table.fake_fd, std::make_tuple((int)map_type, std::string(table.name),
+                      (int)table.key_size, (int)table.leaf_size,
+                      (int)table.max_entries, table.flags, pinned_id,
+                      inner_map_name, pinned));
+    }
+
+    if (!table.is_extern)
+      fe_.table_storage().VisitMapType(table, C, key_type, leaf_type);
+    fe_.table_storage().Insert(local_path, move(table));
+  } else if (const PointerType *P = Decl->getType()->getAs<PointerType>()) {
+    // if var is a pointer to a packet type, clone the annotation into the var
+    // decl so that the packet dext/dins rewriter can catch it
+    if (const RecordType *RT = P->getPointeeType()->getAs<RecordType>()) {
+      if (const RecordDecl *RD = RT->getDecl()->getDefinition()) {
+        if (DeprecatedAttr *DA = RD->getAttr<DeprecatedAttr>()) {
+          if (DA->getMessage() == "packet") {
+            Decl->addAttr(DA->clone(C));
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
+// First traversal of AST to retrieve maps with external pointers.
+BTypeConsumer::BTypeConsumer(ASTContext &C, BFrontendAction &fe,
+    
