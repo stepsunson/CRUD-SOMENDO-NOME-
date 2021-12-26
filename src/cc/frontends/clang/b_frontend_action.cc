@@ -1756,4 +1756,54 @@ BFrontendAction::BFrontendAction(
 bool BFrontendAction::is_rewritable_ext_func(FunctionDecl *D) {
   StringRef file_name = rewriter_->getSourceMgr().getFilename(GET_BEGINLOC(D));
   return (D->isExternallyVisible() && D->hasBody() &&
-          (file_name.empty() || file
+          (file_name.empty() || file_name == main_path_));
+}
+
+void BFrontendAction::DoMiscWorkAround() {
+  // In 4.16 and later, CONFIG_CC_STACKPROTECTOR is moved out of Kconfig and into
+  // Makefile. It will be set depending on CONFIG_CC_STACKPROTECTOR_{AUTO|REGULAR|STRONG}.
+  // CONFIG_CC_STACKPROTECTOR is still used in various places, e.g., struct task_struct,
+  // to guard certain fields. The workaround here intends to define
+  // CONFIG_CC_STACKPROTECTOR properly based on other configs, so it relieved any bpf
+  // program (using task_struct, etc.) of patching the below code.
+  std::string probefunc = check_bpf_probe_read_kernel();
+  if (kresolver) {
+    bcc_free_symcache(kresolver, -1);
+    kresolver = NULL;
+  }
+  if (probefunc == "bpf_probe_read") {
+    probefunc = "#define bpf_probe_read_kernel bpf_probe_read\n"
+      "#define bpf_probe_read_kernel_str bpf_probe_read_str\n"
+      "#define bpf_probe_read_user bpf_probe_read\n"
+      "#define bpf_probe_read_user_str bpf_probe_read_str\n";
+  }
+  else {
+    probefunc = "";
+  }
+  std::string prologue = "#if defined(BPF_LICENSE)\n"
+    "#error BPF_LICENSE cannot be specified through cflags\n"
+    "#endif\n"
+    "#if !defined(CONFIG_CC_STACKPROTECTOR)\n"
+    "#if defined(CONFIG_CC_STACKPROTECTOR_AUTO) \\\n"
+    "    || defined(CONFIG_CC_STACKPROTECTOR_REGULAR) \\\n"
+    "    || defined(CONFIG_CC_STACKPROTECTOR_STRONG)\n"
+    "#define CONFIG_CC_STACKPROTECTOR\n"
+    "#endif\n"
+    "#endif\n";
+  prologue = prologue + probefunc;
+  rewriter_->getEditBuffer(rewriter_->getSourceMgr().getMainFileID()).InsertText(0,
+    prologue,
+    false);
+
+  rewriter_->getEditBuffer(rewriter_->getSourceMgr().getMainFileID()).InsertTextAfter(
+#if LLVM_MAJOR_VERSION >= 12
+    rewriter_->getSourceMgr().getBufferOrFake(rewriter_->getSourceMgr().getMainFileID()).getBufferSize(),
+#else
+    rewriter_->getSourceMgr().getBuffer(rewriter_->getSourceMgr().getMainFileID())->getBufferSize(),
+#endif
+    "\n#include <bcc/footer.h>\n");
+}
+
+void BFrontendAction::EndSourceFileAction() {
+  // Additional misc rewrites
+  DoMiscWorkAround
