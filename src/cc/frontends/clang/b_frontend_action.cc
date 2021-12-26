@@ -1697,4 +1697,63 @@ void BTypeConsumer::HandleTranslationUnit(ASTContext &Context) {
   /**
    * MapVisitor uses external pointers identified by the first ProbeVisitor
    * traversal to identify all maps with external pointers as values.
-   * MapVisitor
+   * MapVisitor runs only after ProbeVisitor finished its traversal of the
+   * whole translation unit to clearly separate the role of each ProbeVisitor's
+   * traversal: the first tracks external pointers from function arguments,
+   * whereas the second tracks external pointers from maps. Without this clear
+   * separation, ProbeVisitor might attempt to replace several times the same
+   * dereferences.
+   */
+  for (it = DC->decls_begin(); it != DC->decls_end(); it++) {
+    Decl *D = *it;
+    if (FunctionDecl *F = dyn_cast<FunctionDecl>(D)) {
+      if (fe_.is_rewritable_ext_func(F)) {
+        map_visitor_.TraverseDecl(D);
+      }
+    }
+  }
+
+  /**
+   * In a second traversal, ProbeVisitor tracks pointers passed through the
+   * maps identified by MapVisitor and replaces their dereferences with calls
+   * to bpf_probe_read.
+   * This last traversal runs after MapVisitor went through an entire
+   * translation unit, to ensure maps with external pointers have all been
+   * identified.
+   */
+  for (it = DC->decls_begin(); it != DC->decls_end(); it++) {
+    Decl *D = *it;
+    if (FunctionDecl *F = dyn_cast<FunctionDecl>(D)) {
+      if (fe_.is_rewritable_ext_func(F)) {
+        probe_visitor2_.TraverseDecl(D);
+      }
+    }
+
+    btype_visitor_.TraverseDecl(D);
+  }
+
+}
+
+BFrontendAction::BFrontendAction(
+    llvm::raw_ostream &os, unsigned flags, TableStorage &ts,
+    const std::string &id, const std::string &main_path,
+    ProgFuncInfo &prog_func_info, std::string &mod_src,
+    const std::string &maps_ns, fake_fd_map_def &fake_fd_map,
+    std::map<std::string, std::vector<std::string>> &perf_events)
+    : os_(os),
+      flags_(flags),
+      ts_(ts),
+      id_(id),
+      maps_ns_(maps_ns),
+      rewriter_(new Rewriter),
+      main_path_(main_path),
+      prog_func_info_(prog_func_info),
+      mod_src_(mod_src),
+      next_fake_fd_(-1),
+      fake_fd_map_(fake_fd_map),
+      perf_events_(perf_events) {}
+
+bool BFrontendAction::is_rewritable_ext_func(FunctionDecl *D) {
+  StringRef file_name = rewriter_->getSourceMgr().getFilename(GET_BEGINLOC(D));
+  return (D->isExternallyVisible() && D->hasBody() &&
+          (file_name.empty() || file
