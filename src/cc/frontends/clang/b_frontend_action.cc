@@ -1806,4 +1806,38 @@ void BFrontendAction::DoMiscWorkAround() {
 
 void BFrontendAction::EndSourceFileAction() {
   // Additional misc rewrites
-  DoMiscWorkAround
+  DoMiscWorkAround();
+
+  if (flags_ & DEBUG_PREPROCESSOR)
+    rewriter_->getEditBuffer(rewriter_->getSourceMgr().getMainFileID()).write(llvm::errs());
+#if LLVM_MAJOR_VERSION >= 9
+  llvm::raw_string_ostream tmp_os(mod_src_);
+  rewriter_->getEditBuffer(rewriter_->getSourceMgr().getMainFileID())
+      .write(tmp_os);
+#else
+  if (flags_ & DEBUG_SOURCE) {
+    llvm::raw_string_ostream tmp_os(mod_src_);
+    rewriter_->getEditBuffer(rewriter_->getSourceMgr().getMainFileID())
+        .write(tmp_os);
+  }
+#endif
+
+  for (auto func : func_range_) {
+    auto f = func.first;
+    string bd = rewriter_->getRewrittenText(func_range_[f]);
+    auto fn = prog_func_info_.get_func(f);
+    if (fn)
+      fn->src_rewritten_ = bd;
+  }
+  rewriter_->getEditBuffer(rewriter_->getSourceMgr().getMainFileID()).write(os_);
+  os_.flush();
+}
+
+unique_ptr<ASTConsumer> BFrontendAction::CreateASTConsumer(CompilerInstance &Compiler, llvm::StringRef InFile) {
+  rewriter_->setSourceMgr(Compiler.getSourceManager(), Compiler.getLangOpts());
+  vector<unique_ptr<ASTConsumer>> consumers;
+  consumers.push_back(unique_ptr<ASTConsumer>(new BTypeConsumer(Compiler.getASTContext(), *this, *rewriter_, m_)));
+  return unique_ptr<ASTConsumer>(new MultiplexConsumer(std::move(consumers)));
+}
+
+}
