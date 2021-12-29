@@ -296,3 +296,226 @@ int ClangLoader::parse(
     flags_cstr.push_back(it->c_str());
 
   vector<const char *> flags_cstr_rem;
+
+  if (version_override) {
+    vmacro = "-DLINUX_VERSION_CODE_OVERRIDE=" + string(version_override);
+
+    std::cout << "WARNING: Linux version for eBPF program is being overridden with: " << version_override << "\n";
+    std::cout << "WARNING: Due to this, the results of the program may be unpredictable\n";
+    flags_cstr_rem.push_back(vmacro.c_str());
+  }
+
+  flags_cstr_rem.push_back("-include");
+  flags_cstr_rem.push_back("/virtual/include/bcc/helpers.h");
+  flags_cstr_rem.push_back("-isystem");
+  flags_cstr_rem.push_back("/virtual/include");
+  if (cflags) {
+    for (auto i = 0; i < ncflags; ++i)
+      flags_cstr_rem.push_back(cflags[i]);
+  }
+#ifdef CUR_CPU_IDENTIFIER
+  string cur_cpu_flag = string("-DCUR_CPU_IDENTIFIER=") + CUR_CPU_IDENTIFIER;
+  flags_cstr_rem.push_back(cur_cpu_flag.c_str());
+#endif
+
+  if (do_compile(mod, ts, in_memory, flags_cstr, flags_cstr_rem, main_path,
+                 main_buf, id, prog_func_info, mod_src, true, maps_ns,
+                 fake_fd_map, perf_events)) {
+#if BCC_BACKUP_COMPILE != 1
+    return -1;
+#else
+    // try one more time to compile with system bpf.h
+    llvm::errs() << "WARNING: compilation failure, trying with system bpf.h\n";
+
+    ts.DeletePrefix(Path({id}));
+    prog_func_info.clear();
+    mod_src.clear();
+    fake_fd_map.clear();
+    if (do_compile(mod, ts, in_memory, flags_cstr, flags_cstr_rem, main_path,
+                   main_buf, id, prog_func_info, mod_src, false, maps_ns,
+                   fake_fd_map, perf_events))
+      return -1;
+#endif
+  }
+
+  return 0;
+}
+
+void *get_clang_target_cb(bcc_arch_t arch, bool for_syscall)
+{
+  const char *ret;
+
+  switch(arch) {
+    case BCC_ARCH_PPC_LE:
+      ret = "powerpc64le-unknown-linux-gnu";
+      break;
+    case BCC_ARCH_PPC:
+      ret = "powerpc64-unknown-linux-gnu";
+      break;
+    case BCC_ARCH_S390X:
+      ret = "s390x-ibm-linux-gnu";
+      break;
+    case BCC_ARCH_ARM64:
+      ret = "aarch64-unknown-linux-gnu";
+      break;
+    case BCC_ARCH_MIPS:
+      ret = "mips64el-unknown-linux-gnuabi64";
+      break;
+    case BCC_ARCH_RISCV64:
+      ret = "riscv64-unknown-linux-gnu";
+      break;
+    case BCC_ARCH_LOONGARCH:
+      ret = "loongarch64-unknown-linux-gnu";
+      break;
+    default:
+      ret = "x86_64-unknown-linux-gnu";
+  }
+
+  return (void *)ret;
+}
+
+string get_clang_target(void) {
+  const char *ret;
+
+  ret = (const char *)run_arch_callback(get_clang_target_cb);
+  return string(ret);
+}
+
+int ClangLoader::do_compile(
+    unique_ptr<llvm::Module> *mod, TableStorage &ts, bool in_memory,
+    const vector<const char *> &flags_cstr_in,
+    const vector<const char *> &flags_cstr_rem, const std::string &main_path,
+    const unique_ptr<llvm::MemoryBuffer> &main_buf, const std::string &id,
+    ProgFuncInfo &prog_func_info, std::string &mod_src, bool use_internal_bpfh,
+    const std::string &maps_ns, fake_fd_map_def &fake_fd_map,
+    std::map<std::string, std::vector<std::string>> &perf_events) {
+  using namespace clang;
+
+  vector<const char *> flags_cstr = flags_cstr_in;
+  if (use_internal_bpfh) {
+    flags_cstr.push_back("-include");
+    flags_cstr.push_back("/virtual/include/bcc/bpf.h");
+  }
+  flags_cstr.push_back("-include");
+  flags_cstr.push_back("/virtual/include/bcc/bpf_workaround.h");
+  flags_cstr.insert(flags_cstr.end(), flags_cstr_rem.begin(),
+                    flags_cstr_rem.end());
+
+  // set up the error reporting class
+  IntrusiveRefCntPtr<DiagnosticOptions> diag_opts(new DiagnosticOptions());
+  auto diag_client = new TextDiagnosticPrinter(llvm::errs(), &*diag_opts);
+
+  IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
+  DiagnosticsEngine diags(DiagID, &*diag_opts, diag_client);
+
+  // set up the command line argument wrapper
+
+  string target_triple = get_clang_target();
+  driver::Driver drv("", target_triple, diags);
+
+#if LLVM_MAJOR_VERSION >= 4
+  if (target_triple == "x86_64-unknown-linux-gnu" || target_triple == "aarch64-unknown-linux-gnu")
+    flags_cstr.push_back("-fno-jump-tables");
+#endif
+
+  drv.setTitle("bcc-clang-driver");
+  drv.setCheckInputsExist(false);
+
+  unique_ptr<driver::Compilation> compilation(drv.BuildCompilation(flags_cstr));
+  if (!compilation)
+    return -1;
+
+  // expect exactly 1 job, otherwise error
+  const driver::JobList &jobs = compilation->getJobs();
+  if (jobs.size() != 1 || !isa<driver::Command>(*jobs.begin())) {
+    SmallString<256> msg;
+    llvm::raw_svector_ostream os(msg);
+    jobs.Print(os, "; ", true);
+    diags.Report(diag::err_fe_expected_compiler_job) << os.str();
+    return -1;
+  }
+
+  const driver::Command &cmd = cast<driver::Command>(*jobs.begin());
+  if (llvm::StringRef(cmd.getCreator().getName()) != "clang") {
+    diags.Report(diag::err_fe_expected_clang_command);
+    return -1;
+  }
+
+  // Initialize a compiler invocation object from the clang (-cc1) arguments.
+  const llvm::opt::ArgStringList &ccargs = cmd.getArguments();
+
+  if (flags_ & DEBUG_PREPROCESSOR) {
+    llvm::errs() << "clang";
+    for (auto arg : ccargs)
+      llvm::errs() << " " << arg;
+    llvm::errs() << "\n";
+  }
+
+  // pre-compilation pass for generating tracepoint structures
+  CompilerInstance compiler0;
+  CompilerInvocation &invocation0 = compiler0.getInvocation();
+  if (!CreateFromArgs(invocation0, ccargs, diags))
+    return -1;
+
+  add_remapped_includes(invocation0);
+
+  if (in_memory) {
+    add_main_input(invocation0, main_path, &*main_buf);
+  }
+  invocation0.getFrontendOpts().DisableFree = false;
+
+  compiler0.createDiagnostics(new IgnoringDiagConsumer());
+
+  // capture the rewritten c file
+  string out_str;
+  llvm::raw_string_ostream os(out_str);
+  TracepointFrontendAction tpact(os);
+  compiler0.ExecuteAction(tpact); // ignore errors, they will be reported later
+  unique_ptr<llvm::MemoryBuffer> out_buf = llvm::MemoryBuffer::getMemBuffer(out_str);
+
+  // first pass
+  CompilerInstance compiler1;
+  CompilerInvocation &invocation1 = compiler1.getInvocation();
+  if (!CreateFromArgs( invocation1, ccargs, diags))
+    return -1;
+
+  add_remapped_includes(invocation1);
+  add_main_input(invocation1, main_path, &*out_buf);
+  invocation1.getFrontendOpts().DisableFree = false;
+
+  compiler1.createDiagnostics();
+
+  // capture the rewritten c file
+  string out_str1;
+  llvm::raw_string_ostream os1(out_str1);
+  BFrontendAction bact(os1, flags_, ts, id, main_path, prog_func_info, mod_src,
+                       maps_ns, fake_fd_map, perf_events);
+  if (!compiler1.ExecuteAction(bact))
+    return -1;
+  unique_ptr<llvm::MemoryBuffer> out_buf1 = llvm::MemoryBuffer::getMemBuffer(out_str1);
+
+  // second pass, clear input and take rewrite buffer
+  CompilerInstance compiler2;
+  CompilerInvocation &invocation2 = compiler2.getInvocation();
+  if (!CreateFromArgs(invocation2, ccargs, diags))
+    return -1;
+
+  add_remapped_includes(invocation2);
+  add_main_input(invocation2, main_path, &*out_buf1);
+  invocation2.getFrontendOpts().DisableFree = false;
+  invocation2.getCodeGenOpts().DisableFree = false;
+  // Resort to normal inlining. In -O0 the default is OnlyAlwaysInlining and
+  // clang might add noinline attribute even for functions with inline hint.
+  invocation2.getCodeGenOpts().setInlining(CodeGenOptions::NormalInlining);
+  // suppress warnings in the 2nd pass, but bail out on errors (our fault)
+  invocation2.getDiagnosticOpts().IgnoreWarnings = true;
+  compiler2.createDiagnostics();
+
+  EmitLLVMOnlyAction ir_act(&*ctx_);
+  if (!compiler2.ExecuteAction(ir_act))
+    return -1;
+  *mod = ir_act.takeModule();
+
+  return 0;
+}
+}  // namespace ebpf
