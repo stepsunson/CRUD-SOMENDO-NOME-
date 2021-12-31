@@ -52,4 +52,30 @@ class TracepointTypeVisitor :
 
   clang::DiagnosticsEngine &diag_;
   clang::Rewriter &rewriter_;
-  llvm::raw_ostream &o
+  llvm::raw_ostream &out_;
+};
+
+class TracepointTypeConsumer : public clang::ASTConsumer {
+ public:
+  explicit TracepointTypeConsumer(clang::ASTContext &C,
+                                  clang::Rewriter &rewriter);
+  bool HandleTopLevelDecl(clang::DeclGroupRef Group) override;
+ private:
+  TracepointTypeVisitor visitor_;
+};
+
+class TracepointFrontendAction : public clang::ASTFrontendAction {
+ public:
+  TracepointFrontendAction(llvm::raw_ostream &os);
+
+  void EndSourceFileAction() override;
+
+  std::unique_ptr<clang::ASTConsumer>
+      CreateASTConsumer(clang::CompilerInstance &Compiler, llvm::StringRef InFile) override;
+
+ private:
+  llvm::raw_ostream &os_;
+  std::unique_ptr<clang::Rewriter> rewriter_;
+};
+
+}  // namespace visitor
