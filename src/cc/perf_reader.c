@@ -185,3 +185,71 @@ void perf_reader_event_read(struct perf_reader *reader) {
     end = base + (data_tail + e->size) % buffer_size;
     if (end < begin) {
       // perf event wraps around the ring, make a contiguous copy
+      reader->buf = realloc(reader->buf, e->size);
+      size_t len = sentinel - begin;
+      memcpy(reader->buf, begin, len);
+      memcpy((void *)((unsigned long)reader->buf + len), base, e->size - len);
+      ptr = reader->buf;
+    }
+
+    if (e->type == PERF_RECORD_LOST) {
+      /*
+       * struct {
+       *    struct perf_event_header    header;
+       *    u64                id;
+       *    u64                lost;
+       *    struct sample_id        sample_id;
+       * };
+       */
+      uint64_t lost = *(uint64_t *)(ptr + sizeof(*e) + sizeof(uint64_t));
+      if (reader->lost_cb) {
+        reader->lost_cb(reader->cb_cookie, lost);
+      } else {
+        fprintf(stderr, "Possibly lost %" PRIu64 " samples\n", lost);
+      }
+    } else if (e->type == PERF_RECORD_SAMPLE) {
+      parse_sw(reader, ptr, e->size);
+    } else {
+      fprintf(stderr, "%s: unknown sample type %d\n", __FUNCTION__, e->type);
+    }
+
+    write_data_tail(perf_header, perf_header->data_tail + e->size);
+  }
+  reader->rb_use_state = RB_NOT_USED;
+  __sync_synchronize();
+  reader->rb_read_tid = 0;
+}
+
+int perf_reader_poll(int num_readers, struct perf_reader **readers, int timeout) {
+  struct pollfd pfds[num_readers];
+  int i;
+
+  for (i = 0; i <num_readers; ++i) {
+    pfds[i].fd = readers[i]->fd;
+    pfds[i].events = POLLIN;
+  }
+
+  if (poll(pfds, num_readers, timeout) > 0) {
+    for (i = 0; i < num_readers; ++i) {
+      if (pfds[i].revents & POLLIN)
+        perf_reader_event_read(readers[i]);
+    }
+  }
+  return 0;
+}
+
+int perf_reader_consume(int num_readers, struct perf_reader **readers) {
+  int i;
+  for (i = 0; i < num_readers; ++i) {
+    perf_reader_event_read(readers[i]);
+  }
+  return 0;
+}
+
+void perf_reader_set_fd(struct perf_reader *reader, int fd) {
+  reader->fd = fd;
+}
+
+int perf_reader_fd(struct perf_reader *reader) {
+  return reader->fd;
+}
