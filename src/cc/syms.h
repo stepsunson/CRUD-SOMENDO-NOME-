@@ -126,4 +126,69 @@ class ProcSyms : SymbolCache {
   };
 
   class ModulePath {
-    // helper class to get a usable module path in
+    // helper class to get a usable module path independent of the running
+    // process by storing a file descriptor created from openat(2) if possible
+    // if openat fails, falls back to process-dependent path with /proc/.../root
+   private:
+    int fd_;
+    std::string proc_root_path_;
+    std::string path_;
+
+   public:
+    ModulePath(const std::string &ns_path, int root_fd, int pid, bool enter_ns);
+    const char *alt_path() { return proc_root_path_.c_str(); }
+    const char *path() {
+      if (path_ == proc_root_path_ || access(proc_root_path_.c_str(), F_OK) < 0)
+        // cannot stat /proc/.../root/<path>, pid might not exist anymore; use /proc/self/fd/...
+        return path_.c_str();
+      return proc_root_path_.c_str();
+    }
+    ~ModulePath() {
+      if (fd_ > 0)
+        close(fd_);
+    }
+  };
+
+  struct Module {
+    struct Range {
+      uint64_t start;
+      uint64_t end;
+      uint64_t file_offset;
+      Range(uint64_t s, uint64_t e, uint64_t f)
+          : start(s), end(e), file_offset(f) {}
+    };
+
+    Module(const char *name, std::shared_ptr<ModulePath> path,
+           struct bcc_symbol_option *option);
+
+    std::string name_;
+    std::shared_ptr<ModulePath> path_;
+    std::vector<Range> ranges_;
+    bool loaded_;
+    bcc_symbol_option *symbol_option_;
+    ModuleType type_;
+
+    // The file offset within the ELF of the SO's first text section.
+    uint64_t elf_so_offset_;
+    uint64_t elf_so_addr_;
+
+    std::unordered_set<std::string> symnames_;
+    std::vector<Symbol> syms_;
+
+    void load_sym_table();
+
+    bool contains(uint64_t addr, uint64_t &offset) const;
+    uint64_t start() const { return ranges_.begin()->start; }
+
+    bool find_addr(uint64_t offset, struct bcc_symbol *sym);
+    bool find_name(const char *symname, uint64_t *addr);
+
+    static int _add_symbol(const char *symname, uint64_t start, uint64_t size,
+                           void *p);
+    static int _add_symbol_lazy(size_t section_idx, size_t str_table_idx,
+                                size_t str_len, uint64_t start, uint64_t size,
+                                int debugfile, void *p);
+  };
+
+  int pid_;
+  std::vector<Module> modules_;
