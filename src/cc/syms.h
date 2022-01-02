@@ -50,3 +50,80 @@ class ProcStat {
   int get_root_fd() { return root_fd_; }
   bool is_stale();
   void reset() { getinode_(inode_); }
+};
+
+class SymbolCache {
+public:
+  virtual ~SymbolCache() = default;
+
+  virtual void refresh() = 0;
+  virtual bool resolve_addr(uint64_t addr, struct bcc_symbol *sym, bool demangle = true) = 0;
+  virtual bool resolve_name(const char *module, const char *name,
+                            uint64_t *addr) = 0;
+};
+
+class KSyms : SymbolCache {
+  struct Symbol {
+    Symbol(const char *name, const char *mod, uint64_t addr) : name(name), mod(mod), addr(addr) {}
+    std::string name;
+    std::string mod;
+    uint64_t addr;
+
+    bool operator<(const Symbol &rhs) const { return addr < rhs.addr; }
+  };
+
+  std::vector<Symbol> syms_;
+  std::unordered_map<std::string, uint64_t> symnames_;
+  static void _add_symbol(const char *, const char *, uint64_t, void *);
+
+public:
+  virtual bool resolve_addr(uint64_t addr, struct bcc_symbol *sym, bool demangle = true) override;
+  virtual bool resolve_name(const char *unused, const char *name,
+                            uint64_t *addr) override;
+  virtual void refresh() override;
+};
+
+class ProcSyms : SymbolCache {
+  struct NameIdx {
+    size_t section_idx;
+    size_t str_table_idx;
+    size_t str_len;
+    bool debugfile;
+  };
+
+  struct Symbol {
+    Symbol(const std::string *name, uint64_t start, uint64_t size)
+        : is_name_resolved(true), start(start), size(size) {
+      data.name = name;
+    }
+    Symbol(size_t section_idx, size_t str_table_idx, size_t str_len, uint64_t start,
+           uint64_t size, bool debugfile)
+        : is_name_resolved(false), start(start), size(size) {
+      data.name_idx.section_idx = section_idx;
+      data.name_idx.str_table_idx = str_table_idx;
+      data.name_idx.str_len = str_len;
+      data.name_idx.debugfile = debugfile;
+    }
+    bool is_name_resolved;
+    union {
+      struct NameIdx name_idx;
+      const std::string *name{nullptr};
+    } data;
+    uint64_t start;
+    uint64_t size;
+
+    bool operator<(const struct Symbol& rhs) const {
+      return start < rhs.start;
+    }
+  };
+
+  enum class ModuleType {
+    UNKNOWN,
+    EXEC,
+    SO,
+    PERF_MAP,
+    VDSO
+  };
+
+  class ModulePath {
+    // helper class to get a usable module path in
