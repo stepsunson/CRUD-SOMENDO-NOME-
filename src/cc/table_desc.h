@@ -78,4 +78,45 @@ class TableDesc {
         key_size(key_size),
         leaf_size(leaf_size),
         max_entries(max_entries),
-        flag
+        flags(flags),
+        is_shared(false),
+        is_extern(false) {}
+  TableDesc(TableDesc &&that) = default;
+
+  TableDesc &operator=(TableDesc &&that) = default;
+  TableDesc &operator=(const TableDesc &that) = delete;
+
+  TableDesc dup() const { return TableDesc(*this); }
+
+  std::string name;
+  FileDesc fd;
+  int fake_fd;
+  int type;
+  size_t key_size;  // sizes are in bytes
+  size_t leaf_size;
+  size_t max_entries;
+  int flags;
+  std::string key_desc;
+  std::string leaf_desc;
+  sscanf_fn key_sscanf;
+  sscanf_fn leaf_sscanf;
+  snprintf_fn key_snprintf;
+  snprintf_fn leaf_snprintf;
+  bool is_shared;
+  bool is_extern;
+};
+
+/// MapTypesVisitor gets notified of new bpf tables, and has a chance to parse
+/// the key and leaf types for their own usage. Subclass this abstract class and
+/// implement the Visit method, then add an instance of this class to the
+/// StorageTable instance to be notified of each new key/leaf type.
+class MapTypesVisitor {
+ public:
+  virtual ~MapTypesVisitor() {}
+  virtual void Visit(TableDesc &desc, clang::ASTContext &C, clang::QualType key_type,
+                     clang::QualType leaf_type) = 0;
+};
+
+std::unique_ptr<MapTypesVisitor> createJsonMapTypesVisitor();
+
+}  // namespace ebpf
