@@ -30,4 +30,61 @@ const string Path::DELIM = "/";
 
 TableStorage::TableStorage() {}
 TableStorage::~TableStorage() {}
-void TableStorage::Init
+void TableStorage::Init(unique_ptr<TableStorageImpl> impl) { impl_ = move(impl); }
+bool TableStorage::Find(const Path &path, TableStorage::iterator &result) const {
+  return impl_->Find(path.to_string(), result);
+}
+bool TableStorage::Insert(const Path &path, TableDesc &&desc) {
+  return impl_->Insert(path.to_string(), move(desc));
+}
+bool TableStorage::Delete(const Path &path) { return impl_->Delete(path.to_string()); }
+size_t TableStorage::DeletePrefix(const Path &path) {
+  size_t i = 0;
+  auto it = lower_bound(path);
+  auto upper = upper_bound(path);
+  while (it != upper) {
+    it = impl_->erase(*it.impl_);
+    ++i;
+  }
+  return i;
+}
+
+void TableStorage::AddMapTypesVisitor(unique_ptr<MapTypesVisitor> visitor) {
+  visitors_.push_back(move(visitor));
+}
+void TableStorage::VisitMapType(TableDesc &desc, clang::ASTContext &C, clang::QualType key_type,
+                                clang::QualType leaf_type) {
+  for (auto &v : visitors_)
+    v->Visit(desc, C, key_type, leaf_type);
+}
+
+TableStorage::iterator TableStorage::begin() { return impl_->begin(); }
+TableStorage::iterator TableStorage::end() { return impl_->end(); }
+TableStorage::iterator TableStorage::lower_bound(const Path &p) {
+  return impl_->lower_bound(p.to_string());
+}
+TableStorage::iterator TableStorage::upper_bound(const Path &p) {
+  return impl_->upper_bound(p.to_string() + "\x7f");
+}
+
+/// TableStorage::iterator implementation
+TableStorage::iterator::iterator() {}
+TableStorage::iterator::iterator(unique_ptr<TableStorageIteratorImpl> impl) : impl_(move(impl)) {}
+TableStorage::iterator::iterator(const iterator &that) : impl_(that.impl_->clone()) {}
+TableStorage::iterator::~iterator() {}
+TableStorage::iterator::iterator(iterator &&that) { *this = move(that); }
+TableStorage::iterator &TableStorage::iterator::operator=(iterator &&that) {
+  impl_ = move(that.impl_);
+  return *this;
+}
+
+TableStorage::iterator &TableStorage::iterator::operator++() {
+  ++*impl_;
+  return *this;
+}
+TableStorage::iterator TableStorage::iterator::operator++(int) {
+  iterator tmp(*this);
+  operator++();
+  return tmp;
+}
+bool TableStorage::iterator::operator==(c
