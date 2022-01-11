@@ -102,4 +102,76 @@ local function _find_file(script_root, filename)
     end
   end
 
-  assert(n
+  assert(nil, "failed to find file "..filename.." (root="..script_root..")")
+end
+
+function Bpf:initialize(args)
+  self.funcs = {}
+  self.tables = {}
+
+  if args.usdt and args.text then
+    args.text = args.usdt:_get_text() .. args.text
+  end
+
+  local cflags = table.join(Bpf.DEFAULT_CFLAGS, args.cflags)
+  local cflags_ary = ffi.new("const char *[?]", #cflags, cflags)
+
+  local llvm_debug = rawget(_G, "LIBBCC_LLVM_DEBUG") or args.debug or 0
+  assert(type(llvm_debug) == "number")
+
+  if args.text then
+    log.info("\n%s\n", args.text)
+    self.module = libbcc.bpf_module_create_c_from_string(args.text, llvm_debug, cflags_ary, #cflags, true)
+  elseif args.src_file then
+    local src = _find_file(Bpf.SCRIPT_ROOT, args.src_file)
+
+    self.module = libbcc.bpf_module_create_c(src, llvm_debug, cflags_ary, #cflags, true)
+  end
+
+  assert(self.module ~= nil, "failed to compile BPF module")
+
+  if args.usdt then
+    args.usdt:_attach_uprobes(self)
+  end
+end
+
+function Bpf:load_funcs(prog_type)
+  prog_type = prog_type or "BPF_PROG_TYPE_KPROBE"
+
+  local result = {}
+  local fn_count = tonumber(libbcc.bpf_num_functions(self.module))
+
+  for i = 0,fn_count-1 do
+    local name = ffi.string(libbcc.bpf_function_name(self.module, i))
+    table.insert(result, self:load_func(name, prog_type))
+  end
+
+  return result
+end
+
+function Bpf:load_func(fn_name, prog_type)
+  if self.funcs[fn_name] ~= nil then
+    return self.funcs[fn_name]
+  end
+
+  assert(libbcc.bpf_function_start(self.module, fn_name) ~= nil,
+    "unknown program: "..fn_name)
+
+  local fd = libbcc.bcc_prog_load(prog_type,
+    fn_name,
+    libbcc.bpf_function_start(self.module, fn_name),
+    libbcc.bpf_function_size(self.module, fn_name),
+    libbcc.bpf_module_license(self.module),
+    libbcc.bpf_module_kern_version(self.module),
+    0, nil, 0)
+
+  assert(fd >= 0, "failed to load BPF program "..fn_name)
+  log.info("loaded %s (%d)", fn_name, fd)
+
+  local fn = {bpf=self, name=fn_name, fd=fd}
+  self.funcs[fn_name] = fn
+  return fn
+end
+
+function Bpf:dump_func(fn_name)
+  local sta
