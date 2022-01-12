@@ -174,4 +174,76 @@ function Bpf:load_func(fn_name, prog_type)
 end
 
 function Bpf:dump_func(fn_name)
-  local sta
+  local start = libbcc.bpf_function_start(self.module, fn_name)
+  assert(start ~= nil, "unknown program")
+
+  local len = libbcc.bpf_function_size(self.module, fn_name)
+  return ffi.string(start, tonumber(len))
+end
+
+function Bpf:attach_uprobe(args)
+  Bpf.check_probe_quota(1)
+
+  local path, addr = Sym.check_path_symbol(args.name, args.sym, args.addr, args.pid, args.sym_off)
+  local fn = self:load_func(args.fn_name, 'BPF_PROG_TYPE_KPROBE')
+  local ptype = args.retprobe and "r" or "p"
+  local ev_name = string.format("%s_%s_0x%p", ptype, path:gsub("[^%a%d]", "_"), addr)
+  local retprobe = args.retprobe and 1 or 0
+
+  local res = libbcc.bpf_attach_uprobe(fn.fd, retprobe, ev_name, path, addr,
+    args.pid or -1)
+
+  assert(res >= 0, "failed to attach BPF to uprobe")
+  self:probe_store("uprobe", ev_name, res)
+  return self
+end
+
+function Bpf:attach_kprobe(args)
+  -- TODO: allow the caller to glob multiple functions together
+  Bpf.check_probe_quota(1)
+
+  local fn = self:load_func(args.fn_name, 'BPF_PROG_TYPE_KPROBE')
+  local event = args.event or ""
+  local ptype = args.retprobe and "r" or "p"
+  local ev_name = string.format("%s_%s", ptype, event:gsub("[%+%.]", "_"))
+  local offset = args.fn_offset or 0
+  local retprobe = args.retprobe and 1 or 0
+  local maxactive = args.maxactive or 0
+
+  local res = libbcc.bpf_attach_kprobe(fn.fd, retprobe, ev_name, event, offset, maxactive)
+
+  assert(res >= 0, "failed to attach BPF to kprobe")
+  self:probe_store("kprobe", ev_name, res)
+  return self
+end
+
+function Bpf:pipe()
+  if Bpf.tracer_pipe == nil then
+    Bpf.tracer_pipe = TracerPipe:new()
+  end
+  return Bpf.tracer_pipe
+end
+
+function Bpf:get_table(name, key_type, leaf_type)
+  if self.tables[name] == nil then
+    self.tables[name] = Table(self, name, key_type, leaf_type)
+  end
+  return self.tables[name]
+end
+
+function Bpf:probe_store(t, id, fd)
+  if t == "kprobe" then
+    Bpf.open_kprobes[id] = fd
+  elseif t == "uprobe" then
+    Bpf.open_uprobes[id] = fd
+  else
+    error("unknown probe type '%s'" % t)
+  end
+
+  log.info("%s -> %s", id, fd)
+end
+
+function Bpf:perf_buffer_store(id, reader)
+    Bpf.perf_buffers[id] = reader
+
+    log.info("%s -> %s"
