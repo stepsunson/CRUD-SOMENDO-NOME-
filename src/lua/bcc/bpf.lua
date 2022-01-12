@@ -246,4 +246,53 @@ end
 function Bpf:perf_buffer_store(id, reader)
     Bpf.perf_buffers[id] = reader
 
-    log.info("%s -> %s"
+    log.info("%s -> %s", id, reader)
+end
+
+function Bpf:probe_lookup(t, id)
+  if t == "kprobe" then
+    return Bpf.open_kprobes[id]
+  elseif t == "uprobe" then
+    return Bpf.open_uprobes[id]
+  else
+    return nil
+  end
+end
+
+function Bpf:_perf_buffer_array()
+  local perf_buffer_count = table.count(Bpf.perf_buffers)
+  local readers = ffi.new("struct perf_reader*[?]", perf_buffer_count)
+  local n = 0
+
+  for _, r in pairs(Bpf.perf_buffers) do
+    readers[n] = r
+    n = n + 1
+  end
+
+  assert(n == perf_buffer_count)
+  return readers, n
+end
+
+function Bpf:perf_buffer_poll_loop()
+  local perf_buffers, perf_buffer_count = self:_perf_buffer_array()
+  return pcall(function()
+    while true do
+      libbcc.perf_reader_poll(perf_buffer_count, perf_buffers, -1)
+    end
+  end)
+end
+
+function Bpf:kprobe_poll_loop()
+  return self:perf_buffer_poll_loop()
+end
+
+function Bpf:perf_buffer_poll(timeout)
+  local perf_buffers, perf_buffer_count = self:_perf_buffer_array()
+  libbcc.perf_reader_poll(perf_buffer_count, perf_buffers, timeout or -1)
+end
+
+function Bpf:kprobe_poll(timeout)
+  self:perf_buffer_poll(timeout)
+end
+
+return Bpf
