@@ -60,4 +60,43 @@ int bpf_close_perf_event_fd(int fd);
 ffi.cdef[[
 void * bpf_module_create_c(const char *filename, unsigned flags, const char *cflags[], int ncflags, bool allow_rlimit);
 void * bpf_module_create_c_from_string(const char *text, unsigned flags, const char *cflags[], int ncflags, bool allow_rlimit);
-voi
+void bpf_module_destroy(void *program);
+char * bpf_module_license(void *program);
+unsigned bpf_module_kern_version(void *program);
+size_t bpf_num_functions(void *program);
+const char * bpf_function_name(void *program, size_t id);
+void * bpf_function_start_id(void *program, size_t id);
+void * bpf_function_start(void *program, const char *name);
+size_t bpf_function_size_id(void *program, size_t id);
+size_t bpf_function_size(void *program, const char *name);
+size_t bpf_num_tables(void *program);
+size_t bpf_table_id(void *program, const char *table_name);
+int bpf_table_fd(void *program, const char *table_name);
+int bpf_table_fd_id(void *program, size_t id);
+int bpf_table_type(void *program, const char *table_name);
+int bpf_table_type_id(void *program, size_t id);
+size_t bpf_table_max_entries(void *program, const char *table_name);
+size_t bpf_table_max_entries_id(void *program, size_t id);
+int bpf_table_flags(void *program, const char *table_name);
+int bpf_table_flags_id(void *program, size_t id);
+const char * bpf_table_name(void *program, size_t id);
+const char * bpf_table_key_desc(void *program, const char *table_name);
+const char * bpf_table_key_desc_id(void *program, size_t id);
+const char * bpf_table_leaf_desc(void *program, const char *table_name);
+const char * bpf_table_leaf_desc_id(void *program, size_t id);
+size_t bpf_table_key_size(void *program, const char *table_name);
+size_t bpf_table_key_size_id(void *program, size_t id);
+size_t bpf_table_leaf_size(void *program, const char *table_name);
+size_t bpf_table_leaf_size_id(void *program, size_t id);
+int bpf_table_key_snprintf(void *program, size_t id, char *buf, size_t buflen, const void *key);
+int bpf_table_leaf_snprintf(void *program, size_t id, char *buf, size_t buflen, const void *leaf);
+int bpf_table_key_sscanf(void *program, size_t id, const char *buf, void *key);
+int bpf_table_leaf_sscanf(void *program, size_t id, const char *buf, void *leaf);
+]]
+
+ffi.cdef[[
+struct perf_reader;
+
+void perf_reader_free(void *ptr);
+int perf_reader_mmap(struct perf_reader *reader);
+int perf_reader_poll(int nu
