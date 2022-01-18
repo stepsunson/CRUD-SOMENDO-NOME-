@@ -99,4 +99,53 @@ struct perf_reader;
 
 void perf_reader_free(void *ptr);
 int perf_reader_mmap(struct perf_reader *reader);
-int perf_reader_poll(int nu
+int perf_reader_poll(int num_readers, struct perf_reader **readers, int timeout);
+int perf_reader_fd(struct perf_reader *reader);
+void perf_reader_set_fd(struct perf_reader *reader, int fd);
+]]
+
+ffi.cdef[[
+struct bcc_symbol {
+	const char *name;
+	const char *demangle_name;
+	const char *module;
+	uint64_t offset;
+};
+
+struct bcc_symbol_option {
+  int use_debug_file;
+  int check_debug_file_crc;
+  int lazy_symbolize;
+  uint32_t use_symbol_type;
+};
+
+int bcc_resolve_symname(const char *module, const char *symname, const uint64_t addr,
+                        int pid, struct bcc_symbol_option *option,
+                        struct bcc_symbol *sym);
+void bcc_procutils_free(const char *ptr);
+void *bcc_symcache_new(int pid, struct bcc_symbol_option *option);
+void bcc_symbol_free_demangle_name(struct bcc_symbol *sym);
+int bcc_symcache_resolve(void *symcache, uint64_t addr, struct bcc_symbol *sym);
+void bcc_symcache_refresh(void *resolver);
+]]
+
+ffi.cdef[[
+void *bcc_usdt_new_frompid(int pid);
+void *bcc_usdt_new_frompath(const char *path);
+void bcc_usdt_close(void *usdt);
+
+int bcc_usdt_enable_probe(void *, const char *, const char *);
+char *bcc_usdt_genargs(void *);
+
+typedef void (*bcc_usdt_uprobe_cb)(const char *, const char *, uint64_t, int);
+void bcc_usdt_foreach_uprobe(void *usdt, bcc_usdt_uprobe_cb callback);
+]]
+
+if rawget(_G, "BCC_STANDALONE") then
+  return ffi.C
+else
+  return ffi.load(
+    os.getenv("LIBBCC_SO_PATH") or
+    rawget(_G, "LIBBCC_SO_PATH") or
+    "bcc")
+end
