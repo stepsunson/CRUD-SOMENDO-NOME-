@@ -15,4 +15,41 @@ limitations under the License.
 ]]
 local ffi = require("ffi")
 local libbcc = require("bcc.libbcc")
-local 
+local SYM = ffi.typeof("struct bcc_symbol[1]")
+
+local function create_cache(pid)
+  return {
+    _CACHE = libbcc.bcc_symcache_new(pid or -1, nil),
+    resolve = function(self, addr)
+      local sym = SYM()
+      if libbcc.bcc_symcache_resolve(self._CACHE, addr, sym) < 0 then
+        return "[unknown]", 0x0
+      end
+      local name_res = ffi.string(sym[0].demangle_name)
+      libbcc.bcc_symbol_free_demangle_name(sym);
+      return name_res, sym[0].offset
+    end
+  }
+end
+
+local function check_path_symbol(module, symname, addr, pid, sym_off)
+  local sym = SYM()
+  local module_path
+  local new_addr
+  if libbcc.bcc_resolve_symname(module, symname, addr or 0x0, pid or 0, nil, sym) < 0 then
+    if sym[0].module == nil then
+      error("could not find library '%s' in the library path" % module)
+    else
+      module_path = ffi.string(sym[0].module)
+      libbcc.bcc_procutils_free(sym[0].module)
+      error("failed to resolve symbol '%s' in '%s'" % {
+        symname, module_path})
+    end
+  end
+  new_addr = sym[0].offset + (sym_off or 0)
+  module_path = ffi.string(sym[0].module)
+  libbcc.bcc_procutils_free(sym[0].module)
+  return module_path, new_addr
+end
+
+return { create_cache=create_cache, check_path_symbol=check_path_symbol }
