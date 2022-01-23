@@ -94,4 +94,89 @@ function BaseTable:get(key)
 end
 
 function BaseTable:set(key, value)
-  local pkey = self.c_key(ke
+  local pkey = self.c_key(key)
+  local pvalue = self.c_leaf(value)
+  assert(libbcc.bpf_update_elem(self.map_fd, pkey, pvalue, 0) == 0, "could not update table")
+end
+
+function BaseTable:_empty_key()
+  local pkey = self.c_key()
+  local pvalue = self.c_leaf()
+
+  for _, v in ipairs({0x0, 0x55, 0xff}) do
+    ffi.fill(pkey, ffi.sizeof(pkey[0]), v)
+    if libbcc.bpf_lookup_elem(self.map_fd, pkey, pvalue) < 0 then
+      return pkey
+    end
+  end
+
+  error("failed to find an empty key for table iteration")
+end
+
+function BaseTable:keys()
+  local pkey = self:_empty_key()
+
+  return function()
+    local pkey_next = self.c_key()
+
+    if libbcc.bpf_get_next_key(self.map_fd, pkey, pkey_next) < 0 then
+      return nil
+    end
+
+    pkey = pkey_next
+    return pkey[0]
+  end
+end
+
+function BaseTable:items()
+  local pkey = self:_empty_key()
+
+  return function()
+    local pkey_next = self.c_key()
+    local pvalue = self.c_leaf()
+
+    if libbcc.bpf_get_next_key(self.map_fd, pkey, pkey_next) < 0 then
+      return nil
+    end
+
+    pkey = pkey_next
+    assert(libbcc.bpf_lookup_elem(self.map_fd, pkey, pvalue) == 0)
+    return pkey[0], pvalue[0]
+  end
+end
+
+
+
+local HashTable = class("HashTable", BaseTable)
+
+function HashTable:initialize(bpf, map_id, map_fd, key_type, leaf_type)
+  BaseTable.initialize(self, BaseTable.BPF_MAP_TYPE_HASH, bpf, map_id, map_fd, key_type, leaf_type)
+end
+
+function HashTable:delete(key)
+  local pkey = self.c_key(key)
+  return libbcc.bpf_delete_elem(self.map_fd, pkey) == 0
+end
+
+function HashTable:size()
+  local n = 0
+  self:each(function() n = n + 1 end)
+  return n
+end
+
+
+
+local BaseArray = class("BaseArray", BaseTable)
+
+function BaseArray:initialize(t_type, bpf, map_id, map_fd, key_type, leaf_type)
+  BaseTable.initialize(self, t_type, bpf, map_id, map_fd, key_type, leaf_type)
+  self.max_entries = tonumber(libbcc.bpf_table_max_entries_id(self.bpf.module, self.map_id))
+end
+
+function BaseArray:_normalize_key(key)
+  assert(type(key) == "number", "invalid key (expected a number")
+  if key < 0 then
+    key = self.max_entries + key
+  end
+  assert(key < self.max_entries, string.format("out of range (%d >= %d)", key, self.max_entries))
+  retu
