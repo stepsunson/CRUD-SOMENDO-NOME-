@@ -179,4 +179,92 @@ function BaseArray:_normalize_key(key)
     key = self.max_entries + key
   end
   assert(key < self.max_entries, string.format("out of range (%d >= %d)", key, self.max_entries))
-  retu
+  return key
+end
+
+function BaseArray:get(key)
+  return BaseTable.get(self, self:_normalize_key(key))
+end
+
+function BaseArray:set(key, value)
+  return BaseTable.set(self, self:_normalize_key(key), value)
+end
+
+function BaseArray:delete(key)
+  assert(nil, "unsupported")
+end
+
+function BaseArray:items(with_index)
+  local pkey = self.c_key()
+  local max = self.max_entries
+  local n = 0
+
+  -- TODO
+  return function()
+    local pvalue = self.c_leaf()
+
+    if n == max then
+      return nil
+    end
+
+    pkey[0] = n
+    n = n + 1
+
+    if libbcc.bpf_lookup_elem(self.map_fd, pkey, pvalue) ~= 0 then
+      return nil
+    end
+
+    if with_index then
+      return n, pvalue[0] -- return 1-based index
+    else
+      return pvalue[0]
+    end
+  end
+end
+
+
+
+local Array = class("Array", BaseArray)
+
+function Array:initialize(bpf, map_id, map_fd, key_type, leaf_type)
+  BaseArray.initialize(self, BaseTable.BPF_MAP_TYPE_ARRAY, bpf, map_id, map_fd, key_type, leaf_type)
+end
+
+
+
+local PerfEventArray = class("PerfEventArray", BaseArray)
+
+function PerfEventArray:initialize(bpf, map_id, map_fd, key_type, leaf_type)
+  BaseArray.initialize(self, BaseTable.BPF_MAP_TYPE_PERF_EVENT_ARRAY, bpf, map_id, map_fd, key_type, leaf_type)
+  self._callbacks = {}
+end
+
+local function _perf_id(id, cpu)
+  return string.format("bcc:perf_event_array:%d:%d", tonumber(id), cpu or 0)
+end
+
+function PerfEventArray:_open_perf_buffer(cpu, callback, ctype, page_cnt, lost_cb)
+  local _cb = ffi.cast("perf_reader_raw_cb",
+    function (cookie, data, size)
+      callback(cpu, ctype(data)[0])
+    end)
+
+  local _lost_cb = nil
+  if lost_cb then
+    _lost_cb = ffi.cast("perf_reader_lost_cb",
+      function (cookie, lost)
+        lost_cb(cookie, lost)
+      end)
+  end
+
+  -- default to 8 pages per buffer
+  local reader = libbcc.bpf_open_perf_buffer(_cb, _lost_cb, nil, -1, cpu, page_cnt or 8)
+  assert(reader, "failed to open perf buffer")
+
+  local fd = libbcc.perf_reader_fd(reader)
+  self:set(cpu, fd)
+  self.bpf:perf_buffer_store(_perf_id(self.map_id, cpu), reader)
+  self._callbacks[cpu] = _cb
+end
+
+function PerfEventArray:op
