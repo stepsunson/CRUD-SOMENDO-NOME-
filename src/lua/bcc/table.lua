@@ -267,4 +267,78 @@ function PerfEventArray:_open_perf_buffer(cpu, callback, ctype, page_cnt, lost_c
   self._callbacks[cpu] = _cb
 end
 
-function PerfEventArray:op
+function PerfEventArray:open_perf_buffer(callback, data_type, data_params, page_cnt, lost_cb)
+  assert(data_type, "a data type is needed for callback conversion")
+  local ctype = ffi.typeof(data_type.."*", unpack(data_params or {}))
+  for i = 0, Posix.cpu_count() - 1 do
+    self:_open_perf_buffer(i, callback, ctype, page_cnt, lost_cb)
+  end
+end
+
+
+local StackTrace = class("StackTrace", BaseTable)
+
+StackTrace.static.MAX_STACK = 127
+
+function StackTrace:initialize(bpf, map_id, map_fd, key_type, leaf_type)
+  BaseTable.initialize(self, BaseTable.BPF_MAP_TYPE_STACK_TRACE, bpf, map_id, map_fd, key_type, leaf_type)
+  self._stackp = self.c_leaf() -- FIXME: not threadsafe
+end
+
+function StackTrace:walk(id)
+  local pkey = self.c_key(id)
+  local pstack = self._stackp
+  local i = 0
+
+  if libbcc.bpf_lookup_elem(self.map_fd, pkey, pstack) < 0 then
+    return nil
+  end
+
+  return function()
+    if i >= StackTrace.MAX_STACK then
+      return nil
+    end
+
+    local addr = pstack[0].ip[i]
+    if addr == 0 then
+      return nil
+    end
+
+    i = i + 1
+    return addr
+  end
+end
+
+function StackTrace:get(id, resolver)
+  local stack = {}
+  for addr in self:walk(id) do
+    table.insert(stack, resolver and resolver(addr) or addr)
+  end
+  return stack
+end
+
+local function _decode_table_type(desc)
+  local json = require("bcc.vendor.json")
+  local json_desc = ffi.string(desc)
+
+  local function _dec(t)
+    if type(t) == "string" then
+      return t
+    end
+
+    local fields = {}
+    local struct = t[3] or "struct"
+
+    for _, value in ipairs(t[2]) do
+      local f = nil
+
+      if #value == 2 then
+        f = string.format("%s %s;", _dec(value[2]), value[1])
+      elseif #value == 3 then
+        if type(value[3]) == "table" then
+          f = string.format("%s %s[%d];", _dec(value[2]), value[1], value[3][1])
+        elseif type(value[3]) == "number" then
+          local t = _dec(value[2])
+          assert(t == "int" or t == "unsigned int",
+            "bitfields can only appear in [unsigned] int types")
+          f = string.format("%s %s:%d;", t, value[1], 
