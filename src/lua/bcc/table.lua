@@ -341,4 +341,62 @@ local function _decode_table_type(desc)
           local t = _dec(value[2])
           assert(t == "int" or t == "unsigned int",
             "bitfields can only appear in [unsigned] int types")
-          f = string.format("%s %s:%d;", t, value[1], 
+          f = string.format("%s %s:%d;", t, value[1], value[3])
+        end
+      end
+
+      assert(f ~= nil, "failed to decode type "..json_desc)
+      table.insert(fields, f)
+    end
+
+    assert(struct == "struct" or struct == "struct_packed" or struct == "union",
+           "unknown complex type: "..struct)
+    if struct == "union" then
+      return string.format("union { %s }", table.concat(fields, " "))
+    else
+      return string.format("struct { %s }", table.concat(fields, " "))
+    end
+  end
+  return _dec(json.parse(json_desc))
+end
+
+local function NewTable(bpf, name, key_type, leaf_type)
+  local id = libbcc.bpf_table_id(bpf.module, name)
+  local fd = libbcc.bpf_table_fd(bpf.module, name)
+
+  if fd < 0 then
+    return nil
+  end
+
+  local t_type = libbcc.bpf_table_type_id(bpf.module, id)
+  local table = nil
+
+  if t_type == BaseTable.BPF_MAP_TYPE_HASH then
+    table = HashTable
+  elseif t_type == BaseTable.BPF_MAP_TYPE_ARRAY then
+    table = Array
+  elseif t_type == BaseTable.BPF_MAP_TYPE_PERF_EVENT_ARRAY then
+    table = PerfEventArray
+  elseif t_type == BaseTable.BPF_MAP_TYPE_STACK_TRACE then
+    table = StackTrace
+  end
+
+  assert(table, "unsupported table type %d" % t_type)
+
+  if key_type == nil then
+    local desc = libbcc.bpf_table_key_desc(bpf.module, name)
+    assert(desc, "Failed to load BPF table description for "..name)
+    key_type = _decode_table_type(desc)
+  end
+
+  if leaf_type == nil then
+    local desc = libbcc.bpf_table_leaf_desc(bpf.module, name)
+    assert(desc, "Failed to load BPF table description for "..name)
+    leaf_type = _decode_table_type(desc)
+  end
+
+  log.info("key = %s value = %s", key_type, leaf_type)
+  return table:new(bpf, id, fd, key_type, leaf_type)
+end
+
+return NewTable
