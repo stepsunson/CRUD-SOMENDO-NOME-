@@ -33,4 +33,44 @@ function Usdt:initialize(args)
     self.context = libbcc.bcc_usdt_new_frompid(args.pid)
   elseif args.path then
     self.path = args.path
-    self.context = libbcc
+    self.context = libbcc.bcc_usdt_new_frompath(args.path)
+  end
+
+  assert(self.context ~= nil, "failed to create USDT context")
+  table.insert(Usdt.open_contexts, self)
+end
+
+function Usdt:enable_probe(args)
+  assert(args.probe and args.fn_name)
+  assert(libbcc.bcc_usdt_enable_probe(
+    self.context, args.probe, args.fn_name) == 0)
+end
+
+function Usdt:_cleanup()
+  libbcc.bcc_usdt_close(self.context)
+  self.context = nil
+end
+
+function Usdt:_get_text()
+  local argc = libbcc.bcc_usdt_genargs(self.context)
+  assert(argc ~= nil)
+  return ffi.string(argc)
+end
+
+function Usdt:_attach_uprobes(bpf)
+  local uprobes = {}
+  local cb = ffi.cast("bcc_usdt_uprobe_cb",
+    function(binpath, fn_name, addr, pid)
+      table.insert(uprobes, {name=ffi.string(binpath),
+        addr=addr, fn_name=ffi.string(fn_name), pid=pid})
+    end)
+
+  libbcc.bcc_usdt_foreach_uprobe(self.context, cb)
+  cb:free()
+
+  for _, args in ipairs(uprobes) do
+    bpf:attach_uprobe(args)
+  end
+end
+
+return Usdt
