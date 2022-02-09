@@ -188,4 +188,94 @@ local option_action = {"action", function(_, value)
 end}
 
 local option_init = {"init", function(self)
-   self._has_init = tru
+   self._has_init = true
+end}
+
+local option_default = {"default", function(self, value)
+   if type(value) ~= "string" then
+      self._init = value
+      self._has_init = true
+      return true
+   end
+end}
+
+local add_help = {"add_help", function(self, value)
+   typecheck("add_help", {"boolean", "string", "table"}, value)
+
+   if self._has_help then
+      table.remove(self._options)
+      self._has_help = false
+   end
+
+   if value then
+      local help = self:flag()
+         :description "Show this help message and exit."
+         :action(function()
+            print(self:get_help())
+            os.exit(0)
+         end)
+
+      if value ~= true then
+         help = help(value)
+      end
+
+      if not help._name then
+         help "-h" "--help"
+      end
+
+      self._has_help = true
+   end
+end}
+
+local Parser = class({
+   _arguments = {},
+   _options = {},
+   _commands = {},
+   _mutexes = {},
+   _require_command = true,
+   _handle_options = true
+}, {
+   args = 3,
+   typechecked("name", "string"),
+   typechecked("description", "string"),
+   typechecked("epilog", "string"),
+   typechecked("usage", "string"),
+   typechecked("help", "string"),
+   typechecked("require_command", "boolean"),
+   typechecked("handle_options", "boolean"),
+   typechecked("action", "function"),
+   typechecked("command_target", "string"),
+   add_help
+})
+
+local Command = class({
+   _aliases = {}
+}, {
+   args = 3,
+   multiname,
+   typechecked("description", "string"),
+   typechecked("epilog", "string"),
+   typechecked("target", "string"),
+   typechecked("usage", "string"),
+   typechecked("help", "string"),
+   typechecked("require_command", "boolean"),
+   typechecked("handle_options", "boolean"),
+   typechecked("action", "function"),
+   typechecked("command_target", "string"),
+   add_help
+}, Parser)
+
+local Argument = class({
+   _minargs = 1,
+   _maxargs = 1,
+   _mincount = 1,
+   _maxcount = 1,
+   _defmode = "unused",
+   _show_default = true
+}, {
+   args = 5,
+   typechecked("name", "string"),
+   typechecked("description", "string"),
+   option_default,
+   typechecked("convert", "function", "table"),
+   boundari
