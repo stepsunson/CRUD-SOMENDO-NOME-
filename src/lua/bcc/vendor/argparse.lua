@@ -98,4 +98,94 @@ local function class(prototype, properties, parent)
    class_metatable.__index = parent
 
    function class_metatable.__call(self, ...)
-      -- Calling a cl
+      -- Calling a class returns its instance.
+      -- Arguments are delegated to the instance.
+      local object = deep_update({}, self.__prototype)
+      setmetatable(object, self)
+      return object(...)
+   end
+
+   return setmetatable(cl, class_metatable)
+end
+
+local function typecheck(name, types, value)
+   for _, type_ in ipairs(types) do
+      if type(value) == type_ then
+         return true
+      end
+   end
+
+   error(("bad property '%s' (%s expected, got %s)"):format(name, table.concat(types, " or "), type(value)))
+end
+
+local function typechecked(name, ...)
+   local types = {...}
+   return {name, function(_, value) typecheck(name, types, value) end}
+end
+
+local multiname = {"name", function(self, value)
+   typecheck("name", {"string"}, value)
+
+   for alias in value:gmatch("%S+") do
+      self._name = self._name or alias
+      table.insert(self._aliases, alias)
+   end
+
+   -- Do not set _name as with other properties.
+   return true
+end}
+
+local function parse_boundaries(str)
+   if tonumber(str) then
+      return tonumber(str), tonumber(str)
+   end
+
+   if str == "*" then
+      return 0, math.huge
+   end
+
+   if str == "+" then
+      return 1, math.huge
+   end
+
+   if str == "?" then
+      return 0, 1
+   end
+
+   if str:match "^%d+%-%d+$" then
+      local min, max = str:match "^(%d+)%-(%d+)$"
+      return tonumber(min), tonumber(max)
+   end
+
+   if str:match "^%d+%+$" then
+      local min = str:match "^(%d+)%+$"
+      return tonumber(min), math.huge
+   end
+end
+
+local function boundaries(name)
+   return {name, function(self, value)
+      typecheck(name, {"number", "string"}, value)
+
+      local min, max = parse_boundaries(value)
+
+      if not min then
+         error(("bad property '%s'"):format(name))
+      end
+
+      self["_min" .. name], self["_max" .. name] = min, max
+   end}
+end
+
+local actions = {}
+
+local option_action = {"action", function(_, value)
+   typecheck("action", {"function", "string"}, value)
+
+   if type(value) == "string" and not actions[value] then
+      error(("unknown action '%s'"):format(value))
+   end
+end}
+
+local option_init = {"init", function(self)
+   self._has_init = tru
