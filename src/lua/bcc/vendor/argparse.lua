@@ -278,4 +278,95 @@ local Argument = class({
    typechecked("description", "string"),
    option_default,
    typechecked("convert", "function", "table"),
-   boundari
+   boundaries("args"),
+   typechecked("target", "string"),
+   typechecked("defmode", "string"),
+   typechecked("show_default", "boolean"),
+   typechecked("argname", "string", "table"),
+   option_action,
+   option_init
+})
+
+local Option = class({
+   _aliases = {},
+   _mincount = 0,
+   _overwrite = true
+}, {
+   args = 6,
+   multiname,
+   typechecked("description", "string"),
+   option_default,
+   typechecked("convert", "function", "table"),
+   boundaries("args"),
+   boundaries("count"),
+   typechecked("target", "string"),
+   typechecked("defmode", "string"),
+   typechecked("show_default", "boolean"),
+   typechecked("overwrite", "boolean"),
+   typechecked("argname", "string", "table"),
+   option_action,
+   option_init
+}, Argument)
+
+function Argument:_get_argument_list()
+   local buf = {}
+   local i = 1
+
+   while i <= math.min(self._minargs, 3) do
+      local argname = self:_get_argname(i)
+
+      if self._default and self._defmode:find "a" then
+         argname = "[" .. argname .. "]"
+      end
+
+      table.insert(buf, argname)
+      i = i+1
+   end
+
+   while i <= math.min(self._maxargs, 3) do
+      table.insert(buf, "[" .. self:_get_argname(i) .. "]")
+      i = i+1
+
+      if self._maxargs == math.huge then
+         break
+      end
+   end
+
+   if i < self._maxargs then
+      table.insert(buf, "...")
+   end
+
+   return buf
+end
+
+function Argument:_get_usage()
+   local usage = table.concat(self:_get_argument_list(), " ")
+
+   if self._default and self._defmode:find "u" then
+      if self._maxargs > 1 or (self._minargs == 1 and not self._defmode:find "a") then
+         usage = "[" .. usage .. "]"
+      end
+   end
+
+   return usage
+end
+
+function actions.store_true(result, target)
+   result[target] = true
+end
+
+function actions.store_false(result, target)
+   result[target] = false
+end
+
+function actions.store(result, target, argument)
+   result[target] = argument
+end
+
+function actions.count(result, target, _, overwrite)
+   if not overwrite then
+      result[target] = result[target] + 1
+   end
+end
+
+function actions.append(result, target, argument, overwr
