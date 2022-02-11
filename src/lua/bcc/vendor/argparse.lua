@@ -369,4 +369,100 @@ function actions.count(result, target, _, overwrite)
    end
 end
 
-function actions.append(result, target, argument, overwr
+function actions.append(result, target, argument, overwrite)
+   result[target] = result[target] or {}
+   table.insert(result[target], argument)
+
+   if overwrite then
+      table.remove(result[target], 1)
+   end
+end
+
+function actions.concat(result, target, arguments, overwrite)
+   if overwrite then
+      error("'concat' action can't handle too many invocations")
+   end
+
+   result[target] = result[target] or {}
+
+   for _, argument in ipairs(arguments) do
+      table.insert(result[target], argument)
+   end
+end
+
+function Argument:_get_action()
+   local action, init
+
+   if self._maxcount == 1 then
+      if self._maxargs == 0 then
+         action, init = "store_true", nil
+      else
+         action, init = "store", nil
+      end
+   else
+      if self._maxargs == 0 then
+         action, init = "count", 0
+      else
+         action, init = "append", {}
+      end
+   end
+
+   if self._action then
+      action = self._action
+   end
+
+   if self._has_init then
+      init = self._init
+   end
+
+   if type(action) == "string" then
+      action = actions[action]
+   end
+
+   return action, init
+end
+
+-- Returns placeholder for `narg`-th argument.
+function Argument:_get_argname(narg)
+   local argname = self._argname or self:_get_default_argname()
+
+   if type(argname) == "table" then
+      return argname[narg]
+   else
+      return argname
+   end
+end
+
+function Argument:_get_default_argname()
+   return "<" .. self._name .. ">"
+end
+
+function Option:_get_default_argname()
+   return "<" .. self:_get_default_target() .. ">"
+end
+
+-- Returns label to be shown in the help message.
+function Argument:_get_label()
+   return self._name
+end
+
+function Option:_get_label()
+   local variants = {}
+   local argument_list = self:_get_argument_list()
+   table.insert(argument_list, 1, nil)
+
+   for _, alias in ipairs(self._aliases) do
+      argument_list[1] = alias
+      table.insert(variants, table.concat(argument_list, " "))
+   end
+
+   return table.concat(variants, ", ")
+end
+
+function Command:_get_label()
+   return table.concat(self._aliases, ", ")
+end
+
+function Argument:_get_description()
+   if self._default and self._show_default then
+      if s
