@@ -566,4 +566,83 @@ end
 function Parser:command(...)
    local command = Command():add_help(true)(...)
    command._parent = self
-   table
+   table.insert(self._commands, command)
+   return command
+end
+
+function Parser:mutex(...)
+   local options = {...}
+
+   for i, option in ipairs(options) do
+      assert(getmetatable(option) == Option, ("bad argument #%d to 'mutex' (Option expected)"):format(i))
+   end
+
+   table.insert(self._mutexes, options)
+   return self
+end
+
+local max_usage_width = 70
+local usage_welcome = "Usage: "
+
+function Parser:get_usage()
+   if self._usage then
+      return self._usage
+   end
+
+   local lines = {usage_welcome .. self:_get_fullname()}
+
+   local function add(s)
+      if #lines[#lines]+1+#s <= max_usage_width then
+         lines[#lines] = lines[#lines] .. " " .. s
+      else
+         lines[#lines+1] = (" "):rep(#usage_welcome) .. s
+      end
+   end
+
+   -- This can definitely be refactored into something cleaner
+   local mutex_options = {}
+   local vararg_mutexes = {}
+
+   -- First, put mutexes which do not contain vararg options and remember those which do
+   for _, mutex in ipairs(self._mutexes) do
+      local buf = {}
+      local is_vararg = false
+
+      for _, option in ipairs(mutex) do
+         if option:_is_vararg() then
+            is_vararg = true
+         end
+
+         table.insert(buf, option:_get_usage())
+         mutex_options[option] = true
+      end
+
+      local repr = "(" .. table.concat(buf, " | ") .. ")"
+
+      if is_vararg then
+         table.insert(vararg_mutexes, repr)
+      else
+         add(repr)
+      end
+   end
+
+   -- Second, put regular options
+   for _, option in ipairs(self._options) do
+      if not mutex_options[option] and not option:_is_vararg() then
+         add(option:_get_usage())
+      end
+   end
+
+   -- Put positional arguments
+   for _, argument in ipairs(self._arguments) do
+      add(argument:_get_usage())
+   end
+
+   -- Put mutexes containing vararg options
+   for _, mutex_repr in ipairs(vararg_mutexes) do
+      add(mutex_repr)
+   end
+
+   for _, option in ipairs(self._options) do
+      if not mutex_options[option] and option:_is_vararg() then
+         add(option:_get_usage()
