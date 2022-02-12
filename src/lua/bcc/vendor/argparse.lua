@@ -465,4 +465,105 @@ end
 
 function Argument:_get_description()
    if self._default and self._show_default then
-      if s
+      if self._description then
+         return ("%s (default: %s)"):format(self._description, self._default)
+      else
+         return ("default: %s"):format(self._default)
+      end
+   else
+      return self._description or ""
+   end
+end
+
+function Command:_get_description()
+   return self._description or ""
+end
+
+function Option:_get_usage()
+   local usage = self:_get_argument_list()
+   table.insert(usage, 1, self._name)
+   usage = table.concat(usage, " ")
+
+   if self._mincount == 0 or self._default then
+      usage = "[" .. usage .. "]"
+   end
+
+   return usage
+end
+
+function Argument:_get_default_target()
+   return self._name
+end
+
+function Option:_get_default_target()
+   local res
+
+   for _, alias in ipairs(self._aliases) do
+      if alias:sub(1, 1) == alias:sub(2, 2) then
+         res = alias:sub(3)
+         break
+      end
+   end
+
+   res = res or self._name:sub(2)
+   return (res:gsub("-", "_"))
+end
+
+function Option:_is_vararg()
+   return self._maxargs ~= self._minargs
+end
+
+function Parser:_get_fullname()
+   local parent = self._parent
+   local buf = {self._name}
+
+   while parent do
+      table.insert(buf, 1, parent._name)
+      parent = parent._parent
+   end
+
+   return table.concat(buf, " ")
+end
+
+function Parser:_update_charset(charset)
+   charset = charset or {}
+
+   for _, command in ipairs(self._commands) do
+      command:_update_charset(charset)
+   end
+
+   for _, option in ipairs(self._options) do
+      for _, alias in ipairs(option._aliases) do
+         charset[alias:sub(1, 1)] = true
+      end
+   end
+
+   return charset
+end
+
+function Parser:argument(...)
+   local argument = Argument(...)
+   table.insert(self._arguments, argument)
+   return argument
+end
+
+function Parser:option(...)
+   local option = Option(...)
+
+   if self._has_help then
+      table.insert(self._options, #self._options, option)
+   else
+      table.insert(self._options, option)
+   end
+
+   return option
+end
+
+function Parser:flag(...)
+   return self:option():args(0)(...)
+end
+
+function Parser:command(...)
+   local command = Command():add_help(true)(...)
+   command._parent = self
+   table
