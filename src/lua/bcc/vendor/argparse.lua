@@ -737,4 +737,91 @@ local function get_tip(context, wrong_name)
 
       if context[possible_name] then
          possible_names[possible_name] = true
-      elseif context_pool[possible_
+      elseif context_pool[possible_name] then
+         for _, name in ipairs(context_pool[possible_name]) do
+            possible_names[name] = true
+         end
+      end
+   end
+
+   local first = next(possible_names)
+
+   if first then
+      if next(possible_names, first) then
+         local possible_names_arr = {}
+
+         for name in pairs(possible_names) do
+            table.insert(possible_names_arr, "'" .. name .. "'")
+         end
+
+         table.sort(possible_names_arr)
+         return "\nDid you mean one of these: " .. table.concat(possible_names_arr, " ") .. "?"
+      else
+         return "\nDid you mean '" .. first .. "'?"
+      end
+   else
+      return ""
+   end
+end
+
+local ElementState = class({
+   invocations = 0
+})
+
+function ElementState:__call(state, element)
+   self.state = state
+   self.result = state.result
+   self.element = element
+   self.target = element._target or element:_get_default_target()
+   self.action, self.result[self.target] = element:_get_action()
+   return self
+end
+
+function ElementState:error(fmt, ...)
+   self.state:error(fmt, ...)
+end
+
+function ElementState:convert(argument)
+   local converter = self.element._convert
+
+   if converter then
+      local ok, err
+
+      if type(converter) == "function" then
+         ok, err = converter(argument)
+      else
+         ok = converter[argument]
+      end
+
+      if ok == nil then
+         self:error(err and "%s" or "malformed argument '%s'", err or argument)
+      end
+
+      argument = ok
+   end
+
+   return argument
+end
+
+function ElementState:default(mode)
+   return self.element._defmode:find(mode) and self.element._default
+end
+
+local function bound(noun, min, max, is_max)
+   local res = ""
+
+   if min ~= max then
+      res = "at " .. (is_max and "most" or "least") .. " "
+   end
+
+   local number = is_max and max or min
+   return res .. tostring(number) .. " " .. noun ..  (number == 1 and "" or "s")
+end
+
+function ElementState:invoke(alias)
+   self.open = true
+   self.name = ("%s '%s'"):format(alias and "option" or "argument", alias or self.element._name)
+   self.overwrite = false
+
+   if self.invocations >= self.element._maxcount then
+      if self.element._overwr
