@@ -645,4 +645,96 @@ function Parser:get_usage()
 
    for _, option in ipairs(self._options) do
       if not mutex_options[option] and option:_is_vararg() then
-         add(option:_get_usage()
+         add(option:_get_usage())
+      end
+   end
+
+   if #self._commands > 0 then
+      if self._require_command then
+         add("<command>")
+      else
+         add("[<command>]")
+      end
+
+      add("...")
+   end
+
+   return table.concat(lines, "\n")
+end
+
+local margin_len = 3
+local margin_len2 = 25
+local margin = (" "):rep(margin_len)
+local margin2 = (" "):rep(margin_len2)
+
+local function make_two_columns(s1, s2)
+   if s2 == "" then
+      return margin .. s1
+   end
+
+   s2 = s2:gsub("\n", "\n" .. margin2)
+
+   if #s1 < (margin_len2-margin_len) then
+      return margin .. s1 .. (" "):rep(margin_len2-margin_len-#s1) .. s2
+   else
+      return margin .. s1 .. "\n" .. margin2 .. s2
+   end
+end
+
+function Parser:get_help()
+   if self._help then
+      return self._help
+   end
+
+   local blocks = {self:get_usage()}
+
+   if self._description then
+      table.insert(blocks, self._description)
+   end
+
+   local labels = {"Arguments:", "Options:", "Commands:"}
+
+   for i, elements in ipairs{self._arguments, self._options, self._commands} do
+      if #elements > 0 then
+         local buf = {labels[i]}
+
+         for _, element in ipairs(elements) do
+            table.insert(buf, make_two_columns(element:_get_label(), element:_get_description()))
+         end
+
+         table.insert(blocks, table.concat(buf, "\n"))
+      end
+   end
+
+   if self._epilog then
+      table.insert(blocks, self._epilog)
+   end
+
+   return table.concat(blocks, "\n\n")
+end
+
+local function get_tip(context, wrong_name)
+   local context_pool = {}
+   local possible_name
+   local possible_names = {}
+
+   for name in pairs(context) do
+      if type(name) == "string" then
+         for i = 1, #name do
+            possible_name = name:sub(1, i - 1) .. name:sub(i + 1)
+
+            if not context_pool[possible_name] then
+               context_pool[possible_name] = {}
+            end
+
+            table.insert(context_pool[possible_name], name)
+         end
+      end
+   end
+
+   for i = 1, #wrong_name + 1 do
+      possible_name = wrong_name:sub(1, i - 1) .. wrong_name:sub(i + 1)
+
+      if context[possible_name] then
+         possible_names[possible_name] = true
+      elseif context_pool[possible_
