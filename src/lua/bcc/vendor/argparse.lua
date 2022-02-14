@@ -824,4 +824,88 @@ function ElementState:invoke(alias)
    self.overwrite = false
 
    if self.invocations >= self.element._maxcount then
-      if self.element._overwr
+      if self.element._overwrite then
+         self.overwrite = true
+      else
+         self:error("%s must be used %s", self.name, bound("time", self.element._mincount, self.element._maxcount, true))
+      end
+   else
+      self.invocations = self.invocations + 1
+   end
+
+   self.args = {}
+
+   if self.element._maxargs <= 0 then
+      self:close()
+   end
+
+   return self.open
+end
+
+function ElementState:pass(argument)
+   argument = self:convert(argument)
+   table.insert(self.args, argument)
+
+   if #self.args >= self.element._maxargs then
+      self:close()
+   end
+
+   return self.open
+end
+
+function ElementState:complete_invocation()
+   while #self.args < self.element._minargs do
+      self:pass(self.element._default)
+   end
+end
+
+function ElementState:close()
+   if self.open then
+      self.open = false
+
+      if #self.args < self.element._minargs then
+         if self:default("a") then
+            self:complete_invocation()
+         else
+            if #self.args == 0 then
+               if getmetatable(self.element) == Argument then
+                  self:error("missing %s", self.name)
+               elseif self.element._maxargs == 1 then
+                  self:error("%s requires an argument", self.name)
+               end
+            end
+
+            self:error("%s requires %s", self.name, bound("argument", self.element._minargs, self.element._maxargs))
+         end
+      end
+
+      local args = self.args
+
+      if self.element._maxargs <= 1 then
+         args = args[1]
+      end
+
+      if self.element._maxargs == 1 and self.element._minargs == 0 and self.element._mincount ~= self.element._maxcount then
+         args = self.args
+      end
+
+      self.action(self.result, self.target, args, self.overwrite)
+   end
+end
+
+local ParseState = class({
+   result = {},
+   options = {},
+   arguments = {},
+   argument_i = 1,
+   element_to_mutexes = {},
+   mutex_to_used_option = {},
+   command_actions = {}
+})
+
+function ParseState:__call(parser, error_handler)
+   self.parser = parser
+   self.error_handler = error_handler
+   self.charset = parser:_update_charset()
+   self:switch(parser)
+   return 
