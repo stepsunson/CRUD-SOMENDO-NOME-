@@ -908,4 +908,86 @@ function ParseState:__call(parser, error_handler)
    self.error_handler = error_handler
    self.charset = parser:_update_charset()
    self:switch(parser)
-   return 
+   return self
+end
+
+function ParseState:error(fmt, ...)
+   self.error_handler(self.parser, fmt:format(...))
+end
+
+function ParseState:switch(parser)
+   self.parser = parser
+
+   if parser._action then
+      table.insert(self.command_actions, {action = parser._action, name = parser._name})
+   end
+
+   for _, option in ipairs(parser._options) do
+      option = ElementState(self, option)
+      table.insert(self.options, option)
+
+      for _, alias in ipairs(option.element._aliases) do
+         self.options[alias] = option
+      end
+   end
+
+   for _, mutex in ipairs(parser._mutexes) do
+      for _, option in ipairs(mutex) do
+         if not self.element_to_mutexes[option] then
+            self.element_to_mutexes[option] = {}
+         end
+
+         table.insert(self.element_to_mutexes[option], mutex)
+      end
+   end
+
+   for _, argument in ipairs(parser._arguments) do
+      argument = ElementState(self, argument)
+      table.insert(self.arguments, argument)
+      argument:invoke()
+   end
+
+   self.handle_options = parser._handle_options
+   self.argument = self.arguments[self.argument_i]
+   self.commands = parser._commands
+
+   for _, command in ipairs(self.commands) do
+      for _, alias in ipairs(command._aliases) do
+         self.commands[alias] = command
+      end
+   end
+end
+
+function ParseState:get_option(name)
+   local option = self.options[name]
+
+   if not option then
+      self:error("unknown option '%s'%s", name, get_tip(self.options, name))
+   else
+      return option
+   end
+end
+
+function ParseState:get_command(name)
+   local command = self.commands[name]
+
+   if not command then
+      if #self.commands > 0 then
+         self:error("unknown command '%s'%s", name, get_tip(self.commands, name))
+      else
+         self:error("too many arguments")
+      end
+   else
+      return command
+   end
+end
+
+function ParseState:invoke(option, name)
+   self:close()
+
+   if self.element_to_mutexes[option.element] then
+      for _, mutex in ipairs(self.element_to_mutexes[option.element]) do
+         local used_option = self.mutex_to_used_option[mutex]
+
+         if used_option and used_option ~= option then
+    
