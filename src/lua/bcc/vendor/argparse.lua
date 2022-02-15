@@ -990,4 +990,81 @@ function ParseState:invoke(option, name)
          local used_option = self.mutex_to_used_option[mutex]
 
          if used_option and used_option ~= option then
-    
+            self:error("option '%s' can not be used together with %s", name, used_option.name)
+         else
+            self.mutex_to_used_option[mutex] = option
+         end
+      end
+   end
+
+   if option:invoke(name) then
+      self.option = option
+   end
+end
+
+function ParseState:pass(arg)
+   if self.option then
+      if not self.option:pass(arg) then
+         self.option = nil
+      end
+   elseif self.argument then
+      if not self.argument:pass(arg) then
+         self.argument_i = self.argument_i + 1
+         self.argument = self.arguments[self.argument_i]
+      end
+   else
+      local command = self:get_command(arg)
+      self.result[command._target or command._name] = true
+
+      if self.parser._command_target then
+         self.result[self.parser._command_target] = command._name
+      end
+
+      self:switch(command)
+   end
+end
+
+function ParseState:close()
+   if self.option then
+      self.option:close()
+      self.option = nil
+   end
+end
+
+function ParseState:finalize()
+   self:close()
+
+   for i = self.argument_i, #self.arguments do
+      local argument = self.arguments[i]
+      if #argument.args == 0 and argument:default("u") then
+         argument:complete_invocation()
+      else
+         argument:close()
+      end
+   end
+
+   if self.parser._require_command and #self.commands > 0 then
+      self:error("a command is required")
+   end
+
+   for _, option in ipairs(self.options) do
+      local name = option.name or ("option '%s'"):format(option.element._name)
+
+      if option.invocations == 0 then
+         if option:default("u") then
+            option:invoke(name)
+            option:complete_invocation()
+            option:close()
+         end
+      end
+
+      local mincount = option.element._mincount
+
+      if option.invocations < mincount then
+         if option:default("a") then
+            while option.invocations < mincount do
+               option:invoke(name)
+               option:close()
+            end
+         elseif option.invocations == 0 then
+            self:error("
