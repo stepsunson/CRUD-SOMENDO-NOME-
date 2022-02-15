@@ -1067,4 +1067,78 @@ function ParseState:finalize()
                option:close()
             end
          elseif option.invocations == 0 then
-            self:error("
+            self:error("missing %s", name)
+         else
+            self:error("%s must be used %s", name, bound("time", mincount, option.element._maxcount))
+         end
+      end
+   end
+
+   for i = #self.command_actions, 1, -1 do
+      self.command_actions[i].action(self.result, self.command_actions[i].name)
+   end
+end
+
+function ParseState:parse(args)
+   for _, arg in ipairs(args) do
+      local plain = true
+
+      if self.handle_options then
+         local first = arg:sub(1, 1)
+
+         if self.charset[first] then
+            if #arg > 1 then
+               plain = false
+
+               if arg:sub(2, 2) == first then
+                  if #arg == 2 then
+                     self:close()
+                     self.handle_options = false
+                  else
+                     local equals = arg:find "="
+                     if equals then
+                        local name = arg:sub(1, equals - 1)
+                        local option = self:get_option(name)
+
+                        if option.element._maxargs <= 0 then
+                           self:error("option '%s' does not take arguments", name)
+                        end
+
+                        self:invoke(option, name)
+                        self:pass(arg:sub(equals + 1))
+                     else
+                        local option = self:get_option(arg)
+                        self:invoke(option, arg)
+                     end
+                  end
+               else
+                  for i = 2, #arg do
+                     local name = first .. arg:sub(i, i)
+                     local option = self:get_option(name)
+                     self:invoke(option, name)
+
+                     if i ~= #arg and option.element._maxargs > 0 then
+                        self:pass(arg:sub(i + 1))
+                        break
+                     end
+                  end
+               end
+            end
+         end
+      end
+
+      if plain then
+         self:pass(arg)
+      end
+   end
+
+   self:finalize()
+   return self.result
+end
+
+function Parser:error(msg)
+   io.stderr:write(("%s\n\nError: %s\n"):format(self:get_usage(), msg))
+   os.exit(1)
+end
+
+-- Compatibility with strict.lua an
