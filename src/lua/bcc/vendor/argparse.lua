@@ -1141,4 +1141,40 @@ function Parser:error(msg)
    os.exit(1)
 end
 
--- Compatibility with strict.lua an
+-- Compatibility with strict.lua and other checkers:
+local default_cmdline = rawget(_G, "arg") or {}
+
+function Parser:_parse(args, error_handler)
+   return ParseState(self, error_handler):parse(args or default_cmdline)
+end
+
+function Parser:parse(args)
+   return self:_parse(args, self.error)
+end
+
+local function xpcall_error_handler(err)
+   return tostring(err) .. "\noriginal " .. debug.traceback("", 2):sub(2)
+end
+
+function Parser:pparse(args)
+   local parse_error
+
+   local ok, result = xpcall(function()
+      return self:_parse(args, function(_, err)
+         parse_error = err
+         error(err, 0)
+      end)
+   end, xpcall_error_handler)
+
+   if ok then
+      return true, result
+   elseif not parse_error then
+      error(result, 0)
+   else
+      return false, parse_error
+   end
+end
+
+return function(...)
+   return Parser(default_cmdline[0]):add_help(true)(...)
+end
