@@ -87,4 +87,57 @@ local function skip_delim(str, pos, delim, err_if_missing)
   return pos + 1, true
 end
 
--- Expects the give
+-- Expects the given pos to be the first character after the opening quote.
+-- Returns val, pos; the returned pos is after the closing quote character.
+local function parse_str_val(str, pos, val)
+  val = val or ''
+  local early_end_error = 'End of input found while parsing string.'
+  if pos > #str then error(early_end_error) end
+  local c = str:sub(pos, pos)
+  if c == '"'  then return val, pos + 1 end
+  if c ~= '\\' then return parse_str_val(str, pos + 1, val .. c) end
+  -- We must have a \ character.
+  local esc_map = {b = '\b', f = '\f', n = '\n', r = '\r', t = '\t'}
+  local nextc = str:sub(pos + 1, pos + 1)
+  if not nextc then error(early_end_error) end
+  return parse_str_val(str, pos + 2, val .. (esc_map[nextc] or nextc))
+end
+
+-- Returns val, pos; the returned pos is after the number's final character.
+local function parse_num_val(str, pos)
+  local num_str = str:match('^-?%d+%.?%d*[eE]?[+-]?%d*', pos)
+  local val = tonumber(num_str)
+  if not val then error('Error parsing number at position ' .. pos .. '.') end
+  return val, pos + #num_str
+end
+
+
+-- Public values and functions.
+
+function json.stringify(obj, as_key)
+  local s = {}  -- We'll build the string as an array of strings to be concatenated.
+  local kind = kind_of(obj)  -- This is 'array' if it's an array or type(obj) otherwise.
+  if kind == 'array' then
+    if as_key then error('Can\'t encode array as key.') end
+    s[#s + 1] = '['
+    for i, val in ipairs(obj) do
+      if i > 1 then s[#s + 1] = ', ' end
+      s[#s + 1] = json.stringify(val)
+    end
+    s[#s + 1] = ']'
+  elseif kind == 'table' then
+    if as_key then error('Can\'t encode table as key.') end
+    s[#s + 1] = '{'
+    for k, v in pairs(obj) do
+      if #s > 1 then s[#s + 1] = ', ' end
+      s[#s + 1] = json.stringify(k, true)
+      s[#s + 1] = ':'
+      s[#s + 1] = json.stringify(v)
+    end
+    s[#s + 1] = '}'
+  elseif kind == 'string' then
+    return '"' .. escape_str(obj) .. '"'
+  elseif kind == 'number' then
+    if as_key then return '"' .. tostring(obj) .. '"' end
+    return tostring(obj)
+  elseif kind == 'boole
