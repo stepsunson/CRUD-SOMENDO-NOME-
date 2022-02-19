@@ -24,4 +24,67 @@ equivalent to a missing key, there is no way to express the json "null" value in
 a Lua table. The only way this will output "null" is if your entire input obj is
 nil itself.
 
-An empty Lua table, {}, could be considered either
+An empty Lua table, {}, could be considered either a json object or array -
+it's an ambiguous edge case. We choose to treat this as an object as it is the
+more general type.
+
+To be clear, none of the above considerations is a limitation of this code.
+Rather, it is what we get when we completely observe the json specification for
+as arbitrary a Lua object as json is capable of expressing.
+
+## json.parse:
+
+This function parses json, with the exception that it does not pay attention to
+\u-escaped unicode code points in strings.
+
+It is difficult for Lua to return null as a value. In order to prevent the loss
+of keys with a null value in a json string, this function uses the one-off
+table value json.null (which is just an empty table) to indicate null values.
+This way you can check if a value is null with the conditional
+`val == json.null`.
+
+If you have control over the data and are using Lua, I would recommend just
+avoiding null values in your data to begin with.
+
+--]]
+
+
+local json = {}
+
+
+-- Internal functions.
+
+local function kind_of(obj)
+  if type(obj) ~= 'table' then return type(obj) end
+  local i = 1
+  for _ in pairs(obj) do
+    if obj[i] ~= nil then i = i + 1 else return 'table' end
+  end
+  if i == 1 then return 'table' else return 'array' end
+end
+
+local function escape_str(s)
+  local in_char  = {'\\', '"', '/', '\b', '\f', '\n', '\r', '\t'}
+  local out_char = {'\\', '"', '/',  'b',  'f',  'n',  'r',  't'}
+  for i, c in ipairs(in_char) do
+    s = s:gsub(c, '\\' .. out_char[i])
+  end
+  return s
+end
+
+-- Returns pos, did_find; there are two cases:
+-- 1. Delimiter found: pos = pos after leading space + delim; did_find = true.
+-- 2. Delimiter not found: pos = pos after leading space;     did_find = false.
+-- This throws an error if err_if_missing is true and the delim is not found.
+local function skip_delim(str, pos, delim, err_if_missing)
+  pos = pos + #str:match('^%s*', pos)
+  if str:sub(pos, pos) ~= delim then
+    if err_if_missing then
+      error('Expected ' .. delim .. ' near position ' .. pos)
+    end
+    return pos, false
+  end
+  return pos + 1, true
+end
+
+-- Expects the give
