@@ -68,4 +68,15 @@ local function cpu_count()
   return tonumber(ffi.C.get_nprocs())
 end
 
-local function ton
+local function tonumber64(n, base)
+  assert(type(n) == "string")
+  return ffi.C.strtoull(n, nil, base or 10)
+end
+
+return {
+  time_ns=time_ns,
+  sleep=sleep,
+  CLOCK=CLOCK,
+  cpu_count=cpu_count,
+  tonumber64=tonumber64,
+}
