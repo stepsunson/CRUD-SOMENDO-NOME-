@@ -94,4 +94,66 @@ local code = { -- Generated code
 	reachable = true,
 	seen_cmp = nil,
 }
-lo
+local Vstate = {} -- Track variable layout at basic block exits
+
+-- Anything below this stack offset is free to use by caller
+-- @note: There is no tracking memory allocator, so the caller may
+-- lower it for persistent objects, but such memory will never
+-- be reclaimed and the caller is responsible for resetting stack
+-- top whenever the memory below is free to be reused
+local stack_top = (stackslots + 1) * ffi.sizeof('uint64_t')
+
+local function emit(op, dst, src, off, imm)
+	local ins = code.insn[code.pc]
+	ins.code = op
+	ins.dst_reg = dst
+	ins.src_reg = src
+	ins.off = off
+	ins.imm = imm
+	code.pc = code.pc + 1
+end
+
+local function reg_spill(var)
+	local vinfo = V[var]
+	assert(vinfo.reg, 'attempt to spill VAR that doesn\'t have an allocated register')
+	vinfo.spill = (var + 1) * ffi.sizeof('uint64_t') -- Index by (variable number) * (register width)
+	emit(BPF.MEM + BPF.STX + BPF.DW, 10, vinfo.reg, -vinfo.spill, 0)
+	vinfo.reg = nil
+end
+
+local function reg_fill(var, reg)
+	local vinfo = V[var]
+	assert(reg, 'attempt to fill variable to register but not register is allocated')
+	assert(vinfo.spill, 'attempt to fill register with a VAR that isn\'t spilled')
+	emit(BPF.MEM + BPF.LDX + BPF.DW, reg, 10, -vinfo.spill, 0)
+	vinfo.reg = reg
+	vinfo.spill = nil
+end
+
+-- Allocate a register (lazy simple allocator)
+local function reg_alloc(var, reg)
+	-- Specific register requested, must spill/move existing variable
+	if reg then
+		for k,v in pairs(V) do -- Spill any variable that has this register
+			if v.reg == reg and not v.shadow then
+				reg_spill(k)
+				break
+			end
+		end
+		return reg
+	end
+	-- Find free or least recently used slot
+	local last, last_seen, used = nil, 0xffff, 0
+	for k,v in pairs(V) do
+		if v.reg then
+			if not v.live_to or v.live_to < last_seen then
+				last, last_seen = k, v.live_to or last_seen
+			end
+			used = bit.bor(used, bit.lshift(1, v.reg))
+		end
+	end
+	-- Attempt to select a free register from R7-R9 (callee saved)
+	local free = bit.bnot(used)
+	if     bit.band(free, 0x80) ~= 0 then reg = 7
+	elseif bit.band(free,0x100) ~= 0 then reg = 8
+	e
