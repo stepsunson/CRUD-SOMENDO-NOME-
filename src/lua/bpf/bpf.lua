@@ -156,4 +156,65 @@ local function reg_alloc(var, reg)
 	local free = bit.bnot(used)
 	if     bit.band(free, 0x80) ~= 0 then reg = 7
 	elseif bit.band(free,0x100) ~= 0 then reg = 8
-	e
+	elseif bit.band(free,0x200) ~= 0 then reg = 9
+	end
+	-- Select another variable to be spilled
+	if not reg then
+		assert(last)
+		reg = V[last].reg
+		reg_spill(last)
+	end
+	assert(reg, 'VAR '..var..'fill/spill failed')
+	return reg
+end
+
+-- Set new variable
+local function vset(var, reg, const, vtype)
+	-- Must materialise all variables shadowing this variable slot, as it will be overwritten
+	if V[var] and V[var].reg then
+		for _, vinfo in pairs(V) do
+			-- Shadowing variable MUST share the same type and attributes,
+			-- but the register assignment may have changed
+			if vinfo.shadow == var then
+				vinfo.reg = V[var].reg
+				vinfo.shadow = nil
+			end
+		end
+	end
+	-- Get precise type for CDATA or attempt to narrow numeric constant
+	if not vtype and type(const) == 'cdata' then
+		vtype = ffi.typeof(const)
+	end
+	V[var] = {reg=reg, const=const, type=vtype}
+	-- Track variable source
+	if V[var].const and type(const) == 'table' then
+		V[var].source = V[var].const.source
+	end
+end
+
+-- Materialize (or register) a variable in a register
+-- If the register is nil, then the a new register is assigned (if not already assigned)
+local function vreg(var, reg, reserve, vtype)
+	local vinfo = V[var]
+	assert(vinfo, 'VAR '..var..' not registered')
+	vinfo.live_to = code.pc-1
+	if (vinfo.reg and not reg) and not vinfo.shadow then return vinfo.reg end
+	reg = reg_alloc(var, reg)
+	-- Materialize variable shadow copy
+	local src = vinfo
+	while src.shadow do src = V[src.shadow] end
+	if reserve then -- luacheck: ignore
+		-- No load to register occurs
+	elseif src.reg then
+		emit(BPF.ALU64 + BPF.MOV + BPF.X, reg, src.reg, 0, 0)
+	elseif src.spill then
+		vinfo.spill = src.spill
+		reg_fill(var, reg)
+	elseif src.const then
+		vtype = vtype or src.type
+		if type(src.const) == 'table' and src.const.__base then
+			-- Load pointer type
+			emit(BPF.ALU64 + BPF.MOV + BPF.X, reg, 10, 0, 0)
+			emit(BPF.ALU64 + BPF.ADD + BPF.K, reg, 0, 0, -src.const.__base)
+		elseif type(src.const) == 'table' and src.const.__dissector then
+			-- Load dissector offset (imm32), but keep the constant part (dissector
