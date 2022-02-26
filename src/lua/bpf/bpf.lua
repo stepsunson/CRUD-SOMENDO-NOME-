@@ -268,4 +268,61 @@ local function valloc(size, blank)
 	-- Align to 8 byte boundary
 	stack_top = math.ceil(stack_top/8)*8
 	-- Current kernel version doesn't support ARG_PTR_TO_RAW_STACK
-	-- so we alwa
+	-- so we always need to have memory initialized, remove this when supported
+	if blank then
+		if type(blank) == 'string' then
+			local sp = 0
+			while sp < size do
+				-- TODO: no BPF_ST + BPF_DW instruction yet
+				local as_u32 = ffi.new('uint32_t [1]')
+				local sub = blank:sub(sp+1, sp+ffi.sizeof(as_u32))
+				ffi.copy(as_u32, sub, #sub)
+				emit(BPF.MEM + BPF.ST + BPF.W, 10, 0, -(stack_top-sp), as_u32[0])
+				sp = sp + ffi.sizeof(as_u32)
+			end
+		elseif type(blank) == 'boolean' then
+			reg_alloc(stackslots, 0)
+			emit(BPF.ALU64 + BPF.MOV + BPF.K, 0, 0, 0, 0)
+			for sp = base+8,stack_top,8 do
+				emit(BPF.MEM + BPF.STX + BPF.DW, 10, 0, -sp, 0)
+			end
+		else error('NYI: will with unknown type '..type(blank)) end
+	end
+	return stack_top
+end
+
+-- Turn variable into scalar in register (or constant)
+local function vscalar(a, w)
+	assert(const_width[w], 'sizeof(scalar variable) must be 1/2/4/8')
+	local src_reg
+	-- If source is a pointer, we must dereference it first
+	if cdef.isptr(V[a].type) then
+		src_reg = vreg(a)
+		local tmp_reg = reg_alloc(stackslots, 1) -- Clone variable in tmp register
+		emit(BPF.ALU64 + BPF.MOV + BPF.X, tmp_reg, src_reg, 0, 0)
+		vderef(tmp_reg, tmp_reg, V[a])
+		src_reg = tmp_reg -- Materialize and dereference it
+	-- Source is a value on stack, we must load it first
+	elseif type(V[a].const) == 'table' and V[a].const.__base > 0 then
+		src_reg = vreg(a)
+		emit(BPF.MEM + BPF.LDX + const_width[w], src_reg, 10, -V[a].const.__base, 0)
+		V[a].type = V[a].const.__dissector
+		V[a].const = nil -- Value is dereferenced
+	-- If source is an imm32 number, avoid register load
+	elseif type(V[a].const) == 'number' and w < 8 then
+		return nil, V[a].const
+	-- Load variable from any other source
+	else
+		src_reg = vreg(a)
+	end
+
+	return src_reg, nil
+end
+
+-- Emit compensation code at the end of basic block to unify variable set layout on all block exits
+-- 1. we need to free registers by spilling
+-- 2. fill registers to match other exits from this BB
+local function bb_end(Vcomp)
+	for i,v in pairs(V) do
+		if Vcomp[i] and Vcomp[i].spill and not v.spill then
+			-- Materialize const
