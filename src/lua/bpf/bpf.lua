@@ -217,4 +217,55 @@ local function vreg(var, reg, reserve, vtype)
 			emit(BPF.ALU64 + BPF.MOV + BPF.X, reg, 10, 0, 0)
 			emit(BPF.ALU64 + BPF.ADD + BPF.K, reg, 0, 0, -src.const.__base)
 		elseif type(src.const) == 'table' and src.const.__dissector then
-			-- Load dissector offset (imm32), but keep the constant part (dissector
+			-- Load dissector offset (imm32), but keep the constant part (dissector proxy)
+			emit(BPF.ALU64 + BPF.MOV + BPF.K, reg, 0, 0, src.const.off or 0)
+		elseif vtype and ffi.sizeof(vtype) == 8 then
+			-- IMM64 must be done in two instructions with imm64 = (lo(imm32), hi(imm32))
+			emit(BPF.LD + BPF.DW, reg, 0, 0, ffi.cast('uint32_t', src.const))
+			emit(0, 0, 0, 0, ffi.cast('uint32_t', bit.rshift(bit.rshift(src.const, 16), 16)))
+			vinfo.const = nil -- The variable is live
+		else
+			emit(BPF.ALU64 + BPF.MOV + BPF.K, reg, 0, 0, src.const)
+			vinfo.const = nil -- The variable is live
+		end
+	else assert(false, 'VAR '..var..' has neither register nor constant value') end
+	vinfo.reg = reg
+	vinfo.shadow = nil
+	vinfo.live_from = code.pc-1
+	vinfo.type = vtype or vinfo.type
+	return reg
+end
+
+-- Copy variable
+local function vcopy(dst, src)
+	if dst == src then return end
+	V[dst] = {reg=V[src].reg, const=V[src].const, shadow=src, source=V[src].source, type=V[src].type}
+end
+
+-- Dereference variable of pointer type
+local function vderef(dst_reg, src_reg, vinfo)
+	-- Dereference map pointers for primitive types
+	-- BPF doesn't allow pointer arithmetics, so use the entry value
+	assert(type(vinfo.const) == 'table' and vinfo.const.__dissector, 'cannot dereference a non-pointer variable')
+	local vtype = vinfo.const.__dissector
+	local w = ffi.sizeof(vtype)
+	assert(const_width[w], 'NYI: sizeof('..tostring(vtype)..') not 1/2/4/8 bytes')
+	if dst_reg ~= src_reg then
+		emit(BPF.ALU64 + BPF.MOV + BPF.X, dst_reg, src_reg, 0, 0)    -- dst = src
+	end
+	-- Optimize the NULL check away if provably not NULL
+	if not vinfo.source or vinfo.source:find('_or_null', 1, true) then
+		emit(BPF.JMP + BPF.JEQ + BPF.K, src_reg, 0, 1, 0)            -- if (src != NULL)
+	end
+	emit(BPF.MEM + BPF.LDX + const_width[w], dst_reg, src_reg, 0, 0) --     dst = *src;
+end
+
+-- Allocate a space for variable
+local function valloc(size, blank)
+	local base = stack_top
+	assert(stack_top + size < 512 * 1024, 'exceeded maximum stack size of 512kB')
+	stack_top = stack_top + size
+	-- Align to 8 byte boundary
+	stack_top = math.ceil(stack_top/8)*8
+	-- Current kernel version doesn't support ARG_PTR_TO_RAW_STACK
+	-- so we alwa
