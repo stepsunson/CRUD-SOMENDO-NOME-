@@ -325,4 +325,57 @@ end
 local function bb_end(Vcomp)
 	for i,v in pairs(V) do
 		if Vcomp[i] and Vcomp[i].spill and not v.spill then
-			-- Materialize const
+			-- Materialize constant or shadowing variable to be able to spill
+			if not v.reg and (v.shadow or cdef.isimmconst(v)) then
+				vreg(i)
+			end
+			reg_spill(i)
+		end
+	end
+	for i,v in pairs(V) do
+		if Vcomp[i] and Vcomp[i].reg and not v.reg then
+			vreg(i, Vcomp[i].reg)
+		end
+		-- Compensate variable metadata change
+		if Vcomp[i] and Vcomp[i].source then
+			V[i].source = Vcomp[i].source
+		end
+	end
+end
+
+local function CMP_STR(a, b, op)
+	assert(op == 'JEQ' or op == 'JNE', 'NYI: only equivallence stack/string only supports == or ~=')
+	-- I have no better idea how to implement it than unrolled XOR loop, as we can fixup only one JMP
+	-- So: X(a,b) = a[0] ^ b[0] | a[1] ^ b[1] | ...
+	--     EQ(a,b) <=> X == 0
+	-- This could be optimised by placing early exits by rewriter in second phase for long strings
+	local base, size = V[a].const.__base, math.min(#b, ffi.sizeof(V[a].type))
+	local acc, tmp = reg_alloc(stackslots, 0), reg_alloc(stackslots+1, 1)
+	local sp = 0
+	emit(BPF.ALU64 + BPF.MOV + BPF.K, acc, 0, 0, 0)
+	while sp < size do
+		-- Load string chunk as imm32
+		local as_u32 = ffi.new('uint32_t [1]')
+		local sub = b:sub(sp+1, sp+ffi.sizeof(as_u32))
+		ffi.copy(as_u32, sub, #sub)
+		-- TODO: make this faster by interleaved load/compare steps with DW length
+		emit(BPF.MEM + BPF.LDX + BPF.W, tmp, 10, -(base-sp), 0)
+		emit(BPF.ALU64 + BPF.XOR + BPF.K, tmp, 0, 0, as_u32[0])
+		emit(BPF.ALU64 + BPF.OR + BPF.X, acc, tmp, 0, 0)
+		sp = sp + ffi.sizeof(as_u32)
+	end
+	emit(BPF.JMP + BPF[op] + BPF.K, acc, 0, 0xffff, 0)
+	code.seen_cmp = code.pc-1
+end
+
+local function CMP_REG(a, b, op)
+	-- Fold compile-time expressions
+	if V[a].const and V[b].const and not (is_proxy(V[a].const) or is_proxy(V[b].const)) then
+		code.seen_cmp = const_expr[op](V[a].const, V[b].const) and ALWAYS or NEVER
+	else
+		-- Comparison against compile-time string or stack memory
+		if V[b].const and type(V[b].const) == 'string' then
+			return CMP_STR(a, V[b].const, op)
+		end
+		-- The 0xFFFF target here has no significance, it's just a placeholder for
+		-- compiler to replace it's absolute offset to LJ bytecode
