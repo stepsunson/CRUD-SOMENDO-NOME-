@@ -378,4 +378,60 @@ local function CMP_REG(a, b, op)
 			return CMP_STR(a, V[b].const, op)
 		end
 		-- The 0xFFFF target here has no significance, it's just a placeholder for
-		-- compiler to replace it's absolute offset to LJ bytecode
+		-- compiler to replace it's absolute offset to LJ bytecode insn with a relative
+		-- offset in BPF program code, verifier will accept only programs with valid JMP targets
+		local a_reg, b_reg = vreg(a), vreg(b)
+		emit(BPF.JMP + BPF[op] + BPF.X, a_reg, b_reg, 0xffff, 0)
+		code.seen_cmp = code.pc-1
+	end
+end
+
+local function CMP_IMM(a, b, op)
+	local c = V[a].const
+	if c and not is_proxy(c) then -- Fold compile-time expressions
+		code.seen_cmp = const_expr[op](c, b) and ALWAYS or NEVER
+	else
+		-- Convert imm32 to number
+		if type(b) == 'string' then
+			if     #b == 1 then b = b:byte()
+			elseif cdef.isptr(V[a].type) then
+				-- String comparison between stack/constant string
+				return CMP_STR(a, b, op)
+			elseif #b <= 4 then
+				-- Convert to u32 with network byte order
+				local imm = ffi.new('uint32_t[1]')
+				ffi.copy(imm, b, #b)
+				b = builtins.hton(imm[0])
+			else error('NYI: compare register with string, where #string > sizeof(u32)') end
+		end
+		-- The 0xFFFF target here has no significance, it's just a placeholder for
+		-- compiler to replace it's absolute offset to LJ bytecode insn with a relative
+		-- offset in BPF program code, verifier will accept only programs with valid JMP targets
+		local reg = vreg(a)
+		emit(BPF.JMP + BPF[op] + BPF.K, reg, 0, 0xffff, b)
+		code.seen_cmp = code.pc-1
+		-- Remember NULL pointer checks as BPF prohibits pointer comparisons
+		-- and repeated checks wouldn't pass the verifier, only comparisons
+		-- against constants are checked.
+		if op == 'JEQ' and tonumber(b) == 0 and V[a].source then
+			local pos = V[a].source:find('_or_null', 1, true)
+			if pos then
+				code.seen_null_guard = a
+			end
+		-- Inverse NULL pointer check (if a ~= nil)
+		elseif op == 'JNE' and tonumber(b) == 0 and V[a].source then
+			local pos = V[a].source:find('_or_null', 1, true)
+			if pos then
+				code.seen_null_guard = a
+				code.seen_null_guard_inverse = true
+			end
+		end
+	end
+end
+
+local function ALU_IMM(dst, a, b, op)
+	-- Fold compile-time expressions
+	if V[a].const and not is_proxy(V[a].const) then
+			assert(cdef.isimmconst(V[a]), 'VAR '..a..' must be numeric')
+			vset(dst, nil, const_expr[op](V[a].const, b))
+	-- Now we need to materialize dissected v
