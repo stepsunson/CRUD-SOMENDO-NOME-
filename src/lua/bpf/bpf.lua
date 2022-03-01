@@ -434,4 +434,63 @@ local function ALU_IMM(dst, a, b, op)
 	if V[a].const and not is_proxy(V[a].const) then
 			assert(cdef.isimmconst(V[a]), 'VAR '..a..' must be numeric')
 			vset(dst, nil, const_expr[op](V[a].const, b))
-	-- Now we need to materialize dissected v
+	-- Now we need to materialize dissected value at DST, and add it
+	else
+		vcopy(dst, a)
+		local dst_reg = vreg(dst)
+		if cdef.isptr(V[a].type) then
+			vderef(dst_reg, dst_reg, V[a])
+			V[dst].type = V[a].const.__dissector
+		else
+			V[dst].type = V[a].type
+		end
+		emit(BPF.ALU64 + BPF[op] + BPF.K, dst_reg, 0, 0, b)
+	end
+end
+
+local function ALU_REG(dst, a, b, op)
+	-- Fold compile-time expressions
+	if V[a].const and not (is_proxy(V[a].const) or is_proxy(V[b].const)) then
+		assert(cdef.isimmconst(V[a]), 'VAR '..a..' must be numeric')
+		assert(cdef.isimmconst(V[b]), 'VAR '..b..' must be numeric')
+		if type(op) == 'string' then op = const_expr[op] end
+		vcopy(dst, a)
+		V[dst].const = op(V[a].const, V[b].const)
+	else
+		local src_reg = b and vreg(b) or 0 -- SRC is optional for unary operations
+		if b and cdef.isptr(V[b].type) then
+			-- We have to allocate a temporary register for dereferencing to preserve
+			-- pointer in source variable that MUST NOT be altered
+			reg_alloc(stackslots, 2)
+			vderef(2, src_reg, V[b])
+			src_reg = 2
+		end
+		vcopy(dst, a) -- DST may alias B, so copy must occur after we materialize B
+		local dst_reg = vreg(dst)
+		if cdef.isptr(V[a].type) then
+			vderef(dst_reg, dst_reg, V[a])
+			V[dst].type = V[a].const.__dissector
+		end
+		emit(BPF.ALU64 + BPF[op] + BPF.X, dst_reg, src_reg, 0, 0)
+		V[stackslots].reg = nil  -- Free temporary registers
+	end
+end
+
+local function ALU_IMM_NV(dst, a, b, op)
+	-- Do DST = IMM(a) op VAR(b) where we can't invert because
+	-- the registers are u64 but immediates are u32, so complement
+	-- arithmetics wouldn't work
+	vset(stackslots+1, nil, a)
+	ALU_REG(dst, stackslots+1, b, op)
+end
+
+local function LD_ABS(dst, w, off)
+	assert(off, 'LD_ABS called without offset')
+	if w < 8 then
+		local dst_reg = vreg(dst, 0, true, builtins.width_type(w)) -- Reserve R0
+		emit(BPF.LD + BPF.ABS + const_width[w], dst_reg, 0, 0, off)
+		if w > 1 and ffi.abi('le') then -- LD_ABS has htonl() semantics, reverse
+			emit(BPF.ALU + BPF.END + BPF.TO_BE, dst_reg, 0, 0, w * 8)
+		end
+	elseif w == 8 then
+		-- LD_ABS|IND prohibits DW, we need to do two 
