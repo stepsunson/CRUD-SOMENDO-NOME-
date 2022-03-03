@@ -540,4 +540,55 @@ end
 
 local function BUILTIN(func, ...)
 	local builtin_export = {
-		-- 
+		-- Compiler primitives (work with variable slots, emit instructions)
+		V=V, vreg=vreg, vset=vset, vcopy=vcopy, vderef=vderef, valloc=valloc, emit=emit,
+		reg_alloc=reg_alloc, reg_spill=reg_spill, tmpvar=stackslots, const_width=const_width,
+		-- Extensions and helpers (use with care)
+		LD_IMM_X = LD_IMM_X,
+	}
+	func(builtin_export, ...)
+end
+
+local function LOAD(dst, src, off, vtype)
+	local base = V[src].const
+	assert(base and base.__dissector, 'NYI: load() on variable that doesn\'t have dissector')
+	assert(V[src].source, 'NYI: load() on variable with unknown source')
+	-- Cast to different type if requested
+	vtype = vtype or base.__dissector
+	local w = ffi.sizeof(vtype)
+	assert(const_width[w], 'NYI: load() supports 1/2/4/8 bytes at a time only, wanted ' .. tostring(w))
+	-- Packet access with a dissector (use BPF_LD)
+	if V[src].source:find('ptr_to_pkt', 1, true) then
+		if base.off then -- Absolute address to payload
+			LD_ABS(dst, w, off + base.off)
+		else -- Indirect address to payload
+			LD_IND(dst, src, w, off)
+		end
+	-- Direct access to first argument (skb fields, pt regs, ...)
+	elseif V[src].source:find('ptr_to_ctx', 1, true) then
+		LD_MEM(dst, src, w, off)
+	-- Direct skb access with a dissector (use BPF_MEM)
+	elseif V[src].source:find('ptr_to_skb', 1, true) then
+		LD_MEM(dst, src, w, off)
+	-- Pointer to map-backed memory (use BPF_MEM)
+	elseif V[src].source:find('ptr_to_map_value', 1, true) then
+		LD_MEM(dst, src, w, off)
+	-- Indirect read using probe (uprobe or kprobe, uses helper)
+	elseif V[src].source:find('ptr_to_probe', 1, true) then
+		BUILTIN(builtins[builtins.probe_read], nil, dst, src, vtype, off)
+		V[dst].source = V[src].source -- Builtin handles everything
+	else
+		error('NYI: load() on variable from ' .. V[src].source)
+	end
+	V[dst].type = vtype
+	V[dst].const = nil -- Dissected value is not constant anymore
+end
+
+local function CALL(a, b, d)
+	assert(b-1 <= 1, 'NYI: CALL with >1 return values')
+	-- Perform either compile-time, helper, or builtin
+	local func = V[a].const
+	-- Gather all arguments and check if they're constant
+	local args, const, nargs = {}, true, d - 1
+	for i = a+1, a+d-1 do
+	
