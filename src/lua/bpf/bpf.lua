@@ -591,4 +591,53 @@ local function CALL(a, b, d)
 	-- Gather all arguments and check if they're constant
 	local args, const, nargs = {}, true, d - 1
 	for i = a+1, a+d-1 do
-	
+		table.insert(args, V[i].const)
+		if not V[i].const or is_proxy(V[i].const) then const = false end
+	end
+	local builtin = builtins[func]
+	if not const or nargs == 0 then
+		if builtin and type(builtin) == 'function' then
+			args = {a}
+			for i = a+1, a+nargs do table.insert(args, i) end
+			BUILTIN(builtin, unpack(args))
+		elseif V[a+2] and V[a+2].const then -- var OP imm
+			ALU_IMM(a, a+1, V[a+2].const, builtin)
+		elseif nargs <= 2 then              -- var OP var
+			ALU_REG(a, a+1, V[a+2] and a+2, builtin)
+		else
+			error('NYI: CALL non-builtin with 3 or more arguments')
+		end
+	-- Call on dissector implies slice retrieval
+	elseif type(func) == 'table' and func.__dissector then
+		assert(nargs >= 2, 'NYI: <dissector>.slice(a, b) must have at least two arguments')
+		assert(V[a+1].const and V[a+2].const, 'NYI: slice() arguments must be constant')
+		local off = V[a+1].const
+		local vtype = builtins.width_type(V[a+2].const - off)
+		-- Access to packet via packet (use BPF_LD)
+		if V[a].source and V[a].source:find('ptr_to_', 1, true) then
+			LOAD(a, a, off, vtype)
+		else
+			error('NYI: <dissector>.slice(a, b) on non-pointer memory ' .. (V[a].source or 'unknown'))
+		end
+	-- Strict builtins cannot be expanded on compile-time
+	elseif builtins_strict[func] and builtin then
+		args = {a}
+		for i = a+1, a+nargs do table.insert(args, i) end
+		BUILTIN(builtin, unpack(args))
+	-- Attempt compile-time call expansion (expects all argument compile-time known)
+	else
+		assert(const, 'NYI: CALL attempted on constant arguments, but at least one argument is not constant')
+		V[a].const = func(unpack(args))
+	end
+end
+
+local function MAP_INIT(map_var, key, imm)
+	local map = V[map_var].const
+	vreg(map_var, 1, true, ffi.typeof('uint64_t'))
+	-- Reserve R1 and load ptr for process-local map fd
+	LD_IMM_X(1, BPF.PSEUDO_MAP_FD, map.fd, ffi.sizeof(V[map_var].type))
+	V[map_var].reg = nil -- R1 will be invalidated after CALL, forget register allocation
+	-- Reserve R2 and load R2 = key pointer
+	local key_size = ffi.sizeof(map.key_type)
+	local w = const_width[key_size] or BPF.DW
+	local pod_type
