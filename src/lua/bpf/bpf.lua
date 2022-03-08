@@ -640,4 +640,55 @@ local function MAP_INIT(map_var, key, imm)
 	-- Reserve R2 and load R2 = key pointer
 	local key_size = ffi.sizeof(map.key_type)
 	local w = const_width[key_size] or BPF.DW
-	local pod_type
+	local pod_type = const_width[key_size]
+	local sp = stack_top + key_size -- Must use stack below spill slots
+	-- Store immediate value on stack
+	reg_alloc(stackslots, 2) -- Spill anything in R2 (unnamed tmp variable)
+	local key_base = key and V[key].const
+	imm = imm or key_base
+	if imm and (not key or not is_proxy(key_base)) then
+		assert(pod_type, 'NYI: map[const K], K width must be 1/2/4/8')
+		emit(BPF.MEM + BPF.ST + w, 10, 0, -sp, imm)
+	-- Key is in register, spill it
+	elseif V[key].reg and pod_type then
+		if cdef.isptr(V[key].type) then
+			-- There is already pointer in register, dereference before spilling
+			emit(BPF.MEM + BPF.LDX + w, 2, V[key].reg, 0, 0)
+			emit(BPF.MEM + BPF.STX + w, 10, 2, -sp, 0)
+		else -- Variable in register is POD, spill it on the stack
+			emit(BPF.MEM + BPF.STX + w, 10, V[key].reg, -sp, 0)
+		end
+	-- Key is spilled from register to stack
+	elseif V[key].spill then
+		sp = V[key].spill
+	-- Key is already on stack, write to base-relative address
+	elseif key_base.__base then
+		assert(key_size == ffi.sizeof(V[key].type), 'VAR '..key..' type incompatible with BPF map key type')
+		sp = key_base.__base
+	else
+		error('VAR '..key..' is neither const-expr/register/stack/spilled')
+	end
+	-- If [FP+K] addressing, emit it
+	if sp then
+		emit(BPF.ALU64 + BPF.MOV + BPF.X, 2, 10, 0, 0)
+		emit(BPF.ALU64 + BPF.ADD + BPF.K, 2, 0, 0, -sp)
+	end
+end
+
+local function MAP_GET(dst, map_var, key, imm)
+	local map = V[map_var].const
+	MAP_INIT(map_var, key, imm)
+	-- Flag as pointer type and associate dissector for map value type
+	vreg(dst, 0, true, ffi.typeof('uint8_t *'))
+	V[dst].const = {__dissector=map.val_type}
+	V[dst].source = 'ptr_to_map_value_or_null'
+	emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.map_lookup_elem)
+	V[stackslots].reg = nil -- Free temporary registers
+end
+
+local function MAP_DEL(map_var, key, key_imm)
+	-- Set R0, R1 (map fd, preempt R0)
+	reg_alloc(stackslots, 0) -- Spill anything in R0 (unnamed tmp variable)
+	MAP_INIT(map_var, key, key_imm)
+	emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.map_delete_elem)
+	V[stackslots].reg = nil -- Fre
