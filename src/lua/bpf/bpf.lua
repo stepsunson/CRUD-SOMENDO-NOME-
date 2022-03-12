@@ -691,4 +691,57 @@ local function MAP_DEL(map_var, key, key_imm)
 	reg_alloc(stackslots, 0) -- Spill anything in R0 (unnamed tmp variable)
 	MAP_INIT(map_var, key, key_imm)
 	emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.map_delete_elem)
-	V[stackslots].reg = nil -- Fre
+	V[stackslots].reg = nil -- Free temporary registers
+end
+
+local function MAP_SET(map_var, key, key_imm, src)
+	local map = V[map_var].const
+	-- Delete when setting nil
+	if V[src].type == ffi.typeof('void') then
+		return MAP_DEL(map_var, key, key_imm)
+	end
+	-- Set R0, R1 (map fd, preempt R0)
+	reg_alloc(stackslots, 0) -- Spill anything in R0 (unnamed tmp variable)
+	MAP_INIT(map_var, key, key_imm)
+	reg_alloc(stackslots, 4) -- Spill anything in R4 (unnamed tmp variable)
+	emit(BPF.ALU64 + BPF.MOV + BPF.K, 4, 0, 0, 0) -- BPF_ANY, create new element or update existing
+	-- Reserve R3 for value pointer
+	reg_alloc(stackslots, 3) -- Spill anything in R3 (unnamed tmp variable)
+	local val_size = ffi.sizeof(map.val_type)
+	local w = const_width[val_size] or BPF.DW
+	local pod_type = const_width[val_size]
+	-- Stack pointer must be aligned to both key/value size and have enough headroom for (key, value)
+	local sp = stack_top + ffi.sizeof(map.key_type) + val_size
+	sp = sp + (sp % val_size)
+	local base = V[src].const
+	if base and not is_proxy(base) then
+		assert(pod_type, 'NYI: MAP[K] = imm V; V width must be 1/2/4/8')
+		emit(BPF.MEM + BPF.ST + w, 10, 0, -sp, base)
+	-- Value is in register, spill it
+	elseif V[src].reg and pod_type then
+		-- Value is a pointer, derefernce it and spill it
+		if cdef.isptr(V[src].type) then
+			vderef(3, V[src].reg, V[src])
+			emit(BPF.MEM + BPF.STX + w, 10, 3, -sp, 0)
+		else
+			emit(BPF.MEM + BPF.STX + w, 10, V[src].reg, -sp, 0)
+		end
+	-- We get a pointer to spilled register on stack
+	elseif V[src].spill then
+		-- If variable is a pointer, we can load it to R3 directly (save "LEA")
+		if cdef.isptr(V[src].type) then
+			reg_fill(src, 3)
+			-- If variable is a stack pointer, we don't have to check it
+			if base.__base then
+				emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.map_update_elem)
+				return
+			end
+			vderef(3, V[src].reg, V[src])
+			emit(BPF.MEM + BPF.STX + w, 10, 3, -sp, 0)
+		else
+			sp = V[src].spill
+		end
+	-- Value is already on stack, write to base-relative address
+	elseif base.__base then
+		if val_size ~= ffi.sizeof(V[src].type) then
+			local err = string.forma
