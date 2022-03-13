@@ -802,4 +802,36 @@ local BC = {
 	-- Note:  we're narrowed to integers, so operand/operator inversion is legit
 	ISLT = function(a, _, _, d) return CMP_REG(d, a, 'JGE') end, -- (a < d) (inverted)
 	ISGE = function(a, _, _, d) return CMP_REG(a, d, 'JGE') end, -- (a >= d)
-	ISGT = function(a, _, _, d) return CMP_REG(a, d, 'JGT') end, -- (a 
+	ISGT = function(a, _, _, d) return CMP_REG(a, d, 'JGT') end, -- (a > d)
+	ISEQV = function(a, _, _, d) return CMP_REG(a, d, 'JEQ') end, -- (a == d)
+	ISNEV = function(a, _, _, d) return CMP_REG(a, d, 'JNE') end, -- (a ~= d)
+	ISEQS = function(a, _, c, _) return CMP_IMM(a, c, 'JEQ') end, -- (a == str(c))
+	ISNES = function(a, _, c, _) return CMP_IMM(a, c, 'JNE') end, -- (a ~= str(c))
+	ISEQN = function(a, _, c, _) return CMP_IMM(a, c, 'JEQ') end, -- (a == c)
+	ISNEN = function(a, _, c, _) return CMP_IMM(a, c, 'JNE') end, -- (a ~= c)
+	IST = function(_, _, _, d) return CMP_IMM(d, 0, 'JNE') end, -- (d)
+	ISF = function(_, _, _, d) return CMP_IMM(d, 0, 'JEQ') end, -- (not d)
+	ISEQP = function(a, _, c, _) return CMP_IMM(a, c, 'JEQ') end, -- ISEQP (a == c)
+	-- Binary operations with RHS constants
+	ADDVN = function(a, b, c, _) return ALU_IMM(a, b, c, 'ADD') end,
+	SUBVN = function(a, b, c, _) return ALU_IMM(a, b, c, 'SUB') end,
+	MULVN = function(a, b, c, _) return ALU_IMM(a, b, c, 'MUL') end,
+	DIVVN = function(a, b, c, _) return ALU_IMM(a, b, c, 'DIV') end,
+	MODVN = function(a, b, c, _) return ALU_IMM(a, b, c, 'MOD') end,
+	-- Binary operations with LHS constants
+	-- Cheat code: we're narrowed to integer arithmetic, so MUL+ADD are commutative
+	ADDNV = function(a, b, c, _) return ALU_IMM(a, b, c, 'ADD') end, -- ADDNV
+	MULNV = function(a, b, c, _) return ALU_IMM(a, b, c, 'MUL') end, -- MULNV
+	SUBNV = function(a, b, c, _) return ALU_IMM_NV(a, c, b, 'SUB') end, -- SUBNV
+	DIVNV = function(a, b, c, _) return ALU_IMM_NV(a, c, b, 'DIV') end, -- DIVNV
+	-- Binary operations between registers
+	ADDVV = function(a, b, _, d) return ALU_REG(a, b, d, 'ADD') end,
+	SUBVV = function(a, b, _, d) return ALU_REG(a, b, d, 'SUB') end,
+	MULVV = function(a, b, _, d) return ALU_REG(a, b, d, 'MUL') end,
+	DIVVV = function(a, b, _, d) return ALU_REG(a, b, d, 'DIV') end,
+	MODVV = function(a, b, _, d) return ALU_REG(a, b, d, 'MOD') end,
+	-- Strings
+	CAT = function(a, b, _, d) -- CAT A = B ~ D
+		assert(V[b].const and V[d].const, 'NYI: CAT only works on compile-time expressions')
+		assert(type(V[b].const) == 'string' and type(V[d].const) == 'string',
+			'
