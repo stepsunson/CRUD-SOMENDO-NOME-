@@ -744,4 +744,62 @@ local function MAP_SET(map_var, key, key_imm, src)
 	-- Value is already on stack, write to base-relative address
 	elseif base.__base then
 		if val_size ~= ffi.sizeof(V[src].type) then
-			local err = string.forma
+			local err = string.format('VAR %d type (%s) incompatible with BPF map value type (%s): expected %d, got %d',
+				src, V[src].type, map.val_type, val_size, ffi.sizeof(V[src].type))
+			error(err)
+		end
+		sp = base.__base
+	-- Value is constant, materialize it on stack
+	else
+		error('VAR '.. src ..' is neither const-expr/register/stack/spilled')
+	end
+	emit(BPF.ALU64 + BPF.MOV + BPF.X, 3, 10, 0, 0)
+	emit(BPF.ALU64 + BPF.ADD + BPF.K, 3, 0, 0, -sp)
+	emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.map_update_elem)
+	V[stackslots].reg = nil -- Free temporary registers
+end
+
+-- Finally - this table translates LuaJIT bytecode into code emitter actions.
+local BC = {
+	-- Constants
+	KNUM = function(a, _, c, _) -- KNUM
+		if c < 2147483648 then
+			vset(a, nil, c, ffi.typeof('int32_t'))
+		else
+			vset(a, nil, c, ffi.typeof('uint64_t'))
+		end
+	end,
+	KSHORT = function(a, _, _, d) -- KSHORT
+		vset(a, nil, d, ffi.typeof('int16_t'))
+	end,
+	KCDATA = function(a, _, c, _) -- KCDATA
+		-- Coerce numeric types if possible
+		local ct = ffi.typeof(c)
+		if ffi.istype(ct, ffi.typeof('uint64_t')) or ffi.istype(ct, ffi.typeof('int64_t')) then
+			vset(a, nil, c, ct)
+		elseif tonumber(c) ~= nil then
+			-- TODO: this should not be possible
+			vset(a, nil, tonumber(c), ct)
+		else
+			error('NYI: cannot use CDATA constant of type ' .. ct)
+		end
+	end,
+	KPRI = function(a, _, _, d) -- KPRI
+		-- KNIL is 0, must create a special type to identify it
+		local vtype = (d < 1) and ffi.typeof('void') or ffi.typeof('uint8_t')
+		vset(a, nil, (d < 2) and 0 or 1, vtype)
+	end,
+	KSTR = function(a, _, c, _) -- KSTR
+		vset(a, nil, c, ffi.typeof('const char[?]'))
+	end,
+	MOV = function(a, _, _, d) -- MOV var, var
+		vcopy(a, d)
+	end,
+
+	-- Comparison ops
+	-- Note: comparisons are always followed by JMP opcode, that
+	--       will fuse following JMP to JMP+CMP instruction in BPF
+	-- Note:  we're narrowed to integers, so operand/operator inversion is legit
+	ISLT = function(a, _, _, d) return CMP_REG(d, a, 'JGE') end, -- (a < d) (inverted)
+	ISGE = function(a, _, _, d) return CMP_REG(a, d, 'JGE') end, -- (a >= d)
+	ISGT = function(a, _, _, d) return CMP_REG(a, d, 'JGT') end, -- (a 
