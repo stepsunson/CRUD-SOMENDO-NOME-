@@ -834,4 +834,52 @@ local BC = {
 	CAT = function(a, b, _, d) -- CAT A = B ~ D
 		assert(V[b].const and V[d].const, 'NYI: CAT only works on compile-time expressions')
 		assert(type(V[b].const) == 'string' and type(V[d].const) == 'string',
-			'
+			'NYI: CAT only works on compile-time strings')
+		vset(a, nil, V[b].const .. V[d].const)
+	end,
+	-- Tables
+	GGET = function (a, _, c, _) -- GGET (A = GLOBAL[c])
+		if env[c] ~= nil then
+			vset(a, nil, env[c])
+		else error(string.format("undefined global '%s'", c)) end
+	end,
+	UGET = function (a, _, c, _) -- UGET (A = UPVALUE[c])
+		if env[c] ~= nil then
+			vset(a, nil, env[c])
+		else error(string.format("undefined upvalue '%s'", c)) end
+	end,
+	TSETB = function (a, b, _, d) -- TSETB (B[D] = A)
+		assert(V[b] and type(V[b].const) == 'table', 'NYI: B[D] where B is not Lua table, BPF map, or pointer')
+		local vinfo = V[b].const
+		if vinfo.__map then -- BPF map read (constant)
+			return MAP_SET(b, nil, d, a) -- D is literal
+		elseif vinfo.__dissector then
+			assert(vinfo.__dissector, 'NYI: B[D] where B does not have a known element size')
+			local w = ffi.sizeof(vinfo.__dissector)
+			-- TODO: support vectorized moves larger than register width
+			assert(const_width[w], 'B[C] = A, sizeof(A) must be 1/2/4/8')
+			local src_reg, const = vscalar(a, w)
+			-- If changing map value, write to absolute address + offset
+			if V[b].source and V[b].source:find('ptr_to_map_value', 1, true) then
+				local dst_reg = vreg(b)
+				-- Optimization: immediate values (imm32) can be stored directly
+				if type(const) == 'number' then
+					emit(BPF.MEM + BPF.ST + const_width[w], dst_reg, 0, d, const)
+				else
+					emit(BPF.MEM + BPF.STX + const_width[w], dst_reg, src_reg, d, 0)
+				end
+			-- Table is already on stack, write to vinfo-relative address
+			elseif vinfo.__base then
+				-- Optimization: immediate values (imm32) can be stored directly
+				if type(const) == 'number' then
+					emit(BPF.MEM + BPF.ST + const_width[w], 10, 0, -vinfo.__base + (d * w), const)
+				else
+					emit(BPF.MEM + BPF.STX + const_width[w], 10, src_reg, -vinfo.__base + (d * w), 0)
+				end
+			else
+				error('NYI: B[D] where B is not Lua table, BPF map, or pointer')
+			end
+		elseif vinfo and vinfo and V[a].const then
+			vinfo[V[d].const] = V[a].const
+		else
+			error('NYI: B[D] where B is
