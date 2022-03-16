@@ -882,4 +882,47 @@ local BC = {
 		elseif vinfo and vinfo and V[a].const then
 			vinfo[V[d].const] = V[a].const
 		else
-			error('NYI: B[D] where B is
+			error('NYI: B[D] where B is not Lua table, BPF map, or pointer')
+		end
+	end,
+	TSETV = function (a, b, _, d) -- TSETV (B[D] = A)
+		assert(V[b] and type(V[b].const) == 'table', 'NYI: B[D] where B is not Lua table, BPF map, or pointer')
+		local vinfo = V[b].const
+		if vinfo.__map then -- BPF map read (constant)
+			return MAP_SET(b, d, nil, a) -- D is variable
+		elseif vinfo.__dissector then
+			assert(vinfo.__dissector, 'NYI: B[D] where B does not have a known element size')
+			local w = ffi.sizeof(vinfo.__dissector)
+			-- TODO: support vectorized moves larger than register width
+			assert(const_width[w], 'B[C] = A, sizeof(A) must be 1/2/4/8')
+			local src_reg, const = vscalar(a, w)
+			-- If changing map value, write to absolute address + offset
+			if V[b].source and V[b].source:find('ptr_to_map_value', 1, true) then
+				-- Calculate variable address from two registers
+				local tmp_var = stackslots + 1
+				vset(tmp_var, nil, d)
+				ALU_REG(tmp_var, tmp_var, b, 'ADD')
+				local dst_reg = vreg(tmp_var)
+				V[tmp_var].reg = nil -- Only temporary allocation
+				-- Optimization: immediate values (imm32) can be stored directly
+				if type(const) == 'number' and w < 8 then
+					emit(BPF.MEM + BPF.ST + const_width[w], dst_reg, 0, 0, const)
+				else
+					emit(BPF.MEM + BPF.STX + const_width[w], dst_reg, src_reg, 0, 0)
+				end
+			-- Table is already on stack, write to vinfo-relative address
+			elseif vinfo.__base then
+				-- Calculate variable address from two registers
+				local tmp_var = stackslots + 1
+				vcopy(tmp_var, d)                       -- Element position
+				if w > 1 then
+					ALU_IMM(tmp_var, tmp_var, w, 'MUL') -- multiply by element size
+				end
+				local dst_reg = vreg(tmp_var)           -- add R10 (stack pointer)
+				emit(BPF.ALU64 + BPF.ADD + BPF.X, dst_reg, 10, 0, 0)
+				V[tmp_var].reg = nil -- Only temporary allocation
+				-- Optimization: immediate values (imm32) can be stored directly
+				if type(const) == 'number' and w < 8 then
+					emit(BPF.MEM + BPF.ST + const_width[w], dst_reg, 0, -vinfo.__base, const)
+				else
+					emit(BPF.MEM + BPF.STX + const_width[w], dst_reg, src
