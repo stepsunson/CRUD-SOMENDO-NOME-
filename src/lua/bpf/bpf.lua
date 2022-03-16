@@ -925,4 +925,55 @@ local BC = {
 				if type(const) == 'number' and w < 8 then
 					emit(BPF.MEM + BPF.ST + const_width[w], dst_reg, 0, -vinfo.__base, const)
 				else
-					emit(BPF.MEM + BPF.STX + const_width[w], dst_reg, src
+					emit(BPF.MEM + BPF.STX + const_width[w], dst_reg, src_reg, -vinfo.__base, 0)
+				end
+			else
+				error('NYI: B[D] where B is not Lua table, BPF map, or pointer')
+			end
+		elseif vinfo and V[d].const and V[a].const then
+			vinfo[V[d].const] = V[a].const
+		else
+			error('NYI: B[D] where B is not Lua table, BPF map, or pointer')
+		end
+	end,
+	TSETS = function (a, b, c, _) -- TSETS (B[C] = A)
+		assert(V[b] and V[b].const, 'NYI: B[D] where B is not Lua table, BPF map, or pointer')
+		local base = V[b].const
+		if base.__dissector then
+			local ofs,bpos = ffi.offsetof(base.__dissector, c)
+			assert(not bpos, 'NYI: B[C] = A, where C is a bitfield')
+			local w = builtins.sizeofattr(base.__dissector, c)
+			-- TODO: support vectorized moves larger than register width
+			assert(const_width[w], 'B[C] = A, sizeof(A) must be 1/2/4/8')
+			local src_reg, const = vscalar(a, w)
+			-- If changing map value, write to absolute address + offset
+			if V[b].source and V[b].source:find('ptr_to_map_value', 1, true) then
+				local dst_reg = vreg(b)
+				-- Optimization: immediate values (imm32) can be stored directly
+				if type(const) == 'number' and w < 8 then
+					emit(BPF.MEM + BPF.ST + const_width[w], dst_reg, 0, ofs, const)
+				else
+					emit(BPF.MEM + BPF.STX + const_width[w], dst_reg, src_reg, ofs, 0)
+				end
+			-- Table is already on stack, write to base-relative address
+			elseif base.__base then
+				-- Optimization: immediate values (imm32) can be stored directly
+				if type(const) == 'number' and w < 8 then
+					emit(BPF.MEM + BPF.ST + const_width[w], 10, 0, -base.__base + ofs, const)
+				else
+					emit(BPF.MEM + BPF.STX + const_width[w], 10, src_reg, -base.__base + ofs, 0)
+				end
+			else
+				error('NYI: B[C] where B is not Lua table, BPF map, or pointer')
+			end
+		elseif V[a].const then
+			base[c] = V[a].const
+		else
+			error('NYI: B[C] where B is not Lua table, BPF map, or pointer')
+		end
+	end,
+	TGETB = function (a, b, _, d) -- TGETB (A = B[D])
+		local base = V[b].const
+		assert(type(base) == 'table', 'NYI: B[C] where C is string and B not Lua table or BPF map')
+		if a ~= b then vset(a) end
+		if base.__map then -- BPF map read (const
