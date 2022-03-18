@@ -976,4 +976,54 @@ local BC = {
 		local base = V[b].const
 		assert(type(base) == 'table', 'NYI: B[C] where C is string and B not Lua table or BPF map')
 		if a ~= b then vset(a) end
-		if base.__map then -- BPF map read (const
+		if base.__map then -- BPF map read (constant)
+			MAP_GET(a, b, nil, d)
+		-- Pointer access with a dissector (traditional uses BPF_LD, direct uses BPF_MEM)
+		elseif V[b].source and V[b].source:find('ptr_to_') then
+			local vtype = base.__dissector and base.__dissector or ffi.typeof('uint8_t')
+			LOAD(a, b, d, vtype)
+		-- Specialise PTR[0] as dereference operator
+		elseif cdef.isptr(V[b].type) and d == 0 then
+			vcopy(a, b)
+			local dst_reg = vreg(a)
+			vderef(dst_reg, dst_reg, V[a])
+			V[a].type = V[a].const.__dissector
+		else
+			error('NYI: A = B[D], where B is not Lua table or packet dissector or pointer dereference')
+		end
+	end,
+	TGETV = function (a, b, _, d) -- TGETV (A = B[D])
+		local base = V[b].const
+		assert(type(base) == 'table', 'NYI: B[C] where C is string and B not Lua table or BPF map')
+		if a ~= b then vset(a) end
+		if base.__map then -- BPF map read
+			MAP_GET(a, b, d)
+		-- Pointer access with a dissector (traditional uses BPF_LD, direct uses BPF_MEM)
+		elseif V[b].source and V[b].source:find('ptr_to_') then
+			local vtype = base.__dissector and base.__dissector or ffi.typeof('uint8_t')
+			LOAD(a, b, d, vtype)
+		-- Constant dereference
+		elseif type(V[d].const) == 'number' then
+			V[a].const = base[V[d].const]
+		else
+			error('NYI: A = B[D], where B is not Lua table or packet dissector or pointer dereference')
+		end
+	end,
+	TGETS = function (a, b, c, _) -- TGETS (A = B[C])
+		local base = V[b].const
+		assert(type(base) == 'table', 'NYI: B[C] where C is string and B not Lua table or BPF map')
+		if a ~= b then vset(a) end
+		if base.__dissector then
+			local ofs,bpos,bsize = ffi.offsetof(base.__dissector, c)
+			-- Resolve table key using metatable
+			if not ofs and type(base.__dissector[c]) == 'string' then
+				c = base.__dissector[c]
+				ofs,bpos,bsize = ffi.offsetof(base.__dissector, c)
+			end
+			if not ofs and proto[c] then -- Load new dissector on given offset
+				BUILTIN(proto[c], a, b, c)
+			else
+				-- Loading register from offset is a little bit tricky as there are
+				-- several data sources and value loading modes with different restrictions
+				-- such as checking pointer values for NULL compared to using stack.
+				as
