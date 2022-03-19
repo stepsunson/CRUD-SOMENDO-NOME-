@@ -1026,4 +1026,60 @@ local BC = {
 				-- Loading register from offset is a little bit tricky as there are
 				-- several data sources and value loading modes with different restrictions
 				-- such as checking pointer values for NULL compared to using stack.
-				as
+				assert(ofs, tostring(base.__dissector)..'.'..c..' attribute not exists')
+				if a ~= b then vset(a) end
+				-- Dissected value is probably not constant anymore
+				local new_const = nil
+				local w, atype = builtins.sizeofattr(base.__dissector, c)
+				-- [SP+K] addressing using R10 (stack pointer)
+				-- Doesn't need to be checked for NULL
+				if base.__base and base.__base > 0 then
+					if cdef.isptr(atype) then -- If the member is pointer type, update base pointer with offset
+						new_const = {__base = base.__base-ofs}
+					else
+						local dst_reg = vreg(a, nil, true)
+						emit(BPF.MEM + BPF.LDX + const_width[w], dst_reg, 10, -base.__base+ofs, 0)
+					end
+				-- Pointer access with a dissector (traditional uses BPF_LD, direct uses BPF_MEM)
+				elseif V[b].source and V[b].source:find('ptr_to_') then
+					LOAD(a, b, ofs, atype)
+				else
+					error('NYI: B[C] where B is not Lua table, BPF map, or pointer')
+				end
+				-- Bitfield, must be further narrowed with a bitmask/shift
+				if bpos then
+					local mask = 0
+					for i=bpos+1,bpos+bsize do
+						mask = bit.bor(mask, bit.lshift(1, w*8-i))
+					end
+					emit(BPF.ALU64 + BPF.AND + BPF.K, vreg(a), 0, 0, mask)
+					-- Free optimization: single-bit values need just boolean result
+					if bsize > 1 then
+						local shift = w*8-bsize-bpos
+						if shift > 0 then
+							emit(BPF.ALU64 + BPF.RSH + BPF.K, vreg(a), 0, 0, shift)
+						end
+					end
+				end
+				V[a].type = atype
+				V[a].const = new_const
+				V[a].source = V[b].source
+				-- Track direct access to skb data
+				-- see https://www.kernel.org/doc/Documentation/networking/filter.txt "Direct packet access"
+				if ffi.istype(base.__dissector, ffi.typeof('struct sk_buff')) then
+					-- Direct access to skb uses skb->data and skb->data_end
+					-- which are encoded as u32, but are actually pointers
+					if c == 'data' or c == 'data_end' then
+						V[a].const = {__dissector = ffi.typeof('uint8_t')}
+						V[a].source = 'ptr_to_skb'
+					end
+				end
+			end
+		else
+			V[a].const = base[c]
+		end
+	end,
+	-- Loops and branches
+	CALLM = function (a, b, _, d) -- A = A(A+1, ..., A+D+MULTRES)
+		-- NYI: Support single result only
+		CALL(a,
