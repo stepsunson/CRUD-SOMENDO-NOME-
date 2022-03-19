@@ -1197,4 +1197,69 @@ local BC = {
 		end
 		if V[a].reg ~= 0 then vreg(a, 0) end
 		-- Convenience: dereference pointer variables
-		-- e.g. 'return
+		-- e.g. 'return map[k]' will return actual map value, not pointer
+		if cdef.isptr(V[a].type) then
+			vderef(0, 0, V[a])
+		end
+		emit(BPF.JMP + BPF.EXIT, 0, 0, 0, 0)
+		code.reachable = false
+	end,
+	RET0 = function (_, _, _, _) -- RET0
+		emit(BPF.ALU64 + BPF.MOV + BPF.K, 0, 0, 0, 0)
+		emit(BPF.JMP + BPF.EXIT, 0, 0, 0, 0)
+		code.reachable = false
+	end,
+	compile = function ()
+		return code
+	end
+}
+
+-- Composite instructions
+function BC.CALLT(a, _, _, d) -- Tailcall: return A(A+1, ..., A+D-1)
+	CALL(a, 1, d)
+	BC.RET1(a)
+end
+
+-- Always initialize R6 with R1 context
+emit(BPF.ALU64 + BPF.MOV + BPF.X, 6, 1, 0, 0)
+-- Register R6 as context variable (first argument)
+if params and params > 0 then
+	vset(0, 6, param_types[1] or proto.skb)
+	assert(V[0].source == V[0].const.source) -- Propagate source annotation from typeinfo
+end
+-- Register tmpvars
+vset(stackslots)
+vset(stackslots+1)
+return setmetatable(BC, {
+	__index = function (_, k, _)
+		if type(k) == 'number' then
+			local op_str = string.sub(require('jit.vmdef').bcnames, 6*k+1, 6*k+6)
+			error(string.format("NYI: opcode '0x%02x' (%-04s)", k, op_str))
+		end
+	end,
+	__call = function (t, op, a, b, c, d)
+		code.bc_pc = code.bc_pc + 1
+		-- Exitting BB straight through, emit compensation code
+		if Vstate[code.bc_pc] then
+			if code.reachable then
+				-- Instruction is reachable from previous line
+				-- so we must make the variable allocation consistent
+				-- with the variable allocation at the jump source
+				-- e.g. 0001 x:R0 = 5
+				--      0002 if rand() then goto 0005
+				--      0003 x:R0 -> x:stack
+				--      0004 y:R0 = 5
+				--      0005 x:? = 10 <-- x was in R0 before jump, and stack after jump
+				bb_end(Vstate[code.bc_pc])
+			else
+				-- Instruction isn't reachable from previous line, restore variable layout
+				-- e.g. RET or condition-less JMP on previous line
+				V = table_copy(Vstate[code.bc_pc])
+			end
+		end
+		-- Perform fixup of jump targets
+		-- We need to do this because the number of consumed and emitted
+		-- bytecode instructions is different
+		local fixup = code.fixup[code.bc_pc]
+		if fixup ~= nil then
+			--
