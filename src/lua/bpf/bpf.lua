@@ -1082,4 +1082,60 @@ local BC = {
 	-- Loops and branches
 	CALLM = function (a, b, _, d) -- A = A(A+1, ..., A+D+MULTRES)
 		-- NYI: Support single result only
-		CALL(a,
+		CALL(a, b, d+2)
+	end,
+	CALL = function (a, b, _, d) -- A = A(A+1, ..., A+D-1)
+		CALL(a, b, d)
+	end,
+	JMP = function (a, _, c, _) -- JMP
+		-- Discard unused slots after jump
+		for i, _ in pairs(V) do
+			if i >= a and i < stackslots then
+				V[i] = nil
+			end
+		end
+		-- Cross basic block boundary if the jump target isn't provably unreachable
+		local val = code.fixup[c] or {}
+		if code.seen_cmp and code.seen_cmp ~= ALWAYS then
+			if code.seen_cmp ~= NEVER then -- Do not emit the jump or fixup
+				-- Store previous CMP insn for reemitting after compensation code
+				local jmpi = ffi.new('struct bpf_insn', code.insn[code.pc-1])
+				code.pc = code.pc - 1
+				-- First branch point, emit compensation code
+				local Vcomp = Vstate[c]
+				if not Vcomp then
+					-- Select scratch register (R0-5) that isn't used as operand
+					-- in the CMP instruction, as the variable may not be live, after
+					-- the JMP, but it may be used in the JMP+CMP instruction itself
+					local tmp_reg = 0
+					for reg = 0, 5 do
+						if reg ~= jmpi.dst_reg and reg ~= jmpi.src_reg then
+							tmp_reg = reg
+							break
+						end
+					end
+					-- Force materialization of constants at the end of BB
+					for i, v in pairs(V) do
+						if not v.reg and cdef.isimmconst(v) then
+							vreg(i, tmp_reg) -- Load to TMP register (not saved)
+							reg_spill(i) -- Spill caller-saved registers
+						end
+					end
+					-- Record variable state
+					Vstate[c] = V
+					Vcomp = V
+					V = table_copy(V)
+				-- Variable state already set, emit specific compensation code
+				else
+					bb_end(Vcomp)
+				end
+				-- Record pointer NULL check from condition
+				-- If the condition checks pointer variable against NULL,
+				-- we can assume it will not be NULL in the fall-through block
+				if code.seen_null_guard then
+					local var = code.seen_null_guard
+					-- The null guard can have two forms:
+					--   if x == nil then goto
+					--   if x ~= nil then goto
+					-- First form guarantees that the variable will be non-nil on the following instruction
+					-- Second form guarantees that the variable will be non-nil at the 
