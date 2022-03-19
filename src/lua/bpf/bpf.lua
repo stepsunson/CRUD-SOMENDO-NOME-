@@ -1138,4 +1138,63 @@ local BC = {
 					--   if x == nil then goto
 					--   if x ~= nil then goto
 					-- First form guarantees that the variable will be non-nil on the following instruction
-					-- Second form guarantees that the variable will be non-nil at the 
+					-- Second form guarantees that the variable will be non-nil at the jump target
+					local vinfo = code.seen_null_guard_inverse and Vcomp[var] or V[var]
+					if vinfo.source then
+						local pos = vinfo.source:find('_or_null', 1, true)
+						if pos then
+							vinfo.source = vinfo.source:sub(1, pos - 1)
+						end
+					end
+				end
+				-- Reemit CMP insn
+				emit(jmpi.code, jmpi.dst_reg, jmpi.src_reg, jmpi.off, jmpi.imm)
+				-- Fuse JMP into previous CMP opcode, mark JMP target for fixup
+				-- as we don't knot the relative offset in generated code yet
+				table.insert(val, code.pc-1)
+				code.fixup[c] = val
+			end
+			code.seen_cmp = nil
+			code.seen_null_guard = nil
+			code.seen_null_guard_inverse = nil
+		elseif c == code.bc_pc + 1 then -- luacheck: ignore 542
+			-- Eliminate jumps to next immediate instruction
+			-- e.g. 0002    JMP      1 => 0003
+		else
+			-- We need to synthesise a condition that's always true, however
+			-- BPF prohibits pointer arithmetic to prevent pointer leaks
+			-- so we have to clear out one register and use it for cmp that's always true
+			local dst_reg = reg_alloc(stackslots)
+			V[stackslots].reg = nil -- Only temporary allocation
+			-- First branch point, emit compensation code
+			local Vcomp = Vstate[c]
+			if not Vcomp then
+				-- Force materialization of constants at the end of BB
+				for i, v in pairs(V) do
+					if not v.reg and cdef.isimmconst(v) then
+						vreg(i, dst_reg) -- Load to TMP register (not saved)
+						reg_spill(i) -- Spill caller-saved registers
+					end
+				end
+				-- Record variable state
+				Vstate[c] = V
+				V = table_copy(V)
+			-- Variable state already set, emit specific compensation code
+			else
+				bb_end(Vcomp)
+			end
+			emit(BPF.ALU64 + BPF.MOV + BPF.K, dst_reg, 0, 0, 0)
+			emit(BPF.JMP + BPF.JEQ + BPF.K, dst_reg, 0, 0xffff, 0)
+			table.insert(val, code.pc-1) -- Fixup JMP target
+			code.reachable = false -- Code following the JMP is not reachable
+			code.fixup[c] = val
+		end
+	end,
+	RET1 = function (a, _, _, _) -- RET1
+		-- Free optimisation: spilled variable will not be filled again
+		for i, v in pairs(V) do
+			if i ~= a then v.reg = nil end
+		end
+		if V[a].reg ~= 0 then vreg(a, 0) end
+		-- Convenience: dereference pointer variables
+		-- e.g. 'return
