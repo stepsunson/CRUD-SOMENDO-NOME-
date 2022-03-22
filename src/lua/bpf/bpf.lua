@@ -1262,4 +1262,45 @@ return setmetatable(BC, {
 		-- bytecode instructions is different
 		local fixup = code.fixup[code.bc_pc]
 		if fixup ~= nil then
-			--
+			-- Patch JMP source insn with relative offset
+			for _,pc in ipairs(fixup) do
+				code.insn[pc].off = code.pc - 1 - pc
+			end
+			code.fixup[code.bc_pc] = nil
+			code.reachable = true
+		end
+		-- Execute
+		if code.reachable then
+			assert(t[op], string.format('NYI: instruction %s, parameters: %s,%s,%s,%s', op,a,b,c,d))
+			return t[op](a, b, c, d)
+		end
+	end,
+})
+end
+
+-- Emitted code dump
+local function dump_mem(cls, ins, _, fuse)
+	-- This is a very dense MEM instruction decoder without much explanation
+	-- Refer to https://www.kernel.org/doc/Documentation/networking/filter.txt for instruction format
+	local mode = bit.band(ins.code, 0xe0)
+	if mode == BPF.XADD then cls = 5 end -- The only mode
+	local op_1 = {'LD', 'LDX', 'ST', 'STX', '', 'XADD'}
+	local op_2 = {[0]='W', [8]='H', [16]='B', [24]='DW'}
+	local name = op_1[cls+1] .. op_2[bit.band(ins.code, 0x18)]
+	local off = tonumber(ffi.cast('int16_t', ins.off)) -- Reinterpret as signed
+	local dst = cls < 2 and 'R'..ins.dst_reg or string.format('[R%d%+d]', ins.dst_reg, off)
+	local src = cls % 2 == 0 and '#'..ins.imm or 'R'..ins.src_reg
+	if cls == BPF.LDX then src = string.format('[R%d%+d]', ins.src_reg, off) end
+	if mode == BPF.ABS then src = string.format('skb[%d]', ins.imm) end
+	if mode == BPF.IND then src = string.format('skb[R%d%+d]', ins.src_reg, ins.imm) end
+	return string.format('%s\t%s\t%s', fuse and '' or name, fuse and '' or dst, src)
+end
+
+local function dump_alu(cls, ins, pc)
+	local alu = {'ADD', 'SUB', 'MUL', 'DIV', 'OR', 'AND', 'LSH', 'RSH', 'NEG', 'MOD', 'XOR', 'MOV', 'ARSH', 'END' }
+	local jmp = {'JA', 'JEQ', 'JGT', 'JGE', 'JSET', 'JNE', 'JSGT', 'JSGE', 'CALL', 'EXIT'}
+	local helper = {'unspec', 'map_lookup_elem', 'map_update_elem', 'map_delete_elem', 'probe_read', 'ktime_get_ns',
+					'trace_printk', 'get_prandom_u32', 'get_smp_processor_id', 'skb_store_bytes',
+					'l3_csum_replace', 'l4_csum_replace', 'tail_call', 'clone_redirect', 'get_current_pid_tgid',
+					'get_current_uid_gid', 'get_current_comm', 'get_cgroup_classid', 'skb_vlan_push', 'skb_vlan_pop',
+					'skb_get_tunnel_key', 'skb_set_tunnel_key', 'perf_event_read', 'red
