@@ -1303,4 +1303,61 @@ local function dump_alu(cls, ins, pc)
 					'trace_printk', 'get_prandom_u32', 'get_smp_processor_id', 'skb_store_bytes',
 					'l3_csum_replace', 'l4_csum_replace', 'tail_call', 'clone_redirect', 'get_current_pid_tgid',
 					'get_current_uid_gid', 'get_current_comm', 'get_cgroup_classid', 'skb_vlan_push', 'skb_vlan_pop',
-					'skb_get_tunnel_key', 'skb_set_tunnel_key', 'perf_event_read', 'red
+					'skb_get_tunnel_key', 'skb_set_tunnel_key', 'perf_event_read', 'redirect', 'get_route_realm',
+					'perf_event_output', 'skb_load_bytes'}
+	local op = 0
+	-- This is a very dense ALU instruction decoder without much explanation
+	-- Refer to https://www.kernel.org/doc/Documentation/networking/filter.txt for instruction format
+	for i = 0,13 do if 0x10 * i == bit.band(ins.code, 0xf0) then op = i + 1 break end end
+	local name = (cls == 5) and jmp[op] or alu[op]
+	local src = (bit.band(ins.code, 0x08) == BPF.X) and 'R'..ins.src_reg or '#'..ins.imm
+	local target = (cls == 5 and op < 9) and string.format('\t=> %04d', pc + ins.off + 1) or ''
+	if cls == 5 and op == 9 then target = string.format('\t; %s', helper[ins.imm + 1] or tostring(ins.imm)) end
+	return string.format('%s\t%s\t%s%s', name, 'R'..ins.dst_reg, src, target)
+end
+
+local function dump_string(code, off, hide_counter)
+	if not code then return end
+	local cls_map = {
+		[0] = dump_mem, [1] = dump_mem, [2] = dump_mem, [3] = dump_mem,
+		[4] = dump_alu, [5] = dump_alu, [7] = dump_alu,
+	}
+	local result = {}
+	local fused = false
+	for i = off or 0, code.pc - 1 do
+		local ins = code.insn[i]
+		local cls = bit.band(ins.code, 0x07)
+		local line = cls_map[cls](cls, ins, i, fused)
+		if hide_counter then
+			table.insert(result, line)
+		else
+			table.insert(result, string.format('%04u\t%s', i, line))
+		end
+		fused = string.find(line, 'LDDW', 1)
+	end
+	return table.concat(result, '\n')
+end
+
+local function dump(code)
+	if not code then return end
+	print(string.format('-- BPF %s:0-%u', code.insn, code.pc))
+	print(dump_string(code))
+end
+
+local function compile(prog, params)
+	-- Create code emitter sandbox, include caller locals
+	local env = { pkt=proto.pkt, eth=proto.pkt, BPF=BPF, ffi=ffi }
+	-- Include upvalues up to 4 nested scopes back
+	-- the narrower scope overrides broader scope
+	for k = 5, 2, -1 do
+		local i = 1
+		while true do
+			local ok, n, v = pcall(debug.getlocal, k, i)
+			if not ok or not n then break end
+			env[n] = v
+			i = i + 1
+		end
+	end
+	setmetatable(env, {
+		__index = function (_, k)
+			return proto[k] or builtins[k] or _G[k
