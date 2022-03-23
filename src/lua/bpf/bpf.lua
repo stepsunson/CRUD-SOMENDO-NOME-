@@ -1360,4 +1360,71 @@ local function compile(prog, params)
 	end
 	setmetatable(env, {
 		__index = function (_, k)
-			return proto[k] or builtins[k] or _G[k
+			return proto[k] or builtins[k] or _G[k]
+		end
+	})
+	-- Create code emitter and compile LuaJIT bytecode
+	if type(prog) == 'string' then prog = loadstring(prog) end
+	-- Create error handler to print traceback
+	local funci, pc = bytecode.funcinfo(prog), 0
+	local E = create_emitter(env, funci.stackslots, funci.params, params or {})
+	local on_err = function (e)
+			funci = bytecode.funcinfo(prog, pc)
+			local from, to = 0, 0
+			for _ = 1, funci.currentline do
+				from = to
+				to = string.find(funci.source, '\n', from+1, true) or 0
+			end
+			print(funci.loc..':'..string.sub(funci.source, from+1, to-1))
+			print('error: '..e)
+			print(debug.traceback())
+	end
+	for _,op,a,b,c,d in bytecode.decoder(prog) do
+		local ok, _, err = xpcall(E,on_err,op,a,b,c,d)
+		if not ok then
+			return nil, err
+		end
+	end
+	return E:compile()
+end
+
+-- BPF map interface
+local bpf_map_mt = {
+	__gc = function (map) S.close(map.fd) end,
+	__len = function(map) return map.max_entries end,
+	__index = function (map, k)
+		if type(k) == 'string' then
+			-- Return iterator
+			if k == 'pairs' then
+				return function(t, key)
+					-- Get next key
+					local next_key = ffi.new(ffi.typeof(t.key))
+					local cur_key
+					if key then
+						cur_key = t.key
+						t.key[0] = key
+					else
+						cur_key = ffi.new(ffi.typeof(t.key))
+					end
+					local ok, err = S.bpf_map_op(S.c.BPF_CMD.MAP_GET_NEXT_KEY, map.fd, cur_key, next_key)
+					if not ok then return nil, err end
+					-- Get next value
+					assert(S.bpf_map_op(S.c.BPF_CMD.MAP_LOOKUP_ELEM, map.fd, next_key, map.val))
+					return next_key[0], map.val[0]
+				end, map, nil
+			-- Read for perf event map
+			elseif k == 'reader' then
+				return function (pmap, pid, cpu, event_type)
+					-- Caller must either specify PID or CPU
+					if not pid or pid < 0 then
+						assert((cpu and cpu >= 0), 'NYI: creating composed reader for all CPUs')
+						pid = -1
+					end
+					-- Create BPF output reader
+					local pe = S.t.perf_event_attr1()
+					pe[0].type = 'software'
+					pe[0].config = 'sw_bpf_output'
+					pe[0].sample_type = 'raw'
+					pe[0].sample_period = 1
+					pe[0].wakeup_events = 1
+					local reader, err = S.t.perf_reader(S.perf_event_open(pe, pid, 
