@@ -1427,4 +1427,67 @@ local bpf_map_mt = {
 					pe[0].sample_type = 'raw'
 					pe[0].sample_period = 1
 					pe[0].wakeup_events = 1
-					local reader, err = S.t.perf_reader(S.perf_event_open(pe, pid, 
+					local reader, err = S.t.perf_reader(S.perf_event_open(pe, pid, cpu or -1))
+					if not reader then return nil, tostring(err) end
+					-- Register event reader fd in BPF map
+					assert(cpu < pmap.max_entries, string.format('BPF map smaller than read CPU %d', cpu))
+					pmap[cpu] = reader.fd
+					-- Open memory map and start reading
+					local ok, err = reader:start()
+					assert(ok, tostring(err))
+					ok, err = reader:mmap()
+					assert(ok, tostring(err))
+					return cdef.event_reader(reader, event_type)
+				end
+			-- Signalise this is a map type
+			end
+			return k == '__map'
+		end
+		-- Retrieve key
+		map.key[0] = k
+		local ok, err = S.bpf_map_op(S.c.BPF_CMD.MAP_LOOKUP_ELEM, map.fd, map.key, map.val)
+		if not ok then return nil, err end
+		return ffi.new(map.val_type, map.val[0])
+	end,
+	__newindex = function (map, k, v)
+		map.key[0] = k
+		if v == nil then
+			return S.bpf_map_op(map.fd, S.c.BPF_CMD.MAP_DELETE_ELEM, map.key, nil)
+		end
+		map.val[0] = v
+		return S.bpf_map_op(S.c.BPF_CMD.MAP_UPDATE_ELEM, map.fd, map.key, map.val)
+	end,
+}
+
+-- Linux tracing interface
+local function trace_check_enabled(path)
+	path = path or '/sys/kernel/debug/tracing'
+	if S.statfs(path) then return true end
+	return nil, 'debugfs not accessible: "mount -t debugfs nodev /sys/kernel/debug"? missing sudo?'
+end
+
+-- Tracepoint interface
+local tracepoint_mt = {
+	__index = {
+		bpf = function (t, prog)
+			if type(prog) ~= 'table' then
+				-- Create protocol parser with source probe
+				prog = compile(prog, {proto.type(t.type, {source='ptr_to_probe'})})
+			end
+			-- Load the BPF program
+			local prog_fd, err, log = S.bpf_prog_load(S.c.BPF_PROG.TRACEPOINT, prog.insn, prog.pc)
+			assert(prog_fd, tostring(err)..': '..tostring(log))
+			-- Open tracepoint and attach
+			t.reader:setbpf(prog_fd:getfd())
+			table.insert(t.progs, prog_fd)
+			return prog_fd
+		end,
+	}
+}
+-- Open tracepoint
+local function tracepoint_open(path, pid, cpu, group_fd)
+	-- Open tracepoint and compile tracepoint type
+	local tp = assert(S.perf_tracepoint('/sys/kernel/debug/tracing/events/'..path))
+	local tp_type = assert(cdef.tracepoint_type(path))
+	-- Open tracepoint reader and create interface
+	local reade
