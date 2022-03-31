@@ -1607,4 +1607,24 @@ return setmetatable({
 		-- Translate symbol to address
 		local obj, sym_want = tp:match('([^:]+):(.+)')
 		if not S.statfs(obj) then return nil, S.t.error(S.c.E.NOENT) end
-		-- R
+		-- Resolve Elf object (no support for anything else)
+		local elf = require('bpf.elf').open(obj)
+		local sym = elf:resolve(sym_want)
+		if not sym then return nil, 'no such symbol' end
+		sym = sym.st_value - elf:loadaddr()
+		local sym_addr = string.format('%x%04x', tonumber(bit.rshift(sym, 32)),
+		                                         tonumber(ffi.cast('uint32_t', sym)))
+		-- Convert it to expected uprobe format
+		local pname = string.format('%s_%s', obj:gsub('.*/', ''), sym_addr)
+		local pdef = obj..':0x'..sym_addr
+		return trace_bpf('uprobe', pname, pdef, retprobe, prog, pid, cpu, group_fd)
+	end,
+	tracelog = function(path)
+		assert(trace_check_enabled())
+		path = path or '/sys/kernel/debug/tracing/trace_pipe'
+		return io.open(path, 'r')
+	end,
+	ntoh = builtins.ntoh, hton = builtins.hton,
+}, {
+	__call = function (_, prog) return compile(prog) end,
+})
