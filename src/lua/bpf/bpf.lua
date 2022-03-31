@@ -1490,4 +1490,64 @@ local function tracepoint_open(path, pid, cpu, group_fd)
 	local tp = assert(S.perf_tracepoint('/sys/kernel/debug/tracing/events/'..path))
 	local tp_type = assert(cdef.tracepoint_type(path))
 	-- Open tracepoint reader and create interface
-	local reade
+	local reader = assert(S.perf_attach_tracepoint(tp, pid, cpu, group_fd))
+	return setmetatable({tp=tp,type=tp_type,reader=reader,progs={}}, tracepoint_mt)
+end
+
+local function trace_bpf(ptype, pname, pdef, retprobe, prog, pid, cpu, group_fd)
+	-- Load BPF program
+	if type(prog) ~= 'table' then
+		prog = compile(prog, {proto.pt_regs})
+	end
+	local prog_fd, err, log = S.bpf_prog_load(S.c.BPF_PROG.KPROBE, prog.insn, prog.pc)
+	assert(prog_fd, tostring(err)..': '..tostring(log))
+	-- Open tracepoint and attach
+	local tp, err = S.perf_probe(ptype, pname, pdef, retprobe)
+	if not tp then
+		prog_fd:close()
+		return nil, tostring(err)
+	end
+	local reader, err = S.perf_attach_tracepoint(tp, pid, cpu, group_fd, {sample_type='raw, callchain'})
+	if not reader then
+		prog_fd:close()
+		S.perf_probe(ptype, pname, false)
+		return nil, tostring(err)
+	end
+	local ok, err = reader:setbpf(prog_fd:getfd())
+	if not ok then
+		prog_fd:close()
+		reader:close()
+		S.perf_probe(ptype, pname, false)
+		return nil, tostring(err)..' (kernel version should be at least 4.1)'
+	end
+	-- Create GC closure for reader to close BPF program
+	-- and detach probe in correct order
+	ffi.gc(reader, function ()
+		prog_fd:close()
+		reader:close()
+		S.perf_probe(ptype, pname, false)
+	end)
+	return {reader=reader, prog=prog_fd, probe=pname, probe_type=ptype}
+end
+
+-- Module interface
+return setmetatable({
+	new = create_emitter,
+	dump = dump,
+	dump_string = dump_string,
+	maps = {},
+	map = function (type, max_entries, key_ctype, val_ctype)
+		if not key_ctype then key_ctype = ffi.typeof('uint32_t') end
+		if not val_ctype then val_ctype = ffi.typeof('uint32_t') end
+		if not max_entries then max_entries = 4096 end
+		-- Special case for BPF_MAP_STACK_TRACE
+		if S.c.BPF_MAP[type] == S.c.BPF_MAP.STACK_TRACE then
+			key_ctype = ffi.typeof('int32_t')
+			val_ctype = ffi.typeof('struct bpf_stacktrace')
+		end
+		local fd, err = S.bpf_map_create(S.c.BPF_MAP[type], ffi.sizeof(key_ctype), ffi.sizeof(val_ctype), max_entries)
+		if not fd then return nil, tostring(err) end
+		local map = setmetatable({
+			max_entries = max_entries,
+			key = ffi.new(ffi.typeof('$ [1]', key_ctype)),
+		
