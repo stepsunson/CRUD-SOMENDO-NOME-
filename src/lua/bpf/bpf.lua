@@ -1550,4 +1550,61 @@ return setmetatable({
 		local map = setmetatable({
 			max_entries = max_entries,
 			key = ffi.new(ffi.typeof('$ [1]', key_ctype)),
-		
+			val = ffi.new(ffi.typeof('$ [1]', val_ctype)),
+			map_type = S.c.BPF_MAP[type],
+			key_type = key_ctype,
+			val_type = val_ctype,
+			fd = fd:nogc():getfd(),
+		}, bpf_map_mt)
+		return map
+	end,
+	socket = function (sock, prog)
+		-- Expect socket type, if sock is string then assume it's
+		-- an interface name (e.g. 'lo'), if it's a number then typecast it as a socket
+		local ok, err
+		if type(sock) == 'string' then
+			local iface = assert(S.nl.getlink())[sock]
+			assert(iface, sock..' is not interface name')
+			sock, err = S.socket('packet', 'raw')
+			assert(sock, tostring(err))
+			ok, err = sock:bind(S.t.sockaddr_ll({protocol='all', ifindex=iface.index}))
+			assert(ok, tostring(err))
+		elseif type(sock) == 'number' then
+			sock = S.t.fd(sock):nogc()
+		elseif ffi.istype(S.t.fd, sock) then -- luacheck: ignore
+			-- No cast required
+		else
+			return nil, 'socket must either be an fd number, an interface name, or an ljsyscall socket'
+		end
+		-- Load program and attach it to socket
+		if type(prog) ~= 'table' then
+			prog = compile(prog, {proto.skb})
+		end
+		local prog_fd, err, log = S.bpf_prog_load(S.c.BPF_PROG.SOCKET_FILTER, prog.insn, prog.pc)
+		assert(prog_fd, tostring(err)..': '..tostring(log))
+		assert(sock:setsockopt('socket', 'attach_bpf', prog_fd:getfd()))
+		return prog_fd, err
+	end,
+	tracepoint = function(tp, prog, pid, cpu, group_fd)
+		assert(trace_check_enabled())
+		-- Return tracepoint instance if no program specified
+		-- this allows free specialisation of arg0 to tracepoint type
+		local probe = tracepoint_open(tp, pid, cpu, group_fd)
+		-- Load the BPF program
+		if prog then
+			probe:bpf(prog)
+		end
+		return probe
+	end,
+	kprobe = function(tp, prog, retprobe, pid, cpu, group_fd)
+		assert(trace_check_enabled())
+		-- Open tracepoint and attach
+		local pname, pdef = tp:match('([^:]+):(.+)')
+		return trace_bpf('kprobe', pname, pdef, retprobe, prog, pid, cpu, group_fd)
+	end,
+	uprobe = function(tp, prog, retprobe, pid, cpu, group_fd)
+		assert(trace_check_enabled())
+		-- Translate symbol to address
+		local obj, sym_want = tp:match('([^:]+):(.+)')
+		if not S.statfs(obj) then return nil, S.t.error(S.c.E.NOENT) end
+		-- R
