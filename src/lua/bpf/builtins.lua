@@ -93,4 +93,56 @@ if ffi.abi('be') then
 	end
 	hton = ntoh
 	builtins[ntoh] = function(_, _, _) return end
-	builtins[hton] = functi
+	builtins[hton] = function(_, _, _) return end
+end
+-- Other built-ins
+local function xadd() error('NYI') end
+builtins.xadd = xadd
+builtins[xadd] = function (e, ret, a, b, off)
+	local vinfo = e.V[a].const
+	assert(vinfo and vinfo.__dissector, 'xadd(a, b[, offset]) called on non-pointer')
+	local w = ffi.sizeof(vinfo.__dissector)
+	-- Calculate structure attribute offsets
+	if e.V[off] and type(e.V[off].const) == 'string' then
+		local ct, field = vinfo.__dissector, e.V[off].const
+		off = ffi.offsetof(ct, field)
+		assert(off, 'xadd(a, b, offset) - offset is not valid in given structure')
+		w = sizeofattr(ct, field)
+	end
+	assert(w == 4 or w == 8, 'NYI: xadd() - 1 and 2 byte atomic increments are not supported')
+	-- Allocate registers and execute
+	local src_reg = e.vreg(b)
+	local dst_reg = e.vreg(a)
+	-- Set variable for return value and call
+	e.vset(ret)
+	e.vreg(ret, 0, true, ffi.typeof('int32_t'))
+	-- Optimize the NULL check away if provably not NULL
+	if not e.V[a].source or e.V[a].source:find('_or_null', 1, true) then
+		e.emit(BPF.JMP + BPF.JEQ + BPF.K, dst_reg, 0, 1, 0) -- if (dst != NULL)
+	end
+	e.emit(BPF.XADD + BPF.STX + const_width[w], dst_reg, src_reg, off or 0, 0)
+end
+
+local function probe_read() error('NYI') end
+builtins.probe_read = probe_read
+builtins[probe_read] = function (e, ret, dst, src, vtype, ofs)
+	e.reg_alloc(e.tmpvar, 1)
+	-- Load stack pointer to dst, since only load to stack memory is supported
+	-- we have to use allocated stack memory or create a new allocation and convert
+	-- to pointer type
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.X, 1, 10, 0, 0)
+	if not e.V[dst].const or not e.V[dst].const.__base > 0 then
+		builtins[ffi.new](e, dst, vtype) -- Allocate stack memory
+	end
+	e.emit(BPF.ALU64 + BPF.ADD + BPF.K, 1, 0, 0, -e.V[dst].const.__base)
+	-- Set stack memory maximum size bound
+	e.reg_alloc(e.tmpvar, 2)
+	if not vtype then
+		vtype = cdef.typename(e.V[dst].type)
+		-- Dereference pointer type to pointed type for size calculation
+		if vtype:sub(-1) == '*' then vtype = vtype:sub(0, -2) end
+	end
+	local w = ffi.sizeof(vtype)
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.K, 2, 0, 0, w)
+	-- Set source pointer
+	if e.V[src
