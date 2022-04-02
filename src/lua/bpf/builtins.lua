@@ -31,4 +31,66 @@ local builtins = {
 	[bit.lshift]  = 'LSH',
 	[bit.rshift]  = 'RSH',
 	[bit.band]    = 'AND',
-	[bit.bnot]    = 
+	[bit.bnot]    = 'NEG',
+	[bit.bor]     = 'OR',
+	[bit.bxor]    = 'XOR',
+	[bit.arshift] = 'ARSH',
+	-- Extensions and intrinsics
+}
+
+local function width_type(w)
+	-- Note: ffi.typeof doesn't accept '?' as template
+	return const_width_type[w] or ffi.typeof(string.format('uint8_t [%d]', w))
+end
+builtins.width_type = width_type
+
+-- Return struct member size/type (requires LuaJIT 2.1+)
+-- I am ashamed that there's no easier way around it.
+local function sizeofattr(ct, name)
+	if not ffi.typeinfo then error('LuaJIT 2.1+ is required for ffi.typeinfo') end
+	local cinfo = ffi.typeinfo(ct)
+	while true do
+		cinfo = ffi.typeinfo(cinfo.sib)
+		if not cinfo then return end
+		if cinfo.name == name then break end
+	end
+	local size = math.max(1, ffi.typeinfo(cinfo.sib or ct).size - cinfo.size)
+	-- Guess type name
+	return size, builtins.width_type(size)
+end
+builtins.sizeofattr = sizeofattr
+
+-- Byte-order conversions for little endian
+local function ntoh(x, w)
+	if w then x = ffi.cast(const_width_type[w/8], x) end
+	return bit.bswap(x)
+end
+local function hton(x, w) return ntoh(x, w) end
+builtins.ntoh = ntoh
+builtins.hton = hton
+builtins[ntoh] = function (e, dst, a, w)
+	-- This is trickery, but TO_LE means cpu_to_le(),
+	-- and we want exactly the opposite as network is always 'be'
+	w = w or ffi.sizeof(e.V[a].type)*8
+	if w == 8 then return end -- NOOP
+	assert(w <= 64, 'NYI: hton(a[, width]) - operand larger than register width')
+	-- Allocate registers and execute
+	e.vcopy(dst, a)
+	e.emit(BPF.ALU + BPF.END + BPF.TO_BE, e.vreg(dst), 0, 0, w)
+end
+builtins[hton] = function (e, dst, a, w)
+	w = w or ffi.sizeof(e.V[a].type)*8
+	if w == 8 then return end -- NOOP
+	assert(w <= 64, 'NYI: hton(a[, width]) - operand larger than register width')
+	-- Allocate registers and execute
+	e.vcopy(dst, a)
+	e.emit(BPF.ALU + BPF.END + BPF.TO_LE, e.vreg(dst), 0, 0, w)
+end
+-- Byte-order conversions for big endian are no-ops
+if ffi.abi('be') then
+	ntoh = function (x, w)
+		return w and ffi.cast(const_width_type[w/8], x) or x
+	end
+	hton = ntoh
+	builtins[ntoh] = function(_, _, _) return end
+	builtins[hton] = functi
