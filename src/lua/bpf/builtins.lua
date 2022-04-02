@@ -145,4 +145,58 @@ builtins[probe_read] = function (e, ret, dst, src, vtype, ofs)
 	local w = ffi.sizeof(vtype)
 	e.emit(BPF.ALU64 + BPF.MOV + BPF.K, 2, 0, 0, w)
 	-- Set source pointer
-	if e.V[src
+	if e.V[src].reg then
+		e.reg_alloc(e.tmpvar, 3) -- Copy from original register
+		e.emit(BPF.ALU64 + BPF.MOV + BPF.X, 3, e.V[src].reg, 0, 0)
+	else
+		e.vreg(src, 3)
+		e.reg_spill(src) -- Spill to avoid overwriting
+	end
+	if ofs and ofs > 0 then
+		e.emit(BPF.ALU64 + BPF.ADD + BPF.K, 3, 0, 0, ofs)
+	end
+	-- Call probe read helper
+	ret = ret or e.tmpvar
+	e.vset(ret)
+	e.vreg(ret, 0, true, ffi.typeof('int32_t'))
+	e.emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.probe_read)
+	e.V[e.tmpvar].reg = nil  -- Free temporary registers
+end
+
+builtins[ffi.cast] = function (e, dst, ct, x)
+	assert(e.V[ct].const, 'ffi.cast(ctype, x) called with bad ctype')
+	e.vcopy(dst, x)
+	if e.V[x].const and type(e.V[x].const) == 'table' then
+		e.V[dst].const.__dissector = ffi.typeof(e.V[ct].const)
+	end
+	e.V[dst].type = ffi.typeof(e.V[ct].const)
+	-- Specific types also encode source of the data
+	-- This is because BPF has different helpers for reading
+	-- different data sources, so variables must track origins.
+	-- struct pt_regs - source of the data is probe
+	-- struct skb     - source of the data is socket buffer
+	-- struct X       - source of the data is probe/tracepoint
+	if ffi.typeof(e.V[ct].const) == ffi.typeof('struct pt_regs') then
+		e.V[dst].source = 'ptr_to_probe'
+	end
+end
+
+builtins[ffi.new] = function (e, dst, ct, x)
+	if type(ct) == 'number' then
+		ct = ffi.typeof(e.V[ct].const) -- Get ctype from variable
+	end
+	assert(not x, 'NYI: ffi.new(ctype, ...) - initializer is not supported')
+	assert(not cdef.isptr(ct, true), 'NYI: ffi.new(ctype, ...) - ctype MUST NOT be a pointer')
+	e.vset(dst, nil, ct)
+	e.V[dst].source = 'ptr_to_stack'
+	e.V[dst].const = {__base = e.valloc(ffi.sizeof(ct), true), __dissector = ct}
+	-- Set array dissector if created an array
+	-- e.g. if ct is 'char [2]', then dissector is 'char'
+	local elem_type = tostring(ct):match('ctype<(.+)%s%[(%d+)%]>')
+	if elem_type then
+		e.V[dst].const.__dissector = ffi.typeof(elem_type)
+	end
+end
+
+builtins[ffi.copy] = function (e, ret, dst, src)
+	assert(cdef.isptr(e.V[dst].type), 'ffi.copy(dst, src) - dst MUST be a pointer ty
