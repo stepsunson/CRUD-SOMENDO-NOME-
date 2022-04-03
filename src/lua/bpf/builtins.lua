@@ -199,4 +199,48 @@ builtins[ffi.new] = function (e, dst, ct, x)
 end
 
 builtins[ffi.copy] = function (e, ret, dst, src)
-	assert(cdef.isptr(e.V[dst].type), 'ffi.copy(dst, src) - dst MUST be a pointer ty
+	assert(cdef.isptr(e.V[dst].type), 'ffi.copy(dst, src) - dst MUST be a pointer type')
+	assert(cdef.isptr(e.V[src].type), 'ffi.copy(dst, src) - src MUST be a pointer type')
+	-- Specific types also encode source of the data
+	-- struct pt_regs - source of the data is probe
+	-- struct skb     - source of the data is socket buffer
+	if e.V[src].source and e.V[src].source:find('ptr_to_probe', 1, true) then
+		e.reg_alloc(e.tmpvar, 1)
+		-- Load stack pointer to dst, since only load to stack memory is supported
+		-- we have to either use spilled variable or allocated stack memory offset
+		e.emit(BPF.ALU64 + BPF.MOV + BPF.X, 1, 10, 0, 0)
+		if e.V[dst].spill then
+			e.emit(BPF.ALU64 + BPF.ADD + BPF.K, 1, 0, 0, -e.V[dst].spill)
+		elseif e.V[dst].const.__base then
+			e.emit(BPF.ALU64 + BPF.ADD + BPF.K, 1, 0, 0, -e.V[dst].const.__base)
+		else error('ffi.copy(dst, src) - can\'t get stack offset of dst') end
+		-- Set stack memory maximum size bound
+		local dst_tname = cdef.typename(e.V[dst].type)
+		if dst_tname:sub(-1) == '*' then dst_tname = dst_tname:sub(0, -2) end
+		e.reg_alloc(e.tmpvar, 2)
+		e.emit(BPF.ALU64 + BPF.MOV + BPF.K, 2, 0, 0, ffi.sizeof(dst_tname))
+		-- Set source pointer
+		if e.V[src].reg then
+			e.reg_alloc(e.tmpvar, 3) -- Copy from original register
+			e.emit(BPF.ALU64 + BPF.MOV + BPF.X, 3, e.V[src].reg, 0, 0)
+		else
+			e.vreg(src, 3)
+			e.reg_spill(src) -- Spill to avoid overwriting
+		end
+		-- Call probe read helper
+		e.vset(ret)
+		e.vreg(ret, 0, true, ffi.typeof('int32_t'))
+		e.emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.probe_read)
+		e.V[e.tmpvar].reg = nil  -- Free temporary registers
+	elseif e.V[src].const and e.V[src].const.__map then
+		error('NYI: ffi.copy(dst, src) - src is backed by BPF map')
+	elseif e.V[src].const and e.V[src].const.__dissector then
+		error('NYI: ffi.copy(dst, src) - src is backed by socket buffer')
+	else
+		-- TODO: identify cheap register move
+		-- TODO: identify copy to/from stack
+		error('NYI: ffi.copy(dst, src) - src is neither BPF map/socket buffer or probe')
+	end
+end
+-- print(format, ...) builtin changes semantics from Lua print(...)
+-- the first parameter has to be format a
