@@ -243,4 +243,54 @@ builtins[ffi.copy] = function (e, ret, dst, src)
 	end
 end
 -- print(format, ...) builtin changes semantics from Lua print(...)
--- the first parameter has to be format a
+-- the first parameter has to be format and only reduced set of conversion specificers
+-- is allowed: %d %u %x %ld %lu %lx %lld %llu %llx %p %s
+builtins[print] = function (e, ret, fmt, a1, a2, a3)
+	-- Load format string and length
+	e.reg_alloc(e.V[e.tmpvar], 1)
+	e.reg_alloc(e.V[e.tmpvar+1], 1)
+	if type(e.V[fmt].const) == 'string' then
+		local src = e.V[fmt].const
+		local len = #src + 1
+		local dst = e.valloc(len, src)
+		-- TODO: this is materialize step
+		e.V[fmt].const = {__base=dst}
+		e.V[fmt].type = ffi.typeof('char ['..len..']')
+	elseif e.V[fmt].const.__base then -- luacheck: ignore
+		-- NOP
+	else error('NYI: print(fmt, ...) - format variable is not literal/stack memory') end
+	-- Prepare helper call
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.X, 1, 10, 0, 0)
+	e.emit(BPF.ALU64 + BPF.ADD + BPF.K, 1, 0, 0, -e.V[fmt].const.__base)
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.K, 2, 0, 0, ffi.sizeof(e.V[fmt].type))
+	if a1 then
+		local args = {a1, a2, a3}
+		assert(#args <= 3, 'print(fmt, ...) - maximum of 3 arguments supported')
+		for i, arg in ipairs(args) do
+			e.vcopy(e.tmpvar, arg)  -- Copy variable
+			e.vreg(e.tmpvar, 3+i-1) -- Materialize it in arg register
+		end
+	end
+	-- Call helper
+	e.vset(ret)
+	e.vreg(ret, 0, true, ffi.typeof('int32_t')) -- Return is integer
+	e.emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.trace_printk)
+	e.V[e.tmpvar].reg = nil  -- Free temporary registers
+end
+
+-- Implements bpf_perf_event_output(ctx, map, flags, var, vlen) on perf event map
+local function perf_submit(e, dst, map_var, src)
+	-- Set R2 = map fd (indirect load)
+	local map = e.V[map_var].const
+	e.vcopy(e.tmpvar, map_var)
+	e.vreg(e.tmpvar, 2, true, ffi.typeof('uint64_t'))
+	e.LD_IMM_X(2, BPF.PSEUDO_MAP_FD, map.fd, ffi.sizeof('uint64_t'))
+	-- Set R1 = ctx
+	e.reg_alloc(e.tmpvar, 1) -- Spill anything in R1 (unnamed tmp variable)
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.X, 1, 6, 0, 0) -- CTX is always in R6, copy
+	-- Set R3 = flags
+	e.vset(e.tmpvar, nil, 0) -- BPF_F_CURRENT_CPU
+	e.vreg(e.tmpvar, 3, false, ffi.typeof('uint64_t'))
+	-- Set R4 = pointer to src on stack
+	assert(e.V[src].const.__base, 'NYI: submit(map, var) - variable is not on stack')
+	e.em
