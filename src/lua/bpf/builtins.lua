@@ -343,4 +343,54 @@ local function stack_id(e, ret, map_var, key)
 	-- Return R0 as signed integer
 	e.vset(ret)
 	e.vreg(ret, 0, true, ffi.typeof('int32_t'))
-	
+	e.emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.get_stackid)
+	e.V[e.tmpvar].reg = nil  -- Free temporary registers
+end
+
+-- table.insert(table, value) keeps semantics with the exception of BPF maps
+-- map `perf_event` -> submit inserted value
+builtins[table.insert] = function (e, dst, map_var, value)
+	assert(e.V[map_var].const.__map, 'NYI: table.insert() supported only on BPF maps')
+	return perf_submit(e, dst, map_var, value)
+end
+
+-- bpf_get_current_comm(buffer) - write current process name to byte buffer
+local function comm() error('NYI') end
+builtins[comm] = function (e, ret, dst)
+	-- Set R1 = buffer
+	assert(e.V[dst].const.__base, 'NYI: comm(buffer) - buffer variable is not on stack')
+	e.reg_alloc(e.tmpvar, 1) -- Spill
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.X, 1, 10, 0, 0)
+	e.emit(BPF.ALU64 + BPF.ADD + BPF.K, 1, 0, 0, -e.V[dst].const.__base)
+	-- Set R2 = length
+	e.reg_alloc(e.tmpvar, 2) -- Spill
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.K, 2, 0, 0, ffi.sizeof(e.V[dst].type))
+	-- Return is integer
+	e.vset(ret)
+	e.vreg(ret, 0, true, ffi.typeof('int32_t'))
+	e.emit(BPF.JMP + BPF.CALL, 0, 0, 0, HELPER.get_current_comm)
+	e.V[e.tmpvar].reg = nil  -- Free temporary registers
+end
+
+-- Math library built-ins
+math.log2 = function () error('NYI') end
+builtins[math.log2] = function (e, dst, x)
+	-- Classic integer bits subdivison algorithm to find the position
+	-- of the highest bit set, adapted for BPF bytecode-friendly operations.
+	-- https://graphics.stanford.edu/~seander/bithacks.html
+	-- r = 0
+	local r = e.vreg(dst, nil, true)
+	e.emit(BPF.ALU64 + BPF.MOV + BPF.K, r, 0, 0, 0)
+	-- v = x
+	e.vcopy(e.tmpvar, x)
+	local v = e.vreg(e.tmpvar, 2)
+	if cdef.isptr(e.V[x].const) then -- No pointer arithmetics, dereference
+		e.vderef(v, v, {const = {__dissector=ffi.typeof('uint64_t')}})
+	end
+	-- Invert value to invert all tests, otherwise we would need and+jnz
+	e.emit(BPF.ALU64 + BPF.NEG + BPF.K, v, 0, 0, 0)        -- v = ~v
+	-- Unrolled test cases, converted masking to arithmetic as we don't have "if !(a & b)"
+	-- As we're testing inverted value, we have to use arithmetic shift to copy MSB
+	for i=4,0,-1 do
+		local k = bit.lshift(1, i)
+		e.emit(BPF.JMP + BPF.JGT + BPF.K, v, 
