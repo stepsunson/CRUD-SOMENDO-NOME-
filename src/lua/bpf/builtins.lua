@@ -443,4 +443,12 @@ builtins.perf_submit = perf_submit
 builtins.stack_id = stack_id
 builtins.load_bytes = load_bytes
 builtins[cpu] = function (e, dst) return call_helper(e, dst, HELPER.get_smp_processor_id) end
-builtins[rand] = function (e, dst) return call_helper(e, dst, HELPER.get_prandom_u32, ffi.typeof(
+builtins[rand] = function (e, dst) return call_helper(e, dst, HELPER.get_prandom_u32, ffi.typeof('uint32_t')) end
+builtins[time] = function (e, dst) return call_helper(e, dst, HELPER.ktime_get_ns) end
+builtins[pid_tgid] = function (e, dst) return call_helper(e, dst, HELPER.get_current_pid_tgid) end
+builtins[uid_gid] = function (e, dst) return call_helper(e, dst, HELPER.get_current_uid_gid) end
+builtins[perf_submit] = function (e, dst, map, value) return perf_submit(e, dst, map, value) end
+builtins[stack_id] = function (e, dst, map, key) return stack_id(e, dst, map, key) end
+builtins[load_bytes] = function (e, dst, off, var, len) return load_bytes(e, dst, off, var, len) end
+
+return builtins
