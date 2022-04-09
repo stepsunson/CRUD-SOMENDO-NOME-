@@ -393,4 +393,54 @@ builtins[math.log2] = function (e, dst, x)
 	-- As we're testing inverted value, we have to use arithmetic shift to copy MSB
 	for i=4,0,-1 do
 		local k = bit.lshift(1, i)
-		e.emit(BPF.JMP + BPF.JGT + BPF.K, v, 
+		e.emit(BPF.JMP + BPF.JGT + BPF.K, v, 0, 2, bit.bnot(bit.lshift(1, k))) -- if !upper_half(x)
+		e.emit(BPF.ALU64 + BPF.ARSH + BPF.K, v, 0, 0, k)                       --     v >>= k
+		e.emit(BPF.ALU64 + BPF.OR + BPF.K, r, 0, 0, k)                         --     r |= k
+	end
+	-- No longer constant, cleanup tmpvars
+	e.V[dst].const = nil
+	e.V[e.tmpvar].reg = nil
+end
+builtins[math.log10] = function (e, dst, x)
+	-- Compute log2(x) and transform
+	builtins[math.log2](e, dst, x)
+	-- Relationship: log10(v) = log2(v) / log2(10)
+	local r = e.V[dst].reg
+	e.emit(BPF.ALU64 + BPF.ADD + BPF.K, r, 0, 0, 1)    -- Compensate round-down
+	e.emit(BPF.ALU64 + BPF.MUL + BPF.K, r, 0, 0, 1233) -- log2(10) ~ 1233>>12
+	e.emit(BPF.ALU64 + BPF.RSH + BPF.K, r, 0, 0, 12)
+end
+builtins[math.log] = function (e, dst, x)
+	-- Compute log2(x) and transform
+	builtins[math.log2](e, dst, x)
+	-- Relationship: ln(v) = log2(v) / log2(e)
+	local r = e.V[dst].reg
+	e.emit(BPF.ALU64 + BPF.ADD + BPF.K, r, 0, 0, 1)    -- Compensate round-down
+	e.emit(BPF.ALU64 + BPF.MUL + BPF.K, r, 0, 0, 2839) -- log2(e) ~ 2839>>12
+	e.emit(BPF.ALU64 + BPF.RSH + BPF.K, r, 0, 0, 12)
+end
+
+-- Call-type helpers
+local function call_helper(e, dst, h, vtype)
+	e.vset(dst)
+	e.vreg(dst, 0, true, vtype or ffi.typeof('uint64_t'))
+	e.emit(BPF.JMP + BPF.CALL, 0, 0, 0, h)
+	e.V[dst].const = nil -- Target is not a function anymore
+end
+local function cpu() error('NYI') end
+local function rand() error('NYI') end
+local function time() error('NYI') end
+local function pid_tgid() error('NYI') end
+local function uid_gid() error('NYI') end
+
+-- Export helpers and builtin variants
+builtins.cpu = cpu
+builtins.time = time
+builtins.pid_tgid = pid_tgid
+builtins.uid_gid = uid_gid
+builtins.comm = comm
+builtins.perf_submit = perf_submit
+builtins.stack_id = stack_id
+builtins.load_bytes = load_bytes
+builtins[cpu] = function (e, dst) return call_helper(e, dst, HELPER.get_smp_processor_id) end
+builtins[rand] = function (e, dst) return call_helper(e, dst, HELPER.get_prandom_u32, ffi.typeof(
