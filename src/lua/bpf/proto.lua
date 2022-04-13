@@ -138,4 +138,87 @@ struct tcp_t {
 	uint16_t src_port;
 	uint16_t dst_port;
 	uint32_t seq_num;
-	uint3
+	uint32_t ack_num;
+	uint8_t  offset:4;
+	uint8_t  reserved:4;
+	uint8_t  flag_cwr:1;
+	uint8_t  flag_ece:1;
+	uint8_t  flag_urg:1;
+	uint8_t  flag_ack:1;
+	uint8_t  flag_psh:1;
+	uint8_t  flag_rst:1;
+	uint8_t  flag_syn:1;
+	uint8_t  flag_fin:1;
+	uint16_t rcv_wnd;
+	uint16_t cksum;
+	uint16_t urg_ptr;
+} __attribute__((packed));
+
+struct vxlan_t {
+	uint32_t rsv1:4;
+	uint32_t iflag:1;
+	uint32_t rsv2:3;
+	uint32_t rsv3:24;
+	uint32_t key:24;
+	uint32_t rsv4:8;
+} __attribute__((packed));
+]]
+
+
+-- Architecture-specific ptrace register layout
+local S = require('syscall')
+local arch = S.abi.arch
+local parm_to_reg = {}
+if arch == 'x64' then
+	ffi.cdef [[
+	struct pt_regs {
+		unsigned long r15;
+		unsigned long r14;
+		unsigned long r13;
+		unsigned long r12;
+		unsigned long bp;
+		unsigned long bx;
+		unsigned long r11;
+		unsigned long r10;
+		unsigned long r9;
+		unsigned long r8;
+		unsigned long ax;
+		unsigned long cx;
+		unsigned long dx;
+		unsigned long si;
+		unsigned long di;
+		unsigned long orig_ax;
+		unsigned long ip;
+		unsigned long cs;
+		unsigned long flags;
+		unsigned long sp;
+		unsigned long ss;
+	};]]
+	parm_to_reg = {parm1='di', parm2='si', parm3='dx', parm4='cx', parm5='r8', ret='sp', fp='bp'}
+else
+	ffi.cdef 'struct pt_regs {};'
+end
+-- Map symbolic registers to architecture ABI
+ffi.metatype('struct pt_regs', {
+		__index = function (_ --[[t]],k)
+			return assert(parm_to_reg[k], 'no such register: '..k)
+		end,
+})
+
+local M = {}
+
+-- Dissector interface
+local function dissector(type, e, dst, src, field)
+	local parent = e.V[src].const
+	-- Create new dissector variable
+	e.vcopy(dst, src)
+	-- Compute and materialize new dissector offset from parent
+	e.V[dst].const = {off=e.V[src].const.off, __dissector=e.V[src].const.__dissector}
+	parent.__dissector[field](e, dst)
+	e.V[dst].const.__dissector = type
+end
+M.dissector = dissector
+
+-- Get current effective offset, load field value at an offset relative to it and
+-- add its value to compute next effective offset (e.g. udp_off = ip_off + pkt[ip_off].hlen)
+local function next_offset(e, var, type, off, mask,
