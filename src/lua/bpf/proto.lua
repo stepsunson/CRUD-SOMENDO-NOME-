@@ -332,4 +332,60 @@ ffi.metatype(ffi.typeof('struct ip6_t'), {
 		icmp6 = function(e, dst) next_skip(e, dst, ffi.sizeof('struct ip6_t'), 0) end,
 		udp  = function(e, dst) next_skip(e, dst, ffi.sizeof('struct ip6_t'), 0) end,
 		tcp  = function(e, dst) next_skip(e, dst, ffi.sizeof('struct ip6_t'), 0) end,
-		ip6_opt = function(e, dst
+		ip6_opt = function(e, dst) next_skip(e, dst, ffi.sizeof('struct ip6_t'), 0) end,
+	}
+})
+
+local ip6_opt_ext_len_off = ffi.offsetof('struct ip6_opt_t', 'ext_len')
+ffi.metatype(ffi.typeof('struct ip6_opt_t'), {
+	__index = {
+		-- Skip IPv6 extension header length (field `ext_len`)
+		icmp6 = function(e, dst) next_offset(e, dst, ffi.typeof('uint8_t'), ip6_opt_ext_len_off) end,
+		udp  = function(e, dst) next_offset(e, dst, ffi.typeof('uint8_t'), ip6_opt_ext_len_off) end,
+		tcp  = function(e, dst) next_offset(e, dst, ffi.typeof('uint8_t'), ip6_opt_ext_len_off) end,
+		ip6_opt = function(e, dst) next_offset(e, dst, ffi.typeof('uint8_t'), ip6_opt_ext_len_off) end,
+	}
+})
+
+ffi.metatype(ffi.typeof('struct tcp_t'), {
+	__index = {
+		-- Skip TCP header length (stored as number of words)
+		-- e.g. hlen = 5, Header Length = 5 x sizeof(u32) = 20 octets
+		data = function(e, dst)
+			next_offset(e, dst, ffi.typeof('uint8_t'), ffi.offsetof('struct tcp_t', 'offset'), 0xf0, -2)
+		end,
+	}
+})
+
+ffi.metatype(ffi.typeof('struct udp_t'), {
+	__index = {
+		-- Skip UDP header length (8 octets)
+		data = function(e, dst)
+			next_skip(e, dst, ffi.sizeof('struct udp_t'))
+		end,
+	}
+})
+
+-- Constants
+M.c = {
+	eth = { -- Constants http://standards.ieee.org/regauth/ethertype
+		ip     = 0x0800, -- IP (v4) protocol
+		ip6    = 0x86dd, -- IP (v6) protocol
+		arp    = 0x0806, -- Address resolution protocol
+		revarp = 0x8035, -- Reverse addr resolution protocol
+		vlan   = 0x8100, -- IEEE 802.1Q VLAN tagging
+	},
+	ip = {
+		-- Reserved Addresses
+		addr_any         = 0x00000000, -- 0.0.0.0
+		addr_broadcast   = 0xffffffff, -- 255.255.255.255
+		addr_loopback    = 0x7f000001, -- 127.0.0.1
+		addr_mcast_all   = 0xe0000001, -- 224.0.0.1
+		addr_mcast_local = 0xe00000ff, -- 224.0.0.255
+		-- Type of service (ip_tos), RFC 1349 ("obsoleted by RFC 2474")
+		tos_default      = 0x00, -- default
+		tos_lowdelay     = 0x10, -- low delay
+		tos_throughput   = 0x08, -- high throughput
+		tos_reliability  = 0x04, -- high reliability
+		tos_lowcost      = 0x02, -- low monetary cost - XXX
+		tos_ect          = 0x02
