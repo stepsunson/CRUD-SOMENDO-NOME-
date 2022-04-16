@@ -221,4 +221,67 @@ M.dissector = dissector
 
 -- Get current effective offset, load field value at an offset relative to it and
 -- add its value to compute next effective offset (e.g. udp_off = ip_off + pkt[ip_off].hlen)
-local function next_offset(e, var, type, off, mask,
+local function next_offset(e, var, type, off, mask, shift)
+	local d = e.V[var].const
+	-- Materialize relative offset value in R0
+	local dst_reg, tmp_reg
+	if d.off then
+		dst_reg = e.vreg(var, 0, true)
+		tmp_reg = dst_reg -- Use target register to avoid copy
+		e.emit(BPF.LD + BPF.ABS + e.const_width[ffi.sizeof(type)], tmp_reg, 0, 0, d.off + off or 0)
+	else
+		tmp_reg = e.vreg(e.tmpvar, 0, true, type) -- Reserve R0 for temporary relative offset
+		dst_reg = e.vreg(var) -- Must rematerialize (if it was spilled by tmp var)
+		e.emit(BPF.LD + BPF.IND + e.const_width[ffi.sizeof(type)], tmp_reg, dst_reg, 0, off or 0)
+	end
+	-- Finalize relative offset
+	if mask then
+		e.emit(BPF.ALU + BPF.AND + BPF.K, tmp_reg, 0, 0, mask)
+	end
+	if shift and shift ~= 0 then
+		local op = BPF.LSH
+		if shift < 0 then
+			op = BPF.RSH
+			shift = -shift
+		end
+		e.emit(BPF.ALU + op + BPF.K, tmp_reg, 0, 0, shift)
+	end
+	-- Add to base offset to turn it into effective address
+	if dst_reg ~= tmp_reg then
+		e.emit(BPF.ALU + BPF.ADD + BPF.X, dst_reg, tmp_reg, 0, 0)
+	else
+		e.emit(BPF.ALU + BPF.ADD + BPF.K, dst_reg, 0, 0, d.off)
+	end
+	-- Discard temporary allocations
+	d.off = nil
+	e.V[e.tmpvar].reg = nil
+end
+
+local function next_skip(e, var, off)
+	local d = e.V[var].const
+	if not d.off then
+		local dst_reg = e.vreg(var)
+		e.emit(BPF.ALU64 + BPF.ADD + BPF.K, dst_reg, 0, 0, off)
+	else
+		d.off = d.off + off
+	end
+end
+
+local function skip_eth(e, dst)
+	-- IP starts right after ETH header (fixed size)
+	local d = e.V[dst].const
+	d.off = d.off + ffi.sizeof('struct eth_t')
+end
+
+-- Export types
+M.type = function(typestr, t)
+	t = t or {}
+	t.__dissector=ffi.typeof(typestr)
+	return t
+end
+M.skb     = M.type('struct sk_buff', {source='ptr_to_ctx'})
+M.pt_regs = M.type('struct pt_regs', {source='ptr_to_probe'})
+M.pkt     = M.type('struct eth_t',   {off=0, source='ptr_to_pkt'}) -- skb needs special accessors
+-- M.eth     = function (...) return dissector(ffi.typeof('struct eth_t'), ...) end
+M.dot1q   = function (...) return dissector(ffi.typeof('struct dot1q_t'), ...) end
+M.arp   
