@@ -284,4 +284,52 @@ M.pt_regs = M.type('struct pt_regs', {source='ptr_to_probe'})
 M.pkt     = M.type('struct eth_t',   {off=0, source='ptr_to_pkt'}) -- skb needs special accessors
 -- M.eth     = function (...) return dissector(ffi.typeof('struct eth_t'), ...) end
 M.dot1q   = function (...) return dissector(ffi.typeof('struct dot1q_t'), ...) end
-M.arp   
+M.arp     = function (...) return dissector(ffi.typeof('struct arp_t'), ...) end
+M.icmp    = function (...) return dissector(ffi.typeof('struct icmp_t'), ...) end
+M.ip      = function (...) return dissector(ffi.typeof('struct ip_t'), ...) end
+M.icmp6   = function (...) return dissector(ffi.typeof('struct icmp6_t'), ...) end
+M.ip6     = function (...) return dissector(ffi.typeof('struct ip6_t'), ...) end
+M.ip6_opt = function (...) return dissector(ffi.typeof('struct ip6_opt_t'), ...) end
+M.udp     = function (...) return dissector(ffi.typeof('struct udp_t'), ...) end
+M.tcp     = function (...) return dissector(ffi.typeof('struct tcp_t'), ...) end
+M.vxlan   = function (...) return dissector(ffi.typeof('struct vxlan_t'), ...) end
+M.data    = function (...) return dissector(ffi.typeof('uint8_t'), ...) end
+M.net_off = function (...) return dissector(ffi.typeof('struct net_off_t'), ...) end
+
+-- Metatables
+ffi.metatype(ffi.typeof('struct eth_t'), {
+	__index = {
+		ip = skip_eth,
+		ip6 = skip_eth,
+		net_off = function (e, dst)
+			next_skip(e, dst, BPF.NET_OFF)
+		end,
+	}
+})
+
+ffi.metatype(ffi.typeof('struct net_off_t'), {
+	__index = {
+		ip = function () end,
+		ip6 = function () end,
+	}
+})
+
+ffi.metatype(ffi.typeof('struct ip_t'), {
+	__index = {
+		-- Skip IP header length (stored as number of words)
+		-- e.g. hlen = 5, Header Length = 5 x sizeof(u32) = 20 octets
+		-- Mask first nibble and shift by 2 (multiplication by 4)
+		icmp = function(e, dst) next_offset(e, dst, ffi.typeof('uint8_t'), 0, 0x0f, 2) end,
+		udp  = function(e, dst) next_offset(e, dst, ffi.typeof('uint8_t'), 0, 0x0f, 2) end,
+		tcp  = function(e, dst) next_offset(e, dst, ffi.typeof('uint8_t'), 0, 0x0f, 2) end,
+	}
+})
+
+ffi.metatype(ffi.typeof('struct ip6_t'), {
+	__index = {
+		-- Skip fixed IPv6 header length (40 bytes)
+		-- The caller must check the value of `next_header` to skip any extension headers
+		icmp6 = function(e, dst) next_skip(e, dst, ffi.sizeof('struct ip6_t'), 0) end,
+		udp  = function(e, dst) next_skip(e, dst, ffi.sizeof('struct ip6_t'), 0) end,
+		tcp  = function(e, dst) next_skip(e, dst, ffi.sizeof('struct ip6_t'), 0) end,
+		ip6_opt = function(e, dst
