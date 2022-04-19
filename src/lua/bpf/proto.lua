@@ -531,4 +531,12 @@ M.c = {
 		proto_iplt    = 129,  -- IPLT
 		proto_sps     = 130,  -- Secure Packet Shield
 		proto_pipe    = 131,  -- Private IP Encap in IP
-		proto_sctp    = 132,  --
+		proto_sctp    = 132,  -- Stream Ctrl Transmission
+		proto_fc      = 133,  -- Fibre Channel
+		proto_rsvpign = 134,  -- RSVP-E2E-IGNORE
+		proto_raw     = 255,  -- Raw IP packets
+		proto_reserved= 255,  -- Reserved
+	},
+}
+
+return M
