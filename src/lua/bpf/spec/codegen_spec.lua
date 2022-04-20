@@ -185,4 +185,97 @@ describe('codegen', function()
 				end,
 				expect = [[
 					LDB		R0	skb[15]
-					E
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('classic packet access (load non-constant offset)', function()
+			compile {
+				input = function (skb)
+					return eth.ip.udp.src_port -- need to skip variable-length header
+				end,
+				expect = [[
+					LDB		R0			skb[14]
+					AND		R0			#15
+					LSH		R0			#2
+					ADD		R0 			#14
+					STXDW	[R10-16]	R0 -- NYI: erase dead store
+					LDH		R0 			skb[R0+0]
+					END		R0 			R0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('classic packet access (manipulate dissector offset)', function()
+			compile {
+				input = function (skb)
+					local ptr = eth.ip.udp.data + 1
+					return ptr[0] -- dereference dissector pointer
+				end,
+				expect = [[
+					LDB		R0			skb[14]
+					AND		R0			#15
+					LSH		R0			#2
+					ADD		R0			#14 -- NYI: fuse commutative operations in second pass
+					ADD		R0			#8
+					ADD		R0			#1
+					STXDW	[R10-16] 	R0
+					LDB		R0			skb[R0+0]
+					EXIT	R0			#0
+				]]
+			}
+		end)
+		it('classic packet access (multi-byte load)', function()
+			compile {
+				input = function (skb)
+					local ptr = eth.ip.udp.data
+					return ptr(1, 5) -- load 4 bytes
+				end,
+				expect = [[
+					LDB		R0			skb[14]
+					AND		R0			#15
+					LSH		R0			#2
+					ADD		R0			#14
+					ADD		R0			#8
+					MOV		R7			R0
+					STXDW	[R10-16]	R0 -- NYI: erase dead store
+					LDW		R0			skb[R7+1]
+					END		R0			R0
+					EXIT	R0			#0
+				]]
+			}
+		end)
+		it('direct skb field access', function()
+			compile {
+				input = function (skb)
+					return skb.len
+				end,
+				expect = [[
+					LDXW	R7	[R6+0]
+					MOV		R0	R7
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('direct skb data access (manipulate offset)', function()
+			compile {
+				input = function (skb)
+					local ptr = skb.data + 5
+					return ptr[0]
+				end,
+				expect = [[
+					LDXW	R7	[R6+76]
+					ADD		R7	#5
+					LDXB	R8 	[R7+0] -- NYI: transform LD + ADD to LD + offset addressing
+					MOV		R0 	R8
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('direct skb data access (offset boundary check)', function()
+			compile {
+				input = function (skb)
+					local ptr = skb.data + 5
+					if ptr < skb.data_end then
+						return ptr[0]
+					
