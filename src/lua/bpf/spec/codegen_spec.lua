@@ -278,4 +278,90 @@ describe('codegen', function()
 					local ptr = skb.data + 5
 					if ptr < skb.data_end then
 						return ptr[0]
-					
+					end
+				end,
+				expect = [[
+					LDXW	R7	[R6+76]
+					ADD		R7	#5
+					LDXW	R8	[R6+80]
+					JGE		R7	R8 => 0008
+					LDXB	R8	[R7+0]
+					MOV		R0 	R8
+					EXIT	R0	#0
+					MOV		R0	#0
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('access stack memory (array, const load, const store)', function()
+			compile {
+				input = function (skb)
+					local mem = ffi.new('uint8_t [16]')
+					mem[0] = 5
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-40] 	R0
+					STXDW	[R10-48] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					STB		[R10-48] 	#5
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('access stack memory (array, const load, packet store)', function()
+			compile {
+				input = function (skb)
+					local mem = ffi.new('uint8_t [7]')
+					mem[0] = eth.ip.tos
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-40] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					LDB		R0 			skb[15]
+					STXB	[R10-40] 	R0
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('access stack memory (array, packet load, const store)', function()
+			compile {
+				input = function (skb)
+					local mem = ffi.new('uint8_t [1]')
+					mem[eth.ip.tos] = 5
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-48] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					LDB		R0 			skb[15]
+					MOV		R7 			R0
+					ADD		R7 			R10
+					STB		[R7-48] 	#5
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('access stack memory (array, packet load, packet store)', function()
+			compile {
+				input = function (skb)
+					local mem = ffi.new('uint8_t [7]')
+					local v = eth.ip.tos
+					mem[v] = v
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-40] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					LDB		R0 			skb[15]
+					MOV		R7 			R0
+					ADD		R7 			R10
+					STXB	[R7-40] 	R0
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('access stack memory (struct, const/packet store)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			compile {
