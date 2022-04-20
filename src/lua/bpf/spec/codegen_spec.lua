@@ -73,4 +73,116 @@ describe('codegen', function()
 				]]
 			}
 		end)
-		it('mat
+		it('materialize constant longer than i32', function()
+			compile {
+				input = function ()
+					return 4294967295
+				end,
+				expect = [[
+					LDDW	R0	#4294967295
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('materialize cdata constant', function()
+			compile {
+				input = function ()
+					return 5ULL
+				end,
+				expect = [[
+					LDDW	R0	#5 -- composed instruction
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('materialize signed cdata constant', function()
+			compile {
+				input = function ()
+					return 5LL
+				end,
+				expect = [[
+					LDDW	R0	#5 -- composed instruction
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('materialize coercible numeric cdata constant', function()
+			compile {
+				input = function ()
+					return 0x00005
+				end,
+				expect = [[
+					MOV		R0	#5
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('materialize constant through variable', function()
+		compile {
+			input = function ()
+				local proto = 5
+				return proto
+			end,
+			expect = [[
+				MOV		R0	#5
+				EXIT	R0	#0
+			]]
+		}
+		end)
+		it('eliminate constant expressions', function()
+			compile {
+				input = function ()
+					return 2 + 3 - 0
+				end,
+				expect = [[
+					MOV		R0	#5
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('eliminate constant expressions (if block)', function()
+			compile {
+				input = function ()
+					local proto = 5
+					if proto == 5 then
+						proto = 1
+					end
+					return proto
+				end,
+				expect = [[
+					MOV		R0	#1
+					EXIT	R0	#0
+				]]
+			}
+		end)
+		it('eliminate negative constant expressions (if block) NYI', function()
+			-- always negative condition is not fully eliminated
+			compile {
+				input = function ()
+					local proto = 5
+					if false then
+						proto = 1
+					end
+					return proto
+				end,
+				expect = [[
+					MOV		R7		#5
+					STXDW	[R10-8] R7
+					MOV		R7		#0
+					JEQ		R7		#0 => 0005
+					LDXDW	R0 		[R10-8]
+					EXIT	R0		#0
+				]]
+			}
+		end)
+	end)
+
+	describe('variables', function()
+		it('classic packet access (fold constant offset)', function()
+			compile {
+				input = function (skb)
+					return eth.ip.tos -- constant expression will fold
+				end,
+				expect = [[
+					LDB		R0	skb[15]
+					E
