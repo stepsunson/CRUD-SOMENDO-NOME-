@@ -365,3 +365,86 @@ describe('codegen', function()
 		it('access stack memory (struct, const/packet store)', function()
 			local kv_t = 'struct { uint64_t a; uint64_t b; }'
 			compile {
+				input = function (skb)
+					local mem = ffi.new(kv_t)
+					mem.a = 5
+					mem.b = eth.ip.tos
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-40] 	R0
+					STXDW	[R10-48] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					MOV		R7 			#5
+					STXDW	[R10-48] 	R7
+					LDB		R0 			skb[15]
+					STXDW	[R10-40] 	R0
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('access stack memory (struct, const/stack store)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			compile {
+				input = function (skb)
+					local m1 = ffi.new(kv_t)
+					local m2 = ffi.new(kv_t)
+					m1.a = 5
+					m2.b = m1.a
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-48] 	R0
+					STXDW	[R10-56] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					MOV		R0 			#0
+					STXDW	[R10-64] 	R0
+					STXDW	[R10-72] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					MOV		R7 			#5
+					STXDW	[R10-56] 	R7
+					LDXDW	R7 			[R10-56]
+					STXDW	[R10-64] 	R7
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (u32, const key load)', function()
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					return array_map[0]
+				end,
+				expect = [[
+					LDDW	R1			#42
+					STW		[R10-28]	#0
+					MOV		R2			R10
+					ADD		R2			#4294967268
+					CALL	R0			#1 ; map_lookup_elem
+					JEQ		R0			#0 => 0009
+					LDXW	R0			[R0+0]
+					EXIT	R0			#0
+				]]
+			}
+		end)
+		it('array map (u32, packet key load)', function()
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					return array_map[eth.ip.tos]
+				end,
+				expect = [[
+					LDB 	R0 			skb[15]
+					LDDW	R1			#42
+					STXW	[R10-36] 	R0
+					MOV		R2			R10
+					ADD		R2			#4294967260
+					STXDW	[R10-24] 	R0 -- NYI: erase dead store
+					CALL	R0			#1 ; map_lookup_elem
+					JEQ		R0			#0 => 0011
+					LDXW	R0			[R0+0]
+					EXIT	R0			#0
+				]]
+			}
+		end)
+		it('array map (u32, const key store, const value)', function()
+			local array_map = makemap('array', 
