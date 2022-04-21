@@ -447,4 +447,97 @@ describe('codegen', function()
 			}
 		end)
 		it('array map (u32, const key store, const value)', function()
-			local array_map = makemap('array', 
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					array_map[0] = 5
+				end,
+				expect = [[
+					LDDW	R1 			#42
+					STW		[R10-36] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967260
+					MOV		R4 			#0
+					STW		[R10-40] 	#5
+					MOV		R3 			R10
+					ADD		R3 			#4294967256
+					CALL	R0 			#2 ; map_update_elem
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (u32, const key store, packet value)', function()
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					array_map[0] = eth.ip.tos
+				end,
+				expect = [[
+					LDB		R0 			skb[15]
+					STXDW	[R10-24] 	R0
+					LDDW	R1 			#42
+					STW		[R10-36] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967260
+					MOV		R4 			#0
+					MOV		R3 			R10
+					ADD		R3 			#4294967272
+					CALL	R0 			#2 ; map_update_elem
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (u32, const key store, map value)', function()
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					array_map[0] = array_map[1]
+				end,
+				expect = [[
+					LDDW	R1 			#42
+					STW		[R10-36] 	#1
+					MOV		R2 			R10
+					ADD		R2 			#4294967260
+					CALL	R0 			#1 ; map_lookup_elem
+					STXDW	[R10-24] 	R0
+					LDDW	R1 			#42
+					STW		[R10-36]	#0
+					MOV		R2			R10
+					ADD		R2			#4294967260
+					MOV		R4			#0
+					LDXDW	R3			[R10-24]
+					JEQ		R3			#0 => 0017
+					LDXW	R3			[R3+0]
+					STXW	[R10-40]	R3
+					MOV		R3 			R10
+					ADD		R3 			#4294967256
+					CALL	R0 			#2 ; map_update_elem
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (u32, const key replace, const value)', function()
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					local val = array_map[0]
+					if val then
+						val[0] = val[0] + 1
+					else
+						array_map[0] = 5
+					end
+				end,
+				expect = [[
+					LDDW	R1 			#42
+					STW		[R10-44] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967252
+					CALL	R0 			#1 ; map_lookup_elem
+					JEQ		R0 			#0 => 0013 -- if (map_value ~= NULL)
+					LDXW	R7 			[R0+0]
+					ADD		R7 			#1
+					STXW	[R0+0] 		R7
+					MOV	
