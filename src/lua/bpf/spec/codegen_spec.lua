@@ -540,4 +540,92 @@ describe('codegen', function()
 					LDXW	R7 			[R0+0]
 					ADD		R7 			#1
 					STXW	[R0+0] 		R7
-					MOV	
+					MOV		R7 			#0
+					JEQ		R7 			#0 => 0025 -- skip false branch
+					STXDW	[R10-16] 	R0
+					LDDW	R1 			#42
+					STW		[R10-44] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967252
+					MOV		R4 			#0
+					STW		[R10-48] 	#5
+					MOV		R3 			R10
+					ADD		R3 			#4294967248
+					CALL	R0 			#2 ; map_update_elem
+					LDXDW	R0 			[R10-16]
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (u32, const key replace xadd, const value)', function()
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					local val = array_map[0]
+					if val then
+						xadd(val, 1)
+					else
+						array_map[0] = 5
+					end
+				end,
+				expect = [[
+					LDDW	R1 			#42
+					STW		[R10-52] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967244
+					CALL	R0 			#1 ; map_lookup_elem
+					JEQ		R0 			#0 => 0014 -- if (map_value ~= NULL)
+					MOV		R7 			#1
+					MOV		R8 			R0
+					STXDW	[R10-16] 	R0
+					XADDW	[R8+0] 		R7
+					MOV		R7 			#0
+					JEQ		R7 			#0 => 0025 -- skip false branch
+					STXDW	[R10-16] 	R0
+					LDDW	R1 			#42
+					STW		[R10-52] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967244
+					MOV		R4 			#0
+					STW		[R10-56] 	#5
+					MOV		R3 			R10
+					ADD		R3 			#4294967240
+					CALL	R0 			#2 ; map_update_elem
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (u32, const key replace xadd, const value) inverse nil check', function()
+			local array_map = makemap('array', 256)
+			compile {
+				input = function (skb)
+					local val = array_map[0]
+					if not val then
+						array_map[0] = 5
+					else
+						xadd(val, 1)
+					end
+				end,
+				expect = [[
+					LDDW	R1 			#42
+					STW		[R10-52] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967244
+					CALL	R0 			#1 ; map_lookup_elem
+					JNE		R0 			#0 => 0021
+					STXDW	[R10-16] 	R0
+					LDDW	R1 			#42
+					STW		[R10-52] 	#0
+					MOV		R2 			R10
+					ADD		R2 			#4294967244
+					MOV		R4 			#0
+					STW		[R10-56] 	#5
+					MOV		R3 			R10
+					ADD		R3 			#4294967240
+					CALL	R0 			#2 ; map_update_elem
+					MOV		R7 			#0
+					JEQ		R7 			#0 => 0025
+					MOV		R7 			#1
+					MOV		R8 		
