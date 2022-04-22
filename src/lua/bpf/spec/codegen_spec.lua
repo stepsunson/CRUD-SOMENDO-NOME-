@@ -628,4 +628,82 @@ describe('codegen', function()
 					MOV		R7 			#0
 					JEQ		R7 			#0 => 0025
 					MOV		R7 			#1
-					MOV		R8 		
+					MOV		R8 			R0
+					STXDW	[R10-16] 	R0
+					XADDW	[R8+0] 		R7
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (struct, stack key load)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			local array_map = makemap('array', 256, ffi.typeof(kv_t), ffi.typeof(kv_t))
+			compile {
+				input = function (skb)
+					local key = ffi.new(kv_t)
+					key.a = 2
+					key.b = 3
+					local val = array_map[key] -- Use composite key from stack memory
+					if val then
+						return val.a
+					end
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-48] 	R0
+					STXDW	[R10-56] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					MOV		R7 			#2
+					STXDW	[R10-56] 	R7
+					MOV		R7 			#3
+					STXDW	[R10-48] 	R7
+					LDDW	R1			#42
+					MOV		R2			R10
+					ADD		R2			#4294967240
+					CALL	R0			#1 ; map_lookup_elem
+					JEQ		R0 			#0 => 0017
+					LDXDW	R7 			[R0+0]
+					MOV		R0 			R7
+					EXIT	R0 			#0
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (struct, stack key store)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			local array_map = makemap('array', 256, ffi.typeof(kv_t), ffi.typeof(kv_t))
+			compile {
+				input = function (skb)
+					local key = ffi.new(kv_t)
+					key.a = 2
+					key.b = 3
+					array_map[key] = key -- Use composite key from stack memory
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-40] 	R0
+					STXDW	[R10-48] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					MOV		R7 			#2
+					STXDW	[R10-48] 	R7
+					MOV		R7 			#3
+					STXDW	[R10-40] 	R7
+					LDDW	R1 			#42
+					MOV		R2 			R10
+					ADD		R2 			#4294967248
+					MOV		R4 			#0
+					MOV		R3 			R10
+					ADD		R3 			#4294967248
+					CALL	R0 			#2 ; map_update_elem
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (struct, stack/packet key update, const value)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			local array_map = makemap('array', 256, ffi.typeof(kv_t), ffi.typeof(kv_t))
+			compile {
+				input = function (skb)
+					local key = ffi.new(kv_t)
+					key.a = eth.ip.tos   -- Load key part from di
