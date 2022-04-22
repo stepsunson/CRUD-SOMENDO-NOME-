@@ -706,4 +706,80 @@ describe('codegen', function()
 			compile {
 				input = function (skb)
 					local key = ffi.new(kv_t)
-					key.a = eth.ip.tos   -- Load key part from di
+					key.a = eth.ip.tos   -- Load key part from dissector
+					local val = array_map[key]
+					if val then
+						val.a = 5
+					end
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-48] 	R0
+					STXDW	[R10-56] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					LDB		R0 			skb[15]
+					STXDW	[R10-56] 	R0
+					LDDW	R1			#42
+					MOV		R2			R10
+					ADD		R2			#4294967240
+					CALL	R0			#1 ; map_lookup_elem
+					JEQ		R0 			#0 => 0014
+					MOV		R7 			#5
+					STXDW	[R0+0] 		R7
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (struct, stack/packet key update, map value)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			local array_map = makemap('array', 256, ffi.typeof(kv_t), ffi.typeof(kv_t))
+			compile {
+				input = function (skb)
+					local key = ffi.new(kv_t)
+					key.a = eth.ip.tos   -- Load key part from dissector
+					local val = array_map[key]
+					if val then
+						val.a = val.b
+					end
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-48] 	R0
+					STXDW	[R10-56] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					LDB		R0 			skb[15]
+					STXDW	[R10-56] 	R0
+					LDDW	R1			#42
+					MOV		R2			R10
+					ADD		R2			#4294967240
+					CALL	R0			#1 ; map_lookup_elem
+					JEQ		R0 			#0 => 0014
+					LDXDW	R7 			[R0+8]
+					STXDW	[R0+0] 		R7
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (struct, stack/packet key update, stack value)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			local array_map = makemap('array', 256, ffi.typeof(kv_t), ffi.typeof(kv_t))
+			compile {
+				input = function (skb)
+					local key = ffi.new(kv_t)
+					key.a = eth.ip.tos   -- Load key part from dissector
+					local val = array_map[key]
+					if val then
+						val.a = key.b
+					end
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-48] 	R0
+					STXDW	[R10-56] 	R0 -- NYI: erase zero-fill on allocation when it's loaded later
+					LDB		R0 			skb[15]
+					STXDW	[R10-56] 	R0
+					LDDW	R1			#42
+					MOV		R2			R10
+					ADD		R2			#4294967240
+					CALL	R0			#1 ; map_lookup_elem
+					JEQ		R0 			#0 
