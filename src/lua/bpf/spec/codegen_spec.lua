@@ -782,4 +782,98 @@ describe('codegen', function()
 					MOV		R2			R10
 					ADD		R2			#4294967240
 					CALL	R0			#1 ; map_lookup_elem
-					JEQ		R0 			#0 
+					JEQ		R0 			#0 => 0014
+					LDXDW	R7 			[R10-48]
+					STXDW	[R0+0] 		R7
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('array map (struct, stack/packet key replace, stack value)', function()
+			local kv_t = 'struct { uint64_t a; uint64_t b; }'
+			local array_map = makemap('array', 256, ffi.typeof(kv_t), ffi.typeof(kv_t))
+			compile {
+				input = function (skb)
+					local key = ffi.new(kv_t)
+					key.a = eth.ip.tos   -- Load key part from dissector
+					local val = array_map[key]
+					if val then
+						val.a = key.b
+					else
+						array_map[key] = key
+					end
+				end,
+				expect = [[
+					MOV		R0 			#0
+					STXDW	[R10-48] 	R0
+					STXDW	[R10-56] 	R0
+					LDB		R0 			skb[15]
+					STXDW	[R10-56] 	R0
+					LDDW	R1 			#42
+					MOV		R2 			R10
+					ADD		R2 			#4294967240
+					CALL	R0 			#1 ; map_lookup_elem
+					JEQ		R0 			#0 => 0016 -- if (map_value ~= NULL)
+					LDXDW	R7 			[R10-48]
+					STXDW	[R0+0] 		R7
+					MOV		R7 			#0
+					JEQ		R7 			#0 => 0026 -- jump over false branch
+					STXDW	[R10-24] 	R0
+					LDDW	R1 			#42
+					MOV		R2 			R10
+					ADD		R2 			#4294967240
+					MOV		R4 			#0
+					MOV		R3 			R10
+					ADD		R3 			#4294967240
+					CALL	R0 			#2 ; map_update_elem
+					LDXDW	R0 			[R10-24]
+					MOV		R0 			#0
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+	end)
+	describe('control flow', function()
+		it('condition with constant return', function()
+			compile {
+				input = function (skb)
+					local v = eth.ip.tos
+					if v then
+						return 1
+					else
+						return 0
+					end
+				end,
+				expect = [[
+					LDB		R0 			skb[15]
+					JEQ		R0 			#0 => 0005
+					MOV		R0 			#1
+					EXIT	R0 			#0
+					MOV		R0 			#0 -- 0005 jump target
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('condition with cdata constant return', function()
+			local cdata = 2ULL
+			compile {
+				input = function (skb)
+					local v = eth.ip.tos
+					if v then
+						return cdata + 1
+					else
+						return 0
+					end
+				end,
+				expect = [[
+					LDB		R0 			skb[15]
+					JEQ		R0 			#0 => 0006
+					LDDW	R0 			#3
+					EXIT	R0 			#0
+					MOV		R0 			#0 -- 0006 jump target
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('condition with constant return (inv
