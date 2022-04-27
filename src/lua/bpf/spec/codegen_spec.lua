@@ -876,4 +876,105 @@ describe('codegen', function()
 				]]
 			}
 		end)
-		it('condition with constant return (inv
+		it('condition with constant return (inversed)', function()
+			compile {
+				input = function (skb)
+					local v = eth.ip.tos
+					if not v then
+						return 1
+					else
+						return 0
+					end
+				end,
+				expect = [[
+					LDB		R0 			skb[15]
+					JNE		R0 			#0 => 0005
+					MOV		R0 			#1
+					EXIT	R0 			#0
+					MOV		R0 			#0 -- 0005 jump target
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('condition with variable mutation', function()
+			compile {
+				input = function (skb)
+					local v = 0
+					if eth.ip.tos then
+						v = 1
+					end
+					return v
+				end,
+				expect = [[
+					LDB		R0 			skb[15]
+					MOV		R1 			#0
+					STXDW	[R10-16] 	R1
+					JEQ		R0 			#0 => 0007
+					MOV		R7 			#1
+					STXDW	[R10-16] 	R7
+					LDXDW	R0 			[R10-16]
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('condition with nil variable mutation', function()
+			compile {
+				input = function (skb)
+					local v -- nil, will be elided
+					if eth.ip.tos then
+						v = 1
+					else
+						v = 0
+					end
+					return v
+				end,
+				expect = [[
+					LDB		R0 			skb[15]
+					JEQ		R0 			#0 => 0007
+					MOV		R7 			#1
+					STXDW	[R10-16] 	R7
+					MOV		R7 			#0
+					JEQ		R7 			#0 => 0009
+					MOV		R7 			#0
+					STXDW	[R10-16] 	R7
+					LDXDW	R0 			[R10-16]
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('nested condition with variable mutation', function()
+			compile {
+				input = function (skb)
+					local v = 0
+					local tos = eth.ip.tos
+					if tos then
+						if tos > 5 then
+							v = 5
+						else
+							v = 1
+						end
+					end
+					return v
+				end,
+				expect = [[
+					LDB		R0 			skb[15]
+					MOV		R1 			#0
+					STXDW	[R10-16] 	R1 -- materialize v = 0
+					JEQ		R0 			#0 => 0013 -- if not tos
+					MOV		R7 			#5
+					JGE		R7 			R0 => 0011 -- if 5 > tos
+					MOV		R7 			#5
+					STXDW	[R10-16] 	R7 -- materialize v = 5
+					MOV		R7 			#0
+					JEQ		R7 			#0 => 0013
+					MOV		R7 			#1 -- 0011 jump target
+					STXDW	[R10-16]	R7 -- materialize v = 1
+					LDXDW	R0 			[R10-16]
+					EXIT	R0 			#0
+				]]
+			}
+		end)
+		it('nested condition with variable shadowing', function()
+			compile {
+				input = function (skb)
+		
