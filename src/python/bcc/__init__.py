@@ -55,4 +55,58 @@ if not os.path.exists(TRACEFS):
 DEBUG_LLVM_IR = 0x1
 # Debug output loaded BPF bytecode and register state on branches.
 DEBUG_BPF = 0x2
-# Debug ou
+# Debug output pre-processor result.
+DEBUG_PREPROCESSOR = 0x4
+# Debug output ASM instructions embedded with source.
+DEBUG_SOURCE = 0x8
+# Debug output register state on all instructions in addition to DEBUG_BPF.
+DEBUG_BPF_REGISTER_STATE = 0x10
+# Debug BTF.
+DEBUG_BTF = 0x20
+
+class SymbolCache(object):
+    def __init__(self, pid):
+        self.cache = lib.bcc_symcache_new(
+                pid, ct.cast(None, ct.POINTER(bcc_symbol_option)))
+
+    def resolve(self, addr, demangle):
+        """
+        Return a tuple of the symbol (function), its offset from the beginning
+        of the function, and the module in which it lies. For example:
+            ("start_thread", 0x202, "/usr/lib/.../libpthread-2.24.so")
+        If the symbol cannot be found but we know which module it is in,
+        return the module name and the offset from the beginning of the
+        module. If we don't even know the module, return the absolute
+        address as the offset.
+        """
+
+        sym = bcc_symbol()
+        if demangle:
+            res = lib.bcc_symcache_resolve(self.cache, addr, ct.byref(sym))
+        else:
+            res = lib.bcc_symcache_resolve_no_demangle(self.cache, addr,
+                                                       ct.byref(sym))
+        if res < 0:
+            if sym.module and sym.offset:
+                return (None, sym.offset,
+                        ct.cast(sym.module, ct.c_char_p).value)
+            return (None, addr, None)
+        if demangle:
+            name_res = sym.demangle_name
+            lib.bcc_symbol_free_demangle_name(ct.byref(sym))
+        else:
+            name_res = sym.name
+        return (name_res, sym.offset, ct.cast(sym.module, ct.c_char_p).value)
+
+    def resolve_name(self, module, name):
+        module = _assert_is_bytes(module)
+        name = _assert_is_bytes(name)
+        addr = ct.c_ulonglong()
+        if lib.bcc_symcache_resolve_name(self.cache, module, name,
+                ct.byref(addr)) < 0:
+            return -1
+        return addr.value
+
+class PerfType:
+    # From perf_type_id in uapi/linux/perf_event.h
+  
