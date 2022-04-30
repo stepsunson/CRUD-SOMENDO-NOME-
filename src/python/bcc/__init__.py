@@ -109,4 +109,97 @@ class SymbolCache(object):
 
 class PerfType:
     # From perf_type_id in uapi/linux/perf_event.h
-  
+    HARDWARE = 0
+    SOFTWARE = 1
+    TRACEPOINT = 2
+    HW_CACHE = 3
+    RAW = 4
+    BREAKPOINT = 5
+
+class PerfHWConfig:
+    # From perf_hw_id in uapi/linux/perf_event.h
+    CPU_CYCLES = 0
+    INSTRUCTIONS = 1
+    CACHE_REFERENCES = 2
+    CACHE_MISSES = 3
+    BRANCH_INSTRUCTIONS = 4
+    BRANCH_MISSES = 5
+    BUS_CYCLES = 6
+    STALLED_CYCLES_FRONTEND = 7
+    STALLED_CYCLES_BACKEND = 8
+    REF_CPU_CYCLES = 9
+
+class PerfSWConfig:
+    # From perf_sw_id in uapi/linux/perf_event.h
+    CPU_CLOCK = 0
+    TASK_CLOCK = 1
+    PAGE_FAULTS = 2
+    CONTEXT_SWITCHES = 3
+    CPU_MIGRATIONS = 4
+    PAGE_FAULTS_MIN = 5
+    PAGE_FAULTS_MAJ = 6
+    ALIGNMENT_FAULTS = 7
+    EMULATION_FAULTS = 8
+    DUMMY = 9
+    BPF_OUTPUT = 10
+
+class PerfEventSampleFormat:
+    # from perf_event_sample_format in uapi/linux/bpf.h
+    IP = (1 << 0)
+    TID = (1 << 1)
+    TIME = (1 << 2)
+    ADDR = (1 << 3)
+    READ = (1 << 4)
+    CALLCHAIN = (1 << 5)
+    ID = (1 << 6)
+    CPU = (1 << 7)
+    PERIOD = (1 << 8)
+    STREAM_ID = (1 << 9)
+    RAW = (1 << 10)
+    BRANCH_STACK = (1 << 11)
+    REGS_USER = (1 << 12)
+    STACK_USER = (1 << 13)
+    WEIGHT = (1 << 14)
+    DATA_SRC = (1 << 15)
+    IDENTIFIER = (1 << 16)
+    TRANSACTION = (1 << 17)
+    REGS_INTR = (1 << 18)
+    PHYS_ADDR = (1 << 19)
+    AUX = (1 << 20)
+    CGROUP = (1 << 21)
+    DATA_PAGE_SIZE = (1 << 22)
+    CODE_PAGE_SIZE = (1 << 23)
+    WEIGHT_STRUCT = (1 << 24)
+
+class BPFProgType:
+    # From bpf_prog_type in uapi/linux/bpf.h
+    SOCKET_FILTER = 1
+    KPROBE = 2
+    SCHED_CLS = 3
+    SCHED_ACT = 4
+    TRACEPOINT = 5
+    XDP = 6
+    PERF_EVENT = 7
+    CGROUP_SKB = 8
+    CGROUP_SOCK = 9
+    LWT_IN = 10
+    LWT_OUT = 11
+    LWT_XMIT = 12
+    SOCK_OPS = 13
+    SK_SKB = 14
+    CGROUP_DEVICE = 15
+    SK_MSG = 16
+    RAW_TRACEPOINT = 17
+    CGROUP_SOCK_ADDR = 18
+    CGROUP_SOCKOPT = 25
+    TRACING = 26
+    LSM = 29
+
+class BPFAttachType:
+    # from bpf_attach_type uapi/linux/bpf.h
+    CGROUP_INET_INGRESS = 0
+    CGROUP_INET_EGRESS = 1
+    CGROUP_INET_SOCK_CREATE = 2
+    CGROUP_SOCK_OPS = 3
+    SK_SKB_STREAM_PARSER = 4
+    S
