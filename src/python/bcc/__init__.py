@@ -202,4 +202,75 @@ class BPFAttachType:
     CGROUP_INET_SOCK_CREATE = 2
     CGROUP_SOCK_OPS = 3
     SK_SKB_STREAM_PARSER = 4
-    S
+    SK_SKB_STREAM_VERDICT = 5
+    CGROUP_DEVICE = 6
+    SK_MSG_VERDICT = 7
+    CGROUP_INET4_BIND = 8
+    CGROUP_INET6_BIND = 9
+    CGROUP_INET4_CONNECT = 10
+    CGROUP_INET6_CONNECT = 11
+    CGROUP_INET4_POST_BIND = 12
+    CGROUP_INET6_POST_BIND = 13
+    CGROUP_UDP4_SENDMSG = 14
+    CGROUP_UDP6_SENDMSG = 15
+    LIRC_MODE2 = 16
+    FLOW_DISSECTOR = 17
+    CGROUP_SYSCTL = 18
+    CGROUP_UDP4_RECVMSG = 19
+    CGROUP_UDP6_RECVMSG = 20
+    CGROUP_GETSOCKOPT = 21
+    CGROUP_SETSOCKOPT = 22
+    TRACE_RAW_TP = 23
+    TRACE_FENTRY = 24
+    TRACE_FEXIT  = 25
+    MODIFY_RETURN = 26
+    LSM_MAC = 27
+    TRACE_ITER = 28
+    CGROUP_INET4_GETPEERNAME = 29
+    CGROUP_INET6_GETPEERNAME = 30
+    CGROUP_INET4_GETSOCKNAME = 31
+    CGROUP_INET6_GETSOCKNAME = 32
+    XDP_DEVMAP = 33
+    CGROUP_INET_SOCK_RELEASE = 34
+    XDP_CPUMAP = 35
+    SK_LOOKUP = 36
+    XDP = 37
+    SK_SKB_VERDICT = 38
+
+class XDPAction:
+    # from xdp_action uapi/linux/bpf.h
+    XDP_ABORTED = 0
+    XDP_DROP = 1
+    XDP_PASS = 2
+    XDP_TX = 3
+    XDP_REDIRECT = 4
+
+class XDPFlags:
+    # from xdp_flags uapi/linux/if_link.h
+    # unlike similar enum-type holder classes in this file, source for these
+    # is #define XDP_FLAGS_UPDATE_IF_NOEXIST, #define XDP_FLAGS_SKB_MODE, ...
+    UPDATE_IF_NOEXIST = (1 << 0)
+    SKB_MODE = (1 << 1)
+    DRV_MODE = (1 << 2)
+    HW_MODE = (1 << 3)
+    REPLACE = (1 << 4)
+
+class BPF(object):
+    # Here for backwards compatibility only, add new enum members and types
+    # the appropriate wrapper class elsewhere in this file to avoid namespace
+    # collision issues
+    SOCKET_FILTER = BPFProgType.SOCKET_FILTER
+    KPROBE = BPFProgType.KPROBE
+    SCHED_CLS = BPFProgType.SCHED_CLS
+    SCHED_ACT = BPFProgType.SCHED_ACT
+    TRACEPOINT = BPFProgType.TRACEPOINT
+    XDP = BPFProgType.XDP
+    PERF_EVENT = BPFProgType.PERF_EVENT
+    CGROUP_SKB = BPFProgType.CGROUP_SKB
+    CGROUP_SOCK = BPFProgType.CGROUP_SOCK
+    LWT_IN = BPFProgType.LWT_IN
+    LWT_OUT = BPFProgType.LWT_OUT
+    LWT_XMIT = BPFProgType.LWT_XMIT
+    SOCK_OPS = BPFProgType.SOCK_OPS
+    SK_SKB = BPFProgType.SK_SKB
+    CGROUP_DEVICE = BP
