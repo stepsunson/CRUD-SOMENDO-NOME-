@@ -273,4 +273,67 @@ class BPF(object):
     LWT_XMIT = BPFProgType.LWT_XMIT
     SOCK_OPS = BPFProgType.SOCK_OPS
     SK_SKB = BPFProgType.SK_SKB
-    CGROUP_DEVICE = BP
+    CGROUP_DEVICE = BPFProgType.CGROUP_DEVICE
+    SK_MSG = BPFProgType.SK_MSG
+    RAW_TRACEPOINT = BPFProgType.RAW_TRACEPOINT
+    CGROUP_SOCK_ADDR = BPFProgType.CGROUP_SOCK_ADDR
+    TRACING = BPFProgType.TRACING
+    LSM = BPFProgType.LSM
+
+    XDP_ABORTED = XDPAction.XDP_ABORTED
+    XDP_DROP = XDPAction.XDP_DROP
+    XDP_PASS = XDPAction.XDP_PASS
+    XDP_TX = XDPAction.XDP_TX
+    XDP_REDIRECT = XDPAction.XDP_REDIRECT
+
+    XDP_FLAGS_UPDATE_IF_NOEXIST = XDPFlags.UPDATE_IF_NOEXIST
+    XDP_FLAGS_SKB_MODE = XDPFlags.SKB_MODE
+    XDP_FLAGS_DRV_MODE = XDPFlags.DRV_MODE
+    XDP_FLAGS_HW_MODE = XDPFlags.HW_MODE
+    XDP_FLAGS_REPLACE = XDPFlags.REPLACE
+    # END enum backwards compat
+
+    _probe_repl = re.compile(b"[^a-zA-Z0-9_]")
+    _sym_caches = {}
+    _bsymcache = lib.bcc_buildsymcache_new()
+
+    _auto_includes = {
+        "linux/time.h": ["time"],
+        "linux/fs.h": ["fs", "file"],
+        "linux/blkdev.h": ["bio", "request"],
+        "linux/slab.h": ["alloc"],
+        "linux/netdevice.h": ["sk_buff", "net_device"]
+    }
+
+    _syscall_prefixes = [
+        b"sys_",
+        b"__x64_sys_",
+        b"__x32_compat_sys_",
+        b"__ia32_compat_sys_",
+        b"__arm64_sys_",
+        b"__s390x_sys_",
+        b"__s390_sys_",
+    ]
+
+    # BPF timestamps come from the monotonic clock. To be able to filter
+    # and compare them from Python, we need to invoke clock_gettime.
+    # Adapted from http://stackoverflow.com/a/1205762
+    CLOCK_MONOTONIC = 1         # see <linux/time.h>
+
+    class timespec(ct.Structure):
+        _fields_ = [('tv_sec', ct.c_long), ('tv_nsec', ct.c_long)]
+
+    _librt = ct.CDLL('librt.so.1', use_errno=True)
+    _clock_gettime = _librt.clock_gettime
+    _clock_gettime.argtypes = [ct.c_int, ct.POINTER(timespec)]
+
+    @classmethod
+    def monotonic_time(cls):
+        """monotonic_time()
+        Returns the system monotonic time from clock_gettime, using the
+        CLOCK_MONOTONIC constant. The time returned is in nanoseconds.
+        """
+        t = cls.timespec()
+        if cls._clock_gettime(cls.CLOCK_MONOTONIC, ct.byref(t)) != 0:
+            errno = ct.get_errno()
+            raise OSError(errno, os.strerror(errno))
