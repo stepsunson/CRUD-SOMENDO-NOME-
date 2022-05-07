@@ -447,4 +447,57 @@ class BPF(object):
         self.tables = {}
         self.module = None
         cflags_array = (ct.c_char_p * len(cflags))()
-        for i, s in enumerate(cflags): cflags_array[i] = bytes(ArgString(s
+        for i, s in enumerate(cflags): cflags_array[i] = bytes(ArgString(s))
+
+        if src_file:
+            src_file = BPF._find_file(src_file)
+            hdr_file = BPF._find_file(hdr_file)
+
+        if src_file:
+            # Read the BPF C source file into the text variable. This ensures,
+            # that files and inline text are treated equally.
+            with open(src_file, mode="rb") as file:
+                text = file.read()
+
+        ctx_array = (ct.c_void_p * len(usdt_contexts))()
+        for i, usdt in enumerate(usdt_contexts):
+            ctx_array[i] = ct.c_void_p(usdt.get_context())
+        usdt_text = lib.bcc_usdt_genargs(ctx_array, len(usdt_contexts))
+        if usdt_text is None:
+            raise Exception("can't generate USDT probe arguments; " +
+                            "possible cause is missing pid when a " +
+                            "probe in a shared object has multiple " +
+                            "locations")
+        text = usdt_text + text
+
+
+        self.module = lib.bpf_module_create_c_from_string(text,
+                                                          self.debug,
+                                                          cflags_array, len(cflags_array),
+                                                          allow_rlimit, device)
+        if not self.module:
+            raise Exception("Failed to compile BPF module %s" % (src_file or "<text>"))
+
+        for usdt_context in usdt_contexts:
+            usdt_context.attach_uprobes(self, attach_usdt_ignore_pid)
+
+        # If any "kprobe__" or "tracepoint__" or "raw_tracepoint__"
+        # prefixed functions were defined,
+        # they will be loaded and attached here.
+        self._trace_autoload()
+
+    def load_funcs(self, prog_type=KPROBE):
+        """load_funcs(prog_type=KPROBE)
+
+        Load all functions in this BPF module with the given type.
+        Returns a list of the function handles."""
+
+        fns = []
+        for i in range(0, lib.bpf_num_functions(self.module)):
+            func_name = lib.bpf_function_name(self.module, i)
+            fns.append(self.load_func(func_name, prog_type))
+
+        return fns
+
+    def load_func(self, func_name, prog_type, device = None, attach_type = -1):
+        func_name = _assert_
