@@ -391,4 +391,60 @@ class BPF(object):
         """
         # Source: http://stackoverflow.com/a/377028
         def is_exe(fpath):
-            return
+            return os.path.isfile(fpath) and \
+                os.access(fpath, os.X_OK)
+
+        fpath, fname = os.path.split(bin_path)
+        if fpath:
+            if is_exe(bin_path):
+                return bin_path
+        else:
+            for path in os.environ["PATH"].split(os.pathsep):
+                path = path.strip('"')
+                exe_file = os.path.join(path.encode(), bin_path)
+                if is_exe(exe_file):
+                    return exe_file
+        return None
+
+    def __init__(self, src_file=b"", hdr_file=b"", text=None, debug=0,
+            cflags=[], usdt_contexts=[], allow_rlimit=True, device=None,
+            attach_usdt_ignore_pid=False):
+        """Create a new BPF module with the given source code.
+
+        Note:
+            All fields are marked as optional, but either `src_file` or `text`
+            must be supplied, and not both.
+
+        Args:
+            src_file (Optional[str]): Path to a source file for the module
+            hdr_file (Optional[str]): Path to a helper header file for the `src_file`
+            text (Optional[str]): Contents of a source file for the module
+            debug (Optional[int]): Flags used for debug prints, can be |'d together
+                                   See "Debug flags" for explanation
+        """
+
+        src_file = _assert_is_bytes(src_file)
+        hdr_file = _assert_is_bytes(hdr_file)
+        text = _assert_is_bytes(text)
+
+        assert not (text and src_file)
+
+        self.kprobe_fds = {}
+        self.uprobe_fds = {}
+        self.tracepoint_fds = {}
+        self.raw_tracepoint_fds = {}
+        self.kfunc_entry_fds = {}
+        self.kfunc_exit_fds = {}
+        self.lsm_fds = {}
+        self.perf_buffers = {}
+        self.open_perf_events = {}
+        self._ringbuf_manager = None
+        self.tracefile = None
+        atexit.register(self.cleanup)
+
+        self.debug = debug
+        self.funcs = {}
+        self.tables = {}
+        self.module = None
+        cflags_array = (ct.c_char_p * len(cflags))()
+        for i, s in enumerate(cflags): cflags_array[i] = bytes(ArgString(s
