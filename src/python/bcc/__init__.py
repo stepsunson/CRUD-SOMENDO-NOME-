@@ -337,3 +337,58 @@ class BPF(object):
         if cls._clock_gettime(cls.CLOCK_MONOTONIC, ct.byref(t)) != 0:
             errno = ct.get_errno()
             raise OSError(errno, os.strerror(errno))
+        return t.tv_sec * 1e9 + t.tv_nsec
+
+    @classmethod
+    def generate_auto_includes(cls, program_words):
+        """
+        Generates #include statements automatically based on a set of
+        recognized types such as sk_buff and bio. The input is all the words
+        that appear in the BPF program, and the output is a (possibly empty)
+        string of #include statements, such as "#include <linux/fs.h>".
+        """
+        headers = ""
+        for header, keywords in cls._auto_includes.items():
+            for keyword in keywords:
+                for word in program_words:
+                    if keyword in word and header not in headers:
+                        headers += "#include <%s>\n" % header
+        return headers
+
+    # defined for compatibility reasons, to be removed
+    Table = Table
+
+    class Function(object):
+        def __init__(self, bpf, name, fd):
+            self.bpf = bpf
+            self.name = name
+            self.fd = fd
+
+    @staticmethod
+    def _find_file(filename):
+        """ If filename is invalid, search in ./ of argv[0] """
+        if filename:
+            if not os.path.isfile(filename):
+                argv0 = ArgString(sys.argv[0])
+                t = b"/".join([os.path.abspath(os.path.dirname(argv0.__bytes__())), filename])
+                if os.path.isfile(t):
+                    filename = t
+                else:
+                    raise Exception("Could not find file %s" % filename)
+        return filename
+
+    @staticmethod
+    def find_exe(bin_path):
+        """
+        find_exe(bin_path)
+
+        Traverses the PATH environment variable, looking for the first
+        directory that contains an executable file named bin_path, and
+        returns the full path to that file, or None if no such file
+        can be found. This is meant to replace invocations of the
+        "which" shell utility, which doesn't have portable semantics
+        for skipping aliases.
+        """
+        # Source: http://stackoverflow.com/a/377028
+        def is_exe(fpath):
+            return
