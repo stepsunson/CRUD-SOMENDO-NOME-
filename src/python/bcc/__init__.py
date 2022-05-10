@@ -554,4 +554,58 @@ class BPF(object):
 
     str2ctype = {
         u"_Bool": ct.c_bool,
-  
+        u"char": ct.c_char,
+        u"wchar_t": ct.c_wchar,
+        u"unsigned char": ct.c_ubyte,
+        u"short": ct.c_short,
+        u"unsigned short": ct.c_ushort,
+        u"int": ct.c_int,
+        u"unsigned int": ct.c_uint,
+        u"long": ct.c_long,
+        u"unsigned long": ct.c_ulong,
+        u"long long": ct.c_longlong,
+        u"unsigned long long": ct.c_ulonglong,
+        u"float": ct.c_float,
+        u"double": ct.c_double,
+        u"long double": ct.c_longdouble,
+        u"__int128": ct.c_int64 * 2,
+        u"unsigned __int128": ct.c_uint64 * 2,
+    }
+    @staticmethod
+    def _decode_table_type(desc):
+        if isinstance(desc, basestring):
+            return BPF.str2ctype[desc]
+        anon = []
+        fields = []
+        for t in desc[1]:
+            if len(t) == 2:
+                fields.append((t[0], BPF._decode_table_type(t[1])))
+            elif len(t) == 3:
+                if isinstance(t[2], list):
+                    fields.append((t[0], BPF._decode_table_type(t[1]) * t[2][0]))
+                elif isinstance(t[2], int):
+                    fields.append((t[0], BPF._decode_table_type(t[1]), t[2]))
+                elif isinstance(t[2], basestring) and (
+                        t[2] == u"union" or t[2] == u"struct" or
+                        t[2] == u"struct_packed"):
+                    name = t[0]
+                    if name == "":
+                        name = "__anon%d" % len(anon)
+                        anon.append(name)
+                    fields.append((name, BPF._decode_table_type(t)))
+                else:
+                    raise Exception("Failed to decode type %s" % str(t))
+            else:
+                raise Exception("Failed to decode type %s" % str(t))
+        base = ct.Structure
+        is_packed = False
+        if len(desc) > 2:
+            if desc[2] == u"union":
+                base = ct.Union
+            elif desc[2] == u"struct":
+                base = ct.Structure
+            elif desc[2] == u"struct_packed":
+                base = ct.Structure
+                is_packed = True
+        if is_packed:
+            cls =
