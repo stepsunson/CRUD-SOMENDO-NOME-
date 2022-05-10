@@ -500,4 +500,58 @@ class BPF(object):
         return fns
 
     def load_func(self, func_name, prog_type, device = None, attach_type = -1):
-        func_name = _assert_
+        func_name = _assert_is_bytes(func_name)
+        if func_name in self.funcs:
+            return self.funcs[func_name]
+        if not lib.bpf_function_start(self.module, func_name):
+            raise Exception("Unknown program %s" % func_name)
+        log_level = 0
+        if (self.debug & DEBUG_BPF_REGISTER_STATE):
+            log_level = 2
+        elif (self.debug & DEBUG_BPF):
+            log_level = 1
+        fd = lib.bcc_func_load(self.module, prog_type, func_name,
+                lib.bpf_function_start(self.module, func_name),
+                lib.bpf_function_size(self.module, func_name),
+                lib.bpf_module_license(self.module),
+                lib.bpf_module_kern_version(self.module),
+                log_level, None, 0, device, attach_type)
+
+        if fd < 0:
+            atexit.register(self.donothing)
+            if ct.get_errno() == errno.EPERM:
+                raise Exception("Need super-user privileges to run")
+
+            errstr = os.strerror(ct.get_errno())
+            raise Exception("Failed to load BPF program %s: %s" %
+                            (func_name, errstr))
+
+        fn = BPF.Function(self, func_name, fd)
+        self.funcs[func_name] = fn
+
+        return fn
+
+    def dump_func(self, func_name):
+        """
+        Return the eBPF bytecodes for the specified function as a string
+        """
+        func_name = _assert_is_bytes(func_name)
+        if not lib.bpf_function_start(self.module, func_name):
+            raise Exception("Unknown program %s" % func_name)
+
+        start, = lib.bpf_function_start(self.module, func_name),
+        size, = lib.bpf_function_size(self.module, func_name),
+        return ct.string_at(start, size)
+
+    def disassemble_func(self, func_name):
+        bpfstr = self.dump_func(func_name)
+        return disassemble_prog(func_name, bpfstr)
+
+    def decode_table(self, table_name, sizeinfo=False):
+        table_obj = self[table_name]
+        table_type = lib.bpf_table_type_id(self.module, table_obj.map_id)
+        return decode_map(table_name, table_obj, table_type, sizeinfo=sizeinfo)
+
+    str2ctype = {
+        u"_Bool": ct.c_bool,
+  
