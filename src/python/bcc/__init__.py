@@ -659,4 +659,57 @@ class BPF(object):
         res = lib.bpf_prog_attach(fn.fd, attachable_fd, attach_type, flags)
         if res < 0:
             raise Exception("Failed to attach BPF function with attach_type "\
-                            "{0}: {1}".format(attach_ty
+                            "{0}: {1}".format(attach_type, os.strerror(-res)))
+
+    @staticmethod
+    def detach_func(fn, attachable_fd, attach_type):
+        if not isinstance(fn, BPF.Function):
+            raise Exception("arg 1 must be of type BPF.Function")
+
+        res = lib.bpf_prog_detach2(fn.fd, attachable_fd, attach_type)
+        if res < 0:
+            raise Exception("Failed to detach BPF function with attach_type "\
+                            "{0}: {1}".format(attach_type, os.strerror(-res)))
+
+    @staticmethod
+    def attach_raw_socket(fn, dev):
+        dev = _assert_is_bytes(dev)
+        if not isinstance(fn, BPF.Function):
+            raise Exception("arg 1 must be of type BPF.Function")
+        sock = lib.bpf_open_raw_sock(dev)
+        if sock < 0:
+            errstr = os.strerror(ct.get_errno())
+            raise Exception("Failed to open raw device %s: %s" % (dev, errstr))
+        res = lib.bpf_attach_socket(sock, fn.fd)
+        if res < 0:
+            errstr = os.strerror(ct.get_errno())
+            raise Exception("Failed to attach BPF to device %s: %s"
+                    % (dev, errstr))
+        fn.sock = sock
+
+    @staticmethod
+    def get_kprobe_functions(event_re):
+        blacklist_file = "%s/kprobes/blacklist" % DEBUGFS
+        try:
+            with open(blacklist_file, "rb") as blacklist_f:
+                blacklist = set([line.rstrip().split()[1] for line in blacklist_f])
+        except IOError as e:
+            if e.errno != errno.EPERM:
+                raise e
+            blacklist = set([])
+
+        fns = []
+
+        in_init_section = 0
+        in_irq_section = 0
+        with open("/proc/kallsyms", "rb") as avail_file:
+            for line in avail_file:
+                (t, fn) = line.rstrip().split()[1:3]
+                # Skip all functions defined between __init_begin and
+                # __init_end
+                if in_init_section == 0:
+                    if fn == b'__init_begin':
+                        in_init_section = 1
+                        continue
+                elif in_init_section == 1:
+                    if fn == b'__init_
