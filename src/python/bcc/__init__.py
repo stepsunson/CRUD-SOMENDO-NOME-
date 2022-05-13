@@ -608,4 +608,55 @@ class BPF(object):
                 base = ct.Structure
                 is_packed = True
         if is_packed:
-            cls =
+            cls = type(str(desc[0]), (base,), dict(_anonymous_=anon, _pack_=1,
+                _fields_=fields))
+        else:
+            cls = type(str(desc[0]), (base,), dict(_anonymous_=anon,
+                _fields_=fields))
+        return cls
+
+    def get_table(self, name, keytype=None, leaftype=None, reducer=None):
+        name = _assert_is_bytes(name)
+        map_id = lib.bpf_table_id(self.module, name)
+        map_fd = lib.bpf_table_fd(self.module, name)
+        is_queuestack = lib.bpf_table_type_id(self.module, map_id) in [BPF_MAP_TYPE_QUEUE, BPF_MAP_TYPE_STACK]
+        if map_fd < 0:
+            raise KeyError
+        if not keytype and not is_queuestack:
+            key_desc = lib.bpf_table_key_desc(self.module, name).decode("utf-8")
+            if not key_desc:
+                raise Exception("Failed to load BPF Table %s key desc" % name)
+            keytype = BPF._decode_table_type(json.loads(key_desc))
+        if not leaftype:
+            leaf_desc = lib.bpf_table_leaf_desc(self.module, name).decode("utf-8")
+            if not leaf_desc:
+                raise Exception("Failed to load BPF Table %s leaf desc" % name)
+            leaftype = BPF._decode_table_type(json.loads(leaf_desc))
+        return Table(self, map_id, map_fd, keytype, leaftype, name, reducer=reducer)
+
+    def __getitem__(self, key):
+        if key not in self.tables:
+            self.tables[key] = self.get_table(key)
+        return self.tables[key]
+
+    def __setitem__(self, key, leaf):
+        self.tables[key] = leaf
+
+    def __len__(self):
+        return len(self.tables)
+
+    def __delitem__(self, key):
+        del self.tables[key]
+
+    def __iter__(self):
+        return self.tables.__iter__()
+
+    @staticmethod
+    def attach_func(fn, attachable_fd, attach_type, flags=0):
+        if not isinstance(fn, BPF.Function):
+            raise Exception("arg 1 must be of type BPF.Function")
+
+        res = lib.bpf_prog_attach(fn.fd, attachable_fd, attach_type, flags)
+        if res < 0:
+            raise Exception("Failed to attach BPF function with attach_type "\
+                            "{0}: {1}".format(attach_ty
