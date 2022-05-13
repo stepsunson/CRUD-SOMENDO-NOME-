@@ -712,4 +712,47 @@ class BPF(object):
                         in_init_section = 1
                         continue
                 elif in_init_section == 1:
-                    if fn == b'__init_
+                    if fn == b'__init_end':
+                        in_init_section = 2
+                    continue
+                # Skip all functions defined between __irqentry_text_start and
+                # __irqentry_text_end
+                if in_irq_section == 0:
+                    if fn == b'__irqentry_text_start':
+                        in_irq_section = 1
+                        continue
+                    # __irqentry_text_end is not always after
+                    # __irqentry_text_start. But only happens when
+                    # no functions between two irqentry_text
+                    elif fn == b'__irqentry_text_end':
+                        in_irq_section = 2
+                        continue
+                elif in_irq_section == 1:
+                    if fn == b'__irqentry_text_end':
+                        in_irq_section = 2
+                    continue
+                # All functions defined as NOKPROBE_SYMBOL() start with the
+                # prefix _kbl_addr_*, blacklisting them by looking at the name
+                # allows to catch also those symbols that are defined in kernel
+                # modules.
+                if fn.startswith(b'_kbl_addr_'):
+                    continue
+                # Explicitly blacklist perf-related functions, they are all
+                # non-attachable.
+                elif fn.startswith(b'__perf') or fn.startswith(b'perf_'):
+                    continue
+                # Exclude all static functions with prefix __SCT__, they are
+                # all non-attachable
+                elif fn.startswith(b'__SCT__'):
+                    continue
+                # Exclude all gcc 8's extra .cold functions
+                elif re.match(b'^.*\.cold(\.\d+)?$', fn):
+                    continue
+                if (t.lower() in [b't', b'w']) and re.fullmatch(event_re, fn) \
+                    and fn not in blacklist:
+                    fns.append(fn)
+        return set(fns)     # Some functions may appear more than once
+
+    def _check_probe_quota(self, num_new_probes):
+        global _num_open_probes
+        i
