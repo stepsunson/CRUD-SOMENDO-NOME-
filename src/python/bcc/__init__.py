@@ -808,4 +808,50 @@ class BPF(object):
     # prefix included, transform it to current system's prefix. For example,
     # if "sys_clone" provided, the helper may translate it to "__x64_sys_clone".
     def fix_syscall_fnname(self, name):
-        n
+        name = _assert_is_bytes(name)
+        for prefix in self._syscall_prefixes:
+            if name.startswith(prefix):
+                return self.get_syscall_fnname(name[len(prefix):])
+        return name
+
+    def attach_kprobe(self, event=b"", event_off=0, fn_name=b"", event_re=b""):
+        event = _assert_is_bytes(event)
+        fn_name = _assert_is_bytes(fn_name)
+        event_re = _assert_is_bytes(event_re)
+
+        # allow the caller to glob multiple functions together
+        if event_re:
+            matches = BPF.get_kprobe_functions(event_re)
+            self._check_probe_quota(len(matches))
+            failed = 0
+            probes = []
+            for line in matches:
+                try:
+                    self.attach_kprobe(event=line, fn_name=fn_name)
+                except:
+                    failed += 1
+                    probes.append(line)
+            if failed == len(matches):
+                raise Exception("Failed to attach BPF program %s to kprobe %s"
+                                ", it's not traceable (either non-existing, inlined, or marked as \"notrace\")" %
+                                (fn_name, '/'.join(probes)))
+            return
+
+        self._check_probe_quota(1)
+        fn = self.load_func(fn_name, BPF.KPROBE)
+        ev_name = b"p_" + event.replace(b"+", b"_").replace(b".", b"_")
+        fd = lib.bpf_attach_kprobe(fn.fd, 0, ev_name, event, event_off, 0)
+        if fd < 0:
+            raise Exception("Failed to attach BPF program %s to kprobe %s"
+                            ", it's not traceable (either non-existing, inlined, or marked as \"notrace\")" %
+                            (fn_name, event))
+        self._add_kprobe_fd(ev_name, fn_name, fd)
+        return self
+
+    def attach_kretprobe(self, event=b"", fn_name=b"", event_re=b"", maxactive=0):
+        event = _assert_is_bytes(event)
+        fn_name = _assert_is_bytes(fn_name)
+        event_re = _assert_is_bytes(event_re)
+
+        # allow the caller to glob multiple functions together
+        
