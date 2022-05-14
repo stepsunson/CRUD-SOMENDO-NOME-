@@ -755,4 +755,57 @@ class BPF(object):
 
     def _check_probe_quota(self, num_new_probes):
         global _num_open_probes
-        i
+        if _num_open_probes + num_new_probes > BPF.get_probe_limit():
+            raise Exception("Number of open probes would exceed global quota")
+
+    @staticmethod
+    def get_probe_limit():
+        env_probe_limit = os.environ.get('BCC_PROBE_LIMIT')
+        if env_probe_limit and env_probe_limit.isdigit():
+            return int(env_probe_limit)
+        else:
+            return _default_probe_limit
+
+    def _add_kprobe_fd(self, ev_name, fn_name, fd):
+        global _num_open_probes
+        if ev_name not in self.kprobe_fds:
+            self.kprobe_fds[ev_name] = {}
+        self.kprobe_fds[ev_name][fn_name] = fd
+        _num_open_probes += 1
+
+    def _del_kprobe_fd(self, ev_name, fn_name):
+        global _num_open_probes
+        del self.kprobe_fds[ev_name][fn_name]
+        _num_open_probes -= 1
+
+    def _add_uprobe_fd(self, name, fd):
+        global _num_open_probes
+        self.uprobe_fds[name] = fd
+        _num_open_probes += 1
+
+    def _del_uprobe_fd(self, name):
+        global _num_open_probes
+        del self.uprobe_fds[name]
+        _num_open_probes -= 1
+
+    # Find current system's syscall prefix by testing on the BPF syscall.
+    # If no valid value found, will return the first possible value which
+    # would probably lead to error in later API calls.
+    def get_syscall_prefix(self):
+        for prefix in self._syscall_prefixes:
+            if self.ksymname(b"%sbpf" % prefix) != -1:
+                return prefix
+        return self._syscall_prefixes[0]
+
+    # Given a syscall's name, return the full Kernel function name with current
+    # system's syscall prefix. For example, given "clone" the helper would
+    # return "sys_clone" or "__x64_sys_clone".
+    def get_syscall_fnname(self, name):
+        name = _assert_is_bytes(name)
+        return self.get_syscall_prefix() + name
+
+    # Given a Kernel function name that represents a syscall but already has a
+    # prefix included, transform it to current system's prefix. For example,
+    # if "sys_clone" provided, the helper may translate it to "__x64_sys_clone".
+    def fix_syscall_fnname(self, name):
+        n
