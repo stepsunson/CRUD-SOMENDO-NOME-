@@ -854,4 +854,49 @@ class BPF(object):
         event_re = _assert_is_bytes(event_re)
 
         # allow the caller to glob multiple functions together
-        
+        if event_re:
+            matches = BPF.get_kprobe_functions(event_re)
+            failed = 0
+            probes = []
+            for line in matches:
+                try:
+                    self.attach_kretprobe(event=line, fn_name=fn_name,
+                                          maxactive=maxactive)
+                except:
+                    failed += 1
+                    probes.append(line)
+            if failed == len(matches):
+                raise Exception("Failed to attach BPF program %s to kretprobe %s"
+                                ", it's not traceable (either non-existing, inlined, or marked as \"notrace\")" %
+                                (fn_name, '/'.join(probes)))
+            return
+
+        self._check_probe_quota(1)
+        fn = self.load_func(fn_name, BPF.KPROBE)
+        ev_name = b"r_" + event.replace(b"+", b"_").replace(b".", b"_")
+        fd = lib.bpf_attach_kprobe(fn.fd, 1, ev_name, event, 0, maxactive)
+        if fd < 0:
+            raise Exception("Failed to attach BPF program %s to kretprobe %s"
+                            ", it's not traceable (either non-existing, inlined, or marked as \"notrace\")" %
+                            (fn_name, event))
+        self._add_kprobe_fd(ev_name, fn_name, fd)
+        return self
+
+    def detach_kprobe_event(self, ev_name):
+        ev_name = _assert_is_bytes(ev_name)
+        fn_names = list(self.kprobe_fds[ev_name].keys())
+        for fn_name in fn_names:
+            self.detach_kprobe_event_by_fn(ev_name, fn_name)
+
+    def detach_kprobe_event_by_fn(self, ev_name, fn_name):
+        ev_name = _assert_is_bytes(ev_name)
+        fn_name = _assert_is_bytes(fn_name)
+        if ev_name not in self.kprobe_fds:
+            raise Exception("Kprobe %s is not attached" % ev_name)
+        res = lib.bpf_close_perf_event_fd(self.kprobe_fds[ev_name][fn_name])
+        if res < 0:
+            raise Exception("Failed to close kprobe FD")
+        self._del_kprobe_fd(ev_name, fn_name)
+        if len(self.kprobe_fds[ev_name]) == 0:
+            res = lib.bpf_detach_kprobe(ev_name)
+    
