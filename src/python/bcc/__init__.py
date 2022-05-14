@@ -899,4 +899,56 @@ class BPF(object):
         self._del_kprobe_fd(ev_name, fn_name)
         if len(self.kprobe_fds[ev_name]) == 0:
             res = lib.bpf_detach_kprobe(ev_name)
-    
+            if res < 0:
+                raise Exception("Failed to detach BPF from kprobe")
+
+    def detach_kprobe(self, event, fn_name=None):
+        event = _assert_is_bytes(event)
+        ev_name = b"p_" + event.replace(b"+", b"_").replace(b".", b"_")
+        if fn_name:
+            fn_name = _assert_is_bytes(fn_name)
+            self.detach_kprobe_event_by_fn(ev_name, fn_name)
+        else:
+            self.detach_kprobe_event(ev_name)
+
+    def detach_kretprobe(self, event, fn_name=None):
+        event = _assert_is_bytes(event)
+        ev_name = b"r_" + event.replace(b"+", b"_").replace(b".", b"_")
+        if fn_name:
+            fn_name = _assert_is_bytes(fn_name)
+            self.detach_kprobe_event_by_fn(ev_name, fn_name)
+        else:
+            self.detach_kprobe_event(ev_name)
+
+    @staticmethod
+    def attach_xdp(dev, fn, flags=0):
+        '''
+            This function attaches a BPF function to a device on the device
+            driver level (XDP)
+        '''
+        dev = _assert_is_bytes(dev)
+        if not isinstance(fn, BPF.Function):
+            raise Exception("arg 1 must be of type BPF.Function")
+        res = lib.bpf_attach_xdp(dev, fn.fd, flags)
+        if res < 0:
+            err_no = ct.get_errno()
+            if err_no == errno.EBADMSG:
+                raise Exception("Internal error while attaching BPF to device,"+
+                    " try increasing the debug level!")
+            else:
+                errstr = os.strerror(err_no)
+                raise Exception("Failed to attach BPF to device %s: %s"
+                            % (dev, errstr))
+
+    @staticmethod
+    def remove_xdp(dev, flags=0):
+        '''
+            This function removes any BPF function from a device on the
+            device driver level (XDP)
+        '''
+        dev = _assert_is_bytes(dev)
+        res = lib.bpf_attach_xdp(dev, -1, flags)
+        if res < 0:
+            errstr = os.strerror(ct.get_errno())
+            raise Exception("Failed to detach BPF from device %s: %s"
+                            % (dev, errstr))
