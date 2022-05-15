@@ -1055,4 +1055,66 @@ class BPF(object):
 
         tp = _assert_is_bytes(tp)
         if tp in self.raw_tracepoint_fds:
-      
+            raise Exception("Raw tracepoint %s has been attached" % tp)
+
+        fn_name = _assert_is_bytes(fn_name)
+        fn = self.load_func(fn_name, BPF.RAW_TRACEPOINT)
+        fd = lib.bpf_attach_raw_tracepoint(fn.fd, tp)
+        if fd < 0:
+            raise Exception("Failed to attach BPF to raw tracepoint")
+        self.raw_tracepoint_fds[tp] = fd
+        return self
+
+    def detach_raw_tracepoint(self, tp=b""):
+        """detach_raw_tracepoint(tp="")
+
+        Stop running the bpf function that is attached to the kernel tracepoint
+        specified by 'tp'.
+
+        Example: bpf.detach_raw_tracepoint("sched_switch")
+        """
+
+        tp = _assert_is_bytes(tp)
+        if tp not in self.raw_tracepoint_fds:
+            raise Exception("Raw tracepoint %s is not attached" % tp)
+        os.close(self.raw_tracepoint_fds[tp])
+        del self.raw_tracepoint_fds[tp]
+
+    @staticmethod
+    def add_prefix(prefix, name):
+        if not name.startswith(prefix):
+            name = prefix + name
+        return name
+
+    @staticmethod
+    def support_kfunc():
+        # there's no trampoline support for other than x86_64 arch
+        if platform.machine() != 'x86_64':
+            return False
+        if not lib.bpf_has_kernel_btf():
+            return False
+        # kernel symbol "bpf_trampoline_link_prog" indicates kfunc support
+        if BPF.ksymname("bpf_trampoline_link_prog") != -1:
+            return True
+        return False
+
+    @staticmethod
+    def support_lsm():
+        if not lib.bpf_has_kernel_btf():
+            return False
+        # kernel symbol "bpf_lsm_bpf" indicates BPF LSM support
+        if BPF.ksymname(b"bpf_lsm_bpf") != -1:
+            return True
+        return False
+
+    def detach_kfunc(self, fn_name=b""):
+        fn_name = _assert_is_bytes(fn_name)
+        fn_name = BPF.add_prefix(b"kfunc__", fn_name)
+
+        if fn_name not in self.kfunc_entry_fds:
+            raise Exception("Kernel entry func %s is not attached" % fn_name)
+        os.close(self.kfunc_entry_fds[fn_name])
+        del self.kfunc_entry_fds[fn_name]
+
+    def detach_kretfunc(self, fn_name=b""):
+       
