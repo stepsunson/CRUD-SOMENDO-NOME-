@@ -1007,4 +1007,52 @@ class BPF(object):
         """attach_tracepoint(tp="", tp_re="", fn_name="")
 
         Run the bpf function denoted by fn_name every time the kernel tracepoint
-        specified by 'tp
+        specified by 'tp' is hit. The optional parameters pid, cpu, and group_fd
+        can be used to filter the probe. The tracepoint specification is simply
+        the tracepoint category and the tracepoint name, separated by a colon.
+        For example: sched:sched_switch, syscalls:sys_enter_bind, etc.
+
+        Instead of a tracepoint name, a regular expression can be provided in
+        tp_re. The program will then attach to tracepoints that match the
+        provided regular expression.
+
+        To obtain a list of kernel tracepoints, use the tplist tool or cat the
+        file /sys/kernel/debug/tracing/available_events.
+
+        Examples:
+            BPF(text).attach_tracepoint(tp="sched:sched_switch", fn_name="on_switch")
+            BPF(text).attach_tracepoint(tp_re="sched:.*", fn_name="on_switch")
+        """
+
+        tp = _assert_is_bytes(tp)
+        tp_re = _assert_is_bytes(tp_re)
+        fn_name = _assert_is_bytes(fn_name)
+        if tp_re:
+            for tp in BPF.get_tracepoints(tp_re):
+                self.attach_tracepoint(tp=tp, fn_name=fn_name)
+            return
+
+        fn = self.load_func(fn_name, BPF.TRACEPOINT)
+        (tp_category, tp_name) = tp.split(b':')
+        fd = lib.bpf_attach_tracepoint(fn.fd, tp_category, tp_name)
+        if fd < 0:
+            raise Exception("Failed to attach BPF program %s to tracepoint %s" %
+                            (fn_name, tp))
+        self.tracepoint_fds[tp] = fd
+        return self
+
+    def attach_raw_tracepoint(self, tp=b"", fn_name=b""):
+        """attach_raw_tracepoint(self, tp=b"", fn_name=b"")
+
+        Run the bpf function denoted by fn_name every time the kernel tracepoint
+        specified by 'tp' is hit. The bpf function should be loaded as a
+        RAW_TRACEPOINT type. The fn_name is the kernel tracepoint name,
+        e.g., sched_switch, sys_enter_bind, etc.
+
+        Examples:
+            BPF(text).attach_raw_tracepoint(tp="sched_switch", fn_name="on_switch")
+        """
+
+        tp = _assert_is_bytes(tp)
+        if tp in self.raw_tracepoint_fds:
+      
