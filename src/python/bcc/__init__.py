@@ -952,3 +952,59 @@ class BPF(object):
             errstr = os.strerror(ct.get_errno())
             raise Exception("Failed to detach BPF from device %s: %s"
                             % (dev, errstr))
+
+    @classmethod
+    def _check_path_symbol(cls, module, symname, addr, pid, sym_off=0):
+        module = _assert_is_bytes(module)
+        symname = _assert_is_bytes(symname)
+        sym = bcc_symbol()
+        c_pid = 0 if pid == -1 else pid
+        if lib.bcc_resolve_symname(
+            module, symname,
+            addr or 0x0, c_pid,
+            ct.cast(None, ct.POINTER(bcc_symbol_option)),
+            ct.byref(sym),
+        ) < 0:
+            raise Exception("could not determine address of symbol %s in %s"
+                            % (symname.decode(), module.decode()))
+        new_addr = sym.offset + sym_off
+        module_path = ct.cast(sym.module, ct.c_char_p).value
+        lib.bcc_procutils_free(sym.module)
+        return module_path, new_addr
+
+    @staticmethod
+    def find_library(libname):
+        libname = _assert_is_bytes(libname)
+        res = lib.bcc_procutils_which_so(libname, 0)
+        if not res:
+            return None
+        libpath = ct.cast(res, ct.c_char_p).value
+        lib.bcc_procutils_free(res)
+        return libpath
+
+    @staticmethod
+    def get_tracepoints(tp_re):
+        results = []
+        events_dir = os.path.join(TRACEFS, "events")
+        for category in os.listdir(events_dir):
+            cat_dir = os.path.join(events_dir, category)
+            if not os.path.isdir(cat_dir):
+                continue
+            for event in os.listdir(cat_dir):
+                evt_dir = os.path.join(cat_dir, event)
+                if os.path.isdir(evt_dir):
+                    tp = ("%s:%s" % (category, event))
+                    if re.match(tp_re.decode(), tp):
+                        results.append(tp)
+        return results
+
+    @staticmethod
+    def tracepoint_exists(category, event):
+        evt_dir = os.path.join(TRACEFS, "events", category, event)
+        return os.path.isdir(evt_dir)
+
+    def attach_tracepoint(self, tp=b"", tp_re=b"", fn_name=b""):
+        """attach_tracepoint(tp="", tp_re="", fn_name="")
+
+        Run the bpf function denoted by fn_name every time the kernel tracepoint
+        specified by 'tp
