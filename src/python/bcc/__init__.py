@@ -1173,4 +1173,59 @@ class BPF(object):
         fd = lib.bpf_attach_lsm(fn.fd)
         if fd < 0:
             raise Exception("Failed to attach LSM")
-        self.lsm_fds[fn_
+        self.lsm_fds[fn_name] = fd
+        return self
+
+    @staticmethod
+    def support_raw_tracepoint():
+        # kernel symbol "bpf_find_raw_tracepoint" indicates raw_tracepoint support
+        if BPF.ksymname("bpf_find_raw_tracepoint") != -1 or \
+           BPF.ksymname("bpf_get_raw_tracepoint") != -1:
+            return True
+        return False
+
+    @staticmethod
+    def support_raw_tracepoint_in_module():
+        # kernel symbol "bpf_trace_modules" indicates raw tp support in modules, ref: kernel commit a38d1107
+        kallsyms = "/proc/kallsyms"
+        with open(kallsyms) as syms:
+            for line in syms:
+                (_, _, name) = line.rstrip().split(" ", 2)
+                name = name.split("\t")[0]
+                if name == "bpf_trace_modules":
+                    return True
+            return False
+
+    @staticmethod
+    def kernel_struct_has_field(struct_name, field_name):
+        struct_name = _assert_is_bytes(struct_name)
+        field_name = _assert_is_bytes(field_name)
+        return lib.kernel_struct_has_field(struct_name, field_name)
+
+    def detach_tracepoint(self, tp=b""):
+        """detach_tracepoint(tp="")
+
+        Stop running a bpf function that is attached to the kernel tracepoint
+        specified by 'tp'.
+
+        Example: bpf.detach_tracepoint("sched:sched_switch")
+        """
+
+        tp = _assert_is_bytes(tp)
+        if tp not in self.tracepoint_fds:
+            raise Exception("Tracepoint %s is not attached" % tp)
+        res = lib.bpf_close_perf_event_fd(self.tracepoint_fds[tp])
+        if res < 0:
+            raise Exception("Failed to detach BPF from tracepoint")
+        (tp_category, tp_name) = tp.split(b':')
+        res = lib.bpf_detach_tracepoint(tp_category, tp_name)
+        if res < 0:
+            raise Exception("Failed to detach BPF from tracepoint")
+        del self.tracepoint_fds[tp]
+
+    def _attach_perf_event(self, progfd, ev_type, ev_config,
+            sample_period, sample_freq, pid, cpu, group_fd):
+        res = lib.bpf_attach_perf_event(progfd, ev_type, ev_config,
+                sample_period, sample_freq, pid, cpu, group_fd)
+        if res < 0:
+            raise Exception("F
