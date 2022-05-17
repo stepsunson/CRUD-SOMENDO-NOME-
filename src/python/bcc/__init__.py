@@ -1117,4 +1117,60 @@ class BPF(object):
         del self.kfunc_entry_fds[fn_name]
 
     def detach_kretfunc(self, fn_name=b""):
-       
+        fn_name = _assert_is_bytes(fn_name)
+        fn_name = BPF.add_prefix(b"kretfunc__", fn_name)
+
+        if fn_name not in self.kfunc_exit_fds:
+            raise Exception("Kernel exit func %s is not attached" % fn_name)
+        os.close(self.kfunc_exit_fds[fn_name])
+        del self.kfunc_exit_fds[fn_name]
+
+    def attach_kfunc(self, fn_name=b""):
+        fn_name = _assert_is_bytes(fn_name)
+        fn_name = BPF.add_prefix(b"kfunc__", fn_name)
+
+        if fn_name in self.kfunc_entry_fds:
+            raise Exception("Kernel entry func %s has been attached" % fn_name)
+
+        fn = self.load_func(fn_name, BPF.TRACING)
+        fd = lib.bpf_attach_kfunc(fn.fd)
+        if fd < 0:
+            raise Exception("Failed to attach BPF to entry kernel func")
+        self.kfunc_entry_fds[fn_name] = fd
+        return self
+
+    def attach_kretfunc(self, fn_name=b""):
+        fn_name = _assert_is_bytes(fn_name)
+        fn_name = BPF.add_prefix(b"kretfunc__", fn_name)
+
+        if fn_name in self.kfunc_exit_fds:
+            raise Exception("Kernel exit func %s has been attached" % fn_name)
+
+        fn = self.load_func(fn_name, BPF.TRACING)
+        fd = lib.bpf_attach_kfunc(fn.fd)
+        if fd < 0:
+            raise Exception("Failed to attach BPF to exit kernel func")
+        self.kfunc_exit_fds[fn_name] = fd
+        return self
+
+    def detach_lsm(self, fn_name=b""):
+        fn_name = _assert_is_bytes(fn_name)
+        fn_name = BPF.add_prefix(b"lsm__", fn_name)
+
+        if fn_name not in self.lsm_fds:
+            raise Exception("LSM %s is not attached" % fn_name)
+        os.close(self.lsm_fds[fn_name])
+        del self.lsm_fds[fn_name]
+
+    def attach_lsm(self, fn_name=b""):
+        fn_name = _assert_is_bytes(fn_name)
+        fn_name = BPF.add_prefix(b"lsm__", fn_name)
+
+        if fn_name in self.lsm_fds:
+            raise Exception("LSM %s has been attached" % fn_name)
+
+        fn = self.load_func(fn_name, BPF.LSM)
+        fd = lib.bpf_attach_lsm(fn.fd)
+        if fd < 0:
+            raise Exception("Failed to attach LSM")
+        self.lsm_fds[fn_
