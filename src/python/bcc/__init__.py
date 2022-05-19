@@ -1281,3 +1281,50 @@ class BPF(object):
 
     @staticmethod
     def get_user_functions(name, sym_re):
+        return set([name for (name, _) in
+                    BPF.get_user_functions_and_addresses(name, sym_re)])
+
+    @staticmethod
+    def get_user_addresses(name, sym_re):
+        """
+        We are returning addresses here instead of symbol names because it
+        turns out that the same name may appear multiple times with different
+        addresses, and the same address may appear multiple times with the same
+        name. We can't attach a uprobe to the same address more than once, so
+        it makes sense to return the unique set of addresses that are mapped to
+        a symbol that matches the provided regular expression.
+        """
+        return set([address for (_, address) in
+                    BPF.get_user_functions_and_addresses(name, sym_re)])
+
+    @staticmethod
+    def get_user_functions_and_addresses(name, sym_re):
+        name = _assert_is_bytes(name)
+        sym_re = _assert_is_bytes(sym_re)
+        addresses = []
+        def sym_cb(sym_name, addr):
+            dname = sym_name
+            if re.match(sym_re, dname):
+                addresses.append((dname, addr))
+            return 0
+
+        res = lib.bcc_foreach_function_symbol(name, _SYM_CB_TYPE(sym_cb))
+        if res < 0:
+            raise Exception("Error %d enumerating symbols in %s" % (res, name))
+        return addresses
+
+    def _get_uprobe_evname(self, prefix, path, addr, pid):
+        if pid == -1:
+            return b"%s_%s_0x%x" % (prefix, self._probe_repl.sub(b"_", path), addr)
+        else:
+            # if pid is valid, put pid in the name, so different pid
+            # can have different event names
+            return b"%s_%s_0x%x_%d" % (prefix, self._probe_repl.sub(b"_", path), addr, pid)
+
+    def attach_uprobe(self, name=b"", sym=b"", sym_re=b"", addr=None,
+            fn_name=b"", pid=-1, sym_off=0):
+        """attach_uprobe(name="", sym="", sym_re="", addr=None, fn_name=""
+                         pid=-1, sym_off=0)
+
+        Run the bpf function denoted by fn_name every time the symbol sym in
+        the library or binary 'name' is 
