@@ -1327,4 +1327,55 @@ class BPF(object):
                          pid=-1, sym_off=0)
 
         Run the bpf function denoted by fn_name every time the symbol sym in
-        the library or binary 'name' is 
+        the library or binary 'name' is encountered. Optional parameters pid,
+        cpu, and group_fd can be used to filter the probe.
+
+        If sym_off is given, attach uprobe to offset within the symbol.
+
+        The real address addr may be supplied in place of sym, in which case sym
+        must be set to its default value. If the file is a non-PIE executable,
+        addr must be a virtual address, otherwise it must be an offset relative
+        to the file load address.
+
+        Instead of a symbol name, a regular expression can be provided in
+        sym_re. The uprobe will then attach to symbols that match the provided
+        regular expression.
+
+        Libraries can be given in the name argument without the lib prefix, or
+        with the full path (/usr/lib/...). Binaries can be given only with the
+        full path (/bin/sh). If a PID is given, the uprobe will attach to the
+        version of the library used by the process.
+
+        Example: BPF(text).attach_uprobe("c", "malloc")
+                 BPF(text).attach_uprobe("/usr/bin/python", "main")
+        """
+
+        assert sym_off >= 0
+        if addr is not None:
+            assert sym_off == 0, "offset with addr is not supported"
+
+        name = _assert_is_bytes(name)
+        sym = _assert_is_bytes(sym)
+        sym_re = _assert_is_bytes(sym_re)
+        fn_name = _assert_is_bytes(fn_name)
+
+        if sym_re:
+            addresses = BPF.get_user_addresses(name, sym_re)
+            self._check_probe_quota(len(addresses))
+            for sym_addr in addresses:
+                self.attach_uprobe(name=name, addr=sym_addr,
+                                   fn_name=fn_name, pid=pid)
+            return
+
+        (path, addr) = BPF._check_path_symbol(name, sym, addr, pid, sym_off)
+
+        self._check_probe_quota(1)
+        fn = self.load_func(fn_name, BPF.KPROBE)
+        ev_name = self._get_uprobe_evname(b"p", path, addr, pid)
+        fd = lib.bpf_attach_uprobe(fn.fd, 0, ev_name, path, addr, pid)
+        if fd < 0:
+            raise Exception("Failed to attach BPF to uprobe")
+        self._add_uprobe_fd(ev_name, fd)
+        return self
+
+    def attach_uretprobe(self, 
