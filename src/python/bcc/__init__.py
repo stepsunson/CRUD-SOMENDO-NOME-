@@ -1378,4 +1378,57 @@ class BPF(object):
         self._add_uprobe_fd(ev_name, fd)
         return self
 
-    def attach_uretprobe(self, 
+    def attach_uretprobe(self, name=b"", sym=b"", sym_re=b"", addr=None,
+            fn_name=b"", pid=-1):
+        """attach_uretprobe(name="", sym="", sym_re="", addr=None, fn_name=""
+                            pid=-1)
+
+        Run the bpf function denoted by fn_name every time the symbol sym in
+        the library or binary 'name' finishes execution. See attach_uprobe for
+        meaning of additional parameters.
+        """
+
+        name = _assert_is_bytes(name)
+        sym = _assert_is_bytes(sym)
+        sym_re = _assert_is_bytes(sym_re)
+        fn_name = _assert_is_bytes(fn_name)
+
+        if sym_re:
+            for sym_addr in BPF.get_user_addresses(name, sym_re):
+                self.attach_uretprobe(name=name, addr=sym_addr,
+                                      fn_name=fn_name, pid=pid)
+            return
+
+        (path, addr) = BPF._check_path_symbol(name, sym, addr, pid)
+
+        self._check_probe_quota(1)
+        fn = self.load_func(fn_name, BPF.KPROBE)
+        ev_name = self._get_uprobe_evname(b"r", path, addr, pid)
+        fd = lib.bpf_attach_uprobe(fn.fd, 1, ev_name, path, addr, pid)
+        if fd < 0:
+            raise Exception("Failed to attach BPF to uretprobe")
+        self._add_uprobe_fd(ev_name, fd)
+        return self
+
+    def detach_uprobe_event(self, ev_name):
+        if ev_name not in self.uprobe_fds:
+            raise Exception("Uprobe %s is not attached" % ev_name)
+        res = lib.bpf_close_perf_event_fd(self.uprobe_fds[ev_name])
+        if res < 0:
+            raise Exception("Failed to detach BPF from uprobe")
+        res = lib.bpf_detach_uprobe(ev_name)
+        if res < 0:
+            raise Exception("Failed to detach BPF from uprobe")
+        self._del_uprobe_fd(ev_name)
+
+    def detach_uprobe(self, name=b"", sym=b"", addr=None, pid=-1, sym_off=0):
+        """detach_uprobe(name="", sym="", addr=None, pid=-1)
+
+        Stop running a bpf function that is attached to symbol 'sym' in library
+        or binary 'name'.
+        """
+
+        name = _assert_is_bytes(name)
+        sym = _assert_is_bytes(sym)
+        (path, addr) = BPF._check_path_symbol(name, sym, addr, pid, sym_off)
+        ev_name = s
