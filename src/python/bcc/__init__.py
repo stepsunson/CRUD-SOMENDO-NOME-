@@ -1431,4 +1431,46 @@ class BPF(object):
         name = _assert_is_bytes(name)
         sym = _assert_is_bytes(sym)
         (path, addr) = BPF._check_path_symbol(name, sym, addr, pid, sym_off)
-        ev_name = s
+        ev_name = self._get_uprobe_evname(b"p", path, addr, pid)
+        self.detach_uprobe_event(ev_name)
+
+    def detach_uretprobe(self, name=b"", sym=b"", addr=None, pid=-1):
+        """detach_uretprobe(name="", sym="", addr=None, pid=-1)
+
+        Stop running a bpf function that is attached to symbol 'sym' in library
+        or binary 'name'.
+        """
+
+        name = _assert_is_bytes(name)
+        sym = _assert_is_bytes(sym)
+
+        (path, addr) = BPF._check_path_symbol(name, sym, addr, pid)
+        ev_name = self._get_uprobe_evname(b"r", path, addr, pid)
+        self.detach_uprobe_event(ev_name)
+
+    def _trace_autoload(self):
+        for i in range(0, lib.bpf_num_functions(self.module)):
+            func_name = lib.bpf_function_name(self.module, i)
+            if func_name.startswith(b"kprobe__"):
+                fn = self.load_func(func_name, BPF.KPROBE)
+                self.attach_kprobe(
+                    event=self.fix_syscall_fnname(func_name[8:]),
+                    fn_name=fn.name)
+            elif func_name.startswith(b"kretprobe__"):
+                fn = self.load_func(func_name, BPF.KPROBE)
+                self.attach_kretprobe(
+                    event=self.fix_syscall_fnname(func_name[11:]),
+                    fn_name=fn.name)
+            elif func_name.startswith(b"tracepoint__"):
+                fn = self.load_func(func_name, BPF.TRACEPOINT)
+                tp = fn.name[len(b"tracepoint__"):].replace(b"__", b":")
+                self.attach_tracepoint(tp=tp, fn_name=fn.name)
+            elif func_name.startswith(b"raw_tracepoint__"):
+                fn = self.load_func(func_name, BPF.RAW_TRACEPOINT)
+                tp = fn.name[len(b"raw_tracepoint__"):]
+                self.attach_raw_tracepoint(tp=tp, fn_name=fn.name)
+            elif func_name.startswith(b"kfunc__"):
+                self.attach_kfunc(fn_name=func_name)
+            elif func_name.startswith(b"kretfunc__"):
+                self.attach_kretfunc(fn_name=func_name)
+     
