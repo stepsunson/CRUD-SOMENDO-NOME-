@@ -1473,4 +1473,56 @@ class BPF(object):
                 self.attach_kfunc(fn_name=func_name)
             elif func_name.startswith(b"kretfunc__"):
                 self.attach_kretfunc(fn_name=func_name)
+            elif func_name.startswith(b"lsm__"):
+                self.attach_lsm(fn_name=func_name)
+
+    def trace_open(self, nonblocking=False):
+        """trace_open(nonblocking=False)
+
+        Open the trace_pipe if not already open
+        """
+        if not self.tracefile:
+            self.tracefile = open("%s/trace_pipe" % TRACEFS, "rb")
+            if nonblocking:
+                fd = self.tracefile.fileno()
+                fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+                fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+        return self.tracefile
+
+    def trace_fields(self, nonblocking=False):
+        """trace_fields(nonblocking=False)
+
+        Read from the kernel debug trace pipe and return a tuple of the
+        fields (task, pid, cpu, flags, timestamp, msg) or None if no
+        line was read (nonblocking=True)
+        """
+        while True:
+            line = self.trace_readline(nonblocking)
+            if not line and nonblocking: return (None,) * 6
+            # don't print messages related to lost events
+            if line.startswith(b"CPU:"): continue
+            task = line[:16].lstrip()
+            line = line[17:]
+            ts_end = line.find(b":")
+            try:
+                pid, cpu, flags, ts = line[:ts_end].split()
+            except Exception as e:
+                continue
+            cpu = cpu[1:-1]
+            # line[ts_end:] will have ": [sym_or_addr]: msgs"
+            # For trace_pipe debug output, the addr typically
+            # is invalid (e.g., 0x1). For kernel 4.12 or earlier,
+            # if address is not able to match a kernel symbol,
+            # nothing will be printed out. For kernel 4.13 and later,
+            # however, the illegal address will be printed out.
+            # Hence, both cases are handled here.
+            line = line[ts_end + 1:]
+            sym_end = line.find(b":")
+            msg = line[sym_end + 2:]
+            try:
+                return (task, int(pid), int(cpu), flags, float(ts), msg)
+            except Exception as e:
+                return ("Unknown", 0, 0, "Unknown", 0.0, "Unknown")
+
+    def trace_readline(self, nonblocking=False):
      
