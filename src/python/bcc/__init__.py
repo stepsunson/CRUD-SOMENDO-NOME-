@@ -1525,4 +1525,65 @@ class BPF(object):
                 return ("Unknown", 0, 0, "Unknown", 0.0, "Unknown")
 
     def trace_readline(self, nonblocking=False):
-     
+        """trace_readline(nonblocking=False)
+
+        Read from the kernel debug trace pipe and return one line
+        If nonblocking is False, this will block until ctrl-C is pressed.
+        """
+
+        trace = self.trace_open(nonblocking)
+
+        line = None
+        try:
+            line = trace.readline(1024).rstrip()
+        except IOError:
+            pass
+        return line
+
+    def trace_print(self, fmt=None):
+        """trace_print(self, fmt=None)
+
+        Read from the kernel debug trace pipe and print on stdout.
+        If fmt is specified, apply as a format string to the output. See
+        trace_fields for the members of the tuple
+        example: trace_print(fmt="pid {1}, msg = {5}")
+        """
+
+        while True:
+            if fmt:
+                fields = self.trace_fields(nonblocking=False)
+                if not fields: continue
+                line = fmt.format(*fields)
+            else:
+                line = self.trace_readline(nonblocking=False)
+            print(line)
+            sys.stdout.flush()
+
+    @staticmethod
+    def _sym_cache(pid):
+        """_sym_cache(pid)
+
+        Returns a symbol cache for the specified PID.
+        The kernel symbol cache is accessed by providing any PID less than zero.
+        """
+        if pid < 0 and pid != -1:
+            pid = -1
+        if not pid in BPF._sym_caches:
+            BPF._sym_caches[pid] = SymbolCache(pid)
+        return BPF._sym_caches[pid]
+
+    @staticmethod
+    def sym(addr, pid, show_module=False, show_offset=False, demangle=True):
+        """sym(addr, pid, show_module=False, show_offset=False)
+
+        Translate a memory address into a function name for a pid, which is
+        returned. When show_module is True, the module name is also included.
+        When show_offset is True, the instruction offset as a hexadecimal
+        number is also included in the string.
+
+        A pid of less than zero will access the kernel symbol cache.
+
+        Example output when both show_module and show_offset are True:
+            "start_thread+0x202 [libpthread-2.24.so]"
+
+        Example outpu
