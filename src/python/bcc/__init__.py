@@ -1637,4 +1637,65 @@ class BPF(object):
 
     @staticmethod
     def ksymname(name):
-        """ksymname
+        """ksymname(name)
+
+        Translate a kernel name into an address. This is the reverse of
+        ksym. Returns -1 when the function name is unknown."""
+        return BPF._sym_cache(-1).resolve_name(None, name)
+
+    def num_open_kprobes(self):
+        """num_open_kprobes()
+
+        Get the number of open K[ret]probes. Can be useful for scenarios where
+        event_re is used while attaching and detaching probes.
+        """
+        return len(self.kprobe_fds)
+
+    def num_open_uprobes(self):
+        """num_open_uprobes()
+
+        Get the number of open U[ret]probes.
+        """
+        return len(self.uprobe_fds)
+
+    def num_open_tracepoints(self):
+        """num_open_tracepoints()
+
+        Get the number of open tracepoints.
+        """
+        return len(self.tracepoint_fds)
+
+    def perf_buffer_poll(self, timeout = -1):
+        """perf_buffer_poll(self)
+
+        Poll from all open perf ring buffers, calling the callback that was
+        provided when calling open_perf_buffer for each entry.
+        """
+        readers = (ct.c_void_p * len(self.perf_buffers))()
+        for i, v in enumerate(self.perf_buffers.values()):
+            readers[i] = v
+        lib.perf_reader_poll(len(readers), readers, timeout)
+
+    def perf_buffer_consume(self):
+        """perf_buffer_consume(self)
+
+        Consume all open perf buffers, regardless of whether or not
+        they currently contain events data. Necessary to catch 'remainder'
+        events when wakeup_events > 1 is set in open_perf_buffer
+        """
+        readers = (ct.c_void_p * len(self.perf_buffers))()
+        for i, v in enumerate(self.perf_buffers.values()):
+            readers[i] = v
+        lib.perf_reader_consume(len(readers), readers)
+
+    def kprobe_poll(self, timeout = -1):
+        """kprobe_poll(self)
+
+        Deprecated. Use perf_buffer_poll instead.
+        """
+        self.perf_buffer_poll(timeout)
+
+    def _open_ring_buffer(self, map_fd, fn, ctx=None):
+        if not self._ringbuf_manager:
+            self._ringbuf_manager = lib.bpf_new_ringbuf(map_fd, fn, ctx)
+            if no
