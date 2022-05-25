@@ -1586,4 +1586,55 @@ class BPF(object):
         Example output when both show_module and show_offset are True:
             "start_thread+0x202 [libpthread-2.24.so]"
 
-        Example outpu
+        Example output when both show_module and show_offset are False:
+            "start_thread"
+        """
+
+        #addr is of type stacktrace_build_id
+        #so invoke the bsym address resolver
+        typeofaddr = str(type(addr))
+        if typeofaddr.find('bpf_stack_build_id') != -1:
+          sym = bcc_symbol()
+          b = bcc_stacktrace_build_id()
+          b.status = addr.status
+          b.build_id = addr.build_id
+          b.u.offset = addr.offset
+          res = lib.bcc_buildsymcache_resolve(BPF._bsymcache,
+                                              ct.byref(b),
+                                              ct.byref(sym))
+          if res < 0:
+            if sym.module and sym.offset:
+              name,offset,module = (None, sym.offset,
+                        ct.cast(sym.module, ct.c_char_p).value)
+            else:
+              name, offset, module = (None, addr, None)
+          else:
+            name, offset, module = (sym.name, sym.offset,
+                                    ct.cast(sym.module, ct.c_char_p).value)
+        else:
+          name, offset, module = BPF._sym_cache(pid).resolve(addr, demangle)
+
+        offset = b"+0x%x" % offset if show_offset and name is not None else b""
+        name = name or b"[unknown]"
+        name = name + offset
+        module = b" [%s]" % os.path.basename(module) \
+            if show_module and module is not None else b""
+        return name + module
+
+    @staticmethod
+    def ksym(addr, show_module=False, show_offset=False):
+        """ksym(addr)
+
+        Translate a kernel memory address into a kernel function name, which is
+        returned. When show_module is True, the module name ("kernel") is also
+        included. When show_offset is true, the instruction offset as a
+        hexadecimal number is also included in the string.
+
+        Example output when both show_module and show_offset are True:
+            "default_idle+0x0 [kernel]"
+        """
+        return BPF.sym(addr, -1, show_module, show_offset, False)
+
+    @staticmethod
+    def ksymname(name):
+        """ksymname
