@@ -1698,4 +1698,66 @@ class BPF(object):
     def _open_ring_buffer(self, map_fd, fn, ctx=None):
         if not self._ringbuf_manager:
             self._ringbuf_manager = lib.bpf_new_ringbuf(map_fd, fn, ctx)
-            if no
+            if not self._ringbuf_manager:
+                raise Exception("Could not open ring buffer")
+        else:
+            ret = lib.bpf_add_ringbuf(self._ringbuf_manager, map_fd, fn, ctx)
+            if ret < 0:
+                raise Exception("Could not open ring buffer")
+
+    def ring_buffer_poll(self, timeout = -1):
+        """ring_buffer_poll(self)
+
+        Poll from all open ringbuf buffers, calling the callback that was
+        provided when calling open_ring_buffer for each entry.
+        """
+        if not self._ringbuf_manager:
+            raise Exception("No ring buffers to poll")
+        lib.bpf_poll_ringbuf(self._ringbuf_manager, timeout)
+
+    def ring_buffer_consume(self):
+        """ring_buffer_consume(self)
+
+        Consume all open ringbuf buffers, regardless of whether or not
+        they currently contain events data. This is best for use cases
+        where low latency is desired, but it can impact performance.
+        If you are unsure, use ring_buffer_poll instead.
+        """
+        if not self._ringbuf_manager:
+            raise Exception("No ring buffers to poll")
+        lib.bpf_consume_ringbuf(self._ringbuf_manager)
+
+    def free_bcc_memory(self):
+        return lib.bcc_free_memory()
+
+    @staticmethod
+    def add_module(modname):
+      """add_module(modname)
+
+        Add a library or exe to buildsym cache
+      """
+      try:
+        lib.bcc_buildsymcache_add_module(BPF._bsymcache, modname.encode())
+      except Exception as e:
+        print("Error adding module to build sym cache"+str(e))
+
+    def donothing(self):
+        """the do nothing exit handler"""
+
+
+    def close(self):
+        """close(self)
+
+        Closes all associated files descriptors. Attached BPF programs are not
+        detached.
+        """
+        for name, fn in list(self.funcs.items()):
+            os.close(fn.fd)
+            del self.funcs[name]
+        if self.module:
+            lib.bpf_module_destroy(self.module)
+            self.module = None
+
+    def cleanup(self):
+        # Clean up opened probes
+        for k, v in list(self.kprobe_fds.items
