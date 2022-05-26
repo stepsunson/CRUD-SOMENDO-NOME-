@@ -1760,4 +1760,41 @@ class BPF(object):
 
     def cleanup(self):
         # Clean up opened probes
-        for k, v in list(self.kprobe_fds.items
+        for k, v in list(self.kprobe_fds.items()):
+            self.detach_kprobe_event(k)
+        for k, v in list(self.uprobe_fds.items()):
+            self.detach_uprobe_event(k)
+        for k, v in list(self.tracepoint_fds.items()):
+            self.detach_tracepoint(k)
+        for k, v in list(self.raw_tracepoint_fds.items()):
+            self.detach_raw_tracepoint(k)
+        for k, v in list(self.kfunc_entry_fds.items()):
+            self.detach_kfunc(k)
+        for k, v in list(self.kfunc_exit_fds.items()):
+            self.detach_kretfunc(k)
+        for k, v in list(self.lsm_fds.items()):
+            self.detach_lsm(k)
+
+        # Clean up opened perf ring buffer and perf events
+        table_keys = list(self.tables.keys())
+        for key in table_keys:
+            if isinstance(self.tables[key], PerfEventArray):
+                del self.tables[key]
+        for (ev_type, ev_config) in list(self.open_perf_events.keys()):
+            self.detach_perf_event(ev_type, ev_config)
+        if self.tracefile:
+            self.tracefile.close()
+            self.tracefile = None
+
+        self.close()
+
+        # Clean up ringbuf
+        if self._ringbuf_manager:
+            lib.bpf_free_ringbuf(self._ringbuf_manager)
+            self._ringbuf_manager = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cleanup()
