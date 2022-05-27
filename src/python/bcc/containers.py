@@ -83,4 +83,31 @@ def _mntns_filter_func_writer(mntnsmap):
 
         current_task = (struct task_struct *)bpf_get_current_task();
 
-        if (bpf_probe_read_ke
+        if (bpf_probe_read_kernel(&nsproxy, sizeof(nsproxy), &current_task->nsproxy))
+            return 0;
+
+        if (bpf_probe_read_kernel(&mnt_ns, sizeof(mnt_ns), &nsproxy->mnt_ns))
+            return 0;
+
+        if (bpf_probe_read_kernel(&inum, sizeof(inum), &mnt_ns->ns.inum))
+            return 0;
+
+        ns_id =  (u64) inum;
+
+        return mount_ns_set.lookup(&ns_id) == NULL;
+    }
+    """
+
+    return text.replace('MOUNT_NS_PATH', mntnsmap)
+
+def filter_by_containers(args):
+    filter_by_containers_text = """
+    static inline int container_should_be_filtered() {
+        return _cgroup_filter() || _mntns_filter();
+    }
+    """
+
+    cgroupmap_text = _cgroup_filter_func_writer(args.cgroupmap)
+    mntnsmap_text = _mntns_filter_func_writer(args.mntnsmap)
+
+    return cgroupmap_text + mntnsmap_text + filter_by_containers_text
