@@ -245,4 +245,62 @@ lib.bcc_buildsymcache_resolve.restype = ct.c_int
 lib.bcc_buildsymcache_resolve.argtypes = [ct.c_void_p, ct.POINTER(bcc_stacktrace_build_id), ct.POINTER(bcc_symbol)]
 
 lib.bcc_symbol_free_demangle_name.restype = ct.c_void_p
-lib.bcc_symbol_free_demangle_nam
+lib.bcc_symbol_free_demangle_name.argtypes = [ct.POINTER(bcc_symbol)]
+
+lib.bcc_symcache_resolve.restype = ct.c_int
+lib.bcc_symcache_resolve.argtypes = [ct.c_void_p, ct.c_ulonglong, ct.POINTER(bcc_symbol)]
+
+lib.bcc_symcache_resolve_no_demangle.restype = ct.c_int
+lib.bcc_symcache_resolve_no_demangle.argtypes = [ct.c_void_p, ct.c_ulonglong, ct.POINTER(bcc_symbol)]
+
+lib.bcc_symcache_resolve_name.restype = ct.c_int
+lib.bcc_symcache_resolve_name.argtypes = [
+    ct.c_void_p, ct.c_char_p, ct.c_char_p, ct.POINTER(ct.c_ulonglong)]
+
+lib.bcc_symcache_refresh.restype = None
+lib.bcc_symcache_refresh.argtypes = [ct.c_void_p]
+
+lib.bcc_free_memory.restype = ct.c_int
+lib.bcc_free_memory.argtypes = None
+
+lib.bcc_usdt_new_frompid.restype = ct.c_void_p
+lib.bcc_usdt_new_frompid.argtypes = [ct.c_int, ct.c_char_p]
+
+lib.bcc_usdt_new_frompath.restype = ct.c_void_p
+lib.bcc_usdt_new_frompath.argtypes = [ct.c_char_p]
+
+lib.bcc_usdt_close.restype = None
+lib.bcc_usdt_close.argtypes = [ct.c_void_p]
+
+lib.bcc_usdt_enable_probe.restype = ct.c_int
+lib.bcc_usdt_enable_probe.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
+
+lib.bcc_usdt_enable_fully_specified_probe.restype = ct.c_int
+lib.bcc_usdt_enable_fully_specified_probe.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p, ct.c_char_p]
+
+lib.bcc_usdt_genargs.restype = ct.c_char_p
+lib.bcc_usdt_genargs.argtypes = [ct.POINTER(ct.c_void_p), ct.c_int]
+
+lib.bcc_usdt_get_probe_argctype.restype = ct.c_char_p
+lib.bcc_usdt_get_probe_argctype.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int]
+
+lib.bcc_usdt_get_fully_specified_probe_argctype.restype = ct.c_char_p
+lib.bcc_usdt_get_fully_specified_probe_argctype.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p, ct.c_int]
+
+class bcc_usdt(ct.Structure):
+    _fields_ = [
+            ('provider', ct.c_char_p),
+            ('name', ct.c_char_p),
+            ('bin_path', ct.c_char_p),
+            ('semaphore', ct.c_ulonglong),
+            ('num_locations', ct.c_int),
+            ('num_arguments', ct.c_int),
+        ]
+
+class bcc_usdt_location(ct.Structure):
+    _fields_ = [
+            ('address', ct.c_ulonglong),
+            ('bin_path', ct.c_char_p),
+        ]
+
+class BCC_USDT_ARGU
