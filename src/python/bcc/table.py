@@ -214,4 +214,57 @@ def _get_event_class(event_map):
         'unsigned char'     : ct.c_ubyte,
         'u8'                : ct.c_ubyte,
         'u8 *'              : ct.c_char_p,
-        'char *'          
+        'char *'            : ct.c_char_p,
+        'short'             : ct.c_short,
+        's16'               : ct.c_short,
+        'unsigned short'    : ct.c_ushort,
+        'u16'               : ct.c_ushort,
+        'int'               : ct.c_int,
+        's32'               : ct.c_int,
+        'enum'              : ct.c_int,
+        'unsigned int'      : ct.c_uint,
+        'u32'               : ct.c_uint,
+        'long'              : ct.c_long,
+        'unsigned long'     : ct.c_ulong,
+        'long long'         : ct.c_longlong,
+        's64'               : ct.c_longlong,
+        'unsigned long long': ct.c_ulonglong,
+        'u64'               : ct.c_ulonglong,
+        '__int128'          : (ct.c_longlong * 2),
+        'unsigned __int128' : (ct.c_ulonglong * 2),
+        'void *'            : ct.c_void_p,
+    }
+
+    # handle array types e.g. "int [16]", "char[16]" or "unsigned char[16]"
+    array_type = re.compile(r"(\S+(?: \S+)*) ?\[([0-9]+)\]$")
+
+    fields = []
+    num_fields = lib.bpf_perf_event_fields(event_map.bpf.module, event_map._name)
+    i = 0
+    while i < num_fields:
+        field = lib.bpf_perf_event_field(event_map.bpf.module, event_map._name, i).decode()
+        m = re.match(r"(.*)#(.*)", field)
+        field_name = m.group(1)
+        field_type = m.group(2)
+
+        if re.match(r"enum .*", field_type):
+            field_type = "enum"
+
+        m = array_type.match(field_type)
+        try:
+            if m:
+                fields.append((field_name, ct_mapping[m.group(1)] * int(m.group(2))))
+            else:
+                fields.append((field_name, ct_mapping[field_type]))
+        except KeyError:
+            # Using print+sys.exit instead of raising exceptions,
+            # because exceptions are caught by the caller.
+            print("Type: '%s' not recognized. Please define the data with ctypes manually."
+                  % field_type, file=sys.stderr)
+            sys.exit(1)
+        i += 1
+    return type('', (ct.Structure,), {'_fields_': fields})
+
+
+def Table(bpf, map_id, map_fd, keytype, leaftype, name, **kwargs):
+    ""
