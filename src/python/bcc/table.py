@@ -134,4 +134,84 @@ def _print_json_hist(vals, val_type, section_bucket=None):
     print(histogram)
 
 def _print_log2_hist(vals, val_type, strip_leading_zero):
-    global stars
+    global stars_max
+    log2_dist_max = 64
+    idx_max = -1
+    val_max = 0
+
+    for i, v in enumerate(vals):
+        if v > 0: idx_max = i
+        if v > val_max: val_max = v
+
+    if idx_max <= 32:
+        header = "     %-19s : count     distribution"
+        body = "%10d -> %-10d : %-8d |%-*s|"
+        stars = stars_max
+    else:
+        header = "               %-29s : count     distribution"
+        body = "%20d -> %-20d : %-8d |%-*s|"
+        stars = int(stars_max / 2)
+
+    if idx_max > 0:
+        print(header % val_type)
+
+    for i in range(1, idx_max + 1):
+        low = (1 << i) >> 1
+        high = (1 << i) - 1
+        if (low == high):
+            low -= 1
+        val = vals[i]
+
+        if strip_leading_zero:
+            if val:
+                print(body % (low, high, val, stars,
+                              _stars(val, val_max, stars)))
+                strip_leading_zero = False
+        else:
+            print(body % (low, high, val, stars,
+                          _stars(val, val_max, stars)))
+
+def _print_linear_hist(vals, val_type, strip_leading_zero):
+    global stars_max
+    log2_dist_max = 64
+    idx_max = -1
+    val_max = 0
+
+    for i, v in enumerate(vals):
+        if v > 0: idx_max = i
+        if v > val_max: val_max = v
+
+    header = "     %-13s : count     distribution"
+    body = "        %-10d : %-8d |%-*s|"
+    stars = stars_max
+
+    if idx_max >= 0:
+        print(header % val_type)
+    for i in range(0, idx_max + 1):
+        val = vals[i]
+
+        if strip_leading_zero:
+            if val:
+                print(body % (i, val, stars,
+                              _stars(val, val_max, stars)))
+                strip_leading_zero = False
+        else:
+                print(body % (i, val, stars,
+                              _stars(val, val_max, stars)))
+
+
+def get_table_type_name(ttype):
+    try:
+        return map_type_name[ttype]
+    except KeyError:
+        return "<unknown>"
+
+
+def _get_event_class(event_map):
+    ct_mapping = {
+        'char'              : ct.c_char,
+        's8'                : ct.c_char,
+        'unsigned char'     : ct.c_ubyte,
+        'u8'                : ct.c_ubyte,
+        'u8 *'              : ct.c_char_p,
+        'char *'          
