@@ -267,4 +267,45 @@ def _get_event_class(event_map):
 
 
 def Table(bpf, map_id, map_fd, keytype, leaftype, name, **kwargs):
-    ""
+    """Table(bpf, map_id, map_fd, keytype, leaftype, **kwargs)
+
+    Create a python object out of a reference to a bpf table handle"""
+
+    ttype = lib.bpf_table_type_id(bpf.module, map_id)
+    t = None
+    if ttype == BPF_MAP_TYPE_HASH:
+        t = HashTable(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_ARRAY:
+        t = Array(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_PROG_ARRAY:
+        t = ProgArray(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_PERF_EVENT_ARRAY:
+        t = PerfEventArray(bpf, map_id, map_fd, keytype, leaftype, name)
+    elif ttype == BPF_MAP_TYPE_PERCPU_HASH:
+        t = PerCpuHash(bpf, map_id, map_fd, keytype, leaftype, **kwargs)
+    elif ttype == BPF_MAP_TYPE_PERCPU_ARRAY:
+        t = PerCpuArray(bpf, map_id, map_fd, keytype, leaftype, **kwargs)
+    elif ttype == BPF_MAP_TYPE_LPM_TRIE:
+        t = LpmTrie(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_STACK_TRACE:
+        t = StackTrace(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_LRU_HASH:
+        t = LruHash(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_LRU_PERCPU_HASH:
+        t = LruPerCpuHash(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_CGROUP_ARRAY:
+        t = CgroupArray(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_DEVMAP:
+        t = DevMap(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_CPUMAP:
+        t = CpuMap(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_XSKMAP:
+        t = XskMap(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_ARRAY_OF_MAPS:
+        t = MapInMapArray(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_HASH_OF_MAPS:
+        t = MapInMapHash(bpf, map_id, map_fd, keytype, leaftype)
+    elif ttype == BPF_MAP_TYPE_QUEUE or ttype == BPF_MAP_TYPE_STACK:
+        t = QueueStack(bpf, map_id, map_fd, leaftype)
+    elif ttype == BPF_MAP_TYPE_RINGBUF:
+        t = RingBuf(bpf, map_id, map_fd, keyt
