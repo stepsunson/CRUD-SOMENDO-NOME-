@@ -426,4 +426,64 @@ class TableBase(MutableMapping):
         Returns:
             tuple: (count, keys, values). Where count is ct.c_uint32,
             and keys and values an instance of ct.Array
-     
+        Raises:
+            ValueError: If count is less than 1 or greater than
+            self.max_entries.
+        """
+        keys = values = None
+        if not alloc_k and not alloc_v:
+            return (ct.c_uint32(0), None, None)
+
+        if not count:  # means alloc maximum size
+            count = self.max_entries
+        elif count < 1 or count > self.max_entries:
+            raise ValueError("Wrong count")
+
+        if alloc_k:
+            keys = (self.Key * count)()
+        if alloc_v:
+            values = (self.Leaf * count)()
+
+        return (ct.c_uint32(count), keys, values)
+
+    def _sanity_check_keys_values(self, keys=None, values=None):
+        """Check if the given keys or values have the right type and size.
+
+        Args:
+            keys (ct.Array): keys array to check
+            values (ct.Array): values array to check
+        Returns:
+            ct.c_uint32 : the size of the array(s)
+        Raises:
+            ValueError: If length of arrays is less than 1 or greater than
+            self.max_entries, or when both arrays length are different.
+            TypeError: If the keys and values are not an instance of ct.Array
+        """
+        arr_len = 0
+        for elem in [keys, values]:
+            if elem:
+                if not isinstance(elem, ct.Array):
+                    raise TypeError
+
+                arr_len = len(elem)
+                if arr_len < 1 or arr_len > self.max_entries:
+                    raise ValueError("Array's length is wrong")
+
+        if keys and values:
+            # check both length are equal
+            if len(keys) != len(values):
+                raise ValueError("keys array length != values array length")
+
+        return ct.c_uint32(arr_len)
+
+    def items_lookup_batch(self):
+        """Look up all the key-value pairs in the map.
+
+        Args:
+            None
+        Yields:
+            tuple: The tuple of (key,value) for every entries that have
+            been looked up.
+        Notes: lookup batch on a keys subset is not supported by the kernel.
+        """
+        for k, v i
