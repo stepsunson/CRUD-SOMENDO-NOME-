@@ -308,4 +308,63 @@ def Table(bpf, map_id, map_fd, keytype, leaftype, name, **kwargs):
     elif ttype == BPF_MAP_TYPE_QUEUE or ttype == BPF_MAP_TYPE_STACK:
         t = QueueStack(bpf, map_id, map_fd, leaftype)
     elif ttype == BPF_MAP_TYPE_RINGBUF:
-        t = RingBuf(bpf, map_id, map_fd, keyt
+        t = RingBuf(bpf, map_id, map_fd, keytype, leaftype, name)
+    if t == None:
+        raise Exception("Unknown table type %d" % ttype)
+    return t
+
+
+class TableBase(MutableMapping):
+
+    def __init__(self, bpf, map_id, map_fd, keytype, leaftype, name=None):
+        self.bpf = bpf
+        self.map_id = map_id
+        self.map_fd = map_fd
+        self.Key = keytype
+        self.Leaf = leaftype
+        self.ttype = lib.bpf_table_type_id(self.bpf.module, self.map_id)
+        self.flags = lib.bpf_table_flags_id(self.bpf.module, self.map_id)
+        self._cbs = {}
+        self._name = name
+        self.max_entries = int(lib.bpf_table_max_entries_id(self.bpf.module,
+                self.map_id))
+
+    def get_fd(self):
+        return self.map_fd
+
+    def key_sprintf(self, key):
+        buf = ct.create_string_buffer(ct.sizeof(self.Key) * 8)
+        res = lib.bpf_table_key_snprintf(self.bpf.module, self.map_id, buf,
+                                         len(buf), ct.byref(key))
+        if res < 0:
+            raise Exception("Could not printf key")
+        return buf.value
+
+    def leaf_sprintf(self, leaf):
+        buf = ct.create_string_buffer(ct.sizeof(self.Leaf) * 8)
+        res = lib.bpf_table_leaf_snprintf(self.bpf.module, self.map_id, buf,
+                                          len(buf), ct.byref(leaf))
+        if res < 0:
+            raise Exception("Could not printf leaf")
+        return buf.value
+
+    def key_scanf(self, key_str):
+        key = self.Key()
+        res = lib.bpf_table_key_sscanf(self.bpf.module, self.map_id, key_str,
+                                       ct.byref(key))
+        if res < 0:
+            raise Exception("Could not scanf key")
+        return key
+
+    def leaf_scanf(self, leaf_str):
+        leaf = self.Leaf()
+        res = lib.bpf_table_leaf_sscanf(self.bpf.module, self.map_id, leaf_str,
+                                        ct.byref(leaf))
+        if res < 0:
+            raise Exception("Could not scanf leaf")
+        return leaf
+
+    def __getitem__(self, key):
+        leaf = self.Leaf()
+        res = lib.bpf_lookup_elem(self.map_fd, ct.byref(key), ct.byref(leaf))
+        if r
