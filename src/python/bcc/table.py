@@ -367,4 +367,63 @@ class TableBase(MutableMapping):
     def __getitem__(self, key):
         leaf = self.Leaf()
         res = lib.bpf_lookup_elem(self.map_fd, ct.byref(key), ct.byref(leaf))
-        if r
+        if res < 0:
+            raise KeyError
+        return leaf
+
+    def __setitem__(self, key, leaf):
+        res = lib.bpf_update_elem(self.map_fd, ct.byref(key), ct.byref(leaf), 0)
+        if res < 0:
+            errstr = os.strerror(ct.get_errno())
+            raise Exception("Could not update table: %s" % errstr)
+
+    def __delitem__(self, key):
+        res = lib.bpf_delete_elem(self.map_fd, ct.byref(key))
+        if res < 0:
+            raise KeyError
+
+    # override the MutableMapping's implementation of these since they
+    # don't handle KeyError nicely
+    def itervalues(self):
+        for key in self:
+            # a map entry may be deleted in between discovering the key and
+            # fetching the value, suppress such errors
+            try:
+                yield self[key]
+            except KeyError:
+                pass
+
+    def iteritems(self):
+        for key in self:
+            try:
+                yield (key, self[key])
+            except KeyError:
+                pass
+
+    def items(self):
+        return [item for item in self.iteritems()]
+
+    def values(self):
+        return [value for value in self.itervalues()]
+
+    def clear(self):
+        # default clear uses popitem, which can race with the bpf prog
+        for k in self.keys():
+            self.__delitem__(k)
+
+    def _alloc_keys_values(self, alloc_k=False, alloc_v=False, count=None):
+        """Allocate keys and/or values arrays. Useful for in items_*_batch.
+
+        Args:
+            alloc_k (bool): True to allocate keys array, False otherwise.
+            Default is False.
+            alloc_v (bool): True to allocate values array, False otherwise.
+            Default is False.
+            count (int): number of elements in the array(s) to allocate. If
+            count is None then it allocates the maximum number of elements i.e
+            self.max_entries.
+
+        Returns:
+            tuple: (count, keys, values). Where count is ct.c_uint32,
+            and keys and values an instance of ct.Array
+     
