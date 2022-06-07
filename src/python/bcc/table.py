@@ -486,4 +486,56 @@ class TableBase(MutableMapping):
             been looked up.
         Notes: lookup batch on a keys subset is not supported by the kernel.
         """
-        for k, v i
+        for k, v in self._items_lookup_and_optionally_delete_batch(delete=False):
+            yield(k, v)
+        return
+
+    def items_delete_batch(self, ct_keys=None):
+        """Delete the key-value pairs related to the keys given as parameters.
+        Note that if no key are given, it is faster to call
+        lib.bpf_lookup_and_delete_batch than create keys array and then call
+        lib.bpf_delete_batch on these keys.
+
+        Args:
+            ct_keys (ct.Array): keys array to delete. If an array of keys is
+            given then it deletes all the related keys-values.
+            If keys is None (default) then it deletes all entries.
+        Yields:
+            tuple: The tuple of (key,value) for every entries that have
+            been deleted.
+        Raises:
+            Exception: If bpf syscall return value indicates an error.
+        """
+        if ct_keys is not None:
+            ct_cnt = self._sanity_check_keys_values(keys=ct_keys)
+            res = lib.bpf_delete_batch(self.map_fd,
+                                       ct.byref(ct_keys),
+                                       ct.byref(ct_cnt)
+                                       )
+            if (res != 0):
+                raise Exception("BPF_MAP_DELETE_BATCH has failed: %s"
+                                % os.strerror(ct.get_errno()))
+
+        else:
+            for _ in self.items_lookup_and_delete_batch():
+                return
+
+    def items_update_batch(self, ct_keys, ct_values):
+        """Update all the key-value pairs in the map provided.
+        The arrays must be the same length, between 1 and the maximum number
+        of entries.
+
+        Args:
+            ct_keys (ct.Array): keys array to update
+            ct_values (ct.Array): values array to update
+        Raises:
+            Exception: If bpf syscall return value indicates an error.
+        """
+        ct_cnt = self._sanity_check_keys_values(keys=ct_keys, values=ct_values)
+        res = lib.bpf_update_batch(self.map_fd,
+                                   ct.byref(ct_keys),
+                                   ct.byref(ct_values),
+                                   ct.byref(ct_cnt)
+                                   )
+        if (res != 0):
+         
