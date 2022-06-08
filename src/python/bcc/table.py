@@ -538,4 +538,56 @@ class TableBase(MutableMapping):
                                    ct.byref(ct_cnt)
                                    )
         if (res != 0):
-         
+            raise Exception("BPF_MAP_UPDATE_BATCH has failed: %s"
+                            % os.strerror(ct.get_errno()))
+
+    def items_lookup_and_delete_batch(self):
+        """Look up and delete all the key-value pairs in the map.
+
+        Args:
+            None
+        Yields:
+            tuple: The tuple of (key,value) for every entries that have
+            been looked up and deleted.
+        Notes: lookup and delete batch on a keys subset is not supported by
+        the kernel.
+        """
+        for k, v in self._items_lookup_and_optionally_delete_batch(delete=True):
+            yield(k, v)
+        return
+
+    def _items_lookup_and_optionally_delete_batch(self, delete=True):
+        """Look up and optionally delete all the key-value pairs in the map.
+
+        Args:
+            delete (bool) : look up and delete the key-value pairs when True,
+            else just look up.
+        Yields:
+            tuple: The tuple of (key,value) for every entries that have
+            been looked up and deleted.
+        Raises:
+            Exception: If bpf syscall return value indicates an error.
+        Notes: lookup and delete batch on a keys subset is not supported by
+        the kernel.
+        """
+        if delete is True:
+            bpf_batch = lib.bpf_lookup_and_delete_batch
+            bpf_cmd = "BPF_MAP_LOOKUP_AND_DELETE_BATCH"
+        else:
+            bpf_batch = lib.bpf_lookup_batch
+            bpf_cmd = "BPF_MAP_LOOKUP_BATCH"
+
+        # alloc keys and values to the max size
+        ct_buf_size, ct_keys, ct_values = self._alloc_keys_values(alloc_k=True,
+                                                                  alloc_v=True)
+        ct_out_batch = ct_cnt = ct.c_uint32(0)
+        total = 0
+        while True:
+            ct_cnt.value = ct_buf_size.value - total
+            res = bpf_batch(self.map_fd,
+                            ct.byref(ct_out_batch) if total else None,
+                            ct.byref(ct_out_batch),
+                            ct.byref(ct_keys, ct.sizeof(self.Key) * total),
+                            ct.byref(ct_values, ct.sizeof(self.Leaf) * total),
+                            ct.byref(ct_cnt)
+   
