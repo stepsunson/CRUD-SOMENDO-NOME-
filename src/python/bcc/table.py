@@ -590,4 +590,65 @@ class TableBase(MutableMapping):
                             ct.byref(ct_keys, ct.sizeof(self.Key) * total),
                             ct.byref(ct_values, ct.sizeof(self.Leaf) * total),
                             ct.byref(ct_cnt)
-   
+                            )
+            errcode = ct.get_errno()
+            total += ct_cnt.value
+            if (res != 0 and errcode != errno.ENOENT):
+                raise Exception("%s has failed: %s" % (bpf_cmd,
+                                                       os.strerror(errcode)))
+
+            if res != 0:
+                break  # success
+
+            if total == ct_buf_size.value:  # buffer full, we can't progress
+                break
+
+            if ct_cnt.value == 0:
+                # no progress, probably because concurrent update
+                # puts too many elements in one bucket.
+                break
+
+        for i in range(0, total):
+            yield (ct_keys[i], ct_values[i])
+
+    def zero(self):
+        # Even though this is not very efficient, we grab the entire list of
+        # keys before enumerating it. This helps avoid a potential race where
+        # the leaf assignment changes a hash table bucket that is being
+        # enumerated by the same loop, and may lead to a hang.
+        for k in list(self.keys()):
+            self[k] = self.Leaf()
+
+    def __iter__(self):
+        return TableBase.Iter(self)
+
+    def iter(self): return self.__iter__()
+    def keys(self): return self.__iter__()
+
+    class Iter(object):
+        def __init__(self, table):
+            self.table = table
+            self.key = None
+        def __iter__(self):
+            return self
+        def __next__(self):
+            return self.next()
+        def next(self):
+            self.key = self.table.next(self.key)
+            return self.key
+
+    def next(self, key):
+        next_key = self.Key()
+
+        if key is None:
+            res = lib.bpf_get_first_key(self.map_fd, ct.byref(next_key),
+                                        ct.sizeof(self.Key))
+        else:
+            res = lib.bpf_get_next_key(self.map_fd, ct.byref(key),
+                                       ct.byref(next_key))
+
+        if res < 0:
+            raise StopIteration()
+        return next_key
+
+    def decode_c_struct(self, tmp, buckets, bucket_fn, buc
