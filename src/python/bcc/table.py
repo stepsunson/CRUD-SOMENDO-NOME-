@@ -689,4 +689,44 @@ class TableBase(MutableMapping):
                 If bucket_sort_fn is not None, it will be used to sort the buckets
                 before iterating them, and it is useful when there are multiple fields
                 in the secondary key.
-                The maximum index allowed is log2_index_ma
+                The maximum index allowed is log2_index_max (65), which will
+                accommodate any 64-bit integer in the histogram.
+                """
+        if isinstance(self.Key(), ct.Structure):
+            tmp = {}
+            buckets = []
+            self.decode_c_struct(tmp, buckets, bucket_fn, bucket_sort_fn)
+            for bucket in buckets:
+                vals = tmp[bucket]
+                if section_print_fn:
+                    section_bucket = (section_header, section_print_fn(bucket))
+                else:
+                    section_bucket = (section_header, bucket)
+                _print_json_hist(vals, val_type, section_bucket)
+
+        else:
+            vals = [0] * log2_index_max
+            for k, v in self.items():
+                vals[k.value] = v.value
+            _print_json_hist(vals, val_type)
+
+    def print_log2_hist(self, val_type="value", section_header="Bucket ptr",
+            section_print_fn=None, bucket_fn=None, strip_leading_zero=None,
+            bucket_sort_fn=None):
+        """print_log2_hist(val_type="value", section_header="Bucket ptr",
+                           section_print_fn=None, bucket_fn=None,
+                           strip_leading_zero=None, bucket_sort_fn=None):
+
+        Prints a table as a log2 histogram. The table must be stored as
+        log2. The val_type argument is optional, and is a column header.
+        If the histogram has a secondary key, multiple tables will print
+        and section_header can be used as a header description for each.
+        If section_print_fn is not None, it will be passed the bucket value
+        to format into a string as it sees fit. If bucket_fn is not None,
+        it will be used to produce a bucket value for the histogram keys.
+        If the value of strip_leading_zero is not False, prints a histogram
+        that is omitted leading zeros from the beginning.
+        If bucket_sort_fn is not None, it will be used to sort the buckets
+        before iterating them, and it is useful when there are multiple fields
+        in the secondary key.
+        The 
