@@ -651,4 +651,42 @@ class TableBase(MutableMapping):
             raise StopIteration()
         return next_key
 
-    def decode_c_struct(self, tmp, buckets, bucket_fn, buc
+    def decode_c_struct(self, tmp, buckets, bucket_fn, bucket_sort_fn):
+        f1 = self.Key._fields_[0][0]
+        f2 = self.Key._fields_[1][0]
+        # The above code assumes that self.Key._fields_[1][0] holds the
+        # slot. But a padding member may have been inserted here, which
+        # breaks the assumption and leads to chaos.
+        # TODO: this is a quick fix. Fixing/working around in the BCC
+        # internal library is the right thing to do.
+        if f2 == '__pad_1' and len(self.Key._fields_) == 3:
+            f2 = self.Key._fields_[2][0]
+        for k, v in self.items():
+            bucket = getattr(k, f1)
+            if bucket_fn:
+                bucket = bucket_fn(bucket)
+            vals = tmp[bucket] = tmp.get(bucket, [0] * log2_index_max)
+            slot = getattr(k, f2)
+            vals[slot] = v.value
+        buckets_lst = list(tmp.keys())
+        if bucket_sort_fn:
+            buckets_lst = bucket_sort_fn(buckets_lst)
+        for bucket in buckets_lst:
+            buckets.append(bucket)
+
+    def print_json_hist(self, val_type="value", section_header="Bucket ptr",
+                        section_print_fn=None, bucket_fn=None, bucket_sort_fn=None):
+        """print_json_hist(val_type="value", section_header="Bucket ptr",
+                                   section_print_fn=None, bucket_fn=None,
+                                   bucket_sort_fn=None):
+
+                Prints a table as a json histogram. The table must be stored as
+                log2. The val_type argument is optional, and is a column header.
+                If the histogram has a secondary key, the dictionary will be split by secondary key
+                If section_print_fn is not None, it will be passed the bucket value
+                to format into a string as it sees fit. If bucket_fn is not None,
+                it will be used to produce a bucket value for the histogram keys.
+                If bucket_sort_fn is not None, it will be used to sort the buckets
+                before iterating them, and it is useful when there are multiple fields
+                in the secondary key.
+                The maximum index allowed is log2_index_ma
