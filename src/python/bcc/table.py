@@ -767,4 +767,60 @@ class TableBase(MutableMapping):
         If the value of strip_leading_zero is not False, prints a histogram
         that is omitted leading zeros from the beginning.
         If bucket_sort_fn is not None, it will be used to sort the buckets
-        before iterating them, and it i
+        before iterating them, and it is useful when there are multiple fields
+        in the secondary key.
+        The maximum index allowed is linear_index_max (1025), which is hoped
+        to be sufficient for integer ranges spanned.
+        """
+        if isinstance(self.Key(), ct.Structure):
+            tmp = {}
+            buckets = []
+            self.decode_c_struct(tmp, buckets, bucket_fn, bucket_sort_fn)
+
+            for bucket in buckets:
+                vals = tmp[bucket]
+                if section_print_fn:
+                    print("\n%s = %s" % (section_header,
+                        section_print_fn(bucket)))
+                else:
+                    print("\n%s = %r" % (section_header, bucket))
+                _print_linear_hist(vals, val_type, strip_leading_zero)
+        else:
+            vals = [0] * linear_index_max
+            for k, v in self.items():
+                try:
+                    vals[k.value] = v.value
+                except IndexError:
+                    # Improve error text. If the limit proves a nusiance, this
+                    # function be rewritten to avoid having one.
+                    raise IndexError(("Index in print_linear_hist() of %d " +
+                        "exceeds max of %d.") % (k.value, linear_index_max))
+            _print_linear_hist(vals, val_type, strip_leading_zero)
+
+
+class HashTable(TableBase):
+    def __init__(self, *args, **kwargs):
+        super(HashTable, self).__init__(*args, **kwargs)
+
+    def __len__(self):
+        i = 0
+        for k in self: i += 1
+        return i
+
+class LruHash(HashTable):
+    def __init__(self, *args, **kwargs):
+        super(LruHash, self).__init__(*args, **kwargs)
+
+class ArrayBase(TableBase):
+    def __init__(self, *args, **kwargs):
+        super(ArrayBase, self).__init__(*args, **kwargs)
+
+    def _normalize_key(self, key):
+        if isinstance(key, int):
+            if key < 0:
+                key = len(self) + key
+            key = self.Key(key)
+        if not isinstance(key, ct._SimpleCData):
+            raise IndexError("Array index must be an integer type")
+        if key.value >= len(self):
+ 
