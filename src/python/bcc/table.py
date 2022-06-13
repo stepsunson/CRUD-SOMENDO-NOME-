@@ -823,4 +823,75 @@ class ArrayBase(TableBase):
         if not isinstance(key, ct._SimpleCData):
             raise IndexError("Array index must be an integer type")
         if key.value >= len(self):
- 
+            raise IndexError("Array index out of range")
+        return key
+
+    def __len__(self):
+        return self.max_entries
+
+    def __getitem__(self, key):
+        key = self._normalize_key(key)
+        return super(ArrayBase, self).__getitem__(key)
+
+    def __setitem__(self, key, leaf):
+        key = self._normalize_key(key)
+        super(ArrayBase, self).__setitem__(key, leaf)
+
+    def __delitem__(self, key):
+        key = self._normalize_key(key)
+        super(ArrayBase, self).__delitem__(key)
+
+    def clearitem(self, key):
+        key = self._normalize_key(key)
+        leaf = self.Leaf()
+        res = lib.bpf_update_elem(self.map_fd, ct.byref(key), ct.byref(leaf), 0)
+        if res < 0:
+            raise Exception("Could not clear item")
+
+    def __iter__(self):
+        return ArrayBase.Iter(self, self.Key)
+
+    class Iter(object):
+        def __init__(self, table, keytype):
+            self.Key = keytype
+            self.table = table
+            self.i = -1
+
+        def __iter__(self):
+            return self
+        def __next__(self):
+            return self.next()
+        def next(self):
+            self.i += 1
+            if self.i == len(self.table):
+                raise StopIteration()
+            return self.Key(self.i)
+
+class Array(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        super(Array, self).__init__(*args, **kwargs)
+
+    def __delitem__(self, key):
+        # Delete in Array type does not have an effect, so zero out instead
+        self.clearitem(key)
+
+class ProgArray(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        super(ProgArray, self).__init__(*args, **kwargs)
+
+    def __setitem__(self, key, leaf):
+        if isinstance(leaf, int):
+            leaf = self.Leaf(leaf)
+        if isinstance(leaf, self.bpf.Function):
+            leaf = self.Leaf(leaf.fd)
+        super(ProgArray, self).__setitem__(key, leaf)
+
+class FileDesc:
+    def __init__(self, fd):
+        if (fd is None) or (fd < 0):
+            raise Exception("Invalid file descriptor")
+        self.fd = fd
+
+    def clean_up(self):
+        if (self.fd is not None) and (self.fd >= 0):
+        
