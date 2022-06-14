@@ -956,4 +956,55 @@ class PerfEventArray(ArrayBase):
         the BPF program can be deduced via this function. This avoids
         redundant definitions in Python.
         """
-        if self._event_class 
+        if self._event_class == None:
+            self._event_class = _get_event_class(self)
+        return ct.cast(data, ct.POINTER(self._event_class)).contents
+
+    def open_perf_buffer(self, callback, page_cnt=8, lost_cb=None, wakeup_events=1):
+        """open_perf_buffers(callback)
+
+        Opens a set of per-cpu ring buffer to receive custom perf event
+        data from the bpf program. The callback will be invoked for each
+        event submitted from the kernel, up to millions per second. Use
+        page_cnt to change the size of the per-cpu ring buffer. The value
+        must be a power of two and defaults to 8.
+        """
+
+        if page_cnt & (page_cnt - 1) != 0:
+            raise Exception("Perf buffer page_cnt must be a power of two")
+
+        for i in get_online_cpus():
+            self._open_perf_buffer(i, callback, page_cnt, lost_cb, wakeup_events)
+
+    def _open_perf_buffer(self, cpu, callback, page_cnt, lost_cb, wakeup_events):
+        def raw_cb_(_, data, size):
+            try:
+                callback(cpu, data, size)
+            except IOError as e:
+                if e.errno == errno.EPIPE:
+                    exit()
+                else:
+                    raise e
+        def lost_cb_(_, lost):
+            try:
+                lost_cb(lost)
+            except IOError as e:
+                if e.errno == errno.EPIPE:
+                    exit()
+                else:
+                    raise e
+        fn = _RAW_CB_TYPE(raw_cb_)
+        lost_fn = _LOST_CB_TYPE(lost_cb_) if lost_cb else ct.cast(None, _LOST_CB_TYPE)
+        opts = bcc_perf_buffer_opts()
+        opts.pid = -1
+        opts.cpu = cpu
+        opts.wakeup_events = wakeup_events
+        reader = lib.bpf_open_perf_buffer_opts(fn, lost_fn, None, page_cnt, ct.byref(opts))
+        if not reader:
+            raise Exception("Could not open perf buffer")
+        fd = lib.perf_reader_fd(reader)
+        self[self.Key(cpu)] = self.Leaf(fd)
+        self.bpf.perf_buffers[(id(self), cpu)] = reader
+        # keep a refcnt
+        self._cbs[cpu] = (fn, lost_fn)
+        # The actual fd is held by the perf reader, add to track opened ke
