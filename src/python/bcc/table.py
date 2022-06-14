@@ -894,4 +894,66 @@ class FileDesc:
 
     def clean_up(self):
         if (self.fd is not None) and (self.fd >= 0):
-        
+            os.close(self.fd)
+            self.fd = None
+
+    def __del__(self):
+        self.clean_up()
+
+    def __enter__(self, *args, **kwargs):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.clean_up()
+
+class CgroupArray(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        super(CgroupArray, self).__init__(*args, **kwargs)
+
+    def __setitem__(self, key, leaf):
+        if isinstance(leaf, int):
+            super(CgroupArray, self).__setitem__(key, self.Leaf(leaf))
+        elif isinstance(leaf, str):
+            # TODO: Add os.O_CLOEXEC once we move to Python version >3.3
+            with FileDesc(os.open(leaf, os.O_RDONLY)) as f:
+                super(CgroupArray, self).__setitem__(key, self.Leaf(f.fd))
+        else:
+            raise Exception("Cgroup array key must be either FD or cgroup path")
+
+class PerfEventArray(ArrayBase):
+
+    def __init__(self, *args, **kwargs):
+        super(PerfEventArray, self).__init__(*args, **kwargs)
+        self._open_key_fds = {}
+        self._event_class = None
+
+    def __del__(self):
+        keys = list(self._open_key_fds.keys())
+        for key in keys:
+            del self[key]
+
+    def __delitem__(self, key):
+        if key not in self._open_key_fds:
+            return
+        # Delete entry from the array
+        super(PerfEventArray, self).__delitem__(key)
+        key_id = (id(self), key)
+        if key_id in self.bpf.perf_buffers:
+            # The key is opened for perf ring buffer
+            lib.perf_reader_free(self.bpf.perf_buffers[key_id])
+            del self.bpf.perf_buffers[key_id]
+            del self._cbs[key]
+        else:
+            # The key is opened for perf event read
+            lib.bpf_close_perf_event_fd(self._open_key_fds[key])
+        del self._open_key_fds[key]
+
+    def event(self, data):
+        """event(data)
+
+        When perf buffers are opened to receive custom perf event,
+        the underlying event data struct which is defined in C in
+        the BPF program can be deduced via this function. This avoids
+        redundant definitions in Python.
+        """
+        if self._event_class 
