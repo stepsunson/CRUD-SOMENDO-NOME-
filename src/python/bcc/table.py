@@ -1068,3 +1068,62 @@ class PerCpuHash(HashTable):
 
     def sum(self, key):
         if isinstance(self.Leaf(), ct.Structure):
+            raise IndexError("Leaf must be an integer type for default sum functions")
+        return self.sLeaf(sum(self.getvalue(key)))
+
+    def max(self, key):
+        if isinstance(self.Leaf(), ct.Structure):
+            raise IndexError("Leaf must be an integer type for default max functions")
+        return self.sLeaf(max(self.getvalue(key)))
+
+    def average(self, key):
+        result = self.sum(key)
+        return result.value / self.total_cpu
+
+class LruPerCpuHash(PerCpuHash):
+    def __init__(self, *args, **kwargs):
+        super(LruPerCpuHash, self).__init__(*args, **kwargs)
+
+class PerCpuArray(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        self.reducer = kwargs.pop("reducer", None)
+        super(PerCpuArray, self).__init__(*args, **kwargs)
+        self.sLeaf = self.Leaf
+        self.total_cpu = len(get_possible_cpus())
+        # This needs to be 8 as hard coded into the linux kernel.
+        self.alignment = ct.sizeof(self.sLeaf) % 8
+        if self.alignment == 0:
+            self.Leaf = self.sLeaf * self.total_cpu
+        else:
+            # Currently Float, Char, un-aligned structs are not supported
+            if self.sLeaf == ct.c_uint:
+                self.Leaf = ct.c_uint64 * self.total_cpu
+            elif self.sLeaf == ct.c_int:
+                self.Leaf = ct.c_int64 * self.total_cpu
+            else:
+                raise IndexError("Leaf must be aligned to 8 bytes")
+
+    def getvalue(self, key):
+        result = super(PerCpuArray, self).__getitem__(key)
+        if self.alignment == 0:
+            ret = result
+        else:
+            ret = (self.sLeaf * self.total_cpu)()
+            for i in range(0, self.total_cpu):
+                ret[i] = result[i]
+        return ret
+
+    def __getitem__(self, key):
+        if (self.reducer):
+            return reduce(self.reducer, self.getvalue(key))
+        else:
+            return self.getvalue(key)
+
+    def __setitem__(self, key, leaf):
+        super(PerCpuArray, self).__setitem__(key, leaf)
+
+    def __delitem__(self, key):
+        # Delete in this type does not have an effect, so zero out instead
+        self.clearitem(key)
+
+  
