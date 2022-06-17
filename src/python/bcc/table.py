@@ -1007,4 +1007,64 @@ class PerfEventArray(ArrayBase):
         self.bpf.perf_buffers[(id(self), cpu)] = reader
         # keep a refcnt
         self._cbs[cpu] = (fn, lost_fn)
-        # The actual fd is held by the perf reader, add to track opened ke
+        # The actual fd is held by the perf reader, add to track opened keys
+        self._open_key_fds[cpu] = -1
+
+    def _open_perf_event(self, cpu, typ, config):
+        fd = lib.bpf_open_perf_event(typ, config, -1, cpu)
+        if fd < 0:
+            raise Exception("bpf_open_perf_event failed")
+        self[self.Key(cpu)] = self.Leaf(fd)
+        self._open_key_fds[cpu] = fd
+
+    def open_perf_event(self, typ, config):
+        """open_perf_event(typ, config)
+
+        Configures the table such that calls from the bpf program to
+        table.perf_read(CUR_CPU_IDENTIFIER) will return the hardware
+        counter denoted by event ev on the local cpu.
+        """
+        for i in get_online_cpus():
+            self._open_perf_event(i, typ, config)
+
+
+class PerCpuHash(HashTable):
+    def __init__(self, *args, **kwargs):
+        self.reducer = kwargs.pop("reducer", None)
+        super(PerCpuHash, self).__init__(*args, **kwargs)
+        self.sLeaf = self.Leaf
+        self.total_cpu = len(get_possible_cpus())
+        # This needs to be 8 as hard coded into the linux kernel.
+        self.alignment = ct.sizeof(self.sLeaf) % 8
+        if self.alignment == 0:
+            self.Leaf = self.sLeaf * self.total_cpu
+        else:
+            # Currently Float, Char, un-aligned structs are not supported
+            if self.sLeaf == ct.c_uint:
+                self.Leaf = ct.c_uint64 * self.total_cpu
+            elif self.sLeaf == ct.c_int:
+                self.Leaf = ct.c_int64 * self.total_cpu
+            else:
+                raise IndexError("Leaf must be aligned to 8 bytes")
+
+    def getvalue(self, key):
+        result = super(PerCpuHash, self).__getitem__(key)
+        if self.alignment == 0:
+            ret = result
+        else:
+            ret = (self.sLeaf * self.total_cpu)()
+            for i in range(0, self.total_cpu):
+                ret[i] = result[i]
+        return ret
+
+    def __getitem__(self, key):
+        if self.reducer:
+            return reduce(self.reducer, self.getvalue(key))
+        else:
+            return self.getvalue(key)
+
+    def __setitem__(self, key, leaf):
+        super(PerCpuHash, self).__setitem__(key, leaf)
+
+    def sum(self, key):
+        if isinstance(self.Leaf(), ct.Structure):
