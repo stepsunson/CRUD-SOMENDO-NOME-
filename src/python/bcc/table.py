@@ -1126,4 +1126,68 @@ class PerCpuArray(ArrayBase):
         # Delete in this type does not have an effect, so zero out instead
         self.clearitem(key)
 
-  
+    def sum(self, key):
+        if isinstance(self.Leaf(), ct.Structure):
+            raise IndexError("Leaf must be an integer type for default sum functions")
+        return self.sLeaf(sum(self.getvalue(key)))
+
+    def max(self, key):
+        if isinstance(self.Leaf(), ct.Structure):
+            raise IndexError("Leaf must be an integer type for default max functions")
+        return self.sLeaf(max(self.getvalue(key)))
+
+    def average(self, key):
+        result = self.sum(key)
+        return result.value / self.total_cpu
+
+class LpmTrie(TableBase):
+    def __init__(self, *args, **kwargs):
+        super(LpmTrie, self).__init__(*args, **kwargs)
+
+    def __len__(self):
+        raise NotImplementedError
+
+
+class StackTrace(TableBase):
+    MAX_DEPTH = 127
+    BPF_F_STACK_BUILD_ID = (1<<5)
+    BPF_STACK_BUILD_ID_EMPTY =  0 #can't get stacktrace
+    BPF_STACK_BUILD_ID_VALID = 1 #valid build-id,ip
+    BPF_STACK_BUILD_ID_IP = 2 #fallback to ip
+
+    def __init__(self, *args, **kwargs):
+        super(StackTrace, self).__init__(*args, **kwargs)
+
+    class StackWalker(object):
+        def __init__(self, stack, flags, resolve=None):
+            self.stack = stack
+            self.n = -1
+            self.resolve = resolve
+            self.flags = flags
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            return self.next()
+
+        def next(self):
+            self.n += 1
+            if self.n == StackTrace.MAX_DEPTH:
+                raise StopIteration()
+
+            if self.flags & StackTrace.BPF_F_STACK_BUILD_ID:
+              addr = self.stack.trace[self.n]
+              if addr.status == StackTrace.BPF_STACK_BUILD_ID_IP or \
+                 addr.status == StackTrace.BPF_STACK_BUILD_ID_EMPTY:
+                  raise StopIteration()
+            else:
+              addr = self.stack.ip[self.n]
+
+            if addr == 0 :
+                raise StopIteration()
+
+            return self.resolve(addr) if self.resolve else addr
+
+    def walk(self, stack_id, resolve=None):
+        return StackTrace.StackWalker(self[self.Key(stack_id)], self.flags
