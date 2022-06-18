@@ -1190,4 +1190,75 @@ class StackTrace(TableBase):
             return self.resolve(addr) if self.resolve else addr
 
     def walk(self, stack_id, resolve=None):
-        return StackTrace.StackWalker(self[self.Key(stack_id)], self.flags
+        return StackTrace.StackWalker(self[self.Key(stack_id)], self.flags, resolve)
+
+    def __len__(self):
+        i = 0
+        for k in self: i += 1
+        return i
+
+    def clear(self):
+        pass
+
+class DevMap(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        super(DevMap, self).__init__(*args, **kwargs)
+
+class CpuMap(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        super(CpuMap, self).__init__(*args, **kwargs)
+
+class XskMap(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        super(XskMap, self).__init__(*args, **kwargs)
+
+class MapInMapArray(ArrayBase):
+    def __init__(self, *args, **kwargs):
+        super(MapInMapArray, self).__init__(*args, **kwargs)
+
+class MapInMapHash(HashTable):
+    def __init__(self, *args, **kwargs):
+        super(MapInMapHash, self).__init__(*args, **kwargs)
+
+class RingBuf(TableBase):
+    def __init__(self, *args, **kwargs):
+        super(RingBuf, self).__init__(*args, **kwargs)
+        self._ringbuf = None
+        self._event_class = None
+
+    def __delitem(self, key):
+        pass
+
+    def __del__(self):
+        pass
+
+    def __len__(self):
+        return 0
+
+    def event(self, data):
+        """event(data)
+
+        When ring buffers are opened to receive custom event,
+        the underlying event data struct which is defined in C in
+        the BPF program can be deduced via this function. This avoids
+        redundant definitions in Python.
+        """
+        if self._event_class == None:
+            self._event_class = _get_event_class(self)
+        return ct.cast(data, ct.POINTER(self._event_class)).contents
+
+    def open_ring_buffer(self, callback, ctx=None):
+        """open_ring_buffer(callback)
+
+        Opens a ring buffer to receive custom event data from the bpf program.
+        The callback will be invoked for each event submitted from the kernel,
+        up to millions per second.
+        """
+
+        def ringbuf_cb_(ctx, data, size):
+            try:
+                ret = callback(ctx, data, size)
+                # Callback for ringbufs should _always_ return an integer.
+                # If the function the user registers does not,
+                # simply fall back to returning 0.
+  
