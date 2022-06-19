@@ -55,4 +55,4 @@ def flags2str(flags):
         arr.append("ECE")
     if flags & TCPHDR_CWR:
         arr.append("CWR")
-    return 
+    return "|".join(arr)
