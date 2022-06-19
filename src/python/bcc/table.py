@@ -1321,4 +1321,21 @@ class QueueStack:
         return leaf
 
     def peek(self):
-        leaf = self.L
+        leaf = self.Leaf()
+        res = lib.bpf_lookup_elem(self.map_fd, None, ct.byref(leaf))
+        if res < 0:
+            raise KeyError("Could not peek table")
+        return leaf
+
+    def itervalues(self):
+        # to avoid infinite loop, set maximum pops to max_entries
+        cnt = self.max_entries
+        while cnt:
+            try:
+                yield(self.pop())
+                cnt -= 1
+            except KeyError:
+                return
+
+    def values(self):
+        return [value for value in self.itervalues()]
