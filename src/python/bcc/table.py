@@ -1261,4 +1261,64 @@ class RingBuf(TableBase):
                 # Callback for ringbufs should _always_ return an integer.
                 # If the function the user registers does not,
                 # simply fall back to returning 0.
-  
+                try:
+                    ret = int(ret)
+                except:
+                    ret = 0
+            except IOError as e:
+                if e.errno == errno.EPIPE:
+                    exit()
+                else:
+                    raise e
+            return ret
+
+        fn = _RINGBUF_CB_TYPE(ringbuf_cb_)
+        self.bpf._open_ring_buffer(self.map_fd, fn, ctx)
+        # keep a refcnt
+        self._cbs[0] = fn
+
+class QueueStack:
+    # Flag for map.push
+    BPF_EXIST = 2
+
+    def __init__(self, bpf, map_id, map_fd, leaftype):
+        self.bpf = bpf
+        self.map_id = map_id
+        self.map_fd = map_fd
+        self.Leaf = leaftype
+        self.ttype = lib.bpf_table_type_id(self.bpf.module, self.map_id)
+        self.flags = lib.bpf_table_flags_id(self.bpf.module, self.map_id)
+        self.max_entries = int(lib.bpf_table_max_entries_id(self.bpf.module,
+                self.map_id))
+
+    def leaf_sprintf(self, leaf):
+        buf = ct.create_string_buffer(ct.sizeof(self.Leaf) * 8)
+        res = lib.bpf_table_leaf_snprintf(self.bpf.module, self.map_id, buf,
+                                          len(buf), ct.byref(leaf))
+        if res < 0:
+            raise Exception("Could not printf leaf")
+        return buf.value
+
+    def leaf_scanf(self, leaf_str):
+        leaf = self.Leaf()
+        res = lib.bpf_table_leaf_sscanf(self.bpf.module, self.map_id, leaf_str,
+                                        ct.byref(leaf))
+        if res < 0:
+            raise Exception("Could not scanf leaf")
+        return leaf
+
+    def push(self, leaf, flags=0):
+        res = lib.bpf_update_elem(self.map_fd, None, ct.byref(leaf), flags)
+        if res < 0:
+            errstr = os.strerror(ct.get_errno())
+            raise Exception("Could not push to table: %s" % errstr)
+
+    def pop(self):
+        leaf = self.Leaf()
+        res = lib.bpf_lookup_and_delete(self.map_fd, None, ct.byref(leaf))
+        if res < 0:
+            raise KeyError("Could not pop from table")
+        return leaf
+
+    def peek(self):
+        leaf = self.L
