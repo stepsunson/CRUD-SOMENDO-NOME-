@@ -74,4 +74,43 @@ if(LIBLZMA_FOUND)
   add_custom_target(debuginfo_xz DEPENDS debuginfo.so.xz)
 
   add_custom_command(OUTPUT with_gnu_debugdata.so
-       
+                     COMMAND ${CMAKE_OBJCOPY}
+                     ARGS --add-section .gnu_debugdata=${CMAKE_CURRENT_BINARY_DIR}/debuginfo.so.xz
+                     ${CMAKE_CURRENT_BINARY_DIR}/libdebuginfo_test_lib.so
+                     ${CMAKE_CURRENT_BINARY_DIR}/with_gnu_debugdata.so
+                     DEPENDS debuginfo_xz debuginfo_test_lib)
+  add_custom_target(with_gnu_debugdata DEPENDS with_gnu_debugdata.so)
+  list(APPEND DEBUGINFO_TARGETS with_gnu_debugdata)
+endif(LIBLZMA_FOUND)
+
+add_custom_command(OUTPUT archive.zip
+                   COMMAND mkdir -p zip_subdir
+                   COMMAND echo "This is a text file" > zip_subdir/file.txt
+                   COMMAND zip -0 archive.zip libdebuginfo_test_lib.so zip_subdir/file.txt
+                   DEPENDS debuginfo_test_lib
+                   BYPRODUCTS zip_subdir/file.txt)
+add_custom_target(zip_archive DEPENDS archive.zip)
+
+if(NOT CMAKE_USE_LIBBPF_PACKAGE)
+  add_executable(test_libbcc ${TEST_LIBBCC_SOURCES})
+  add_dependencies(test_libbcc bcc-shared zip_archive ${DEBUGINFO_TARGETS})
+
+  target_link_libraries(test_libbcc ${PROJECT_BINARY_DIR}/src/cc/libbcc.so dl usdt_test_lib)
+  set_target_properties(test_libbcc PROPERTIES INSTALL_RPATH ${PROJECT_BINARY_DIR}/src/cc)
+  target_compile_definitions(test_libbcc PRIVATE -DLIBBCC_NAME=\"libbcc.so\")
+
+  add_test(NAME test_libbcc COMMAND ${TEST_WRAPPER} c_test_all sudo ${CMAKE_CURRENT_BINARY_DIR}/test_libbcc)
+endif()
+
+if(LIBBPF_FOUND)
+  add_executable(test_libbcc_no_libbpf ${TEST_LIBBCC_SOURCES})
+  add_dependencies(test_libbcc_no_libbpf bcc-shared zip_archive ${DEBUGINFO_TARGETS})
+
+  target_link_libraries(test_libbcc_no_libbpf ${PROJECT_BINARY_DIR}/src/cc/libbcc.so dl usdt_test_lib ${LIBBPF_LIBRARIES})
+  set_target_properties(test_libbcc_no_libbpf PROPERTIES INSTALL_RPATH ${PROJECT_BINARY_DIR}/src/cc)
+  target_compile_definitions(test_libbcc_no_libbpf PRIVATE -DLIBBCC_NAME=\"libbcc.so\")
+
+  add_test(NAME test_libbcc_no_libbpf COMMAND ${TEST_WRAPPER} c_test_all_no_libbpf sudo ${CMAKE_CURRENT_BINARY_DIR}/test_libbcc_no_libbpf)
+endif()
+
+endif(ENABLE_USDT)
