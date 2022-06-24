@@ -4153,3 +4153,2144 @@ namespace Clara {
             const std::string doubleDash = "--";
             for( int i = 1; i < argc && argv[i] != doubleDash; ++i )
                 parseIntoTokens( argv[i] , tokens);
+        }
+        void parseIntoTokens( std::string arg, std::vector<Parser::Token>& tokens ) const {
+            while( !arg.empty() ) {
+                Parser::Token token( Parser::Token::Positional, arg );
+                arg = "";
+                if( token.data[0] == '-' ) {
+                    if( token.data.size() > 1 && token.data[1] == '-' ) {
+                        token = Parser::Token( Parser::Token::LongOpt, token.data.substr( 2 ) );
+                    }
+                    else {
+                        token = Parser::Token( Parser::Token::ShortOpt, token.data.substr( 1 ) );
+                        if( token.data.size() > 1 && separators.find( token.data[1] ) == std::string::npos ) {
+                            arg = "-" + token.data.substr( 1 );
+                            token.data = token.data.substr( 0, 1 );
+                        }
+                    }
+                }
+                if( token.type != Parser::Token::Positional ) {
+                    std::size_t pos = token.data.find_first_of( separators );
+                    if( pos != std::string::npos ) {
+                        arg = token.data.substr( pos+1 );
+                        token.data = token.data.substr( 0, pos );
+                    }
+                }
+                tokens.push_back( token );
+            }
+        }
+        std::string separators;
+    };
+
+    template<typename ConfigT>
+    struct CommonArgProperties {
+        CommonArgProperties() {}
+        CommonArgProperties( Detail::BoundArgFunction<ConfigT> const& _boundField ) : boundField( _boundField ) {}
+
+        Detail::BoundArgFunction<ConfigT> boundField;
+        std::string description;
+        std::string detail;
+        std::string placeholder; // Only value if boundField takes an arg
+
+        bool takesArg() const {
+            return !placeholder.empty();
+        }
+        void validate() const {
+            if( !boundField.isSet() )
+                throw std::logic_error( "option not bound" );
+        }
+    };
+    struct OptionArgProperties {
+        std::vector<std::string> shortNames;
+        std::string longName;
+
+        bool hasShortName( std::string const& shortName ) const {
+            return std::find( shortNames.begin(), shortNames.end(), shortName ) != shortNames.end();
+        }
+        bool hasLongName( std::string const& _longName ) const {
+            return _longName == longName;
+        }
+    };
+    struct PositionalArgProperties {
+        PositionalArgProperties() : position( -1 ) {}
+        int position; // -1 means non-positional (floating)
+
+        bool isFixedPositional() const {
+            return position != -1;
+        }
+    };
+
+    template<typename ConfigT>
+    class CommandLine {
+
+        struct Arg : CommonArgProperties<ConfigT>, OptionArgProperties, PositionalArgProperties {
+            Arg() {}
+            Arg( Detail::BoundArgFunction<ConfigT> const& _boundField ) : CommonArgProperties<ConfigT>( _boundField ) {}
+
+            using CommonArgProperties<ConfigT>::placeholder; // !TBD
+
+            std::string dbgName() const {
+                if( !longName.empty() )
+                    return "--" + longName;
+                if( !shortNames.empty() )
+                    return "-" + shortNames[0];
+                return "positional args";
+            }
+            std::string commands() const {
+                std::ostringstream oss;
+                bool first = true;
+                std::vector<std::string>::const_iterator it = shortNames.begin(), itEnd = shortNames.end();
+                for(; it != itEnd; ++it ) {
+                    if( first )
+                        first = false;
+                    else
+                        oss << ", ";
+                    oss << "-" << *it;
+                }
+                if( !longName.empty() ) {
+                    if( !first )
+                        oss << ", ";
+                    oss << "--" << longName;
+                }
+                if( !placeholder.empty() )
+                    oss << " <" << placeholder << ">";
+                return oss.str();
+            }
+        };
+
+        typedef CLARA_AUTO_PTR( Arg ) ArgAutoPtr;
+
+        friend void addOptName( Arg& arg, std::string const& optName )
+        {
+            if( optName.empty() )
+                return;
+            if( Detail::startsWith( optName, "--" ) ) {
+                if( !arg.longName.empty() )
+                    throw std::logic_error( "Only one long opt may be specified. '"
+                        + arg.longName
+                        + "' already specified, now attempting to add '"
+                        + optName + "'" );
+                arg.longName = optName.substr( 2 );
+            }
+            else if( Detail::startsWith( optName, "-" ) )
+                arg.shortNames.push_back( optName.substr( 1 ) );
+            else
+                throw std::logic_error( "option must begin with - or --. Option was: '" + optName + "'" );
+        }
+        friend void setPositionalArg( Arg& arg, int position )
+        {
+            arg.position = position;
+        }
+
+        class ArgBuilder {
+        public:
+            ArgBuilder( Arg* arg ) : m_arg( arg ) {}
+
+            // Bind a non-boolean data member (requires placeholder string)
+            template<typename C, typename M>
+            void bind( M C::* field, std::string const& placeholder ) {
+                m_arg->boundField = new Detail::BoundDataMember<C,M>( field );
+                m_arg->placeholder = placeholder;
+            }
+            // Bind a boolean data member (no placeholder required)
+            template<typename C>
+            void bind( bool C::* field ) {
+                m_arg->boundField = new Detail::BoundDataMember<C,bool>( field );
+            }
+
+            // Bind a method taking a single, non-boolean argument (requires a placeholder string)
+            template<typename C, typename M>
+            void bind( void (C::* unaryMethod)( M ), std::string const& placeholder ) {
+                m_arg->boundField = new Detail::BoundUnaryMethod<C,M>( unaryMethod );
+                m_arg->placeholder = placeholder;
+            }
+
+            // Bind a method taking a single, boolean argument (no placeholder string required)
+            template<typename C>
+            void bind( void (C::* unaryMethod)( bool ) ) {
+                m_arg->boundField = new Detail::BoundUnaryMethod<C,bool>( unaryMethod );
+            }
+
+            // Bind a method that takes no arguments (will be called if opt is present)
+            template<typename C>
+            void bind( void (C::* nullaryMethod)() ) {
+                m_arg->boundField = new Detail::BoundNullaryMethod<C>( nullaryMethod );
+            }
+
+            // Bind a free function taking a single argument - the object to operate on (no placeholder string required)
+            template<typename C>
+            void bind( void (* unaryFunction)( C& ) ) {
+                m_arg->boundField = new Detail::BoundUnaryFunction<C>( unaryFunction );
+            }
+
+            // Bind a free function taking a single argument - the object to operate on (requires a placeholder string)
+            template<typename C, typename T>
+            void bind( void (* binaryFunction)( C&, T ), std::string const& placeholder ) {
+                m_arg->boundField = new Detail::BoundBinaryFunction<C, T>( binaryFunction );
+                m_arg->placeholder = placeholder;
+            }
+
+            ArgBuilder& describe( std::string const& description ) {
+                m_arg->description = description;
+                return *this;
+            }
+            ArgBuilder& detail( std::string const& detail ) {
+                m_arg->detail = detail;
+                return *this;
+            }
+
+        protected:
+            Arg* m_arg;
+        };
+
+        class OptBuilder : public ArgBuilder {
+        public:
+            OptBuilder( Arg* arg ) : ArgBuilder( arg ) {}
+            OptBuilder( OptBuilder& other ) : ArgBuilder( other ) {}
+
+            OptBuilder& operator[]( std::string const& optName ) {
+                addOptName( *ArgBuilder::m_arg, optName );
+                return *this;
+            }
+        };
+
+    public:
+
+        CommandLine()
+        :   m_boundProcessName( new Detail::NullBinder<ConfigT>() ),
+            m_highestSpecifiedArgPosition( 0 ),
+            m_throwOnUnrecognisedTokens( false )
+        {}
+        CommandLine( CommandLine const& other )
+        :   m_boundProcessName( other.m_boundProcessName ),
+            m_options ( other.m_options ),
+            m_positionalArgs( other.m_positionalArgs ),
+            m_highestSpecifiedArgPosition( other.m_highestSpecifiedArgPosition ),
+            m_throwOnUnrecognisedTokens( other.m_throwOnUnrecognisedTokens )
+        {
+            if( other.m_floatingArg.get() )
+                m_floatingArg.reset( new Arg( *other.m_floatingArg ) );
+        }
+
+        CommandLine& setThrowOnUnrecognisedTokens( bool shouldThrow = true ) {
+            m_throwOnUnrecognisedTokens = shouldThrow;
+            return *this;
+        }
+
+        OptBuilder operator[]( std::string const& optName ) {
+            m_options.push_back( Arg() );
+            addOptName( m_options.back(), optName );
+            OptBuilder builder( &m_options.back() );
+            return builder;
+        }
+
+        ArgBuilder operator[]( int position ) {
+            m_positionalArgs.insert( std::make_pair( position, Arg() ) );
+            if( position > m_highestSpecifiedArgPosition )
+                m_highestSpecifiedArgPosition = position;
+            setPositionalArg( m_positionalArgs[position], position );
+            ArgBuilder builder( &m_positionalArgs[position] );
+            return builder;
+        }
+
+        // Invoke this with the _ instance
+        ArgBuilder operator[]( UnpositionalTag ) {
+            if( m_floatingArg.get() )
+                throw std::logic_error( "Only one unpositional argument can be added" );
+            m_floatingArg.reset( new Arg() );
+            ArgBuilder builder( m_floatingArg.get() );
+            return builder;
+        }
+
+        template<typename C, typename M>
+        void bindProcessName( M C::* field ) {
+            m_boundProcessName = new Detail::BoundDataMember<C,M>( field );
+        }
+        template<typename C, typename M>
+        void bindProcessName( void (C::*_unaryMethod)( M ) ) {
+            m_boundProcessName = new Detail::BoundUnaryMethod<C,M>( _unaryMethod );
+        }
+
+        void optUsage( std::ostream& os, std::size_t indent = 0, std::size_t width = Detail::consoleWidth ) const {
+            typename std::vector<Arg>::const_iterator itBegin = m_options.begin(), itEnd = m_options.end(), it;
+            std::size_t maxWidth = 0;
+            for( it = itBegin; it != itEnd; ++it )
+                maxWidth = (std::max)( maxWidth, it->commands().size() );
+
+            for( it = itBegin; it != itEnd; ++it ) {
+                Detail::Text usage( it->commands(), Detail::TextAttributes()
+                                                        .setWidth( maxWidth+indent )
+                                                        .setIndent( indent ) );
+                Detail::Text desc( it->description, Detail::TextAttributes()
+                                                        .setWidth( width - maxWidth - 3 ) );
+
+                for( std::size_t i = 0; i < (std::max)( usage.size(), desc.size() ); ++i ) {
+                    std::string usageCol = i < usage.size() ? usage[i] : "";
+                    os << usageCol;
+
+                    if( i < desc.size() && !desc[i].empty() )
+                        os  << std::string( indent + 2 + maxWidth - usageCol.size(), ' ' )
+                            << desc[i];
+                    os << "\n";
+                }
+            }
+        }
+        std::string optUsage() const {
+            std::ostringstream oss;
+            optUsage( oss );
+            return oss.str();
+        }
+
+        void argSynopsis( std::ostream& os ) const {
+            for( int i = 1; i <= m_highestSpecifiedArgPosition; ++i ) {
+                if( i > 1 )
+                    os << " ";
+                typename std::map<int, Arg>::const_iterator it = m_positionalArgs.find( i );
+                if( it != m_positionalArgs.end() )
+                    os << "<" << it->second.placeholder << ">";
+                else if( m_floatingArg.get() )
+                    os << "<" << m_floatingArg->placeholder << ">";
+                else
+                    throw std::logic_error( "non consecutive positional arguments with no floating args" );
+            }
+            // !TBD No indication of mandatory args
+            if( m_floatingArg.get() ) {
+                if( m_highestSpecifiedArgPosition > 1 )
+                    os << " ";
+                os << "[<" << m_floatingArg->placeholder << "> ...]";
+            }
+        }
+        std::string argSynopsis() const {
+            std::ostringstream oss;
+            argSynopsis( oss );
+            return oss.str();
+        }
+
+        void usage( std::ostream& os, std::string const& procName ) const {
+            validate();
+            os << "usage:\n  " << procName << " ";
+            argSynopsis( os );
+            if( !m_options.empty() ) {
+                os << " [options]\n\nwhere options are: \n";
+                optUsage( os, 2 );
+            }
+            os << "\n";
+        }
+        std::string usage( std::string const& procName ) const {
+            std::ostringstream oss;
+            usage( oss, procName );
+            return oss.str();
+        }
+
+        ConfigT parse( int argc, char const* const argv[] ) const {
+            ConfigT config;
+            parseInto( argc, argv, config );
+            return config;
+        }
+
+        std::vector<Parser::Token> parseInto( int argc, char const* argv[], ConfigT& config ) const {
+            std::string processName = argv[0];
+            std::size_t lastSlash = processName.find_last_of( "/\\" );
+            if( lastSlash != std::string::npos )
+                processName = processName.substr( lastSlash+1 );
+            m_boundProcessName.set( config, processName );
+            std::vector<Parser::Token> tokens;
+            Parser parser;
+            parser.parseIntoTokens( argc, argv, tokens );
+            return populate( tokens, config );
+        }
+
+        std::vector<Parser::Token> populate( std::vector<Parser::Token> const& tokens, ConfigT& config ) const {
+            validate();
+            std::vector<Parser::Token> unusedTokens = populateOptions( tokens, config );
+            unusedTokens = populateFixedArgs( unusedTokens, config );
+            unusedTokens = populateFloatingArgs( unusedTokens, config );
+            return unusedTokens;
+        }
+
+        std::vector<Parser::Token> populateOptions( std::vector<Parser::Token> const& tokens, ConfigT& config ) const {
+            std::vector<Parser::Token> unusedTokens;
+            std::vector<std::string> errors;
+            for( std::size_t i = 0; i < tokens.size(); ++i ) {
+                Parser::Token const& token = tokens[i];
+                typename std::vector<Arg>::const_iterator it = m_options.begin(), itEnd = m_options.end();
+                for(; it != itEnd; ++it ) {
+                    Arg const& arg = *it;
+
+                    try {
+                        if( ( token.type == Parser::Token::ShortOpt && arg.hasShortName( token.data ) ) ||
+                            ( token.type == Parser::Token::LongOpt && arg.hasLongName( token.data ) ) ) {
+                            if( arg.takesArg() ) {
+                                if( i == tokens.size()-1 || tokens[i+1].type != Parser::Token::Positional )
+                                    errors.push_back( "Expected argument to option: " + token.data );
+                                else
+                                    arg.boundField.set( config, tokens[++i].data );
+                            }
+                            else {
+                                arg.boundField.setFlag( config );
+                            }
+                            break;
+                        }
+                    }
+                    catch( std::exception& ex ) {
+                        errors.push_back( std::string( ex.what() ) + "\n- while parsing: (" + arg.commands() + ")" );
+                    }
+                }
+                if( it == itEnd ) {
+                    if( token.type == Parser::Token::Positional || !m_throwOnUnrecognisedTokens )
+                        unusedTokens.push_back( token );
+                    else if( errors.empty() && m_throwOnUnrecognisedTokens )
+                        errors.push_back( "unrecognised option: " + token.data );
+                }
+            }
+            if( !errors.empty() ) {
+                std::ostringstream oss;
+                for( std::vector<std::string>::const_iterator it = errors.begin(), itEnd = errors.end();
+                        it != itEnd;
+                        ++it ) {
+                    if( it != errors.begin() )
+                        oss << "\n";
+                    oss << *it;
+                }
+                throw std::runtime_error( oss.str() );
+            }
+            return unusedTokens;
+        }
+        std::vector<Parser::Token> populateFixedArgs( std::vector<Parser::Token> const& tokens, ConfigT& config ) const {
+            std::vector<Parser::Token> unusedTokens;
+            int position = 1;
+            for( std::size_t i = 0; i < tokens.size(); ++i ) {
+                Parser::Token const& token = tokens[i];
+                typename std::map<int, Arg>::const_iterator it = m_positionalArgs.find( position );
+                if( it != m_positionalArgs.end() )
+                    it->second.boundField.set( config, token.data );
+                else
+                    unusedTokens.push_back( token );
+                if( token.type == Parser::Token::Positional )
+                    position++;
+            }
+            return unusedTokens;
+        }
+        std::vector<Parser::Token> populateFloatingArgs( std::vector<Parser::Token> const& tokens, ConfigT& config ) const {
+            if( !m_floatingArg.get() )
+                return tokens;
+            std::vector<Parser::Token> unusedTokens;
+            for( std::size_t i = 0; i < tokens.size(); ++i ) {
+                Parser::Token const& token = tokens[i];
+                if( token.type == Parser::Token::Positional )
+                    m_floatingArg->boundField.set( config, token.data );
+                else
+                    unusedTokens.push_back( token );
+            }
+            return unusedTokens;
+        }
+
+        void validate() const
+        {
+            if( m_options.empty() && m_positionalArgs.empty() && !m_floatingArg.get() )
+                throw std::logic_error( "No options or arguments specified" );
+
+            for( typename std::vector<Arg>::const_iterator  it = m_options.begin(),
+                                                            itEnd = m_options.end();
+                    it != itEnd; ++it )
+                it->validate();
+        }
+
+    private:
+        Detail::BoundArgFunction<ConfigT> m_boundProcessName;
+        std::vector<Arg> m_options;
+        std::map<int, Arg> m_positionalArgs;
+        ArgAutoPtr m_floatingArg;
+        int m_highestSpecifiedArgPosition;
+        bool m_throwOnUnrecognisedTokens;
+    };
+
+} // end namespace Clara
+
+STITCH_CLARA_CLOSE_NAMESPACE
+#undef STITCH_CLARA_OPEN_NAMESPACE
+#undef STITCH_CLARA_CLOSE_NAMESPACE
+
+#endif // TWOBLUECUBES_CLARA_H_INCLUDED
+#undef STITCH_CLARA_OPEN_NAMESPACE
+
+// Restore Clara's value for console width, if present
+#ifdef CATCH_TEMP_CLARA_CONFIG_CONSOLE_WIDTH
+#define CLARA_CONFIG_CONSOLE_WIDTH CATCH_TEMP_CLARA_CONFIG_CONSOLE_WIDTH
+#undef CATCH_TEMP_CLARA_CONFIG_CONSOLE_WIDTH
+#endif
+
+#include <fstream>
+
+namespace Catch {
+
+    inline void abortAfterFirst( ConfigData& config ) { config.abortAfter = 1; }
+    inline void abortAfterX( ConfigData& config, int x ) {
+        if( x < 1 )
+            throw std::runtime_error( "Value after -x or --abortAfter must be greater than zero" );
+        config.abortAfter = x;
+    }
+    inline void addTestOrTags( ConfigData& config, std::string const& _testSpec ) { config.testsOrTags.push_back( _testSpec ); }
+    inline void addReporterName( ConfigData& config, std::string const& _reporterName ) { config.reporterNames.push_back( _reporterName ); }
+
+    inline void addWarning( ConfigData& config, std::string const& _warning ) {
+        if( _warning == "NoAssertions" )
+            config.warnings = static_cast<WarnAbout::What>( config.warnings | WarnAbout::NoAssertions );
+        else
+            throw std::runtime_error( "Unrecognised warning: '" + _warning + "'" );
+    }
+    inline void setOrder( ConfigData& config, std::string const& order ) {
+        if( startsWith( "declared", order ) )
+            config.runOrder = RunTests::InDeclarationOrder;
+        else if( startsWith( "lexical", order ) )
+            config.runOrder = RunTests::InLexicographicalOrder;
+        else if( startsWith( "random", order ) )
+            config.runOrder = RunTests::InRandomOrder;
+        else
+            throw std::runtime_error( "Unrecognised ordering: '" + order + "'" );
+    }
+    inline void setRngSeed( ConfigData& config, std::string const& seed ) {
+        if( seed == "time" ) {
+            config.rngSeed = static_cast<unsigned int>( std::time(0) );
+        }
+        else {
+            std::stringstream ss;
+            ss << seed;
+            ss >> config.rngSeed;
+            if( ss.fail() )
+                throw std::runtime_error( "Argment to --rng-seed should be the word 'time' or a number" );
+        }
+    }
+    inline void setVerbosity( ConfigData& config, int level ) {
+        // !TBD: accept strings?
+        config.verbosity = static_cast<Verbosity::Level>( level );
+    }
+    inline void setShowDurations( ConfigData& config, bool _showDurations ) {
+        config.showDurations = _showDurations
+            ? ShowDurations::Always
+            : ShowDurations::Never;
+    }
+    inline void setUseColour( ConfigData& config, std::string const& value ) {
+        std::string mode = toLower( value );
+
+        if( mode == "yes" )
+            config.useColour = UseColour::Yes;
+        else if( mode == "no" )
+            config.useColour = UseColour::No;
+        else if( mode == "auto" )
+            config.useColour = UseColour::Auto;
+        else
+            throw std::runtime_error( "colour mode must be one of: auto, yes or no" );
+    }
+    inline void forceColour( ConfigData& config ) {
+        config.useColour = UseColour::Yes;
+    }
+    inline void loadTestNamesFromFile( ConfigData& config, std::string const& _filename ) {
+        std::ifstream f( _filename.c_str() );
+        if( !f.is_open() )
+            throw std::domain_error( "Unable to load input file: " + _filename );
+
+        std::string line;
+        while( std::getline( f, line ) ) {
+            line = trim(line);
+            if( !line.empty() && !startsWith( line, "#" ) )
+                addTestOrTags( config, "\"" + line + "\"," );
+        }
+    }
+
+    inline Clara::CommandLine<ConfigData> makeCommandLineParser() {
+
+        using namespace Clara;
+        CommandLine<ConfigData> cli;
+
+        cli.bindProcessName( &ConfigData::processName );
+
+        cli["-?"]["-h"]["--help"]
+            .describe( "display usage information" )
+            .bind( &ConfigData::showHelp );
+
+        cli["-l"]["--list-tests"]
+            .describe( "list all/matching test cases" )
+            .bind( &ConfigData::listTests );
+
+        cli["-t"]["--list-tags"]
+            .describe( "list all/matching tags" )
+            .bind( &ConfigData::listTags );
+
+        cli["-s"]["--success"]
+            .describe( "include successful tests in output" )
+            .bind( &ConfigData::showSuccessfulTests );
+
+        cli["-b"]["--break"]
+            .describe( "break into debugger on failure" )
+            .bind( &ConfigData::shouldDebugBreak );
+
+        cli["-e"]["--nothrow"]
+            .describe( "skip exception tests" )
+            .bind( &ConfigData::noThrow );
+
+        cli["-i"]["--invisibles"]
+            .describe( "show invisibles (tabs, newlines)" )
+            .bind( &ConfigData::showInvisibles );
+
+        cli["-o"]["--out"]
+            .describe( "output filename" )
+            .bind( &ConfigData::outputFilename, "filename" );
+
+        cli["-r"]["--reporter"]
+//            .placeholder( "name[:filename]" )
+            .describe( "reporter to use (defaults to console)" )
+            .bind( &addReporterName, "name" );
+
+        cli["-n"]["--name"]
+            .describe( "suite name" )
+            .bind( &ConfigData::name, "name" );
+
+        cli["-a"]["--abort"]
+            .describe( "abort at first failure" )
+            .bind( &abortAfterFirst );
+
+        cli["-x"]["--abortx"]
+            .describe( "abort after x failures" )
+            .bind( &abortAfterX, "no. failures" );
+
+        cli["-w"]["--warn"]
+            .describe( "enable warnings" )
+            .bind( &addWarning, "warning name" );
+
+// - needs updating if reinstated
+//        cli.into( &setVerbosity )
+//            .describe( "level of verbosity (0=no output)" )
+//            .shortOpt( "v")
+//            .longOpt( "verbosity" )
+//            .placeholder( "level" );
+
+        cli[_]
+            .describe( "which test or tests to use" )
+            .bind( &addTestOrTags, "test name, pattern or tags" );
+
+        cli["-d"]["--durations"]
+            .describe( "show test durations" )
+            .bind( &setShowDurations, "yes|no" );
+
+        cli["-f"]["--input-file"]
+            .describe( "load test names to run from a file" )
+            .bind( &loadTestNamesFromFile, "filename" );
+
+        cli["-#"]["--filenames-as-tags"]
+            .describe( "adds a tag for the filename" )
+            .bind( &ConfigData::filenamesAsTags );
+
+        // Less common commands which don't have a short form
+        cli["--list-test-names-only"]
+            .describe( "list all/matching test cases names only" )
+            .bind( &ConfigData::listTestNamesOnly );
+
+        cli["--list-reporters"]
+            .describe( "list all reporters" )
+            .bind( &ConfigData::listReporters );
+
+        cli["--order"]
+            .describe( "test case order (defaults to decl)" )
+            .bind( &setOrder, "decl|lex|rand" );
+
+        cli["--rng-seed"]
+            .describe( "set a specific seed for random numbers" )
+            .bind( &setRngSeed, "'time'|number" );
+
+        cli["--force-colour"]
+            .describe( "force colourised output (deprecated)" )
+            .bind( &forceColour );
+
+        cli["--use-colour"]
+            .describe( "should output be colourised" )
+            .bind( &setUseColour, "yes|no" );
+
+        return cli;
+    }
+
+} // end namespace Catch
+
+// #included from: internal/catch_list.hpp
+#define TWOBLUECUBES_CATCH_LIST_HPP_INCLUDED
+
+// #included from: catch_text.h
+#define TWOBLUECUBES_CATCH_TEXT_H_INCLUDED
+
+#define TBC_TEXT_FORMAT_CONSOLE_WIDTH CATCH_CONFIG_CONSOLE_WIDTH
+
+#define CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE Catch
+// #included from: ../external/tbc_text_format.h
+// Only use header guard if we are not using an outer namespace
+#ifndef CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+# ifdef TWOBLUECUBES_TEXT_FORMAT_H_INCLUDED
+#  ifndef TWOBLUECUBES_TEXT_FORMAT_H_ALREADY_INCLUDED
+#   define TWOBLUECUBES_TEXT_FORMAT_H_ALREADY_INCLUDED
+#  endif
+# else
+#  define TWOBLUECUBES_TEXT_FORMAT_H_INCLUDED
+# endif
+#endif
+#ifndef TWOBLUECUBES_TEXT_FORMAT_H_ALREADY_INCLUDED
+#include <string>
+#include <vector>
+#include <sstream>
+
+// Use optional outer namespace
+#ifdef CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+namespace CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE {
+#endif
+
+namespace Tbc {
+
+#ifdef TBC_TEXT_FORMAT_CONSOLE_WIDTH
+    const unsigned int consoleWidth = TBC_TEXT_FORMAT_CONSOLE_WIDTH;
+#else
+    const unsigned int consoleWidth = 80;
+#endif
+
+    struct TextAttributes {
+        TextAttributes()
+        :   initialIndent( std::string::npos ),
+            indent( 0 ),
+            width( consoleWidth-1 ),
+            tabChar( '\t' )
+        {}
+
+        TextAttributes& setInitialIndent( std::size_t _value )  { initialIndent = _value; return *this; }
+        TextAttributes& setIndent( std::size_t _value )         { indent = _value; return *this; }
+        TextAttributes& setWidth( std::size_t _value )          { width = _value; return *this; }
+        TextAttributes& setTabChar( char _value )               { tabChar = _value; return *this; }
+
+        std::size_t initialIndent;  // indent of first line, or npos
+        std::size_t indent;         // indent of subsequent lines, or all if initialIndent is npos
+        std::size_t width;          // maximum width of text, including indent. Longer text will wrap
+        char tabChar;               // If this char is seen the indent is changed to current pos
+    };
+
+    class Text {
+    public:
+        Text( std::string const& _str, TextAttributes const& _attr = TextAttributes() )
+        : attr( _attr )
+        {
+            std::string wrappableChars = " [({.,/|\\-";
+            std::size_t indent = _attr.initialIndent != std::string::npos
+                ? _attr.initialIndent
+                : _attr.indent;
+            std::string remainder = _str;
+
+            while( !remainder.empty() ) {
+                if( lines.size() >= 1000 ) {
+                    lines.push_back( "... message truncated due to excessive size" );
+                    return;
+                }
+                std::size_t tabPos = std::string::npos;
+                std::size_t width = (std::min)( remainder.size(), _attr.width - indent );
+                std::size_t pos = remainder.find_first_of( '\n' );
+                if( pos <= width ) {
+                    width = pos;
+                }
+                pos = remainder.find_last_of( _attr.tabChar, width );
+                if( pos != std::string::npos ) {
+                    tabPos = pos;
+                    if( remainder[width] == '\n' )
+                        width--;
+                    remainder = remainder.substr( 0, tabPos ) + remainder.substr( tabPos+1 );
+                }
+
+                if( width == remainder.size() ) {
+                    spliceLine( indent, remainder, width );
+                }
+                else if( remainder[width] == '\n' ) {
+                    spliceLine( indent, remainder, width );
+                    if( width <= 1 || remainder.size() != 1 )
+                        remainder = remainder.substr( 1 );
+                    indent = _attr.indent;
+                }
+                else {
+                    pos = remainder.find_last_of( wrappableChars, width );
+                    if( pos != std::string::npos && pos > 0 ) {
+                        spliceLine( indent, remainder, pos );
+                        if( remainder[0] == ' ' )
+                            remainder = remainder.substr( 1 );
+                    }
+                    else {
+                        spliceLine( indent, remainder, width-1 );
+                        lines.back() += "-";
+                    }
+                    if( lines.size() == 1 )
+                        indent = _attr.indent;
+                    if( tabPos != std::string::npos )
+                        indent += tabPos;
+                }
+            }
+        }
+
+        void spliceLine( std::size_t _indent, std::string& _remainder, std::size_t _pos ) {
+            lines.push_back( std::string( _indent, ' ' ) + _remainder.substr( 0, _pos ) );
+            _remainder = _remainder.substr( _pos );
+        }
+
+        typedef std::vector<std::string>::const_iterator const_iterator;
+
+        const_iterator begin() const { return lines.begin(); }
+        const_iterator end() const { return lines.end(); }
+        std::string const& last() const { return lines.back(); }
+        std::size_t size() const { return lines.size(); }
+        std::string const& operator[]( std::size_t _index ) const { return lines[_index]; }
+        std::string toString() const {
+            std::ostringstream oss;
+            oss << *this;
+            return oss.str();
+        }
+
+        inline friend std::ostream& operator << ( std::ostream& _stream, Text const& _text ) {
+            for( Text::const_iterator it = _text.begin(), itEnd = _text.end();
+                it != itEnd; ++it ) {
+                if( it != _text.begin() )
+                    _stream << "\n";
+                _stream << *it;
+            }
+            return _stream;
+        }
+
+    private:
+        std::string str;
+        TextAttributes attr;
+        std::vector<std::string> lines;
+    };
+
+} // end namespace Tbc
+
+#ifdef CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+} // end outer namespace
+#endif
+
+#endif // TWOBLUECUBES_TEXT_FORMAT_H_ALREADY_INCLUDED
+#undef CLICHE_TBC_TEXT_FORMAT_OUTER_NAMESPACE
+
+namespace Catch {
+    using Tbc::Text;
+    using Tbc::TextAttributes;
+}
+
+// #included from: catch_console_colour.hpp
+#define TWOBLUECUBES_CATCH_CONSOLE_COLOUR_HPP_INCLUDED
+
+namespace Catch {
+
+    struct Colour {
+        enum Code {
+            None = 0,
+
+            White,
+            Red,
+            Green,
+            Blue,
+            Cyan,
+            Yellow,
+            Grey,
+
+            Bright = 0x10,
+
+            BrightRed = Bright | Red,
+            BrightGreen = Bright | Green,
+            LightGrey = Bright | Grey,
+            BrightWhite = Bright | White,
+
+            // By intention
+            FileName = LightGrey,
+            Warning = Yellow,
+            ResultError = BrightRed,
+            ResultSuccess = BrightGreen,
+            ResultExpectedFailure = Warning,
+
+            Error = BrightRed,
+            Success = Green,
+
+            OriginalExpression = Cyan,
+            ReconstructedExpression = Yellow,
+
+            SecondaryText = LightGrey,
+            Headers = White
+        };
+
+        // Use constructed object for RAII guard
+        Colour( Code _colourCode );
+        Colour( Colour const& other );
+        ~Colour();
+
+        // Use static method for one-shot changes
+        static void use( Code _colourCode );
+
+    private:
+        bool m_moved;
+    };
+
+    inline std::ostream& operator << ( std::ostream& os, Colour const& ) { return os; }
+
+} // end namespace Catch
+
+// #included from: catch_interfaces_reporter.h
+#define TWOBLUECUBES_CATCH_INTERFACES_REPORTER_H_INCLUDED
+
+#include <string>
+#include <ostream>
+#include <map>
+#include <assert.h>
+
+namespace Catch
+{
+    struct ReporterConfig {
+        explicit ReporterConfig( Ptr<IConfig const> const& _fullConfig )
+        :   m_stream( &_fullConfig->stream() ), m_fullConfig( _fullConfig ) {}
+
+        ReporterConfig( Ptr<IConfig const> const& _fullConfig, std::ostream& _stream )
+        :   m_stream( &_stream ), m_fullConfig( _fullConfig ) {}
+
+        std::ostream& stream() const    { return *m_stream; }
+        Ptr<IConfig const> fullConfig() const { return m_fullConfig; }
+
+    private:
+        std::ostream* m_stream;
+        Ptr<IConfig const> m_fullConfig;
+    };
+
+    struct ReporterPreferences {
+        ReporterPreferences()
+        : shouldRedirectStdOut( false )
+        {}
+
+        bool shouldRedirectStdOut;
+    };
+
+    template<typename T>
+    struct LazyStat : Option<T> {
+        LazyStat() : used( false ) {}
+        LazyStat& operator=( T const& _value ) {
+            Option<T>::operator=( _value );
+            used = false;
+            return *this;
+        }
+        void reset() {
+            Option<T>::reset();
+            used = false;
+        }
+        bool used;
+    };
+
+    struct TestRunInfo {
+        TestRunInfo( std::string const& _name ) : name( _name ) {}
+        std::string name;
+    };
+    struct GroupInfo {
+        GroupInfo(  std::string const& _name,
+                    std::size_t _groupIndex,
+                    std::size_t _groupsCount )
+        :   name( _name ),
+            groupIndex( _groupIndex ),
+            groupsCounts( _groupsCount )
+        {}
+
+        std::string name;
+        std::size_t groupIndex;
+        std::size_t groupsCounts;
+    };
+
+    struct AssertionStats {
+        AssertionStats( AssertionResult const& _assertionResult,
+                        std::vector<MessageInfo> const& _infoMessages,
+                        Totals const& _totals )
+        :   assertionResult( _assertionResult ),
+            infoMessages( _infoMessages ),
+            totals( _totals )
+        {
+            if( assertionResult.hasMessage() ) {
+                // Copy message into messages list.
+                // !TBD This should have been done earlier, somewhere
+                MessageBuilder builder( assertionResult.getTestMacroName(), assertionResult.getSourceInfo(), assertionResult.getResultType() );
+                builder << assertionResult.getMessage();
+                builder.m_info.message = builder.m_stream.str();
+
+                infoMessages.push_back( builder.m_info );
+            }
+        }
+        virtual ~AssertionStats();
+
+#  ifdef CATCH_CONFIG_CPP11_GENERATED_METHODS
+        AssertionStats( AssertionStats const& )              = default;
+        AssertionStats( AssertionStats && )                  = default;
+        AssertionStats& operator = ( AssertionStats const& ) = default;
+        AssertionStats& operator = ( AssertionStats && )     = default;
+#  endif
+
+        AssertionResult assertionResult;
+        std::vector<MessageInfo> infoMessages;
+        Totals totals;
+    };
+
+    struct SectionStats {
+        SectionStats(   SectionInfo const& _sectionInfo,
+                        Counts const& _assertions,
+                        double _durationInSeconds,
+                        bool _missingAssertions )
+        :   sectionInfo( _sectionInfo ),
+            assertions( _assertions ),
+            durationInSeconds( _durationInSeconds ),
+            missingAssertions( _missingAssertions )
+        {}
+        virtual ~SectionStats();
+#  ifdef CATCH_CONFIG_CPP11_GENERATED_METHODS
+        SectionStats( SectionStats const& )              = default;
+        SectionStats( SectionStats && )                  = default;
+        SectionStats& operator = ( SectionStats const& ) = default;
+        SectionStats& operator = ( SectionStats && )     = default;
+#  endif
+
+        SectionInfo sectionInfo;
+        Counts assertions;
+        double durationInSeconds;
+        bool missingAssertions;
+    };
+
+    struct TestCaseStats {
+        TestCaseStats(  TestCaseInfo const& _testInfo,
+                        Totals const& _totals,
+                        std::string const& _stdOut,
+                        std::string const& _stdErr,
+                        bool _aborting )
+        : testInfo( _testInfo ),
+            totals( _totals ),
+            stdOut( _stdOut ),
+            stdErr( _stdErr ),
+            aborting( _aborting )
+        {}
+        virtual ~TestCaseStats();
+
+#  ifdef CATCH_CONFIG_CPP11_GENERATED_METHODS
+        TestCaseStats( TestCaseStats const& )              = default;
+        TestCaseStats( TestCaseStats && )                  = default;
+        TestCaseStats& operator = ( TestCaseStats const& ) = default;
+        TestCaseStats& operator = ( TestCaseStats && )     = default;
+#  endif
+
+        TestCaseInfo testInfo;
+        Totals totals;
+        std::string stdOut;
+        std::string stdErr;
+        bool aborting;
+    };
+
+    struct TestGroupStats {
+        TestGroupStats( GroupInfo const& _groupInfo,
+                        Totals const& _totals,
+                        bool _aborting )
+        :   groupInfo( _groupInfo ),
+            totals( _totals ),
+            aborting( _aborting )
+        {}
+        TestGroupStats( GroupInfo const& _groupInfo )
+        :   groupInfo( _groupInfo ),
+            aborting( false )
+        {}
+        virtual ~TestGroupStats();
+
+#  ifdef CATCH_CONFIG_CPP11_GENERATED_METHODS
+        TestGroupStats( TestGroupStats const& )              = default;
+        TestGroupStats( TestGroupStats && )                  = default;
+        TestGroupStats& operator = ( TestGroupStats const& ) = default;
+        TestGroupStats& operator = ( TestGroupStats && )     = default;
+#  endif
+
+        GroupInfo groupInfo;
+        Totals totals;
+        bool aborting;
+    };
+
+    struct TestRunStats {
+        TestRunStats(   TestRunInfo const& _runInfo,
+                        Totals const& _totals,
+                        bool _aborting )
+        :   runInfo( _runInfo ),
+            totals( _totals ),
+            aborting( _aborting )
+        {}
+        virtual ~TestRunStats();
+
+#  ifndef CATCH_CONFIG_CPP11_GENERATED_METHODS
+        TestRunStats( TestRunStats const& _other )
+        :   runInfo( _other.runInfo ),
+            totals( _other.totals ),
+            aborting( _other.aborting )
+        {}
+#  else
+        TestRunStats( TestRunStats const& )              = default;
+        TestRunStats( TestRunStats && )                  = default;
+        TestRunStats& operator = ( TestRunStats const& ) = default;
+        TestRunStats& operator = ( TestRunStats && )     = default;
+#  endif
+
+        TestRunInfo runInfo;
+        Totals totals;
+        bool aborting;
+    };
+
+    struct IStreamingReporter : IShared {
+        virtual ~IStreamingReporter();
+
+        // Implementing class must also provide the following static method:
+        // static std::string getDescription();
+
+        virtual ReporterPreferences getPreferences() const = 0;
+
+        virtual void noMatchingTestCases( std::string const& spec ) = 0;
+
+        virtual void testRunStarting( TestRunInfo const& testRunInfo ) = 0;
+        virtual void testGroupStarting( GroupInfo const& groupInfo ) = 0;
+
+        virtual void testCaseStarting( TestCaseInfo const& testInfo ) = 0;
+        virtual void sectionStarting( SectionInfo const& sectionInfo ) = 0;
+
+        virtual void assertionStarting( AssertionInfo const& assertionInfo ) = 0;
+
+        // The return value indicates if the messages buffer should be cleared:
+        virtual bool assertionEnded( AssertionStats const& assertionStats ) = 0;
+
+        virtual void sectionEnded( SectionStats const& sectionStats ) = 0;
+        virtual void testCaseEnded( TestCaseStats const& testCaseStats ) = 0;
+        virtual void testGroupEnded( TestGroupStats const& testGroupStats ) = 0;
+        virtual void testRunEnded( TestRunStats const& testRunStats ) = 0;
+
+        virtual void skipTest( TestCaseInfo const& testInfo ) = 0;
+    };
+
+    struct IReporterFactory : IShared {
+        virtual ~IReporterFactory();
+        virtual IStreamingReporter* create( ReporterConfig const& config ) const = 0;
+        virtual std::string getDescription() const = 0;
+    };
+
+    struct IReporterRegistry {
+        typedef std::map<std::string, Ptr<IReporterFactory> > FactoryMap;
+        typedef std::vector<Ptr<IReporterFactory> > Listeners;
+
+        virtual ~IReporterRegistry();
+        virtual IStreamingReporter* create( std::string const& name, Ptr<IConfig const> const& config ) const = 0;
+        virtual FactoryMap const& getFactories() const = 0;
+        virtual Listeners const& getListeners() const = 0;
+    };
+
+    Ptr<IStreamingReporter> addReporter( Ptr<IStreamingReporter> const& existingReporter, Ptr<IStreamingReporter> const& additionalReporter );
+
+}
+
+#include <limits>
+#include <algorithm>
+
+namespace Catch {
+
+    inline std::size_t listTests( Config const& config ) {
+
+        TestSpec testSpec = config.testSpec();
+        if( config.testSpec().hasFilters() )
+            Catch::cout() << "Matching test cases:\n";
+        else {
+            Catch::cout() << "All available test cases:\n";
+            testSpec = TestSpecParser( ITagAliasRegistry::get() ).parse( "*" ).testSpec();
+        }
+
+        std::size_t matchedTests = 0;
+        TextAttributes nameAttr, tagsAttr;
+        nameAttr.setInitialIndent( 2 ).setIndent( 4 );
+        tagsAttr.setIndent( 6 );
+
+        std::vector<TestCase> matchedTestCases = filterTests( getAllTestCasesSorted( config ), testSpec, config );
+        for( std::vector<TestCase>::const_iterator it = matchedTestCases.begin(), itEnd = matchedTestCases.end();
+                it != itEnd;
+                ++it ) {
+            matchedTests++;
+            TestCaseInfo const& testCaseInfo = it->getTestCaseInfo();
+            Colour::Code colour = testCaseInfo.isHidden()
+                ? Colour::SecondaryText
+                : Colour::None;
+            Colour colourGuard( colour );
+
+            Catch::cout() << Text( testCaseInfo.name, nameAttr ) << std::endl;
+            if( !testCaseInfo.tags.empty() )
+                Catch::cout() << Text( testCaseInfo.tagsAsString, tagsAttr ) << std::endl;
+        }
+
+        if( !config.testSpec().hasFilters() )
+            Catch::cout() << pluralise( matchedTests, "test case" ) << "\n" << std::endl;
+        else
+            Catch::cout() << pluralise( matchedTests, "matching test case" ) << "\n" << std::endl;
+        return matchedTests;
+    }
+
+    inline std::size_t listTestsNamesOnly( Config const& config ) {
+        TestSpec testSpec = config.testSpec();
+        if( !config.testSpec().hasFilters() )
+            testSpec = TestSpecParser( ITagAliasRegistry::get() ).parse( "*" ).testSpec();
+        std::size_t matchedTests = 0;
+        std::vector<TestCase> matchedTestCases = filterTests( getAllTestCasesSorted( config ), testSpec, config );
+        for( std::vector<TestCase>::const_iterator it = matchedTestCases.begin(), itEnd = matchedTestCases.end();
+                it != itEnd;
+                ++it ) {
+            matchedTests++;
+            TestCaseInfo const& testCaseInfo = it->getTestCaseInfo();
+            Catch::cout() << testCaseInfo.name << std::endl;
+        }
+        return matchedTests;
+    }
+
+    struct TagInfo {
+        TagInfo() : count ( 0 ) {}
+        void add( std::string const& spelling ) {
+            ++count;
+            spellings.insert( spelling );
+        }
+        std::string all() const {
+            std::string out;
+            for( std::set<std::string>::const_iterator it = spellings.begin(), itEnd = spellings.end();
+                        it != itEnd;
+                        ++it )
+                out += "[" + *it + "]";
+            return out;
+        }
+        std::set<std::string> spellings;
+        std::size_t count;
+    };
+
+    inline std::size_t listTags( Config const& config ) {
+        TestSpec testSpec = config.testSpec();
+        if( config.testSpec().hasFilters() )
+            Catch::cout() << "Tags for matching test cases:\n";
+        else {
+            Catch::cout() << "All available tags:\n";
+            testSpec = TestSpecParser( ITagAliasRegistry::get() ).parse( "*" ).testSpec();
+        }
+
+        std::map<std::string, TagInfo> tagCounts;
+
+        std::vector<TestCase> matchedTestCases = filterTests( getAllTestCasesSorted( config ), testSpec, config );
+        for( std::vector<TestCase>::const_iterator it = matchedTestCases.begin(), itEnd = matchedTestCases.end();
+                it != itEnd;
+                ++it ) {
+            for( std::set<std::string>::const_iterator  tagIt = it->getTestCaseInfo().tags.begin(),
+                                                        tagItEnd = it->getTestCaseInfo().tags.end();
+                    tagIt != tagItEnd;
+                    ++tagIt ) {
+                std::string tagName = *tagIt;
+                std::string lcaseTagName = toLower( tagName );
+                std::map<std::string, TagInfo>::iterator countIt = tagCounts.find( lcaseTagName );
+                if( countIt == tagCounts.end() )
+                    countIt = tagCounts.insert( std::make_pair( lcaseTagName, TagInfo() ) ).first;
+                countIt->second.add( tagName );
+            }
+        }
+
+        for( std::map<std::string, TagInfo>::const_iterator countIt = tagCounts.begin(),
+                                                            countItEnd = tagCounts.end();
+                countIt != countItEnd;
+                ++countIt ) {
+            std::ostringstream oss;
+            oss << "  " << std::setw(2) << countIt->second.count << "  ";
+            Text wrapper( countIt->second.all(), TextAttributes()
+                                                    .setInitialIndent( 0 )
+                                                    .setIndent( oss.str().size() )
+                                                    .setWidth( CATCH_CONFIG_CONSOLE_WIDTH-10 ) );
+            Catch::cout() << oss.str() << wrapper << "\n";
+        }
+        Catch::cout() << pluralise( tagCounts.size(), "tag" ) << "\n" << std::endl;
+        return tagCounts.size();
+    }
+
+    inline std::size_t listReporters( Config const& /*config*/ ) {
+        Catch::cout() << "Available reporters:\n";
+        IReporterRegistry::FactoryMap const& factories = getRegistryHub().getReporterRegistry().getFactories();
+        IReporterRegistry::FactoryMap::const_iterator itBegin = factories.begin(), itEnd = factories.end(), it;
+        std::size_t maxNameLen = 0;
+        for(it = itBegin; it != itEnd; ++it )
+            maxNameLen = (std::max)( maxNameLen, it->first.size() );
+
+        for(it = itBegin; it != itEnd; ++it ) {
+            Text wrapper( it->second->getDescription(), TextAttributes()
+                                                        .setInitialIndent( 0 )
+                                                        .setIndent( 7+maxNameLen )
+                                                        .setWidth( CATCH_CONFIG_CONSOLE_WIDTH - maxNameLen-8 ) );
+            Catch::cout() << "  "
+                    << it->first
+                    << ":"
+                    << std::string( maxNameLen - it->first.size() + 2, ' ' )
+                    << wrapper << "\n";
+        }
+        Catch::cout() << std::endl;
+        return factories.size();
+    }
+
+    inline Option<std::size_t> list( Config const& config ) {
+        Option<std::size_t> listedCount;
+        if( config.listTests() )
+            listedCount = listedCount.valueOr(0) + listTests( config );
+        if( config.listTestNamesOnly() )
+            listedCount = listedCount.valueOr(0) + listTestsNamesOnly( config );
+        if( config.listTags() )
+            listedCount = listedCount.valueOr(0) + listTags( config );
+        if( config.listReporters() )
+            listedCount = listedCount.valueOr(0) + listReporters( config );
+        return listedCount;
+    }
+
+} // end namespace Catch
+
+// #included from: internal/catch_run_context.hpp
+#define TWOBLUECUBES_CATCH_RUNNER_IMPL_HPP_INCLUDED
+
+// #included from: catch_test_case_tracker.hpp
+#define TWOBLUECUBES_CATCH_TEST_CASE_TRACKER_HPP_INCLUDED
+
+#include <map>
+#include <string>
+#include <assert.h>
+#include <vector>
+
+namespace Catch {
+namespace TestCaseTracking {
+
+    struct ITracker : SharedImpl<> {
+        virtual ~ITracker();
+
+        // static queries
+        virtual std::string name() const = 0;
+
+        // dynamic queries
+        virtual bool isComplete() const = 0; // Successfully completed or failed
+        virtual bool isSuccessfullyCompleted() const = 0;
+        virtual bool isOpen() const = 0; // Started but not complete
+        virtual bool hasChildren() const = 0;
+
+        virtual ITracker& parent() = 0;
+
+        // actions
+        virtual void close() = 0; // Successfully complete
+        virtual void fail() = 0;
+        virtual void markAsNeedingAnotherRun() = 0;
+
+        virtual void addChild( Ptr<ITracker> const& child ) = 0;
+        virtual ITracker* findChild( std::string const& name ) = 0;
+        virtual void openChild() = 0;
+    };
+
+    class TrackerContext {
+
+        enum RunState {
+            NotStarted,
+            Executing,
+            CompletedCycle
+        };
+
+        Ptr<ITracker> m_rootTracker;
+        ITracker* m_currentTracker;
+        RunState m_runState;
+
+    public:
+
+        static TrackerContext& instance() {
+            static TrackerContext s_instance;
+            return s_instance;
+        }
+
+        TrackerContext()
+        :   m_currentTracker( CATCH_NULL ),
+            m_runState( NotStarted )
+        {}
+
+        ITracker& startRun();
+
+        void endRun() {
+            m_rootTracker.reset();
+            m_currentTracker = CATCH_NULL;
+            m_runState = NotStarted;
+        }
+
+        void startCycle() {
+            m_currentTracker = m_rootTracker.get();
+            m_runState = Executing;
+        }
+        void completeCycle() {
+            m_runState = CompletedCycle;
+        }
+
+        bool completedCycle() const {
+            return m_runState == CompletedCycle;
+        }
+        ITracker& currentTracker() {
+            return *m_currentTracker;
+        }
+        void setCurrentTracker( ITracker* tracker ) {
+            m_currentTracker = tracker;
+        }
+    };
+
+    class TrackerBase : public ITracker {
+    protected:
+        enum CycleState {
+            NotStarted,
+            Executing,
+            ExecutingChildren,
+            NeedsAnotherRun,
+            CompletedSuccessfully,
+            Failed
+        };
+        class TrackerHasName {
+            std::string m_name;
+        public:
+            TrackerHasName( std::string const& name ) : m_name( name ) {}
+            bool operator ()( Ptr<ITracker> const& tracker ) {
+                return tracker->name() == m_name;
+            }
+        };
+        typedef std::vector<Ptr<ITracker> > Children;
+        std::string m_name;
+        TrackerContext& m_ctx;
+        ITracker* m_parent;
+        Children m_children;
+        CycleState m_runState;
+    public:
+        TrackerBase( std::string const& name, TrackerContext& ctx, ITracker* parent )
+        :   m_name( name ),
+            m_ctx( ctx ),
+            m_parent( parent ),
+            m_runState( NotStarted )
+        {}
+        virtual ~TrackerBase();
+
+        virtual std::string name() const CATCH_OVERRIDE {
+            return m_name;
+        }
+        virtual bool isComplete() const CATCH_OVERRIDE {
+            return m_runState == CompletedSuccessfully || m_runState == Failed;
+        }
+        virtual bool isSuccessfullyCompleted() const CATCH_OVERRIDE {
+            return m_runState == CompletedSuccessfully;
+        }
+        virtual bool isOpen() const CATCH_OVERRIDE {
+            return m_runState != NotStarted && !isComplete();
+        }
+        virtual bool hasChildren() const CATCH_OVERRIDE {
+            return !m_children.empty();
+        }
+
+        virtual void addChild( Ptr<ITracker> const& child ) CATCH_OVERRIDE {
+            m_children.push_back( child );
+        }
+
+        virtual ITracker* findChild( std::string const& name ) CATCH_OVERRIDE {
+            Children::const_iterator it = std::find_if( m_children.begin(), m_children.end(), TrackerHasName( name ) );
+            return( it != m_children.end() )
+                ? it->get()
+                : CATCH_NULL;
+        }
+        virtual ITracker& parent() CATCH_OVERRIDE {
+            assert( m_parent ); // Should always be non-null except for root
+            return *m_parent;
+        }
+
+        virtual void openChild() CATCH_OVERRIDE {
+            if( m_runState != ExecutingChildren ) {
+                m_runState = ExecutingChildren;
+                if( m_parent )
+                    m_parent->openChild();
+            }
+        }
+        void open() {
+            m_runState = Executing;
+            moveToThis();
+            if( m_parent )
+                m_parent->openChild();
+        }
+
+        virtual void close() CATCH_OVERRIDE {
+
+            // Close any still open children (e.g. generators)
+            while( &m_ctx.currentTracker() != this )
+                m_ctx.currentTracker().close();
+
+            switch( m_runState ) {
+                case NotStarted:
+                case CompletedSuccessfully:
+                case Failed:
+                    throw std::logic_error( "Illogical state" );
+
+                case NeedsAnotherRun:
+                    break;;
+
+                case Executing:
+                    m_runState = CompletedSuccessfully;
+                    break;
+                case ExecutingChildren:
+                    if( m_children.empty() || m_children.back()->isComplete() )
+                        m_runState = CompletedSuccessfully;
+                    break;
+
+                default:
+                    throw std::logic_error( "Unexpected state" );
+            }
+            moveToParent();
+            m_ctx.completeCycle();
+        }
+        virtual void fail() CATCH_OVERRIDE {
+            m_runState = Failed;
+            if( m_parent )
+                m_parent->markAsNeedingAnotherRun();
+            moveToParent();
+            m_ctx.completeCycle();
+        }
+        virtual void markAsNeedingAnotherRun() CATCH_OVERRIDE {
+            m_runState = NeedsAnotherRun;
+        }
+    private:
+        void moveToParent() {
+            assert( m_parent );
+            m_ctx.setCurrentTracker( m_parent );
+        }
+        void moveToThis() {
+            m_ctx.setCurrentTracker( this );
+        }
+    };
+
+    class SectionTracker : public TrackerBase {
+    public:
+        SectionTracker( std::string const& name, TrackerContext& ctx, ITracker* parent )
+        :   TrackerBase( name, ctx, parent )
+        {}
+        virtual ~SectionTracker();
+
+        static SectionTracker& acquire( TrackerContext& ctx, std::string const& name ) {
+            SectionTracker* section = CATCH_NULL;
+
+            ITracker& currentTracker = ctx.currentTracker();
+            if( ITracker* childTracker = currentTracker.findChild( name ) ) {
+                section = dynamic_cast<SectionTracker*>( childTracker );
+                assert( section );
+            }
+            else {
+                section = new SectionTracker( name, ctx, &currentTracker );
+                currentTracker.addChild( section );
+            }
+            if( !ctx.completedCycle() && !section->isComplete() ) {
+
+                section->open();
+            }
+            return *section;
+        }
+    };
+
+    class IndexTracker : public TrackerBase {
+        int m_size;
+        int m_index;
+    public:
+        IndexTracker( std::string const& name, TrackerContext& ctx, ITracker* parent, int size )
+        :   TrackerBase( name, ctx, parent ),
+            m_size( size ),
+            m_index( -1 )
+        {}
+        virtual ~IndexTracker();
+
+        static IndexTracker& acquire( TrackerContext& ctx, std::string const& name, int size ) {
+            IndexTracker* tracker = CATCH_NULL;
+
+            ITracker& currentTracker = ctx.currentTracker();
+            if( ITracker* childTracker = currentTracker.findChild( name ) ) {
+                tracker = dynamic_cast<IndexTracker*>( childTracker );
+                assert( tracker );
+            }
+            else {
+                tracker = new IndexTracker( name, ctx, &currentTracker, size );
+                currentTracker.addChild( tracker );
+            }
+
+            if( !ctx.completedCycle() && !tracker->isComplete() ) {
+                if( tracker->m_runState != ExecutingChildren && tracker->m_runState != NeedsAnotherRun )
+                    tracker->moveNext();
+                tracker->open();
+            }
+
+            return *tracker;
+        }
+
+        int index() const { return m_index; }
+
+        void moveNext() {
+            m_index++;
+            m_children.clear();
+        }
+
+        virtual void close() CATCH_OVERRIDE {
+            TrackerBase::close();
+            if( m_runState == CompletedSuccessfully && m_index < m_size-1 )
+                m_runState = Executing;
+        }
+    };
+
+    inline ITracker& TrackerContext::startRun() {
+        m_rootTracker = new SectionTracker( "{root}", *this, CATCH_NULL );
+        m_currentTracker = CATCH_NULL;
+        m_runState = Executing;
+        return *m_rootTracker;
+    }
+
+} // namespace TestCaseTracking
+
+using TestCaseTracking::ITracker;
+using TestCaseTracking::TrackerContext;
+using TestCaseTracking::SectionTracker;
+using TestCaseTracking::IndexTracker;
+
+} // namespace Catch
+
+// #included from: catch_fatal_condition.hpp
+#define TWOBLUECUBES_CATCH_FATAL_CONDITION_H_INCLUDED
+
+namespace Catch {
+
+    // Report the error condition then exit the process
+    inline void fatal( std::string const& message, int exitCode ) {
+        IContext& context = Catch::getCurrentContext();
+        IResultCapture* resultCapture = context.getResultCapture();
+        resultCapture->handleFatalErrorCondition( message );
+
+		if( Catch::alwaysTrue() ) // avoids "no return" warnings
+            exit( exitCode );
+    }
+
+} // namespace Catch
+
+#if defined ( CATCH_PLATFORM_WINDOWS ) /////////////////////////////////////////
+
+namespace Catch {
+
+    struct FatalConditionHandler {
+		void reset() {}
+	};
+
+} // namespace Catch
+
+#else // Not Windows - assumed to be POSIX compatible //////////////////////////
+
+#include <signal.h>
+
+namespace Catch {
+
+    struct SignalDefs { int id; const char* name; };
+    extern SignalDefs signalDefs[];
+    SignalDefs signalDefs[] = {
+            { SIGINT,  "SIGINT - Terminal interrupt signal" },
+            { SIGILL,  "SIGILL - Illegal instruction signal" },
+            { SIGFPE,  "SIGFPE - Floating point error signal" },
+            { SIGSEGV, "SIGSEGV - Segmentation violation signal" },
+            { SIGTERM, "SIGTERM - Termination request signal" },
+            { SIGABRT, "SIGABRT - Abort (abnormal termination) signal" }
+        };
+
+    struct FatalConditionHandler {
+
+        static void handleSignal( int sig ) {
+            for( std::size_t i = 0; i < sizeof(signalDefs)/sizeof(SignalDefs); ++i )
+                if( sig == signalDefs[i].id )
+                    fatal( signalDefs[i].name, -sig );
+            fatal( "<unknown signal>", -sig );
+        }
+
+        FatalConditionHandler() : m_isSet( true ) {
+            for( std::size_t i = 0; i < sizeof(signalDefs)/sizeof(SignalDefs); ++i )
+                signal( signalDefs[i].id, handleSignal );
+        }
+        ~FatalConditionHandler() {
+            reset();
+        }
+        void reset() {
+            if( m_isSet ) {
+                for( std::size_t i = 0; i < sizeof(signalDefs)/sizeof(SignalDefs); ++i )
+                    signal( signalDefs[i].id, SIG_DFL );
+                m_isSet = false;
+            }
+        }
+
+        bool m_isSet;
+    };
+
+} // namespace Catch
+
+#endif // not Windows
+
+#include <set>
+#include <string>
+
+namespace Catch {
+
+    class StreamRedirect {
+
+    public:
+        StreamRedirect( std::ostream& stream, std::string& targetString )
+        :   m_stream( stream ),
+            m_prevBuf( stream.rdbuf() ),
+            m_targetString( targetString )
+        {
+            stream.rdbuf( m_oss.rdbuf() );
+        }
+
+        ~StreamRedirect() {
+            m_targetString += m_oss.str();
+            m_stream.rdbuf( m_prevBuf );
+        }
+
+    private:
+        std::ostream& m_stream;
+        std::streambuf* m_prevBuf;
+        std::ostringstream m_oss;
+        std::string& m_targetString;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+
+    class RunContext : public IResultCapture, public IRunner {
+
+        RunContext( RunContext const& );
+        void operator =( RunContext const& );
+
+    public:
+
+        explicit RunContext( Ptr<IConfig const> const& _config, Ptr<IStreamingReporter> const& reporter )
+        :   m_runInfo( _config->name() ),
+            m_context( getCurrentMutableContext() ),
+            m_activeTestCase( CATCH_NULL ),
+            m_config( _config ),
+            m_reporter( reporter )
+        {
+            m_context.setRunner( this );
+            m_context.setConfig( m_config );
+            m_context.setResultCapture( this );
+            m_reporter->testRunStarting( m_runInfo );
+        }
+
+        virtual ~RunContext() {
+            m_reporter->testRunEnded( TestRunStats( m_runInfo, m_totals, aborting() ) );
+        }
+
+        void testGroupStarting( std::string const& testSpec, std::size_t groupIndex, std::size_t groupsCount ) {
+            m_reporter->testGroupStarting( GroupInfo( testSpec, groupIndex, groupsCount ) );
+        }
+        void testGroupEnded( std::string const& testSpec, Totals const& totals, std::size_t groupIndex, std::size_t groupsCount ) {
+            m_reporter->testGroupEnded( TestGroupStats( GroupInfo( testSpec, groupIndex, groupsCount ), totals, aborting() ) );
+        }
+
+        Totals runTest( TestCase const& testCase ) {
+            Totals prevTotals = m_totals;
+
+            std::string redirectedCout;
+            std::string redirectedCerr;
+
+            TestCaseInfo testInfo = testCase.getTestCaseInfo();
+
+            m_reporter->testCaseStarting( testInfo );
+
+            m_activeTestCase = &testCase;
+
+            do {
+                m_trackerContext.startRun();
+                do {
+                    m_trackerContext.startCycle();
+                    m_testCaseTracker = &SectionTracker::acquire( m_trackerContext, testInfo.name );
+                    runCurrentTest( redirectedCout, redirectedCerr );
+                }
+                while( !m_testCaseTracker->isSuccessfullyCompleted() && !aborting() );
+            }
+            // !TBD: deprecated - this will be replaced by indexed trackers
+            while( getCurrentContext().advanceGeneratorsForCurrentTest() && !aborting() );
+
+            Totals deltaTotals = m_totals.delta( prevTotals );
+            if( testInfo.expectedToFail() && deltaTotals.testCases.passed > 0 ) {
+                deltaTotals.assertions.failed++;
+                deltaTotals.testCases.passed--;
+                deltaTotals.testCases.failed++;
+            }
+            m_totals.testCases += deltaTotals.testCases;
+            m_reporter->testCaseEnded( TestCaseStats(   testInfo,
+                                                        deltaTotals,
+                                                        redirectedCout,
+                                                        redirectedCerr,
+                                                        aborting() ) );
+
+            m_activeTestCase = CATCH_NULL;
+            m_testCaseTracker = CATCH_NULL;
+
+            return deltaTotals;
+        }
+
+        Ptr<IConfig const> config() const {
+            return m_config;
+        }
+
+    private: // IResultCapture
+
+        virtual void assertionEnded( AssertionResult const& result ) {
+            if( result.getResultType() == ResultWas::Ok ) {
+                m_totals.assertions.passed++;
+            }
+            else if( !result.isOk() ) {
+                m_totals.assertions.failed++;
+            }
+
+            if( m_reporter->assertionEnded( AssertionStats( result, m_messages, m_totals ) ) )
+                m_messages.clear();
+
+            // Reset working state
+            m_lastAssertionInfo = AssertionInfo( "", m_lastAssertionInfo.lineInfo, "{Unknown expression after the reported line}" , m_lastAssertionInfo.resultDisposition );
+            m_lastResult = result;
+        }
+
+        virtual bool sectionStarted (
+            SectionInfo const& sectionInfo,
+            Counts& assertions
+        )
+        {
+            std::ostringstream oss;
+            oss << sectionInfo.name << "@" << sectionInfo.lineInfo;
+
+            ITracker& sectionTracker = SectionTracker::acquire( m_trackerContext, oss.str() );
+            if( !sectionTracker.isOpen() )
+                return false;
+            m_activeSections.push_back( &sectionTracker );
+
+            m_lastAssertionInfo.lineInfo = sectionInfo.lineInfo;
+
+            m_reporter->sectionStarting( sectionInfo );
+
+            assertions = m_totals.assertions;
+
+            return true;
+        }
+        bool testForMissingAssertions( Counts& assertions ) {
+            if( assertions.total() != 0 )
+                return false;
+            if( !m_config->warnAboutMissingAssertions() )
+                return false;
+            if( m_trackerContext.currentTracker().hasChildren() )
+                return false;
+            m_totals.assertions.failed++;
+            assertions.failed++;
+            return true;
+        }
+
+        virtual void sectionEnded( SectionEndInfo const& endInfo ) {
+            Counts assertions = m_totals.assertions - endInfo.prevAssertions;
+            bool missingAssertions = testForMissingAssertions( assertions );
+
+            if( !m_activeSections.empty() ) {
+                m_activeSections.back()->close();
+                m_activeSections.pop_back();
+            }
+
+            m_reporter->sectionEnded( SectionStats( endInfo.sectionInfo, assertions, endInfo.durationInSeconds, missingAssertions ) );
+            m_messages.clear();
+        }
+
+        virtual void sectionEndedEarly( SectionEndInfo const& endInfo ) {
+            if( m_unfinishedSections.empty() )
+                m_activeSections.back()->fail();
+            else
+                m_activeSections.back()->close();
+            m_activeSections.pop_back();
+
+            m_unfinishedSections.push_back( endInfo );
+        }
+
+        virtual void pushScopedMessage( MessageInfo const& message ) {
+            m_messages.push_back( message );
+        }
+
+        virtual void popScopedMessage( MessageInfo const& message ) {
+            m_messages.erase( std::remove( m_messages.begin(), m_messages.end(), message ), m_messages.end() );
+        }
+
+        virtual std::string getCurrentTestName() const {
+            return m_activeTestCase
+                ? m_activeTestCase->getTestCaseInfo().name
+                : "";
+        }
+
+        virtual const AssertionResult* getLastResult() const {
+            return &m_lastResult;
+        }
+
+        virtual void handleFatalErrorCondition( std::string const& message ) {
+            ResultBuilder resultBuilder = makeUnexpectedResultBuilder();
+            resultBuilder.setResultType( ResultWas::FatalErrorCondition );
+            resultBuilder << message;
+            resultBuilder.captureExpression();
+
+            handleUnfinishedSections();
+
+            // Recreate section for test case (as we will lose the one that was in scope)
+            TestCaseInfo const& testCaseInfo = m_activeTestCase->getTestCaseInfo();
+            SectionInfo testCaseSection( testCaseInfo.lineInfo, testCaseInfo.name, testCaseInfo.description );
+
+            Counts assertions;
+            assertions.failed = 1;
+            SectionStats testCaseSectionStats( testCaseSection, assertions, 0, false );
+            m_reporter->sectionEnded( testCaseSectionStats );
+
+            TestCaseInfo testInfo = m_activeTestCase->getTestCaseInfo();
+
+            Totals deltaTotals;
+            deltaTotals.testCases.failed = 1;
+            m_reporter->testCaseEnded( TestCaseStats(   testInfo,
+                                                        deltaTotals,
+                                                        "",
+                                                        "",
+                                                        false ) );
+            m_totals.testCases.failed++;
+            testGroupEnded( "", m_totals, 1, 1 );
+            m_reporter->testRunEnded( TestRunStats( m_runInfo, m_totals, false ) );
+        }
+
+    public:
+        // !TBD We need to do this another way!
+        bool aborting() const {
+            return m_totals.assertions.failed == static_cast<std::size_t>( m_config->abortAfter() );
+        }
+
+    private:
+
+        void runCurrentTest( std::string& redirectedCout, std::string& redirectedCerr ) {
+            TestCaseInfo const& testCaseInfo = m_activeTestCase->getTestCaseInfo();
+            SectionInfo testCaseSection( testCaseInfo.lineInfo, testCaseInfo.name, testCaseInfo.description );
+            m_reporter->sectionStarting( testCaseSection );
+            Counts prevAssertions = m_totals.assertions;
+            double duration = 0;
+            try {
+                m_lastAssertionInfo = AssertionInfo( "TEST_CASE", testCaseInfo.lineInfo, "", ResultDisposition::Normal );
+
+                seedRng( *m_config );
+
+                Timer timer;
+                timer.start();
+                if( m_reporter->getPreferences().shouldRedirectStdOut ) {
+                    StreamRedirect coutRedir( Catch::cout(), redirectedCout );
+                    StreamRedirect cerrRedir( Catch::cerr(), redirectedCerr );
+                    invokeActiveTestCase();
+                }
+                else {
+                    invokeActiveTestCase();
+                }
+                duration = timer.getElapsedSeconds();
+            }
+            catch( TestFailureException& ) {
+                // This just means the test was aborted due to failure
+            }
+            catch(...) {
+                makeUnexpectedResultBuilder().useActiveException();
+            }
+            m_testCaseTracker->close();
+            handleUnfinishedSections();
+            m_messages.clear();
+
+            Counts assertions = m_totals.assertions - prevAssertions;
+            bool missingAssertions = testForMissingAssertions( assertions );
+
+            if( testCaseInfo.okToFail() ) {
+                std::swap( assertions.failedButOk, assertions.failed );
+                m_totals.assertions.failed -= assertions.failedButOk;
+                m_totals.assertions.failedButOk += assertions.failedButOk;
+            }
+
+            SectionStats testCaseSectionStats( testCaseSection, assertions, duration, missingAssertions );
+            m_reporter->sectionEnded( testCaseSectionStats );
+        }
+
+        void invokeActiveTestCase() {
+            FatalConditionHandler fatalConditionHandler; // Handle signals
+            m_activeTestCase->invoke();
+            fatalConditionHandler.reset();
+        }
+
+    private:
+
+        ResultBuilder makeUnexpectedResultBuilder() const {
+            return ResultBuilder(   m_lastAssertionInfo.macroName.c_str(),
+                                    m_lastAssertionInfo.lineInfo,
+                                    m_lastAssertionInfo.capturedExpression.c_str(),
+                                    m_lastAssertionInfo.resultDisposition );
+        }
+
+        void handleUnfinishedSections() {
+            // If sections ended prematurely due to an exception we stored their
+            // infos here so we can tear them down outside the unwind process.
+            for( std::vector<SectionEndInfo>::const_reverse_iterator it = m_unfinishedSections.rbegin(),
+                        itEnd = m_unfinishedSections.rend();
+                    it != itEnd;
+                    ++it )
+                sectionEnded( *it );
+            m_unfinishedSections.clear();
+        }
+
+        TestRunInfo m_runInfo;
+        IMutableContext& m_context;
+        TestCase const* m_activeTestCase;
+        ITracker* m_testCaseTracker;
+        ITracker* m_currentSectionTracker;
+        AssertionResult m_lastResult;
+
+        Ptr<IConfig const> m_config;
+        Totals m_totals;
+        Ptr<IStreamingReporter> m_reporter;
+        std::vector<MessageInfo> m_messages;
+        AssertionInfo m_lastAssertionInfo;
+        std::vector<SectionEndInfo> m_unfinishedSections;
+        std::vector<ITracker*> m_activeSections;
+        TrackerContext m_trackerContext;
+    };
+
+    IResultCapture& getResultCapture() {
+        if( IResultCapture* capture = getCurrentContext().getResultCapture() )
+            return *capture;
+        else
+            throw std::logic_error( "No result capture instance" );
+    }
+
+} // end namespace Catch
+
+// #included from: internal/catch_version.h
+#define TWOBLUECUBES_CATCH_VERSION_H_INCLUDED
+
+namespace Catch {
+
+    // Versioning information
+    struct Version {
+        Version(    unsigned int _majorVersion,
+                    unsigned int _minorVersion,
+                    unsigned int _patchNumber,
+                    std::string const& _branchName,
+                    unsigned int _buildNumber );
+
+        unsigned int const majorVersion;
+        unsigned int const minorVersion;
+        unsigned int const patchNumber;
+
+        // buildNumber is only used if branchName is not null
+        std::string const branchName;
+        unsigned int const buildNumber;
+
+        friend std::ostream& operator << ( std::ostream& os, Version const& version );
+
+    private:
+        void operator=( Version const& );
+    };
+
+    extern Version libraryVersion;
+}
+
+#include <fstream>
+#include <stdlib.h>
+#include <limits>
+
+namespace Catch {
+
+    Ptr<IStreamingReporter> createReporter( std::string const& reporterName, Ptr<Config> const& config ) {
+        Ptr<IStreamingReporter> reporter = getRegistryHub().getReporterRegistry().create( reporterName, config.get() );
+        if( !reporter ) {
+            std::ostringstream oss;
+            oss << "No reporter registered with name: '" << reporterName << "'";
+            throw std::domain_error( oss.str() );
+        }
+        return reporter;
+    }
+
+    Ptr<IStreamingReporter> makeReporter( Ptr<Config> const& config ) {
+        std::vector<std::string> reporters = config->getReporterNames();
+        if( reporters.empty() )
+            reporters.push_back( "console" );
+
+        Ptr<IStreamingReporter> reporter;
+        for( std::vector<std::string>::const_iterator it = reporters.begin(), itEnd = reporters.end();
+                it != itEnd;
+                ++it )
+            reporter = addReporter( reporter, createReporter( *it, config ) );
+        return reporter;
+    }
+    Ptr<IStreamingReporter> addListeners( Ptr<IConfig const> const& config, Ptr<IStreamingReporter> reporters ) {
+        IReporterRegistry::Listeners listeners = getRegistryHub().getReporterRegistry().getListeners();
+        for( IReporterRegistry::Listeners::const_iterator it = listeners.begin(), itEnd = listeners.end();
+                it != itEnd;
+                ++it )
+            reporters = addReporter(reporters, (*it)->create( ReporterConfig( config ) ) );
+        return reporters;
+    }
+
+    Totals runTests( Ptr<Config> const& config ) {
+
+        Ptr<IConfig const> iconfig = config.get();
+
+        Ptr<IStreamingReporter> reporter = makeReporter( config );
+        reporter = addListeners( iconfig, reporter );
+
+        RunContext context( iconfig, reporter );
+
+        Totals totals;
+
+        context.testGroupStarting( config->name(), 1, 1 );
+
+        TestSpec testSpec = config->testSpec();
+        if( !testSpec.hasFilters() )
+            testSpec = TestSpecParser( ITagAliasRegistry::get() ).parse( "~[.]" ).testSpec(); // All not hidden tests
+
+        std::vector<TestCase> const& allTestCases = getAllTestCasesSorted( *iconfig );
+        for( std::vector<TestCase>::const_iterator it = allTestCases.begin(), itEnd = allTestCases.end();
+                it != itEnd;
+                ++it ) {
+            if( !context.aborting() && matchTest( *it, testSpec, *iconfig ) )
+                totals += context.runTest( *it );
+            else
+                reporter->skipTest( *it );
+        }
+
+        context.testGroupEnded( iconfig->name(), totals, 1, 1 );
+        return totals;
+    }
+
+    void applyFilenamesAsTags( IConfig const& config ) {
+        std::vector<TestCase> const& tests = getAllTestCasesSorted( config );
+        for(std::size_t i = 0; i < tests.size(); ++i ) {
+            TestCase& test = const_cast<TestCase&>( tests[i] );
+            std::set<std::string> tags = test.tags;
+
+            std::string filename = test.lineInfo.file;
+            std::string::size_type lastSlash = filename.find_last_of( "\\/" );
+            if( lastSlash != std::string::npos )
+                filename = filename.substr( lastSlash+1 );
+
+            std::string::size_type lastDot = filename.find_last_of( "." );
+            if( lastDot != std::string::npos )
+                filename = filename.substr( 0, lastDot );
+
+            tags.insert( "#" + filename );
+            setTags( test, tags );
+        }
+    }
+
+    class Session : NonCopyable {
+        static bool alreadyInstantiated;
+
+    public:
+
+        struct OnUnusedOptions { enum DoWhat { Ignore, Fail }; };
+
+        Session()
+        : m_cli( makeCommandLineParser() ) {
+            if( alreadyInstantiated ) {
+                std::string msg = "Only one instance of Catch::Session can ever be used";
+                Catch::cerr() << msg << std::endl;
+                throw std::logic_error( msg );
+            }
