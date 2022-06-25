@@ -8394,3 +8394,2052 @@ namespace Catch {
 class MultipleReporters : public SharedImpl<IStreamingReporter> {
     typedef std::vector<Ptr<IStreamingReporter> > Reporters;
     Reporters m_reporters;
+
+public:
+    void add( Ptr<IStreamingReporter> const& reporter ) {
+        m_reporters.push_back( reporter );
+    }
+
+public: // IStreamingReporter
+
+    virtual ReporterPreferences getPreferences() const CATCH_OVERRIDE {
+        return m_reporters[0]->getPreferences();
+    }
+
+    virtual void noMatchingTestCases( std::string const& spec ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->noMatchingTestCases( spec );
+    }
+
+    virtual void testRunStarting( TestRunInfo const& testRunInfo ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->testRunStarting( testRunInfo );
+    }
+
+    virtual void testGroupStarting( GroupInfo const& groupInfo ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->testGroupStarting( groupInfo );
+    }
+
+    virtual void testCaseStarting( TestCaseInfo const& testInfo ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->testCaseStarting( testInfo );
+    }
+
+    virtual void sectionStarting( SectionInfo const& sectionInfo ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->sectionStarting( sectionInfo );
+    }
+
+    virtual void assertionStarting( AssertionInfo const& assertionInfo ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->assertionStarting( assertionInfo );
+    }
+
+    // The return value indicates if the messages buffer should be cleared:
+    virtual bool assertionEnded( AssertionStats const& assertionStats ) CATCH_OVERRIDE {
+        bool clearBuffer = false;
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            clearBuffer |= (*it)->assertionEnded( assertionStats );
+        return clearBuffer;
+    }
+
+    virtual void sectionEnded( SectionStats const& sectionStats ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->sectionEnded( sectionStats );
+    }
+
+    virtual void testCaseEnded( TestCaseStats const& testCaseStats ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->testCaseEnded( testCaseStats );
+    }
+
+    virtual void testGroupEnded( TestGroupStats const& testGroupStats ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->testGroupEnded( testGroupStats );
+    }
+
+    virtual void testRunEnded( TestRunStats const& testRunStats ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->testRunEnded( testRunStats );
+    }
+
+    virtual void skipTest( TestCaseInfo const& testInfo ) CATCH_OVERRIDE {
+        for( Reporters::const_iterator it = m_reporters.begin(), itEnd = m_reporters.end();
+                it != itEnd;
+                ++it )
+            (*it)->skipTest( testInfo );
+    }
+};
+
+Ptr<IStreamingReporter> addReporter( Ptr<IStreamingReporter> const& existingReporter, Ptr<IStreamingReporter> const& additionalReporter ) {
+    Ptr<IStreamingReporter> resultingReporter;
+
+    if( existingReporter ) {
+        MultipleReporters* multi = dynamic_cast<MultipleReporters*>( existingReporter.get() );
+        if( !multi ) {
+            multi = new MultipleReporters;
+            resultingReporter = Ptr<IStreamingReporter>( multi );
+            if( existingReporter )
+                multi->add( existingReporter );
+        }
+        else
+            resultingReporter = existingReporter;
+        multi->add( additionalReporter );
+    }
+    else
+        resultingReporter = additionalReporter;
+
+    return resultingReporter;
+}
+
+} // end namespace Catch
+
+// #included from: ../reporters/catch_reporter_xml.hpp
+#define TWOBLUECUBES_CATCH_REPORTER_XML_HPP_INCLUDED
+
+// #included from: catch_reporter_bases.hpp
+#define TWOBLUECUBES_CATCH_REPORTER_BASES_HPP_INCLUDED
+
+#include <cstring>
+
+namespace Catch {
+
+    struct StreamingReporterBase : SharedImpl<IStreamingReporter> {
+
+        StreamingReporterBase( ReporterConfig const& _config )
+        :   m_config( _config.fullConfig() ),
+            stream( _config.stream() )
+        {
+            m_reporterPrefs.shouldRedirectStdOut = false;
+        }
+
+        virtual ReporterPreferences getPreferences() const CATCH_OVERRIDE {
+            return m_reporterPrefs;
+        }
+
+        virtual ~StreamingReporterBase() CATCH_OVERRIDE;
+
+        virtual void noMatchingTestCases( std::string const& ) CATCH_OVERRIDE {}
+
+        virtual void testRunStarting( TestRunInfo const& _testRunInfo ) CATCH_OVERRIDE {
+            currentTestRunInfo = _testRunInfo;
+        }
+        virtual void testGroupStarting( GroupInfo const& _groupInfo ) CATCH_OVERRIDE {
+            currentGroupInfo = _groupInfo;
+        }
+
+        virtual void testCaseStarting( TestCaseInfo const& _testInfo ) CATCH_OVERRIDE {
+            currentTestCaseInfo = _testInfo;
+        }
+        virtual void sectionStarting( SectionInfo const& _sectionInfo ) CATCH_OVERRIDE {
+            m_sectionStack.push_back( _sectionInfo );
+        }
+
+        virtual void sectionEnded( SectionStats const& /* _sectionStats */ ) CATCH_OVERRIDE {
+            m_sectionStack.pop_back();
+        }
+        virtual void testCaseEnded( TestCaseStats const& /* _testCaseStats */ ) CATCH_OVERRIDE {
+            currentTestCaseInfo.reset();
+        }
+        virtual void testGroupEnded( TestGroupStats const& /* _testGroupStats */ ) CATCH_OVERRIDE {
+            currentGroupInfo.reset();
+        }
+        virtual void testRunEnded( TestRunStats const& /* _testRunStats */ ) CATCH_OVERRIDE {
+            currentTestCaseInfo.reset();
+            currentGroupInfo.reset();
+            currentTestRunInfo.reset();
+        }
+
+        virtual void skipTest( TestCaseInfo const& ) CATCH_OVERRIDE {
+            // Don't do anything with this by default.
+            // It can optionally be overridden in the derived class.
+        }
+
+        Ptr<IConfig const> m_config;
+        std::ostream& stream;
+
+        LazyStat<TestRunInfo> currentTestRunInfo;
+        LazyStat<GroupInfo> currentGroupInfo;
+        LazyStat<TestCaseInfo> currentTestCaseInfo;
+
+        std::vector<SectionInfo> m_sectionStack;
+        ReporterPreferences m_reporterPrefs;
+    };
+
+    struct CumulativeReporterBase : SharedImpl<IStreamingReporter> {
+        template<typename T, typename ChildNodeT>
+        struct Node : SharedImpl<> {
+            explicit Node( T const& _value ) : value( _value ) {}
+            virtual ~Node() {}
+
+            typedef std::vector<Ptr<ChildNodeT> > ChildNodes;
+            T value;
+            ChildNodes children;
+        };
+        struct SectionNode : SharedImpl<> {
+            explicit SectionNode( SectionStats const& _stats ) : stats( _stats ) {}
+            virtual ~SectionNode();
+
+            bool operator == ( SectionNode const& other ) const {
+                return stats.sectionInfo.lineInfo == other.stats.sectionInfo.lineInfo;
+            }
+            bool operator == ( Ptr<SectionNode> const& other ) const {
+                return operator==( *other );
+            }
+
+            SectionStats stats;
+            typedef std::vector<Ptr<SectionNode> > ChildSections;
+            typedef std::vector<AssertionStats> Assertions;
+            ChildSections childSections;
+            Assertions assertions;
+            std::string stdOut;
+            std::string stdErr;
+        };
+
+        struct BySectionInfo {
+            BySectionInfo( SectionInfo const& other ) : m_other( other ) {}
+			BySectionInfo( BySectionInfo const& other ) : m_other( other.m_other ) {}
+            bool operator() ( Ptr<SectionNode> const& node ) const {
+                return node->stats.sectionInfo.lineInfo == m_other.lineInfo;
+            }
+        private:
+			void operator=( BySectionInfo const& );
+            SectionInfo const& m_other;
+        };
+
+        typedef Node<TestCaseStats, SectionNode> TestCaseNode;
+        typedef Node<TestGroupStats, TestCaseNode> TestGroupNode;
+        typedef Node<TestRunStats, TestGroupNode> TestRunNode;
+
+        CumulativeReporterBase( ReporterConfig const& _config )
+        :   m_config( _config.fullConfig() ),
+            stream( _config.stream() )
+        {
+            m_reporterPrefs.shouldRedirectStdOut = false;
+        }
+        ~CumulativeReporterBase();
+
+        virtual ReporterPreferences getPreferences() const CATCH_OVERRIDE {
+            return m_reporterPrefs;
+        }
+
+        virtual void testRunStarting( TestRunInfo const& ) CATCH_OVERRIDE {}
+        virtual void testGroupStarting( GroupInfo const& ) CATCH_OVERRIDE {}
+
+        virtual void testCaseStarting( TestCaseInfo const& ) CATCH_OVERRIDE {}
+
+        virtual void sectionStarting( SectionInfo const& sectionInfo ) CATCH_OVERRIDE {
+            SectionStats incompleteStats( sectionInfo, Counts(), 0, false );
+            Ptr<SectionNode> node;
+            if( m_sectionStack.empty() ) {
+                if( !m_rootSection )
+                    m_rootSection = new SectionNode( incompleteStats );
+                node = m_rootSection;
+            }
+            else {
+                SectionNode& parentNode = *m_sectionStack.back();
+                SectionNode::ChildSections::const_iterator it =
+                    std::find_if(   parentNode.childSections.begin(),
+                                    parentNode.childSections.end(),
+                                    BySectionInfo( sectionInfo ) );
+                if( it == parentNode.childSections.end() ) {
+                    node = new SectionNode( incompleteStats );
+                    parentNode.childSections.push_back( node );
+                }
+                else
+                    node = *it;
+            }
+            m_sectionStack.push_back( node );
+            m_deepestSection = node;
+        }
+
+        virtual void assertionStarting( AssertionInfo const& ) CATCH_OVERRIDE {}
+
+        virtual bool assertionEnded( AssertionStats const& assertionStats ) {
+            assert( !m_sectionStack.empty() );
+            SectionNode& sectionNode = *m_sectionStack.back();
+            sectionNode.assertions.push_back( assertionStats );
+            return true;
+        }
+        virtual void sectionEnded( SectionStats const& sectionStats ) CATCH_OVERRIDE {
+            assert( !m_sectionStack.empty() );
+            SectionNode& node = *m_sectionStack.back();
+            node.stats = sectionStats;
+            m_sectionStack.pop_back();
+        }
+        virtual void testCaseEnded( TestCaseStats const& testCaseStats ) CATCH_OVERRIDE {
+            Ptr<TestCaseNode> node = new TestCaseNode( testCaseStats );
+            assert( m_sectionStack.size() == 0 );
+            node->children.push_back( m_rootSection );
+            m_testCases.push_back( node );
+            m_rootSection.reset();
+
+            assert( m_deepestSection );
+            m_deepestSection->stdOut = testCaseStats.stdOut;
+            m_deepestSection->stdErr = testCaseStats.stdErr;
+        }
+        virtual void testGroupEnded( TestGroupStats const& testGroupStats ) CATCH_OVERRIDE {
+            Ptr<TestGroupNode> node = new TestGroupNode( testGroupStats );
+            node->children.swap( m_testCases );
+            m_testGroups.push_back( node );
+        }
+        virtual void testRunEnded( TestRunStats const& testRunStats ) CATCH_OVERRIDE {
+            Ptr<TestRunNode> node = new TestRunNode( testRunStats );
+            node->children.swap( m_testGroups );
+            m_testRuns.push_back( node );
+            testRunEndedCumulative();
+        }
+        virtual void testRunEndedCumulative() = 0;
+
+        virtual void skipTest( TestCaseInfo const& ) CATCH_OVERRIDE {}
+
+        Ptr<IConfig const> m_config;
+        std::ostream& stream;
+        std::vector<AssertionStats> m_assertions;
+        std::vector<std::vector<Ptr<SectionNode> > > m_sections;
+        std::vector<Ptr<TestCaseNode> > m_testCases;
+        std::vector<Ptr<TestGroupNode> > m_testGroups;
+
+        std::vector<Ptr<TestRunNode> > m_testRuns;
+
+        Ptr<SectionNode> m_rootSection;
+        Ptr<SectionNode> m_deepestSection;
+        std::vector<Ptr<SectionNode> > m_sectionStack;
+        ReporterPreferences m_reporterPrefs;
+
+    };
+
+    template<char C>
+    char const* getLineOfChars() {
+        static char line[CATCH_CONFIG_CONSOLE_WIDTH] = {0};
+        if( !*line ) {
+            memset( line, C, CATCH_CONFIG_CONSOLE_WIDTH-1 );
+            line[CATCH_CONFIG_CONSOLE_WIDTH-1] = 0;
+        }
+        return line;
+    }
+
+    struct TestEventListenerBase : StreamingReporterBase {
+        TestEventListenerBase( ReporterConfig const& _config )
+        :   StreamingReporterBase( _config )
+        {}
+
+        virtual void assertionStarting( AssertionInfo const& ) CATCH_OVERRIDE {}
+        virtual bool assertionEnded( AssertionStats const& ) CATCH_OVERRIDE {
+            return false;
+        }
+    };
+
+} // end namespace Catch
+
+// #included from: ../internal/catch_reporter_registrars.hpp
+#define TWOBLUECUBES_CATCH_REPORTER_REGISTRARS_HPP_INCLUDED
+
+namespace Catch {
+
+    template<typename T>
+    class LegacyReporterRegistrar {
+
+        class ReporterFactory : public IReporterFactory {
+            virtual IStreamingReporter* create( ReporterConfig const& config ) const {
+                return new LegacyReporterAdapter( new T( config ) );
+            }
+
+            virtual std::string getDescription() const {
+                return T::getDescription();
+            }
+        };
+
+    public:
+
+        LegacyReporterRegistrar( std::string const& name ) {
+            getMutableRegistryHub().registerReporter( name, new ReporterFactory() );
+        }
+    };
+
+    template<typename T>
+    class ReporterRegistrar {
+
+        class ReporterFactory : public SharedImpl<IReporterFactory> {
+
+            // *** Please Note ***:
+            // - If you end up here looking at a compiler error because it's trying to register
+            // your custom reporter class be aware that the native reporter interface has changed
+            // to IStreamingReporter. The "legacy" interface, IReporter, is still supported via
+            // an adapter. Just use REGISTER_LEGACY_REPORTER to take advantage of the adapter.
+            // However please consider updating to the new interface as the old one is now
+            // deprecated and will probably be removed quite soon!
+            // Please contact me via github if you have any questions at all about this.
+            // In fact, ideally, please contact me anyway to let me know you've hit this - as I have
+            // no idea who is actually using custom reporters at all (possibly no-one!).
+            // The new interface is designed to minimise exposure to interface changes in the future.
+            virtual IStreamingReporter* create( ReporterConfig const& config ) const {
+                return new T( config );
+            }
+
+            virtual std::string getDescription() const {
+                return T::getDescription();
+            }
+        };
+
+    public:
+
+        ReporterRegistrar( std::string const& name ) {
+            getMutableRegistryHub().registerReporter( name, new ReporterFactory() );
+        }
+    };
+
+    template<typename T>
+    class ListenerRegistrar {
+
+        class ListenerFactory : public SharedImpl<IReporterFactory> {
+
+            virtual IStreamingReporter* create( ReporterConfig const& config ) const {
+                return new T( config );
+            }
+            virtual std::string getDescription() const {
+                return "";
+            }
+        };
+
+    public:
+
+        ListenerRegistrar() {
+            getMutableRegistryHub().registerListener( new ListenerFactory() );
+        }
+    };
+}
+
+#define INTERNAL_CATCH_REGISTER_LEGACY_REPORTER( name, reporterType ) \
+    namespace{ Catch::LegacyReporterRegistrar<reporterType> catch_internal_RegistrarFor##reporterType( name ); }
+
+#define INTERNAL_CATCH_REGISTER_REPORTER( name, reporterType ) \
+    namespace{ Catch::ReporterRegistrar<reporterType> catch_internal_RegistrarFor##reporterType( name ); }
+
+#define INTERNAL_CATCH_REGISTER_LISTENER( listenerType ) \
+    namespace{ Catch::ListenerRegistrar<listenerType> catch_internal_RegistrarFor##listenerType; }
+
+// #included from: ../internal/catch_xmlwriter.hpp
+#define TWOBLUECUBES_CATCH_XMLWRITER_HPP_INCLUDED
+
+#include <sstream>
+#include <string>
+#include <vector>
+#include <iomanip>
+
+namespace Catch {
+
+    class XmlEncode {
+    public:
+        enum ForWhat { ForTextNodes, ForAttributes };
+
+        XmlEncode( std::string const& str, ForWhat forWhat = ForTextNodes )
+        :   m_str( str ),
+            m_forWhat( forWhat )
+        {}
+
+        void encodeTo( std::ostream& os ) const {
+
+            // Apostrophe escaping not necessary if we always use " to write attributes
+            // (see: http://www.w3.org/TR/xml/#syntax)
+
+            for( std::size_t i = 0; i < m_str.size(); ++ i ) {
+                char c = m_str[i];
+                switch( c ) {
+                    case '<':   os << "&lt;"; break;
+                    case '&':   os << "&amp;"; break;
+
+                    case '>':
+                        // See: http://www.w3.org/TR/xml/#syntax
+                        if( i > 2 && m_str[i-1] == ']' && m_str[i-2] == ']' )
+                            os << "&gt;";
+                        else
+                            os << c;
+                        break;
+
+                    case '\"':
+                        if( m_forWhat == ForAttributes )
+                            os << "&quot;";
+                        else
+                            os << c;
+                        break;
+
+                    default:
+                        // Escape control chars - based on contribution by @espenalb in PR #465
+                        if ( ( c < '\x09' ) || ( c > '\x0D' && c < '\x20') || c=='\x7F' )
+                            os << "&#x" << std::uppercase << std::hex << static_cast<int>( c );
+                        else
+                            os << c;
+                }
+            }
+        }
+
+        friend std::ostream& operator << ( std::ostream& os, XmlEncode const& xmlEncode ) {
+            xmlEncode.encodeTo( os );
+            return os;
+        }
+
+    private:
+        std::string m_str;
+        ForWhat m_forWhat;
+    };
+
+    class XmlWriter {
+    public:
+
+        class ScopedElement {
+        public:
+            ScopedElement( XmlWriter* writer )
+            :   m_writer( writer )
+            {}
+
+            ScopedElement( ScopedElement const& other )
+            :   m_writer( other.m_writer ){
+                other.m_writer = CATCH_NULL;
+            }
+
+            ~ScopedElement() {
+                if( m_writer )
+                    m_writer->endElement();
+            }
+
+            ScopedElement& writeText( std::string const& text, bool indent = true ) {
+                m_writer->writeText( text, indent );
+                return *this;
+            }
+
+            template<typename T>
+            ScopedElement& writeAttribute( std::string const& name, T const& attribute ) {
+                m_writer->writeAttribute( name, attribute );
+                return *this;
+            }
+
+        private:
+            mutable XmlWriter* m_writer;
+        };
+
+        XmlWriter()
+        :   m_tagIsOpen( false ),
+            m_needsNewline( false ),
+            m_os( &Catch::cout() )
+        {}
+
+        XmlWriter( std::ostream& os )
+        :   m_tagIsOpen( false ),
+            m_needsNewline( false ),
+            m_os( &os )
+        {}
+
+        ~XmlWriter() {
+            while( !m_tags.empty() )
+                endElement();
+        }
+
+        XmlWriter& startElement( std::string const& name ) {
+            ensureTagClosed();
+            newlineIfNecessary();
+            stream() << m_indent << "<" << name;
+            m_tags.push_back( name );
+            m_indent += "  ";
+            m_tagIsOpen = true;
+            return *this;
+        }
+
+        ScopedElement scopedElement( std::string const& name ) {
+            ScopedElement scoped( this );
+            startElement( name );
+            return scoped;
+        }
+
+        XmlWriter& endElement() {
+            newlineIfNecessary();
+            m_indent = m_indent.substr( 0, m_indent.size()-2 );
+            if( m_tagIsOpen ) {
+                stream() << "/>\n";
+                m_tagIsOpen = false;
+            }
+            else {
+                stream() << m_indent << "</" << m_tags.back() << ">\n";
+            }
+            m_tags.pop_back();
+            return *this;
+        }
+
+        XmlWriter& writeAttribute( std::string const& name, std::string const& attribute ) {
+            if( !name.empty() && !attribute.empty() )
+                stream() << " " << name << "=\"" << XmlEncode( attribute, XmlEncode::ForAttributes ) << "\"";
+            return *this;
+        }
+
+        XmlWriter& writeAttribute( std::string const& name, bool attribute ) {
+            stream() << " " << name << "=\"" << ( attribute ? "true" : "false" ) << "\"";
+            return *this;
+        }
+
+        template<typename T>
+        XmlWriter& writeAttribute( std::string const& name, T const& attribute ) {
+            std::ostringstream oss;
+            oss << attribute;
+            return writeAttribute( name, oss.str() );
+        }
+
+        XmlWriter& writeText( std::string const& text, bool indent = true ) {
+            if( !text.empty() ){
+                bool tagWasOpen = m_tagIsOpen;
+                ensureTagClosed();
+                if( tagWasOpen && indent )
+                    stream() << m_indent;
+                stream() << XmlEncode( text );
+                m_needsNewline = true;
+            }
+            return *this;
+        }
+
+        XmlWriter& writeComment( std::string const& text ) {
+            ensureTagClosed();
+            stream() << m_indent << "<!--" << text << "-->";
+            m_needsNewline = true;
+            return *this;
+        }
+
+        XmlWriter& writeBlankLine() {
+            ensureTagClosed();
+            stream() << "\n";
+            return *this;
+        }
+
+        void setStream( std::ostream& os ) {
+            m_os = &os;
+        }
+
+    private:
+        XmlWriter( XmlWriter const& );
+        void operator=( XmlWriter const& );
+
+        std::ostream& stream() {
+            return *m_os;
+        }
+
+        void ensureTagClosed() {
+            if( m_tagIsOpen ) {
+                stream() << ">\n";
+                m_tagIsOpen = false;
+            }
+        }
+
+        void newlineIfNecessary() {
+            if( m_needsNewline ) {
+                stream() << "\n";
+                m_needsNewline = false;
+            }
+        }
+
+        bool m_tagIsOpen;
+        bool m_needsNewline;
+        std::vector<std::string> m_tags;
+        std::string m_indent;
+        std::ostream* m_os;
+    };
+
+}
+// #included from: catch_reenable_warnings.h
+
+#define TWOBLUECUBES_CATCH_REENABLE_WARNINGS_H_INCLUDED
+
+#ifdef __clang__
+#    ifdef __ICC // icpc defines the __clang__ macro
+#        pragma warning(pop)
+#    else
+#        pragma clang diagnostic pop
+#    endif
+#elif defined __GNUC__
+#    pragma GCC diagnostic pop
+#endif
+
+
+namespace Catch {
+    class XmlReporter : public StreamingReporterBase {
+    public:
+        XmlReporter( ReporterConfig const& _config )
+        :   StreamingReporterBase( _config ),
+            m_sectionDepth( 0 )
+        {
+            m_reporterPrefs.shouldRedirectStdOut = true;
+        }
+
+        virtual ~XmlReporter() CATCH_OVERRIDE;
+
+        static std::string getDescription() {
+            return "Reports test results as an XML document";
+        }
+
+    public: // StreamingReporterBase
+
+        virtual void noMatchingTestCases( std::string const& s ) CATCH_OVERRIDE {
+            StreamingReporterBase::noMatchingTestCases( s );
+        }
+
+        virtual void testRunStarting( TestRunInfo const& testInfo ) CATCH_OVERRIDE {
+            StreamingReporterBase::testRunStarting( testInfo );
+            m_xml.setStream( stream );
+            m_xml.startElement( "Catch" );
+            if( !m_config->name().empty() )
+                m_xml.writeAttribute( "name", m_config->name() );
+        }
+
+        virtual void testGroupStarting( GroupInfo const& groupInfo ) CATCH_OVERRIDE {
+            StreamingReporterBase::testGroupStarting( groupInfo );
+            m_xml.startElement( "Group" )
+                .writeAttribute( "name", groupInfo.name );
+        }
+
+        virtual void testCaseStarting( TestCaseInfo const& testInfo ) CATCH_OVERRIDE {
+            StreamingReporterBase::testCaseStarting(testInfo);
+            m_xml.startElement( "TestCase" ).writeAttribute( "name", trim( testInfo.name ) );
+
+            if ( m_config->showDurations() == ShowDurations::Always )
+                m_testCaseTimer.start();
+        }
+
+        virtual void sectionStarting( SectionInfo const& sectionInfo ) CATCH_OVERRIDE {
+            StreamingReporterBase::sectionStarting( sectionInfo );
+            if( m_sectionDepth++ > 0 ) {
+                m_xml.startElement( "Section" )
+                    .writeAttribute( "name", trim( sectionInfo.name ) )
+                    .writeAttribute( "description", sectionInfo.description );
+            }
+        }
+
+        virtual void assertionStarting( AssertionInfo const& ) CATCH_OVERRIDE { }
+
+        virtual bool assertionEnded( AssertionStats const& assertionStats ) CATCH_OVERRIDE {
+            const AssertionResult& assertionResult = assertionStats.assertionResult;
+
+            // Print any info messages in <Info> tags.
+            if( assertionStats.assertionResult.getResultType() != ResultWas::Ok ) {
+                for( std::vector<MessageInfo>::const_iterator it = assertionStats.infoMessages.begin(), itEnd = assertionStats.infoMessages.end();
+                        it != itEnd;
+                        ++it ) {
+                    if( it->type == ResultWas::Info ) {
+                        m_xml.scopedElement( "Info" )
+                            .writeText( it->message );
+                    } else if ( it->type == ResultWas::Warning ) {
+                        m_xml.scopedElement( "Warning" )
+                            .writeText( it->message );
+                    }
+                }
+            }
+
+            // Drop out if result was successful but we're not printing them.
+            if( !m_config->includeSuccessfulResults() && isOk(assertionResult.getResultType()) )
+                return true;
+
+            // Print the expression if there is one.
+            if( assertionResult.hasExpression() ) {
+                m_xml.startElement( "Expression" )
+                    .writeAttribute( "success", assertionResult.succeeded() )
+					.writeAttribute( "type", assertionResult.getTestMacroName() )
+                    .writeAttribute( "filename", assertionResult.getSourceInfo().file )
+                    .writeAttribute( "line", assertionResult.getSourceInfo().line );
+
+                m_xml.scopedElement( "Original" )
+                    .writeText( assertionResult.getExpression() );
+                m_xml.scopedElement( "Expanded" )
+                    .writeText( assertionResult.getExpandedExpression() );
+            }
+
+            // And... Print a result applicable to each result type.
+            switch( assertionResult.getResultType() ) {
+                case ResultWas::ThrewException:
+                    m_xml.scopedElement( "Exception" )
+                        .writeAttribute( "filename", assertionResult.getSourceInfo().file )
+                        .writeAttribute( "line", assertionResult.getSourceInfo().line )
+                        .writeText( assertionResult.getMessage() );
+                    break;
+                case ResultWas::FatalErrorCondition:
+                    m_xml.scopedElement( "Fatal Error Condition" )
+                        .writeAttribute( "filename", assertionResult.getSourceInfo().file )
+                        .writeAttribute( "line", assertionResult.getSourceInfo().line )
+                        .writeText( assertionResult.getMessage() );
+                    break;
+                case ResultWas::Info:
+                    m_xml.scopedElement( "Info" )
+                        .writeText( assertionResult.getMessage() );
+                    break;
+                case ResultWas::Warning:
+                    // Warning will already have been written
+                    break;
+                case ResultWas::ExplicitFailure:
+                    m_xml.scopedElement( "Failure" )
+                        .writeText( assertionResult.getMessage() );
+                    break;
+                default:
+                    break;
+            }
+
+            if( assertionResult.hasExpression() )
+                m_xml.endElement();
+
+            return true;
+        }
+
+        virtual void sectionEnded( SectionStats const& sectionStats ) CATCH_OVERRIDE {
+            StreamingReporterBase::sectionEnded( sectionStats );
+            if( --m_sectionDepth > 0 ) {
+                XmlWriter::ScopedElement e = m_xml.scopedElement( "OverallResults" );
+                e.writeAttribute( "successes", sectionStats.assertions.passed );
+                e.writeAttribute( "failures", sectionStats.assertions.failed );
+                e.writeAttribute( "expectedFailures", sectionStats.assertions.failedButOk );
+
+                if ( m_config->showDurations() == ShowDurations::Always )
+                    e.writeAttribute( "durationInSeconds", sectionStats.durationInSeconds );
+
+                m_xml.endElement();
+            }
+        }
+
+        virtual void testCaseEnded( TestCaseStats const& testCaseStats ) CATCH_OVERRIDE {
+            StreamingReporterBase::testCaseEnded( testCaseStats );
+            XmlWriter::ScopedElement e = m_xml.scopedElement( "OverallResult" );
+            e.writeAttribute( "success", testCaseStats.totals.assertions.allOk() );
+
+            if ( m_config->showDurations() == ShowDurations::Always )
+                e.writeAttribute( "durationInSeconds", m_testCaseTimer.getElapsedSeconds() );
+
+            m_xml.endElement();
+        }
+
+        virtual void testGroupEnded( TestGroupStats const& testGroupStats ) CATCH_OVERRIDE {
+            StreamingReporterBase::testGroupEnded( testGroupStats );
+            // TODO: Check testGroupStats.aborting and act accordingly.
+            m_xml.scopedElement( "OverallResults" )
+                .writeAttribute( "successes", testGroupStats.totals.assertions.passed )
+                .writeAttribute( "failures", testGroupStats.totals.assertions.failed )
+                .writeAttribute( "expectedFailures", testGroupStats.totals.assertions.failedButOk );
+            m_xml.endElement();
+        }
+
+        virtual void testRunEnded( TestRunStats const& testRunStats ) CATCH_OVERRIDE {
+            StreamingReporterBase::testRunEnded( testRunStats );
+            m_xml.scopedElement( "OverallResults" )
+                .writeAttribute( "successes", testRunStats.totals.assertions.passed )
+                .writeAttribute( "failures", testRunStats.totals.assertions.failed )
+                .writeAttribute( "expectedFailures", testRunStats.totals.assertions.failedButOk );
+            m_xml.endElement();
+        }
+
+    private:
+        Timer m_testCaseTimer;
+        XmlWriter m_xml;
+        int m_sectionDepth;
+    };
+
+     INTERNAL_CATCH_REGISTER_REPORTER( "xml", XmlReporter )
+
+} // end namespace Catch
+
+// #included from: ../reporters/catch_reporter_junit.hpp
+#define TWOBLUECUBES_CATCH_REPORTER_JUNIT_HPP_INCLUDED
+
+#include <assert.h>
+
+namespace Catch {
+
+    class JunitReporter : public CumulativeReporterBase {
+    public:
+        JunitReporter( ReporterConfig const& _config )
+        :   CumulativeReporterBase( _config ),
+            xml( _config.stream() )
+        {
+            m_reporterPrefs.shouldRedirectStdOut = true;
+        }
+
+        virtual ~JunitReporter() CATCH_OVERRIDE;
+
+        static std::string getDescription() {
+            return "Reports test results in an XML format that looks like Ant's junitreport target";
+        }
+
+        virtual void noMatchingTestCases( std::string const& /*spec*/ ) CATCH_OVERRIDE {}
+
+        virtual void testRunStarting( TestRunInfo const& runInfo ) CATCH_OVERRIDE {
+            CumulativeReporterBase::testRunStarting( runInfo );
+            xml.startElement( "testsuites" );
+        }
+
+        virtual void testGroupStarting( GroupInfo const& groupInfo ) CATCH_OVERRIDE {
+            suiteTimer.start();
+            stdOutForSuite.str("");
+            stdErrForSuite.str("");
+            unexpectedExceptions = 0;
+            CumulativeReporterBase::testGroupStarting( groupInfo );
+        }
+
+        virtual bool assertionEnded( AssertionStats const& assertionStats ) CATCH_OVERRIDE {
+            if( assertionStats.assertionResult.getResultType() == ResultWas::ThrewException )
+                unexpectedExceptions++;
+            return CumulativeReporterBase::assertionEnded( assertionStats );
+        }
+
+        virtual void testCaseEnded( TestCaseStats const& testCaseStats ) CATCH_OVERRIDE {
+            stdOutForSuite << testCaseStats.stdOut;
+            stdErrForSuite << testCaseStats.stdErr;
+            CumulativeReporterBase::testCaseEnded( testCaseStats );
+        }
+
+        virtual void testGroupEnded( TestGroupStats const& testGroupStats ) CATCH_OVERRIDE {
+            double suiteTime = suiteTimer.getElapsedSeconds();
+            CumulativeReporterBase::testGroupEnded( testGroupStats );
+            writeGroup( *m_testGroups.back(), suiteTime );
+        }
+
+        virtual void testRunEndedCumulative() CATCH_OVERRIDE {
+            xml.endElement();
+        }
+
+        void writeGroup( TestGroupNode const& groupNode, double suiteTime ) {
+            XmlWriter::ScopedElement e = xml.scopedElement( "testsuite" );
+            TestGroupStats const& stats = groupNode.value;
+            xml.writeAttribute( "name", stats.groupInfo.name );
+            xml.writeAttribute( "errors", unexpectedExceptions );
+            xml.writeAttribute( "failures", stats.totals.assertions.failed-unexpectedExceptions );
+            xml.writeAttribute( "tests", stats.totals.assertions.total() );
+            xml.writeAttribute( "hostname", "tbd" ); // !TBD
+            if( m_config->showDurations() == ShowDurations::Never )
+                xml.writeAttribute( "time", "" );
+            else
+                xml.writeAttribute( "time", suiteTime );
+            xml.writeAttribute( "timestamp", "tbd" ); // !TBD
+
+            // Write test cases
+            for( TestGroupNode::ChildNodes::const_iterator
+                    it = groupNode.children.begin(), itEnd = groupNode.children.end();
+                    it != itEnd;
+                    ++it )
+                writeTestCase( **it );
+
+            xml.scopedElement( "system-out" ).writeText( trim( stdOutForSuite.str() ), false );
+            xml.scopedElement( "system-err" ).writeText( trim( stdErrForSuite.str() ), false );
+        }
+
+        void writeTestCase( TestCaseNode const& testCaseNode ) {
+            TestCaseStats const& stats = testCaseNode.value;
+
+            // All test cases have exactly one section - which represents the
+            // test case itself. That section may have 0-n nested sections
+            assert( testCaseNode.children.size() == 1 );
+            SectionNode const& rootSection = *testCaseNode.children.front();
+
+            std::string className = stats.testInfo.className;
+
+            if( className.empty() ) {
+                if( rootSection.childSections.empty() )
+                    className = "global";
+            }
+            writeSection( className, "", rootSection );
+        }
+
+        void writeSection(  std::string const& className,
+                            std::string const& rootName,
+                            SectionNode const& sectionNode ) {
+            std::string name = trim( sectionNode.stats.sectionInfo.name );
+            if( !rootName.empty() )
+                name = rootName + "/" + name;
+
+            if( !sectionNode.assertions.empty() ||
+                !sectionNode.stdOut.empty() ||
+                !sectionNode.stdErr.empty() ) {
+                XmlWriter::ScopedElement e = xml.scopedElement( "testcase" );
+                if( className.empty() ) {
+                    xml.writeAttribute( "classname", name );
+                    xml.writeAttribute( "name", "root" );
+                }
+                else {
+                    xml.writeAttribute( "classname", className );
+                    xml.writeAttribute( "name", name );
+                }
+                xml.writeAttribute( "time", Catch::toString( sectionNode.stats.durationInSeconds ) );
+
+                writeAssertions( sectionNode );
+
+                if( !sectionNode.stdOut.empty() )
+                    xml.scopedElement( "system-out" ).writeText( trim( sectionNode.stdOut ), false );
+                if( !sectionNode.stdErr.empty() )
+                    xml.scopedElement( "system-err" ).writeText( trim( sectionNode.stdErr ), false );
+            }
+            for( SectionNode::ChildSections::const_iterator
+                    it = sectionNode.childSections.begin(),
+                    itEnd = sectionNode.childSections.end();
+                    it != itEnd;
+                    ++it )
+                if( className.empty() )
+                    writeSection( name, "", **it );
+                else
+                    writeSection( className, name, **it );
+        }
+
+        void writeAssertions( SectionNode const& sectionNode ) {
+            for( SectionNode::Assertions::const_iterator
+                    it = sectionNode.assertions.begin(), itEnd = sectionNode.assertions.end();
+                    it != itEnd;
+                    ++it )
+                writeAssertion( *it );
+        }
+        void writeAssertion( AssertionStats const& stats ) {
+            AssertionResult const& result = stats.assertionResult;
+            if( !result.isOk() ) {
+                std::string elementName;
+                switch( result.getResultType() ) {
+                    case ResultWas::ThrewException:
+                    case ResultWas::FatalErrorCondition:
+                        elementName = "error";
+                        break;
+                    case ResultWas::ExplicitFailure:
+                        elementName = "failure";
+                        break;
+                    case ResultWas::ExpressionFailed:
+                        elementName = "failure";
+                        break;
+                    case ResultWas::DidntThrowException:
+                        elementName = "failure";
+                        break;
+
+                    // We should never see these here:
+                    case ResultWas::Info:
+                    case ResultWas::Warning:
+                    case ResultWas::Ok:
+                    case ResultWas::Unknown:
+                    case ResultWas::FailureBit:
+                    case ResultWas::Exception:
+                        elementName = "internalError";
+                        break;
+                }
+
+                XmlWriter::ScopedElement e = xml.scopedElement( elementName );
+
+                xml.writeAttribute( "message", result.getExpandedExpression() );
+                xml.writeAttribute( "type", result.getTestMacroName() );
+
+                std::ostringstream oss;
+                if( !result.getMessage().empty() )
+                    oss << result.getMessage() << "\n";
+                for( std::vector<MessageInfo>::const_iterator
+                        it = stats.infoMessages.begin(),
+                        itEnd = stats.infoMessages.end();
+                            it != itEnd;
+                            ++it )
+                    if( it->type == ResultWas::Info )
+                        oss << it->message << "\n";
+
+                oss << "at " << result.getSourceInfo();
+                xml.writeText( oss.str(), false );
+            }
+        }
+
+        XmlWriter xml;
+        Timer suiteTimer;
+        std::ostringstream stdOutForSuite;
+        std::ostringstream stdErrForSuite;
+        unsigned int unexpectedExceptions;
+    };
+
+    INTERNAL_CATCH_REGISTER_REPORTER( "junit", JunitReporter )
+
+} // end namespace Catch
+
+// #included from: ../reporters/catch_reporter_console.hpp
+#define TWOBLUECUBES_CATCH_REPORTER_CONSOLE_HPP_INCLUDED
+
+namespace Catch {
+
+    struct ConsoleReporter : StreamingReporterBase {
+        ConsoleReporter( ReporterConfig const& _config )
+        :   StreamingReporterBase( _config ),
+            m_headerPrinted( false )
+        {}
+
+        virtual ~ConsoleReporter() CATCH_OVERRIDE;
+        static std::string getDescription() {
+            return "Reports test results as plain lines of text";
+        }
+
+        virtual void noMatchingTestCases( std::string const& spec ) CATCH_OVERRIDE {
+            stream << "No test cases matched '" << spec << "'" << std::endl;
+        }
+
+        virtual void assertionStarting( AssertionInfo const& ) CATCH_OVERRIDE {
+        }
+
+        virtual bool assertionEnded( AssertionStats const& _assertionStats ) CATCH_OVERRIDE {
+            AssertionResult const& result = _assertionStats.assertionResult;
+
+            bool printInfoMessages = true;
+
+            // Drop out if result was successful and we're not printing those
+            if( !m_config->includeSuccessfulResults() && result.isOk() ) {
+                if( result.getResultType() != ResultWas::Warning )
+                    return false;
+                printInfoMessages = false;
+            }
+
+            lazyPrint();
+
+            AssertionPrinter printer( stream, _assertionStats, printInfoMessages );
+            printer.print();
+            stream << std::endl;
+            return true;
+        }
+
+        virtual void sectionStarting( SectionInfo const& _sectionInfo ) CATCH_OVERRIDE {
+            m_headerPrinted = false;
+            StreamingReporterBase::sectionStarting( _sectionInfo );
+        }
+        virtual void sectionEnded( SectionStats const& _sectionStats ) CATCH_OVERRIDE {
+            if( _sectionStats.missingAssertions ) {
+                lazyPrint();
+                Colour colour( Colour::ResultError );
+                if( m_sectionStack.size() > 1 )
+                    stream << "\nNo assertions in section";
+                else
+                    stream << "\nNo assertions in test case";
+                stream << " '" << _sectionStats.sectionInfo.name << "'\n" << std::endl;
+            }
+            if( m_headerPrinted ) {
+                if( m_config->showDurations() == ShowDurations::Always )
+                    stream << "Completed in " << _sectionStats.durationInSeconds << "s" << std::endl;
+                m_headerPrinted = false;
+            }
+            else {
+                if( m_config->showDurations() == ShowDurations::Always )
+                    stream << _sectionStats.sectionInfo.name << " completed in " << _sectionStats.durationInSeconds << "s" << std::endl;
+            }
+            StreamingReporterBase::sectionEnded( _sectionStats );
+        }
+
+        virtual void testCaseEnded( TestCaseStats const& _testCaseStats ) CATCH_OVERRIDE {
+            StreamingReporterBase::testCaseEnded( _testCaseStats );
+            m_headerPrinted = false;
+        }
+        virtual void testGroupEnded( TestGroupStats const& _testGroupStats ) CATCH_OVERRIDE {
+            if( currentGroupInfo.used ) {
+                printSummaryDivider();
+                stream << "Summary for group '" << _testGroupStats.groupInfo.name << "':\n";
+                printTotals( _testGroupStats.totals );
+                stream << "\n" << std::endl;
+            }
+            StreamingReporterBase::testGroupEnded( _testGroupStats );
+        }
+        virtual void testRunEnded( TestRunStats const& _testRunStats ) CATCH_OVERRIDE {
+            printTotalsDivider( _testRunStats.totals );
+            printTotals( _testRunStats.totals );
+            stream << std::endl;
+            StreamingReporterBase::testRunEnded( _testRunStats );
+        }
+
+    private:
+
+        class AssertionPrinter {
+            void operator= ( AssertionPrinter const& );
+        public:
+            AssertionPrinter( std::ostream& _stream, AssertionStats const& _stats, bool _printInfoMessages )
+            :   stream( _stream ),
+                stats( _stats ),
+                result( _stats.assertionResult ),
+                colour( Colour::None ),
+                message( result.getMessage() ),
+                messages( _stats.infoMessages ),
+                printInfoMessages( _printInfoMessages )
+            {
+                switch( result.getResultType() ) {
+                    case ResultWas::Ok:
+                        colour = Colour::Success;
+                        passOrFail = "PASSED";
+                        //if( result.hasMessage() )
+                        if( _stats.infoMessages.size() == 1 )
+                            messageLabel = "with message";
+                        if( _stats.infoMessages.size() > 1 )
+                            messageLabel = "with messages";
+                        break;
+                    case ResultWas::ExpressionFailed:
+                        if( result.isOk() ) {
+                            colour = Colour::Success;
+                            passOrFail = "FAILED - but was ok";
+                        }
+                        else {
+                            colour = Colour::Error;
+                            passOrFail = "FAILED";
+                        }
+                        if( _stats.infoMessages.size() == 1 )
+                            messageLabel = "with message";
+                        if( _stats.infoMessages.size() > 1 )
+                            messageLabel = "with messages";
+                        break;
+                    case ResultWas::ThrewException:
+                        colour = Colour::Error;
+                        passOrFail = "FAILED";
+                        messageLabel = "due to unexpected exception with message";
+                        break;
+                    case ResultWas::FatalErrorCondition:
+                        colour = Colour::Error;
+                        passOrFail = "FAILED";
+                        messageLabel = "due to a fatal error condition";
+                        break;
+                    case ResultWas::DidntThrowException:
+                        colour = Colour::Error;
+                        passOrFail = "FAILED";
+                        messageLabel = "because no exception was thrown where one was expected";
+                        break;
+                    case ResultWas::Info:
+                        messageLabel = "info";
+                        break;
+                    case ResultWas::Warning:
+                        messageLabel = "warning";
+                        break;
+                    case ResultWas::ExplicitFailure:
+                        passOrFail = "FAILED";
+                        colour = Colour::Error;
+                        if( _stats.infoMessages.size() == 1 )
+                            messageLabel = "explicitly with message";
+                        if( _stats.infoMessages.size() > 1 )
+                            messageLabel = "explicitly with messages";
+                        break;
+                    // These cases are here to prevent compiler warnings
+                    case ResultWas::Unknown:
+                    case ResultWas::FailureBit:
+                    case ResultWas::Exception:
+                        passOrFail = "** internal error **";
+                        colour = Colour::Error;
+                        break;
+                }
+            }
+
+            void print() const {
+                printSourceInfo();
+                if( stats.totals.assertions.total() > 0 ) {
+                    if( result.isOk() )
+                        stream << "\n";
+                    printResultType();
+                    printOriginalExpression();
+                    printReconstructedExpression();
+                }
+                else {
+                    stream << "\n";
+                }
+                printMessage();
+            }
+
+        private:
+            void printResultType() const {
+                if( !passOrFail.empty() ) {
+                    Colour colourGuard( colour );
+                    stream << passOrFail << ":\n";
+                }
+            }
+            void printOriginalExpression() const {
+                if( result.hasExpression() ) {
+                    Colour colourGuard( Colour::OriginalExpression );
+                    stream  << "  ";
+                    stream << result.getExpressionInMacro();
+                    stream << "\n";
+                }
+            }
+            void printReconstructedExpression() const {
+                if( result.hasExpandedExpression() ) {
+                    stream << "with expansion:\n";
+                    Colour colourGuard( Colour::ReconstructedExpression );
+                    stream << Text( result.getExpandedExpression(), TextAttributes().setIndent(2) ) << "\n";
+                }
+            }
+            void printMessage() const {
+                if( !messageLabel.empty() )
+                    stream << messageLabel << ":" << "\n";
+                for( std::vector<MessageInfo>::const_iterator it = messages.begin(), itEnd = messages.end();
+                        it != itEnd;
+                        ++it ) {
+                    // If this assertion is a warning ignore any INFO messages
+                    if( printInfoMessages || it->type != ResultWas::Info )
+                        stream << Text( it->message, TextAttributes().setIndent(2) ) << "\n";
+                }
+            }
+            void printSourceInfo() const {
+                Colour colourGuard( Colour::FileName );
+                stream << result.getSourceInfo() << ": ";
+            }
+
+            std::ostream& stream;
+            AssertionStats const& stats;
+            AssertionResult const& result;
+            Colour::Code colour;
+            std::string passOrFail;
+            std::string messageLabel;
+            std::string message;
+            std::vector<MessageInfo> messages;
+            bool printInfoMessages;
+        };
+
+        void lazyPrint() {
+
+            if( !currentTestRunInfo.used )
+                lazyPrintRunInfo();
+            if( !currentGroupInfo.used )
+                lazyPrintGroupInfo();
+
+            if( !m_headerPrinted ) {
+                printTestCaseAndSectionHeader();
+                m_headerPrinted = true;
+            }
+        }
+        void lazyPrintRunInfo() {
+            stream  << "\n" << getLineOfChars<'~'>() << "\n";
+            Colour colour( Colour::SecondaryText );
+            stream  << currentTestRunInfo->name
+                    << " is a Catch v"  << libraryVersion << " host application.\n"
+                    << "Run with -? for options\n\n";
+
+            if( m_config->rngSeed() != 0 )
+                stream << "Randomness seeded to: " << m_config->rngSeed() << "\n\n";
+
+            currentTestRunInfo.used = true;
+        }
+        void lazyPrintGroupInfo() {
+            if( !currentGroupInfo->name.empty() && currentGroupInfo->groupsCounts > 1 ) {
+                printClosedHeader( "Group: " + currentGroupInfo->name );
+                currentGroupInfo.used = true;
+            }
+        }
+        void printTestCaseAndSectionHeader() {
+            assert( !m_sectionStack.empty() );
+            printOpenHeader( currentTestCaseInfo->name );
+
+            if( m_sectionStack.size() > 1 ) {
+                Colour colourGuard( Colour::Headers );
+
+                std::vector<SectionInfo>::const_iterator
+                    it = m_sectionStack.begin()+1, // Skip first section (test case)
+                    itEnd = m_sectionStack.end();
+                for( ; it != itEnd; ++it )
+                    printHeaderString( it->name, 2 );
+            }
+
+            SourceLineInfo lineInfo = m_sectionStack.front().lineInfo;
+
+            if( !lineInfo.empty() ){
+                stream << getLineOfChars<'-'>() << "\n";
+                Colour colourGuard( Colour::FileName );
+                stream << lineInfo << "\n";
+            }
+            stream << getLineOfChars<'.'>() << "\n" << std::endl;
+        }
+
+        void printClosedHeader( std::string const& _name ) {
+            printOpenHeader( _name );
+            stream << getLineOfChars<'.'>() << "\n";
+        }
+        void printOpenHeader( std::string const& _name ) {
+            stream  << getLineOfChars<'-'>() << "\n";
+            {
+                Colour colourGuard( Colour::Headers );
+                printHeaderString( _name );
+            }
+        }
+
+        // if string has a : in first line will set indent to follow it on
+        // subsequent lines
+        void printHeaderString( std::string const& _string, std::size_t indent = 0 ) {
+            std::size_t i = _string.find( ": " );
+            if( i != std::string::npos )
+                i+=2;
+            else
+                i = 0;
+            stream << Text( _string, TextAttributes()
+                                        .setIndent( indent+i)
+                                        .setInitialIndent( indent ) ) << "\n";
+        }
+
+        struct SummaryColumn {
+
+            SummaryColumn( std::string const& _label, Colour::Code _colour )
+            :   label( _label ),
+                colour( _colour )
+            {}
+            SummaryColumn addRow( std::size_t count ) {
+                std::ostringstream oss;
+                oss << count;
+                std::string row = oss.str();
+                for( std::vector<std::string>::iterator it = rows.begin(); it != rows.end(); ++it ) {
+                    while( it->size() < row.size() )
+                        *it = " " + *it;
+                    while( it->size() > row.size() )
+                        row = " " + row;
+                }
+                rows.push_back( row );
+                return *this;
+            }
+
+            std::string label;
+            Colour::Code colour;
+            std::vector<std::string> rows;
+
+        };
+
+        void printTotals( Totals const& totals ) {
+            if( totals.testCases.total() == 0 ) {
+                stream << Colour( Colour::Warning ) << "No tests ran\n";
+            }
+            else if( totals.assertions.total() > 0 && totals.testCases.allPassed() ) {
+                stream << Colour( Colour::ResultSuccess ) << "All tests passed";
+                stream << " ("
+                        << pluralise( totals.assertions.passed, "assertion" ) << " in "
+                        << pluralise( totals.testCases.passed, "test case" ) << ")"
+                        << "\n";
+            }
+            else {
+
+                std::vector<SummaryColumn> columns;
+                columns.push_back( SummaryColumn( "", Colour::None )
+                                        .addRow( totals.testCases.total() )
+                                        .addRow( totals.assertions.total() ) );
+                columns.push_back( SummaryColumn( "passed", Colour::Success )
+                                        .addRow( totals.testCases.passed )
+                                        .addRow( totals.assertions.passed ) );
+                columns.push_back( SummaryColumn( "failed", Colour::ResultError )
+                                        .addRow( totals.testCases.failed )
+                                        .addRow( totals.assertions.failed ) );
+                columns.push_back( SummaryColumn( "failed as expected", Colour::ResultExpectedFailure )
+                                        .addRow( totals.testCases.failedButOk )
+                                        .addRow( totals.assertions.failedButOk ) );
+
+                printSummaryRow( "test cases", columns, 0 );
+                printSummaryRow( "assertions", columns, 1 );
+            }
+        }
+        void printSummaryRow( std::string const& label, std::vector<SummaryColumn> const& cols, std::size_t row ) {
+            for( std::vector<SummaryColumn>::const_iterator it = cols.begin(); it != cols.end(); ++it ) {
+                std::string value = it->rows[row];
+                if( it->label.empty() ) {
+                    stream << label << ": ";
+                    if( value != "0" )
+                        stream << value;
+                    else
+                        stream << Colour( Colour::Warning ) << "- none -";
+                }
+                else if( value != "0" ) {
+                    stream  << Colour( Colour::LightGrey ) << " | ";
+                    stream  << Colour( it->colour )
+                            << value << " " << it->label;
+                }
+            }
+            stream << "\n";
+        }
+
+        static std::size_t makeRatio( std::size_t number, std::size_t total ) {
+            std::size_t ratio = total > 0 ? CATCH_CONFIG_CONSOLE_WIDTH * number/ total : 0;
+            return ( ratio == 0 && number > 0 ) ? 1 : ratio;
+        }
+        static std::size_t& findMax( std::size_t& i, std::size_t& j, std::size_t& k ) {
+            if( i > j && i > k )
+                return i;
+            else if( j > k )
+                return j;
+            else
+                return k;
+        }
+
+        void printTotalsDivider( Totals const& totals ) {
+            if( totals.testCases.total() > 0 ) {
+                std::size_t failedRatio = makeRatio( totals.testCases.failed, totals.testCases.total() );
+                std::size_t failedButOkRatio = makeRatio( totals.testCases.failedButOk, totals.testCases.total() );
+                std::size_t passedRatio = makeRatio( totals.testCases.passed, totals.testCases.total() );
+                while( failedRatio + failedButOkRatio + passedRatio < CATCH_CONFIG_CONSOLE_WIDTH-1 )
+                    findMax( failedRatio, failedButOkRatio, passedRatio )++;
+                while( failedRatio + failedButOkRatio + passedRatio > CATCH_CONFIG_CONSOLE_WIDTH-1 )
+                    findMax( failedRatio, failedButOkRatio, passedRatio )--;
+
+                stream << Colour( Colour::Error ) << std::string( failedRatio, '=' );
+                stream << Colour( Colour::ResultExpectedFailure ) << std::string( failedButOkRatio, '=' );
+                if( totals.testCases.allPassed() )
+                    stream << Colour( Colour::ResultSuccess ) << std::string( passedRatio, '=' );
+                else
+                    stream << Colour( Colour::Success ) << std::string( passedRatio, '=' );
+            }
+            else {
+                stream << Colour( Colour::Warning ) << std::string( CATCH_CONFIG_CONSOLE_WIDTH-1, '=' );
+            }
+            stream << "\n";
+        }
+        void printSummaryDivider() {
+            stream << getLineOfChars<'-'>() << "\n";
+        }
+
+    private:
+        bool m_headerPrinted;
+    };
+
+    INTERNAL_CATCH_REGISTER_REPORTER( "console", ConsoleReporter )
+
+} // end namespace Catch
+
+// #included from: ../reporters/catch_reporter_compact.hpp
+#define TWOBLUECUBES_CATCH_REPORTER_COMPACT_HPP_INCLUDED
+
+namespace Catch {
+
+    struct CompactReporter : StreamingReporterBase {
+
+        CompactReporter( ReporterConfig const& _config )
+        : StreamingReporterBase( _config )
+        {}
+
+        virtual ~CompactReporter();
+
+        static std::string getDescription() {
+            return "Reports test results on a single line, suitable for IDEs";
+        }
+
+        virtual ReporterPreferences getPreferences() const {
+            ReporterPreferences prefs;
+            prefs.shouldRedirectStdOut = false;
+            return prefs;
+        }
+
+        virtual void noMatchingTestCases( std::string const& spec ) {
+            stream << "No test cases matched '" << spec << "'" << std::endl;
+        }
+
+        virtual void assertionStarting( AssertionInfo const& ) {
+        }
+
+        virtual bool assertionEnded( AssertionStats const& _assertionStats ) {
+            AssertionResult const& result = _assertionStats.assertionResult;
+
+            bool printInfoMessages = true;
+
+            // Drop out if result was successful and we're not printing those
+            if( !m_config->includeSuccessfulResults() && result.isOk() ) {
+                if( result.getResultType() != ResultWas::Warning )
+                    return false;
+                printInfoMessages = false;
+            }
+
+            AssertionPrinter printer( stream, _assertionStats, printInfoMessages );
+            printer.print();
+
+            stream << std::endl;
+            return true;
+        }
+
+        virtual void testRunEnded( TestRunStats const& _testRunStats ) {
+            printTotals( _testRunStats.totals );
+            stream << "\n" << std::endl;
+            StreamingReporterBase::testRunEnded( _testRunStats );
+        }
+
+    private:
+        class AssertionPrinter {
+            void operator= ( AssertionPrinter const& );
+        public:
+            AssertionPrinter( std::ostream& _stream, AssertionStats const& _stats, bool _printInfoMessages )
+            : stream( _stream )
+            , stats( _stats )
+            , result( _stats.assertionResult )
+            , messages( _stats.infoMessages )
+            , itMessage( _stats.infoMessages.begin() )
+            , printInfoMessages( _printInfoMessages )
+            {}
+
+            void print() {
+                printSourceInfo();
+
+                itMessage = messages.begin();
+
+                switch( result.getResultType() ) {
+                    case ResultWas::Ok:
+                        printResultType( Colour::ResultSuccess, passedString() );
+                        printOriginalExpression();
+                        printReconstructedExpression();
+                        if ( ! result.hasExpression() )
+                            printRemainingMessages( Colour::None );
+                        else
+                            printRemainingMessages();
+                        break;
+                    case ResultWas::ExpressionFailed:
+                        if( result.isOk() )
+                            printResultType( Colour::ResultSuccess, failedString() + std::string( " - but was ok" ) );
+                        else
+                            printResultType( Colour::Error, failedString() );
+                        printOriginalExpression();
+                        printReconstructedExpression();
+                        printRemainingMessages();
+                        break;
+                    case ResultWas::ThrewException:
+                        printResultType( Colour::Error, failedString() );
+                        printIssue( "unexpected exception with message:" );
+                        printMessage();
+                        printExpressionWas();
+                        printRemainingMessages();
+                        break;
+                    case ResultWas::FatalErrorCondition:
+                        printResultType( Colour::Error, failedString() );
+                        printIssue( "fatal error condition with message:" );
+                        printMessage();
+                        printExpressionWas();
+                        printRemainingMessages();
+                        break;
+                    case ResultWas::DidntThrowException:
+                        printResultType( Colour::Error, failedString() );
+                        printIssue( "expected exception, got none" );
+                        printExpressionWas();
+                        printRemainingMessages();
+                        break;
+                    case ResultWas::Info:
+                        printResultType( Colour::None, "info" );
+                        printMessage();
+                        printRemainingMessages();
+                        break;
+                    case ResultWas::Warning:
+                        printResultType( Colour::None, "warning" );
+                        printMessage();
+                        printRemainingMessages();
+                        break;
+                    case ResultWas::ExplicitFailure:
+                        printResultType( Colour::Error, failedString() );
+                        printIssue( "explicitly" );
+                        printRemainingMessages( Colour::None );
+                        break;
+                    // These cases are here to prevent compiler warnings
+                    case ResultWas::Unknown:
+                    case ResultWas::FailureBit:
+                    case ResultWas::Exception:
+                        printResultType( Colour::Error, "** internal error **" );
+                        break;
+                }
+            }
+
+        private:
+            // Colour::LightGrey
+
+            static Colour::Code dimColour() { return Colour::FileName; }
+
+#ifdef CATCH_PLATFORM_MAC
+            static const char* failedString() { return "FAILED"; }
+            static const char* passedString() { return "PASSED"; }
+#else
+            static const char* failedString() { return "failed"; }
+            static const char* passedString() { return "passed"; }
+#endif
+
+            void printSourceInfo() const {
+                Colour colourGuard( Colour::FileName );
+                stream << result.getSourceInfo() << ":";
+            }
+
+            void printResultType( Colour::Code colour, std::string passOrFail ) const {
+                if( !passOrFail.empty() ) {
+                    {
+                        Colour colourGuard( colour );
+                        stream << " " << passOrFail;
+                    }
+                    stream << ":";
+                }
+            }
+
+            void printIssue( std::string issue ) const {
+                stream << " " << issue;
+            }
+
+            void printExpressionWas() {
+                if( result.hasExpression() ) {
+                    stream << ";";
+                    {
+                        Colour colour( dimColour() );
+                        stream << " expression was:";
+                    }
+                    printOriginalExpression();
+                }
+            }
+
+            void printOriginalExpression() const {
+                if( result.hasExpression() ) {
+                    stream << " " << result.getExpression();
+                }
+            }
+
+            void printReconstructedExpression() const {
+                if( result.hasExpandedExpression() ) {
+                    {
+                        Colour colour( dimColour() );
+                        stream << " for: ";
+                    }
+                    stream << result.getExpandedExpression();
+                }
+            }
+
+            void printMessage() {
+                if ( itMessage != messages.end() ) {
+                    stream << " '" << itMessage->message << "'";
+                    ++itMessage;
+                }
+            }
+
+            void printRemainingMessages( Colour::Code colour = dimColour() ) {
+                if ( itMessage == messages.end() )
+                    return;
+
+                // using messages.end() directly yields compilation error:
+                std::vector<MessageInfo>::const_iterator itEnd = messages.end();
+                const std::size_t N = static_cast<std::size_t>( std::distance( itMessage, itEnd ) );
+
+                {
+                    Colour colourGuard( colour );
+                    stream << " with " << pluralise( N, "message" ) << ":";
+                }
+
+                for(; itMessage != itEnd; ) {
+                    // If this assertion is a warning ignore any INFO messages
+                    if( printInfoMessages || itMessage->type != ResultWas::Info ) {
+                        stream << " '" << itMessage->message << "'";
+                        if ( ++itMessage != itEnd ) {
+                            Colour colourGuard( dimColour() );
+                            stream << " and";
+                        }
+                    }
+                }
+            }
+
+        private:
+            std::ostream& stream;
+            AssertionStats const& stats;
+            AssertionResult const& result;
+            std::vector<MessageInfo> messages;
+            std::vector<MessageInfo>::const_iterator itMessage;
+            bool printInfoMessages;
+        };
+
+        // Colour, message variants:
+        // - white: No tests ran.
+        // -   red: Failed [both/all] N test cases, failed [both/all] M assertions.
+        // - white: Passed [both/all] N test cases (no assertions).
+        // -   red: Failed N tests cases, failed M assertions.
+        // - green: Passed [both/all] N tests cases with M assertions.
+
+        std::string bothOrAll( std::size_t count ) const {
+            return count == 1 ? "" : count == 2 ? "both " : "all " ;
+        }
+
+        void printTotals( const Totals& totals ) const {
+            if( totals.testCases.total() == 0 ) {
+                stream << "No tests ran.";
+            }
+            else if( totals.testCases.failed == totals.testCases.total() ) {
+                Colour colour( Colour::ResultError );
+                const std::string qualify_assertions_failed =
+                    totals.assertions.failed == totals.assertions.total() ?
+                        bothOrAll( totals.assertions.failed ) : "";
+                stream <<
+                    "Failed " << bothOrAll( totals.testCases.failed )
+                              << pluralise( totals.testCases.failed, "test case"  ) << ", "
+                    "failed " << qualify_assertions_failed <<
+                                 pluralise( totals.assertions.failed, "assertion" ) << ".";
+            }
+            else if( totals.assertions.total() == 0 ) {
+                stream <<
+                    "Passed " << bothOrAll( totals.testCases.total() )
+                              << pluralise( totals.testCases.total(), "test case" )
+                              << " (no assertions).";
+            }
+            else if( totals.assertions.failed ) {
+                Colour colour( Colour::ResultError );
+                stream <<
+                    "Failed " << pluralise( totals.testCases.failed, "test case"  ) << ", "
+                    "failed " << pluralise( totals.assertions.failed, "assertion" ) << ".";
+            }
+            else {
+                Colour colour( Colour::ResultSuccess );
+                stream <<
+                    "Passed " << bothOrAll( totals.testCases.passed )
+                              << pluralise( totals.testCases.passed, "test case"  ) <<
+                    " with "  << pluralise( totals.assertions.passed, "assertion" ) << ".";
+            }
+        }
+    };
+
+    INTERNAL_CATCH_REGISTER_REPORTER( "compact", CompactReporter )
+
+} // end namespace Catch
+
+namespace Catch {
+    // These are all here to avoid warnings about not having any out of line
+    // virtual methods
+    NonCopyable::~NonCopyable() {}
+    IShared::~IShared() {}
+    IStream::~IStream() CATCH_NOEXCEPT {}
+    FileStream::~FileStream() CATCH_NOEXCEPT {}
+    CoutStream::~CoutStream() CATCH_NOEXCEPT {}
+    DebugOutStream::~DebugOutStream() CATCH_NOEXCEPT {}
+    StreamBufBase::~StreamBufBase() CATCH_NOEXCEPT {}
+    IContext::~IContext() {}
+    IResultCapture::~IResultCapture() {}
+    ITestCase::~ITestCase() {}
+    ITestCaseRegistry::~ITestCaseRegistry() {}
+    IRegistryHub::~IRegistryHub() {}
+    IMutableRegistryHub::~IMutableRegistryHub() {}
+    IExceptionTranslator::~IExceptionTranslator() {}
+    IExceptionTranslatorRegistry::~IExceptionTranslatorRegistry() {}
+    IReporter::~IReporter() {}
+    IReporterFactory::~IReporterFactory() {}
+    IReporterRegistry::~IReporterRegistry() {}
+    IStreamingReporter::~IStreamingReporter() {}
+    AssertionStats::~AssertionStats() {}
+    SectionStats::~SectionStats() {}
+    TestCaseStats::~TestCaseStats() {}
+    TestGroupStats::~TestGroupStats() {}
+    TestRunStats::~TestRunStats() {}
+    CumulativeReporterBase::SectionNode::~SectionNode() {}
+    CumulativeReporterBase::~CumulativeReporterBase() {}
+
+    StreamingReporterBase::~StreamingReporterBase() {}
+    ConsoleReporter::~ConsoleReporter() {}
+    CompactReporter::~CompactReporter() {}
+    IRunner::~IRunner() {}
+    IMutableContext::~IMutableContext() {}
+    IConfig::~IConfig() {}
+    XmlReporter::~XmlReporter() {}
+    JunitReporter::~JunitReporter() {}
+    TestRegistry::~TestRegistry() {}
+    FreeFunctionTestCase::~FreeFunctionTestCase() {}
+    IGeneratorInfo::~IGeneratorInfo() {}
+    IGeneratorsForTest::~IGeneratorsForTest() {}
+    WildcardPattern::~WildcardPattern() {}
+    TestSpec::Pattern::~Pattern() {}
+    TestSpec::NamePattern::~NamePattern() {}
+    TestSpec::TagPattern::~TagPattern() {}
+    TestSpec::ExcludedPattern::~ExcludedPattern() {}
+
+    Matchers::Impl::StdString::Equals::~Equals() {}
+    Matchers::Impl::StdString::Contains::~Contains() {}
+    Matchers::Impl::StdString::StartsWith::~StartsWith() {}
+    Matchers::Impl::StdString::EndsWith::~EndsWith() {}
+
+    void Config::dummy() {}
+
+    namespace TestCaseTracking {
+        ITracker::~ITracker() {}
+        TrackerBase::~TrackerBase() {}
+        SectionTracker::~SectionTracker() {}
+        IndexTracker::~IndexTracker() {}
+    }
+}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+
+#endif
+
+#ifdef CATCH_CONFIG_MAIN
+// #included from: internal/catch_default_main.hpp
+#define TWOBLUECUBES_CATCH_DEFAULT_MAIN_HPP_INCLUDED
+
+#ifndef __OBJC__
+
+// Standard C/C++ main entry point
+int main (int argc, char * argv[]) {
+    return Catch::Session().run( argc, argv );
+}
+
+#else // __OBJC__
+
+// Objective-C entry point
+int main (int argc, char * const argv[]) {
+#if !CATCH_ARC_ENABLED
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+#endif
+
+    Catch::registerTestMethods();
+    int result = Catch::Session().run( argc, (char* const*)argv );
+
+#if !CATCH_ARC_ENABLED
+    [pool drain];
+#endif
+
+    return result;
+}
+
+#endif // __OBJC__
+
+#endif
+
+#ifdef CLARA_CONFIG_MAIN_NOT_DEFINED
+#  undef CLARA_CONFIG_MAIN
+#endif
+
+//////
+
+// If this config identifier is defined then all CATCH macros are prefixed with CATCH_
+#ifdef CATCH_CONFIG_PREFIX_ALL
+
+#define CATCH_REQUIRE( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::Normal, "CATCH_REQUIRE" )
+#define CATCH_REQUIRE_FALSE( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::Normal | Catch::ResultDisposition::FalseTest, "CATCH_REQUIRE_FALSE" )
+
+#define CATCH_REQUIRE_THROWS( expr ) INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::Normal, "", "CATCH_REQUIRE_THROWS" )
+#define CATCH_REQUIRE_THROWS_AS( expr, exceptionType ) INTERNAL_CATCH_THROWS_AS( expr, exceptionType, Catch::ResultDisposition::Normal, "CATCH_REQUIRE_THROWS_AS" )
+#define CATCH_REQUIRE_THROWS_WITH( expr, matcher ) INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::Normal, matcher, "CATCH_REQUIRE_THROWS_WITH" )
+#define CATCH_REQUIRE_NOTHROW( expr ) INTERNAL_CATCH_NO_THROW( expr, Catch::ResultDisposition::Normal, "CATCH_REQUIRE_NOTHROW" )
+
+#define CATCH_CHECK( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::ContinueOnFailure, "CATCH_CHECK" )
+#define CATCH_CHECK_FALSE( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::ContinueOnFailure | Catch::ResultDisposition::FalseTest, "CATCH_CHECK_FALSE" )
+#define CATCH_CHECKED_IF( expr ) INTERNAL_CATCH_IF( expr, Catch::ResultDisposition::ContinueOnFailure, "CATCH_CHECKED_IF" )
+#define CATCH_CHECKED_ELSE( expr ) INTERNAL_CATCH_ELSE( expr, Catch::ResultDisposition::ContinueOnFailure, "CATCH_CHECKED_ELSE" )
+#define CATCH_CHECK_NOFAIL( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::ContinueOnFailure | Catch::ResultDisposition::SuppressFail, "CATCH_CHECK_NOFAIL" )
+
+#define CATCH_CHECK_THROWS( expr )  INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::ContinueOnFailure, "CATCH_CHECK_THROWS" )
+#define CATCH_CHECK_THROWS_AS( expr, exceptionType ) INTERNAL_CATCH_THROWS_AS( expr, exceptionType, Catch::ResultDisposition::ContinueOnFailure, "CATCH_CHECK_THROWS_AS" )
+#define CATCH_CHECK_THROWS_WITH( expr, matcher ) INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::ContinueOnFailure, matcher, "CATCH_CHECK_THROWS_WITH" )
+#define CATCH_CHECK_NOTHROW( expr ) INTERNAL_CATCH_NO_THROW( expr, Catch::ResultDisposition::ContinueOnFailure, "CATCH_CHECK_NOTHROW" )
+
+#define CHECK_THAT( arg, matcher ) INTERNAL_CHECK_THAT( arg, matcher, Catch::ResultDisposition::ContinueOnFailure, "CATCH_CHECK_THAT" )
+#define CATCH_REQUIRE_THAT( arg, matcher ) INTERNAL_CHECK_THAT( arg, matcher, Catch::ResultDisposition::Normal, "CATCH_REQUIRE_THAT" )
+
+#define CATCH_INFO( msg ) INTERNAL_CATCH_INFO( msg, "CATCH_INFO" )
+#define CATCH_WARN( msg ) INTERNAL_CATCH_MSG( Catch::ResultWas::Warning, Catch::ResultDisposition::ContinueOnFailure, "CATCH_WARN", msg )
+#define CATCH_SCOPED_INFO( msg ) INTERNAL_CATCH_INFO( msg, "CATCH_INFO" )
+#define CATCH_CAPTURE( msg ) INTERNAL_CATCH_INFO( #msg " := " << msg, "CATCH_CAPTURE" )
+#define CATCH_SCOPED_CAPTURE( msg ) INTERNAL_CATCH_INFO( #msg " := " << msg, "CATCH_CAPTURE" )
+
+#ifdef CATCH_CONFIG_VARIADIC_MACROS
+    #define CATCH_TEST_CASE( ... ) INTERNAL_CATCH_TESTCASE( __VA_ARGS__ )
+    #define CATCH_TEST_CASE_METHOD( className, ... ) INTERNAL_CATCH_TEST_CASE_METHOD( className, __VA_ARGS__ )
+    #define CATCH_METHOD_AS_TEST_CASE( method, ... ) INTERNAL_CATCH_METHOD_AS_TEST_CASE( method, __VA_ARGS__ )
+    #define CATCH_REGISTER_TEST_CASE( Function, ... ) INTERNAL_CATCH_REGISTER_TESTCASE( Function, __VA_ARGS__ )
+    #define CATCH_SECTION( ... ) INTERNAL_CATCH_SECTION( __VA_ARGS__ )
+    #define CATCH_FAIL( ... ) INTERNAL_CATCH_MSG( Catch::ResultWas::ExplicitFailure, Catch::ResultDisposition::Normal, "CATCH_FAIL", __VA_ARGS__ )
+    #define CATCH_SUCCEED( ... ) INTERNAL_CATCH_MSG( Catch::ResultWas::Ok, Catch::ResultDisposition::ContinueOnFailure, "CATCH_SUCCEED", __VA_ARGS__ )
+#else
+    #define CATCH_TEST_CASE( name, description ) INTERNAL_CATCH_TESTCASE( name, description )
+    #define CATCH_TEST_CASE_METHOD( className, name, description ) INTERNAL_CATCH_TEST_CASE_METHOD( className, name, description )
+    #define CATCH_METHOD_AS_TEST_CASE( method, name, description ) INTERNAL_CATCH_METHOD_AS_TEST_CASE( method, name, description )
+    #define CATCH_REGISTER_TEST_CASE( function, name, description ) INTERNAL_CATCH_REGISTER_TESTCASE( function, name, description )
+    #define CATCH_SECTION( name, description ) INTERNAL_CATCH_SECTION( name, description )
+    #define CATCH_FAIL( msg ) INTERNAL_CATCH_MSG( Catch::ResultWas::ExplicitFailure, Catch::ResultDisposition::Normal, "CATCH_FAIL", msg )
+    #define CATCH_SUCCEED( msg ) INTERNAL_CATCH_MSG( Catch::ResultWas::Ok, Catch::ResultDisposition::ContinueOnFailure, "CATCH_SUCCEED", msg )
+#endif
+#define CATCH_ANON_TEST_CASE() INTERNAL_CATCH_TESTCASE( "", "" )
+
+#define CATCH_REGISTER_REPORTER( name, reporterType ) INTERNAL_CATCH_REGISTER_REPORTER( name, reporterType )
+#define CATCH_REGISTER_LEGACY_REPORTER( name, reporterType ) INTERNAL_CATCH_REGISTER_LEGACY_REPORTER( name, reporterType )
+
+#define CATCH_GENERATE( expr) INTERNAL_CATCH_GENERATE( expr )
+
+// "BDD-style" convenience wrappers
+#ifdef CATCH_CONFIG_VARIADIC_MACROS
+#define CATCH_SCENARIO( ... ) CATCH_TEST_CASE( "Scenario: " __VA_ARGS__ )
+#define CATCH_SCENARIO_METHOD( className, ... ) INTERNAL_CATCH_TEST_CASE_METHOD( className, "Scenario: " __VA_ARGS__ )
+#else
+#define CATCH_SCENARIO( name, tags ) CATCH_TEST_CASE( "Scenario: " name, tags )
+#define CATCH_SCENARIO_METHOD( className, name, tags ) INTERNAL_CATCH_TEST_CASE_METHOD( className, "Scenario: " name, tags )
+#endif
+#define CATCH_GIVEN( desc )    CATCH_SECTION( std::string( "Given: ") + desc, "" )
+#define CATCH_WHEN( desc )     CATCH_SECTION( std::string( " When: ") + desc, "" )
+#define CATCH_AND_WHEN( desc ) CATCH_SECTION( std::string( "  And: ") + desc, "" )
+#define CATCH_THEN( desc )     CATCH_SECTION( std::string( " Then: ") + desc, "" )
+#define CATCH_AND_THEN( desc ) CATCH_SECTION( std::string( "  And: ") + desc, "" )
+
+// If CATCH_CONFIG_PREFIX_ALL is not defined then the CATCH_ prefix is not required
+#else
+
+#define REQUIRE( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::Normal, "REQUIRE" )
+#define REQUIRE_FALSE( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::Normal | Catch::ResultDisposition::FalseTest, "REQUIRE_FALSE" )
+
+#define REQUIRE_THROWS( expr ) INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::Normal, "", "REQUIRE_THROWS" )
+#define REQUIRE_THROWS_AS( expr, exceptionType ) INTERNAL_CATCH_THROWS_AS( expr, exceptionType, Catch::ResultDisposition::Normal, "REQUIRE_THROWS_AS" )
+#define REQUIRE_THROWS_WITH( expr, matcher ) INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::Normal, matcher, "REQUIRE_THROWS_WITH" )
+#define REQUIRE_NOTHROW( expr ) INTERNAL_CATCH_NO_THROW( expr, Catch::ResultDisposition::Normal, "REQUIRE_NOTHROW" )
+
+#define CHECK( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::ContinueOnFailure, "CHECK" )
+#define CHECK_FALSE( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::ContinueOnFailure | Catch::ResultDisposition::FalseTest, "CHECK_FALSE" )
+#define CHECKED_IF( expr ) INTERNAL_CATCH_IF( expr, Catch::ResultDisposition::ContinueOnFailure, "CHECKED_IF" )
+#define CHECKED_ELSE( expr ) INTERNAL_CATCH_ELSE( expr, Catch::ResultDisposition::ContinueOnFailure, "CHECKED_ELSE" )
+#define CHECK_NOFAIL( expr ) INTERNAL_CATCH_TEST( expr, Catch::ResultDisposition::ContinueOnFailure | Catch::ResultDisposition::SuppressFail, "CHECK_NOFAIL" )
+
+#define CHECK_THROWS( expr )  INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::ContinueOnFailure, "", "CHECK_THROWS" )
+#define CHECK_THROWS_AS( expr, exceptionType ) INTERNAL_CATCH_THROWS_AS( expr, exceptionType, Catch::ResultDisposition::ContinueOnFailure, "CHECK_THROWS_AS" )
+#define CHECK_THROWS_WITH( expr, matcher ) INTERNAL_CATCH_THROWS( expr, Catch::ResultDisposition::ContinueOnFailure, matcher, "CHECK_THROWS_WITH" )
+#define CHECK_NOTHROW( expr ) INTERNAL_CATCH_NO_THROW( expr, Catch::ResultDisposition::ContinueOnFailure, "CHECK_NOTHROW" )
+
+#define CHECK_THAT( arg, matcher ) INTERNAL_CHECK_THAT( arg, matcher, Catch::ResultDisposition::ContinueOnFailure, "CHECK_THAT" )
+#define REQUIRE_THAT( arg, matcher ) INTERNAL_CHECK_THAT( arg, matcher, Catch::ResultDisposition::Normal, "REQUIRE_THAT" )
+
+#define INFO( msg ) INTERNAL_CATCH_INFO( msg, "INFO" )
+#define WARN( msg ) INTERNAL_CATCH_MSG( Catch::ResultWas::Warning, Catch::ResultDisposition::ContinueOnFailure, "WARN", msg )
+#define SCOPED_INFO( msg ) INTERNAL_CATCH_INFO( msg, "INFO" )
+#define CAPTURE( msg ) INTERNAL_CATCH_INFO( #msg " := " << msg, "CAPTURE" )
+#define SCOPED_CAPTURE( msg ) INTERNAL_CATCH_INFO( #msg " := " << msg, "CAPTURE" )
+
+#ifdef CATCH_CONFIG_VARIADIC_MACROS
+    #define TEST_CASE( ... ) INTERNAL_CATCH_TESTCASE( __VA_ARGS__ )
+    #define TEST_CASE_METHOD( className, ... ) INTERNAL_CATCH_TEST_CASE_METHOD( className, __VA_ARGS__ )
+    #define METHOD_AS_TEST_CASE( method, ... ) INTERNAL_CATCH_METHOD_AS_TEST_CASE( method, __VA_ARGS__ )
+    #define REGISTER_TEST_CASE( Function, ... ) INTERNAL_CATCH_REGISTER_TESTCASE( Function, __VA_ARGS__ )
+    #define SECTION( ... ) INTERNAL_CATCH_SECTION( __VA_ARGS__ )
+    #define FAIL( ... ) INTERNAL_CATCH_MSG( Catch::ResultWas::ExplicitFailure, Catch::ResultDisposition::Normal, "FAIL", __VA_ARGS__ )
+    #define SUCCEED( ... ) INTERNAL_CATCH_MSG( Catch::ResultWas::Ok, Catch::ResultDisposition::ContinueOnFailure, "SUCCEED", __VA_ARGS__ )
+#else
+    #define TEST_CASE( name, description ) INTERNAL_CATCH_TESTCASE( name, description )
+    #define TEST_CASE_METHOD( className, name, description ) INTERNAL_CATCH_TEST_CASE_METHOD( className, name, description )
+    #define METHOD_AS_TEST_CASE( method, name, description ) INTERNAL_CATCH_METHOD_AS_TEST_CASE( method, name, description )
+    #define REGISTER_TEST_CASE( method, name, description ) INTERNAL_CATCH_REGISTER_TESTCASE( method, name, description )
+    #define SECTION( name, description ) INTERNAL_CATCH_SECTION( name, description )
+    #define FAIL( msg ) INTERNAL_CATCH_MSG( Catch::ResultWas::ExplicitFailure, Catch::ResultDisposition::Normal, "FAIL", msg )
+    #define SUCCEED( msg ) INTERNAL_CATCH_MSG( Catch::ResultWas::Ok, Catch::ResultDisposition::ContinueOnFailure, "SUCCEED", msg )
+#endif
+#define ANON_TEST_CASE() INTERNAL_CATCH_TESTCASE( "", "" )
+
+#define REGISTER_REPORTER( name, reporterType ) INTERNAL_CATCH_REGISTER_REPORTER( name, reporterType )
+#define REGISTER_LEGACY_REPORTER( name, reporterType ) INTERNAL_CATCH_REGISTER_LEGACY_REPORTER( name, reporterType )
+
+#define GENERATE( expr) INTERNAL_CATCH_GENERATE( expr )
+
+#endif
+
+#define CATCH_TRANSLATE_EXCEPTION( signature ) INTERNAL_CATCH_TRANSLATE_EXCEPTION( signature )
+
+// "BDD-style" convenience wrappers
+#ifdef CATCH_CONFIG_VARIADIC_MACROS
+#define SCENARIO( ... ) TEST_CASE( "Scenario: " __VA_ARGS__ )
+#define SCENARIO_METHOD( className, ... ) INTERNAL_CATCH_TEST_CASE_METHOD( className, "Scenario: " __VA_ARGS__ )
+#else
+#define SCENARIO( name, tags ) TEST_CASE( "Scenario: " name, tags )
+#define SCENARIO_METHOD( className, name, tags ) INTERNAL_CATCH_TEST_CASE_METHOD( className, "Scenario: " name, tags )
+#endif
+#define GIVEN( desc )    SECTION( std::string("   Given: ") + desc, "" )
+#define WHEN( desc )     SECTION( std::string("    When: ") + desc, "" )
+#define AND_WHEN( desc ) SECTION( std::string("And when: ") + desc, "" )
+#define THEN( desc )     SECTION( std::string("    Then: ") + desc, "" )
+#define AND_THEN( desc ) SECTION( std::string("     And: ") + desc, "" )
+
+using Catch::Detail::Approx;
+
+#endif // TWOBLUECUBES_SINGLE_INCLUDE_CATCH_HPP_INCLUDED
