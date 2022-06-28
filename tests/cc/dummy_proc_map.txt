@@ -15,4 +15,24 @@
 7f1516247000-7f15162ac000 r-xp 00000000 00:1b 72809514                   /some/other/path/tolibs/lib/libssl.so.1.1
 7f15162ac000-7f15164ab000 ---p 00065000 00:1b 72809514                   /some/other/path/tolibs/lib/libssl.so.1.1
 7f15164ab000-7f15164af000 r--p 00064000 00:1b 72809514                   /some/other/path/tolibs/lib/libssl.so.1.1
-7f15164af000-7f15164b5000 rw-p 00068000 00:1b 72809514              
+7f15164af000-7f15164b5000 rw-p 00068000 00:1b 72809514                   /some/other/path/tolibs/lib/libssl.so.1.1
+7f15164b5000-7f15164cf000 r-xp 00000000 00:1b 72809538                   /some/other/path/tolibs/lib/libz.so.1.2.8
+7f15164cf000-7f15166ce000 ---p 0001a000 00:1b 72809538                   /some/other/path/tolibs/lib/libz.so.1.2.8
+7f15166ce000-7f15166cf000 r--p 00019000 00:1b 72809538                   /some/other/path/tolibs/lib/libz.so.1.2.8
+7f15166cf000-7f15166d0000 rw-p 0001a000 00:1b 72809538                   /some/other/path/tolibs/lib/libz.so.1.2.8
+7f15166d0000-7f15166d1000 r-xp 0001b064 00:1b 72809538                   /some/other/path/tolibs/lib/libz.so.1.2.8
+7f15168d4000-7f1516a23000 r-xp 00000000 00:1b 72809463                   /some/other/path/tolibs/lib/libm-2.26.so
+7f1516a23000-7f1516c22000 ---p 0014f000 00:1b 72809463                   /some/other/path/tolibs/lib/libm-2.26.so
+7f1516c22000-7f1516c23000 r--p 0014e000 00:1b 72809463                   /some/other/path/tolibs/lib/libm-2.26.so
+7f1516c23000-7f1516c24000 rw-p 0014f000 00:1b 72809463                   /some/other/path/tolibs/lib/libm-2.26.so
+7f1516c24000-7f1516c3e000 r-xp 00000000 00:1b 72809495                   /some/other/path/tolibs/lib/libpthread-2.26.so
+7f1516c3e000-7f1516e3d000 ---p 0001a000 00:1b 72809495                   /some/other/path/tolibs/lib/libpthread-2.26.so
+7f1516e3d000-7f1516e3e000 r--p 00019000 00:1b 72809495                   /some/other/path/tolibs/lib/libpthread-2.26.so
+7f1516e3e000-7f1516e3f000 rw-p 0001a000 00:1b 72809495                   /some/other/path/tolibs/lib/libpthread-2.26.so
+7f1516e43000-7f1516e6a000 r-xp 00000000 00:1b 72809393                   /some/other/path/tolibs/lib/ld-2.26.so
+7f1517010000-7f1517011000 rw-s 00000000 00:05 1117877022                 /dev/zero (deleted)
+7f1517011000-7f1517012000 rw-s 00000000 00:05 1117877021                 /dev/zero (deleted)
+7f1517012000-7f1517013000 rw-s 00000000 00:05 1117877020                 /dev/zero (deleted)
+7f1517013000-7f151701c000 rw-s 00000000 00:05 1117899207                 /dev/zero (deleted)
+7f151701c000-7f1517069000 rw-p 00000000 00:00 0
+7f1517069000-7f151706a000
