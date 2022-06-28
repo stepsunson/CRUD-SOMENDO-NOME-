@@ -1,0 +1,18 @@
+00400000-007c8000 r-xp 00000000 00:1b 11644523                           /opt/some/path/tobinary/bin/binary
+7f151476e000-7f1514779000 r-xp 00000000 00:1b 72809479                   /some/other/path/tolibs/lib/libnss_files-2.26.so
+7f1514779000-7f1514978000 ---p 0000b000 00:1b 72809479                   /some/other/path/tolibs/lib/libnss_files-2.26.so
+7f1514978000-7f1514979000 r--p 0000a000 00:1b 72809479                   /some/other/path/tolibs/lib/libnss_files-2.26.so
+7f1514979000-7f151497a000 rw-p 0000b000 00:1b 72809479                   /some/other/path/tolibs/lib/libnss_files-2.26.so
+7f1515b7e000-7f1515b7f000 rw-p 00009000 00:1b 72809418                   /some/other/path/tolibs/lib/libcrypt-2.26.so
+7f1515bad000-7f1515baf000 r-xp 00000000 00:1b 72809526                   /some/other/path/tolibs/lib/libutil-2.26.so
+7f1515baf000-7f1515dae000 ---p 00002000 00:1b 72809526                   /some/other/path/tolibs/lib/libutil-2.26.so
+7f1515dae000-7f1515daf000 r--p 00001000 00:1b 72809526                   /some/other/path/tolibs/lib/libutil-2.26.so
+7f1515daf000-7f1515db0000 rw-p 00002000 00:1b 72809526                   /some/other/path/tolibs/lib/libutil-2.26.so
+7f1515db0000-7f151601c000 r-xp 00000000 00:1b 72809420                   /some/other/path/tolibs/lib/libcrypto.so.1.1
+7f151601c000-7f151621c000 ---p 0026c000 00:1b 72809420                   /some/other/path/tolibs/lib/libcrypto.so.1.1
+7f151621c000-7f151623a000 r--p 0026c000 00:1b 72809420                   /some/other/path/tolibs/lib/libcrypto.so.1.1
+7f151623a000-7f1516244000 rw-p 0028a000 00:1b 72809420                   /some/other/path/tolibs/lib/libcrypto.so.1.1
+7f1516247000-7f15162ac000 r-xp 00000000 00:1b 72809514                   /some/other/path/tolibs/lib/libssl.so.1.1
+7f15162ac000-7f15164ab000 ---p 00065000 00:1b 72809514                   /some/other/path/tolibs/lib/libssl.so.1.1
+7f15164ab000-7f15164af000 r--p 00064000 00:1b 72809514                   /some/other/path/tolibs/lib/libssl.so.1.1
+7f15164af000-7f15164b5000 rw-p 00068000 00:1b 72809514              

@@ -1,3 +1,4 @@
 extern "C" {
 
-int symbol() { return 0;
+int symbol() { return 0; }
+}
