@@ -35,4 +35,11 @@
 7f1517012000-7f1517013000 rw-s 00000000 00:05 1117877020                 /dev/zero (deleted)
 7f1517013000-7f151701c000 rw-s 00000000 00:05 1117899207                 /dev/zero (deleted)
 7f151701c000-7f1517069000 rw-p 00000000 00:00 0
-7f1517069000-7f151706a000
+7f1517069000-7f151706a000 r--p 00026000 00:1b 72809393                   /some/other/path/tolibs/lib/ld-2.26.so
+7f151706a000-7f151706b000 rw-p 00027000 00:1b 72809393                   /some/other/path/tolibs/lib/ld-2.26.so
+7f151706b000-7f151706c000 rw-p 00000000 00:00 0
+7ffd5070d000-7ffd5073d000 rwxp 00000000 00:00 0                          [stack]
+7ffd5073d000-7ffd5073e000 rw-p 00000000 00:00 0
+7ffd507d7000-7ffd507da000 r--p 00000000 00:00 0                          [vvar]
+7ffd507da000-7ffd507dc000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
