@@ -174,4 +174,20 @@ TEST_CASE("percpu hash table", "[percpu_hash_table]") {
 
     // get whole table
     auto offline = t.get_table_offline();
-    REQ
+    REQUIRE(offline.size() == 10);
+    for (int i = 0; i < 10; i++) {
+      // check the key
+      REQUIRE(offline.at(i).first % 3 == 0);
+
+      // check value
+      for (size_t cpu = 0; cpu < ncpus; cpu++) {
+        REQUIRE(offline.at(i).second.at(cpu) == cpu * offline.at(i).first);
+      }
+    }
+
+    // clear table
+    t.clear_table_non_atomic();
+    REQUIRE(t.get_table_offline().size() == 0);
+  }
+}
+#endif
