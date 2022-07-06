@@ -134,4 +134,79 @@ TEST_CASE("test hash of maps using custom key", "[hash_of_maps_custom_key]") {
           void *inner_map;
 
           val = cntl.lookup(&key);
-          if (!val 
+          if (!val || *val == 0)
+            return 0;
+
+          hash_key.value_2 = *val;
+          inner_map = maps_hash.lookup(&hash_key);
+          if (!inner_map)
+            return 0;
+
+          val = bpf_map_lookup_elem(inner_map, &key);
+          if (!val) {
+            data = 1;
+            bpf_map_update_elem(inner_map, &key, &data, 0);
+          } else {
+            data = 1 + *val;
+            bpf_map_update_elem(inner_map, &key, &data, 0);
+          }
+
+          return 0;
+        }
+    )";
+
+    struct custom_key {
+      int value_1;
+      int value_2;
+    };
+
+    ebpf::BPF bpf;
+    ebpf::StatusTuple res(0);
+    res = bpf.init(BPF_PROGRAM);
+    REQUIRE(res.ok());
+
+    auto t = bpf.get_map_in_map_table<struct custom_key>("maps_hash");
+    auto ex1_table = bpf.get_hash_table<int, int>("ex1");
+    auto ex2_table = bpf.get_hash_table<int, int>("ex2");
+    auto cntl_table = bpf.get_array_table<int>("cntl");
+    int ex1_fd = ex1_table.get_fd();
+    int ex2_fd = ex2_table.get_fd();
+
+    // test effectiveness of map-in-map
+    std::string getuid_fnname = bpf.get_syscall_fnname("getuid");
+    res = bpf.attach_kprobe(getuid_fnname, "syscall__getuid");
+    REQUIRE(res.ok());
+
+    struct custom_key hash_key = {1, 1};
+
+    res = t.update_value(hash_key, ex1_fd);
+    REQUIRE(res.ok());
+
+    struct custom_key hash_key2 = {1, 2};
+    res = t.update_value(hash_key2, ex2_fd);
+    REQUIRE(res.ok());
+
+    int key = 0, value = 0, value2 = 0;
+
+    // Can't get value when value didn't set.
+    res = ex1_table.get_value(key, value);
+    REQUIRE(!res.ok());
+    REQUIRE(value == 0);
+
+    // Call syscall__getuid, then set value to ex1_table
+    res = cntl_table.update_value(key, 1);
+    REQUIRE(res.ok());
+    REQUIRE(getuid() >= 0);
+
+    // Now we can get value from ex1_table
+    res = ex1_table.get_value(key, value);
+    REQUIRE(res.ok());
+    REQUIRE(value >= 1);
+
+    // Can't get value when value didn't set.
+    res = ex2_table.get_value(key, value2);
+    REQUIRE(!res.ok());
+    REQUIRE(value2 == 0);
+
+    // Call syscall__getuid, then set value to ex2_table
+    res = cntl_table.update_value
