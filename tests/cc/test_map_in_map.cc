@@ -61,4 +61,77 @@ TEST_CASE("test hash of maps", "[hash_of_maps]") {
     ebpf::BPF bpf;
     ebpf::StatusTuple res(0);
     res = bpf.init(BPF_PROGRAM);
-    REQUIRE(res.ok(
+    REQUIRE(res.ok());
+
+    auto t = bpf.get_map_in_map_table<int>("maps_hash");
+    auto ex1_table = bpf.get_array_table<int>("ex1");
+    auto ex2_table = bpf.get_array_table<int>("ex2");
+    auto ex3_table = bpf.get_array_table<unsigned long long>("ex3");
+    int ex1_fd = ex1_table.get_fd();
+    int ex2_fd = ex2_table.get_fd();
+    int ex3_fd = ex3_table.get_fd();
+
+    int key = 0, value = 0;
+    res = t.update_value(key, ex1_fd);
+    REQUIRE(res.ok());
+
+    // updating already-occupied slot will succeed.
+    res = t.update_value(key, ex2_fd);
+    REQUIRE(res.ok());
+    res = t.update_value(key, ex1_fd);
+    REQUIRE(res.ok());
+
+    // an in-compatible map
+    key = 1;
+    res = t.update_value(key, ex3_fd);
+    REQUIRE(res.code() == -1);
+
+    // hash table, any valid key should work as long
+    // as hash table is not full.
+    key = 10;
+    res = t.update_value(key, ex2_fd);
+    REQUIRE(res.ok());
+    res = t.remove_value(key);
+    REQUIRE(res.ok());
+
+    // test effectiveness of map-in-map
+    key = 0;
+    std::string getuid_fnname = bpf.get_syscall_fnname("getuid");
+    res = bpf.attach_kprobe(getuid_fnname, "syscall__getuid");
+    REQUIRE(res.ok());
+
+    auto cntl_table = bpf.get_array_table<int>("cntl");
+    cntl_table.update_value(0, 1);
+    REQUIRE(getuid() >= 0);
+    res = ex1_table.get_value(key, value);
+    REQUIRE(res.ok());
+    REQUIRE(value > 0);
+
+    res = bpf.detach_kprobe(getuid_fnname);
+    REQUIRE(res.ok());
+
+    res = t.remove_value(key);
+    REQUIRE(res.ok());
+  }
+}
+
+TEST_CASE("test hash of maps using custom key", "[hash_of_maps_custom_key]") {
+  {
+    const std::string BPF_PROGRAM = R"(
+        struct custom_key {
+          int value_1;
+          int value_2;
+        };
+
+        BPF_ARRAY(cntl, int, 1);
+        BPF_TABLE("hash", int, int, ex1, 1024);
+        BPF_TABLE("hash", int, int, ex2, 1024);
+        BPF_HASH_OF_MAPS(maps_hash, struct custom_key, "ex1", 10);
+
+        int syscall__getuid(void *ctx) {
+          struct custom_key hash_key = {1, 0};
+          int key = 0, data, *val, cntl_val;
+          void *inner_map;
+
+          val = cntl.lookup(&key);
+          if (!val 
