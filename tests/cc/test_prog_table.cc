@@ -11,4 +11,55 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the Licen
+ * limitations under the License.
+ */
+
+#include "BPF.h"
+
+#include "catch.hpp"
+
+TEST_CASE("test prog table", "[prog_table]") {
+  const std::string BPF_PROGRAM = R"(
+    BPF_TABLE("prog", int, int, myprog, 16);
+  )";
+
+  const std::string BPF_PROGRAM2 = R"(
+    int hello(struct __sk_buff *skb) {
+      return 1;
+    }
+  )";
+
+  ebpf::StatusTuple res(0);
+
+  ebpf::BPF bpf;
+  res = bpf.init(BPF_PROGRAM);
+  REQUIRE(res.ok());
+
+  ebpf::BPFProgTable t = bpf.get_prog_table("myprog");
+
+  ebpf::BPF bpf2;
+  res = bpf2.init(BPF_PROGRAM2);
+  REQUIRE(res.ok());
+
+  int fd;
+  res = bpf2.load_func("hello", BPF_PROG_TYPE_SCHED_CLS, fd);
+  REQUIRE(res.ok());
+
+  SECTION("update and remove") {
+    // update element
+    res = t.update_value(0, fd);
+    REQUIRE(res.ok());
+
+    // remove element
+    res = t.remove_value(0);
+    REQUIRE(res.ok());
+
+    // update out of range element
+    res = t.update_value(17, fd);
+    REQUIRE(!res.ok());
+
+    // remove out of range element
+    res = t.remove_value(17);
+    REQUIRE(!res.ok());
+  }
+}
