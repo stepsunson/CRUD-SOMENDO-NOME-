@@ -284,4 +284,46 @@ TEST_CASE("test array of maps", "[array_of_maps]") {
     res = t.update_value(key, ex1_fd);
     REQUIRE(res.ok());
 
-    // updating already-occupied slo
+    // updating already-occupied slot will succeed.
+    res = t.update_value(key, ex2_fd);
+    REQUIRE(res.ok());
+    res = t.update_value(key, ex1_fd);
+    REQUIRE(res.ok());
+
+    // an in-compatible map
+    key = 1;
+    res = t.update_value(key, ex3_fd);
+    REQUIRE(res.code() == -1);
+
+    // array table, out of bound access
+    key = 10;
+    res = t.update_value(key, ex2_fd);
+    REQUIRE(res.code() == -1);
+
+    // test effectiveness of map-in-map
+    key = 0;
+    std::string getuid_fnname = bpf.get_syscall_fnname("getuid");
+    res = bpf.attach_kprobe(getuid_fnname, "syscall__getuid");
+    REQUIRE(res.ok());
+
+    auto cntl_table = bpf.get_array_table<int>("cntl");
+    cntl_table.update_value(0, 1);
+
+    REQUIRE(getuid() >= 0);
+    res = ex1_table.get_value(key, value);
+    REQUIRE(res.ok());
+    REQUIRE(value == 1);
+
+    cntl_table.update_value(0, 2);
+    REQUIRE(getuid() >= 0);
+    res = ex1_table.get_value(key, value);
+    REQUIRE(res.code() == -1);
+
+    res = bpf.detach_kprobe(getuid_fnname);
+    REQUIRE(res.ok());
+
+    res = t.remove_value(key);
+    REQUIRE(res.ok());
+  }
+}
+#endif
