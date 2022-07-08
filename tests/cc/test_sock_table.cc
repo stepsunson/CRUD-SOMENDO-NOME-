@@ -105,4 +105,12 @@ int test(struct bpf_sock_ops *skops)
     auto sk_hash = bpf.get_sockhash_table("sk_hash1");
     int key = 0, val = sockfd;
 
-    res = sk_hash.remove_value
+    res = sk_hash.remove_value(key);
+    REQUIRE(!res.ok());
+
+    res = sk_hash.update_value(key, val);
+    REQUIRE(res.ok() == expected_update_result);
+  }
+}
+
+#endif
