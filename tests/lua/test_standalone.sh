@@ -23,4 +23,10 @@ fi
 rm -f probe.lua
 echo "return function(BPF) print(\"Hello world\") end" > probe.lua
 
-PROBE="../.
+PROBE="../../examples/lua/offcputime.lua"
+
+if ! sudo ./bcc-lua "$PROBE" -d 1 >/dev/null 2>/dev/null; then
+    fail "bcc-lua cannot run complex probes"
+fi
+
+rm -f libbcc.so probe.lua
