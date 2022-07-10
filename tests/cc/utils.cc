@@ -17,4 +17,18 @@
 #include <stdio.h>
 
 int cmd_scanf(const char *cmd, const char *fmt, ...) {
-  va_list arg
+  va_list args;
+  FILE *pipe;
+
+  va_start(args, fmt);
+  pipe = popen(cmd, "r");
+  if (pipe == NULL) {
+    va_end(args);
+    return -1;
+  }
+
+  vfscanf(pipe, fmt, args);
+  va_end(args);
+  pclose(pipe);
+  return 0;
+}

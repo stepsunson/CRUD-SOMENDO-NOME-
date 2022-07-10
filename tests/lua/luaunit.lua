@@ -1,0 +1,979 @@
+
+--[[
+        luaunit.lua
+
+Description: A unit testing framework
+Homepage: https://github.com/bluebird75/luaunit
+Development by Philippe Fremy <phil@freehackers.org>
+Based on initial work of Ryu, Gwang (http://www.gpgstudy.com/gpgiki/LuaUnit)
+License: BSD License, see LICENSE.txt
+Version: 3.2
+]]--
+
+require("math")
+local M={}
+
+-- private exported functions (for testing)
+M.private = {}
+
+M.VERSION='3.2'
+
+--[[ Some people like assertEquals( actual, expected ) and some people prefer
+assertEquals( expected, actual ).
+]]--
+M.ORDER_ACTUAL_EXPECTED = true
+M.PRINT_TABLE_REF_IN_ERROR_MSG = false
+M.TABLE_EQUALS_KEYBYCONTENT = true
+M.LINE_LENGTH=80
+
+-- set this to false to debug luaunit
+local STRIP_LUAUNIT_FROM_STACKTRACE=true
+
+M.VERBOSITY_DEFAULT = 10
+M.VERBOSITY_LOW     = 1
+M.VERBOSITY_QUIET   = 0
+M.VERBOSITY_VERBOSE = 20
+
+-- set EXPORT_ASSERT_TO_GLOBALS to have all asserts visible as global values
+-- EXPORT_ASSERT_TO_GLOBALS = true
+
+-- we need to keep a copy of the script args before it is overridden
+local cmdline_argv = rawget(_G, "arg")
+
+M.FAILURE_PREFIX = 'LuaUnit test FAILURE: ' -- prefix string for failed tests
+
+M.USAGE=[[Usage: lua <your_test_suite.lua> [options] [testname1 [testname2] ... ]
+Options:
+  -h, --help:             Print this help
+  --version:              Print version information
+  -v, --verbose:          Increase verbosity
+  -q, --quiet:            Set verbosity to minimum
+  -e, --error:            Stop on first error
+  -f, --failure:          Stop on first failure or error
+  -o, --output OUTPUT:    Set output type to OUTPUT
+                          Possible values: text, tap, junit, nil
+  -n, --name NAME:        For junit only, mandatory name of xml file
+  -p, --pattern PATTERN:  Execute all test names matching the Lua PATTERN
+                          May be repeated to include severals patterns
+                          Make sure you escape magic chars like +? with %
+  testname1, testname2, ... : tests to run in the form of testFunction,
+                              TestClass or TestClass.testMethod
+]]
+
+----------------------------------------------------------------
+--
+--                 general utility functions
+--
+----------------------------------------------------------------
+
+local crossTypeOrdering = {
+    number = 1,
+    boolean = 2,
+    string = 3,
+    table = 4,
+    other = 5
+}
+local crossTypeComparison = {
+    number = function(a, b) return a < b end,
+    string = function(a, b) return a < b end,
+    other = function(a, b) return tostring(a) < tostring(b) end,
+}
+
+local function crossTypeSort(a, b)
+    local type_a, type_b = type(a), type(b)
+    if type_a == type_b then
+        local func = crossTypeComparison[type_a] or crossTypeComparison.other
+        return func(a, b)
+    end
+    type_a = crossTypeOrdering[type_a] or crossTypeOrdering.other
+    type_b = crossTypeOrdering[type_b] or crossTypeOrdering.other
+    return type_a < type_b
+end
+
+local function __genSortedIndex( t )
+    -- Returns a sequence consisting of t's keys, sorted.
+    local sortedIndex = {}
+
+    for key,_ in pairs(t) do
+        table.insert(sortedIndex, key)
+    end
+
+    table.sort(sortedIndex, crossTypeSort)
+    return sortedIndex
+end
+M.private.__genSortedIndex = __genSortedIndex
+
+local function sortedNext(state, control)
+    -- Equivalent of the next() function of table iteration, but returns the
+    -- keys in sorted order (see __genSortedIndex and crossTypeSort).
+    -- The state is a temporary variable during iteration and contains the
+    -- sorted key table (state.sortedIdx). It also stores the last index (into
+    -- the keys) used by the iteration, to find the next one quickly.
+    local key
+
+    --print("sortedNext: control = "..tostring(control) )
+    if control == nil then
+        -- start of iteration
+        state.lastIdx = 1
+        key = state.sortedIdx[1]
+        return key, state.t[key]
+    end
+
+    -- normally, we expect the control variable to match the last key used
+    if control ~= state.sortedIdx[state.lastIdx] then
+        -- strange, we have to find the next value by ourselves
+        -- the key table is sorted in crossTypeSort() order! -> use bisection
+        local count = #state.sortedIdx
+        local lower, upper = 1, count
+        repeat
+            state.lastIdx = math.modf((lower + upper) / 2)
+            key = state.sortedIdx[state.lastIdx]
+            if key == control then break; end -- key found (and thus prev index)
+            if crossTypeSort(key, control) then
+                -- key < control, continue search "right" (towards upper bound)
+                lower = state.lastIdx + 1
+            else
+                -- key > control, continue search "left" (towards lower bound)
+                upper = state.lastIdx - 1
+            end
+        until lower > upper
+        if lower > upper then -- only true if the key wasn't found, ...
+            state.lastIdx = count -- ... so ensure no match for the code below
+        end
+    end
+
+    -- proceed by retrieving the next value (or nil) from the sorted keys
+    state.lastIdx = state.lastIdx + 1
+    key = state.sortedIdx[state.lastIdx]
+    if key then
+        return key, state.t[key]
+    end
+
+    -- getting here means returning `nil`, which will end the iteration
+end
+
+local function sortedPairs(tbl)
+    -- Equivalent of the pairs() function on tables. Allows to iterate in
+    -- sorted order. As required by "generic for" loops, this will return the
+    -- iterator (function), an "invariant state", and the initial control value.
+    -- (see http://www.lua.org/pil/7.2.html)
+    return sortedNext, {t = tbl, sortedIdx = __genSortedIndex(tbl)}, nil
+end
+M.private.sortedPairs = sortedPairs
+
+local function strsplit(delimiter, text)
+-- Split text into a list consisting of the strings in text,
+-- separated by strings matching delimiter (which may be a pattern).
+-- example: strsplit(",%s*", "Anna, Bob, Charlie,Dolores")
+    if string.find("", delimiter, 1, true) then -- this would result in endless loops
+        error("delimiter matches empty string!")
+    end
+    local list, pos, first, last = {}, 1
+    while true do
+        first, last = text:find(delimiter, pos, true)
+        if first then -- found?
+            table.insert(list, text:sub(pos, first - 1))
+            pos = last + 1
+        else
+            table.insert(list, text:sub(pos))
+            break
+        end
+    end
+    return list
+end
+M.private.strsplit = strsplit
+
+local function hasNewLine( s )
+    -- return true if s has a newline
+    return (string.find(s, '\n', 1, true) ~= nil)
+end
+M.private.hasNewLine = hasNewLine
+
+local function prefixString( prefix, s )
+    -- Prefix all the lines of s with prefix
+    return prefix .. table.concat(strsplit('\n', s), '\n' .. prefix)
+end
+M.private.prefixString = prefixString
+
+local function strMatch(s, pattern, start, final )
+    -- return true if s matches completely the pattern from index start to index end
+    -- return false in every other cases
+    -- if start is nil, matches from the beginning of the string
+    -- if final is nil, matches to the end of the string
+    start = start or 1
+    final = final or string.len(s)
+
+    local foundStart, foundEnd = string.find(s, pattern, start, false)
+    return foundStart == start and foundEnd == final
+end
+M.private.strMatch = strMatch
+
+local function xmlEscape( s )
+    -- Return s escaped for XML attributes
+    -- escapes table:
+    -- "   &quot;
+    -- '   &apos;
+    -- <   &lt;
+    -- >   &gt;
+    -- &   &amp;
+
+    return string.gsub( s, '.', {
+        ['&'] = "&amp;",
+        ['"'] = "&quot;",
+        ["'"] = "&apos;",
+        ['<'] = "&lt;",
+        ['>'] = "&gt;",
+    } )
+end
+M.private.xmlEscape = xmlEscape
+
+local function xmlCDataEscape( s )
+    -- Return s escaped for CData section, escapes: "]]>"
+    return string.gsub( s, ']]>', ']]&gt;' )
+end
+M.private.xmlCDataEscape = xmlCDataEscape
+
+local function stripLuaunitTrace( stackTrace )
+    --[[
+    -- Example of  a traceback:
+    <<stack traceback:
+        example_with_luaunit.lua:130: in function 'test2_withFailure'
+        ./luaunit.lua:1449: in function <./luaunit.lua:1449>
+        [C]: in function 'xpcall'
+        ./luaunit.lua:1449: in function 'protectedCall'
+        ./luaunit.lua:1508: in function 'execOneFunction'
+        ./luaunit.lua:1596: in function 'runSuiteByInstances'
+        ./luaunit.lua:1660: in function 'runSuiteByNames'
+        ./luaunit.lua:1736: in function 'runSuite'
+        example_with_luaunit.lua:140: in main chunk
+        [C]: in ?>>
+
+        Other example:
+    <<stack traceback:
+        ./luaunit.lua:545: in function 'assertEquals'
+        example_with_luaunit.lua:58: in function 'TestToto.test7'
+        ./luaunit.lua:1517: in function <./luaunit.lua:1517>
+        [C]: in function 'xpcall'
+        ./luaunit.lua:1517: in function 'protectedCall'
+        ./luaunit.lua:1578: in function 'execOneFunction'
+        ./luaunit.lua:1677: in function 'runSuiteByInstances'
+        ./luaunit.lua:1730: in function 'runSuiteByNames'
+        ./luaunit.lua:1806: in function 'runSuite'
+        example_with_luaunit.lua:140: in main chunk
+        [C]: in ?>>
+
+    <<stack traceback:
+        luaunit2/example_with_luaunit.lua:124: in function 'test1_withFailure'
+        luaunit2/luaunit.lua:1532: in function <luaunit2/luaunit.lua:1532>
+        [C]: in function 'xpcall'
+        luaunit2/luaunit.lua:1532: in function 'protectedCall'
+        luaunit2/luaunit.lua:1591: in function 'execOneFunction'
+        luaunit2/luaunit.lua:1679: in function 'runSuiteByInstances'
+        luaunit2/luaunit.lua:1743: in function 'runSuiteByNames'
+        luaunit2/luaunit.lua:1819: in function 'runSuite'
+        luaunit2/example_with_luaunit.lua:140: in main chunk
+        [C]: in ?>>
+
+
+    -- first line is "stack traceback": KEEP
+    -- next line may be luaunit line: REMOVE
+    -- next lines are call in the program under testOk: REMOVE
+    -- next lines are calls from luaunit to call the program under test: KEEP
+
+    -- Strategy:
+    -- keep first line
+    -- remove lines that are part of luaunit
+    -- kepp lines until we hit a luaunit line
+    ]]
+
+    local function isLuaunitInternalLine( s )
+        -- return true if line of stack trace comes from inside luaunit
+        return s:find('[/\\]luaunit%.lua:%d+: ') ~= nil
+    end
+
+    -- print( '<<'..stackTrace..'>>' )
+
+    local t = strsplit( '\n', stackTrace )
+    -- print( prettystr(t) )
+
+    local idx = 2
+
+    -- remove lines that are still part of luaunit
+    while t[idx] and isLuaunitInternalLine( t[idx] ) do
+        -- print('Removing : '..t[idx] )
+        table.remove(t, idx)
+    end
+
+    -- keep lines until we hit luaunit again
+    while t[idx] and (not isLuaunitInternalLine(t[idx])) do
+        -- print('Keeping : '..t[idx] )
+        idx = idx + 1
+    end
+
+    -- remove remaining luaunit lines
+    while t[idx] do
+        -- print('Removing : '..t[idx] )
+        table.remove(t, idx)
+    end
+
+    -- print( prettystr(t) )
+    return table.concat( t, '\n')
+
+end
+M.private.stripLuaunitTrace = stripLuaunitTrace
+
+
+local function prettystr_sub(v, indentLevel, keeponeline, printTableRefs, recursionTable )
+    local type_v = type(v)
+    if "string" == type_v  then
+        if keeponeline then v = v:gsub("\n", "\\n") end
+
+        -- use clever delimiters according to content:
+        -- enclose with single quotes if string contains ", but no '
+        if v:find('"', 1, true) and not v:find("'", 1, true) then
+            return "'" .. v .. "'"
+        end
+        -- use double quotes otherwise, escape embedded "
+        return '"' .. v:gsub('"', '\\"') .. '"'
+
+    elseif "table" == type_v then
+        --if v.__class__ then
+        --    return string.gsub( tostring(v), 'table', v.__class__ )
+        --end
+        return M.private._table_tostring(v, indentLevel, printTableRefs, recursionTable)
+    end
+
+    return tostring(v)
+end
+
+local function prettystr( v, keeponeline )
+    --[[ Better string conversion, to display nice variable content:
+    For strings, if keeponeline is set to true, string is displayed on one line, with visible \n
+    * string are enclosed with " by default, or with ' if string contains a "
+    * if table is a class, display class name
+    * tables are expanded
+    ]]--
+    local recursionTable = {}
+    local s = prettystr_sub(v, 1, keeponeline, M.PRINT_TABLE_REF_IN_ERROR_MSG, recursionTable)
+    if recursionTable.recursionDetected and not M.PRINT_TABLE_REF_IN_ERROR_MSG then
+        -- some table contain recursive references,
+        -- so we must recompute the value by including all table references
+        -- else the result looks like crap
+        recursionTable = {}
+        s = prettystr_sub(v, 1, keeponeline, true, recursionTable)
+    end
+    return s
+end
+M.prettystr = prettystr
+
+local function prettystrPadded(value1, value2, suffix_a, suffix_b)
+    --[[
+    This function helps with the recurring task of constructing the "expected
+    vs. actual" error messages. It takes two arbitrary values and formats
+    corresponding strings with prettystr().
+
+    To keep the (possibly complex) output more readable in case the resulting
+    strings contain line breaks, they get automatically prefixed with additional
+    newlines. Both suffixes are optional (default to empty strings), and get
+    appended to the "value1" string. "suffix_a" is used if line breaks were
+    encountered, "suffix_b" otherwise.
+
+    Returns the two formatted strings (including padding/newlines).
+    ]]
+    local str1, str2 = prettystr(value1), prettystr(value2)
+    if hasNewLine(str1) or hasNewLine(str2) then
+        -- line break(s) detected, add padding
+        return "\n" .. str1 .. (suffix_a or ""), "\n" .. str2
+    end
+    return str1 .. (suffix_b or ""), str2
+end
+M.private.prettystrPadded = prettystrPadded
+
+local function _table_keytostring(k)
+    -- like prettystr but do not enclose with "" if the string is just alphanumerical
+    -- this is better for displaying table keys who are often simple strings
+    if "string" == type(k) and k:match("^[_%a][_%w]*$") then
+        return k
+    end
+    return prettystr(k)
+end
+M.private._table_keytostring = _table_keytostring
+
+local TABLE_TOSTRING_SEP = ", "
+local TABLE_TOSTRING_SEP_LEN = string.len(TABLE_TOSTRING_SEP)
+
+local function _table_tostring( tbl, indentLevel, printTableRefs, recursionTable )
+    printTableRefs = printTableRefs or M.PRINT_TABLE_REF_IN_ERROR_MSG
+    recursionTable = recursionTable or {}
+    recursionTable[tbl] = true
+
+    local result, dispOnMultLines = {}, false
+
+    local entry, count, seq_index = nil, 0, 1
+    for k, v in sortedPairs( tbl ) do
+        if k == seq_index then
+            -- for the sequential part of tables, we'll skip the "<key>=" output
+            entry = ''
+            seq_index = seq_index + 1
+        else
+            entry = _table_keytostring( k ) .. "="
+        end
+        if recursionTable[v] then -- recursion detected!
+            recursionTable.recursionDetected = true
+            entry = entry .. "<"..tostring(v)..">"
+        else
+            entry = entry ..
+                prettystr_sub( v, indentLevel+1, true, printTableRefs, recursionTable )
+        end
+        count = count + 1
+        result[count] = entry
+    end
+
+    -- set dispOnMultLines if the maximum LINE_LENGTH would be exceeded
+    local totalLength = 0
+    for k, v in ipairs( result ) do
+        totalLength = totalLength + string.len( v )
+        if totalLength >= M.LINE_LENGTH then
+            dispOnMultLines = true
+            break
+        end
+    end
+
+    if not dispOnMultLines then
+        -- adjust with length of separator(s):
+        -- two items need 1 sep, three items two seps, ... plus len of '{}'
+        if count > 0 then
+            totalLength = totalLength + TABLE_TOSTRING_SEP_LEN * (count - 1)
+        end
+        dispOnMultLines = totalLength + 2 >= M.LINE_LENGTH
+    end
+
+    -- now reformat the result table (currently holding element strings)
+    if dispOnMultLines then
+        local indentString = string.rep("    ", indentLevel - 1)
+        result = {"{\n    ", indentString,
+                  table.concat(result, ",\n    " .. indentString), "\n",
+                  indentString, "}"}
+    else
+        result = {"{", table.concat(result, TABLE_TOSTRING_SEP), "}"}
+    end
+    if printTableRefs then
+        table.insert(result, 1, "<"..tostring(tbl).."> ") -- prepend table ref
+    end
+    return table.concat(result)
+end
+M.private._table_tostring = _table_tostring -- prettystr_sub() needs it
+
+local function _table_contains(t, element)
+    if t then
+        for _, value in pairs(t) do
+            if type(value) == type(element) then
+                if type(element) == 'table' then
+                    -- if we wanted recursive items content comparison, we could use
+                    -- _is_table_items_equals(v, expected) but one level of just comparing
+                    -- items is sufficient
+                    if M.private._is_table_equals( value, element ) then
+                        return true
+                    end
+                else
+                    if value == element then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+local function _is_table_items_equals(actual, expected )
+    if (type(actual) == 'table') and (type(expected) == 'table') then
+        for k,v in pairs(actual) do
+            if not _table_contains(expected, v) then
+                return false
+            end
+        end
+        for k,v in pairs(expected) do
+            if not _table_contains(actual, v) then
+                return false
+            end
+        end
+        return true
+    elseif type(actual) ~= type(expected) then
+        return false
+    elseif actual == expected then
+        return true
+    end
+    return false
+end
+
+local function _is_table_equals(actual, expected)
+    if (type(actual) == 'table') and (type(expected) == 'table') then
+        if (#actual ~= #expected) then
+            return false
+        end
+
+        local actualTableKeys = {}
+        for k,v in pairs(actual) do
+            if M.TABLE_EQUALS_KEYBYCONTENT and type(k) == "table" then
+                -- If the keys are tables, things get a bit tricky here as we
+                -- can have _is_table_equals(k1, k2) and t[k1] ~= t[k2]. So we
+                -- collect actual's table keys, group them by length for
+                -- performance, and then for each table key in expected we look
+                -- it up in actualTableKeys.
+                if not actualTableKeys[#k] then actualTableKeys[#k] = {} end
+                table.insert(actualTableKeys[#k], k)
+            else
+                if not _is_table_equals(v, expected[k]) then
+                    return false
+                end
+            end
+        end
+
+        for k,v in pairs(expected) do
+            if M.TABLE_EQUALS_KEYBYCONTENT and type(k) == "table" then
+                local candidates = actualTableKeys[#k]
+                if not candidates then return false end
+                local found
+                for i, candidate in pairs(candidates) do
+                    if _is_table_equals(candidate, k) then
+                        found = candidate
+                        -- Remove the candidate we matched against from the list
+                        -- of candidates, so each key in actual can only match
+                        -- one key in expected.
+                        candidates[i] = nil
+                        break
+                    end
+                end
+                if not(found and _is_table_equals(actual[found], v)) then return false end
+            else
+                if not _is_table_equals(v, actual[k]) then
+                    return false
+                end
+            end
+        end
+
+        if M.TABLE_EQUALS_KEYBYCONTENT then
+            for _, keys in pairs(actualTableKeys) do
+                -- if there are any keys left in any actualTableKeys[i] then
+                -- that is a key in actual with no matching key in expected,
+                -- and so the tables aren't equal.
+                if next(keys) then return false end
+            end
+        end
+
+        return true
+    elseif type(actual) ~= type(expected) then
+        return false
+    elseif actual == expected then
+        return true
+    end
+    return false
+end
+M.private._is_table_equals = _is_table_equals
+
+local function failure(msg, level)
+    -- raise an error indicating a test failure
+    -- for error() compatibility we adjust "level" here (by +1), to report the
+    -- calling context
+    error(M.FAILURE_PREFIX .. msg, (level or 1) + 1)
+end
+
+local function fail_fmt(level, ...)
+     -- failure with printf-style formatted message and given error level
+    failure(string.format(...), (level or 1) + 1)
+end
+M.private.fail_fmt = fail_fmt
+
+local function error_fmt(level, ...)
+     -- printf-style error()
+    error(string.format(...), (level or 1) + 1)
+end
+
+----------------------------------------------------------------
+--
+--                     assertions
+--
+----------------------------------------------------------------
+
+local function errorMsgEquality(actual, expected)
+    if not M.ORDER_ACTUAL_EXPECTED then
+        expected, actual = actual, expected
+    end
+    if type(expected) == 'string' or type(expected) == 'table' then
+        expected, actual = prettystrPadded(expected, actual)
+        return string.format("expected: %s\nactual: %s", expected, actual)
+    end
+    return string.format("expected: %s, actual: %s",
+                         prettystr(expected), prettystr(actual))
+end
+
+function M.assertError(f, ...)
+    -- assert that calling f with the arguments will raise an error
+    -- example: assertError( f, 1, 2 ) => f(1,2) should generate an error
+    if pcall( f, ... ) then
+        failure( "Expected an error when calling function but no error generated", 2 )
+    end
+end
+
+function M.assertTrue(value)
+    if not value then
+        failure("expected: true, actual: " ..prettystr(value), 2)
+    end
+end
+
+function M.assertFalse(value)
+    if value then
+        failure("expected: false, actual: " ..prettystr(value), 2)
+    end
+end
+
+function M.assertIsNil(value)
+    if value ~= nil then
+        failure("expected: nil, actual: " ..prettystr(value), 2)
+    end
+end
+
+function M.assertNotIsNil(value)
+    if value == nil then
+        failure("expected non nil value, received nil", 2)
+    end
+end
+
+function M.assertEquals(actual, expected)
+    if type(actual) == 'table' and type(expected) == 'table' then
+        if not _is_table_equals(actual, expected) then
+            failure( errorMsgEquality(actual, expected), 2 )
+        end
+    elseif type(actual) ~= type(expected) then
+        failure( errorMsgEquality(actual, expected), 2 )
+    elseif actual ~= expected then
+        failure( errorMsgEquality(actual, expected), 2 )
+    end
+end
+
+-- Help Lua in corner cases like almostEquals(1.1, 1.0, 0.1), which by default
+-- may not work. We need to give margin a small boost; EPSILON defines the
+-- default value to use for this:
+local EPSILON = 0.00000000001
+function M.almostEquals( actual, expected, margin, margin_boost )
+    if type(actual) ~= 'number' or type(expected) ~= 'number' or type(margin) ~= 'number' then
+        error_fmt(3, 'almostEquals: must supply only number arguments.\nArguments supplied: %s, %s, %s',
+            prettystr(actual), prettystr(expected), prettystr(margin))
+    end
+    if margin <= 0 then
+        error('almostEquals: margin must be positive, current value is ' .. margin, 3)
+    end
+    local realmargin = margin + (margin_boost or EPSILON)
+    return math.abs(expected - actual) <= realmargin
+end
+
+function M.assertAlmostEquals( actual, expected, margin )
+    -- check that two floats are close by margin
+    if not M.almostEquals(actual, expected, margin) then
+        if not M.ORDER_ACTUAL_EXPECTED then
+            expected, actual = actual, expected
+        end
+        fail_fmt(2, 'Values are not almost equal\nExpected: %s with margin of %s, received: %s',
+                 expected, margin, actual)
+    end
+end
+
+function M.assertNotEquals(actual, expected)
+    if type(actual) ~= type(expected) then
+        return
+    end
+
+    if type(actual) == 'table' and type(expected) == 'table' then
+        if not _is_table_equals(actual, expected) then
+            return
+        end
+    elseif actual ~= expected then
+        return
+    end
+    fail_fmt(2, 'Received the not expected value: %s', prettystr(actual))
+end
+
+function M.assertNotAlmostEquals( actual, expected, margin )
+    -- check that two floats are not close by margin
+    if M.almostEquals(actual, expected, margin) then
+        if not M.ORDER_ACTUAL_EXPECTED then
+            expected, actual = actual, expected
+        end
+        fail_fmt(2, 'Values are almost equal\nExpected: %s with a difference above margin of %s, received: %s',
+                 expected, margin, actual)
+    end
+end
+
+function M.assertStrContains( str, sub, useRe )
+    -- this relies on lua string.find function
+    -- a string always contains the empty string
+    if not string.find(str, sub, 1, not useRe) then
+        sub, str = prettystrPadded(sub, str, '\n')
+        fail_fmt(2, 'Error, %s %s was not found in string %s',
+                 useRe and 'regexp' or 'substring', sub, str)
+    end
+end
+
+function M.assertStrIContains( str, sub )
+    -- this relies on lua string.find function
+    -- a string always contains the empty string
+    if not string.find(str:lower(), sub:lower(), 1, true) then
+        sub, str = prettystrPadded(sub, str, '\n')
+        fail_fmt(2, 'Error, substring %s was not found (case insensitively) in string %s',
+                 sub, str)
+    end
+end
+
+function M.assertNotStrContains( str, sub, useRe )
+    -- this relies on lua string.find function
+    -- a string always contains the empty string
+    if string.find(str, sub, 1, not useRe) then
+        sub, str = prettystrPadded(sub, str, '\n')
+        fail_fmt(2, 'Error, %s %s was found in string %s',
+                 useRe and 'regexp' or 'substring', sub, str)
+    end
+end
+
+function M.assertNotStrIContains( str, sub )
+    -- this relies on lua string.find function
+    -- a string always contains the empty string
+    if string.find(str:lower(), sub:lower(), 1, true) then
+        sub, str = prettystrPadded(sub, str, '\n')
+        fail_fmt(2, 'Error, substring %s was found (case insensitively) in string %s',
+                 sub, str)
+    end
+end
+
+function M.assertStrMatches( str, pattern, start, final )
+    -- Verify a full match for the string
+    -- for a partial match, simply use assertStrContains with useRe set to true
+    if not strMatch( str, pattern, start, final ) then
+        pattern, str = prettystrPadded(pattern, str, '\n')
+        fail_fmt(2, 'Error, pattern %s was not matched by string %s',
+                 pattern, str)
+    end
+end
+
+function M.assertErrorMsgEquals( expectedMsg, func, ... )
+    -- assert that calling f with the arguments will raise an error
+    -- example: assertError( f, 1, 2 ) => f(1,2) should generate an error
+    local no_error, error_msg = pcall( func, ... )
+    if no_error then
+        failure( 'No error generated when calling function but expected error: "'..expectedMsg..'"', 2 )
+    end
+    if error_msg ~= expectedMsg then
+        error_msg, expectedMsg = prettystrPadded(error_msg, expectedMsg)
+        fail_fmt(2, 'Exact error message expected: %s\nError message received: %s\n',
+                 expectedMsg, error_msg)
+    end
+end
+
+function M.assertErrorMsgContains( partialMsg, func, ... )
+    -- assert that calling f with the arguments will raise an error
+    -- example: assertError( f, 1, 2 ) => f(1,2) should generate an error
+    local no_error, error_msg = pcall( func, ... )
+    if no_error then
+        failure( 'No error generated when calling function but expected error containing: '..prettystr(partialMsg), 2 )
+    end
+    if not string.find( error_msg, partialMsg, nil, true ) then
+        error_msg, partialMsg = prettystrPadded(error_msg, partialMsg)
+        fail_fmt(2, 'Error message does not contain: %s\nError message received: %s\n',
+                 partialMsg, error_msg)
+    end
+end
+
+function M.assertErrorMsgMatches( expectedMsg, func, ... )
+    -- assert that calling f with the arguments will raise an error
+    -- example: assertError( f, 1, 2 ) => f(1,2) should generate an error
+    local no_error, error_msg = pcall( func, ... )
+    if no_error then
+        failure( 'No error generated when calling function but expected error matching: "'..expectedMsg..'"', 2 )
+    end
+    if not strMatch( error_msg, expectedMsg ) then
+        expectedMsg, error_msg = prettystrPadded(expectedMsg, error_msg)
+        fail_fmt(2, 'Error message does not match: %s\nError message received: %s\n',
+                 expectedMsg, error_msg)
+    end
+end
+
+--[[
+Add type assertion functions to the module table M. Each of these functions
+takes a single parameter "value", and checks that its Lua type matches the
+expected string (derived from the function name):
+
+M.assertIsXxx(value) -> ensure that type(value) conforms to "xxx"
+]]
+for _, funcName in ipairs(
+    {'assertIsNumber', 'assertIsString', 'assertIsTable', 'assertIsBoolean',
+     'assertIsFunction', 'assertIsUserdata', 'assertIsThread'}
+) do
+    local typeExpected = funcName:match("^assertIs([A-Z]%a*)$")
+    -- Lua type() always returns lowercase, also make sure the match() succeeded
+    typeExpected = typeExpected and typeExpected:lower()
+                   or error("bad function name '"..funcName.."' for type assertion")
+
+    M[funcName] = function(value)
+        if type(value) ~= typeExpected then
+            fail_fmt(2, 'Expected: a %s value, actual: type %s, value %s',
+                     typeExpected, type(value), prettystrPadded(value))
+        end
+    end
+end
+
+--[[
+Add non-type assertion functions to the module table M. Each of these functions
+takes a single parameter "value", and checks that its Lua type differs from the
+expected string (derived from the function name):
+
+M.assertNotIsXxx(value) -> ensure that type(value) is not "xxx"
+]]
+for _, funcName in ipairs(
+    {'assertNotIsNumber', 'assertNotIsString', 'assertNotIsTable', 'assertNotIsBoolean',
+     'assertNotIsFunction', 'assertNotIsUserdata', 'assertNotIsThread'}
+) do
+    local typeUnexpected = funcName:match("^assertNotIs([A-Z]%a*)$")
+    -- Lua type() always returns lowercase, also make sure the match() succeeded
+    typeUnexpected = typeUnexpected and typeUnexpected:lower()
+                   or error("bad function name '"..funcName.."' for type assertion")
+
+    M[funcName] = function(value)
+        if type(value) == typeUnexpected then
+            fail_fmt(2, 'Not expected: a %s type, actual: value %s',
+                     typeUnexpected, prettystrPadded(value))
+        end
+    end
+end
+
+function M.assertIs(actual, expected)
+    if actual ~= expected then
+        if not M.ORDER_ACTUAL_EXPECTED then
+            actual, expected = expected, actual
+        end
+        expected, actual = prettystrPadded(expected, actual, '\n', ', ')
+        fail_fmt(2, 'Expected object and actual object are not the same\nExpected: %sactual: %s',
+                 expected, actual)
+    end
+end
+
+function M.assertNotIs(actual, expected)
+    if actual == expected then
+        if not M.ORDER_ACTUAL_EXPECTED then
+            expected = actual
+        end
+        fail_fmt(2, 'Expected object and actual object are the same object: %s',
+                 prettystrPadded(expected))
+    end
+end
+
+function M.assertItemsEquals(actual, expected)
+    -- checks that the items of table expected
+    -- are contained in table actual. Warning, this function
+    -- is at least O(n^2)
+    if not _is_table_items_equals(actual, expected ) then
+        expected, actual = prettystrPadded(expected, actual)
+        fail_fmt(2, 'Contents of the tables are not identical:\nExpected: %s\nActual: %s',
+                 expected, actual)
+    end
+end
+
+----------------------------------------------------------------
+--                     Compatibility layer
+----------------------------------------------------------------
+
+-- for compatibility with LuaUnit v2.x
+function M.wrapFunctions(...)
+    io.stderr:write( [[Use of WrapFunction() is no longer needed.
+Just prefix your test function names with "test" or "Test" and they
+will be picked up and run by LuaUnit.]] )
+    -- In LuaUnit version <= 2.1 , this function was necessary to include
+    -- a test function inside the global test suite. Nowadays, the functions
+    -- are simply run directly as part of the test discovery process.
+    -- so just do nothing !
+
+    --[[
+    local testClass, testFunction
+    testClass = {}
+    local function storeAsMethod(idx, testName)
+        testFunction = _G[testName]
+        testClass[testName] = testFunction
+    end
+    for i,v in ipairs({...}) do
+        storeAsMethod( i, v )
+    end
+
+    return testClass
+    ]]
+end
+
+local list_of_funcs = {
+    -- { official function name , alias }
+
+    -- general assertions
+    { 'assertEquals'            , 'assert_equals' },
+    { 'assertItemsEquals'       , 'assert_items_equals' },
+    { 'assertNotEquals'         , 'assert_not_equals' },
+    { 'assertAlmostEquals'      , 'assert_almost_equals' },
+    { 'assertNotAlmostEquals'   , 'assert_not_almost_equals' },
+    { 'assertTrue'              , 'assert_true' },
+    { 'assertFalse'             , 'assert_false' },
+    { 'assertStrContains'       , 'assert_str_contains' },
+    { 'assertStrIContains'      , 'assert_str_icontains' },
+    { 'assertNotStrContains'    , 'assert_not_str_contains' },
+    { 'assertNotStrIContains'   , 'assert_not_str_icontains' },
+    { 'assertStrMatches'        , 'assert_str_matches' },
+    { 'assertError'             , 'assert_error' },
+    { 'assertErrorMsgEquals'    , 'assert_error_msg_equals' },
+    { 'assertErrorMsgContains'  , 'assert_error_msg_contains' },
+    { 'assertErrorMsgMatches'   , 'assert_error_msg_matches' },
+    { 'assertIs'                , 'assert_is' },
+    { 'assertNotIs'             , 'assert_not_is' },
+    { 'wrapFunctions'           , 'WrapFunctions' },
+    { 'wrapFunctions'           , 'wrap_functions' },
+
+    -- type assertions: assertIsXXX -> assert_is_xxx
+    { 'assertIsNumber'          , 'assert_is_number' },
+    { 'assertIsString'          , 'assert_is_string' },
+    { 'assertIsTable'           , 'assert_is_table' },
+    { 'assertIsBoolean'         , 'assert_is_boolean' },
+    { 'assertIsNil'             , 'assert_is_nil' },
+    { 'assertIsFunction'        , 'assert_is_function' },
+    { 'assertIsThread'          , 'assert_is_thread' },
+    { 'assertIsUserdata'        , 'assert_is_userdata' },
+
+    -- type assertions: assertIsXXX -> assertXxx
+    { 'assertIsNumber'          , 'assertNumber' },
+    { 'assertIsString'          , 'assertString' },
+    { 'assertIsTable'           , 'assertTable' },
+    { 'assertIsBoolean'         , 'assertBoolean' },
+    { 'assertIsNil'             , 'assertNil' },
+    { 'assertIsFunction'        , 'assertFunction' },
+    { 'assertIsThread'          , 'assertThread' },
+    { 'assertIsUserdata'        , 'assertUserdata' },
+
+    -- type assertions: assertIsXXX -> assert_xxx (luaunit v2 compat)
+    { 'assertIsNumber'          , 'assert_number' },
+    { 'assertIsString'          , 'assert_string' },
+    { 'assertIsTable'           , 'assert_table' },
+    { 'assertIsBoolean'         , 'assert_boolean' },
+    { 'assertIsNil'             , 'assert_nil' },
+    { 'assertIsFunction'        , 'assert_function' },
+    { 'assertIsThread'          , 'assert_thread' },
+    { 'assertIsUserdata'        , 'assert_userdata' },
+
+    -- type assertions: assertNotIsXXX -> assert_not_is_xxx
+    { 'assertNotIsNumber'       , 'assert_not_is_number' },
+    { 'assertNotIsString'       , 'assert_not_is_string' },
+    { 'assertNotIsTable'        , 'assert_not_is_table' },
+    { 'assertNotIsBoolean'      , 'assert_not_is_boolean' },
+    { 'assertNotIsNil'          , 'assert_not_is_nil' },
+    { 'assertNotIsFunction'     , 'assert_not_is_function' },
+    { 'assertNotIsThread'       , 'assert_not_is_thread' },
+    { 'assertNotIsUserdata'     , 'assert_not_is_userdata' },
+
+    -- type assertions: assertNotIsXXX -> assertNotXxx (luaunit v2 compat)
+    { 'assertNotIsNumber'       , 'assertNotNumber' },
+    { 'assertNotIsString'       , 'assertNotString' },
+    { 'assertNotIsTable'        , 'assertNotTable' },
+    { 'assertNotIsBoolean'      , 'assertNotBoolean' },
+    { 'assertNotIsNil'          , 'assertNotNil' },
