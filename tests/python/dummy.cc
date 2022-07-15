@@ -9,4 +9,9 @@ namespace some_namespace {
 }
 
 int main() {
-	printf
+	printf("%p\n", &some_namespace::some_function);
+	fflush(stdout);
+	printf("result = %d\n", some_namespace::some_function(42, 11));
+	sleep(1000);
+	return 0;
+}
