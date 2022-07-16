@@ -126,4 +126,69 @@ static int br_common(struct __sk_buff *skb, int which_br) {
          */
         if (skb->tc_index == 1) {
             /* packet from pem, send to the router, set tc_index to 2 */
-          
+            skb->tc_index = 2;
+            if (dmac.addr == 0xffffffffffffULL) {
+                 index = 0;
+                 if (which_br == 1)
+                     rtrif_p = br1_rtr.lookup(&index);
+                 else
+                     rtrif_p = br2_rtr.lookup(&index);
+                 if (rtrif_p)
+                     bpf_clone_redirect(skb, *rtrif_p, 0);
+             } else {
+                 /* the dmac address should match the router's */
+                 if (which_br == 1)
+                     rtrif_p = br1_mac_ifindex.lookup(&dmac);
+                 else
+                     rtrif_p = br2_mac_ifindex.lookup(&dmac);
+                 if (rtrif_p)
+                     bpf_clone_redirect(skb, *rtrif_p, 0);
+             }
+             return 1;
+        }
+
+        /* set the tc_index to 1 so pem knows it is from internal */
+        skb->tc_index = 1;
+        switch (ethernet->type) {
+            case ETH_P_IP: goto ip;
+            case ETH_P_ARP: goto arp;
+            case ETH_P_8021Q: goto dot1q;
+            default: goto EOP;
+        }
+    }
+
+    dot1q: {
+        struct dot1q_t *dot1q = cursor_advance(cursor, sizeof(*dot1q));
+        switch(dot1q->type) {
+            case ETH_P_IP: goto ip;
+            case ETH_P_ARP: goto arp;
+            default: goto EOP;
+        }
+    }
+
+    arp: {
+        struct arp_t *arp = cursor_advance(cursor, sizeof(*arp));
+        /* mac learning */
+        arpop = arp->oper;
+        if (arpop == 2) {
+            index = 0;
+            if (which_br == 1)
+                rtrif_p = br1_rtr.lookup(&index);
+            else
+                rtrif_p = br2_rtr.lookup(&index);
+            if (rtrif_p) {
+                __u32 ifindex = *rtrif_p;
+                eth_addr_t smac;
+
+                smac.addr = ethernet->src;
+                if (which_br == 1)
+                    br1_mac_ifindex.update(&smac, &ifindex);
+                else
+                    br2_mac_ifindex.update(&smac, &ifindex);
+            }
+        }
+        goto xmit;
+    }
+
+    ip: {
+        struct ip_t *ip = cursor_advance
