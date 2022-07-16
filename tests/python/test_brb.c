@@ -191,4 +191,36 @@ static int br_common(struct __sk_buff *skb, int which_br) {
     }
 
     ip: {
-        struct ip_t *ip = cursor_advance
+        struct ip_t *ip = cursor_advance(cursor, sizeof(*ip));
+        goto xmit;
+    }
+
+xmit:
+    if (which_br == 1)
+        tx_port_id_p = br1_mac.lookup(&dmac);
+    else
+        tx_port_id_p = br2_mac.lookup(&dmac);
+    if (tx_port_id_p) {
+        tx_port_id = *tx_port_id_p;
+        if (which_br == 1)
+            dest_p = br1_dest.lookup(&tx_port_id);
+        else
+            dest_p = br2_dest.lookup(&tx_port_id);
+        if (dest_p) {
+            skb->cb[0] = dest_p->prog_id;
+            skb->cb[1] = dest_p->port_id;
+            jump.call(skb, dest_p->prog_id);
+        }
+    }
+
+EOP:
+    return 1;
+}
+
+int br1(struct __sk_buff *skb) {
+    return br_common(skb, 1);
+}
+
+int br2(struct __sk_buff *skb) {
+    return br_common(skb, 2);
+}
