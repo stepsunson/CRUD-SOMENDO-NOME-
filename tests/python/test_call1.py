@@ -32,4 +32,19 @@ class TestBPFSocket(TestCase):
         ip.tc("add-filter", "bpf", ifindex, ":1", fd=ether_fn.fd,
               name=ether_fn.name, parent="1:", action="ok", classid=1)
         self.jump = b.get_table(b"jump", c_int, c_int)
-        self.jump[c_int(S_A
+        self.jump[c_int(S_ARP)] = c_int(arp_fn.fd)
+        self.jump[c_int(S_IP)] = c_int(ip_fn.fd)
+        self.jump[c_int(S_EOP)] = c_int(eop_fn.fd)
+        self.stats = b.get_table(b"stats", c_int, c_ulonglong)
+
+    @mayFail("This may fail on github actions environment due to udp packet loss")
+    def test_jumps(self):
+        udp = socket(AF_INET, SOCK_DGRAM)
+        udp.sendto(b"a" * 10, ("172.16.1.1", 5000))
+        udp.close()
+        self.assertGreater(self.stats[c_int(S_IP)].value, 0)
+        self.assertGreater(self.stats[c_int(S_ARP)].value, 0)
+        self.assertGreater(self.stats[c_int(S_EOP)].value, 1)
+
+if __name__ == "__main__":
+    main()
