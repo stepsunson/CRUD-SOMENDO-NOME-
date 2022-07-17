@@ -114,3 +114,72 @@ int count_tcp(struct pt_regs *ctx, struct sk_buff *skb) {
 """
         b = BPF(text=text)
         fn = b.load_func(b"count_tcp", BPF.KPROBE)
+
+    def test_probe_read_whitelist2(self):
+        text = b"""
+#include <net/tcp.h>
+int count_tcp(struct pt_regs *ctx, struct sk_buff *skb) {
+    // The below define is in net/tcp.h:
+    //    #define TCP_SKB_CB(__skb) ((struct tcp_skb_cb *)&((__skb)->cb[0]))
+    // Note that it has AddrOf in the macro, which will cause current rewriter
+    // failing below statement
+    // return TCP_SKB_CB(skb)->tcp_gso_size;
+    u16 val = 0;
+    bpf_probe_read_kernel(&val, sizeof(val), &(TCP_SKB_CB(skb)->tcp_gso_size));
+    return val + skb->protocol;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"count_tcp", BPF.KPROBE)
+
+    def test_probe_read_keys(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/blkdev.h>
+BPF_HASH(start, struct request *);
+int do_request(struct pt_regs *ctx, struct request *req) {
+    u64 ts = bpf_ktime_get_ns();
+    start.update(&req, &ts);
+    return 0;
+}
+
+int do_completion(struct pt_regs *ctx, struct request *req) {
+    u64 *tsp = start.lookup(&req);
+    if (tsp != 0) {
+        start.delete(&req);
+    }
+    return 0;
+}
+"""
+        b = BPF(text=text, debug=0)
+        fns = b.load_funcs(BPF.KPROBE)
+
+    @skipUnless(lib.bpf_module_rw_engine_enabled(), "requires enabled rwengine")
+    def test_sscanf(self):
+        text = b"""
+BPF_HASH(stats, int, struct { u64 a; u64 b; u64 c:36; u64 d:28; struct { u32 a; u32 b; } s; }, 10);
+int foo(void *ctx) {
+    return 0;
+}
+"""
+        b = BPF(text=text, debug=0)
+        fn = b.load_func(b"foo", BPF.KPROBE)
+        t = b.get_table(b"stats")
+        s1 = t.key_sprintf(t.Key(2))
+        self.assertEqual(s1, b"0x2")
+        s2 = t.leaf_sprintf(t.Leaf(2, 3, 4, 1, (5, 6)))
+        l = t.leaf_scanf(s2)
+        self.assertEqual(l.a, 2)
+        self.assertEqual(l.b, 3)
+        self.assertEqual(l.c, 4)
+        self.assertEqual(l.d, 1)
+        self.assertEqual(l.s.a, 5)
+        self.assertEqual(l.s.b, 6)
+
+    @skipUnless(lib.bpf_module_rw_engine_enabled(), "requires enabled rwengine")
+    def test_sscanf_array(self):
+        text = b"""
+BPF_HASH(stats, int, struct { u32 a[3]; u32 b; }, 10);
+"""
+        b = BPF(text=text, debug=0)
+        t = b.get_table(b"stat
