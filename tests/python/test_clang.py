@@ -182,4 +182,75 @@ int foo(void *ctx) {
 BPF_HASH(stats, int, struct { u32 a[3]; u32 b; }, 10);
 """
         b = BPF(text=text, debug=0)
-        t = b.get_table(b"stat
+        t = b.get_table(b"stats")
+        s1 = t.key_sprintf(t.Key(2))
+        self.assertEqual(s1, b"0x2")
+        s2 = t.leaf_sprintf(t.Leaf((ct.c_uint * 3)(1,2,3), 4))
+        self.assertEqual(s2, b"{ [ 0x1 0x2 0x3 ] 0x4 }")
+        l = t.leaf_scanf(s2)
+        self.assertEqual(l.a[0], 1)
+        self.assertEqual(l.a[1], 2)
+        self.assertEqual(l.a[2], 3)
+        self.assertEqual(l.b, 4)
+
+    @skipUnless(lib.bpf_module_rw_engine_enabled(), "requires enabled rwengine")
+    def test_sscanf_string(self):
+        text = b"""
+struct Symbol {
+    char name[128];
+    char path[128];
+};
+struct Event {
+    uint32_t pid;
+    uint32_t tid;
+    struct Symbol stack[64];
+};
+BPF_TABLE("array", int, struct Event, comms, 1);
+"""
+        b = BPF(text=text)
+        t = b.get_table(b"comms")
+        s1 = t.leaf_sprintf(t[0])
+        fill = b' { "" "" }' * 63
+        self.assertEqual(s1, b'{ 0x0 0x0 [ { "" "" }%s ] }' % fill)
+        l = t.Leaf(1, 2)
+        name = b"libxyz"
+        path = b"/usr/lib/libxyz.so"
+        l.stack[0].name = name
+        l.stack[0].path = path
+        s2 = t.leaf_sprintf(l)
+        self.assertEqual(s2,
+                b'{ 0x1 0x2 [ { "%s" "%s" }%s ] }' % (name, path, fill))
+        l = t.leaf_scanf(s2)
+        self.assertEqual(l.pid, 1)
+        self.assertEqual(l.tid, 2)
+        self.assertEqual(l.stack[0].name, name)
+        self.assertEqual(l.stack[0].path, path)
+
+    def test_iosnoop(self):
+        text = b"""
+#include <linux/blkdev.h>
+#include <uapi/linux/ptrace.h>
+
+struct key_t {
+    struct request *req;
+};
+
+BPF_HASH(start, struct key_t, u64, 1024);
+int do_request(struct pt_regs *ctx, struct request *req) {
+    struct key_t key = {};
+
+    bpf_trace_printk("traced start %d\\n", req->__data_len);
+
+    return 0;
+}
+"""
+        b = BPF(text=text, debug=0)
+        fn = b.load_func(b"do_request", BPF.KPROBE)
+
+    def test_blk_start_request(self):
+        text = b"""
+#include <linux/blkdev.h>
+#include <uapi/linux/ptrace.h>
+int do_request(struct pt_regs *ctx, int req) {
+    bpf_trace_printk("req ptr: 0x%x\\n", req);
+  
