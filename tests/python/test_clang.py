@@ -253,4 +253,83 @@ int do_request(struct pt_regs *ctx, struct request *req) {
 #include <uapi/linux/ptrace.h>
 int do_request(struct pt_regs *ctx, int req) {
     bpf_trace_printk("req ptr: 0x%x\\n", req);
-  
+    return 0;
+}
+"""
+        b = BPF(text=text, debug=0)
+        fn = b.load_func(b"do_request", BPF.KPROBE)
+
+    def test_bpf_hash(self):
+        text = b"""
+BPF_HASH(table1);
+BPF_HASH(table2, u32);
+BPF_HASH(table3, u32, int);
+"""
+        b = BPF(text=text, debug=0)
+
+    def test_consecutive_probe_read(self):
+        text = b"""
+#include <linux/fs.h>
+#include <linux/mount.h>
+BPF_HASH(table1, struct super_block *);
+int trace_entry(struct pt_regs *ctx, struct file *file) {
+    if (!file) return 0;
+    struct vfsmount *mnt = file->f_path.mnt;
+    if (mnt) {
+        struct super_block *k = mnt->mnt_sb;
+        u64 zero = 0;
+        table1.update(&k, &zero);
+        k = mnt->mnt_sb;
+        table1.update(&k, &zero);
+    }
+
+    return 0;
+}
+"""
+        b = BPF(text=text, debug=0)
+        fn = b.load_func(b"trace_entry", BPF.KPROBE)
+
+    def test_nested_probe_read(self):
+        text = b"""
+#include <linux/fs.h>
+int trace_entry(struct pt_regs *ctx, struct file *file) {
+    if (!file) return 0;
+    const char *name = file->f_path.dentry->d_name.name;
+    bpf_trace_printk("%s\\n", name);
+    return 0;
+}
+"""
+        b = BPF(text=text, debug=0)
+        fn = b.load_func(b"trace_entry", BPF.KPROBE)
+
+    def test_nested_probe_read_deref(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+struct sock {
+    u32 *sk_daddr;
+};
+int test(struct pt_regs *ctx, struct sock *skp) {
+    return *(skp->sk_daddr);
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_char_array_probe(self):
+        BPF(text=b"""#include <linux/blkdev.h>
+int kprobe__blk_update_request(struct pt_regs *ctx, struct request *req) {
+    bpf_trace_printk("%s\\n", req->rq_disk->disk_name);
+    return 0;
+}""")
+
+    @skipUnless(kernel_version_ge(5,7), "requires kernel >= 5.7")
+    def test_lsm_probe(self):
+        # Skip if the kernel is not compiled with CONFIG_BPF_LSM
+        if not BPF.support_lsm():
+            return
+        b = BPF(text=b"""
+LSM_PROBE(bpf, int cmd, union bpf_attr *uattr, unsigned int size) {
+    return 0;
+}""")
+
+    def test_probe_read_
