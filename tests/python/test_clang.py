@@ -409,4 +409,88 @@ int kprobe__finish_task_switch(struct pt_regs *ctx, struct task_struct *prev) {
   if (val) {
     (*val)++;
   }
-  return 
+  return 0;
+}
+""")
+
+    def test_probe_simple_assign(self):
+        b = BPF(text=b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/gfp.h>
+struct leaf { size_t size; };
+BPF_HASH(simple_map, u32, struct leaf);
+int kprobe____kmalloc(struct pt_regs *ctx, size_t size) {
+    u32 pid = bpf_get_current_pid_tgid();
+    struct leaf* leaf = simple_map.lookup(&pid);
+    if (leaf)
+        leaf->size += size;
+    return 0;
+}""")
+
+    def test_probe_simple_member_assign(self):
+        b = BPF(text=b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/netdevice.h>
+struct leaf { void *ptr; };
+int test(struct pt_regs *ctx, struct sk_buff *skb) {
+    struct leaf l = {};
+    struct leaf *lp = &l;
+    lp->ptr = skb;
+    return 0;
+}""")
+        b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_member_expr_deref(self):
+        b = BPF(text=b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/netdevice.h>
+struct leaf { struct sk_buff *ptr; };
+int test(struct pt_regs *ctx, struct sk_buff *skb) {
+    struct leaf l = {};
+    struct leaf *lp = &l;
+    lp->ptr = skb;
+    return lp->ptr->priority;
+}""")
+        b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_member_expr(self):
+        b = BPF(text=b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/netdevice.h>
+struct leaf { struct sk_buff *ptr; };
+int test(struct pt_regs *ctx, struct sk_buff *skb) {
+    struct leaf l = {};
+    struct leaf *lp = &l;
+    lp->ptr = skb;
+    return l.ptr->priority;
+}""")
+        b.load_func(b"test", BPF.KPROBE)
+
+    def test_unop_probe_read(self):
+        text = b"""
+#include <linux/blkdev.h>
+int trace_entry(struct pt_regs *ctx, struct request *req) {
+    if (!(req->bio->bi_flags & 1))
+        return 1;
+    if (((req->bio->bi_flags)))
+        return 1;
+    return 0;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"trace_entry", BPF.KPROBE)
+
+    def test_probe_read_nested_deref(self):
+        text = b"""
+#include <net/inet_sock.h>
+int test(struct pt_regs *ctx, struct sock *sk) {
+    struct sock *ptr1;
+    struct sock **ptr2 = &ptr1;
+    *ptr2 = sk;
+    return ((struct sock *)(*ptr2))->sk_daddr;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def t
