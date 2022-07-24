@@ -493,4 +493,86 @@ int test(struct pt_regs *ctx, struct sock *sk) {
         b = BPF(text=text)
         fn = b.load_func(b"test", BPF.KPROBE)
 
-    def t
+    def test_probe_read_nested_deref2(self):
+        text = b"""
+#include <net/inet_sock.h>
+int test(struct pt_regs *ctx, struct sock *sk) {
+    struct sock *ptr1;
+    struct sock **ptr2 = &ptr1;
+    struct sock ***ptr3 = &ptr2;
+    *ptr2 = sk;
+    *ptr3 = ptr2;
+    return ((struct sock *)(**ptr3))->sk_daddr;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_nested_deref3(self):
+        text = b"""
+#include <net/inet_sock.h>
+int test(struct pt_regs *ctx, struct sock *sk) {
+    struct sock **ptr1, **ptr2 = &sk;
+    ptr1 = &sk;
+    return (*ptr1)->sk_daddr + (*ptr2)->sk_daddr;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_nested_deref_func1(self):
+        text = b"""
+#include <net/inet_sock.h>
+static struct sock **subtest(struct sock **sk) {
+    return sk;
+}
+int test(struct pt_regs *ctx, struct sock *sk) {
+    struct sock **ptr1, **ptr2 = subtest(&sk);
+    ptr1 = subtest(&sk);
+    return (*ptr1)->sk_daddr + (*ptr2)->sk_daddr;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_nested_deref_func2(self):
+        text = b"""
+#include <net/inet_sock.h>
+static int subtest(struct sock ***skp) {
+    return ((struct sock *)(**skp))->sk_daddr;
+}
+int test(struct pt_regs *ctx, struct sock *sk) {
+    struct sock *ptr1;
+    struct sock **ptr2 = &ptr1;
+    struct sock ***ptr3 = &ptr2;
+    *ptr2 = sk;
+    *ptr3 = ptr2;
+    return subtest(ptr3);
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_nested_member1(self):
+        text = b"""
+#include <net/inet_sock.h>
+int test(struct pt_regs *ctx, struct sock *skp) {
+    u32 *daddr = &skp->sk_daddr;
+    return *daddr;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_nested_member2(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+struct sock {
+    u32 **sk_daddr;
+};
+int test(struct pt_regs *ctx, struct sock *skp) {
+    u32 *daddr = *(skp->sk_daddr);
+    return *daddr;
+}
+"""
+        b
