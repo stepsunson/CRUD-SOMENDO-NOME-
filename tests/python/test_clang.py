@@ -332,4 +332,81 @@ LSM_PROBE(bpf, int cmd, union bpf_attr *uattr, unsigned int size) {
     return 0;
 }""")
 
-    def test_probe_read_
+    def test_probe_read_helper(self):
+        b = BPF(text=b"""
+#include <linux/fs.h>
+static void print_file_name(struct file *file) {
+    if (!file) return;
+    const char *name = file->f_path.dentry->d_name.name;
+    bpf_trace_printk("%s\\n", name);
+}
+static void print_file_name2(int unused, struct file *file) {
+    print_file_name(file);
+}
+int trace_entry1(struct pt_regs *ctx, struct file *file) {
+    print_file_name(file);
+    return 0;
+}
+int trace_entry2(struct pt_regs *ctx, int unused, struct file *file) {
+    print_file_name2(unused, file);
+    return 0;
+}
+""")
+        fn = b.load_func(b"trace_entry1", BPF.KPROBE)
+        fn = b.load_func(b"trace_entry2", BPF.KPROBE)
+
+    def test_probe_unnamed_union_deref(self):
+        text = b"""
+#include <linux/mm_types.h>
+int trace(struct pt_regs *ctx, struct page *page) {
+    void *p = page->mapping;
+    return p != NULL;
+}
+"""
+        # depending on llvm, compile may pass/fail, but at least shouldn't crash
+        try:
+            b = BPF(text=text)
+        except:
+            pass
+
+    def test_probe_struct_assign(self):
+        b = BPF(text = b"""
+#include <uapi/linux/ptrace.h>
+struct args_t {
+    const char *filename;
+    int flags;
+    int mode;
+};
+int do_sys_open(struct pt_regs *ctx, const char *filename,
+        int flags, int mode) {
+    struct args_t args = {};
+    args.filename = filename;
+    args.flags = flags;
+    args.mode = mode;
+    bpf_trace_printk("%s\\n", args.filename);
+    return 0;
+};
+""")
+        b.attach_kprobe(event=b.get_syscall_fnname(b"open"),
+                        fn_name=b"do_sys_open")
+
+    def test_task_switch(self):
+        b = BPF(text=b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/sched.h>
+struct key_t {
+  u32 prev_pid;
+  u32 curr_pid;
+};
+BPF_HASH(stats, struct key_t, u64, 1024);
+int kprobe__finish_task_switch(struct pt_regs *ctx, struct task_struct *prev) {
+  struct key_t key = {};
+  u64 zero = 0, *val;
+  key.curr_pid = bpf_get_current_pid_tgid();
+  key.prev_pid = prev->pid;
+
+  val = stats.lookup_or_try_init(&key, &zero);
+  if (val) {
+    (*val)++;
+  }
+  return 
