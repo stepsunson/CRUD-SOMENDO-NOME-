@@ -575,4 +575,87 @@ int test(struct pt_regs *ctx, struct sock *skp) {
     return *daddr;
 }
 """
-        b
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_nested_member3(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+struct sock {
+    u32 *sk_daddr;
+};
+int test(struct pt_regs *ctx, struct sock *skp) {
+    return *(&skp->sk_daddr);
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_paren_probe_read(self):
+        text = b"""
+#include <net/inet_sock.h>
+int trace_entry(struct pt_regs *ctx, struct sock *sk) {
+    u16 sport = ((struct inet_sock *)sk)->inet_sport;
+    return sport;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"trace_entry", BPF.KPROBE)
+
+    def test_complex_leaf_types(self):
+        text = b"""
+struct list;
+struct list {
+  struct list *selfp;
+  struct list *another_selfp;
+  struct list *selfp_array[2];
+};
+struct empty {
+};
+union emptyu {
+  struct empty *em1;
+  struct empty em2;
+  struct empty em3;
+  struct empty em4;
+};
+BPF_ARRAY(t1, struct list, 1);
+BPF_ARRAY(t2, struct list *, 1);
+BPF_ARRAY(t3, union emptyu, 1);
+"""
+        b = BPF(text=text)
+        self.assertEqual(ct.sizeof(b[b"t3"].Leaf), 8)
+
+    def test_cflags(self):
+        text = b"""
+#ifndef MYFLAG
+#error "MYFLAG not set as expected"
+#endif
+"""
+        b = BPF(text=text, cflags=["-DMYFLAG"])
+
+    def test_exported_maps(self):
+        b1 = BPF(text=b"""BPF_TABLE_PUBLIC("hash", int, int, table1, 10);""")
+        b2 = BPF(text=b"""BPF_TABLE("extern", int, int, table1, 10);""")
+        t = b2[b"table1"]
+
+    def test_syntax_error(self):
+        with self.assertRaises(Exception):
+            b = BPF(text=b"""int failure(void *ctx) { if (); return 0; }""")
+
+    def test_nested_union(self):
+        text = b"""
+BPF_HASH(t1, struct bpf_tunnel_key, int, 1);
+"""
+        b = BPF(text=text)
+        t1 = b[b"t1"]
+        print(t1.Key().remote_ipv4)
+
+    def test_too_many_args(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+int many(struct pt_regs *ctx, int a, int b, int c, int d, int e, int f, int g) {
+    return 0;
+}
+"""
+        with self.assertRaises(Exception):
+            
