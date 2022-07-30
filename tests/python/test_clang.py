@@ -832,4 +832,76 @@ int dns_test(struct __sk_buff *skb) {
     return -1;
 }
         """
-  
+        b = BPF(text=text)
+
+    @skipUnless(kernel_version_ge(4,8), "requires kernel >= 4.8")
+    def test_ext_ptr_from_helper(self):
+        text = b"""
+#include <linux/sched.h>
+int test(struct pt_regs *ctx) {
+    struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+    return task->prio;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_unary_operator(self):
+        text = b"""
+#include <linux/fs.h>
+#include <uapi/linux/ptrace.h>
+int trace_read_entry(struct pt_regs *ctx, struct file *file) {
+    return !file->f_op->read_iter;
+}
+        """
+        b = BPF(text=text)
+        try:
+            b.attach_kprobe(event=b"__vfs_read", fn_name=b"trace_read_entry")
+        except Exception:
+            print('Current kernel does not have __vfs_read, try vfs_read instead')
+            b.attach_kprobe(event=b"vfs_read", fn_name=b"trace_read_entry")
+
+    def test_printk_f(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+int trace_entry(struct pt_regs *ctx) {
+  bpf_trace_printk("%0.2f\\n", 1);
+  return 0;
+}
+"""
+        r, w = os.pipe()
+        with redirect_stderr(to=w):
+            BPF(text=text)
+        r = os.fdopen(r)
+        output = r.read()
+        expectedWarn = "warning: only %d %u %x %ld %lu %lx %lld %llu %llx %p %s conversion specifiers allowed"
+        self.assertIn(expectedWarn, output)
+        r.close()
+
+    def test_printk_lf(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+int trace_entry(struct pt_regs *ctx) {
+  bpf_trace_printk("%lf\\n", 1);
+  return 0;
+}
+"""
+        r, w = os.pipe()
+        with redirect_stderr(to=w):
+            BPF(text=text)
+        r = os.fdopen(r)
+        output = r.read()
+        expectedWarn = "warning: only %d %u %x %ld %lu %lx %lld %llu %llx %p %s conversion specifiers allowed"
+        self.assertIn(expectedWarn, output)
+        r.close()
+
+    def test_printk_2s(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+int trace_entry(struct pt_regs *ctx) {
+  char s1[] = "hello", s2[] = "world";
+  bpf_trace_printk("%s %s\\n", s1, s2);
+  return 0;
+}
+"""
+        r,
