@@ -904,4 +904,90 @@ int trace_entry(struct pt_regs *ctx) {
   return 0;
 }
 """
-        r,
+        r, w = os.pipe()
+        with redirect_stderr(to=w):
+            BPF(text=text)
+        r = os.fdopen(r)
+        output = r.read()
+        expectedWarn = "warning: cannot use several %s conversion specifiers"
+        self.assertIn(expectedWarn, output)
+        r.close()
+
+    def test_map_insert(self):
+        text = b"""
+BPF_HASH(dummy);
+void do_trace(struct pt_regs *ctx) {
+    u64 key = 0, val = 2;
+    dummy.insert(&key, &val);
+    key = 1;
+    dummy.update(&key, &val);
+}
+"""
+        b = BPF(text=text)
+        c_val = ct.c_ulong(1)
+        b[b"dummy"][ct.c_ulong(0)] = c_val
+        b[b"dummy"][ct.c_ulong(1)] = c_val
+        b.attach_kprobe(event=b.get_syscall_fnname(b"sync"), fn_name=b"do_trace")
+        libc = ct.CDLL("libc.so.6")
+        libc.sync()
+        self.assertEqual(1, b[b"dummy"][ct.c_ulong(0)].value)
+        self.assertEqual(2, b[b"dummy"][ct.c_ulong(1)].value)
+
+    def test_prog_array_delete(self):
+        text = b"""
+BPF_PROG_ARRAY(dummy, 256);
+"""
+        b1 = BPF(text=text)
+        text = b"""
+int do_next(struct pt_regs *ctx) {
+    return 0;
+}
+"""
+        b2 = BPF(text=text)
+        fn = b2.load_func(b"do_next", BPF.KPROBE)
+        c_key = ct.c_int(0)
+        b1[b"dummy"][c_key] = ct.c_int(fn.fd)
+        b1[b"dummy"].__delitem__(c_key);
+        with self.assertRaises(KeyError):
+            b1[b"dummy"][c_key]
+
+    def test_invalid_noninline_call(self):
+        text = b"""
+int bar(void) {
+    return 0;
+}
+int foo(struct pt_regs *ctx) {
+    return bar();
+}
+"""
+        with self.assertRaises(Exception):
+            b = BPF(text=text)
+
+    def test_incomplete_type(self):
+        text = b"""
+BPF_HASH(drops, struct key_t);
+struct key_t {
+    u64 location;
+};
+"""
+        with self.assertRaises(Exception):
+            b = BPF(text=text)
+
+    def test_enumerations(self):
+        text = b"""
+enum b {
+    CHOICE_A,
+};
+struct a {
+    enum b test;
+};
+BPF_HASH(drops, struct a);
+        """
+        b = BPF(text=text)
+        t = b[b'drops']
+
+    def test_int128_types(self):
+        text = b"""
+BPF_HASH(table1, unsigned __int128, __int128);
+"""
+        b = BPF(tex
