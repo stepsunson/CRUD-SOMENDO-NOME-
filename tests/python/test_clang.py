@@ -990,4 +990,69 @@ BPF_HASH(drops, struct a);
         text = b"""
 BPF_HASH(table1, unsigned __int128, __int128);
 """
-        b = BPF(tex
+        b = BPF(text=text)
+        table = b[b'table1']
+        self.assertEqual(ct.sizeof(table.Key), 16)
+        self.assertEqual(ct.sizeof(table.Leaf), 16)
+        table[
+            table.Key.from_buffer_copy(
+                socket.inet_pton(socket.AF_INET6, "2001:db8::"))
+        ] = table.Leaf.from_buffer_copy(struct.pack('LL', 42, 123456789))
+        for k, v in table.items():
+            self.assertEqual(v[0], 42)
+            self.assertEqual(v[1], 123456789)
+            self.assertEqual(socket.inet_ntop(socket.AF_INET6,
+                                              struct.pack('LL', k[0], k[1])),
+                             "2001:db8::")
+
+    def test_padding_types(self):
+        text = b"""
+struct key_t {
+  u32 f1_1;               /* offset 0 */
+  struct {
+    char f2_1;            /* offset 16 */
+    __int128 f2_2;        /* offset 32 */
+  };
+  u8 f1_3;                /* offset 48 */
+  unsigned __int128 f1_4; /* offset 64 */
+  char f1_5;              /* offset 80 */
+};
+struct value_t {
+  u8 src[4] __attribute__ ((aligned (8))); /* offset 0 */
+  u8 dst[4] __attribute__ ((aligned (8))); /* offset 8 */
+};
+BPF_HASH(table1, struct key_t, struct value_t);
+"""
+        b = BPF(text=text)
+        table = b[b'table1']
+        self.assertEqual(ct.sizeof(table.Key), 96)
+        self.assertEqual(ct.sizeof(table.Leaf), 16)
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_probe_read_tracepoint_context(self):
+        text = b"""
+#include <linux/netdevice.h>
+TRACEPOINT_PROBE(skb, kfree_skb) {
+    struct sk_buff *skb = (struct sk_buff *)args->skbaddr;
+    return skb->protocol;
+}
+"""
+        b = BPF(text=text)
+
+    def test_probe_read_kprobe_ctx(self):
+        text = b"""
+#include <linux/sched.h>
+#include <net/inet_sock.h>
+int test(struct pt_regs *ctx) {
+    struct sock *sk;
+    sk = (struct sock *)PT_REGS_PARM1(ctx);
+    return sk->sk_dport;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_ctx_array(self):
+        text = b"""
+#include <linux/sched.h>
+#include <net/inet_sock.h>
