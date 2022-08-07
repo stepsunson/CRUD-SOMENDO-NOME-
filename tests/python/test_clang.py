@@ -1056,3 +1056,74 @@ int test(struct pt_regs *ctx) {
         text = b"""
 #include <linux/sched.h>
 #include <net/inet_sock.h>
+int test(struct pt_regs *ctx) {
+    struct sock *newsk = (struct sock *)PT_REGS_RC(ctx);
+    return newsk->__sk_common.skc_rcv_saddr;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_probe_read_tc_ctx(self):
+        text = b"""
+#include <uapi/linux/pkt_cls.h>
+#include <linux/if_ether.h>
+int test(struct __sk_buff *ctx) {
+    void* data_end = (void*)(long)ctx->data_end;
+    void* data = (void*)(long)ctx->data;
+    if (data + sizeof(struct ethhdr) > data_end)
+        return TC_ACT_SHOT;
+    struct ethhdr *eh = (struct ethhdr *)data;
+    if (eh->h_proto == 0x1)
+        return TC_ACT_SHOT;
+    return TC_ACT_OK;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.SCHED_CLS)
+
+    def test_probe_read_return(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/tcp.h>
+static inline unsigned char *my_skb_transport_header(struct sk_buff *skb) {
+    return skb->head + skb->transport_header;
+}
+int test(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb) {
+    struct tcphdr *th = (struct tcphdr *)my_skb_transport_header(skb);
+    return th->seq;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_multiple_return(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/tcp.h>
+static inline u64 error_function() {
+    return 0;
+}
+static inline unsigned char *my_skb_transport_header(struct sk_buff *skb) {
+    if (skb)
+        return skb->head + skb->transport_header;
+    return (unsigned char *)error_function();
+}
+int test(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb) {
+    struct tcphdr *th = (struct tcphdr *)my_skb_transport_header(skb);
+    return th->seq;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_return_expr(self):
+        text = b"""
+#include <uapi/linux/ptrace.h>
+#include <linux/tcp.h>
+static inline unsigned char *my_skb_transport_header(struct sk_buff *skb) {
+    return skb->head + skb->transport_header;
+}
+int test(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb) {
+    u32 *seq = (u32 *)my_skb_tr
