@@ -1201,4 +1201,88 @@ int test(struct pt_regs *ctx, const struct qstr *name) {
     def test_probe_read_array_accesses4(self):
         text = b"""
 #include <linux/ptrace.h>
-int te
+int test(struct pt_regs *ctx, char *name) {
+    return name[1];
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_array_accesses5(self):
+        text = b"""
+#include <linux/ptrace.h>
+int test(struct pt_regs *ctx, char **name) {
+    return (*name)[1];
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_array_accesses6(self):
+        text = b"""
+#include <linux/ptrace.h>
+struct test_t {
+    int tab[5];
+};
+int test(struct pt_regs *ctx, struct test_t *t) {
+    return *(&t->tab[1]);
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_array_accesses7(self):
+        text = b"""
+#include <net/inet_sock.h>
+int test(struct pt_regs *ctx, struct sock *sk) {
+    return sk->__sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32[0];
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_probe_read_array_accesses8(self):
+        text = b"""
+#include <linux/mm_types.h>
+int test(struct pt_regs *ctx, struct mm_struct *mm) {
+    return mm->rss_stat.count[MM_ANONPAGES].counter;
+}
+"""
+        b = BPF(text=text)
+        fn = b.load_func(b"test", BPF.KPROBE)
+
+    def test_arbitrary_increment_simple(self):
+        b = BPF(text=b"""
+#include <uapi/linux/ptrace.h>
+struct bpf_map;
+BPF_HASH(map);
+int map_delete(struct pt_regs *ctx, struct bpf_map *bpfmap, u64 *k) {
+    map.increment(42, 5);
+    map.atomic_increment(42, 5);
+    return 0;
+}
+""")
+        b.attach_kprobe(event=b"htab_map_delete_elem", fn_name=b"map_delete")
+        b.cleanup()
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_packed_structure(self):
+        b = BPF(text=b"""
+struct test {
+    u16 a;
+    u32 b;
+} __packed;
+BPF_TABLE("hash", u32, struct test, testing, 2);
+TRACEPOINT_PROBE(kmem, kmalloc) {
+    u32 key = 0;
+    struct test info, *entry;
+    entry = testing.lookup(&key);
+    if (entry == NULL) {
+        info.a = 10;
+        info.b = 20;
+        testing.update(&key, &info);
+    }
+    return 0;
+}
+""")
+        if len(b[b"testing"].items()
