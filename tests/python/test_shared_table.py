@@ -10,4 +10,14 @@ class TestSharedTable(unittest.TestCase):
     def test_close_extern(self):
         b1 = BPF(text=b"""BPF_TABLE_PUBLIC("array", int, int, table1, 10);""")
 
-        with BP
+        with BPF(text=b"""BPF_TABLE("extern", int, int, table1, 10);""") as b2:
+            t2 = b2[b"table1"]
+            t2[ct.c_int(1)] = ct.c_int(10)
+            self.assertEqual(len(t2), 10)
+
+        t1 = b1[b"table1"]
+        self.assertEqual(t1[ct.c_int(1)].value, 10)
+        self.assertEqual(len(t1), 10)
+
+if __name__ == "__main__":
+    unittest.main()
