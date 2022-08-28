@@ -53,4 +53,31 @@ class TestStackBuildid(unittest.TestCase):
         b = bcc.BPF(text=b"""
 #include <uapi/linux/ptrace.h>
 struct bpf_map;
-BPF_STACK_TRACE_BUILDI
+BPF_STACK_TRACE_BUILDID(stack_traces, 10240);
+BPF_HASH(stack_entries, int, int);
+BPF_HASH(stub);
+int kprobe__sys_getuid(struct pt_regs *ctx, struct bpf_map *map, u64 *k) {
+    int id = stack_traces.get_stackid(ctx, BPF_F_USER_STACK);
+    if (id < 0)
+        return 0;
+    int key = 1;
+    stack_entries.update(&key, &id);
+    return 0;
+}
+""")
+        os.getuid()
+        stub = b[b"stub"]
+        stack_traces = b[b"stack_traces"]
+        stack_entries = b[b"stack_entries"]
+        b.add_module(Get_libc_path())
+        try: x = stub[stub.Key(1)]
+        except: pass
+        k = stack_entries.Key(1)
+        self.assertIn(k, stack_entries)
+        stackid = stack_entries[k]
+        self.assertIsNotNone(stackid)
+        stack = stack_traces[stackid]
+        self.assertTrue(b.sym(stack.trace[0], -1).find(b"getuid")!=-1)
+
+if __name__ == "__main__":
+    unittest.main()
