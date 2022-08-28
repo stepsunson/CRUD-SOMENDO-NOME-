@@ -42,4 +42,56 @@ class SmokeTests(TestCase):
     # Use this for commands that don't have a built-in timeout, so we have
     # to Ctrl-C out of them by sending SIGINT. If that still doesn't stop
     # them, send a kill signal 5 seconds later.
-    def run_with_int
+    def run_with_int(self, command, timeout=5, kill_timeout=5,
+                     allow_early=False, kill=False):
+        full_command = TOOLS_DIR + command
+        signal = "KILL" if kill else "INT"
+        rc = subprocess.call("timeout -s %s -k %ds %ds %s > /dev/null" %
+                (signal, kill_timeout, timeout, full_command), shell=True)
+        # timeout returns 124 if the program did not terminate prematurely,
+        # and returns 137 if we used KILL instead of INT. So there are three
+        # sensible scenarios:
+        #   1. The script is allowed to return early, and it did, with a
+        #      success return code.
+        #   2. The script timed out and was killed by the SIGINT signal.
+        #   3. The script timed out and was killed by the SIGKILL signal, and
+        #      this was what we asked for using kill=True.
+        self.assertTrue((rc == 0 and allow_early) or rc == 124
+                        or (rc == 137 and kill), _helpful_rc_msg(rc,
+                        allow_early, kill))
+
+    def kmod_loaded(self, mod):
+        with open("/proc/modules", "r") as mods:
+            reg = re.compile("^%s\s" % mod)
+            for line in mods:
+                if reg.match(line):
+                    return 1
+                return 0
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    @mayFail("This fails on github actions environment, and needs to be fixed")
+    def test_argdist(self):
+        self.run_with_duration("argdist.py -v -C 'p::do_sys_open()' -n 1 -i 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_bashreadline(self):
+        self.run_with_int("bashreadline.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_bindsnoop(self):
+        self.run_with_int("bindsnoop.py")
+
+    def test_biolatency(self):
+        self.run_with_duration("biolatency.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_biosnoop(self):
+        self.run_with_int("biosnoop.py")
+
+    def test_biotop(self):
+        self.run_with_duration
