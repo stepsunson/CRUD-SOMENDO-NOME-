@@ -59,4 +59,14 @@ class TestBPFSocket(TestCase):
             x = self.stats[self.stats.Key()]
         (_, x) = self.stats.popitem()
         self.assertEqual(x.rx_pkts, 300)
-        self.assertEqual(x.tx_pkts,
+        self.assertEqual(x.tx_pkts, 400)
+        self.stats.clear()
+        self.assertEqual(len(self.stats), 0)
+        self.stats[self.stats.Key()] = x
+        self.stats[self.stats.Key(0, 1)] = x
+        self.stats[self.stats.Key(0, 2)] = x
+        self.stats[self.stats.Key(0, 3)] = x
+        self.assertEqual(len(self.stats), 4)
+
+if __name__ == "__main__":
+    main()
