@@ -156,3 +156,58 @@ class SmokeTests(TestCase):
 
     @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
     def test_deadlock(self):
+        # TODO This tool requires a massive BPF stack traces table allocation,
+        # which might fail the run or even trigger the oomkiller to kill some
+        # other processes. Disabling for now.
+        # self.run_with_int("deadlock.py $(pgrep -n bash)", timeout=10)
+        pass
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_drsnoop(self):
+        self.run_with_int("drsnoop.py")
+
+    @skipUnless(kernel_version_ge(4,8), "requires kernel >= 4.8")
+    def test_execsnoop(self):
+        self.run_with_int("execsnoop.py")
+
+    def test_ext4dist(self):
+        self.run_with_duration("ext4dist.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_ext4slower(self):
+        self.run_with_int("ext4slower.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_filelife(self):
+        self.run_with_int("filelife.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_fileslower(self):
+        self.run_with_int("fileslower.py")
+
+    def test_filetop(self):
+        self.run_with_duration("filetop.py 1 1")
+
+    def test_funccount(self):
+        self.run_with_int("funccount.py __kmalloc -i 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_funclatency(self):
+        self.run_with_int("funclatency.py __kmalloc -i 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_funcslower(self):
+        self.run_with_int("funcslower.py __kmalloc")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_gethostlatency(self):
+        self.run_with_int("gethostlatency.py")
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_hardirqs(self):
+        self.run_with_duration("hardirqs.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_killsnoop(self):
+        # Because killsnoop intercepts signals, if we send it a SIGINT we we
+        # we likely catch it while it is handling t
