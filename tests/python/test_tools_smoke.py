@@ -94,4 +94,65 @@ class SmokeTests(TestCase):
         self.run_with_int("biosnoop.py")
 
     def test_biotop(self):
-        self.run_with_duration
+        self.run_with_duration("biotop.py 1 1")
+
+    def test_bitesize(self):
+        self.run_with_int("biotop.py")
+
+    def test_bpflist(self):
+        self.run_with_duration("bpflist.py")
+
+    def test_btrfsdist(self):
+        # Will attempt to do anything meaningful only when btrfs is installed.
+        self.run_with_duration("btrfsdist.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_btrfsslower(self):
+        # Will attempt to do anything meaningful only when btrfs is installed.
+        self.run_with_int("btrfsslower.py", allow_early=True)
+
+    def test_cachestat(self):
+        self.run_with_duration("cachestat.py 1 1")
+
+    def test_cachetop(self):
+        # TODO cachetop doesn't like to run without a terminal, disabled
+        # for now.
+        # self.run_with_int("cachetop.py 1")
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_capable(self):
+        self.run_with_int("capable.py")
+
+    def test_cpudist(self):
+        self.run_with_duration("cpudist.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,9), "requires kernel >= 4.9")
+    def test_cpuunclaimed(self):
+        self.run_with_duration("cpuunclaimed.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,17), "requires kernel >= 4.17")
+    def test_compactsnoop(self):
+        self.run_with_int("compactsnoop.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_dbslower(self):
+        # Deliberately left empty -- dbslower requires an instance of either
+        # MySQL or PostgreSQL to be running, or it fails to attach.
+        pass
+
+    @skipUnless(kernel_version_ge(4,3), "requires kernel >= 4.3")
+    def test_dbstat(self):
+        # Deliberately left empty -- dbstat requires an instance of either
+        # MySQL or PostgreSQL to be running, or it fails to attach.
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_dcsnoop(self):
+        self.run_with_int("dcsnoop.py")
+
+    def test_dcstat(self):
+        self.run_with_duration("dcstat.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
+    def test_deadlock(self):
