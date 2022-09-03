@@ -210,4 +210,60 @@ class SmokeTests(TestCase):
     @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
     def test_killsnoop(self):
         # Because killsnoop intercepts signals, if we send it a SIGINT we we
-        # we likely catch it while it is handling t
+        # we likely catch it while it is handling the data packet from the
+        # BPF program, and the exception from the SIGINT will be swallowed by
+        # ctypes. Therefore, we use SIGKILL.
+        # To reproduce the above issue, run killsnoop and in another shell run
+        # `kill -s SIGINT $(pidof python)`. As a result, killsnoop will print
+        # a traceback but will not exit.
+        self.run_with_int("killsnoop.py", kill=True)
+
+    @skipUnless(kernel_version_ge(4,18), "requires kernel >= 4.18")
+    def test_klockstat(self):
+        self.run_with_int("klockstat.py")
+
+    @skipUnless(kernel_version_ge(4,9), "requires kernel >= 4.9")
+    def test_llcstat(self):
+        # Requires PMU, which is not available in virtual machines.
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_mdflush(self):
+        self.run_with_int("mdflush.py")
+
+    @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
+    def test_memleak(self):
+        self.run_with_duration("memleak.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,8), "requires kernel >= 4.8")
+    def test_mountsnoop(self):
+        self.run_with_int("mountsnoop.py")
+
+    @skipUnless(kernel_version_ge(4,3), "requires kernel >= 4.3")
+    def test_mysqld_qslower(self):
+        # Deliberately left empty -- mysqld_qslower requires an instance of
+        # MySQL to be running, or it fails to attach.
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_nfsslower(self):
+        if(self.kmod_loaded("nfs")):
+            self.run_with_int("nfsslower.py")
+        else:
+            pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_nfsdist(self):
+        if(self.kmod_loaded("nfs")):
+            self.run_with_duration("nfsdist.py 1 1")
+        else:
+            pass
+
+    @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
+    @mayFail("This fails on github actions environment, and needs to be fixed")
+    def test_offcputime(self):
+        self.run_with_duration("offcputime.py 1")
+
+    @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
+    def test_offwaketime(self):
+        self.run_with_duration("offwake
