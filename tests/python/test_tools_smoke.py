@@ -325,4 +325,63 @@ class SmokeTests(TestCase):
         self.run_with_int("stackcount.py __kmalloc -i 1")
 
     @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
-    def test_statsnoop
+    def test_statsnoop(self):
+        self.run_with_int("statsnoop.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_syncsnoop(self):
+        self.run_with_int("syncsnoop.py")
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_syscount(self):
+        self.run_with_int("syscount.py -i 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_tcpaccept(self):
+        self.run_with_int("tcpaccept.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_tcpconnect(self):
+        self.run_with_int("tcpconnect.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_tcpconnlat(self):
+        self.run_with_int("tcpconnlat.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_tcplife(self):
+        self.run_with_int("tcplife.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_tcpretrans(self):
+        self.run_with_int("tcpretrans.py")
+
+    @skipUnless(kernel_version_ge(4, 7), "requires kernel >= 4.7")
+    @mayFail("This fails on github actions environment, and needs to be fixed")
+    def test_tcpdrop(self):
+        self.run_with_int("tcpdrop.py")
+
+    def test_tcptop(self):
+        self.run_with_duration("tcptop.py 1 1")
+
+    def test_tcpcong(self):
+        self.run_with_duration("tcpcong.py 1 1")
+
+    def test_tplist(self):
+        self.run_with_duration("tplist.py -p %d" % os.getpid())
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_trace(self):
+        self.run_with_int("trace.py do_sys_open")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    @mayFail("This fails on github actions environment, and needs to be fixed")
+    def test_ttysnoop(self):
+        self.run_with_int("ttysnoop.py /dev/console")
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_ucalls(self):
+        self.run_with_int("lib/ucalls.py -l none -S %d" % os.getpid())
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+   
