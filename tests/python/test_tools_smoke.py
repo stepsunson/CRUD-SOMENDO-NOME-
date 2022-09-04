@@ -266,4 +266,63 @@ class SmokeTests(TestCase):
 
     @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
     def test_offwaketime(self):
-        self.run_with_duration("offwake
+        self.run_with_duration("offwaketime.py 1")
+
+    @skipUnless(kernel_version_ge(4,9), "requires kernel >= 4.9")
+    def test_oomkill(self):
+        self.run_with_int("oomkill.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_opensnoop(self):
+        self.run_with_int("opensnoop.py")
+
+    def test_pidpersec(self):
+        self.run_with_int("pidpersec.py")
+
+    @skipUnless(kernel_version_ge(4,17), "requires kernel >= 4.17")
+    @mayFail("This fails on github actions environment, and needs to be fixed")
+    def test_syscount(self):
+        self.run_with_int("ppchcalls.py -i 1")
+
+    @skipUnless(kernel_version_ge(4,9), "requires kernel >= 4.9")
+    def test_profile(self):
+        self.run_with_duration("profile.py 1")
+
+    def test_runqlat(self):
+        self.run_with_duration("runqlat.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,9), "requires kernel >= 4.9")
+    def test_runqlen(self):
+        self.run_with_duration("runqlen.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,8), "requires kernel >= 4.8")
+    def test_shmsnoop(self):
+        self.run_with_int("shmsnoop.py")
+
+    @skipUnless(kernel_version_ge(4,8), "requires kernel >= 4.8")
+    def test_sofdsnoop(self):
+        self.run_with_int("sofdsnoop.py")
+
+    def test_slabratetop(self):
+        self.run_with_duration("slabratetop.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,7), "requires kernel >= 4.7")
+    def test_softirqs(self):
+        self.run_with_duration("softirqs.py 1 1")
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_solisten(self):
+        self.run_with_int("solisten.py")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    @mayFail("This fails on github actions environment, and needs to be fixed")
+    def test_sslsniff(self):
+        self.run_with_int("sslsniff.py")
+
+    @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
+    def test_stackcount(self):
+        self.run_with_int("stackcount.py __kmalloc -i 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_statsnoop
