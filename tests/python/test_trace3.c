@@ -34,4 +34,22 @@ int probe_blk_start_request(struct pt_regs *ctx) {
   return 0;
 }
 
-int probe_blk_up
+int probe_blk_update_request(struct pt_regs *ctx) {
+  struct Request rq = {.rq = PT_REGS_PARM1(ctx)};
+  struct Time *tm = requests.lookup(&rq);
+  if (!tm) return 0;
+  u64 delta = bpf_ktime_get_ns() - tm->start;
+  requests.delete(&rq);
+  u64 lg = log2l(delta);
+  u64 base = 1ull << lg;
+  u32 index = (lg * 64 + (delta - base) * 64 / base) * 3 / 64;
+  if (index >= SLOTS)
+    index = SLOTS - 1;
+
+  u64 zero = 0;
+  u64 *val = latency.lookup_or_try_init(&index, &zero);
+  if (val) {
+    lock_xadd(val, 1);
+  }
+  return 0;
+}
