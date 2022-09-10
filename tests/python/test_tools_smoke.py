@@ -384,4 +384,61 @@ class SmokeTests(TestCase):
         self.run_with_int("lib/ucalls.py -l none -S %d" % os.getpid())
 
     @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
-   
+    def test_uflow(self):
+        # The Python installed on the Ubuntu buildbot doesn't have USDT
+        # probes, so we can't run uflow.
+        # self.run_with_int("pythonflow.py %d" % os.getpid())
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_ugc(self):
+        # This requires a runtime that has GC probes to be installed.
+        # Python has them, but only in very recent versions. Skip.
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_uobjnew(self):
+        self.run_with_int("cobjnew.sh %d" % os.getpid())
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_ustat(self):
+        self.run_with_duration("lib/ustat.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_uthreads(self):
+        self.run_with_int("lib/uthreads.py %d" % os.getpid())
+
+    def test_vfscount(self):
+        self.run_with_int("vfscount.py", timeout=15, kill_timeout=15)
+
+    def test_vfsstat(self):
+        self.run_with_duration("vfsstat.py 1 1")
+
+    @skipUnless(kernel_version_ge(4,6), "requires kernel >= 4.6")
+    def test_wakeuptime(self):
+        self.run_with_duration("wakeuptime.py 1")
+
+    def test_xfsdist(self):
+        # Doesn't work on build bot because xfs functions not present in the
+        # kernel image.
+        # self.run_with_duration("xfsdist.py 1 1")
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_xfsslower(self):
+        # Doesn't work on build bot because xfs functions not present in the
+        # kernel image.
+        # self.run_with_int("xfsslower.py")
+        pass
+
+    def test_zfsdist(self):
+        # Fails to attach the probe if zfs is not installed.
+        pass
+
+    @skipUnless(kernel_version_ge(4,4), "requires kernel >= 4.4")
+    def test_zfsslower(self):
+        # Fails to attach the probe if zfs is not installed.
+        pass
+
+if __name__ == "__main__":
+    main()
