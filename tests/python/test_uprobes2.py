@@ -24,4 +24,24 @@ int trace_fun_call(void *ctx) {{
 }}
 """
         # Compile and run the application
-        self.fte
+        self.ftemp = NamedTemporaryFile(delete=False)
+        self.ftemp.close()
+        comp = Popen([
+            "gcc",
+            "-x", "c",
+            "-shared",
+            "-Wl,-Ttext-segment,0x2000000",
+            "-o", self.ftemp.name,
+            "-"
+        ], stdin=PIPE)
+        comp.stdin.write(lib_text)
+        comp.stdin.close()
+        self.assertEqual(comp.wait(), 0)
+
+    def test_attach1(self):
+        b = BPF(text=self.bpf_text)
+        b.attach_uprobe(name=self.ftemp.name.encode(), sym=b"fun", fn_name=b"trace_fun_call")
+
+
+if __name__ == "__main__":
+    main()
