@@ -52,4 +52,58 @@ int do_trace1(struct pt_regs *ctx) {
     if (FILTER)
       event1.perf_submit(ctx, &result, sizeof(result));
     else
-      event4.perf_submit(ctx, &re
+      event4.perf_submit(ctx, &result, sizeof(result));
+    return 0;
+};
+int do_trace2(struct pt_regs *ctx) {
+    u32 pid = bpf_get_current_pid_tgid();
+    int result = 0;
+    bpf_usdt_readarg(1, ctx, &result);
+    if (FILTER)
+      event2.perf_submit(ctx, &result, sizeof(result));
+    else
+      event5.perf_submit(ctx, &result, sizeof(result));
+    return 0;
+}
+int do_trace3(struct pt_regs *ctx) {
+    u32 pid = bpf_get_current_pid_tgid();
+    int result = 0;
+    bpf_usdt_readarg(1, ctx, &result);
+    if (FILTER)
+      event3.perf_submit(ctx, &result, sizeof(result));
+    else
+      event6.perf_submit(ctx, &result, sizeof(result));
+    return 0;
+}
+"""
+
+        # Compile and run the application
+        self.ftemp = NamedTemporaryFile(delete=False)
+        self.ftemp.close()
+        comp = Popen(["gcc", "-I", "%s/include" % os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
+                      "-x", "c++", "-o", self.ftemp.name, "-"],
+                     stdin=PIPE)
+        comp.stdin.write(app_text)
+        comp.stdin.close()
+        self.assertEqual(comp.wait(), 0)
+
+        # create 3 applications, 2 applications will have usdt attached and
+        # the third one does not, and the third one should not call into
+        # bpf program.
+        self.app = Popen([self.ftemp.name, "1"])
+        self.app2 = Popen([self.ftemp.name, "11"])
+        self.app3 = Popen([self.ftemp.name, "21"])
+
+    def test_attach1(self):
+        # Enable USDT probe from given PID and verifier generated BPF programs.
+        u = USDT(pid=int(self.app.pid))
+        u.enable_probe(probe="probe_point_1", fn_name="do_trace1")
+        u.enable_probe(probe="probe_point_2", fn_name="do_trace2")
+        u2 = USDT(pid=int(self.app2.pid))
+        u2.enable_probe(probe="probe_point_2", fn_name="do_trace2")
+        u2.enable_probe(probe="probe_point_3", fn_name="do_trace3")
+        self.bpf_text = self.bpf_text.replace(b"FILTER", b"pid == %d" % self.app.pid)
+        b = BPF(text=self.bpf_text, usdt_contexts=[u, u2])
+
+        # Event states for each event:
+        # 0 - probe not 
