@@ -106,4 +106,56 @@ int do_trace3(struct pt_regs *ctx) {
         b = BPF(text=self.bpf_text, usdt_contexts=[u, u2])
 
         # Event states for each event:
-        # 0 - probe not 
+        # 0 - probe not caught, 1 - probe caught with correct value,
+        # 2 - probe caught with incorrect value
+        self.evt_st_1 = 0
+        self.evt_st_2 = 0
+        self.evt_st_3 = 0
+        self.evt_st_4 = 0
+        self.evt_st_5 = 0
+        self.evt_st_6 = 0
+
+        def check_event_val(data, event_state, expected_val):
+            result = ct.cast(data, ct.POINTER(ct.c_int)).contents
+            if result.value == expected_val:
+                if (event_state == 0 or event_state == 1):
+                    return 1
+            return 2
+
+        def print_event1(cpu, data, size):
+            self.evt_st_1 = check_event_val(data, self.evt_st_1, 1)
+
+        def print_event2(cpu, data, size):
+            self.evt_st_2 = check_event_val(data, self.evt_st_2, 2)
+
+        def print_event3(cpu, data, size):
+            self.evt_st_3 = check_event_val(data, self.evt_st_3, 3)
+
+        def print_event4(cpu, data, size):
+            self.evt_st_4 = check_event_val(data, self.evt_st_4, 11)
+
+        def print_event5(cpu, data, size):
+            self.evt_st_5 = check_event_val(data, self.evt_st_5, 12)
+
+        def print_event6(cpu, data, size):
+            self.evt_st_6 = check_event_val(data, self.evt_st_6, 13)
+
+        # loop with callback to print_event
+        b[b"event1"].open_perf_buffer(print_event1)
+        b[b"event2"].open_perf_buffer(print_event2)
+        b[b"event3"].open_perf_buffer(print_event3)
+        b[b"event4"].open_perf_buffer(print_event4)
+        b[b"event5"].open_perf_buffer(print_event5)
+        b[b"event6"].open_perf_buffer(print_event6)
+
+        # three iterations to make sure we get some probes and have time to process them
+        for i in range(5):
+            b.perf_buffer_poll()
+
+        # note that event1 and event4 do not really fire, so their state should be 0
+        # use separate asserts so that if test fails we know which one is the culprit
+        self.assertTrue(self.evt_st_1 == 1)
+        self.assertTrue(self.evt_st_2 == 1)
+        self.assertTrue(self.evt_st_3 == 0)
+        self.assertTrue(self.evt_st_4 == 0)
+        self.ass
