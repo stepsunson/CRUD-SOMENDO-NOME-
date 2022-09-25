@@ -158,4 +158,18 @@ int do_trace3(struct pt_regs *ctx) {
         self.assertTrue(self.evt_st_2 == 1)
         self.assertTrue(self.evt_st_3 == 0)
         self.assertTrue(self.evt_st_4 == 0)
-        self.ass
+        self.assertTrue(self.evt_st_5 == 1)
+        self.assertTrue(self.evt_st_6 == 1)
+
+    def tearDown(self):
+        # kill the subprocess, clean the environment
+        self.app.kill()
+        self.app.wait()
+        self.app2.kill()
+        self.app2.wait()
+        self.app3.kill()
+        self.app3.wait()
+        os.unlink(self.ftemp.name)
+
+if __name__ == "__main__":
+    main()
