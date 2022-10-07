@@ -63,4 +63,32 @@ def skipUnlessHasBinaries(binaries, message):
 
             if len(missing):
                 missing_binaries = ", ".join(missing)
-                self.skipTest(f"Missi
+                self.skipTest(f"Missing binaries: {missing_binaries}. {message}")
+            else:
+                func(self, *args, **kwargs)
+        return wrapper
+    return decorator
+
+class NSPopenWithCheck(NSPopen):
+    """
+    A wrapper for NSPopen that additionally checks if the program
+    to be executed is available from the system path or not.
+    If found, it proceeds with the usual NSPopen() call.
+    Otherwise, it raises an exception.
+    """
+
+    def __init__(self, nsname, *argv, **kwarg):
+        name = list(argv)[0][0]
+        has_executable(name)
+        super(NSPopenWithCheck, self).__init__(nsname, *argv, **kwarg)
+
+def kernel_version_ge(major, minor):
+    # True if running kernel is >= X.Y
+    version = distutils.version.LooseVersion(os.uname()[2]).version
+    if version[0] > major:
+        return True
+    if version[0] < major:
+        return False
+    if minor and version[1] < minor:
+        return False
+    return True
