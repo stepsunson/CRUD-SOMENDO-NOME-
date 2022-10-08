@@ -1,0 +1,43 @@
+Demonstrations of argdist.
+
+
+argdist probes functions you specify and collects parameter values into a
+histogram or a frequency count. This can be used to understand the distribution
+of values a certain parameter takes, filter and print interesting parameters
+without attaching a debugger, and obtain general execution statistics on
+various functions.
+
+For example, suppose you want to find what allocation sizes are common in
+your application:
+
+# ./argdist -p 2420 -c -C 'p:c:malloc(size_t size):size_t:size'
+[01:42:29]
+p:c:malloc(size_t size):size_t:size
+        COUNT      EVENT
+[01:42:30]
+p:c:malloc(size_t size):size_t:size
+        COUNT      EVENT
+[01:42:31]
+p:c:malloc(size_t size):size_t:size
+        COUNT      EVENT
+        1          size = 16
+[01:42:32]
+p:c:malloc(size_t size):size_t:size
+        COUNT      EVENT
+        2          size = 16
+[01:42:33]
+p:c:malloc(size_t size):size_t:size
+        COUNT      EVENT
+        3          size = 16
+[01:42:34]
+p:c:malloc(size_t size):size_t:size
+        COUNT      EVENT
+        4          size = 16
+^C
+
+It seems that the application is allocating blocks of size 16. The COUNT
+column contains the number of occurrences of a particular event, and the
+EVENT column describes the event. In this case, the "size" parameter was 
+probed and its value was 16, repeatedly.
+
+Now, suppose you wanted a histogram of buffer sizes passed to th
