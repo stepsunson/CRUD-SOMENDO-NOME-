@@ -75,4 +75,37 @@ p:c:write(int fd, void *buf, size_t len):size_t:len
         64 -> 127        : 26       |********************                    |
 ^C
 
-It seems that most writes fall into three buckets: very small
+It seems that most writes fall into three buckets: very small writes of 2-3
+bytes, medium writes of 32-63 bytes, and larger writes of 64-127 bytes.
+
+But these are writes across the board -- what if you wanted to focus on writes
+to STDOUT?
+
+# ./argdist -c -H 'p:c:write(int fd, void *buf, size_t len):size_t:len:fd==1'
+[01:47:17]
+p:c:write(int fd, void *buf, size_t len):size_t:len:fd==1
+     len                 : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 1        |****************************************|
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 1        |****************************************|
+[01:47:18]
+p:c:write(int fd, void *buf, size_t len):size_t:len:fd==1
+     len                 : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 2        |*************                           |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 3        |********************                    |
+        64 -> 127        : 6        |****************************************|
+[01:47:19]
+p:c:write(int fd, void *buf, size_t len):size_t:len:fd==1
+     len                 : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 3        |*********                               |
+        16 -> 31         : 0        |                                        |
