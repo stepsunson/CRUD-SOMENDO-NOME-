@@ -40,4 +40,39 @@ column contains the number of occurrences of a particular event, and the
 EVENT column describes the event. In this case, the "size" parameter was 
 probed and its value was 16, repeatedly.
 
-Now, suppose you wanted a histogram of buffer sizes passed to th
+Now, suppose you wanted a histogram of buffer sizes passed to the write()
+function across the system:
+
+# ./argdist -c -H 'p:c:write(int fd, void *buf, size_t len):size_t:len'
+[01:45:22]
+p:c:write(int fd, void *buf, size_t len):size_t:len
+     len                 : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 2        |*************                           |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 2        |*************                           |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 6        |****************************************|
+[01:45:23]
+p:c:write(int fd, void *buf, size_t len):size_t:len
+     len                 : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 11       |***************                         |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 4        |*****                                   |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 28       |****************************************|
+        64 -> 127        : 12       |*****************                       |
+[01:45:24]
+p:c:write(int fd, void *buf, size_t len):size_t:len
+     len                 : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 21       |****************                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 6        |****                                    |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 52       |****************************************|
+        64 -> 127        : 26       |********************                    |
+^C
+
+It seems that most writes fall into three buckets: very small
