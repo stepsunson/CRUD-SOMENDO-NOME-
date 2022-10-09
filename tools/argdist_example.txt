@@ -109,3 +109,44 @@ p:c:write(int fd, void *buf, size_t len):size_t:len:fd==1
          4 -> 7          : 0        |                                        |
          8 -> 15         : 3        |*********                               |
         16 -> 31         : 0        |                                        |
+        32 -> 63         : 5        |***************                         |
+        64 -> 127        : 13       |****************************************|
+^C
+
+The "fd==1" part is a filter that is applied to every invocation of write().
+Only if the filter condition is true, the value is recorded.
+
+You can also use argdist to trace kernel functions. For example, suppose you
+wanted a histogram of kernel allocation (kmalloc) sizes across the system,
+printed twice with 3 second intervals:
+
+# ./argdist -i 3 -n 2 -H 'p::__kmalloc(size_t size):size_t:size'
+[01:50:00]
+p::__kmalloc(size_t size):size_t:size
+     size                : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 6        |****************************************|
+[01:50:03]
+p::__kmalloc(size_t size):size_t:size
+     size                : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 22       |****************************************|
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 0        |                                        |
+        64 -> 127        : 5        |*********                               |
+       128 -> 255        : 2        |***                                     |
+
+Occasionally, numeric information isn't enough and you want to capture strings.
+What are the strings printed by puts() across the system?
+
+# ./argdist -i 10 -n 1 -C 'p:c:puts(char *str):char*:str'
+[01:53:54]
+p:c:puts(char *str):char*:str
+        COUNT      EVENT
+        2          str = Press ENTER to start.
+
+It looks like the message "Press ENTER to start." was prin
