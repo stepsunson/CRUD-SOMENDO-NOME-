@@ -234,4 +234,57 @@ takes an additional flags parameter that describes how to allocate memory:
 
 # ./argdist -c -C 'p::__kmalloc(size_t size, gfp_t flags):gfp_t,size_t:flags,size'
 [03:42:29]
-p:
+p::__kmalloc(size_t size, gfp_t flags):gfp_t,size_t:flags,size
+        COUNT      EVENT
+        1          flags = 16, size = 152
+        2          flags = 131280, size = 8
+        7          flags = 131280, size = 16
+[03:42:30]
+p::__kmalloc(size_t size, gfp_t flags):gfp_t,size_t:flags,size
+        COUNT      EVENT
+        1          flags = 16, size = 152
+        6          flags = 131280, size = 8
+        19         flags = 131280, size = 16
+[03:42:31]
+p::__kmalloc(size_t size, gfp_t flags):gfp_t,size_t:flags,size
+        COUNT      EVENT
+        2          flags = 16, size = 152
+        10         flags = 131280, size = 8
+        31         flags = 131280, size = 16
+[03:42:32]
+p::__kmalloc(size_t size, gfp_t flags):gfp_t,size_t:flags,size
+        COUNT      EVENT
+        2          flags = 16, size = 152
+        14         flags = 131280, size = 8
+        43         flags = 131280, size = 16
+^C
+
+The flags value must be expanded by hand, but it's still helpful to eliminate
+certain kinds of allocations or visually group them together.
+
+argdist also has basic support for kernel tracepoints. It is sometimes more
+convenient to use tracepoints because they are documented and don't vary a lot
+between kernel versions. For example, let's trace the net:net_dev_start_xmit
+tracepoint and print out the protocol field from the tracepoint structure:
+
+# argdist -C 't:net:net_dev_start_xmit():u16:args->protocol'
+[13:01:49]
+t:net:net_dev_start_xmit():u16:args->protocol
+        COUNT      EVENT
+        8          args->protocol = 2048
+^C
+
+Note that to discover the format of the net:net_dev_start_xmit tracepoint, you
+use the tplist tool (tplist -v net:net_dev_start_xmit).
+
+
+Occasionally, it is useful to filter certain expressions by string. This is not
+trivially supported by BPF, but argdist provides a STRCMP helper you can use in
+filter expressions. For example, to get a histogram of latencies opening a
+specific file, run this:
+
+# argdist -c -H 'r:c:open(char *file):u64:$latency/1000:STRCMP("test.txt",$entry(file))'
+[02:16:38]
+[02:16:39]
+[02:16:40]
+     $latency/1000       : count     distributi
