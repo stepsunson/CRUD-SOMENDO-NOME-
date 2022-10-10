@@ -149,4 +149,47 @@ p:c:puts(char *str):char*:str
         COUNT      EVENT
         2          str = Press ENTER to start.
 
-It looks like the message "Press ENTER to start." was prin
+It looks like the message "Press ENTER to start." was printed twice during the
+10 seconds we were tracing.
+
+What about reads? You could trace gets() across the system and print the 
+strings input by the user (note how "r" is used instead of "p" to attach a
+probe to the function's return):
+
+# ./argdist -i 10 -n 1 -C 'r:c:gets():char*:(char*)$retval:$retval!=0'
+[02:12:23]
+r:c:gets():char*:$retval:$retval!=0
+        COUNT      EVENT
+        1          (char*)$retval = hi there
+        3          (char*)$retval = sasha
+        8          (char*)$retval = hello
+
+Similarly, we could get a histogram of the error codes returned by read():
+
+# ./argdist -i 10 -c 1 -H 'r:c:read()'
+[02:15:36]
+r:c:read()
+     retval              : count     distribution
+         0 -> 1          : 29       |****************************************|
+         2 -> 3          : 11       |***************                         |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 3        |****                                    |
+        16 -> 31         : 2        |**                                      |
+        32 -> 63         : 22       |******************************          |
+        64 -> 127        : 5        |******                                  |
+       128 -> 255        : 0        |                                        |
+       256 -> 511        : 1        |*                                       |
+       512 -> 1023       : 1        |*                                       |
+      1024 -> 2047       : 0        |                                        |
+      2048 -> 4095       : 2        |**                                      |
+
+In return probes, you can also trace the latency of the function (unless it is
+recursive) and the parameters it had on entry. For example, we can identify
+which processes are performing slow synchronous filesystem reads -- say,
+longer than 0.1ms (100,000ns):
+
+# ./argdist -C 'r::__vfs_read():u32:$PID:$latency > 100000'
+[01:08:48]
+r::__vfs_read():u32:$PID:$latency > 100000
+        COUNT      EVENT
+        1          $PI
