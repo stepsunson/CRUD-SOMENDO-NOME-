@@ -287,4 +287,45 @@ specific file, run this:
 [02:16:38]
 [02:16:39]
 [02:16:40]
-     $latency/1000       : count     distributi
+     $latency/1000       : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 0        |                                        |
+        16 -> 31         : 2        |****************************************|
+[02:16:41]
+     $latency/1000       : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 1        |**********                              |
+        16 -> 31         : 4        |****************************************|
+[02:16:42]
+     $latency/1000       : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 1        |********                                |
+        16 -> 31         : 5        |****************************************|
+[02:16:43]
+     $latency/1000       : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 1        |********                                |
+        16 -> 31         : 5        |****************************************|
+
+
+Here's a final example that finds how many write() system calls are performed
+by each process on the system:
+
+# argdist -c -C 'p:c:write():int:$PID;write per process' -n 2
+[06:47:18]
+write by process
+        COUNT      EVENT
+        3          $PID = 8889
+        7          $PID = 7615
+        7          $PID = 2480
+[06:47:19]
+write by process
+        C
