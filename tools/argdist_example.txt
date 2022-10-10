@@ -192,4 +192,46 @@ longer than 0.1ms (100,000ns):
 [01:08:48]
 r::__vfs_read():u32:$PID:$latency > 100000
         COUNT      EVENT
-        1          $PI
+        1          $PID = 10457
+        21         $PID = 2780
+[01:08:49]
+r::__vfs_read():u32:$PID:$latency > 100000
+        COUNT      EVENT
+        1          $PID = 10457
+        21         $PID = 2780
+^C
+
+It looks like process 2780 performed 21 slow reads.
+
+Occasionally, entry parameter values are also interesting. For example, you
+might be curious how long it takes malloc() to allocate memory -- nanoseconds
+per byte allocated. Let's go:
+
+# ./argdist -H 'r:c:malloc(size_t size):u64:$latency/$entry(size);ns per byte' -n 1 -i 10
+[01:11:13]
+     ns per byte         : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 4        |*****************                       |
+         4 -> 7          : 3        |*************                           |
+         8 -> 15         : 2        |********                                |
+        16 -> 31         : 1        |****                                    |
+        32 -> 63         : 0        |                                        |
+        64 -> 127        : 7        |*******************************         |
+       128 -> 255        : 1        |****                                    |
+       256 -> 511        : 0        |                                        |
+       512 -> 1023       : 1        |****                                    |
+      1024 -> 2047       : 1        |****                                    |
+      2048 -> 4095       : 9        |****************************************|
+      4096 -> 8191       : 1        |****                                    | 
+
+It looks like a tri-modal distribution. Some allocations are extremely cheap,
+and take 2-15 nanoseconds per byte. Other allocations are slower, and take
+64-127 nanoseconds per byte. And some allocations are slower still, and take
+multiple microseconds per byte.
+
+You could also group results by more than one field. For example, __kmalloc
+takes an additional flags parameter that describes how to allocate memory:
+
+# ./argdist -c -C 'p::__kmalloc(size_t size, gfp_t flags):gfp_t,size_t:flags,size'
+[03:42:29]
+p:
