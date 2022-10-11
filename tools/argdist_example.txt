@@ -328,4 +328,50 @@ write by process
         7          $PID = 2480
 [06:47:19]
 write by process
-        C
+        COUNT      EVENT
+        9          $PID = 8889
+        23         $PID = 7615
+        23         $PID = 2480
+
+
+USAGE message:
+
+# argdist -h
+usage: argdist [-h] [-p PID] [-z STRING_SIZE] [-i INTERVAL] [-n COUNT] [-v]
+               [-c] [-T TOP] [-H specifier] [-C[specifier] [-I header]
+
+Trace a function and display a summary of its parameter values.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PID, --pid PID     id of the process to trace (optional)
+  -t TID, --tid TID     id of the thread to trace (optional)
+  -z STRING_SIZE, --string-size STRING_SIZE
+                        maximum string size to read from char* arguments
+  -i INTERVAL, --interval INTERVAL
+                        output interval, in seconds (default 1 second)
+  -d DURATION, --duration DURATION
+			total duration of trace, in seconds
+  -n COUNT, --number COUNT
+                        number of outputs
+  -v, --verbose         print resulting BPF program code before executing
+  -c, --cumulative      do not clear histograms and freq counts at each interval
+  -T TOP, --top TOP     number of top results to show (not applicable to
+                        histograms)
+  -H specifier, --histogram specifier
+                        probe specifier to capture histogram of (see examples
+                        below)
+  -C specifier, --count specifier
+                        probe specifier to capture count of (see examples
+                        below)
+  -I header, --include header
+                        additional header files to include in the BPF program
+                        as either full path, or relative to current working directory,
+                        or relative to default kernel header search path
+
+Probe specifier syntax:
+        {p,r,t,u}:{[library],category}:function(signature)[:type[,type...]:expr[,expr...][:filter]][#label]
+Where:
+        p,r,t,u    -- probe at function entry, function exit, kernel tracepoint,
+                      or USDT probe
+                      in exit probes: can use $ret
