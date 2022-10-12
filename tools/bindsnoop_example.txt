@@ -1,0 +1,18 @@
+Demonstrations of bindsnoop, the Linux eBPF/bcc version.
+
+This tool traces the kernel function performing socket binding and
+print socket options set before the system call invocation that might
+impact bind behavior and bound interface:
+SOL_IP     IP_FREEBIND              F....
+SOL_IP     IP_TRANSPARENT           .T...
+SOL_IP     IP_BIND_ADDRESS_NO_PORT  ..N..
+SOL_SOCKET SO_REUSEADDR             ...R.
+SOL_SOCKET SO_REUSEPORT             ....r
+
+
+# ./bindsnoop.py
+Tracing binds ... Hit Ctrl-C to end
+PID COMM         PROT ADDR            PORT   OPTS IF
+3941081 test_bind_op TCP  192.168.1.102       0 F.N..  0
+3940194 dig          TCP  ::              62087 .....  0
+3940219 dig          UDP  ::          
