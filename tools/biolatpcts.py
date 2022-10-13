@@ -109,4 +109,81 @@ RAW_TRACEPOINT_PROBE(block_rq_complete)
         if (slot)
                 return 0;
 
-        slot = min_t(size_t, div_u64(dur, 
+        slot = min_t(size_t, div_u64(dur, 10 * NSEC_PER_USEC), 99);
+        rwdf_10us.increment(base + slot);
+        return 0;
+}
+"""
+
+args = parser.parse_args()
+args.pcts = args.pcts.split(',')
+args.pcts.sort(key=lambda x: float(x))
+
+try:
+    major = int(args.dev.split(':')[0])
+    minor = int(args.dev.split(':')[1])
+except Exception:
+    if '/' in args.dev:
+        stat = os.stat(args.dev)
+    else:
+        stat = os.stat('/dev/' + args.dev)
+
+    major = os.major(stat.st_rdev)
+    minor = os.minor(stat.st_rdev)
+
+if args.which == 'from-rq-alloc':
+    start_time_field = 'alloc_time_ns'
+elif args.which == 'after-rq-alloc':
+    start_time_field = 'start_time_ns'
+elif args.which == 'on-device':
+    start_time_field = 'io_start_time_ns'
+else:
+    print("Invalid latency measurement {}".format(args.which))
+    exit()
+
+bpf_source = bpf_source.replace('__START_TIME_FIELD__', start_time_field)
+bpf_source = bpf_source.replace('__MAJOR__', str(major))
+bpf_source = bpf_source.replace('__MINOR__', str(minor))
+
+if BPF.kernel_struct_has_field(b'request', b'rq_disk') == 1:
+    bpf_source = bpf_source.replace('__RQ_DISK__', 'rq_disk')
+else:
+    bpf_source = bpf_source.replace('__RQ_DISK__', 'q->disk')
+
+bpf = BPF(text=bpf_source)
+
+# times are in usecs
+MSEC = 1000
+SEC = 1000 * 1000
+
+cur_rwdf_100ms = bpf["rwdf_100ms"]
+cur_rwdf_1ms = bpf["rwdf_1ms"]
+cur_rwdf_10us = bpf["rwdf_10us"]
+
+last_rwdf_100ms = [0] * 400
+last_rwdf_1ms = [0] * 400
+last_rwdf_10us = [0] * 400
+
+rwdf_100ms = [0] * 400
+rwdf_1ms = [0] * 400
+rwdf_10us = [0] * 400
+
+io_type = ["read", "write", "discard", "flush"]
+
+def find_pct(req, total, slots, idx, counted):
+    while idx > 0:
+        idx -= 1
+        if slots[idx] > 0:
+            counted += slots[idx]
+            if args.verbose > 1:
+                print('idx={} counted={} pct={:.1f} req={}'
+                      .format(idx, counted, counted / total, req))
+            if (counted / total) * 100 >= 100 - req:
+                break
+    return (idx, counted)
+
+def calc_lat_pct(req_pcts, total, lat_100ms, lat_1ms, lat_10us):
+    pcts = [0] * len(req_pcts)
+
+    if total == 0:
+        return 
