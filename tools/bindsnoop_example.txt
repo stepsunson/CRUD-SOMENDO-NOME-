@@ -74,4 +74,43 @@ LADDR                                           LPORT     BINDS
 Usage message:
 # ./bindsnoop.py -h
 usage: bindsnoop.py [-h] [-t] [-w] [-p PID] [-P PORT] [-E] [-U] [-u UID]
-                  [--count] [--cgroupmap CGROUPMAP] [--
+                  [--count] [--cgroupmap CGROUPMAP] [--mntnsmap MNTNSMAP]
+
+Trace TCP binds
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t, --timestamp       include timestamp on output
+  -w, --wide            wide column output (fits IPv6 addresses)
+  -p PID, --pid PID     trace this PID only
+  -P PORT, --port PORT  comma-separated list of ports to trace.
+  -E, --errors          include errors in the output.
+  -U, --print-uid       include UID on output
+  -u UID, --uid UID     trace this UID only
+  --count               count binds per src ip and port
+  --cgroupmap CGROUPMAP
+                        trace cgroups in this BPF map only
+
+examples:
+    ./bindsnoop           # trace all TCP bind()s
+    ./bindsnoop -t        # include timestamps
+    ./bindsnoop -w        # wider columns (fit IPv6)
+    ./bindsnoop -p 181    # only trace PID 181
+    ./bindsnoop -P 80     # only trace port 80
+    ./bindsnoop -P 80,81  # only trace port 80 and 81
+    ./bindsnoop -U        # include UID
+    ./bindsnoop -u 1000   # only trace UID 1000
+    ./bindsnoop -E        # report bind errors
+    ./bindsnoop --count   # count bind per src ip
+    ./bindsnoop --cgroupmap mappath  # only trace cgroups in this BPF map
+    ./bindsnoop --mntnsmap  mappath  # only trace mount namespaces in the map
+
+    it is reporting socket options set before the bins call
+    impacting system call behavior:
+     SOL_IP     IP_FREEBIND              F....
+     SOL_IP     IP_TRANSPARENT           .T...
+     SOL_IP     IP_BIND_ADDRESS_NO_PORT  ..N..
+     SOL_SOCKET SO_REUSEADDR             ...R.
+     SOL_SOCKET SO_REUSEPORT             ....r
+
+     SO_BINDTODEVICE interface is reported as "IF" index
