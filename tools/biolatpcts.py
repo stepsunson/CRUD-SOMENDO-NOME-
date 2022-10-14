@@ -250,4 +250,65 @@ for sig in (signal.SIGUSR1, signal.SIGUSR2, signal.SIGINT, signal.SIGTERM, signa
 # If infinite interval, always trigger the first output so that the caller
 # can tell when initialization is complete.
 if args.interval < 0:
-    re
+    result_req.set();
+
+while keep_running:
+    result_req.wait(args.interval if args.interval > 0 else None)
+    result_req.clear()
+
+    update_last_rwdf = args.interval > 0 or force_update_last_rwdf
+    force_update_last_rwdf = False
+    rwdf_total = [0] * 4;
+
+    for i in range(400):
+        v = cur_rwdf_100ms.sum(i).value
+        rwdf_100ms[i] = max(v - last_rwdf_100ms[i], 0)
+        if update_last_rwdf:
+            last_rwdf_100ms[i] = v
+
+        v = cur_rwdf_1ms.sum(i).value
+        rwdf_1ms[i] = max(v - last_rwdf_1ms[i], 0)
+        if update_last_rwdf:
+            last_rwdf_1ms[i] = v
+
+        v = cur_rwdf_10us.sum(i).value
+        rwdf_10us[i] = max(v - last_rwdf_10us[i], 0)
+        if update_last_rwdf:
+            last_rwdf_10us[i] = v
+
+        rwdf_total[int(i / 100)] += rwdf_100ms[i]
+
+    rwdf_lat = []
+    for i in range(4):
+        left = i * 100
+        right = left + 100
+        rwdf_lat.append(
+            calc_lat_pct(args.pcts, rwdf_total[i],
+                         rwdf_100ms[left:right],
+                         rwdf_1ms[left:right],
+                         rwdf_10us[left:right]))
+
+        if args.verbose:
+            print('{:7} 100ms {}'.format(io_type[i], rwdf_100ms[left:right]))
+            print('{:7}   1ms {}'.format(io_type[i], rwdf_1ms[left:right]))
+            print('{:7}  10us {}'.format(io_type[i], rwdf_10us[left:right]))
+
+    if args.json:
+        result = {}
+        for iot in range(4):
+            lats = {}
+            for pi in range(len(args.pcts)):
+                lats[args.pcts[pi]] = rwdf_lat[iot][pi] / SEC
+            result[io_type[iot]] = lats
+        print(json.dumps(result), flush=True)
+    else:
+        print('\n{:<7}'.format(os.path.basename(args.dev)), end='')
+        widths = []
+        for pct in args.pcts:
+            widths.append(max(len(pct), 5))
+            print(' {:>5}'.format(pct), end='')
+        print()
+        for iot in range(4):
+            print('{:7}'.format(io_type[iot]), end='')
+            for pi in range(len(rwdf_lat[iot])):
+                print(' {:>{}}'.format(format_usec(rwdf_l
