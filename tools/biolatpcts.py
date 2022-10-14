@@ -186,4 +186,68 @@ def calc_lat_pct(req_pcts, total, lat_100ms, lat_1ms, lat_10us):
     pcts = [0] * len(req_pcts)
 
     if total == 0:
-        return 
+        return pcts
+
+    data = [(100 * MSEC, lat_100ms), (MSEC, lat_1ms), (10, lat_10us)]
+    data_sel = 0
+    idx = 100
+    counted = 0
+
+    for pct_idx in reversed(range(len(req_pcts))):
+        req = float(req_pcts[pct_idx])
+        while True:
+            last_counted = counted
+            (gran, slots) = data[data_sel]
+            (idx, counted) = find_pct(req, total, slots, idx, counted)
+            if args.verbose > 1:
+                print('pct_idx={} req={} gran={} idx={} counted={} total={}'
+                      .format(pct_idx, req, gran, idx, counted, total))
+            if idx > 0 or data_sel == len(data) - 1:
+                break
+            counted = last_counted
+            data_sel += 1
+            idx = 100
+
+        pcts[pct_idx] = gran * idx + gran / 2
+
+    return pcts
+
+def format_usec(lat):
+    if lat > SEC:
+        return '{:.1f}s'.format(lat / SEC)
+    elif lat > 10 * MSEC:
+        return '{:.0f}ms'.format(lat / MSEC)
+    elif lat > MSEC:
+        return '{:.1f}ms'.format(lat / MSEC)
+    elif lat > 0:
+        return '{:.0f}us'.format(lat)
+    else:
+        return '-'
+
+# 0 interval can be used to test whether this script would run successfully.
+if args.interval == 0:
+    sys.exit(0)
+
+# Set up signal handling so that we print the result on USR1/2 and before
+# exiting on a signal. Combined with infinite interval, this can be used to
+# obtain overall latency distribution between two events. On USR2 the
+# accumulated counters are cleared too, which can be used to define
+# arbitrary intervals.
+force_update_last_rwdf = False
+keep_running = True
+result_req = Event()
+def sig_handler(sig, frame):
+    global keep_running, force_update_last_rwdf, result_req
+    if sig == signal.SIGUSR1:
+        force_update_last_rwdf = True
+    elif sig != signal.SIGUSR2:
+        keep_running = False
+    result_req.set()
+
+for sig in (signal.SIGUSR1, signal.SIGUSR2, signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+    signal.signal(sig, sig_handler)
+
+# If infinite interval, always trigger the first output so that the caller
+# can tell when initialization is complete.
+if args.interval < 0:
+    re
