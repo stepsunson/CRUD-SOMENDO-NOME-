@@ -98,4 +98,75 @@ int trace_req_completion(struct pt_regs *ctx, struct request *req)
 /*
  * The following deals with a kernel version change (in mainline 4.7, although
  * it may be backported to earlier kernels) with how block request write flags
- * are tested. We handle b
+ * are tested. We handle both pre- and post-change versions here. Please avoid
+ * kernel version tests like this as much as possible: they inflate the code,
+ * test, and maintenance burden.
+ */
+#ifdef REQ_WRITE
+    data.rwflag = !!(req->cmd_flags & REQ_WRITE);
+#elif defined(REQ_OP_SHIFT)
+    data.rwflag = !!((req->cmd_flags >> REQ_OP_SHIFT) == REQ_OP_WRITE);
+#else
+    data.rwflag = !!((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE);
+#endif
+
+    events.perf_submit(ctx,&data,sizeof(data));
+    start.delete(&req);
+    infobyreq.delete(&req);
+
+    return 0;
+}
+]]
+
+local ffi = require("ffi")
+
+return function(BPF, utils)
+  local bpf = BPF:new{text=program}
+
+  bpf:attach_kprobe{event="blk_account_io_start", fn_name="trace_pid_start"}
+  bpf:attach_kprobe{event="blk_start_request", fn_name="trace_req_start"}
+  bpf:attach_kprobe{event="blk_mq_start_request", fn_name="trace_req_start"}
+  bpf:attach_kprobe{event="blk_account_io_done",
+      fn_name="trace_req_completion"}
+
+  print("%-14s %-14s %-6s %-7s %-2s %-9s %-7s %7s" % {"TIME(s)", "COMM", "PID",
+    "DISK", "T", "SECTOR", "BYTES", "LAT(ms)"})
+
+  local rwflg = ""
+  local start_ts = 0
+  local prev_ts = 0
+  local delta = 0
+
+  local function print_event(cpu, event)
+    local val = -1
+    local event_pid = event.pid
+    local event_delta = tonumber(event.delta)
+    local event_sector = tonumber(event.sector)
+    local event_len = tonumber(event.len)
+    local event_ts = tonumber(event.ts)
+    local event_disk_name = ffi.string(event.disk_name)
+    local event_name = ffi.string(event.name)
+
+    if event.rwflag == 1 then
+      rwflg = "W"
+    end
+
+    if event.rwflag == 0 then
+      rwflg = "R"
+    end
+
+    if not event_name:match("%?") then
+      val = event_sector
+    end
+
+    if start_ts == 0 then
+      prev_ts = start_ts
+    end
+
+    if start_ts == 1 then
+      delta = delta + (event_ts - prev_ts)
+    end
+
+    print("%-14.9f %-14.14s %-6s %-7s %-2s %-9s %-7s %7.2f" % {
+      delta / 1000000, event_name, event_pid, event_disk_name, rwflg, val,
+      event_len, event_de
