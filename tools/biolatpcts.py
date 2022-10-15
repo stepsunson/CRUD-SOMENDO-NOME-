@@ -311,4 +311,5 @@ while keep_running:
         for iot in range(4):
             print('{:7}'.format(io_type[iot]), end='')
             for pi in range(len(rwdf_lat[iot])):
-                print(' {:>{}}'.format(format_usec(rwdf_l
+                print(' {:>{}}'.format(format_usec(rwdf_lat[iot][pi]), widths[pi]), end='')
+            print()
