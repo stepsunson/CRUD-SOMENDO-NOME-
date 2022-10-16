@@ -122,4 +122,82 @@ int trace_req_start(struct pt_regs *ctx, struct request *req)
 }
 
 // output
-int trace_req_comp
+int trace_req_completion(struct pt_regs *ctx, struct request *req)
+{
+    struct start_req_t *startp;
+
+    // fetch timestamp and calculate delta
+    startp = start.lookup(&req);
+    if (startp == 0) {
+        return 0;    // missed tracing issue
+    }
+
+    struct who_t *whop;
+    u32 pid;
+
+    whop = whobyreq.lookup(&req);
+    pid = whop != 0 ? whop->pid : 0;
+    if (FILTER_PID) {
+        start.delete(&req);
+        if (whop != 0) {
+            whobyreq.delete(&req);
+        }
+        return 0;
+    }
+
+    struct val_t *valp, zero = {};
+    u64 delta_us = (bpf_ktime_get_ns() - startp->ts) / 1000;
+
+    // setup info_t key
+    struct info_t info = {};
+    info.major = req->__RQ_DISK__->major;
+    info.minor = req->__RQ_DISK__->first_minor;
+/*
+ * The following deals with a kernel version change (in mainline 4.7, although
+ * it may be backported to earlier kernels) with how block request write flags
+ * are tested. We handle both pre- and post-change versions here. Please avoid
+ * kernel version tests like this as much as possible: they inflate the code,
+ * test, and maintenance burden.
+ */
+#ifdef REQ_WRITE
+    info.rwflag = !!(req->cmd_flags & REQ_WRITE);
+#elif defined(REQ_OP_SHIFT)
+    info.rwflag = !!((req->cmd_flags >> REQ_OP_SHIFT) == REQ_OP_WRITE);
+#else
+    info.rwflag = !!((req->cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE);
+#endif
+
+    if (whop == 0) {
+        // missed pid who, save stats as pid 0
+        valp = counts.lookup_or_try_init(&info, &zero);
+    } else {
+        info.pid = whop->pid;
+        __builtin_memcpy(&info.name, whop->name, sizeof(info.name));
+        valp = counts.lookup_or_try_init(&info, &zero);
+    }
+
+    if (valp) {
+        // save stats
+        valp->us += delta_us;
+        valp->bytes += startp->data_len;
+        valp->io++;
+    }
+
+    start.delete(&req);
+    whobyreq.delete(&req);
+
+    return 0;
+}
+"""
+
+if args.ebpf:
+    print(bpf_text)
+    exit()
+
+if BPF.kernel_struct_has_field(b'request', b'rq_disk') == 1:
+    bpf_text = bpf_text.replace('__RQ_DISK__', 'rq_disk')
+else:
+    bpf_text = bpf_text.replace('__RQ_DISK__', 'q->disk')
+
+if args.pid is not None:
+    
