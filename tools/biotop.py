@@ -200,4 +200,65 @@ else:
     bpf_text = bpf_text.replace('__RQ_DISK__', 'q->disk')
 
 if args.pid is not None:
-    
+    bpf_text = bpf_text.replace('FILTER_PID', 'pid != %d' % args.pid)
+else:
+    bpf_text = bpf_text.replace('FILTER_PID', '0')
+
+b = BPF(text=bpf_text)
+if BPF.get_kprobe_functions(b'__blk_account_io_start'):
+    b.attach_kprobe(event="__blk_account_io_start", fn_name="trace_pid_start")
+else:
+    b.attach_kprobe(event="blk_account_io_start", fn_name="trace_pid_start")
+if BPF.get_kprobe_functions(b'blk_start_request'):
+    b.attach_kprobe(event="blk_start_request", fn_name="trace_req_start")
+b.attach_kprobe(event="blk_mq_start_request", fn_name="trace_req_start")
+if BPF.get_kprobe_functions(b'__blk_account_io_done'):
+    b.attach_kprobe(event="__blk_account_io_done", fn_name="trace_req_completion")
+else:
+    b.attach_kprobe(event="blk_account_io_done", fn_name="trace_req_completion")
+
+print('Tracing... Output every %d secs. Hit Ctrl-C to end' % interval)
+
+# cache disk major,minor -> diskname
+disklookup = {}
+with open(diskstats) as stats:
+    for line in stats:
+        a = line.split()
+        disklookup[a[0] + "," + a[1]] = a[2]
+
+# output
+exiting = 0
+while 1:
+    try:
+        sleep(interval)
+    except KeyboardInterrupt:
+        exiting = 1
+
+    # header
+    if clear:
+        call("clear")
+    else:
+        print()
+    with open(loadavg) as stats:
+        print("%-8s loadavg: %s" % (strftime("%H:%M:%S"), stats.read()))
+    print("%-7s %-16s %1s %-3s %-3s %-8s %5s %7s %6s" % ("PID", "COMM",
+        "D", "MAJ", "MIN", "DISK", "I/O", "Kbytes", "AVGms"))
+
+    # by-PID output
+    counts = b.get_table("counts")
+    line = 0
+    for k, v in reversed(sorted(counts.items(),
+                                key=lambda counts: counts[1].bytes)):
+
+        # lookup disk
+        disk = str(k.major) + "," + str(k.minor)
+        if disk in disklookup:
+            diskname = disklookup[disk]
+        else:
+            diskname = "?"
+
+        # print line
+        avg_ms = (float(v.us) / 1000) / v.io
+        print("%-7d %-16s %1s %-3d %-3d %-8s %5s %7s %6.2f" % (k.pid,
+            k.name.decode('utf-8', 'replace'), "W" if k.rwflag else "R",
+            k.major, k.minor,
