@@ -169,4 +169,26 @@ return function(BPF, utils)
 
     print("%-14.9f %-14.14s %-6s %-7s %-2s %-9s %-7s %7.2f" % {
       delta / 1000000, event_name, event_pid, event_disk_name, rwflg, val,
-      event_len, event_de
+      event_len, event_delta / 1000000})
+
+    prev_ts = event_ts
+    start_ts = 1
+  end
+
+  local TASK_COMM_LEN = 16 -- linux/sched.h
+  local DISK_NAME_LEN = 32 -- linux/genhd.h
+
+  bpf:get_table("events"):open_perf_buffer(print_event, [[
+    struct {
+      uint32_t pid;
+      uint64_t rwflag;
+      uint64_t delta;
+      uint64_t sector;
+      uint64_t len;
+      uint64_t ts;
+      char disk_name[$];
+      char name[$];
+    }
+  ]], {DISK_NAME_LEN, TASK_COMM_LEN}, 64)
+  bpf:perf_buffer_poll_loop()
+end
