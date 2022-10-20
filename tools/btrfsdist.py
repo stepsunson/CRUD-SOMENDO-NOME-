@@ -108,3 +108,90 @@ int trace_read_entry(struct pt_regs *ctx, struct kiocb *iocb)
 
 // The current btrfs (Linux 4.5) uses generic_file_open(), instead of it's own
 // function. Same as with reads. Trace the generic path and filter:
+int trace_open_entry(struct pt_regs *ctx, struct inode *inode,
+    struct file *file)
+{
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    if (FILTER_PID)
+        return 0;
+
+    // btrfs filter on file->f_op == btrfs_file_operations
+    if ((u64)file->f_op != BTRFS_FILE_OPERATIONS)
+        return 0;
+
+    u64 ts = bpf_ktime_get_ns();
+    start.update(&tid, &ts);
+    return 0;
+}
+
+static int trace_return(struct pt_regs *ctx, const char *op)
+{
+    u64 *tsp;
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    // fetch timestamp and calculate delta
+    tsp = start.lookup(&tid);
+    if (tsp == 0) {
+        return 0;   // missed start or filtered
+    }
+    u64 delta = (bpf_ktime_get_ns() - *tsp) / FACTOR;
+
+    // store as histogram
+    dist_key_t key = {.slot = bpf_log2l(delta)};
+    __builtin_memcpy(&key.op, op, sizeof(key.op));
+    dist.atomic_increment(key);
+
+    start.delete(&tid);
+    return 0;
+}
+
+int trace_read_return(struct pt_regs *ctx)
+{
+    char *op = "read";
+    return trace_return(ctx, op);
+}
+
+int trace_write_return(struct pt_regs *ctx)
+{
+    char *op = "write";
+    return trace_return(ctx, op);
+}
+
+int trace_open_return(struct pt_regs *ctx)
+{
+    char *op = "open";
+    return trace_return(ctx, op);
+}
+
+int trace_fsync_return(struct pt_regs *ctx)
+{
+    char *op = "fsync";
+    return trace_return(ctx, op);
+}
+"""
+
+# code replacements
+with open(kallsyms) as syms:
+    ops = ''
+    for line in syms:
+        a = line.rstrip().split()
+        (addr, name) = (a[0], a[2])
+        name = name.split("\t")[0]
+        if name == "btrfs_file_operations":
+            ops = "0x" + addr
+            break
+    if ops == '':
+        print("ERROR: no btrfs_file_operations in /proc/kallsyms. Exiting.")
+        print("HINT: the kernel should be built with CONFIG_KALLSYMS_ALL.")
+        exit()
+    bpf_text = bpf_text.replace('BTRFS_FILE_OPERATIONS', ops)
+bpf_text = bpf_text.replace('FACTOR', str(factor))
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER_PID', 'pid != %s' % pid)
+else:
+  
