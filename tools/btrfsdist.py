@@ -194,4 +194,46 @@ bpf_text = bpf_text.replace('FACTOR', str(factor))
 if args.pid:
     bpf_text = bpf_text.replace('FILTER_PID', 'pid != %s' % pid)
 else:
-  
+    bpf_text = bpf_text.replace('FILTER_PID', '0')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# load BPF program
+b = BPF(text=bpf_text)
+
+# Common file functions. See earlier comment about generic_file_read_iter().
+b.attach_kprobe(event="generic_file_read_iter", fn_name="trace_read_entry")
+b.attach_kprobe(event="btrfs_file_write_iter", fn_name="trace_entry")
+b.attach_kprobe(event="generic_file_open", fn_name="trace_open_entry")
+b.attach_kprobe(event="btrfs_sync_file", fn_name="trace_entry")
+b.attach_kretprobe(event="generic_file_read_iter", fn_name="trace_read_return")
+b.attach_kretprobe(event="btrfs_file_write_iter", fn_name="trace_write_return")
+b.attach_kretprobe(event="generic_file_open", fn_name="trace_open_return")
+b.attach_kretprobe(event="btrfs_sync_file", fn_name="trace_fsync_return")
+
+print("Tracing btrfs operation latency... Hit Ctrl-C to end.")
+
+# output
+exiting = 0
+dist = b.get_table("dist")
+while (1):
+    try:
+        if args.interval:
+            sleep(int(args.interval))
+        else:
+            sleep(99999999)
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print()
+    if args.interval and (not args.notimestamp):
+        print(strftime("%H:%M:%S:"))
+
+    dist.print_log2_hist(label, "operation", section_print_fn=bytes.decode)
+    dist.clear()
+
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
