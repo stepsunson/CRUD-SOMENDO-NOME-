@@ -1,0 +1,43 @@
+Demonstrations of cachestat, the Linux eBPF/bcc version.
+
+
+cachestat shows hits and misses to the file system page cache. For example:
+
+# cachestat
+    HITS   MISSES  DIRTIES HITRATIO   BUFFERS_MB  CACHED_MB
+    1132        0        4  100.00%          277       4367
+     161        0       36  100.00%          277       4372
+      16        0       28  100.00%          277       4372
+   17154    13750       15   55.51%          277       4422
+      19        0        1  100.00%          277       4422
+      83        0       83  100.00%          277       4421
+      16        0        1  100.00%          277       4423
+^C       0      -19      360    0.00%          277       4423
+Detaching...
+
+While tracing, there was a burst of misses in the fourth second, bringing
+the hit ration down to 55%.
+
+
+This shows a 1 Gbyte uncached file that is read twice:
+
+(root) ~ # ./cachestat.py 
+    HITS   MISSES  DIRTIES HITRATIO   BUFFERS_MB  CACHED_MB
+       1        0        0  100.00%            5        191
+     198    12136        0    1.61%            5        238
+       1    11007        3    0.01%            5        281
+       0     6384        0    0.00%            5        306
+       1    14464        0    0.01%            5        363
+       0    11776        0    0.00%            5        409
+       1    11712        0    0.01%            5        454
+      32    13184        0    0.24%            5        506
+       0    11232        0    0.00%            5        550
+       1    13056        0    0.01%            5        601
+      16    14720        0    0.11%            5        658
+      33     9920        0    0.33%            5        697
+       0    13248        0    0.00%            5        749
+       4    14144        0    0.03%            5        804
+       0     9728        0    0.00%            5        842
+       1    10816        0    0.01%            5        885
+     808    13504        1    5.65%            5        938
+       0    11409        0    0.00%            5    
