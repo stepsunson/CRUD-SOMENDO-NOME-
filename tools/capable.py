@@ -43,4 +43,82 @@ parser.add_argument("-p", "--pid",
 parser.add_argument("-K", "--kernel-stack", action="store_true",
     help="output kernel stack trace")
 parser.add_argument("-U", "--user-stack", action="store_true",
-    help="output u
+    help="output user stack trace")
+parser.add_argument("-x", "--extra", action="store_true",
+    help="show extra fields in TID and INSETID columns")
+parser.add_argument("--cgroupmap",
+    help="trace cgroups in this BPF map only")
+parser.add_argument("--mntnsmap",
+    help="trace mount namespaces in this BPF map only")
+parser.add_argument("--unique", action="store_true",
+    help="don't repeat stacks for the same pid or cgroup")
+args = parser.parse_args()
+debug = 0
+
+# capabilities to names, generated from (and will need updating):
+# awk '/^#define.CAP_.*[0-9]$/ { print "    " $3 ": \"" $2 "\"," }' \
+#     include/uapi/linux/capability.h
+capabilities = {
+    0: "CAP_CHOWN",
+    1: "CAP_DAC_OVERRIDE",
+    2: "CAP_DAC_READ_SEARCH",
+    3: "CAP_FOWNER",
+    4: "CAP_FSETID",
+    5: "CAP_KILL",
+    6: "CAP_SETGID",
+    7: "CAP_SETUID",
+    8: "CAP_SETPCAP",
+    9: "CAP_LINUX_IMMUTABLE",
+    10: "CAP_NET_BIND_SERVICE",
+    11: "CAP_NET_BROADCAST",
+    12: "CAP_NET_ADMIN",
+    13: "CAP_NET_RAW",
+    14: "CAP_IPC_LOCK",
+    15: "CAP_IPC_OWNER",
+    16: "CAP_SYS_MODULE",
+    17: "CAP_SYS_RAWIO",
+    18: "CAP_SYS_CHROOT",
+    19: "CAP_SYS_PTRACE",
+    20: "CAP_SYS_PACCT",
+    21: "CAP_SYS_ADMIN",
+    22: "CAP_SYS_BOOT",
+    23: "CAP_SYS_NICE",
+    24: "CAP_SYS_RESOURCE",
+    25: "CAP_SYS_TIME",
+    26: "CAP_SYS_TTY_CONFIG",
+    27: "CAP_MKNOD",
+    28: "CAP_LEASE",
+    29: "CAP_AUDIT_WRITE",
+    30: "CAP_AUDIT_CONTROL",
+    31: "CAP_SETFCAP",
+    32: "CAP_MAC_OVERRIDE",
+    33: "CAP_MAC_ADMIN",
+    34: "CAP_SYSLOG",
+    35: "CAP_WAKE_ALARM",
+    36: "CAP_BLOCK_SUSPEND",
+    37: "CAP_AUDIT_READ",
+    38: "CAP_PERFMON",
+    39: "CAP_BPF",
+    40: "CAP_CHECKPOINT_RESTORE",
+}
+
+class Enum(set):
+    def __getattr__(self, name):
+        if name in self:
+            return name
+        raise AttributeError
+
+# Stack trace types
+StackType = Enum(("Kernel", "User",))
+
+# define BPF program
+bpf_text = """
+#include <uapi/linux/ptrace.h>
+#include <linux/sched.h>
+#include <linux/security.h>
+
+struct data_t {
+   u32 tgid;
+   u32 pid;
+   u32 uid;
+   in
