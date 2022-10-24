@@ -226,4 +226,62 @@ int kprobe__cap_capable(struct pt_regs *ctx, const struct cred *cred,
 };
 """
 if args.pid:
-    bpf_text = bpf_text.replac
+    bpf_text = bpf_text.replace('FILTER1',
+        'if (pid != %s) { return 0; }' % args.pid)
+if not args.verbose:
+    bpf_text = bpf_text.replace('FILTER2', 'if (audit == 0) { return 0; }')
+if args.kernel_stack:
+    bpf_text = "#define KERNEL_STACKS\n" + bpf_text
+if args.user_stack:
+    bpf_text = "#define USER_STACKS\n" + bpf_text
+bpf_text = bpf_text.replace('FILTER1', '')
+bpf_text = bpf_text.replace('FILTER2', '')
+bpf_text = bpf_text.replace('FILTER3',
+    'if (pid == %s) { return 0; }' % getpid())
+bpf_text = filter_by_containers(args) + bpf_text
+if args.unique:
+    bpf_text = bpf_text.replace('UNIQUESET', '1')
+else:
+    bpf_text = bpf_text.replace('UNIQUESET', '0')
+if debug:
+    print(bpf_text)
+
+# initialize BPF
+b = BPF(text=bpf_text)
+
+# header
+if args.extra:
+    print("%-9s %-6s %-6s %-6s %-16s %-4s %-20s %-6s %s" % (
+        "TIME", "UID", "PID", "TID", "COMM", "CAP", "NAME", "AUDIT", "INSETID"))
+else:
+    print("%-9s %-6s %-6s %-16s %-4s %-20s %-6s" % (
+        "TIME", "UID", "PID", "COMM", "CAP", "NAME", "AUDIT"))
+
+def stack_id_err(stack_id):
+    # -EFAULT in get_stackid normally means the stack-trace is not available,
+    # Such as getting kernel stack trace in userspace code
+    return (stack_id < 0) and (stack_id != -errno.EFAULT)
+
+def print_stack(bpf, stack_id, stack_type, tgid):
+    if stack_id_err(stack_id):
+        print("    [Missed %s Stack]" % stack_type)
+        return
+    stack = list(bpf.get_table("stacks").walk(stack_id))
+    for addr in stack:
+        print("        ", end="")
+        print("%s" % (bpf.sym(addr, tgid, show_module=True, show_offset=True)))
+
+# process event
+def print_event(bpf, cpu, data, size):
+    event = b["events"].event(data)
+
+    if event.cap in capabilities:
+        name = capabilities[event.cap]
+    else:
+        name = "?"
+    if args.extra:
+        print("%-9s %-6d %-6d %-6d %-16s %-4d %-20s %-6d %s" % (strftime("%H:%M:%S"),
+            event.uid, event.pid, event.tgid, event.comm.decode('utf-8', 'replace'),
+            event.cap, name, event.audit, str(event.insetid) if event.insetid != -1 else "N/A"))
+    else:
+       
