@@ -284,4 +284,19 @@ def print_event(bpf, cpu, data, size):
             event.uid, event.pid, event.tgid, event.comm.decode('utf-8', 'replace'),
             event.cap, name, event.audit, str(event.insetid) if event.insetid != -1 else "N/A"))
     else:
-       
+        print("%-9s %-6d %-6d %-16s %-4d %-20s %-6d" % (strftime("%H:%M:%S"),
+            event.uid, event.pid, event.comm.decode('utf-8', 'replace'),
+            event.cap, name, event.audit))
+    if args.kernel_stack:
+        print_stack(bpf, event.kernel_stack_id, StackType.Kernel, -1)
+    if args.user_stack:
+        print_stack(bpf, event.user_stack_id, StackType.User, event.tgid)
+
+# loop with callback to print_event
+callback = partial(print_event, b)
+b["events"].open_perf_buffer(callback)
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
