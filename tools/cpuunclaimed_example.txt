@@ -1,0 +1,44 @@
+Demonstrations of cpuunclaimed, the Linux eBPF/bcc version.
+
+
+This tool samples the length of the CPU run queues and determine when there are
+idle CPUs, yet queued threads waiting their turn. It reports the amount of idle
+(yet unclaimed by waiting threads) CPU as a system-wide percentage. For
+example:
+
+# ./cpuunclaimed.py
+Sampling run queues... Output every 1 seconds. Hit Ctrl-C to end.
+%CPU  83.00%, unclaimed idle 0.12%
+%CPU  87.25%, unclaimed idle 0.38%
+%CPU  85.00%, unclaimed idle 0.25%
+%CPU  85.00%, unclaimed idle 0.25%
+%CPU  80.88%, unclaimed idle 0.00%
+%CPU  82.25%, unclaimed idle 0.00%
+%CPU  83.50%, unclaimed idle 0.12%
+%CPU  81.50%, unclaimed idle 0.00%
+%CPU  81.38%, unclaimed idle 0.00%
+[...]
+
+This shows a system running at over 80% CPU utilization, and with less than
+0.5% unclaimed idle CPUs.
+
+Unclaimed idle CPUs can happen for a number of reasons:
+
+- An application has been bound to some, but not all, CPUs, and has runnable
+  threads that cannot migrate to other CPUs due to this configuration.
+- CPU affinity: an optimization that leaves threads on CPUs where the CPU
+  caches are warm, even if this means short periods of waiting while other
+  CPUs are idle. The wait period is tunale (see sysctl, kernel.sched*).
+- Scheduler bugs.
+
+An unclaimed idle of < 1% is likely to be CPU affinity, and not usually a
+cause for concern. By leaving the CPU idle, overall throughput of the system
+may be improved. This tool is best for identifying larger issues, > 2%, due
+to the coarseness of its 99 Hertz samples.
+
+
+This is an 8 CPU system, with an 8 CPU-bound threaded application running that
+has been bound to one CPU (via taskset):
+
+# ./cpuunclaimed.py 
+Sampling run queues... Out

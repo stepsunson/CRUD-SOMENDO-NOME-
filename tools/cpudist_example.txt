@@ -299,3 +299,16 @@ optional arguments:
   -m, --milliseconds  millisecond histogram
   -P, --pids          print a histogram per process ID
   -L, --tids          print a histogram per thread ID
+  -p PID, --pid PID   trace this PID only
+  -I, --include-idle  include CPU idle time
+  -e, --extension     show extension summary (average/total/count)
+
+examples:
+    cpudist              # summarize on-CPU time as a histogram
+    cpudist -O           # summarize off-CPU time as a histogram
+    cpudist 1 10         # print 1 second summaries, 10 times
+    cpudist -mT 1        # 1s summaries, milliseconds, and timestamps
+    cpudist -P           # show each PID separately
+    cpudist -p 185       # trace PID 185 only
+    cpudist -I           # include CPU idle time
+    cpudist -e           # show extension summary (average/total/count)
