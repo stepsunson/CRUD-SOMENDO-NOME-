@@ -41,4 +41,60 @@ This is an 8 CPU system, with an 8 CPU-bound threaded application running that
 has been bound to one CPU (via taskset):
 
 # ./cpuunclaimed.py 
-Sampling run queues... Out
+Sampling run queues... Output every 1 seconds. Hit Ctrl-C to end.
+%CPU  12.63%, unclaimed idle 86.36%
+%CPU  12.50%, unclaimed idle 87.50%
+%CPU  12.63%, unclaimed idle 87.37%
+%CPU  12.75%, unclaimed idle 87.25%
+%CPU  12.50%, unclaimed idle 87.50%
+%CPU  12.63%, unclaimed idle 87.37%
+%CPU  12.50%, unclaimed idle 87.50%
+%CPU  12.50%, unclaimed idle 87.50%
+[...]
+
+It shows that 7 of the 8 CPUs (87.5%) are idle at the same time there are
+queued threads waiting to run on CPU. This is an artificial situation caused
+by binding threads to the same CPU, to demonstrate how the tool works.
+
+
+This is an 8 CPU system running a Linux kernel build with "make -j8", and -T
+to print timestamps:
+
+# ./cpuunclaimed.py -T
+Sampling run queues... Output every 1 seconds. Hit Ctrl-C to end.
+22:25:55 %CPU  98.88%, unclaimed idle 0.12%
+22:25:56 %CPU  99.75%, unclaimed idle 0.25%
+22:25:57 %CPU  99.50%, unclaimed idle 0.50%
+22:25:58 %CPU  99.25%, unclaimed idle 0.75%
+22:25:59 %CPU  99.75%, unclaimed idle 0.25%
+22:26:00 %CPU  99.50%, unclaimed idle 0.50%
+22:26:01 %CPU  99.25%, unclaimed idle 0.75%
+22:26:02 %CPU  99.25%, unclaimed idle 0.75%
+22:26:03 %CPU  99.01%, unclaimed idle 0.87%
+22:26:04 %CPU  99.88%, unclaimed idle 0.12%
+22:26:05 %CPU  99.38%, unclaimed idle 0.62%
+
+There's now a consistent, yet small, amount of unclaimed idle CPU. This is
+expected to be deliberate: CPU affinity, as mentioned earlier.
+
+
+The -j option will print raw samples: around one hundred lines of output
+every second. For the same system with a Linux kernel build of "make -j8":
+
+# ./cpuunclaimed.py -j
+TIMESTAMP_ns,CPU0,CPU1,CPU2,CPU3,CPU4,CPU5,CPU6,CPU7
+514606928954752,1,1,1,1,1,1,1,1
+514606939054312,1,1,1,1,1,1,1,2
+514606949156518,1,1,1,1,1,1,1,1
+514606959256596,2,2,1,1,1,1,1,1
+514606969357989,1,1,1,1,1,2,1,1
+514606979459700,1,2,1,1,1,2,1,1
+514606989560481,1,1,1,1,1,1,1,1
+514606999661396,1,1,1,1,1,1,2,1
+514607009795601,1,1,1,1,1,1,1,2
+514607019862711,1,1,1,1,1,1,1,1
+514607029963734,1,1,1,1,1,1,1,1
+514607040062372,1,1,1,1,1,1,1,1
+514607050197735,1,1,1,2,1,1,1,1
+514607060266464,1,1,1,1,1,1,1,2
+5146
