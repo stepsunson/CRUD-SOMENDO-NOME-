@@ -4,4 +4,60 @@ criticalstat traces and reports occurrences of atomic critical sections in the
 kernel with useful stacktraces showing the origin of them. Such critical
 sections frequently occur due to use of spinlocks, or if interrupts or
 preemption were explicitly disabled by a driver. IRQ routines in Linux are also
-executed with interrupts disabled. There are many reasons. Such
+executed with interrupts disabled. There are many reasons. Such critical
+sections are a source of long latency/responsive issues for real-time systems.
+
+This works by probing the preempt/irq and cpuidle tracepoints in the kernel.
+Since this uses BPF, only the root user can use this tool. Further, the kernel
+has to be built with certain CONFIG options enabled inorder for it to work:
+CONFIG_PREEMPTIRQ_EVENTS before kernel 4.19
+CONFIG_PREEMPTIRQ_TRACEPOINTS in kernel 4.19 and later
+CONFIG_DEBUG_PREEMPT
+CONFIG_PREEMPT_TRACER
+Additionally, the following options should be turned off on older kernels:
+CONFIG_PROVE_LOCKING
+CONFIG_LOCKDEP
+
+USAGE:
+# ./criticalstat -h
+usage: criticalstat [-h] [-p] [-i] [-d DURATION]
+
+Trace long critical sections
+
+optional arguments:
+  -h, --help            Show this help message and exit
+  -p, --preemptoff      Find long sections where preemption was off
+  -i, --irqoff          Find long sections where IRQ was off
+  -d DURATION, --duration DURATION
+                        Duration in uS (microseconds) below which we filter
+
+examples:
+    ./criticalstat          	# run with default options: irq off for more than 100 uS
+    ./criticalstat -p       	# find sections with preemption disabled for more than 100 uS
+    ./criticalstat -d 500   	# find sections with IRQs disabled for more than 500 uS
+    ./criticalstat -p -d 500	# find sections with preemption disabled for more than 500 uS
+
+The tool runs continuously until interrupted by Ctrl-C
+
+
+By default, criticalstat finds IRQ disable sections for > 100us.
+
+# ./criticalstat
+Finding critical section with IRQ disabled for > 100us
+===================================
+TASK: kworker/u16:5 (pid  5903 tid  5903) Total Time: 194.427  us
+
+Section start: __schedule -> schedule
+Section end:   _raw_spin_unlock_irq -> finish_task_switch
+  trace_hardirqs_on+0xdc
+  trace_hardirqs_on+0xdc
+  _raw_spin_unlock_irq+0x18
+  finish_task_switch+0xf0
+  __schedule+0x8c8
+  preempt_schedule_irq+0x38
+  el1_preempt+0x8
+===================================
+
+
+If too many sections are showing up, the user can raise the threshold to only
+show criti
