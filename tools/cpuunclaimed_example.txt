@@ -239,3 +239,55 @@ Notice the tighter range of offsets? I began executing cpuunclaimed when the
 system was idle, and it initialized the CPU timers more quickly, and then I
 began the Linux kernel build.
 
+Here's some different output, this time from a physical system with 4 CPUs,
+also doing a kernel build,
+
+# ./cpuunclaimed.py -J
+TIMESTAMP_ns,CPU0,CPU1,CPU2,CPU3,OFFSET_ns_CPU0,OFFSET_ns_CPU1,OFFSET_ns_CPU2,OFFSET_ns_CPU3
+4429382557480,1,1,1,1,0,6011,10895,16018
+4429392655042,2,1,1,1,0,8217,13661,19378
+4429402757604,1,1,1,1,0,6879,12433,18000
+4429412857809,1,1,1,1,0,8303,13190,18719
+4429422960709,2,1,1,1,0,6095,11234,17079
+4429433060391,1,1,1,2,0,6747,12480,18070
+4429443161699,1,1,1,1,0,6560,12264,17945
+4429453262002,1,2,1,1,0,6992,12644,18341
+4429463363706,1,2,1,1,0,6211,12071,17853
+4429473465571,1,1,1,1,0,5766,11495,17638
+4429483566920,1,1,1,1,0,5223,11736,16358
+4429493666279,1,1,1,1,0,6964,12653,18410
+4429503769113,1,1,1,1,0,5161,11399,16612
+4429513870744,1,1,1,1,0,5943,10583,15768
+4429523969826,1,1,1,1,0,6533,12336,18189
+4429534070311,1,1,1,1,0,6834,12816,18488
+4429544170456,1,1,1,1,0,7284,13401,19129
+4429554274467,1,2,1,1,0,5941,11160,16594
+4429564372365,1,2,1,1,0,7514,13618,19190
+4429574474406,1,2,1,1,0,6687,12650,18248
+4429584574220,1,2,1,1,0,7912,13705,19136
+[...]
+
+If the offset range becomes too great, we can no longer conclude about when
+some CPUs were idle and others had queued work. The tool will detect this,
+and print an error message and exit.
+
+
+Some systems can power down CPUs when idle, and when they wake up again the
+timed samples may resume from different offsets. If this happens, this tool
+can no longer draw conclusions about when some CPUs were idle and others
+had queued work, so it prints an error, and exits. Eg:
+
+# ./cpuunclaimed.py 1
+Sampling run queues... Output every 1 seconds. Hit Ctrl-C to end.
+%CPU   0.25%, unclaimed idle 0.00%
+%CPU   0.75%, unclaimed idle 0.00%
+%CPU   0.25%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+%CPU   0.12%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+%CPU   0.25%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+%CPU   0.12%, unclaimed idle 0.00%
+%CPU   0.13%, unclaimed idle 0.00%
+%CPU   0.12%, unclaimed idle 
