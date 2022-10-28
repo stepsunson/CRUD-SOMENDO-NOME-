@@ -290,4 +290,36 @@ Sampling run queues... Output every 1 seconds. Hit Ctrl-C to end.
 %CPU   0.00%, unclaimed idle 0.00%
 %CPU   0.12%, unclaimed idle 0.00%
 %CPU   0.13%, unclaimed idle 0.00%
-%CPU   0.12%, unclaimed idle 
+%CPU   0.12%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+%CPU   0.00%, unclaimed idle 0.00%
+ERROR: CPU samples arrived at skewed offsets (CPUs may have powered down when idle), spanning 4328176 ns (expected < 4040404 ns). Debug with -J, and see the man page. As output may begin to be unreliable, exiting.
+
+It's expected that this will only really occur on idle systems.
+
+USAGE:
+
+# ./cpuunclaimed.py -h
+usage: cpuunclaimed.py [-h] [-j] [-J] [-T] [interval] [count]
+
+Sample CPU run queues and calculate unclaimed idle CPU
+
+positional arguments:
+  interval         output interval, in seconds
+  count            number of outputs
+
+optional arguments:
+  -h, --help       show this help message and exit
+  -j, --csv        print sample summaries (verbose) as comma-separated values
+  -J, --fullcsv    print sample summaries with extra fields: CPU sample
+                   offsets
+  -T, --timestamp  include timestamp on output
+
+examples:
+    ./cpuunclaimed            # sample and calculate unclaimed idle CPUs,
+                              # output every 1 second (default)
+    ./cpuunclaimed 5 10       # print 5 second summaries, 10 times
+    ./cpuunclaimed -T 1       # 1s summaries and timestamps
+    ./cpuunclaimed -j         # raw dump of all samples (verbose), CSV
