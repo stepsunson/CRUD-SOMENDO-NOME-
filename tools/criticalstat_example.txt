@@ -60,4 +60,69 @@ Section end:   _raw_spin_unlock_irq -> finish_task_switch
 
 
 If too many sections are showing up, the user can raise the threshold to only
-show criti
+show critical sections that are > 500us by passing "-d" option:
+
+# ./criticalstat -d 500
+Finding critical section with IRQ disabled for > 500us
+===================================
+TASK: crtc_commit:111 (pid   246 tid   246) Total Time: 580.730  us
+
+Section start: clk_enable_lock -> clk_enable
+Section end:   _raw_spin_unlock_irqrestore -> clk_enable
+  trace_hardirqs_on+0xdc
+  trace_hardirqs_on+0xdc
+  _raw_spin_unlock_irqrestore+0x24
+  clk_enable+0x80
+  msm_dss_enable_clk+0x7c
+  sde_power_resource_enable+0x578
+  _sde_crtc_vblank_enable_no_lock+0x68
+  sde_crtc_vblank+0x8c
+  sde_kms_enable_vblank+0x18
+  vblank_ctrl_worker+0xd0
+  kthread_worker_fn+0xf8
+  kthread+0x114
+  ret_from_fork+0x10
+===================================
+
+
+If instead of irq disabled sections, we want to see preempt disabled sections,
+then pass the "-p" option. Below we try to find preempt-disabled critical
+sections that are > 500us.
+
+# ./criticalstat -p -d 500
+Finding critical section with preempt disabled for > 500us
+===================================
+TASK: swapper/1 (pid     0 tid     0) Total Time: 618.437  us
+
+Section start: preempt_count_add -> preempt_count_add
+Section end:   preempt_count_sub -> preempt_count_sub
+  trace_preempt_on+0x98
+  trace_preempt_on+0x98
+  preempt_latency_stop+0x164
+  preempt_count_sub+0x50
+  schedule+0x74
+  schedule_preempt_disabled+0x14
+  cpu_startup_entry+0x84
+  secondary_start_kernel+0x1c8
+  [unknown]
+===================================
+
+
+criticalstat -p can also reflect kernel scheduler issues sometimes. These may
+show up as long preempt-off sections if the functions in the scheduler take a
+long time to run (such as pick_next_task_fair which selects the CPU for a task
+
+Follow is a report showing a preempt-off latency of 700us during the schedule
+loop's execution:
+
+===================================
+TASK: irq/296-cs35l36 (pid   666 tid   666) Total Time: 732.657  us
+
+Section start: schedule -> schedule
+Section end:   schedule -> schedule
+  trace_preempt_on+0x98
+  trace_preempt_on+0x98
+  preempt_count_sub+0xa4
+  schedule+0x78
+  schedule_timeout+0x80
+  wait_for_common+0xb4
