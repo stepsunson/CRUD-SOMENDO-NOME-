@@ -126,3 +126,16 @@ Section end:   schedule -> schedule
   schedule+0x78
   schedule_timeout+0x80
   wait_for_common+0xb4
+  wait_for_completion_timeout+0x28
+  geni_i2c_xfer+0x298
+  __i2c_transfer+0x4e0
+  i2c_transfer+0x8
+  irq_thread_fn+0x2c
+  irq_thread+0x160
+  kthread+0x118
+  ret_from_fork+0x10
+===================================
+
+
+See Also: Linux kernel's preemptoff and irqoff tracers which provide similar
+tracing but with some limitations.

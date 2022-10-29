@@ -1,0 +1,38 @@
+Demonstrations of dbslower, the Linux eBPF/bcc version.
+
+
+dbslower traces queries served by a MySQL or PostgreSQL server, and prints
+those that exceed a latency (query time) threshold. By default a threshold of
+1 ms is used. For example:
+
+# dbslower mysql
+Tracing database queries for pids 25776 slower than 1 ms...
+TIME(s)        PID          MS QUERY
+1.315800       25776  2000.999 call getproduct(97)
+3.360380       25776     3.226 call getproduct(6)
+^C
+
+This traced two queries slower than 1ms, one of which is very slow: over 2
+seconds. We can filter out the shorter ones and keep only the really slow ones:
+
+# dbslower mysql -m 1000
+Tracing database queries for pids 25776 slower than 1000 ms...
+TIME(s)        PID          MS QUERY
+1.421264       25776  2002.183 call getproduct(97)
+3.572617       25776  2001.381 call getproduct(97)
+5.661411       25776  2001.867 call getproduct(97)
+7.748296       25776  2001.329 call getproduct(97)
+^C
+
+This looks like a pattern -- we keep making this slow query every 2 seconds
+or so, and it takes approximately 2 seconds to run.
+
+By default, dbslower will try to detect mysqld and postgres processes, but if
+necessary, you can specify the process ids with the -p switch:
+
+# dbslower mysql -p $(pidof mysql)
+Tracing database queries for pids 25776 slower than 1 ms...
+TIME(s)        PID          MS QUERY
+2.002125       25776     3.340 call getproduct(7)
+2.045006       25776  2001.558 call getproduct(97)
+4.131863       25776  2002.275 call getproduct(
