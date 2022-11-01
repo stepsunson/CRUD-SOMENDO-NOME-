@@ -52,4 +52,71 @@ enum stats {
 BPF_ARRAY(stats, u64, S_MAXSTAT);
 
 /*
- * How this is instru
+ * How this is instrumented, and how to interpret the statistics, is very much
+ * tied to the current kernel implementation (this was written on Linux 4.4).
+ * This will need maintenance to keep working as the implementation changes. To
+ * aid future adventurers, this is is what the current code does, and why.
+ *
+ * First problem: the current implementation takes a path and then does a
+ * lookup of each component. So how do we count a reference? Once for the path
+ * lookup, or once for every component lookup? I've chosen the latter
+ * since it seems to map more closely to actual dcache lookups (via
+ * __d_lookup_rcu()). It's counted via calls to lookup_fast().
+ *
+ * The implementation tries different, progressively slower, approaches to
+ * lookup a file. At what point do we call it a dcache miss? I've chosen when
+ * a d_lookup() (which is called during lookup_slow()) returns zero.
+ *
+ * I've also included a "SLOW" statistic to show how often the fast lookup
+ * failed. Whether this exists or is interesting is an implementation detail,
+ * and the "SLOW" statistic may be removed in future versions.
+ */
+void count_fast(struct pt_regs *ctx) {
+    int key = S_REFS;
+    stats.atomic_increment(key);
+}
+
+void count_lookup(struct pt_regs *ctx) {
+    int key = S_SLOW;
+    stats.atomic_increment(key);
+    if (PT_REGS_RC(ctx) == 0) {
+        key = S_MISS;
+        stats.atomic_increment(key);
+    }
+}
+"""
+
+# load BPF program
+b = BPF(text=bpf_text)
+b.attach_kprobe(event_re="^lookup_fast$|^lookup_fast.constprop.*.\d$", fn_name="count_fast")
+b.attach_kretprobe(event="d_lookup", fn_name="count_lookup")
+
+# stat column labels and indexes
+stats = {
+    "REFS": 1,
+    "SLOW": 2,
+    "MISS": 3
+}
+
+# header
+print("%-8s  " % "TIME", end="")
+for stype, idx in sorted(stats.items(), key=lambda k_v: (k_v[1], k_v[0])):
+    print(" %8s" % (stype + "/s"), end="")
+print(" %8s" % "HIT%")
+
+# output
+i = 0
+while (1):
+    if count > 0:
+        i += 1
+        if i > count:
+            exit()
+    try:
+        sleep(interval)
+    except KeyboardInterrupt:
+        exit()
+
+    print("%-8s: " % strftime("%H:%M:%S"), end="")
+
+    # print each statistic as a column
+   
