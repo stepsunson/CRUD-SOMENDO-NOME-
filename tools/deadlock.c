@@ -46,4 +46,65 @@ struct edges_leaf_t {
   char comm[TASK_COMM_LEN];
 };
 
-// Represents all
+// Represents all edges currently in the mutex wait graph.
+BPF_HASH(edges, struct edges_key_t, struct edges_leaf_t, MAX_EDGES);
+
+// Info about parent thread when a child thread is created.
+struct thread_created_leaf_t {
+  u64 stack_id;
+  u32 parent_pid;
+  char comm[TASK_COMM_LEN];
+};
+
+// Map of child thread pid -> info about parent thread.
+BPF_HASH(thread_to_parent, u32, struct thread_created_leaf_t);
+
+// Stack traces when threads are created and when mutexes are locked/unlocked.
+BPF_STACK_TRACE(stack_traces, 655360);
+
+// The first argument to the user space function we are tracing
+// is a pointer to the mutex M held by thread T.
+//
+// For all mutexes N held by mutexes_held[T]
+//   add edge N => M (held by T)
+// mutexes_held[T].add(M)
+int trace_mutex_acquire(struct pt_regs *ctx, void *mutex_addr) {
+  // Higher 32 bits is process ID, Lower 32 bits is thread ID
+  u32 pid = bpf_get_current_pid_tgid();
+  u64 mutex = (u64)mutex_addr;
+
+  struct thread_to_held_mutex_leaf_t empty_leaf = {};
+  struct thread_to_held_mutex_leaf_t *leaf =
+      thread_to_held_mutexes.lookup_or_try_init(&pid, &empty_leaf);
+  if (!leaf) {
+    bpf_trace_printk(
+        "could not add thread_to_held_mutex key, thread: %d, mutex: %p\n", pid,
+        mutex);
+    return 1; // Could not insert, no more memory
+  }
+
+  // Recursive mutexes lock the same mutex multiple times. We cannot tell if
+  // the mutex is recursive after the mutex is already created. To avoid noisy
+  // reports, disallow self edges. Do one pass to check if we are already
+  // holding the mutex, and if we are, do nothing.
+  #pragma unroll
+  for (int i = 0; i < MAX_HELD_MUTEXES; ++i) {
+    if (leaf->held_mutexes[i].mutex == mutex) {
+      return 1; // Disallow self edges
+    }
+  }
+
+  u64 stack_id =
+      stack_traces.get_stackid(ctx, BPF_F_USER_STACK);
+
+  int added_mutex = 0;
+  #pragma unroll
+  for (int i = 0; i < MAX_HELD_MUTEXES; ++i) {
+    // If this is a free slot, see if we can insert.
+    if (!leaf->held_mutexes[i].mutex) {
+      if (!added_mutex) {
+        leaf->held_mutexes[i].mutex = mutex;
+        leaf->held_mutexes[i].stack_id = stack_id;
+        added_mutex = 1;
+      }
+      co
