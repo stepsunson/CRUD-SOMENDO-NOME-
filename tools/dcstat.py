@@ -119,4 +119,21 @@ while (1):
     print("%-8s: " % strftime("%H:%M:%S"), end="")
 
     # print each statistic as a column
-   
+    for stype, idx in sorted(stats.items(), key=lambda k_v: (k_v[1], k_v[0])):
+        try:
+            val = b["stats"][c_int(idx)].value / interval
+            print(" %8d" % val, end="")
+        except:
+            print(" %8d" % 0, end="")
+
+    # print hit ratio percentage
+    try:
+        ref = b["stats"][c_int(stats["REFS"])].value
+        miss = b["stats"][c_int(stats["MISS"])].value
+        hit = ref - miss
+        pct = float(100) * hit / ref
+        print(" %8.2f" % pct)
+    except:
+        print(" %7s%%" % "-")
+
+    b["stats"].clear()
