@@ -164,4 +164,43 @@ int trace_mutex_release(struct pt_regs *ctx, void *mutex_addr) {
   // invalid memory access on `leaf->held_mutexes[i]` below. On newer kernels,
   // we can avoid making this extra copy in `value` and use `leaf` directly.
   struct thread_to_held_mutex_leaf_t value = {};
-  bpf_probe_rea
+  bpf_probe_read_user(&value, sizeof(struct thread_to_held_mutex_leaf_t), leaf);
+
+  #pragma unroll
+  for (int i = 0; i < MAX_HELD_MUTEXES; ++i) {
+    // Find the current mutex (if it exists), and clear it.
+    // Note: Can't use `leaf->` in this if condition, see comment above.
+    if (value.held_mutexes[i].mutex == mutex) {
+      leaf->held_mutexes[i].mutex = 0;
+      leaf->held_mutexes[i].stack_id = 0;
+    }
+  }
+
+  return 0;
+}
+
+// Trace return from clone() syscall in the child thread (return value > 0).
+int trace_clone(struct pt_regs *ctx, unsigned long flags, void *child_stack,
+                void *ptid, void *ctid, struct pt_regs *regs) {
+  u32 child_pid = PT_REGS_RC(ctx);
+  if (child_pid <= 0) {
+    return 1;
+  }
+
+  struct thread_created_leaf_t thread_created_leaf = {};
+  thread_created_leaf.parent_pid = bpf_get_current_pid_tgid();
+  thread_created_leaf.stack_id =
+      stack_traces.get_stackid(ctx, BPF_F_USER_STACK);
+  bpf_get_current_comm(&thread_created_leaf.comm,
+                       sizeof(thread_created_leaf.comm));
+
+  struct thread_created_leaf_t *insert_result =
+      thread_to_parent.lookup_or_try_init(&child_pid, &thread_created_leaf);
+  if (!insert_result) {
+    bpf_trace_printk(
+        "could not add thread_created_key, child: %d, parent: %d\n", child_pid,
+        thread_created_leaf.parent_pid);
+    return 1; // Could not insert, no more memory
+  }
+  return 0;
+}

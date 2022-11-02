@@ -1,0 +1,223 @@
+
+Demonstrations of deadlock.
+
+This program detects potential deadlocks on a running process. The program
+attaches uprobes on `pthread_mutex_lock` and `pthread_mutex_unlock` to build
+a mutex wait directed graph, and then looks for a cycle in this graph. This
+graph has the following properties:
+
+- Nodes in the graph represent mutexes.
+- Edge (A, B) exists if there exists some thread T where lock(A) was called
+  and lock(B) was called before unlock(A) was called.
+
+If there is a cycle in this graph, this indicates that there is a lock order
+inversion (potential deadlock). If the program finds a lock order inversion, the
+program will dump the cycle of mutexes, dump the stack traces where each mutex
+was acquired, and then exit.
+
+This program can only find potential deadlocks that occur while the program
+is tracing the process. It cannot find deadlocks that may have occurred
+before the program was attached to the process.
+
+Since this traces all mutex lock and unlock events and all thread creation
+events on the traced process, the overhead of this bpf program can be very
+high if the process has many threads and mutexes. You should only run this on
+a process where the slowdown is acceptable.
+
+Note: This tool does not work for shared mutexes or recursive mutexes.
+
+For shared (read-write) mutexes, a deadlock requires a cycle in the wait
+graph where at least one of the mutexes in the cycle is acquiring exclusive
+(write) ownership.
+
+For recursive mutexes, lock() is called multiple times on the same mutex.
+However, there is no way to determine if a mutex is a recursive mutex
+after the mutex has been created. As a result, this tool will not find
+potential deadlocks that involve only one mutex.
+
+
+# ./deadlock.py 181
+Tracing... Hit Ctrl-C to end.
+----------------
+Potential Deadlock Detected!
+
+Cycle in lock order graph: Mutex M0 (main::static_mutex3 0x0000000000473c60) => Mutex M1 (0x00007fff6d738400) => Mutex M2 (global_mutex1 0x0000000000473be0) => Mutex M3 (global_mutex2 0x0000000000473c20) => Mutex M0 (main::static_mutex3 0x0000000000473c60)
+
+Mutex M1 (0x00007fff6d738400) acquired here while holding Mutex M0 (main::static_mutex3 0x0000000000473c60) in Thread 357250 (lockinversion):
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402e38 main::{lambda()#3}::operator()() const
+@ 0000000000406ba8 void std::_Bind_simple<main::{lambda()#3} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 0000000000406951 std::_Bind_simple<main::{lambda()#3} ()>::operator()()
+@ 000000000040673a std::thread::_Impl<std::_Bind_simple<main::{lambda()#3} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Mutex M0 (main::static_mutex3 0x0000000000473c60) previously acquired by the same Thread 357250 (lockinversion) here:
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402e22 main::{lambda()#3}::operator()() const
+@ 0000000000406ba8 void std::_Bind_simple<main::{lambda()#3} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 0000000000406951 std::_Bind_simple<main::{lambda()#3} ()>::operator()()
+@ 000000000040673a std::thread::_Impl<std::_Bind_simple<main::{lambda()#3} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Mutex M2 (global_mutex1 0x0000000000473be0) acquired here while holding Mutex M1 (0x00007fff6d738400) in Thread 357251 (lockinversion):
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402ea8 main::{lambda()#4}::operator()() const
+@ 0000000000406b46 void std::_Bind_simple<main::{lambda()#4} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 000000000040692d std::_Bind_simple<main::{lambda()#4} ()>::operator()()
+@ 000000000040671c std::thread::_Impl<std::_Bind_simple<main::{lambda()#4} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Mutex M1 (0x00007fff6d738400) previously acquired by the same Thread 357251 (lockinversion) here:
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402e97 main::{lambda()#4}::operator()() const
+@ 0000000000406b46 void std::_Bind_simple<main::{lambda()#4} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 000000000040692d std::_Bind_simple<main::{lambda()#4} ()>::operator()()
+@ 000000000040671c std::thread::_Impl<std::_Bind_simple<main::{lambda()#4} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Mutex M3 (global_mutex2 0x0000000000473c20) acquired here while holding Mutex M2 (global_mutex1 0x0000000000473be0) in Thread 357247 (lockinversion):
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402d5f main::{lambda()#1}::operator()() const
+@ 0000000000406c6c void std::_Bind_simple<main::{lambda()#1} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 0000000000406999 std::_Bind_simple<main::{lambda()#1} ()>::operator()()
+@ 0000000000406776 std::thread::_Impl<std::_Bind_simple<main::{lambda()#1} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Mutex M2 (global_mutex1 0x0000000000473be0) previously acquired by the same Thread 357247 (lockinversion) here:
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402d4e main::{lambda()#1}::operator()() const
+@ 0000000000406c6c void std::_Bind_simple<main::{lambda()#1} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 0000000000406999 std::_Bind_simple<main::{lambda()#1} ()>::operator()()
+@ 0000000000406776 std::thread::_Impl<std::_Bind_simple<main::{lambda()#1} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Mutex M0 (main::static_mutex3 0x0000000000473c60) acquired here while holding Mutex M3 (global_mutex2 0x0000000000473c20) in Thread 357248 (lockinversion):
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402dc9 main::{lambda()#2}::operator()() const
+@ 0000000000406c0a void std::_Bind_simple<main::{lambda()#2} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 0000000000406975 std::_Bind_simple<main::{lambda()#2} ()>::operator()()
+@ 0000000000406758 std::thread::_Impl<std::_Bind_simple<main::{lambda()#2} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Mutex M3 (global_mutex2 0x0000000000473c20) previously acquired by the same Thread 357248 (lockinversion) here:
+@ 00000000004024d0 pthread_mutex_lock
+@ 0000000000406dd0 std::mutex::lock()
+@ 00000000004070d2 std::lock_guard<std::mutex>::lock_guard(std::mutex&)
+@ 0000000000402db8 main::{lambda()#2}::operator()() const
+@ 0000000000406c0a void std::_Bind_simple<main::{lambda()#2} ()>::_M_invoke<>(std::_Index_tuple<>)
+@ 0000000000406975 std::_Bind_simple<main::{lambda()#2} ()>::operator()()
+@ 0000000000406758 std::thread::_Impl<std::_Bind_simple<main::{lambda()#2} ()> >::_M_run()
+@ 00007fd4496564e1 execute_native_thread_routine
+@ 00007fd449dd57f1 start_thread
+@ 00007fd44909746d __clone
+
+Thread 357248 created by Thread 350692 (lockinversion) here:
+@ 00007fd449097431 __clone
+@ 00007fd449dd5ef5 pthread_create
+@ 00007fd449658440 std::thread::_M_start_thread(std::shared_ptr<std::thread::_Impl_base>)
+@ 00000000004033ac std::thread::thread<main::{lambda()#2}>(main::{lambda()#2}&&)
+@ 000000000040308f main
+@ 00007fd448faa0f6 __libc_start_main
+@ 0000000000402ad8 [unknown]
+
+Thread 357250 created by Thread 350692 (lockinversion) here:
+@ 00007fd449097431 __clone
+@ 00007fd449dd5ef5 pthread_create
+@ 00007fd449658440 std::thread::_M_start_thread(std::shared_ptr<std::thread::_Impl_base>)
+@ 00000000004034b2 std::thread::thread<main::{lambda()#3}>(main::{lambda()#3}&&)
+@ 00000000004030b9 main
+@ 00007fd448faa0f6 __libc_start_main
+@ 0000000000402ad8 [unknown]
+
+Thread 357251 created by Thread 350692 (lockinversion) here:
+@ 00007fd449097431 __clone
+@ 00007fd449dd5ef5 pthread_create
+@ 00007fd449658440 std::thread::_M_start_thread(std::shared_ptr<std::thread::_Impl_base>)
+@ 00000000004035b8 std::thread::thread<main::{lambda()#4}>(main::{lambda()#4}&&)
+@ 00000000004030e6 main
+@ 00007fd448faa0f6 __libc_start_main
+@ 0000000000402ad8 [unknown]
+
+Thread 357247 created by Thread 350692 (lockinversion) here:
+@ 00007fd449097431 __clone
+@ 00007fd449dd5ef5 pthread_create
+@ 00007fd449658440 std::thread::_M_start_thread(std::shared_ptr<std::thread::_Impl_base>)
+@ 00000000004032a6 std::thread::thread<main::{lambda()#1}>(main::{lambda()#1}&&)
+@ 0000000000403070 main
+@ 00007fd448faa0f6 __libc_start_main
+@ 0000000000402ad8 [unknown]
+
+This is output from a process that has a potential deadlock involving 4 mutexes
+and 4 threads:
+
+- Thread 357250 acquired M1 while holding M0 (edge M0 -> M1)
+- Thread 357251 acquired M2 while holding M1 (edge M1 -> M2)
+- Thread 357247 acquired M3 while holding M2 (edge M2 -> M3)
+- Thread 357248 acquired M0 while holding M3 (edge M3 -> M0)
+
+This is the C++ program that generated the output above:
+
+```c++
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <thread>
+
+std::mutex global_mutex1;
+std::mutex global_mutex2;
+
+int main(void) {
+  static std::mutex static_mutex3;
+  std::mutex local_mutex4;
+
+  std::cout << "sleeping for a bit to allow trace to attach..." << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+  std::cout << "starting program..." << std::endl;
+
+  auto t1 = std::thread([] {
+    std::lock_guard<std::mutex> g1(global_mutex1);
+    std::lock_guard<std::mutex> g2(global_mutex2);
+  });
+  t1.join();
+
+  auto t2 = std::thread([] {
+    std::lock_guard<std::mutex> g2(global_mutex2);
+    std::lock_guard<std::mutex> g3(static_mutex3);
+  });
+  t2.join();
+
+  auto t3 = std::thread([&local_mutex4] {
+    std::lock_guard<std::mutex> g3(static_mutex3);
+    std::lock_guard<std::mutex> g4(local_mutex4);
+  });
+  t3.join();
+
+  auto t4 = std::thread([&local_mutex4] {
