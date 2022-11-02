@@ -107,4 +107,61 @@ int trace_mutex_acquire(struct pt_regs *ctx, void *mutex_addr) {
         leaf->held_mutexes[i].stack_id = stack_id;
         added_mutex = 1;
       }
-      co
+      continue; // Nothing to do for a free slot
+    }
+
+    // Add edges from held mutex => current mutex
+    struct edges_key_t edge_key = {};
+    edge_key.mutex1 = leaf->held_mutexes[i].mutex;
+    edge_key.mutex2 = mutex;
+
+    struct edges_leaf_t edge_leaf = {};
+    edge_leaf.mutex1_stack_id = leaf->held_mutexes[i].stack_id;
+    edge_leaf.mutex2_stack_id = stack_id;
+    edge_leaf.thread_pid = pid;
+    bpf_get_current_comm(&edge_leaf.comm, sizeof(edge_leaf.comm));
+
+    // Returns non-zero on error
+    int result = edges.update(&edge_key, &edge_leaf);
+    if (result) {
+      bpf_trace_printk("could not add edge key %p, %p, error: %d\n",
+                       edge_key.mutex1, edge_key.mutex2, result);
+      continue; // Could not insert, no more memory
+    }
+  }
+
+  // There were no free slots for this mutex.
+  if (!added_mutex) {
+    bpf_trace_printk("could not add mutex %p, added_mutex: %d\n", mutex,
+                     added_mutex);
+    return 1;
+  }
+  return 0;
+}
+
+// The first argument to the user space function we are tracing
+// is a pointer to the mutex M held by thread T.
+//
+// mutexes_held[T].remove(M)
+int trace_mutex_release(struct pt_regs *ctx, void *mutex_addr) {
+  // Higher 32 bits is process ID, Lower 32 bits is thread ID
+  u32 pid = bpf_get_current_pid_tgid();
+  u64 mutex = (u64)mutex_addr;
+
+  struct thread_to_held_mutex_leaf_t *leaf =
+      thread_to_held_mutexes.lookup(&pid);
+  if (!leaf) {
+    // If the leaf does not exist for the pid, then it means we either missed
+    // the acquire event, or we had no more memory and could not add it.
+    bpf_trace_printk(
+        "could not find thread_to_held_mutex, thread: %d, mutex: %p\n", pid,
+        mutex);
+    return 1;
+  }
+
+  // For older kernels without "Bpf: allow access into map value arrays"
+  // (https://lkml.org/lkml/2016/8/30/287) the bpf verifier will fail with an
+  // invalid memory access on `leaf->held_mutexes[i]` below. On newer kernels,
+  // we can avoid making this extra copy in `value` and use `leaf` directly.
+  struct thread_to_held_mutex_leaf_t value = {};
+  bpf_probe_rea
