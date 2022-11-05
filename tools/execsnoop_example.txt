@@ -93,4 +93,51 @@ UID   PCOMM            PID    PPID   RET ARGS
 1000  ls               171318 133702   0 /bin/ls --color=auto
 1000  w                171322 133702   0 /usr/bin/w
 
-The -u options filters output based process UID. You also can use use
+The -u options filters output based process UID. You also can use username as
+argument, in that cause UID will be looked up using getpwnam (see man 3 getpwnam).
+
+# ./execsnoop -Uu 1000
+UID   PCOMM            PID    PPID   RET ARGS
+1000  ls               171335 133702   0 /bin/ls --color=auto
+1000  man              171340 133702   0 /usr/bin/man getpwnam
+1000  bzip2            171341 171340   0 /bin/bzip2 -dc
+1000  bzip2            171342 171340   0 /bin/bzip2 -dc
+1000  bzip2            171345 171340   0 /bin/bzip2 -dc
+1000  manpager         171355 171340   0 /usr/bin/manpager
+1000  less             171355 171340   0 /usr/bin/less
+
+USAGE message:
+
+# ./execsnoop -h
+usage: execsnoop.py [-h] [-T] [-t] [-x] [--cgroupmap CGROUPMAP]
+                    [--mntnsmap MNTNSMAP] [-u USER] [-q] [-n NAME] [-l LINE]
+                    [-U] [--max-args MAX_ARGS] [-P PPID]
+
+Trace exec() syscalls
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -T, --time            include time column on output (HH:MM:SS)
+  -t, --timestamp       include timestamp on output
+  -x, --fails           include failed exec()s
+  --cgroupmap CGROUPMAP
+                        trace cgroups in this BPF map only
+  --mntnsmap MNTNSMAP   trace mount namespaces in this BPF map only
+  -u USER, --uid USER   trace this UID only
+  -q, --quote           Add quotemarks (") around arguments.
+  -n NAME, --name NAME  only print commands matching this name (regex), any
+                        arg
+  -l LINE, --line LINE  only print commands where arg contains this line
+                        (regex)
+  -U, --print-uid       print UID column
+  --max-args MAX_ARGS   maximum number of arguments parsed and displayed,
+                        defaults to 20
+  -P PPID, --ppid PPID  trace this parent PID only
+
+examples:
+    ./execsnoop                      # trace all exec() syscalls
+    ./execsnoop -x                   # include failed exec()s
+    ./execsnoop -T                   # include time (HH:MM:SS)
+    ./execsnoop -P 181               # only trace new processes whose parent PID is 181
+    ./execsnoop -U                   # include UID
+    ./execsnoop -u 1000              # on
