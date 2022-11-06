@@ -158,4 +158,99 @@ int trace_open_entry(struct pt_regs *ctx, struct inode *inode,
         return 0;
 
     // store filep and timestamp by id
-    s
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = file;
+    val.offset = 0;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+// ext4_sync_file():
+int trace_fsync_entry(struct pt_regs *ctx, struct file *file)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = file;
+    val.offset = 0;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+//
+// Output
+//
+
+static int trace_return(struct pt_regs *ctx, int type)
+{
+    struct val_t *valp;
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    valp = entryinfo.lookup(&id);
+    if (valp == 0) {
+        // missed tracing issue or filtered
+        return 0;
+    }
+
+    // calculate delta
+    u64 ts = bpf_ktime_get_ns();
+    u64 delta_us = (ts - valp->ts) / 1000;
+    entryinfo.delete(&id);
+    if (FILTER_US)
+        return 0;
+
+    // populate output struct
+    struct data_t data = {};
+    data.type = type;
+    data.size = PT_REGS_RC(ctx);
+    data.delta_us = delta_us;
+    data.pid = pid;
+    data.ts_us = ts / 1000;
+    data.offset = valp->offset;
+    bpf_get_current_comm(&data.task, sizeof(data.task));
+
+    // workaround (rewriter should handle file to d_name in one step):
+    struct dentry *de = NULL;
+    struct qstr qs = {};
+    de = valp->fp->f_path.dentry;
+    qs = de->d_name;
+    if (qs.len == 0)
+        return 0;
+    bpf_probe_read_kernel(&data.file, sizeof(data.file), (void *)qs.name);
+
+    // output
+    events.perf_submit(ctx, &data, sizeof(data));
+
+    return 0;
+}
+
+int trace_read_return(struct pt_regs *ctx)
+{
+    return trace_return(ctx, TRACE_READ);
+}
+
+int trace_write_return(struct pt_regs *ctx)
+{
+    return trace_return(ctx, TRACE_WRITE);
+}
+
+int trace_open_return(struct pt_regs *ctx)
+{
+    return trace_return(ctx, TRACE_OPEN);
+}
+
+int trace_fsync_return(struct pt_regs *ctx)
+{
+  
