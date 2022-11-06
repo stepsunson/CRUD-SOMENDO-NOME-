@@ -79,4 +79,83 @@ struct val_t {
 };
 
 struct data_t {
-    // XXX: switch some to u32's when su
+    // XXX: switch some to u32's when supported
+    u64 ts_us;
+    u64 type;
+    u32 size;
+    u64 offset;
+    u64 delta_us;
+    u32 pid;
+    char task[TASK_COMM_LEN];
+    char file[DNAME_INLINE_LEN];
+};
+
+BPF_HASH(entryinfo, u64, struct val_t);
+BPF_PERF_OUTPUT(events);
+
+//
+// Store timestamp and size on entry
+//
+
+// The current ext4 (Linux 4.5) uses generic_file_read_iter(), instead of it's
+// own function, for reads. So we need to trace that and then filter on ext4,
+// which I do by checking file->f_op.
+// The new Linux version (since form 4.10) uses ext4_file_read_iter(), And if the 'CONFIG_FS_DAX' 
+// is not set, then ext4_file_read_iter() will call generic_file_read_iter(), else it will call
+// ext4_dax_read_iter(), and trace generic_file_read_iter() will fail.
+int trace_read_entry(struct pt_regs *ctx, struct kiocb *iocb)
+{
+    u64 id =  bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // ext4 filter on file->f_op == ext4_file_operations
+    struct file *fp = iocb->ki_filp;
+    if ((u64)fp->f_op != EXT4_FILE_OPERATIONS)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = fp;
+    val.offset = iocb->ki_pos;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+// ext4_file_write_iter():
+int trace_write_entry(struct pt_regs *ctx, struct kiocb *iocb)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = iocb->ki_filp;
+    val.offset = iocb->ki_pos;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+// ext4_file_open():
+int trace_open_entry(struct pt_regs *ctx, struct inode *inode,
+    struct file *file)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    s
