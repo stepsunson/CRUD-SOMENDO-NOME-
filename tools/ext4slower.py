@@ -253,4 +253,68 @@ int trace_open_return(struct pt_regs *ctx)
 
 int trace_fsync_return(struct pt_regs *ctx)
 {
-  
+    return trace_return(ctx, TRACE_FSYNC);
+}
+
+"""
+
+# code replacements
+with open(kallsyms) as syms:
+    ops = ''
+    for line in syms:
+        (addr, size, name) = line.rstrip().split(" ", 2)
+        name = name.split("\t")[0]
+        if name == "ext4_file_operations":
+            ops = "0x" + addr
+            break
+    if ops == '':
+        print("ERROR: no ext4_file_operations in /proc/kallsyms. Exiting.")
+        print("HINT: the kernel should be built with CONFIG_KALLSYMS_ALL.")
+        exit()
+    bpf_text = bpf_text.replace('EXT4_FILE_OPERATIONS', ops)
+if min_ms == 0:
+    bpf_text = bpf_text.replace('FILTER_US', '0')
+else:
+    bpf_text = bpf_text.replace('FILTER_US',
+        'delta_us <= %s' % str(min_ms * 1000))
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER_PID', 'pid != %s' % pid)
+else:
+    bpf_text = bpf_text.replace('FILTER_PID', '0')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# process event
+def print_event(cpu, data, size):
+    event = b["events"].event(data)
+
+    type = 'R'
+    if event.type == 1:
+        type = 'W'
+    elif event.type == 2:
+        type = 'O'
+    elif event.type == 3:
+        type = 'S'
+
+    if (csv):
+        print("%d,%s,%d,%s,%d,%d,%d,%s" % (
+            event.ts_us, event.task.decode('utf-8', 'replace'), event.pid,
+            type, event.size, event.offset, event.delta_us,
+            event.file.decode('utf-8', 'replace')))
+        return
+    print("%-8s %-14.14s %-6s %1s %-7s %-8d %7.2f %s" % (strftime("%H:%M:%S"),
+        event.task.decode('utf-8', 'replace'), event.pid, type, event.size,
+        event.offset / 1024, float(event.delta_us) / 1000,
+        event.file.decode('utf-8', 'replace')))
+
+# initialize BPF
+b = BPF(text=bpf_text)
+
+# Common file functions. See earlier comment about generic_file_read_iter().
+if BPF.get_kprobe_functions(b'ext4_file_read_iter'):
+    b.attach_kprobe(event="ext4_file_read_iter", fn_name="trace_read_entry")
+else:
+    b.attach_kprobe(event="generic_file_read_iter", fn_name="trace_read_entry")
+b.attach_kprobe(event="ext4_file_write_iter", fn_name="trace_writ
