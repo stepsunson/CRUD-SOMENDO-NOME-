@@ -1,0 +1,25 @@
+Demonstrations of filetop, the Linux eBPF/bcc version.
+
+
+filetop shows reads and writes by file, with process details. For example:
+
+# ./filetop -C
+Tracing... Output every 1 secs. Hit Ctrl-C to end
+
+08:00:23 loadavg: 0.91 0.33 0.23 3/286 26635
+
+PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
+26628  ld               161    186    643     152     R built-in.o
+26634  cc1              1      0      200     0       R autoconf.h
+26618  cc1              1      0      200     0       R autoconf.h
+26634  cc1              12     0      192     0       R tracepoint.h
+26584  cc1              2      0      143     0       R mm.h
+26634  cc1              2      0      143     0       R mm.h
+26631  make             34     0      136     0       R auto.conf
+26634  cc1              1      0      98      0       R fs.h
+26584  cc1              1      0      98      0       R fs.h
+26634  cc1              1      0      91      0       R sched.h
+26634  cc1              1      0      78      0       R printk.c
+26634  cc1              3      0      73      0       R mmzone.h
+26628  ld               18     0      72      0       R hibernate.o
+26628  ld               16     0      64      0       R suspend.
