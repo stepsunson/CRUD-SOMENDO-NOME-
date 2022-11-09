@@ -113,4 +113,47 @@ PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
 12421  sshd             3      9161   48      534     S TCP
 12296  sshd             1      0      16      0       S TCP
 5188   run              2      0      8       0       R nsswitch.conf
-5203   run              2      
+5203   run              2      0      8       0       R nsswitch.conf
+
+08:08:22 loadavg: 0.30 0.42 0.31 2/282 5233
+
+PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
+12421  sshd             26166  0      418656  0       O ptmx
+12421  sshd             4      26171  64      1385    S TCP
+12296  sshd             1      0      16      0       O ptmx
+5214   run              2      0      8       0       R nsswitch.conf
+5227   run              2      0      8       0       R nsswitch.conf
+Detaching...
+
+This example shows the -a option to include all file types. It caught heavy
+socket I/O from an sshd process, showing up as non-regular file types (the "O"
+for other, and "S" for socket, in the type column: "T").
+
+
+USAGE message:
+
+# ./filetop -h
+usage: filetop.py [-h] [-a] [-C] [-r MAXROWS] [-p PID] [interval] [count]
+
+File reads and writes by process
+
+positional arguments:
+  interval              output interval, in seconds
+  count                 number of outputs
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -a, --all-files       include non-regular file types (sockets, FIFOs, etc)
+  -C, --noclear         don't clear the screen
+  -r MAXROWS, --maxrows MAXROWS
+                        maximum rows to print, default 20
+  -s {reads,writes,rbytes,wbytes}, --sort {reads,writes,rbytes,wbytes}
+                        sort column, default rbytes
+  -p PID, --pid PID     trace this PID only
+
+examples:
+    ./filetop            # file I/O top, 1 second refresh
+    ./filetop -C         # don't clear the screen
+    ./filetop -p 181     # PID 181 only
+    ./filetop 5          # 5 second summaries
+    ./filetop 5 10       # 5 second summaries, 10 times only
