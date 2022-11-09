@@ -67,4 +67,50 @@ PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
 32672  cksum            5006   0      320384  0       R data1
 809    run              2      0      8       0       R nsswitch.conf
 811    run              2      0      8       0       R nsswitch.conf
-804    chown            2  
+804    chown            2      0      8       0       R nsswitch.conf
+
+08:05:12 loadavg: 0.75 0.35 0.25 3/285 845
+
+PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
+32672  cksum            4986   0      319104  0       R data1
+845    chown            2      0      8       0       R nsswitch.conf
+828    run              2      0      8       0       R nsswitch.conf
+835    run              2      0      8       0       R nsswitch.conf
+830    run              2      0      8       0       R nsswitch.conf
+
+08:05:13 loadavg: 0.75 0.35 0.25 3/285 868
+
+PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
+32672  cksum            4985   0      319040  0       R data1
+857    run              2      0      8       0       R nsswitch.conf
+858    run              2      0      8       0       R nsswitch.conf
+859    run              2      0      8       0       R nsswitch.conf
+848    run              2      0      8       0       R nsswitch.conf
+[...]
+
+This output shows a cksum command reading data1.
+
+
+An optional interval and optional count can also be added to the end of the
+command line. For example, for 1 second interval, and 3 summaries in total:
+
+# ./filetop -Cr 5 -a 1 3
+Tracing... Output every 1 secs. Hit Ctrl-C to end
+
+08:08:20 loadavg: 0.30 0.42 0.31 3/282 5187
+
+PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
+12421  sshd             14101  0      225616  0       O ptmx
+12296  sshd             4      0      64      0       O ptmx
+12421  sshd             3      14104  48      778     S TCP
+5178   run              2      0      8       0       R nsswitch.conf
+5165   run              2      0      8       0       R nsswitch.conf
+
+08:08:21 loadavg: 0.30 0.42 0.31 5/282 5210
+
+PID    COMM             READS  WRITES R_Kb    W_Kb    T FILE
+12421  sshd             9159   0      146544  0       O ptmx
+12421  sshd             3      9161   48      534     S TCP
+12296  sshd             1      0      16      0       S TCP
+5188   run              2      0      8       0       R nsswitch.conf
+5203   run              2      
