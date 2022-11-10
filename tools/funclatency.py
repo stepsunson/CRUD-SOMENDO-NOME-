@@ -82,4 +82,108 @@ def bail(error):
 
 parts = args.pattern.split(':')
 if len(parts) == 1:
-    lib
+    library = None
+    pattern = args.pattern
+elif len(parts) == 2:
+    library = parts[0]
+    libpath = BPF.find_library(library) or BPF.find_exe(library)
+    if not libpath:
+        bail("can't resolve library %s" % library)
+    library = libpath
+    pattern = parts[1]
+else:
+    bail("unrecognized pattern format '%s'" % args.pattern)
+
+if not args.regexp:
+    pattern = pattern.replace('*', '.*')
+    pattern = '^' + pattern + '$'
+
+# define BPF program
+bpf_text = """
+#include <uapi/linux/ptrace.h>
+
+typedef struct ip_pid {
+    u64 ip;
+    u64 pid;
+} ip_pid_t;
+
+typedef struct hist_key {
+    ip_pid_t key;
+    u64 slot;
+} hist_key_t;
+
+TYPEDEF
+
+BPF_ARRAY(avg, u64, 2);
+STORAGE
+FUNCTION
+
+int trace_func_entry(struct pt_regs *ctx)
+{
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid;
+    u32 tgid = pid_tgid >> 32;
+    u64 ts = bpf_ktime_get_ns();
+
+    FILTER
+    ENTRYSTORE
+
+    return 0;
+}
+
+int trace_func_return(struct pt_regs *ctx)
+{
+    u64 *tsp, delta;
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid;
+    u32 tgid = pid_tgid >> 32;
+
+    // calculate delta time
+    CALCULATE
+
+    u32 lat = 0;
+    u32 cnt = 1;
+    avg.atomic_increment(lat, delta);
+    avg.atomic_increment(cnt);
+
+    FACTOR
+
+    // store as histogram
+    STORE
+
+    return 0;
+}
+"""
+
+# do we need to store the IP and pid for each invocation?
+need_key = args.function or (library and not args.pid)
+
+# code substitutions
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER',
+        'if (tgid != %d) { return 0; }' % args.pid)
+else:
+    bpf_text = bpf_text.replace('FILTER', '')
+if args.milliseconds:
+    bpf_text = bpf_text.replace('FACTOR', 'delta /= 1000000;')
+    label = "msecs"
+elif args.microseconds:
+    bpf_text = bpf_text.replace('FACTOR', 'delta /= 1000;')
+    label = "usecs"
+else:
+    bpf_text = bpf_text.replace('FACTOR', '')
+    label = "nsecs"
+if need_key:
+    pid = '-1' if not library else 'tgid'
+
+    if args.level and args.level > 1:
+        bpf_text = bpf_text.replace('TYPEDEF',
+            """
+#define STACK_DEPTH %s
+
+typedef struct {
+    u64 ip;
+    u64 start_ts;
+} func_cache_t;
+
+/* LI
