@@ -118,3 +118,284 @@ tcp_sync_mss                     14
 tcp_write_timer_handler          15
 tcp_write_timer                  16
 tcp_grow_window.isra.27          22
+tcp_set_state                    23
+tcp_send_ack                     37
+tcp_delack_timer                 42
+tcp_delack_timer_handler         42
+tcp_validate_incoming            91
+tcp_prequeue_process            112
+tcp_v4_early_demux              117
+tcp_gro_receive                 146
+tcp_queue_rcv                   167
+tcp_data_queue                  215
+tcp_urg                         219
+tcp_send_delayed_ack            257
+tcp_send_mss                    275
+tcp_push                        275
+tcp_sendmsg                     275
+tcp_event_data_recv             275
+tcp_nagle_check                 279
+tcp_write_xmit                  282
+tcp_event_new_data_sent         282
+tcp_current_mss                 284
+tcp_init_tso_segs               284
+tcp_wfree                       286
+tcp_schedule_loss_probe         305
+tcp_v4_send_check               323
+tcp_transmit_skb                323
+tcp_recvmsg                     323
+tcp_options_write               325
+tcp_rcv_space_adjust            328
+tcp_check_space                 332
+tcp_rcv_established             337
+tcp_ack                         337
+tcp_parse_aligned_timestamp.part.43      345
+tcp_prequeue                    346
+tcp_v4_do_rcv                   351
+tcp_v4_rcv                      351
+tcp_parse_md5sig_option         351
+tcp_cleanup_rbuf                436
+tcp_poll                        468
+tcp_established_options         604
+tcp_v4_md5_lookup               615
+tcp_release_cb                  736
+tcp_rearm_rto                   843
+tcp_md5_do_lookup               968
+Detaching...
+
+The current implementation can take many seconds to detach from tracing, after
+Ctrl-C has been hit.
+
+
+User functions can be traced in executables or libraries, and per-process
+filtering is allowed:
+
+# ./funccount -p 1442 /home/ubuntu/contentions:*
+Tracing 15 functions for "/home/ubuntu/contentions:*"... Hit Ctrl-C to end.
+^C
+FUNC                                           COUNT
+main                                               1
+_start                                             1
+primes_thread                                      2
+insert_result                                  87186
+is_prime                                     1252772
+Detaching...
+
+If /home/ubuntu is in the $PATH, then the following command will also work:
+
+# ./funccount -p 1442 contentions:*
+
+
+Counting libc write and read calls using regular expression syntax (-r):
+
+# ./funccount -r 'c:(write|read)$'
+Tracing 2 functions for "c:(write|read)$"... Hit Ctrl-C to end.
+^C
+FUNC                                    COUNT
+read                                        2
+write                                       4
+Detaching...
+
+
+Kernel tracepoints are also available as targets. For example, trace common
+block I/O tracepoints and see how often they are invoked:
+
+# ./funccount t:block:*
+Tracing 19 functions for "t:block:*"... Hit Ctrl-C to end.
+^C
+FUNC                                    COUNT
+block:block_rq_complete                     7
+block:block_rq_issue                        7
+block:block_getrq                           7
+block:block_rq_insert                       7
+Detaching...
+
+
+Likewise, user-mode statically defined traces (USDT) can also be probed. For
+example, count mutex-related events in pthreads:
+
+# ./funccount u:pthread:*mutex* -p 1442
+Tracing 7 functions for "u:pthread:*mutex*"... Hit Ctrl-C to end.
+^C
+FUNC                                    COUNT
+mutex_init                                  1
+mutex_entry                            547122
+mutex_acquired                         547175
+mutex_release                          547185
+Detaching...
+
+
+An interval can be provided. Eg, printing output every 1 second for vfs calls:
+
+# ./funccount -i 1 'vfs_*'
+Tracing... Ctrl-C to end.
+
+FUNC                          COUNT
+vfs_fstatat                       1
+vfs_fstat                        16
+vfs_getattr_nosec                17
+vfs_getattr                      17
+vfs_write                        52
+vfs_read                         79
+vfs_open                         98
+
+FUNC                          COUNT
+vfs_fstatat                      10
+vfs_fstat                        10
+vfs_open                         13
+vfs_getattr_nosec                20
+vfs_getattr                      20
+vfs_write                        28
+vfs_read                         39
+
+FUNC                          COUNT
+vfs_fsync_range                   2
+vfs_lock_file                    30
+vfs_write                       107
+vfs_fstatat                     129
+vfs_fstat                       130
+vfs_open                        154
+vfs_getattr_nosec               222
+vfs_getattr                     222
+vfs_read                        384
+^C
+Detaching...
+
+This can be useful for making some ad hoc tools, exposing new counts of
+kernel activity that aren't visible in other metrics.
+
+Include -T to print timestamps on output.
+
+
+A maximum duration can be set. For example, to print 5 x 1 second summaries
+of vfs_read() calls:
+
+# ./funccount -i 1 -d 5 vfs_read
+Tracing 1 functions for "vfs_read"... Hit Ctrl-C to end.
+
+FUNC                                    COUNT
+vfs_read                                   30
+
+FUNC                                    COUNT
+vfs_read                                   26
+
+FUNC                                    COUNT
+vfs_read                                   54
+
+FUNC                                    COUNT
+vfs_read                                   25
+
+FUNC                                    COUNT
+vfs_read                                   31
+Detaching...
+
+By leaving off the "-i 1", this will print a single 5 second summary:
+
+# funccount.py -d 5 vfs_read
+Tracing 1 functions for "vfs_read"... Hit Ctrl-C to end.
+
+FUNC                                    COUNT
+vfs_read                                  167
+Detaching...
+
+This can be useful for finding out rates: trace all functions for ten seconds
+and then divide by ten for the per-second rate.
+
+
+The "*" wildcard can be used multiple times. Eg, matching functions that contain
+the word "readdir":
+
+# ./funccount '*readdir*'
+Tracing... Ctrl-C to end.
+^C
+FUNC                          COUNT
+ext4_readdir                      4
+Detaching...
+
+Matching "tcp" then "send":
+
+# ./funccount '*tcp*send*'
+Tracing... Ctrl-C to end.
+^C
+FUNC                          COUNT
+tcp_send_ack                      4
+tcp_send_delayed_ack             19
+tcp_send_mss                     26
+tcp_sendmsg                      26
+tcp_v4_send_check                30
+__tcp_v4_send_check              30
+Detaching...
+
+A cpu is specified by "-c CPU", this will only trace the specified CPU. Eg,
+trace how many timers setting per second of CPU 1 on a x86(Intel) server:
+
+# funccount.py -i 1 -c 1 lapic_next_deadline
+Tracing 1 functions for "lapic_next_deadline"... Hit Ctrl-C to end.
+
+FUNC                                    COUNT
+lapic_next_deadline                      3840
+
+FUNC                                    COUNT
+lapic_next_deadline                      3930
+
+FUNC                                    COUNT
+lapic_next_deadline                      4701
+
+FUNC                                    COUNT
+lapic_next_deadline                      5895
+
+FUNC                                    COUNT
+lapic_next_deadline                      5591
+
+FUNC                                    COUNT
+lapic_next_deadline                      4727
+
+FUNC                                    COUNT
+lapic_next_deadline                      5560
+
+FUNC                                    COUNT
+lapic_next_deadline                      5416
+^C
+FUNC                                    COUNT
+lapic_next_deadline                       372
+Detaching...
+
+Full USAGE:
+
+# ./funccount -h
+usage: funccount.py [-h] [-p PID] [-i INTERVAL] [-d DURATION] [-T] [-r] [-D]
+                    [-c CPU]
+                    pattern
+
+Count functions, tracepoints, and USDT probes
+
+positional arguments:
+  pattern               search expression for events
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PID, --pid PID     trace this PID only
+  -i INTERVAL, --interval INTERVAL
+                        summary interval, seconds
+  -d DURATION, --duration DURATION
+                        total duration of trace, seconds
+  -T, --timestamp       include timestamp on output
+  -r, --regexp          use regular expressions. Default is "*" wildcards
+                        only.
+  -D, --debug           print BPF program before starting (for debugging
+                        purposes)
+  -c CPU, --cpu CPU     trace this CPU only
+
+examples:
+    ./funccount 'vfs_*'             # count kernel fns starting with "vfs"
+    ./funccount -r '^vfs.*'         # same as above, using regular expressions
+    ./funccount -Ti 5 'vfs_*'       # output every 5 seconds, with timestamps
+    ./funccount -d 10 'vfs_*'       # trace for 10 seconds only
+    ./funccount -p 185 'vfs_*'      # count vfs calls for PID 181 only
+    ./funccount t:sched:sched_fork  # count calls to the sched_fork tracepoint
+    ./funccount -p 185 u:node:gc*   # count all GC USDT probes in node, PID 185
+    ./funccount c:malloc            # count all malloc() calls in libc
+    ./funccount go:os.*             # count all "os.*" calls in libgo
+    ./funccount -p 185 go:os.*      # count all "os.*" calls in libgo, PID 185
+    ./funccount ./test:read*        # count "read*" calls in the ./test binary
+    ./funccount -c 1 'vfs_*'        # count vfs calls on CPU 1 only
