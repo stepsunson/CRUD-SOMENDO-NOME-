@@ -278,4 +278,76 @@ static inline int stack_push(func_stack_t *stack, func_cache_t *cache) {
     delta    = bpf_ktime_get_ns() - start_ts;
             """)
 
-        bpf_text = bpf_text.replac
+        bpf_text = bpf_text.replace('STORE',
+            """
+    hist_key_t key;
+    key.key.ip  = ip;
+    key.key.pid = %s;
+    key.slot    = bpf_log2l(delta);
+    dist.atomic_increment(key);
+
+    if (stack->head == 0) {
+        /* empty */
+        func_stack.delete(&pid);
+    }
+            """ % pid)
+
+    else:
+        bpf_text = bpf_text.replace('STORAGE', 'BPF_HASH(ipaddr, u32);\n'\
+            'BPF_HISTOGRAM(dist, hist_key_t);\n'\
+            'BPF_HASH(start, u32);')
+        # stash the IP on entry, as on return it's kretprobe_trampoline:
+        bpf_text = bpf_text.replace('ENTRYSTORE',
+            'u64 ip = PT_REGS_IP(ctx); ipaddr.update(&pid, &ip);'\
+            ' start.update(&pid, &ts);')
+        bpf_text = bpf_text.replace('STORE',
+                """
+    u64 ip, *ipp = ipaddr.lookup(&pid);
+    if (ipp) {
+        ip = *ipp;
+        hist_key_t key;
+        key.key.ip = ip;
+        key.key.pid = %s;
+        key.slot = bpf_log2l(delta);
+        dist.atomic_increment(key);
+        ipaddr.delete(&pid);
+    }
+                """ % pid)
+else:
+    bpf_text = bpf_text.replace('STORAGE', 'BPF_HISTOGRAM(dist);\n'\
+                                           'BPF_HASH(start, u32);')
+    bpf_text = bpf_text.replace('ENTRYSTORE', 'start.update(&pid, &ts);')
+    bpf_text = bpf_text.replace('STORE',
+        'dist.atomic_increment(bpf_log2l(delta));')
+
+bpf_text = bpf_text.replace('TYPEDEF', '')
+bpf_text = bpf_text.replace('FUNCTION', '')
+bpf_text = bpf_text.replace('CALCULATE',
+                """
+    tsp = start.lookup(&pid);
+    if (tsp == 0) {
+        return 0;   // missed start
+    }
+    delta = bpf_ktime_get_ns() - *tsp;
+    start.delete(&pid);
+                """)
+
+if args.verbose or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# signal handler
+def signal_ignore(signal, frame):
+    print()
+
+# load BPF program
+b = BPF(text=bpf_text)
+
+# attach probes
+if not library:
+    b.attach_kprobe(event_re=pattern, fn_name="trace_func_entry")
+    b.attach_kretprobe(event_re=pattern, fn_name="trace_func_return")
+    matched = b.num_open_kprobes()
+else:
+    b.attach_uprobe(name=library, sym_re=pattern,
