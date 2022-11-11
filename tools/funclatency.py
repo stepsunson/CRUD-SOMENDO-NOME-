@@ -186,4 +186,96 @@ typedef struct {
     u64 start_ts;
 } func_cache_t;
 
-/* LI
+/* LIFO */
+typedef struct {
+    u32          head;
+    func_cache_t cache[STACK_DEPTH];
+} func_stack_t;
+            """ % args.level)
+
+        bpf_text = bpf_text.replace('STORAGE',
+            """
+BPF_HASH(func_stack, u32, func_stack_t);
+BPF_HISTOGRAM(dist, hist_key_t);
+            """)
+
+        bpf_text = bpf_text.replace('FUNCTION',
+            """
+static inline int stack_pop(func_stack_t *stack, func_cache_t *cache) {
+    if (stack->head <= 0) {
+        return -1;
+    }
+
+    u32 index = --stack->head;
+    if (index < STACK_DEPTH) {
+        /* bound check */
+        cache->ip       = stack->cache[index].ip;
+        cache->start_ts = stack->cache[index].start_ts;
+    }
+
+    return 0;
+}
+
+static inline int stack_push(func_stack_t *stack, func_cache_t *cache) {
+    u32 index = stack->head;
+
+    if (index > STACK_DEPTH - 1) {
+        /* bound check */
+        return -1;
+    }
+
+    stack->head++;
+    stack->cache[index].ip       = cache->ip;
+    stack->cache[index].start_ts = cache->start_ts;
+
+    return 0;
+}
+            """)
+
+        bpf_text = bpf_text.replace('ENTRYSTORE',
+            """
+    u64 ip = PT_REGS_IP(ctx);
+    func_cache_t cache = {
+        .ip       = ip,
+        .start_ts = ts,
+    };
+
+    func_stack_t *stack = func_stack.lookup(&pid);
+    if (!stack) {
+        func_stack_t new_stack = {
+            .head = 0,
+        };
+
+        if (!stack_push(&new_stack, &cache)) {
+            func_stack.update(&pid, &new_stack);
+        }
+
+        return 0;
+    }
+
+    if (!stack_push(stack, &cache)) {
+        func_stack.update(&pid, stack);
+    }
+            """)
+
+        bpf_text = bpf_text.replace('CALCULATE',
+            """
+    u64 ip, start_ts;
+    func_stack_t *stack = func_stack.lookup(&pid);
+    if (!stack) {
+        /* miss start */
+        return 0;
+    }
+
+    func_cache_t cache = {};
+    if (stack_pop(stack, &cache)) {
+        func_stack.delete(&pid);
+
+        return 0;
+    }
+    ip       = cache.ip;
+    start_ts = cache.start_ts;
+    delta    = bpf_ktime_get_ns() - start_ts;
+            """)
+
+        bpf_text = bpf_text.replac
