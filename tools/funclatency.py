@@ -350,4 +350,64 @@ if not library:
     b.attach_kretprobe(event_re=pattern, fn_name="trace_func_return")
     matched = b.num_open_kprobes()
 else:
-    b.attach_uprobe(name=library, sym_re=pattern,
+    b.attach_uprobe(name=library, sym_re=pattern, fn_name="trace_func_entry",
+                    pid=args.pid or -1)
+    b.attach_uretprobe(name=library, sym_re=pattern,
+                       fn_name="trace_func_return", pid=args.pid or -1)
+    matched = b.num_open_uprobes()
+
+if matched == 0:
+    print("0 functions matched by \"%s\". Exiting." % args.pattern)
+    exit()
+
+# header
+print("Tracing %d functions for \"%s\"... Hit Ctrl-C to end." %
+    (matched / 2, args.pattern))
+
+# output
+def print_section(key):
+    if not library:
+        return BPF.sym(key[0], -1).decode('utf-8', 'replace')
+    else:
+        return "%s [%d]" % (BPF.sym(key[0], key[1]).decode('utf-8', 'replace'), key[1])
+
+exiting = 0 if args.interval else 1
+seconds = 0
+dist = b.get_table("dist")
+while (1):
+    try:
+        sleep(args.interval)
+        seconds += args.interval
+    except KeyboardInterrupt:
+        exiting = 1
+        # as cleanup can take many seconds, trap Ctrl-C:
+        signal.signal(signal.SIGINT, signal_ignore)
+    if args.duration and seconds >= args.duration:
+        exiting = 1
+
+    print()
+    if args.timestamp:
+        print("%-8s\n" % strftime("%H:%M:%S"), end="")
+
+    if need_key:
+        dist.print_log2_hist(label, "Function", section_print_fn=print_section,
+            bucket_fn=lambda k: (k.ip, k.pid))
+    else:
+        dist.print_log2_hist(label)
+
+    total  = b['avg'][0].value
+    counts = b['avg'][1].value
+    if counts > 0:
+        if label == 'msecs':
+            total /= 1000000
+        elif label == 'usecs':
+            total /= 1000
+        avg = total/counts
+        print("\navg = %ld %s, total: %ld %s, count: %ld\n" %(total/counts, label, total, label, counts))
+
+    dist.clear()
+    b['avg'].clear()
+
+    if exiting:
+        print("Detaching...")
+        exit()
