@@ -103,4 +103,81 @@ class Probe:
     def _get_heading(self):
 
         # we need to insert identifier and ctx into self.func
-        # gonna make a lot of formatting assumptions to ma
+        # gonna make a lot of formatting assumptions to make this work
+        left = self.func.find("(")
+        right = self.func.rfind(")")
+
+        # self.event and self.func_name need to be accessible
+        self.event = self.func[0:left]
+        self.func_name = self.event + ("_entry" if self.is_entry else "_exit")
+        func_sig = "struct pt_regs *ctx"
+
+        # assume there's something in there, no guarantee its well formed
+        if right > left + 1 and self.is_entry:
+            func_sig += ", " + self.func[left + 1:right]
+
+        return "int %s(%s)" % (self.func_name, func_sig)
+
+    def _get_entry_logic(self):
+        # there is at least one tup(pred, place) for this function
+        text = """
+
+        if (p->conds_met >= %s)
+                return 0;
+        if (p->conds_met == %s && %s) {
+                p->stack[%s] = p->curr_call;
+                p->conds_met++;
+        }"""
+        text = text % (self.length, self.preds[0][1], self.preds[0][0],
+                self.preds[0][1])
+
+        # for each additional pred
+        for tup in self.preds[1:]:
+            text += """
+        else if (p->conds_met == %s && %s) {
+                p->stack[%s] = p->curr_call;
+                p->conds_met++;
+        }
+            """ % (tup[1], tup[0], tup[1])
+        return text
+
+    def _generate_entry(self):
+        prog = self._get_heading() + """
+{
+        u32 pid = bpf_get_current_pid_tgid();
+        %s
+
+        struct pid_struct *p = m.lookup(&pid);
+
+        if (!p)
+                return 0;
+
+        /*
+         * preparation for predicate, if necessary
+         */
+         %s
+        /*
+         * Generate entry logic
+         */
+        %s
+
+        p->curr_call++;
+
+        return 0;
+}"""
+
+        prog = prog % (self._get_if_top(), self.prep, self._get_entry_logic())
+        return prog
+
+    # only need to check top of stack
+    def _get_exit_logic(self):
+        text = """
+        if (p->conds_met < 1 || p->conds_met >= %s)
+                return 0;
+
+        if (p->stack[p->conds_met - 1] == p->curr_call)
+                p->conds_met--;
+        """
+        return text % str(self.length + 1)
+
+    def _generate_exi
