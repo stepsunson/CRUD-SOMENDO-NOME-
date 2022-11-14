@@ -180,4 +180,84 @@ class Probe:
         """
         return text % str(self.length + 1)
 
-    def _generate_exi
+    def _generate_exit(self):
+        prog = self._get_heading() + """
+{
+        u32 pid = bpf_get_current_pid_tgid();
+
+        struct pid_struct *p = m.lookup(&pid);
+
+        if (!p)
+                return 0;
+
+        p->curr_call--;
+
+        /*
+         * Generate exit logic
+         */
+        %s
+        %s
+        return 0;
+}"""
+
+        prog = prog % (self._get_exit_logic(), self._get_if_top())
+
+        return prog
+
+    # Special case for should_fail_whatever
+    def _generate_bottom(self):
+        pred = self.preds[0][0]
+        text = self._get_heading() + """
+{
+        u32 overridden = 0;
+        int zero = 0;
+        u32* val;
+
+        val = count.lookup(&zero);
+        if (val)
+            overridden = *val;
+
+        /*
+         * preparation for predicate, if necessary
+         */
+         %s
+        /*
+         * If this is the only call in the chain and predicate passes
+         */
+        if (%s == 1 && %s && overridden < %s) {
+                count.atomic_increment(zero);
+                bpf_override_return(ctx, %s);
+                return 0;
+        }
+        u32 pid = bpf_get_current_pid_tgid();
+
+        struct pid_struct *p = m.lookup(&pid);
+
+        if (!p)
+                return 0;
+
+        /*
+         * If all conds have been met and predicate passes
+         */
+        if (p->conds_met == %s && %s && overridden < %s) {
+                count.atomic_increment(zero);
+                bpf_override_return(ctx, %s);
+        }
+        return 0;
+}"""
+        return text % (self.prep, self.length, pred, Probe.count,
+                self._get_err(), self.length - 1, pred, Probe.count,
+                self._get_err())
+
+    # presently parses and replaces STRCMP
+    # STRCMP exists because string comparison is inconvenient and somewhat buggy
+    # https://github.com/iovisor/bcc/issues/1617
+    def _prepare_pred(self):
+        self.prep = ""
+        for i in range(len(self.preds)):
+            new_pred = ""
+            pred = self.preds[i][0]
+            place = self.preds[i][1]
+            start, ind = 0, 0
+            while start < len(pred):
+         
