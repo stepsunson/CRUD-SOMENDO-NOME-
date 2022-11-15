@@ -365,4 +365,67 @@ EXAMPLES:
         # self, func, preds, total, entry
 
         # create all the pair probes
-        for f
+        for fx, preds in self.map.items():
+
+            # do the enter
+            self.probes.append(Probe(fx, preds, self.length, True))
+
+            if self.key == fx:
+                continue
+
+            # do the exit
+            self.probes.append(Probe(fx, preds, self.length, False))
+
+    def _parse_frames(self):
+        # sentinel
+        data = self.spec + '\0'
+        start, count = 0, 0
+
+        frames = []
+        cur_frame = []
+        i = 0
+        last_frame_added = 0
+
+        while i < len(data):
+            # improper input
+            if count < 0:
+                raise Exception("Check your parentheses")
+            c = data[i]
+            count += c == '('
+            count -= c == ')'
+            if not count:
+                if c == '\0' or (c == '=' and data[i + 1] == '>'):
+                    # This block is closing a chunk. This means cur_frame must
+                    # have something in it.
+                    if not cur_frame:
+                        raise Exception("Cannot parse spec, missing parens")
+                    if len(cur_frame) == 2:
+                        frame = tuple(cur_frame)
+                    elif cur_frame[0][0] == '(':
+                        frame = self.key, cur_frame[0]
+                    else:
+                        frame = cur_frame[0], '(true)'
+                    frames.append(frame)
+                    del cur_frame[:]
+                    i += 1
+                    start = i + 1
+                elif c == ')':
+                    cur_frame.append(data[start:i + 1].strip())
+                    start = i + 1
+                    last_frame_added = start
+            i += 1
+
+        # We only permit spaces after the last frame
+        if self.spec[last_frame_added:].strip():
+            raise Exception("Invalid characters found after last frame");
+        # improper input
+        if count:
+            raise Exception("Check your parentheses")
+        return frames
+
+    def _parse_spec(self):
+        frames = self._parse_frames()
+        frames.reverse()
+
+        absolute_order = 0
+   
