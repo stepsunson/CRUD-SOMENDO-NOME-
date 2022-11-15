@@ -319,4 +319,50 @@ EXAMPLES:
 # ./inject.py kmalloc -v 'mount_subtree() => btrfs_mount()'
     Fails btrfs mounts only
 # ./inject.py kmalloc -v 'd_alloc_parallel(struct dentry *parent, const struct \\
-    qstr *name)(STRCMP(name->name
+    qstr *name)(STRCMP(name->name, 'bananas'))'
+    Fails dentry allocations of files named 'bananas'
+# ./inject.py kmalloc -v -P 0.01 'SyS_mount()'
+    Fails calls to syscall mount with 1% probability
+    """
+    # add cases as necessary
+    error_injection_mapping = {
+        "kmalloc": "should_failslab(struct kmem_cache *s, gfp_t gfpflags)",
+        "bio": "should_fail_bio(struct bio *bio)",
+        "alloc_page": "should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)",
+    }
+
+    def __init__(self):
+        parser = argparse.ArgumentParser(description="Fail specified kernel" +
+                " functionality when call chain and predicates are met",
+                formatter_class=argparse.RawDescriptionHelpFormatter,
+                epilog=Tool.examples)
+        parser.add_argument(dest="mode", choices=["kmalloc", "bio", "alloc_page"],
+                help="indicate which base kernel function to fail")
+        parser.add_argument(metavar="spec", dest="spec",
+                help="specify call chain")
+        parser.add_argument("-I", "--include", action="append",
+                metavar="header",
+                help="additional header files to include in the BPF program")
+        parser.add_argument("-P", "--probability", default=1,
+                metavar="probability", type=float,
+                help="probability that this call chain will fail")
+        parser.add_argument("-v", "--verbose", action="store_true",
+                help="print BPF program")
+        parser.add_argument("-c", "--count", action="store", default=-1,
+                help="Number of fails before bypassing the override")
+        self.args = parser.parse_args()
+
+        self.program = ""
+        self.spec = self.args.spec
+        self.map = {}
+        self.probes = []
+        self.key = Tool.error_injection_mapping[self.args.mode]
+
+    # create_probes and associated stuff
+    def _create_probes(self):
+        self._parse_spec()
+        Probe.configure(self.args.mode, self.args.probability, self.args.count)
+        # self, func, preds, total, entry
+
+        # create all the pair probes
+        for f
