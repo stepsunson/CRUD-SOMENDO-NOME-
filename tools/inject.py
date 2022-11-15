@@ -260,4 +260,63 @@ class Probe:
             place = self.preds[i][1]
             start, ind = 0, 0
             while start < len(pred):
-         
+                ind = pred.find("STRCMP(", start)
+                if ind == -1:
+                    break
+                new_pred += pred[start:ind]
+                # 7 is len("STRCMP(")
+                start = pred.find(")", start + 7) + 1
+
+                # then ind ... start is STRCMP(...)
+                ptr, literal = pred[ind + 7:start - 1].split(",")
+                literal = literal.strip()
+
+                # x->y->z, some string literal
+                # we make unique id with place_ind
+                uuid = "%s_%s" % (place, ind)
+                unique_bool = "is_true_%s" % uuid
+                self.prep += """
+        char *str_%s = %s;
+        bool %s = true;\n""" % (uuid, ptr.strip(), unique_bool)
+
+                check = "\t%s &= *(str_%s++) == '%%s';\n" % (unique_bool, uuid)
+
+                for ch in literal:
+                    self.prep += check % ch
+                self.prep += check % r'\0'
+                new_pred += unique_bool
+
+            new_pred += pred[start:]
+            self.preds[i] = (new_pred, place)
+
+    def generate_program(self):
+        # generate code to work around various rewriter issues
+        self._prepare_pred()
+
+        # special case for bottom
+        if self.preds[-1][1] == self.length - 1:
+            return self._generate_bottom()
+
+        return self._generate_entry() if self.is_entry else self._generate_exit()
+
+    def attach(self, bpf):
+        if self.is_entry:
+            bpf.attach_kprobe(event=self.event,
+                    fn_name=self.func_name)
+        else:
+            bpf.attach_kretprobe(event=self.event,
+                    fn_name=self.func_name)
+
+
+class Tool:
+
+    examples ="""
+EXAMPLES:
+# ./inject.py kmalloc -v 'SyS_mount()'
+    Fails all calls to syscall mount
+# ./inject.py kmalloc -v '(true) => SyS_mount()(true)'
+    Explicit rewriting of above
+# ./inject.py kmalloc -v 'mount_subtree() => btrfs_mount()'
+    Fails btrfs mounts only
+# ./inject.py kmalloc -v 'd_alloc_parallel(struct dentry *parent, const struct \\
+    qstr *name)(STRCMP(name->name
