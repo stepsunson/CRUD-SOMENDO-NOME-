@@ -496,3 +496,30 @@ struct pid_struct {
         self.program += '#include <linux/mm.h>\n'
         for include in (self.args.include or []):
             self.program += "#include <%s>\n" % include
+
+        self.program += self._def_pid_struct()
+        self.program += "BPF_HASH(m, u32, struct pid_struct);\n"
+        self.program += "BPF_ARRAY(count, u32, 1);\n"
+
+        for p in self.probes:
+            self.program += p.generate_program() + "\n"
+
+        if self.args.verbose:
+            print(self.program)
+
+    def _main_loop(self):
+        while True:
+            try:
+                self.bpf.perf_buffer_poll()
+            except KeyboardInterrupt:
+                exit()
+
+    def run(self):
+        self._create_probes()
+        self._generate_program()
+        self._attach_probes()
+        self._main_loop()
+
+
+if __name__ == "__main__":
+    Tool().run()
