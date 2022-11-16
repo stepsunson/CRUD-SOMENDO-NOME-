@@ -33,4 +33,51 @@ would have access to the arguments of:
 Other modes work similarly.
 "bio" has access to the arguments of:
 
-	should_fail_bio(struct bio 
+	should_fail_bio(struct bio *bio)
+
+"alloc_page" has access to the arguments of:
+
+	should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
+
+We also note that it's unnecessary to state the arguments of the function if you
+have no intention to reference them in the associated predicate.
+
+Now let's say we want to be a bit more specific; suppose you want to fail
+kmalloc() from mount_subtree() when called from btrfs_mount(). This will fail
+only btrfs mounts:
+
+# ./inject.py kmalloc -v 'mount_subtree() => btrfs_mount()'
+
+Attempting to mount btrfs filesystem during the execution of this command will
+yield an error, but other filesystems will be fine.
+
+Next, lets say we want to hit one of the BUG_ONs in fs/btrfs. As of 4.16-rc3,
+there is a BUG_ON in btrfs_prepare_close_one_device() at fs/btrfs/volumes.c:1002
+
+To hit this, we can use the following:
+
+# ./inject.py kmalloc -v 'btrfs_alloc_device() => btrfs_close_devices()'
+
+While the script was executing, I mounted and unmounted btrfs, causing a
+segfault on umount(since that satisfied the call path indicated). A look at
+dmesg will confirm that the erroneous return value injected by the script
+tripped the BUG_ON, causing a segfault down the line.
+
+In general, it's worth noting that the required specificity of the call chain is
+dependent on how much granularity you need. The example above might have
+performed as expected without the intermediate btrfs_alloc_device, but might
+have also done something unexpected(an earlier kmalloc could have failed before
+the one we were targeting).
+
+For hot paths, the approach outlined above isn't enough. If a path is traversed
+very often, we can distinguish distinct calls with function arguments. Let's say
+we want to fail the dentry allocation of a file creatively named 'bananas'. We
+can do the following:
+
+# ./inject.py kmalloc -v 'd_alloc_parallel(struct dentry *parent, const struct
+qstr *name)(STRCMP(name->name, 'bananas'))' 
+
+While this script is executing, any operation that would cause a dentry
+allocation where the name is 'bananas' fails, as expected.
+
+Here, since we're referencing a
