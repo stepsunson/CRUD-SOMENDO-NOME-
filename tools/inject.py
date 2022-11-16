@@ -428,4 +428,71 @@ EXAMPLES:
         frames.reverse()
 
         absolute_order = 0
-   
+        for f in frames:
+            # default case
+            func, pred = f[0], f[1]
+
+            if not self._validate_predicate(pred):
+                raise Exception("Invalid predicate")
+            if not self._validate_identifier(func):
+                raise Exception("Invalid function identifier")
+            tup = (pred, absolute_order)
+
+            if func not in self.map:
+                self.map[func] = [tup]
+            else:
+                self.map[func].append(tup)
+
+            absolute_order += 1
+
+        if self.key not in self.map:
+            self.map[self.key] = [('(true)', absolute_order)]
+            absolute_order += 1
+
+        self.length = absolute_order
+
+    def _validate_identifier(self, func):
+        # We've already established paren balancing. We will only look for
+        # identifier validity here.
+        paren_index = func.find("(")
+        potential_id = func[:paren_index]
+        pattern = '[_a-zA-z][_a-zA-Z0-9]*$'
+        if re.match(pattern, potential_id):
+            return True
+        return False
+
+    def _validate_predicate(self, pred):
+
+        if len(pred) > 0 and pred[0] == "(":
+            open = 1
+            for i in range(1, len(pred)):
+                if pred[i] == "(":
+                    open += 1
+                elif pred[i] == ")":
+                    open -= 1
+            if open != 0:
+                # not well formed, break
+                return False
+
+        return True
+
+    def _def_pid_struct(self):
+        text = """
+struct pid_struct {
+    u64 curr_call; /* book keeping to handle recursion */
+    u64 conds_met; /* stack pointer */
+    u64 stack[%s];
+};
+""" % self.length
+        return text
+
+    def _attach_probes(self):
+        self.bpf = BPF(text=self.program)
+        for p in self.probes:
+            p.attach(self.bpf)
+
+    def _generate_program(self):
+        # leave out auto includes for now
+        self.program += '#include <linux/mm.h>\n'
+        for include in (self.args.include or []):
+            self.program += "#include <%s>\n" % include
