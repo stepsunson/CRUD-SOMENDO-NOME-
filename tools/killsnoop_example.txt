@@ -1,0 +1,9 @@
+Demonstrations of killsnoop, the Linux eBPF/bcc version.
+
+
+This traces signals sent via the kill() syscall. For example:
+
+# ./killsnoop
+TIME      PID    COMM             SIG  TPID   RESULT
+12:10:51  13967  bash             9    13885  0
+12:11:34  13967  bash             9   
