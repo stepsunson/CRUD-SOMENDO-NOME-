@@ -89,4 +89,111 @@ struct depth_id {
 };
 
 BPF_ARRAY(enabled,   u64, 1);
-BPF_HASH(track,      
+BPF_HASH(track,      u64, u64);
+BPF_HASH(time_aq,    u64, u64);
+BPF_HASH(lock_depth, u64, u64);
+BPF_HASH(time_held,  struct depth_id, u64);
+BPF_HASH(stack,      struct depth_id, int);
+
+BPF_HASH(aq_report_count, int, u64);
+BPF_HASH(aq_report_max,   int, u64);
+BPF_HASH(aq_report_total, int, u64);
+
+BPF_HASH(hl_report_count, int, u64);
+BPF_HASH(hl_report_max,   int, u64);
+BPF_HASH(hl_report_total, int, u64);
+
+BPF_STACK_TRACE(stack_traces, STACK_STORAGE_SIZE);
+
+static bool is_enabled(void)
+{
+    int key = 0;
+    u64 *ret;
+
+    ret = enabled.lookup(&key);
+    return ret && *ret == 1;
+}
+
+static bool allow_pid(u64 id)
+{
+    u32 pid = id >> 32; // PID is higher part
+    u32 tid = id;       // Cast and get the lower part
+
+    FILTER
+
+    return 1;
+}
+
+static int do_mutex_lock_enter(void *ctx, int skip)
+{
+    if (!is_enabled())
+        return 0;
+
+    u64 id = bpf_get_current_pid_tgid();
+
+    if (!allow_pid(id))
+        return 0;
+
+    u64 one = 1, zero = 0;
+
+    track.update(&id, &one);
+
+    u64 *depth = lock_depth.lookup(&id);
+
+    if (!depth) {
+        lock_depth.update(&id, &zero);
+
+        depth = lock_depth.lookup(&id);
+        /* something is wrong.. */
+        if (!depth)
+            return 0;
+    }
+
+    int stackid = stack_traces.get_stackid(ctx, skip);
+    struct depth_id did = {
+      .id    = id,
+      .depth = *depth,
+    };
+    stack.update(&did, &stackid);
+
+    u64 ts = bpf_ktime_get_ns();
+    time_aq.update(&id, &ts);
+
+    *depth += 1;
+    return 0;
+}
+
+static void update_aq_report_count(int *stackid)
+{
+    u64 *count, one = 1;
+
+    count = aq_report_count.lookup(stackid);
+    if (!count) {
+        aq_report_count.update(stackid, &one);
+    } else {
+        *count += 1;
+    }
+}
+
+static void update_hl_report_count(int *stackid)
+{
+    u64 *count, one = 1;
+
+    count = hl_report_count.lookup(stackid);
+    if (!count) {
+        hl_report_count.update(stackid, &one);
+    } else {
+        *count += 1;
+    }
+}
+
+static void update_aq_report_max(int *stackid, u64 time)
+{
+    u64 *max;
+
+    max = aq_report_max.lookup(stackid);
+    if (!max || *max < time)
+        aq_report_max.update(stackid, &time);
+}
+
+sta
