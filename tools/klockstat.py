@@ -196,4 +196,115 @@ static void update_aq_report_max(int *stackid, u64 time)
         aq_report_max.update(stackid, &time);
 }
 
-sta
+static void update_hl_report_max(int *stackid, u64 time)
+{
+    u64 *max;
+
+    max = hl_report_max.lookup(stackid);
+    if (!max || *max < time)
+        hl_report_max.update(stackid, &time);
+}
+
+static void update_aq_report_total(int *stackid, u64 delta)
+{
+    u64 *count, *time;
+
+    count = aq_report_count.lookup(stackid);
+    if (!count)
+        return;
+
+    time = aq_report_total.lookup(stackid);
+    if (!time) {
+        aq_report_total.update(stackid, &delta);
+    } else {
+        *time = *time + delta;
+    }
+}
+
+static void update_hl_report_total(int *stackid, u64 delta)
+{
+    u64 *count, *time;
+
+    count = hl_report_count.lookup(stackid);
+    if (!count)
+        return;
+
+    time = hl_report_total.lookup(stackid);
+    if (!time) {
+        hl_report_total.update(stackid, &delta);
+    } else {
+        *time = *time + delta;
+    }
+}
+
+static int do_mutex_lock_return(void)
+{
+    if (!is_enabled())
+        return 0;
+
+    u64 id = bpf_get_current_pid_tgid();
+
+    if (!allow_pid(id))
+        return 0;
+
+    u64 *one = track.lookup(&id);
+
+    if (!one)
+        return 0;
+
+    track.delete(&id);
+
+    u64 *depth = lock_depth.lookup(&id);
+    if (!depth)
+        return 0;
+
+    struct depth_id did = {
+      .id    = id,
+      .depth = *depth - 1,
+    };
+
+    u64 *aq = time_aq.lookup(&id);
+    if (!aq)
+        return 0;
+
+    int *stackid = stack.lookup(&did);
+    if (!stackid)
+        return 0;
+
+    int stackid_ = *stackid;
+    u64 cur = bpf_ktime_get_ns();
+
+    if (cur > *aq) {
+        int val = cur - *aq;
+        update_aq_report_count(&stackid_);
+        update_aq_report_max(&stackid_, val);
+        update_aq_report_total(&stackid_, val);
+    }
+
+    time_held.update(&did, &cur);
+    return 0;
+}
+
+static int do_mutex_unlock_enter(void)
+{
+    if (!is_enabled())
+        return 0;
+
+    u64 id = bpf_get_current_pid_tgid();
+
+    if (!allow_pid(id))
+        return 0;
+
+    u64 *depth = lock_depth.lookup(&id);
+
+    if (!depth || *depth == 0)
+        return 0;
+
+    *depth -= 1;
+
+    struct depth_id did = {
+      .id    = id,
+      .depth = *depth,
+    };
+
+    u64 *held = time_h
