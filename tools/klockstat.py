@@ -307,4 +307,108 @@ static int do_mutex_unlock_enter(void)
       .depth = *depth,
     };
 
-    u64 *held = time_h
+    u64 *held = time_held.lookup(&did);
+    if (!held)
+        return 0;
+
+    int *stackid = stack.lookup(&did);
+    if (!stackid)
+        return 0;
+
+
+    int stackid_ = *stackid;
+    u64 cur = bpf_ktime_get_ns();
+
+    if (cur > *held) {
+        u64 val = cur - *held;
+        update_hl_report_count(&stackid_);
+        update_hl_report_max(&stackid_, val);
+        update_hl_report_total(&stackid_, val);
+    }
+
+    stack.delete(&did);
+    time_held.delete(&did);
+    return 0;
+}
+"""
+
+program_kprobe = """
+int mutex_unlock_enter(struct pt_regs *ctx)
+{
+    return do_mutex_unlock_enter();
+}
+
+int mutex_lock_return(struct pt_regs *ctx)
+{
+    return do_mutex_lock_return();
+}
+
+int mutex_lock_enter(struct pt_regs *ctx)
+{
+    return do_mutex_lock_enter(ctx, 0);
+}
+"""
+
+program_kfunc = """
+KFUNC_PROBE(mutex_unlock, void *lock)
+{
+    return do_mutex_unlock_enter();
+}
+
+KRETFUNC_PROBE(mutex_lock, void *lock, int ret)
+{
+    return do_mutex_lock_return();
+}
+
+KFUNC_PROBE(mutex_lock, void *lock)
+{
+    return do_mutex_lock_enter(ctx, 3);
+}
+
+"""
+
+program_kfunc_nested = """
+KFUNC_PROBE(mutex_unlock, void *lock)
+{
+    return do_mutex_unlock_enter();
+}
+
+KRETFUNC_PROBE(mutex_lock_nested, void *lock, int ret)
+{
+    return do_mutex_lock_return();
+}
+
+KFUNC_PROBE(mutex_lock_nested, void *lock)
+{
+    return do_mutex_lock_enter(ctx, 3);
+}
+
+"""
+
+is_support_kfunc = BPF.support_kfunc()
+if is_support_kfunc:
+    if BPF.get_kprobe_functions(b"mutex_lock_nested"):
+        program += program_kfunc_nested
+    else:
+        program += program_kfunc
+else:
+    program += program_kprobe
+
+def sort_list(maxs, totals, counts):
+    if (not args.sort):
+        return maxs;
+
+    for field in args.sort.split(','):
+        if (field == "acq_max" or field == "hld_max"):
+            return maxs
+        if (field == "acq_total" or field == "hld_total"):
+            return totals
+        if (field == "acq_count" or field == "hld_count"):
+            return counts
+
+    print("Wrong sort argument: %s", args.sort)
+    exit(-1)
+
+def display(sort, maxs, totals, counts):
+    global missing_stacks
+    global
