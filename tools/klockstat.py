@@ -411,4 +411,63 @@ def sort_list(maxs, totals, counts):
 
 def display(sort, maxs, totals, counts):
     global missing_stacks
-    global
+    global has_enomem
+
+    for k, v in sorted(sort.items(), key=lambda sort: sort[1].value, reverse=True)[:args.locks]:
+        missing_stacks += int(stack_id_err(k.value))
+        has_enomem      = has_enomem or (k.value == -errno.ENOMEM)
+
+        caller = "[Missed Kernel Stack]"
+        stack  = []
+
+        if (k.value >= 0):
+            stack  = list(stack_traces.walk(k.value))
+            caller = b.ksym(stack[1], show_offset=True)
+
+            if (args.caller and caller.find(args.caller.encode())):
+                continue
+
+        avg = totals[k].value / counts[k].value
+
+        print("%40s %10lu %6lu %10lu %10lu" % (caller, avg, counts[k].value, maxs[k].value, totals[k].value))
+
+        for addr in stack[2:args.stacks]:
+            print("%40s" %  b.ksym(addr, show_offset=True))
+
+
+if args.tid:  # TID trumps PID
+    program = program.replace('FILTER',
+        'if (tid != %s) { return 0; }' % args.tid)
+elif args.pid:
+    program = program.replace('FILTER',
+        'if (pid != %s) { return 0; }' % args.pid)
+else:
+    program = program.replace('FILTER', '')
+
+program = program.replace('STACK_STORAGE_SIZE', str(args.stack_storage_size))
+
+b = BPF(text=program)
+
+if not is_support_kfunc:
+    b.attach_kprobe(event="mutex_unlock", fn_name="mutex_unlock_enter")
+    # Depending on whether DEBUG_LOCK_ALLOC is set, the proper kprobe may be either mutex_lock or mutex_lock_nested
+    if BPF.get_kprobe_functions(b"mutex_lock_nested"):
+        b.attach_kretprobe(event="mutex_lock_nested", fn_name="mutex_lock_return")
+        b.attach_kprobe(event="mutex_lock_nested", fn_name="mutex_lock_enter")
+    else:
+        b.attach_kretprobe(event="mutex_lock", fn_name="mutex_lock_return")
+        b.attach_kprobe(event="mutex_lock", fn_name="mutex_lock_enter")
+
+enabled = b.get_table("enabled");
+
+stack_traces = b.get_table("stack_traces")
+aq_counts = b.get_table("aq_report_count")
+aq_maxs   = b.get_table("aq_report_max")
+aq_totals = b.get_table("aq_report_total")
+
+hl_counts = b.get_table("hl_report_count")
+hl_maxs   = b.get_table("hl_report_max")
+hl_totals = b.get_table("hl_report_total")
+
+aq_sort = sort_list(aq_maxs, aq_totals, aq_counts)
+hl
