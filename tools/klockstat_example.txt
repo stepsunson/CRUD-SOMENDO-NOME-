@@ -12,4 +12,51 @@ Tracing lock events... Hit Ctrl-C to end.
                                isig+0x5d       2390      1       2390       2390
                    tty_buffer_flush+0x2a       1604      1       1604       1604
                       commit_echoes+0x22       1400      1       1400       1400
-          n_tty_receive_buf_common+0x3b9       1399      1       1399  
+          n_tty_receive_buf_common+0x3b9       1399      1       1399       1399
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+                     flush_to_ldisc+0x22      42558      2      76135      85116
+                      psi_avgs_work+0x2e      14821      5      20446      74106
+          n_tty_receive_buf_common+0x3b9      12300      1      12300      12300
+                       n_tty_write+0x30c      10712      1      10712      10712
+                               isig+0x5d       3362      1       3362       3362
+                   tty_buffer_flush+0x2a       3078      1       3078       3078
+                      commit_echoes+0x22       3017      1       3017       3017
+
+
+Every caller to using kernel's mutex is displayed on every line.
+
+First portion of lines show the lock acquiring data, showing the
+amount of time it took to acquired given lock.
+
+  'Caller'       - symbol acquiring the mutex
+  'Average Spin' - average time to acquire the mutex
+  'Count'        - number of times mutex was acquired
+  'Max spin'     - maximum time to acquire the mutex
+  'Total spin'   - total time spent in acquiring the mutex
+
+Second portion of lines show the lock holding data, showing the
+amount of time it took to hold given lock.
+
+  'Caller'       - symbol holding the mutex
+  'Average Hold' - average time mutex was held
+  'Count'        - number of times mutex was held
+  'Max hold'     - maximum time mutex was held
+  'Total hold'   - total time spent in holding the mutex
+
+This works by tracing mutex_lock/unlock kprobes, updating the
+lock stats in maps and processing them in the python part.
+
+
+An -i option can be used to display stats in interval (5 seconds in example below):
+
+# klockstat.py -i 5
+Tracing lock events... Hit Ctrl-C to end.
+
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                      psi_avgs_work+0x2e       3822     15       5650      57338
+                     flush_to_ldisc+0x22       4630      1       4630       4630
+                            work_fn+0x4f       4185      1       4185       4185
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+ 
