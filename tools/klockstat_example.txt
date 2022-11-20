@@ -59,4 +59,45 @@ Tracing lock events... Hit Ctrl-C to end.
                             work_fn+0x4f       4185      1       4185       4185
 
                                   Caller   Avg Hold  Count   Max hold Total hold
- 
+                      psi_avgs_work+0x2e      12155     15      15739     182329
+                     flush_to_ldisc+0x22      13809      1      13809      13809
+                            work_fn+0x4f       5274      1       5274       5274
+
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                      psi_avgs_work+0x2e       3715     17       4374      63163
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+                      psi_avgs_work+0x2e      13141     17      19510     223399
+^C
+
+
+A -p option can be used to trace only selected process:
+
+# klockstat.py -p 883
+Tracing lock events... Hit Ctrl-C to end.
+^C
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                          pipe_wait+0xa9        625 412686      16930  258277958
+                          pipe_read+0x3f        420 413425      16872  174017649
+                         pipe_write+0x35        471 413425      16765  194792253
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+                          pipe_read+0x3f        473 413425      20063  195773647
+                          pipe_wait+0xa9        604 412686      16972  249598153
+                         pipe_write+0x35        481 413425      16944  199008064
+
+
+A -c option can be used to display only callers with specific substring:
+
+# klockstat.py  -c pipe_
+Tracing lock events... Hit Ctrl-C to end.
+^C
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                          pipe_read+0x3f        422 469554      18665  198354705
+                          pipe_wait+0xa9        679 469536      17196  319017069
+                         pipe_write+0x35        469 469554      17057  220338525
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+                         pipe_write+0x35        638 469554      17330  299857180
+                          pipe_wait+0xa9        779 469535      16912  366047392
+                          
