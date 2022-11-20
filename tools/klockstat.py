@@ -470,4 +470,53 @@ hl_maxs   = b.get_table("hl_report_max")
 hl_totals = b.get_table("hl_report_total")
 
 aq_sort = sort_list(aq_maxs, aq_totals, aq_counts)
-hl
+hl_sort = sort_list(hl_maxs, hl_totals, hl_counts)
+
+print("Tracing lock events... Hit Ctrl-C to end.")
+
+# duration and interval are mutualy exclusive
+exiting = 0 if args.interval else 1
+exiting = 1 if args.duration else 0
+
+seconds = 99999999
+if args.interval:
+    seconds = args.interval
+if args.duration:
+    seconds = args.duration
+
+missing_stacks = 0
+has_enomem     = False
+
+while (1):
+    enabled[ct.c_int(0)] = ct.c_int(1)
+
+    try:
+        sleep(seconds)
+    except KeyboardInterrupt:
+        exiting = 1
+
+    enabled[ct.c_int(0)] = ct.c_int(0)
+
+    print("\n%40s %10s %6s %10s %10s" % ("Caller", "Avg Spin", "Count", "Max spin", "Total spin"))
+    display(aq_sort, aq_maxs, aq_totals, aq_counts)
+
+
+    print("\n%40s %10s %6s %10s %10s" % ("Caller", "Avg Hold", "Count", "Max hold", "Total hold"))
+    display(hl_sort, hl_maxs, hl_totals, hl_counts)
+
+    if exiting:
+        break;
+
+    stack_traces.clear()
+    aq_counts.clear()
+    aq_maxs.clear()
+    aq_totals.clear()
+    hl_counts.clear()
+    hl_maxs.clear()
+    hl_totals.clear()
+
+if missing_stacks > 0:
+    enomem_str = " Consider increasing --stack-storage-size."
+    print("WARNING: %d stack traces lost and could not be displayed.%s" %
+        (missing_stacks, (enomem_str if has_enomem else "")),
+        file=stderr)

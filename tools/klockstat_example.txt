@@ -1,0 +1,15 @@
+Demonstrations of klockstat, the Linux eBPF/bcc version.
+
+klockstat traces kernel mutex lock events and display locks statistics
+
+# klockstat.py
+Tracing lock events... Hit Ctrl-C to end.
+^C
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                      psi_avgs_work+0x2e       3675      5       5468      18379
+                     flush_to_ldisc+0x22       2833      2       4210       5667
+                       n_tty_write+0x30c       3914      1       3914       3914
+                               isig+0x5d       2390      1       2390       2390
+                   tty_buffer_flush+0x2a       1604      1       1604       1604
+                      commit_echoes+0x22       1400      1       1400       1400
+          n_tty_receive_buf_common+0x3b9       1399      1       1399  
