@@ -100,4 +100,50 @@ Tracing lock events... Hit Ctrl-C to end.
                                   Caller   Avg Hold  Count   Max hold Total hold
                          pipe_write+0x35        638 469554      17330  299857180
                           pipe_wait+0xa9        779 469535      16912  366047392
-                          
+                          pipe_read+0x3f        575 469554      13251  270005394
+
+
+An -n option can be used to display only specific number of callers:
+
+# klockstat.py -n 3
+Tracing lock events... Hit Ctrl-C to end.
+^C
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                          pipe_read+0x3f        420 334120      16964  140632284
+                          pipe_wait+0xa9        688 334116      16876  229957062
+                         pipe_write+0x35        463 334120      16791  154981747
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+                     flush_to_ldisc+0x22      27754      3      63270      83264
+                          pipe_read+0x3f        571 334120      17123  190976463
+                          pipe_wait+0xa9        759 334115      17068  253747213
+
+
+An -s option can be used to display number of callers backtrace entries:
+
+# klockstat.py -n 1 -s 3
+Tracing lock events... Hit Ctrl-C to end.
+^C
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                          pipe_wait+0xa9        685 811947      17376  556542328
+                          pipe_wait+0xa9
+                         pipe_read+0x206
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+                     flush_to_ldisc+0x22      28145      3      63872      84437
+                     flush_to_ldisc+0x22
+                  process_one_work+0x1b0
+
+
+Output can be sorted by using -S <fields> option on various
+fields, the acq_total will force the acquired table to be
+sorted on 'Total spin' column:
+
+# klockstat.py -S acq_total
+Tracing lock events... Hit Ctrl-C to end.
+^C
+                                  Caller   Avg Spin  Count   Max spin Total spin
+                          pipe_wait+0xa9        691 269343      17190  186263983
+                         pipe_write+0x35        464 269351      11730  125205417
+                          pipe_read+0x3f        422 269351      17107  113724697
+ 
