@@ -146,4 +146,22 @@ Tracing lock events... Hit Ctrl-C to end.
                           pipe_wait+0xa9        691 269343      17190  186263983
                          pipe_write+0x35        464 269351      11730  125205417
                           pipe_read+0x3f        422 269351      17107  113724697
- 
+                      psi_avgs_work+0x2e       2499     11       4454      27494
+                     flush_to_ldisc+0x22       3111      3       5096       9334
+                       n_tty_write+0x30c       2764      1       2764       2764
+                               isig+0x5d       1287      1       1287       1287
+                   tty_buffer_flush+0x2a        961      1        961        961
+                      commit_echoes+0x22        892      1        892        892
+          n_tty_receive_buf_common+0x3b9        868      1        868        868
+
+                                  Caller   Avg Hold  Count   Max hold Total hold
+                          pipe_wait+0xa9        788 269343      17128  212496240
+                         pipe_write+0x35        637 269351      17209  171596811
+                          pipe_read+0x3f        585 269351      11834  157606323
+                      psi_avgs_work+0x2e       8726     11      19177      95996
+                     flush_to_ldisc+0x22      22158      3      43731      66474
+                       n_tty_write+0x30c       9770      1       9770       9770
+          n_tty_receive_buf_common+0x3b9       6830      1       6830       6830
+                               isig+0x5d       3114      1       3114       3114
+                   tty_buffer_flush+0x2a       2032      1       2032       2032
+                      commit_echoes+0x22       1616      1       1616       1616
