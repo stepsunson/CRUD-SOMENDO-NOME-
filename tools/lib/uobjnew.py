@@ -97,4 +97,78 @@ int alloc_entry(struct pt_regs *ctx) {
     struct val_t *valp, zero = {};
     u64 classptr = 0, size = 0;
     u32 length = 0;
-    bpf_usdt_readarg(2, ctx, &cl
+    bpf_usdt_readarg(2, ctx, &classptr);
+    bpf_usdt_readarg(3, ctx, &length);
+    bpf_usdt_readarg(4, ctx, &size);
+    bpf_probe_read_user(&key.name, min(sizeof(key.name), (size_t)length), (void *)classptr);
+    valp = allocs.lookup_or_try_init(&key, &zero);
+    if (valp) {
+        valp->total_size += size;
+        valp->num_allocs += 1;
+    }
+    return 0;
+}
+    """
+    usdt.enable_probe_or_bail("object__alloc", "alloc_entry")
+#
+# Ruby
+#
+elif language == "ruby":
+    create_template = """
+int THETHING_alloc_entry(struct pt_regs *ctx) {
+    struct key_t key = { .name = "THETHING" };
+    struct val_t *valp, zero = {};
+    u64 size = 0;
+    bpf_usdt_readarg(1, ctx, &size);
+    valp = allocs.lookup_or_try_init(&key, &zero);
+    if (valp) {
+        valp->total_size += size;
+        valp->num_allocs += 1;
+    }
+    return 0;
+}
+    """
+    program += """
+int object_alloc_entry(struct pt_regs *ctx) {
+    struct key_t key = {};
+    struct val_t *valp, zero = {};
+    u64 classptr = 0;
+    bpf_usdt_readarg(1, ctx, &classptr);
+    bpf_probe_read_user(&key.name, sizeof(key.name), (void *)classptr);
+    valp = allocs.lookup_or_try_init(&key, &zero);
+    if (valp) {
+        valp->num_allocs += 1;  // We don't know the size, unfortunately
+    }
+    return 0;
+}
+    """
+    usdt.enable_probe_or_bail("object__create", "object_alloc_entry")
+    for thing in ["string", "hash", "array"]:
+        program += create_template.replace("THETHING", thing)
+        usdt.enable_probe_or_bail("%s__create" % thing,
+                                  "%s_alloc_entry" % thing)
+#
+# Tcl
+#
+elif language == "tcl":
+    program += """
+int alloc_entry(struct pt_regs *ctx) {
+    struct key_t key = { .name = "<ALL>" };
+    struct val_t *valp, zero = {};
+    valp = allocs.lookup_or_try_init(&key, &zero);
+    if (valp) {
+        valp->num_allocs += 1;
+    }
+    return 0;
+}
+    """
+    usdt.enable_probe_or_bail("obj__create", "alloc_entry")
+else:
+    print("No language detected; use -l to trace a language.")
+    exit(1)
+
+
+if args.ebpf or args.verbose:
+    if args.verbose:
+        print(usdt.get_text())
+    pri
