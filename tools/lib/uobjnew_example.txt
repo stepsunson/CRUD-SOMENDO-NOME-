@@ -1,0 +1,21 @@
+Demonstrations of uobjnew.
+
+
+uobjnew summarizes new object allocation events and prints out statistics on
+which object type has been allocated frequently, and how many bytes of that
+type have been allocated. This helps diagnose common allocation paths, which
+can in turn cause heavy garbage collection.
+
+For example, trace Ruby object allocations when running some simple commands
+in irb (the Ruby REPL):
+
+# ./uobjnew -l ruby 27245
+Tracing allocations in process 27245 (language: ruby)... Ctrl-C to quit.
+
+TYPE                           # ALLOCS      # BYTES
+NameError                             1            0
+RubyToken::TkSPACE                    1            0
+RubyToken::TkSTRING                   1            0
+String                                7            0
+RubyToken::TkNL                       2            0
+RubyToken::TkIDENTIFIER        

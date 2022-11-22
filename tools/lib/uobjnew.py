@@ -171,4 +171,42 @@ else:
 if args.ebpf or args.verbose:
     if args.verbose:
         print(usdt.get_text())
-    pri
+    print(program)
+    if args.ebpf:
+        exit()
+
+bpf = BPF(text=program, usdt_contexts=[usdt])
+if language == "c":
+    bpf.attach_uprobe(name="c", sym="malloc", fn_name="alloc_entry",
+                      pid=args.pid)
+
+exit_signaled = False
+print("Tracing allocations in process %d (language: %s)... Ctrl-C to quit." %
+      (args.pid, language or "none"))
+while True:
+    try:
+        sleep(args.interval or 99999999)
+    except KeyboardInterrupt:
+        exit_signaled = True
+    print()
+    data = bpf["allocs"]
+    if args.top_count:
+        data = sorted(data.items(), key=lambda kv: kv[1].num_allocs)
+        data = data[-args.top_count:]
+    elif args.top_size:
+        data = sorted(data.items(), key=lambda kv: kv[1].total_size)
+        data = data[-args.top_size:]
+    else:
+        data = sorted(data.items(), key=lambda kv: kv[1].total_size)
+    print("%-30s %8s %12s" % ("NAME/TYPE", "# ALLOCS", "# BYTES"))
+    for key, value in data:
+        if language == "c":
+            obj_type = "block size %d" % key.size
+        else:
+            obj_type = key.name
+        print("%-30s %8d %12d" %
+              (obj_type, value.num_allocs, value.total_size))
+    if args.interval and not exit_signaled:
+        bpf["allocs"].clear()
+    else:
+        exit()
