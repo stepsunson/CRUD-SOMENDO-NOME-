@@ -55,4 +55,62 @@ class Probe(object):
             try:
                 comm = open('/proc/%d/comm' % pid).read().strip()
                 if comm in self.procnames:
-                    cmdline = open('/proc/%d/cmdline' % pid).rea
+                    cmdline = open('/proc/%d/cmdline' % pid).read()
+                    self.targets[pid] = cmdline.replace('\0', ' ')
+            except IOError:
+                continue    # process may already have terminated
+
+    def _enable_probes(self):
+        self.usdts = []
+        for pid in self.targets:
+            try:
+                usdt = USDT(pid=pid)
+            except USDTException:
+                # avoid race condition on pid going away.
+                print("failed to instrument %d" % pid, file=sys.stderr)
+                continue
+            for event in self.events:
+                try:
+                    usdt.enable_probe(event, "%s_%s" % (self.language, event))
+                except Exception:
+                    # This process might not have a recent version of the USDT
+                    # probes enabled, or might have been compiled without USDT
+                    # probes at all. The process could even have been shut down
+                    # and the pid been recycled. We have to gracefully handle
+                    # the possibility that we can't attach probes to it at all.
+                    pass
+            self.usdts.append(usdt)
+
+    def _generate_tables(self):
+        text = """
+BPF_HASH(%s_%s_counts, u32, u64);   // pid to event count
+        """
+        return str.join('', [text % (self.language, event)
+                             for event in self.events])
+
+    def _generate_functions(self):
+        text = """
+int %s_%s(void *ctx) {
+    u64 *valp, zero = 0;
+    u32 tgid = bpf_get_current_pid_tgid() >> 32;
+    valp = %s_%s_counts.lookup_or_try_init(&tgid, &zero);
+    if (valp) {
+        ++(*valp);
+    }
+    return 0;
+}
+        """
+        lang = self.language
+        return str.join('', [text % (lang, event, lang, event)
+                             for event in self.events])
+
+    def get_program(self):
+        self._find_targets()
+        self._enable_probes()
+        return self._generate_tables() + self._generate_functions()
+
+    def get_usdts(self):
+        return self.usdts
+
+    def get_counts(self, bpf):
+        """Return a map of event counts per process"""
