@@ -114,3 +114,47 @@ int %s_%s(void *ctx) {
 
     def get_counts(self, bpf):
         """Return a map of event counts per process"""
+        event_dict = dict([(category, 0) for category in self.events.values()])
+        result = dict([(pid, event_dict.copy()) for pid in self.targets])
+        for event, category in self.events.items():
+            counts = bpf["%s_%s_counts" % (self.language, event)]
+            for pid, count in counts.items():
+                if pid.value not in result:
+                    print("result was not found for %d" % pid.value, file=sys.stderr)
+                    continue
+                result[pid.value][category] = count.value
+            counts.clear()
+        return result
+
+    def cleanup(self):
+        self.usdts = None
+
+class Tool(object):
+    def _parse_args(self):
+        examples = """examples:
+  ./ustat              # stats for all languages, 1 second refresh
+  ./ustat -C           # don't clear the screen
+  ./ustat -l java      # Java processes only
+  ./ustat 5            # 5 second summaries
+  ./ustat 5 10         # 5 second summaries, 10 times only
+        """
+        parser = argparse.ArgumentParser(
+            description="Activity stats from high-level languages.",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog=examples)
+        parser.add_argument("-l", "--language",
+            choices=["java", "node", "perl", "php", "python", "ruby", "tcl"],
+            help="language to trace (default: all languages)")
+        parser.add_argument("-C", "--noclear", action="store_true",
+            help="don't clear the screen")
+        parser.add_argument("-S", "--sort",
+            choices=[cat.lower() for cat in dir(Category) if cat.isupper()],
+            help="sort by this field (descending order)")
+        parser.add_argument("-r", "--maxrows", default=20, type=int,
+            help="maximum rows to print, default 20")
+        parser.add_argument("-d", "--debug", action="store_true",
+            help="Print the resulting BPF program (for debugging purposes)")
+        parser.add_argument("interval", nargs="?", default=1, type=int,
+            help="output interval, in seconds")
+        parser.add_argument("count", nargs="?", default=99999999, type=int,
+            help="number of 
