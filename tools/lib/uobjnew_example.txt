@@ -72,4 +72,4 @@ examples:
     ./uobjnew -l java 145         # summarize Java allocations in process 145
     ./uobjnew -l c 2020 1         # grab malloc() sizes and print every second
     ./uobjnew -l ruby 6712 -C 10  # top 10 Ruby types by number of allocations
-    ./uob
+    ./uobjnew -l ruby 6712 -S 10  # top 10 Ruby types by total size
