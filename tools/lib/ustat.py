@@ -254,4 +254,54 @@ class Tool(object):
         else:
             print()
         with open("/proc/loadavg") as stats:
-            print("%-8s loadavg: %s" 
+            print("%-8s loadavg: %s" % (strftime("%H:%M:%S"), stats.read()))
+        print("%-6s %-20s %-10s %-6s %-10s %-8s %-6s %-6s" % (
+            "PID", "CMDLINE", "METHOD/s", "GC/s", "OBJNEW/s",
+            "CLOAD/s", "EXC/s", "THR/s"))
+
+        line = 0
+        counts = {}
+        targets = {}
+        for probe in self.probes:
+            counts.update(probe.get_counts(self.bpf))
+            targets.update(probe.targets)
+        if self.args.sort:
+            sort_field = self.args.sort.upper()
+            counts = sorted(counts.items(),
+                            key=lambda kv: -kv[1].get(sort_field, 0))
+        else:
+            counts = sorted(counts.items(), key=lambda kv: kv[0])
+        for pid, stats in counts:
+            print("%-6d %-20s %-10d %-6d %-10d %-8d %-6d %-6d" % (
+                  pid, targets[pid][:20],
+                  stats.get(Category.METHOD, 0) / self.args.interval,
+                  stats.get(Category.GC, 0) / self.args.interval,
+                  stats.get(Category.OBJNEW, 0) / self.args.interval,
+                  stats.get(Category.CLOAD, 0) / self.args.interval,
+                  stats.get(Category.EXCP, 0) / self.args.interval,
+                  stats.get(Category.THREAD, 0) / self.args.interval
+                  ))
+            line += 1
+            if line >= self.args.maxrows:
+                break
+        self._detach_probes()
+
+    def run(self):
+        self._parse_args()
+        self._create_probes()
+        print('Tracing... Output every %d secs. Hit Ctrl-C to end' %
+              self.args.interval)
+        countdown = self.args.count
+        self.exiting = False
+        while True:
+            self._loop_iter()
+            countdown -= 1
+            if self.exiting or countdown == 0:
+                print("Detaching...")
+                exit()
+
+if __name__ == "__main__":
+    try:
+        Tool().run()
+    except KeyboardInterrupt:
+        pass
