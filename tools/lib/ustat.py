@@ -157,4 +157,49 @@ class Tool(object):
         parser.add_argument("interval", nargs="?", default=1, type=int,
             help="output interval, in seconds")
         parser.add_argument("count", nargs="?", default=99999999, type=int,
-            help="number of 
+            help="number of outputs")
+        parser.add_argument("--ebpf", action="store_true",
+            help=argparse.SUPPRESS)
+        self.args = parser.parse_args()
+
+    def _create_probes(self):
+        probes_by_lang = {
+                "java": Probe("java", ["java"], {
+                    "gc__begin": Category.GC,
+                    "mem__pool__gc__begin": Category.GC,
+                    "thread__start": Category.THREAD,
+                    "class__loaded": Category.CLOAD,
+                    "object__alloc": Category.OBJNEW,
+                    "method__entry": Category.METHOD,
+                    "ExceptionOccurred__entry": Category.EXCP
+                    }),
+                "node": Probe("node", ["node"], {
+                    "gc__start": Category.GC
+                    }),
+                "perl": Probe("perl", ["perl"], {
+                    "sub__entry": Category.METHOD
+                    }),
+                "php": Probe("php", ["php"], {
+                    "function__entry": Category.METHOD,
+                    "compile__file__entry": Category.CLOAD,
+                    "exception__thrown": Category.EXCP
+                    }),
+                "python": Probe("python", ["python"], {
+                    "function__entry": Category.METHOD,
+                    "gc__start": Category.GC
+                    }),
+                "ruby": Probe("ruby", ["ruby", "irb"], {
+                    "method__entry": Category.METHOD,
+                    "cmethod__entry": Category.METHOD,
+                    "gc__mark__begin": Category.GC,
+                    "gc__sweep__begin": Category.GC,
+                    "object__create": Category.OBJNEW,
+                    "hash__create": Category.OBJNEW,
+                    "string__create": Category.OBJNEW,
+                    "array__create": Category.OBJNEW,
+                    "require__entry": Category.CLOAD,
+                    "load__entry": Category.CLOAD,
+                    "raise": Category.EXCP
+                    }),
+                "tcl": Probe("tcl", ["tclsh", "wish"], {
+                    "proc__entry": Category.METH
