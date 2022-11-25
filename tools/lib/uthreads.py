@@ -109,3 +109,27 @@ print("%-8s %-16s %-8s %-30s" % ("TIME", "ID", "TYPE", "DESCRIPTION"))
 class ThreadEvent(ct.Structure):
     _fields_ = [
         ("runtime_id", ct.c_ulonglong),
+        ("native_id", ct.c_ulonglong),
+        ("type", ct.c_char * 8),
+        ("name", ct.c_char * 80),
+        ]
+
+start_ts = time.time()
+
+def print_event(cpu, data, size):
+    event = ct.cast(data, ct.POINTER(ThreadEvent)).contents
+    name = event.name
+    if event.type == "pthread":
+        name = bpf.sym(event.runtime_id, args.pid, show_module=True)
+        tid = event.native_id
+    else:
+        tid = "R=%s/N=%s" % (event.runtime_id, event.native_id)
+    print("%-8.3f %-16s %-8s %-30s" % (
+        time.time() - start_ts, tid, event.type, name))
+
+bpf["threads"].open_perf_buffer(print_event)
+while 1:
+    try:
+        bpf.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
