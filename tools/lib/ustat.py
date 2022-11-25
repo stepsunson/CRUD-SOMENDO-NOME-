@@ -202,4 +202,56 @@ class Tool(object):
                     "raise": Category.EXCP
                     }),
                 "tcl": Probe("tcl", ["tclsh", "wish"], {
-                    "proc__entry": Category.METH
+                    "proc__entry": Category.METHOD,
+                    "obj__create": Category.OBJNEW
+                    }),
+                }
+
+        if self.args.language:
+            self.probes = [probes_by_lang[self.args.language]]
+        else:
+            self.probes = probes_by_lang.values()
+
+    def _attach_probes(self):
+        program = str.join('\n', [p.get_program() for p in self.probes])
+        if self.args.debug or self.args.ebpf:
+            print(program)
+            if self.args.ebpf:
+                exit()
+            for probe in self.probes:
+                print("Attached to %s processes:" % probe.language,
+                        str.join(', ', map(str, probe.targets)))
+        self.bpf = BPF(text=program)
+        usdts = [usdt for probe in self.probes for usdt in probe.get_usdts()]
+        # Filter out duplicates when we have multiple processes with the same
+        # uprobe. We are attaching to these probes manually instead of using
+        # the USDT support from the bcc module, because the USDT class attaches
+        # to each uprobe with a specific pid. When there is more than one
+        # process from some language, we end up attaching more than once to the
+        # same uprobe (albeit with different pids), which is not allowed.
+        # Instead, we use a global attach (with pid=-1).
+        uprobes = set([(path, func, addr) for usdt in usdts
+                       for (path, func, addr, _)
+                       in usdt.enumerate_active_probes()])
+        for (path, func, addr) in uprobes:
+            self.bpf.attach_uprobe(name=path, fn_name=func, addr=addr, pid=-1)
+
+    def _detach_probes(self):
+        for probe in self.probes:
+            probe.cleanup()     # Cleans up USDT contexts
+        self.bpf.cleanup()      # Cleans up all attached probes
+        self.bpf = None
+
+    def _loop_iter(self):
+        self._attach_probes()
+        try:
+            sleep(self.args.interval)
+        except KeyboardInterrupt:
+            self.exiting = True
+
+        if not self.args.noclear:
+            call("clear")
+        else:
+            print()
+        with open("/proc/loadavg") as stats:
+            print("%-8s loadavg: %s" 
