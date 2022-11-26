@@ -35,4 +35,38 @@ We don't instrument every single event since the overhead would be prohibitive,
 nor do we need to: this is a type of sampling profiler. Because of this, the
 processes that trigger the 5,000'th cache reference or misses can happen to
 some degree by chance. Overall it should make sense. But for low counts,
-you might find a case where -- by chance -- a proce
+you might find a case where -- by chance -- a process has been tallied with
+more misses than references, which would seem impossible.
+
+# ./llcstat.py 10 -t
+Running for 10 seconds or hit Ctrl-C to end.
+PID      TID      NAME             CPU     REFERENCE         MISS    HIT%
+170843   170845   docker           12           2700         1200  55.56%
+298670   298670   kworker/15:0     15            500            0 100.00%
+170254   170254   kworker/11:1     11           2500          400  84.00%
+1046952  1046953  git              0            2600         1100  57.69%
+170843   170849   docker           15           1000          400  60.00%
+1027373  1027382  node             8            3500         2500  28.57%
+0        0        swapper/7        7          173000         4200  97.57%
+1028217  1028217  node             14          15600        22400   0.00%
+[...]
+Total References: 7139900 Total Misses: 1413900 Hit Rate: 80.20%
+
+This shows each TID`s cache hit rate during the 10 seconds run period.
+
+USAGE message:
+
+# ./llcstat.py --help
+usage: llcstat.py [-h] [-c SAMPLE_PERIOD] [duration]
+
+Summarize cache references and misses by PID
+
+positional arguments:
+  duration                Duration, in seconds, to run
+
+  optional arguments:
+    -h, --help            show this help message and exit
+    -c SAMPLE_PERIOD, --sample_period SAMPLE_PERIOD
+                          Sample one in this many number of cache reference
+                          and miss events
+    -t, --tid             Summarize cache references and misses by PID/TID
