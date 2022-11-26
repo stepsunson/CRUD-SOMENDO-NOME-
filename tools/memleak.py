@@ -423,3 +423,158 @@ if kernel_trace:
 bpf_source = bpf_source.replace("SHOULD_PRINT", "1" if trace_all else "0")
 bpf_source = bpf_source.replace("SAMPLE_EVERY_N", str(sample_every_n))
 bpf_source = bpf_source.replace("PAGE_SIZE", str(resource.getpagesize()))
+
+size_filter = ""
+if min_size is not None and max_size is not None:
+        size_filter = "if (size < %d || size > %d) return 0;" % \
+                      (min_size, max_size)
+elif min_size is not None:
+        size_filter = "if (size < %d) return 0;" % min_size
+elif max_size is not None:
+        size_filter = "if (size > %d) return 0;" % max_size
+bpf_source = bpf_source.replace("SIZE_FILTER", size_filter)
+
+stack_flags = "0"
+if not kernel_trace:
+        stack_flags += "|BPF_F_USER_STACK"
+bpf_source = bpf_source.replace("STACK_FLAGS", stack_flags)
+
+if args.ebpf:
+    print(bpf_source)
+    exit()
+
+bpf = BPF(text=bpf_source)
+
+if not kernel_trace:
+        print("Attaching to pid %d, Ctrl+C to quit." % pid)
+
+        def attach_probes(sym, fn_prefix=None, can_fail=False):
+                if fn_prefix is None:
+                        fn_prefix = sym
+
+                try:
+                        bpf.attach_uprobe(name=obj, sym=sym,
+                                          fn_name=fn_prefix + "_enter",
+                                          pid=pid)
+                        bpf.attach_uretprobe(name=obj, sym=sym,
+                                             fn_name=fn_prefix + "_exit",
+                                             pid=pid)
+                except Exception:
+                        if can_fail:
+                                return
+                        else:
+                                raise
+
+        attach_probes("malloc")
+        attach_probes("calloc")
+        attach_probes("realloc")
+        attach_probes("mmap")
+        attach_probes("posix_memalign")
+        attach_probes("valloc", can_fail=True) # failed on Android, is deprecated in libc.so from bionic directory
+        attach_probes("memalign")
+        attach_probes("pvalloc", can_fail=True) # failed on Android, is deprecated in libc.so from bionic directory
+        attach_probes("aligned_alloc", can_fail=True)  # added in C11
+        bpf.attach_uprobe(name=obj, sym="free", fn_name="free_enter",
+                                  pid=pid)
+        bpf.attach_uprobe(name=obj, sym="munmap", fn_name="munmap_enter",
+                                  pid=pid)
+
+else:
+        print("Attaching to kernel allocators, Ctrl+C to quit.")
+
+        # No probe attaching here. Allocations are counted by attaching to
+        # tracepoints.
+        #
+        # Memory allocations in Linux kernel are not limited to malloc/free
+        # equivalents. It's also common to allocate a memory page or multiple
+        # pages. Page allocator have two interfaces, one working with page
+        # frame numbers (PFN), while other working with page addresses. It's
+        # possible to allocate pages with one kind of functions, and free them
+        # with another. Code in kernel can easy convert PFNs to addresses and
+        # back, but it's hard to do the same in eBPF kprobe without fragile
+        # hacks.
+        #
+        # Fortunately, Linux exposes tracepoints for memory allocations, which
+        # can be instrumented by eBPF programs. Tracepoint for page allocations
+        # gives access to PFNs for both allocator interfaces. So there is no
+        # need to guess which allocation corresponds to which free.
+
+def print_outstanding():
+        print("[%s] Top %d stacks with outstanding allocations:" %
+              (datetime.now().strftime("%H:%M:%S"), top_stacks))
+        alloc_info = {}
+        allocs = bpf["allocs"]
+        stack_traces = bpf["stack_traces"]
+        for address, info in sorted(allocs.items(), key=lambda a: a[1].size):
+                if BPF.monotonic_time() - min_age_ns < info.timestamp_ns:
+                        continue
+                if info.stack_id < 0:
+                        continue
+                if info.stack_id in alloc_info:
+                        alloc_info[info.stack_id].update(info.size)
+                else:
+                        stack = list(stack_traces.walk(info.stack_id))
+                        combined = []
+                        for addr in stack:
+                                combined.append(('0x'+format(addr, '016x')+'\t').encode('utf-8') + bpf.sym(addr, pid,
+                                        show_module=True, show_offset=True))
+                        alloc_info[info.stack_id] = Allocation(combined,
+                                                               info.size)
+                if args.show_allocs:
+                        print("\taddr = %x size = %s" %
+                              (address.value, info.size))
+        to_show = sorted(alloc_info.values(),
+                         key=lambda a: a.size)[-top_stacks:]
+        for alloc in to_show:
+                print("\t%d bytes in %d allocations from stack\n\t\t%s" %
+                      (alloc.size, alloc.count,
+                       b"\n\t\t".join(alloc.stack).decode("ascii")))
+
+def print_outstanding_combined():
+        stack_traces = bpf["stack_traces"]
+        stacks = sorted(bpf["combined_allocs"].items(),
+                        key=lambda a: -a[1].total_size)
+        cnt = 1
+        entries = []
+        for stack_id, info in stacks:
+                try:
+                        trace = []
+                        for addr in stack_traces.walk(stack_id.value):
+                                sym = bpf.sym(addr, pid,
+                                                      show_module=True,
+                                                      show_offset=True)
+                                trace.append(sym)
+                        trace = "\n\t\t".join(trace.decode())
+                except KeyError:
+                        trace = "stack information lost"
+
+                entry = ("\t%d bytes in %d allocations from stack\n\t\t%s" %
+                         (info.total_size, info.number_of_allocs, trace))
+                entries.append(entry)
+
+                cnt += 1
+                if cnt > top_stacks:
+                        break
+
+        print("[%s] Top %d stacks with outstanding allocations:" %
+              (datetime.now().strftime("%H:%M:%S"), top_stacks))
+
+        print('\n'.join(reversed(entries)))
+
+count_so_far = 0
+while True:
+        if trace_all:
+                print(bpf.trace_fields())
+        else:
+                try:
+                        sleep(interval)
+                except KeyboardInterrupt:
+                        exit()
+                if args.combined_only:
+                        print_outstanding_combined()
+                else:
+                        print_outstanding()
+                sys.stdout.flush()
+                count_so_far += 1
+                if num_prints is not None and count_so_far >= num_prints:
+                        exit()
