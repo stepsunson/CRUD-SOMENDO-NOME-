@@ -205,4 +205,26 @@ optional arguments:
   -z MIN_SIZE, --min-size MIN_SIZE
                         capture only allocations larger than this size
   -Z MAX_SIZE, --max-size MAX_SIZE
-                        capture only al
+                        capture only allocations smaller than this size
+  -O OBJ, --obj OBJ     attach to allocator functions in the specified object
+
+EXAMPLES:
+
+./memleak -p $(pidof allocs)
+        Trace allocations and display a summary of "leaked" (outstanding)
+        allocations every 5 seconds
+./memleak -p $(pidof allocs) -t
+        Trace allocations and display each individual allocator function call
+./memleak -ap $(pidof allocs) 10
+        Trace allocations and display allocated addresses, sizes, and stacks
+        every 10 seconds for outstanding allocations
+./memleak -c "./allocs"
+        Run the specified command and trace its allocations
+./memleak
+        Trace allocations in kernel mode and display a summary of outstanding
+        allocations every 5 seconds
+./memleak -o 60000
+        Trace allocations in kernel mode and display a summary of outstanding
+        allocations that are at least one minute (60 seconds) old
+./memleak -s 5
+        Trace roughly every 5th allocation, to reduce overhead
