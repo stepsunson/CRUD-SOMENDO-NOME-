@@ -1,0 +1,16 @@
+Demonstrations of netqtop.
+
+
+netqtop traces the kernel functions performing packet transmit (xmit_one) 
+and packet receive (__netif_receive_skb_core) on data link layer. The tool 
+not only traces every packet via a specified network interface, but also accounts 
+the PPS, BPS and average size of packets as well as packet amounts (categorized by 
+size range) on sending and receiving direction respectively. Results are printed 
+as tables, which can be used to understand traffic load allocation on each queue 
+of interested network interface to see if it is balanced. And the overall performance 
+is provided in the buttom.
+
+For example, suppose you want to know current traffic on lo, and print result 
+every second:
+# ./netqtop.py -n lo -i 1
+Thu 
