@@ -13,4 +13,48 @@ is provided in the buttom.
 For example, suppose you want to know current traffic on lo, and print result 
 every second:
 # ./netqtop.py -n lo -i 1
-Thu 
+Thu Sep 10 11:28:39 2020
+TX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0          88          0          9          0          0          0
+ Total         88          0          9          0          0          0
+
+RX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0          74          4          5          0          0          0
+ Total         74          4          5          0          0          0
+----------------------------------------------------------------------------
+Thu Sep 10 11:28:40 2020
+TX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0         233          0          3          1          0          0
+ Total        233          0          3          1          0          0
+
+RX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0         219          2          1          1          0          0
+ Total        219          2          1          1          0          0
+----------------------------------------------------------------------------
+
+or you can just use the default mode
+# ./netqtop.py -n lo
+Thu Sep 10 11:27:45 2020
+TX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0          92          0          7          0          0          0
+ Total         92          0          7          0          0          0
+
+RX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0          78          3          4          0          0          0
+ Total         78          3          4          0          0          0
+----------------------------------------------------------------------------
+Thu Sep 10 11:27:46 2020
+TX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0         179          0          5          1          0          0
+ Total        179          0          5          1          0          0
+
+RX
+ QueueID    avg_size   [0, 64)   [64, 512)  [512, 2K)  [2K, 16K)  [16K, 64K)
+    0         165          3          2          1          0 
