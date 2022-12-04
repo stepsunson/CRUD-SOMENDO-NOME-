@@ -138,4 +138,15 @@ print("%-8s %-7s %-16s %6s %s" % ("TIME", "PID", "COMM", "ACTION", "FILE"))
 def print_event(cpu, data, size):
     event = b["events"].event(data)
     action_str = action2str(event.action)
-    file_str = eve
+    file_str = event.fname.decode('utf-8', 'replace')
+    if action_str == "RENAME":
+        file_str = "%s > %s" % (file_str, event.fname2.decode('utf-8', 'replace'))
+    print("%-8s %-7d %-16s %6s %s" % (strftime("%H:%M:%S"), event.pid,
+        event.comm.decode('utf-8', 'replace'), action_str, file_str))
+
+b["events"].open_perf_buffer(print_event)
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
