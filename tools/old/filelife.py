@@ -64,4 +64,41 @@ int trace_unlink(struct pt_regs *ctx, struct inode *dir, struct dentry *dentry)
     tsp = birth.lookup(&dentry);
     if (tsp == 0) {
         return 0;   // missed create
-    
+    }
+    delta = (bpf_ktime_get_ns() - *tsp) / 1000000;
+    birth.delete(&dentry);
+
+    if (dentry->d_iname[0] == 0)
+        return 0;
+
+    bpf_trace_printk("%d %s\\n", delta, dentry->d_iname);
+
+    return 0;
+}
+"""
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER',
+        'if (pid != %s) { return 0; }' % args.pid)
+else:
+    bpf_text = bpf_text.replace('FILTER', '')
+if debug:
+    print(bpf_text)
+
+# initialize BPF
+b = BPF(text=bpf_text)
+b.attach_kprobe(event="vfs_create", fn_name="trace_create")
+b.attach_kprobe(event="vfs_unlink", fn_name="trace_unlink")
+
+# header
+print("%-8s %-6s %-16s %-7s %s" % ("TIME", "PID", "COMM", "AGE(s)", "FILE"))
+
+start_ts = 0
+
+# format output
+while 1:
+    (task, pid, cpu, flags, ts, msg) = b.trace_fields()
+    (delta, filename) = msg.split(" ", 1)
+
+    # print columns
+    print("%-8s %-6d %-16s %-7.2f %s" % (strftime("%H:%M:%S"), pid, task,
+        float(delta) / 1000, filename))
