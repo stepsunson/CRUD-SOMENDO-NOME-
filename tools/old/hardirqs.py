@@ -109,4 +109,72 @@ int trace_completion(struct pt_regs *ctx)
     tsp = start.lookup(&pid);
     descp = irqdesc.lookup(&pid);
     if (tsp == 0 || descp == 0) {
-       
+        return 0;   // missed start
+    }
+    struct irq_desc *desc = *descp;
+    struct irqaction *action = desc->action;
+    char *name = (char *)action->name;
+    delta = bpf_ktime_get_ns() - *tsp;
+
+    // store as sum or histogram
+    STORE
+
+    start.delete(&pid);
+    irqdesc.delete(&pid);
+    return 0;
+}
+"""
+
+# code substitutions
+if args.dist:
+    bpf_text = bpf_text.replace('STORE',
+        'irq_key_t key = {.slot = bpf_log2l(delta / %d)};' % factor +
+        'bpf_probe_read_kernel(&key.name, sizeof(key.name), name);' +
+        'dist.increment(key);')
+else:
+    bpf_text = bpf_text.replace('STORE',
+        'irq_key_t key = {.slot = 0 /* ignore */};' +
+        'bpf_probe_read_kernel(&key.name, sizeof(key.name), name);' +
+        'dist.increment(key, delta);')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# load BPF program
+b = BPF(text=bpf_text)
+
+# these should really use irq:irq_handler_entry/exit tracepoints:
+if args.count:
+    b.attach_kprobe(event="handle_irq_event_percpu", fn_name="count_only")
+    print("Tracing hard irq events... Hit Ctrl-C to end.")
+else:
+    b.attach_kprobe(event="handle_irq_event_percpu", fn_name="trace_start")
+    b.attach_kretprobe(event="handle_irq_event_percpu",
+        fn_name="trace_completion")
+    print("Tracing hard irq event time... Hit Ctrl-C to end.")
+
+# output
+exiting = 0 if args.interval else 1
+dist = b.get_table("dist")
+while (1):
+    try:
+        sleep(int(args.interval))
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print()
+    if args.timestamp:
+        print("%-8s\n" % strftime("%H:%M:%S"), end="")
+
+    if args.dist:
+        dist.print_log2_hist(label, "hardirq")
+    else:
+        print("%-26s %11s" % ("HARDIRQ", "TOTAL_" + label))
+        for k, v in sorted(dist.items(), key=lambda dist: dist[1].value):
+            print("%-26s %11d" % (k.name.decode('utf-8', 'replace'), v.value / factor))
+    dist.clear()
+
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
