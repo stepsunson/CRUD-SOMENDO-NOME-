@@ -92,3 +92,16 @@ start_ts = 0
 
 # format output
 while 1:
+    (task, pid, cpu, flags, ts, msg) = b.trace_fields()
+    (tpid_s, sig_s, ret_s) = msg.split(" ")
+
+    ret = int(ret_s)
+    if (args.failed and (ret >= 0)):
+        continue
+
+    # print columns
+    if args.timestamp:
+        if start_ts == 0:
+            start_ts = ts
+        print("%-14.9f" % (ts - start_ts), end="")
+    print("%-6d %-16s %-4s %-6s %s" % (pid, task, sig_s, tpid_s, ret_s))
