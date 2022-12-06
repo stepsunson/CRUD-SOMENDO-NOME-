@@ -48,4 +48,81 @@ args = parser.parse_args()
 folded = args.folded
 duration = int(args.duration)
 debug = 0
-maxdepth = 20    # and MAXDEPT
+maxdepth = 20    # and MAXDEPTH
+if args.pid and args.useronly:
+    print("ERROR: use either -p or -u.")
+    exit()
+
+# signal handler
+def signal_ignore(signal, frame):
+    print()
+
+# define BPF program
+bpf_text = """
+#include <uapi/linux/ptrace.h>
+#include <linux/sched.h>
+
+#define MAXDEPTH	20
+#define MINBLOCK_US	1
+
+struct key_t {
+    char name[TASK_COMM_LEN];
+    // Skip saving the ip
+    u64 ret[MAXDEPTH];
+};
+BPF_HASH(counts, struct key_t);
+BPF_HASH(start, u32);
+
+static u64 get_frame(u64 *bp) {
+    if (*bp) {
+        // The following stack walker is x86_64 specific
+        u64 ret = 0;
+        if (bpf_probe_read(&ret, sizeof(ret), (void *)(*bp+8)))
+            return 0;
+        if (bpf_probe_read(bp, sizeof(*bp), (void *)*bp))
+            *bp = 0;
+        if (ret < __START_KERNEL_map)
+            return 0;
+        return ret;
+    }
+    return 0;
+}
+
+int oncpu(struct pt_regs *ctx, struct task_struct *prev) {
+    u32 pid = prev->pid;
+    u64 ts, *tsp;
+
+    // record previous thread sleep time
+    if (FILTER) {
+        ts = bpf_ktime_get_ns();
+        start.update(&pid, &ts);
+    }
+
+    // calculate current thread's delta time
+    pid = bpf_get_current_pid_tgid();
+    tsp = start.lookup(&pid);
+    if (tsp == 0)
+        return 0;        // missed start or filtered
+    u64 delta = bpf_ktime_get_ns() - *tsp;
+    start.delete(&pid);
+    delta = delta / 1000;
+    if (delta < MINBLOCK_US)
+        return 0;
+
+    // create map key
+    u64 zero = 0, *val, bp = 0;
+    int depth = 0;
+    struct key_t key = {};
+    bpf_get_current_comm(&key.name, sizeof(key.name));
+    bp = ctx->bp;
+
+    // unrolled loop (MAXDEPTH):
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!
