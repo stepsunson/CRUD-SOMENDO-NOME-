@@ -192,4 +192,20 @@ while (1):
                 if k.ret[i] == 0:
                     continue
                 line = line + b.ksym(k.ret[i])
-  
+                if i != 0:
+                    line = line + ";"
+            print("%s %d" % (line, v.value))
+        else:
+            # print default multi-line stack output
+            for i in range(0, maxdepth):
+                if k.ret[i] == 0:
+                    break
+                print("    %-16x %s" % (k.ret[i],
+                    b.ksym(k.ret[i])))
+            print("    %-16s %s" % ("-", k.name))
+            print("        %d\n" % v.value)
+    counts.clear()
+
+    if not folded:
+        print("Detaching...")
+    exit()

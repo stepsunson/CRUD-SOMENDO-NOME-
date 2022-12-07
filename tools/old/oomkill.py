@@ -1,0 +1,48 @@
+#!/usr/bin/python
+#
+# oomkill   Trace oom_kill_process(). For Linux, uses BCC, eBPF.
+#
+# This traces the kernel out-of-memory killer, and prints basic details,
+# including the system load averages. This can provide more context on the
+# system state at the time of OOM: was it getting busier or steady, based
+# on the load averages? This tool may also be useful to customize for
+# investigations; for example, by adding other task_struct details at the time
+# of OOM.
+#
+# Copyright 2016 Netflix, Inc.
+# Licensed under the Apache License, Version 2.0 (the "License")
+#
+# 09-Feb-2016   Brendan Gregg   Created this.
+
+from bcc import BPF
+from time import strftime
+import ctypes as ct
+
+# linux stats
+loadavg = "/proc/loadavg"
+
+# define BPF program
+bpf_text = """
+#include <uapi/linux/ptrace.h>
+#include <linux/oom.h>
+
+struct data_t {
+    u64 fpid;
+    u64 tpid;
+    u64 pages;
+    char fcomm[TASK_COMM_LEN];
+    char tcomm[TASK_COMM_LEN];
+};
+
+BPF_PERF_OUTPUT(events);
+
+void kprobe__oom_kill_process(struct pt_regs *ctx, struct oom_control *oc,
+    struct task_struct *p, unsigned int points, unsigned long totalpages)
+{
+    struct data_t data = {};
+    u32 pid = bpf_get_current_pid_tgid();
+    data.fpid = pid;
+    data.tpid = p->pid;
+    data.pages = totalpages;
+    bpf_get_current_comm(&data.fcomm, sizeof(data.fcomm));
+    
