@@ -125,4 +125,71 @@ int oncpu(struct pt_regs *ctx, struct task_struct *prev) {
     if (!(key.ret[depth++] = get_frame(&bp))) goto out;
     if (!(key.ret[depth++] = get_frame(&bp))) goto out;
     if (!(key.ret[depth++] = get_frame(&bp))) goto out;
-    if (!
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+
+out:
+    val = counts.lookup_or_init(&key, &zero);
+    if (val) {
+        (*val) += delta;
+    }
+    return 0;
+}
+"""
+if args.pid:
+    filter = 'pid == %s' % args.pid
+elif args.useronly:
+    filter = '!(prev->flags & PF_KTHREAD)'
+else:
+    filter = '1'
+bpf_text = bpf_text.replace('FILTER', filter)
+if debug:
+    print(bpf_text)
+
+# initialize BPF
+b = BPF(text=bpf_text)
+b.attach_kprobe(event="finish_task_switch", fn_name="oncpu")
+matched = b.num_open_kprobes()
+if matched == 0:
+    print("0 functions traced. Exiting.")
+    exit()
+
+# header
+if not folded:
+    print("Tracing off-CPU time (us) by kernel stack", end="")
+    if duration < 99999999:
+        print(" for %d secs." % duration)
+    else:
+        print("... Hit Ctrl-C to end.")
+
+# output
+while (1):
+    try:
+        sleep(duration)
+    except KeyboardInterrupt:
+        # as cleanup can take many seconds, trap Ctrl-C:
+        signal.signal(signal.SIGINT, signal_ignore)
+
+    if not folded:
+        print()
+    counts = b.get_table("counts")
+    for k, v in sorted(counts.items(), key=lambda counts: counts[1].value):
+        if folded:
+            # print folded stack output
+            line = k.name.decode('utf-8', 'replace') + ";"
+            for i in reversed(range(0, maxdepth)):
+                if k.ret[i] == 0:
+                    continue
+                line = line + b.ksym(k.ret[i])
+  
