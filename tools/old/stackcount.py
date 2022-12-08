@@ -59,3 +59,121 @@ args = parser.parse_args()
 pattern = args.pattern
 if not args.regexp:
     pattern = pattern.replace('*', '.*')
+    pattern = '^' + pattern + '$'
+offset = args.offset
+verbose = args.verbose
+debug = 0
+maxdepth = 10    # and MAXDEPTH
+
+# signal handler
+def signal_ignore(signal, frame):
+    print()
+
+# load BPF program
+bpf_text = """
+#include <uapi/linux/ptrace.h>
+
+#define MAXDEPTH	10
+
+struct key_t {
+    u64 ip;
+    u64 ret[MAXDEPTH];
+};
+BPF_HASH(counts, struct key_t);
+
+static u64 get_frame(u64 *bp) {
+    if (*bp) {
+        // The following stack walker is x86_64 specific
+        u64 ret = 0;
+        if (bpf_probe_read(&ret, sizeof(ret), (void *)(*bp+8)))
+            return 0;
+        if (bpf_probe_read(bp, sizeof(*bp), (void *)*bp))
+            *bp = 0;
+        if (ret < __START_KERNEL_map)
+            return 0;
+        return ret;
+    }
+    return 0;
+}
+
+int trace_count(struct pt_regs *ctx) {
+    FILTER
+    struct key_t key = {};
+    u64 zero = 0, *val, bp = 0;
+    int depth = 0;
+
+    key.ip = ctx->ip;
+    bp = ctx->bp;
+
+    // unrolled loop, 10 (MAXDEPTH) frames deep:
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+    if (!(key.ret[depth++] = get_frame(&bp))) goto out;
+
+out:
+    val = counts.lookup_or_init(&key, &zero);
+    if (val) {
+        (*val)++;
+    }
+    return 0;
+}
+"""
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER',
+        ('u32 pid; pid = bpf_get_current_pid_tgid(); ' +
+        'if (pid != %s) { return 0; }') % (args.pid))
+else:
+    bpf_text = bpf_text.replace('FILTER', '')
+if debug:
+    print(bpf_text)
+b = BPF(text=bpf_text)
+b.attach_kprobe(event_re=pattern, fn_name="trace_count")
+matched = b.num_open_kprobes()
+if matched == 0:
+    print("0 functions matched by \"%s\". Exiting." % args.pattern)
+    exit()
+
+# header
+print("Tracing %d functions for \"%s\"... Hit Ctrl-C to end." %
+    (matched, args.pattern))
+
+def print_frame(addr):
+    print("  ", end="")
+    if verbose:
+        print("%-16x " % addr, end="")
+    print(b.ksym(addr, show_offset=offset))
+
+# output
+exiting = 0 if args.interval else 1
+while (1):
+    try:
+        sleep(int(args.interval))
+    except KeyboardInterrupt:
+        exiting = 1
+        # as cleanup can take many seconds, trap Ctrl-C:
+        signal.signal(signal.SIGINT, signal_ignore)
+
+    print()
+    if args.timestamp:
+        print("%-8s\n" % strftime("%H:%M:%S"), end="")
+
+    counts = b.get_table("counts")
+    for k, v in sorted(counts.items(), key=lambda counts: counts[1].value):
+        print_frame(k.ip)
+        for i in range(0, maxdepth):
+            if k.ret[i] == 0:
+                break
+            print_frame(k.ret[i])
+        print("    %d\n" % v.value)
+    counts.clear()
+
+    if exiting:
+        print("Detaching...")
+        exit()
