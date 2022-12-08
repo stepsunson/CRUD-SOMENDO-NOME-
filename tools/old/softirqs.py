@@ -145,4 +145,60 @@ if args.dist:
         'dist.increment(key);')
 else:
     bpf_text = bpf_text.replace('STORE',
-        ' .ip = ip, .slot = 0 /* ignore */}
+        ' .ip = ip, .slot = 0 /* ignore */};' +
+        'u64 zero = 0, *vp = dist.lookup_or_init(&key, &zero);' +
+        'if (vp) { (*vp) += delta; }')
+if debug:
+    print(bpf_text)
+
+# load BPF program
+b = BPF(text=bpf_text)
+
+# this should really use irq:softirq_entry/exit tracepoints; for now the
+# soft irq functions are individually traced (search your kernel for
+# open_softirq() calls, and adjust the following list as needed).
+for softirqfunc in ("blk_iopoll_softirq", "blk_done_softirq",
+        "rcu_process_callbacks", "run_rebalance_domains", "tasklet_action",
+        "tasklet_hi_action", "run_timer_softirq", "net_tx_action",
+        "net_rx_action"):
+    if args.bycpu:
+        b.attach_kprobe(event=softirqfunc, fn_name="trace_start_cpu")
+        b.attach_kretprobe(event=softirqfunc, fn_name="trace_completion_cpu")
+    else:
+        b.attach_kprobe(event=softirqfunc, fn_name="trace_start")
+        b.attach_kretprobe(event=softirqfunc, fn_name="trace_completion")
+
+print("Tracing soft irq event time... Hit Ctrl-C to end.")
+
+# output
+exiting = 0 if args.interval else 1
+dist = b.get_table("dist")
+while (1):
+    try:
+        sleep(int(args.interval))
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print()
+    if args.timestamp:
+        print("%-8s\n" % strftime("%H:%M:%S"), end="")
+
+    if args.dist:
+        if args.bycpu:
+            dist.print_log2_hist(label, "CPU")
+        else:
+            dist.print_log2_hist(label, "softirq", section_print_fn=b.ksym)
+    else:
+        if args.bycpu:
+            print("%-26s %11s %11s" % ("SOFTIRQ", "CPU", "TOTAL_" + label))
+            for k, v in sorted(dist.items(), key=lambda dist: dist[1].value):
+                print("%-26s %11d %11d" % (b.ksym(k.ip), k.cpu, v.value / factor))
+        else:
+            print("%-26s %11s" % ("SOFTIRQ", "TOTAL_" + label))
+            for k, v in sorted(dist.items(), key=lambda dist: dist[1].value):
+                print("%-26s %11d" % (b.ksym(k.ip), v.value / factor))
+    dist.clear()
+
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
