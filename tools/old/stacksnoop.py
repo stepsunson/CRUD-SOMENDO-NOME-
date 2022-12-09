@@ -55,4 +55,73 @@ static int print_frame(u64 *bp, int *depth) {
         // The following stack walker is x86_64 specific
         u64 ret = 0;
         if (bpf_probe_read(&ret, sizeof(ret), (void *)(*bp+8)))
-   
+            return 0;
+        if (ret < __START_KERNEL_map)
+            return 0;
+        bpf_trace_printk("r%d: %llx\\n", *depth, ret);
+        if (bpf_probe_read(bp, sizeof(*bp), (void *)*bp))
+            return 0;
+        *depth += 1;
+        return 1;
+    }
+    return 0;
+}
+
+void trace_stack(struct pt_regs *ctx) {
+    FILTER
+    u64 bp = 0;
+    int depth = 0;
+
+    bpf_trace_printk("\\n");
+    if (ctx->ip)
+        bpf_trace_printk("ip: %llx\\n", ctx->ip);
+    bp = ctx->bp;
+
+    // unrolled loop, 10 frames deep:
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+    if (!print_frame(&bp, &depth)) return;
+};
+"""
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER',
+        ('u32 pid; pid = bpf_get_current_pid_tgid(); ' +
+        'if (pid != %s) { return; }') % (args.pid))
+else:
+    bpf_text = bpf_text.replace('FILTER', '')
+if debug:
+    print(bpf_text)
+
+# initialize BPF
+b = BPF(text=bpf_text)
+b.attach_kprobe(event=function, fn_name="trace_stack")
+matched = b.num_open_kprobes()
+if matched == 0:
+    print("Function \"%s\" not found. Exiting." % function)
+    exit()
+
+# header
+if verbose:
+    print("%-18s %-12s %-6s %-3s %s" % ("TIME(s)", "COMM", "PID", "CPU",
+        "STACK"))
+else:
+    print("%-18s %s" % ("TIME(s)", "STACK"))
+
+# format output
+while 1:
+    (task, pid, cpu, flags, ts, msg) = b.trace_fields()
+    if msg != "":
+        (reg, addr) = msg.split(" ")
+        ip = b.ksym(int(addr, 16), show_offset=offset)
+        msg = msg + " " + ip
+    if verbose:
+        print("%-18.9f %-12.12s %-6d %-3d %s" % (ts, task, pid, cpu, msg))
+    else:
+        print("%-18.9f %s" % (ts, msg))
