@@ -115,4 +115,20 @@ def inet_ntoa(addr):
     for i in range(0, 4):
         dq = dq + str(addr & 0xff)
         if (i != 3):
-           
+            dq = dq + '.'
+        addr = addr >> 8
+    return dq
+
+# format output
+while 1:
+    (task, pid, cpu, flags, ts, msg) = b.trace_fields()
+    (ip_s, raddr_hs, laddr_hs, lport_s) = msg.split(" ")
+
+    if args.timestamp:
+        if start_ts == 0:
+            start_ts = ts
+        print("%-9.3f" % (ts - start_ts), end="")
+    print("%-6d %-12.12s %-2s %-16s %-16s %-4s" % (pid, task, ip_s,
+        inet_ntoa(int(raddr_hs, 16)) if ip_s == "4" else "..." + raddr_hs,
+        inet_ntoa(int(laddr_hs, 16)) if ip_s == "4" else "..." + laddr_hs,
+        lport_s))
