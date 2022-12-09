@@ -77,3 +77,43 @@ else:
     bpf_text = bpf_text.replace('FILTER', '')
 if debug:
     print(bpf_text)
+
+# initialize BPF
+b = BPF(text=bpf_text)
+b.attach_kprobe(event="sys_stat", fn_name="trace_entry")
+b.attach_kprobe(event="sys_statfs", fn_name="trace_entry")
+b.attach_kprobe(event="sys_newstat", fn_name="trace_entry")
+b.attach_kretprobe(event="sys_stat", fn_name="trace_return")
+b.attach_kretprobe(event="sys_statfs", fn_name="trace_return")
+b.attach_kretprobe(event="sys_newstat", fn_name="trace_return")
+
+# header
+if args.timestamp:
+    print("%-14s" % ("TIME(s)"), end="")
+print("%-6s %-16s %4s %3s %s" % ("PID", "COMM", "FD", "ERR", "PATH"))
+
+start_ts = 0
+
+# format output
+while 1:
+    (task, pid, cpu, flags, ts, msg) = b.trace_fields()
+    (ret_s, filename) = msg.split(" ", 1)
+
+    ret = int(ret_s)
+    if (args.failed and (ret >= 0)):
+        continue
+
+    # split return value into FD and errno columns
+    if ret >= 0:
+        fd_s = ret
+        err = 0
+    else:
+        fd_s = "-1"
+        err = - ret
+
+    # print columns
+    if args.timestamp:
+        if start_ts == 0:
+            start_ts = ts
+        print("%-14.9f" % (ts - start_ts), end="")
+    print("%-6d %-16s %4s %3s %s" % (pid, task, fd_s, err, filename))
