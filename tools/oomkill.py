@@ -39,4 +39,33 @@ void kprobe__oom_kill_process(struct pt_regs *ctx, struct oom_control *oc, const
 {
     struct task_struct *p = oc->chosen;
     struct data_t data = {};
-    u32 pid = bpf_get_current_p
+    u32 pid = bpf_get_current_pid_tgid() >> 32;
+
+    data.fpid = pid;
+    data.tpid = p->tgid;
+    data.pages = oc->totalpages;
+    bpf_get_current_comm(&data.fcomm, sizeof(data.fcomm));
+    bpf_probe_read_kernel(&data.tcomm, sizeof(data.tcomm), p->comm);
+    events.perf_submit(ctx, &data, sizeof(data));
+}
+"""
+
+# process event
+def print_event(cpu, data, size):
+    event = b["events"].event(data)
+    with open(loadavg) as stats:
+        avgline = stats.read().rstrip()
+    print(("%s Triggered by PID %d (\"%s\"), OOM kill of PID %d (\"%s\")"
+        ", %d pages, loadavg: %s") % (strftime("%H:%M:%S"), event.fpid,
+        event.fcomm.decode('utf-8', 'replace'), event.tpid,
+        event.tcomm.decode('utf-8', 'replace'), event.pages, avgline))
+
+# initialize BPF
+b = BPF(text=bpf_text)
+print("Tracing OOM kills... Ctrl-C to stop.")
+b["events"].open_perf_buffer(print_event)
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
