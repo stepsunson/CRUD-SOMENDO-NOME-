@@ -57,4 +57,57 @@ TIME(s)       PID    COMM               FD ERR PATH
 1.023068000   1956   supervise           9   0 supervise/status.new
 1.023381997   1956   supervise           9   0 supervise/status.new
 2.046030000   1956   supervise           9   0 supervise/status.new
-2.046363000   1956   supervise       
+2.046363000   1956   supervise           9   0 supervise/status.new
+3.068203997   1956   supervise           9   0 supervise/status.new
+3.068544999   1956   supervise           9   0 supervise/status.new
+
+This shows the supervise process is opening the status.new file twice every
+second.
+
+
+The -U option include UID on output:
+
+# ./opensnoop -U
+UID   PID    COMM               FD ERR PATH
+0     27063  vminfo              5   0 /var/run/utmp
+103   628    dbus-daemon        -1   2 /usr/local/share/dbus-1/system-services
+103   628    dbus-daemon        18   0 /usr/share/dbus-1/system-services
+103   628    dbus-daemon        -1   2 /lib/dbus-1/system-services
+
+
+The -u option filtering UID:
+
+# ./opensnoop -Uu 1000
+UID   PID    COMM               FD ERR PATH
+1000  30240  ls                  3   0 /etc/ld.so.cache
+1000  30240  ls                  3   0 /lib/x86_64-linux-gnu/libselinux.so.1
+1000  30240  ls                  3   0 /lib/x86_64-linux-gnu/libc.so.6
+1000  30240  ls                  3   0 /lib/x86_64-linux-gnu/libpcre.so.3
+1000  30240  ls                  3   0 /lib/x86_64-linux-gnu/libdl.so.2
+1000  30240  ls                  3   0 /lib/x86_64-linux-gnu/libpthread.so.0
+
+The -x option only prints failed opens:
+
+# ./opensnoop -x
+PID    COMM      FD ERR PATH
+18372  run       -1   6 /dev/tty
+18373  run       -1   6 /dev/tty
+18373  multilog  -1  13 lock
+18372  multilog  -1  13 lock
+18384  df        -1   2 /usr/share/locale/en_US.UTF-8/LC_MESSAGES/coreutils.mo
+18384  df        -1   2 /usr/share/locale/en_US.utf8/LC_MESSAGES/coreutils.mo
+18384  df        -1   2 /usr/share/locale/en_US/LC_MESSAGES/coreutils.mo
+18384  df        -1   2 /usr/share/locale/en.UTF-8/LC_MESSAGES/coreutils.mo
+18384  df        -1   2 /usr/share/locale/en.utf8/LC_MESSAGES/coreutils.mo
+18384  df        -1   2 /usr/share/locale/en/LC_MESSAGES/coreutils.mo
+18385  run       -1   6 /dev/tty
+18386  run       -1   6 /dev/tty
+
+This caught a df command failing to open a coreutils.mo file, and trying from
+different directories.
+
+The ERR column is the system error number. Error number 2 is ENOENT: no such
+file or directory.
+
+
+A maximum tracing dur
