@@ -110,4 +110,53 @@ The ERR column is the system error number. Error number 2 is ENOENT: no such
 file or directory.
 
 
-A maximum tracing dur
+A maximum tracing duration can be set with the -d option. For example, to trace
+for 2 seconds:
+
+# ./opensnoop -d 2
+PID    COMM               FD ERR PATH
+2191   indicator-multi    11   0 /sys/block
+2191   indicator-multi    11   0 /sys/block
+2191   indicator-multi    11   0 /sys/block
+2191   indicator-multi    11   0 /sys/block
+2191   indicator-multi    11   0 /sys/block
+
+
+The -n option can be used to filter on process name using partial matches:
+
+# ./opensnoop -n ed
+
+PID    COMM               FD ERR PATH
+2679   sed                 3   0 /etc/ld.so.cache
+2679   sed                 3   0 /lib/x86_64-linux-gnu/libselinux.so.1
+2679   sed                 3   0 /lib/x86_64-linux-gnu/libc.so.6
+2679   sed                 3   0 /lib/x86_64-linux-gnu/libpcre.so.3
+2679   sed                 3   0 /lib/x86_64-linux-gnu/libdl.so.2
+2679   sed                 3   0 /lib/x86_64-linux-gnu/libpthread.so.0
+2679   sed                 3   0 /proc/filesystems
+2679   sed                 3   0 /usr/lib/locale/locale-archive
+2679   sed                -1   2
+2679   sed                 3   0 /usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache
+2679   sed                 3   0 /dev/null
+2680   sed                 3   0 /etc/ld.so.cache
+2680   sed                 3   0 /lib/x86_64-linux-gnu/libselinux.so.1
+2680   sed                 3   0 /lib/x86_64-linux-gnu/libc.so.6
+2680   sed                 3   0 /lib/x86_64-linux-gnu/libpcre.so.3
+2680   sed                 3   0 /lib/x86_64-linux-gnu/libdl.so.2
+2680   sed                 3   0 /lib/x86_64-linux-gnu/libpthread.so.0
+2680   sed                 3   0 /proc/filesystems
+2680   sed                 3   0 /usr/lib/locale/locale-archive
+2680   sed                -1   2
+^C
+
+This caught the 'sed' command because it partially matches 'ed' that's passed
+to the '-n' option.
+
+
+The -e option prints out extra columns; for example, the following output
+contains the flags passed to open(2), in octal:
+
+# ./opensnoop -e
+PID    COMM               FD ERR FLAGS    PATH
+28512  sshd               10   0 00101101 /proc/self/oom_score_adj
+28512  sshd                3 
