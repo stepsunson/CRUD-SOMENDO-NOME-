@@ -159,4 +159,55 @@ contains the flags passed to open(2), in octal:
 # ./opensnoop -e
 PID    COMM               FD ERR FLAGS    PATH
 28512  sshd               10   0 00101101 /proc/self/oom_score_adj
-28512  sshd                3 
+28512  sshd                3   0 02100000 /etc/ld.so.cache
+28512  sshd                3   0 02100000 /lib/x86_64-linux-gnu/libwrap.so.0
+28512  sshd                3   0 02100000 /lib/x86_64-linux-gnu/libaudit.so.1
+28512  sshd                3   0 02100000 /lib/x86_64-linux-gnu/libpam.so.0
+28512  sshd                3   0 02100000 /lib/x86_64-linux-gnu/libselinux.so.1
+28512  sshd                3   0 02100000 /lib/x86_64-linux-gnu/libsystemd.so.0
+28512  sshd                3   0 02100000 /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.2
+28512  sshd                3   0 02100000 /lib/x86_64-linux-gnu/libutil.so.1
+
+
+The -f option filters based on flags to the open(2) call, for example:
+
+# ./opensnoop -e -f O_WRONLY -f O_RDWR
+PID    COMM               FD ERR FLAGS    PATH
+28084  clear_console       3   0 00100002 /dev/tty
+28084  clear_console      -1  13 00100002 /dev/tty0
+28084  clear_console      -1  13 00100001 /dev/tty0
+28084  clear_console      -1  13 00100002 /dev/console
+28084  clear_console      -1  13 00100001 /dev/console
+28051  sshd                8   0 02100002 /var/run/utmp
+28051  sshd                7   0 00100001 /var/log/wtmp
+
+
+The --cgroupmap option filters based on a cgroup set. It is meant to be used
+with an externally created map.
+
+# ./opensnoop --cgroupmap /sys/fs/bpf/test01
+
+For more details, see docs/special_filtering.md
+
+
+USAGE message:
+
+# ./opensnoop -h
+usage: opensnoop.py [-h] [-T] [-U] [-x] [-p PID] [-t TID]
+                    [--cgroupmap CGROUPMAP] [--mntnsmap MNTNSMAP] [-u UID]
+                    [-d DURATION] [-n NAME] [-e] [-f FLAG_FILTER] [-F]
+                    [-b BUFFER_PAGES]
+
+Trace open() syscalls
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -T, --timestamp       include timestamp on output
+  -U, --print-uid       print UID column
+  -x, --failed          only show failed opens
+  -p PID, --pid PID     trace this PID only
+  -t TID, --tid TID     trace this TID only
+  --cgroupmap CGROUPMAP
+                        trace cgroups in this BPF map only
+  --mntnsmap MNTNSMAP   trace mount namespaces in this BPF map only
+  -
