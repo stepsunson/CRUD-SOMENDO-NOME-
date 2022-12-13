@@ -1,0 +1,58 @@
+Demonstrations of profile, the Linux eBPF/bcc version.
+
+
+This is a CPU profiler. It works by taking samples of stack traces at timed
+intervals, and frequency counting them in kernel context for efficiency.
+
+Example output:
+
+# ./profile
+Sampling at 49 Hertz of all threads by user + kernel stack... Hit Ctrl-C to end.
+^C
+    filemap_map_pages
+    handle_mm_fault
+    __do_page_fault
+    do_page_fault
+    page_fault
+    [unknown]
+    -                cp (9036)
+        1
+
+    [unknown]
+    [unknown]
+    -                sign-file (8877)
+        1
+
+    __clear_user
+    iov_iter_zero
+    read_iter_zero
+    __vfs_read
+    vfs_read
+    sys_read
+    entry_SYSCALL_64_fastpath
+    read
+    -                dd (25036)
+        4
+
+    func_a
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (13549)
+        5
+
+The output was long; I truncated some lines ("[...]").
+
+This default output prints stack traces, followed by a line to describe the
+process (a dash, the process name, and a PID in parenthesis), and then an
+integer count of how many times this stack trace was sampled.
+
+The func_ab process is running the func_a() function, called by main(),
+called by __libc_start_main(), and called by "[unknown]" with what looks
+like a bogus address (1st column). That's evidence of a broken stack trace.
+It's common for user-level software that hasn't been compiled with frame
+pointers (in this case, libc).
+
+The dd process has called read(), and then enters the kernel via
+entry_SYSCALL_64_fastpath(), calling sys_read(), and so on. Yes, I'm now
+reading it bottom up. That way fol
