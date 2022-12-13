@@ -55,4 +55,106 @@ pointers (in this case, libc).
 
 The dd process has called read(), and then enters the kernel via
 entry_SYSCALL_64_fastpath(), calling sys_read(), and so on. Yes, I'm now
-reading it bottom up. That way fol
+reading it bottom up. That way follows the code flow.
+
+
+By default, CPU idle stacks are excluded. They can be included with -I:
+
+# ./profile -I
+
+[...]
+
+    native_safe_halt
+    default_idle
+    arch_cpu_idle
+    default_idle_call
+    cpu_startup_entry
+    rest_init
+    start_kernel
+    x86_64_start_reservations
+    x86_64_start_kernel
+    -                swapper/0 (0)
+        72
+
+    native_safe_halt
+    default_idle
+    arch_cpu_idle
+    default_idle_call
+    cpu_startup_entry
+    start_secondary
+    -                swapper/1 (0)
+        75
+
+The output above shows the most frequent stack was from the "swapper/1"
+process (PID 0), running the native_safe_halt() function, which was called
+by default_idle(), which was called by arch_cpu_idle(), and so on. This is
+the idle thread. Stacks can be read top-down, to follow ancestry: child,
+parent, grandparent, etc.
+
+
+The dd process profiled ealrier is actually "dd if=/dev/zero of=/dev/null":
+it's a simple workload to analyze that just moves bytes from /dev/zero to
+/dev/null. Profiling just that process:
+
+# ./profile -p 25036
+Sampling at 49 Hertz of PID 25036 by user + kernel stack... Hit Ctrl-C to end.
+^C
+    [unknown]
+    [unknown]
+    -                dd (25036)
+        1
+
+    __write
+    -                dd (25036)
+        1
+
+    read
+    -                dd (25036)
+        1
+
+[...]
+
+    [unknown]
+    [unknown]
+    -                dd (25036)
+        2
+
+    entry_SYSCALL_64_fastpath
+    __write
+    [unknown]
+    -                dd (25036)
+        3
+
+    entry_SYSCALL_64_fastpath
+    read
+    -                dd (25036)
+        3
+
+    __clear_user
+    iov_iter_zero
+    read_iter_zero
+    __vfs_read
+    vfs_read
+    sys_read
+    entry_SYSCALL_64_fastpath
+    read
+    [unknown]
+    -                dd (25036)
+        3
+
+    __clear_user
+    iov_iter_zero
+    read_iter_zero
+    __vfs_read
+    vfs_read
+    sys_read
+    entry_SYSCALL_64_fastpath
+    read
+    -                dd (25036)
+        7
+
+Again, I've truncated some lines. Now we're just analyzing the dd process.
+The filtering is performed in kernel context, for efficiency.
+
+This output has some "[unknown]" frames that probably have valid addresses,
+but we're lacking th
