@@ -1,0 +1,40 @@
+
+Demonstrations of ppchcalls, the Linux/eBPF version.
+
+
+ppchcalls summarizes hcall counts across the system or a specific process,
+with optional latency information. It is very useful for general workload
+characterization, for example:
+
+# ./ppchcalls.py
+Tracing ppc hcalls, printing top 10... Ctrl+C to quit.
+^C[04:59:47]
+PPC HCALL                                        COUNT
+H_IPI                                               26
+H_EOI                                               22
+H_XIRR                                              22
+H_VIO_SIGNAL                                         4
+H_REMOVE                                             3
+H_PUT_TCE                                            2
+H_SEND_CRQ                                           2
+H_STUFF_TCE                                          2
+H_ENTER                                              1
+H_PROTECT                                            1
+
+Detaching...
+#
+
+These are the top 10 entries; you can get more by using the -T switch. Here,
+the output indicates that the H_IPI, H_EOI and H_XIRR hcalls were very common,
+followed immediately by H_VIO_SIGNAL, H_REMOVE and so on. By default, ppchcalls
+counts across the entire system, but we can point it to a specific process of
+interest:
+
+# ./ppchcalls.py -p $(pidof vim)
+Tracing ppc hcalls, printing top 10... Ctrl+C to quit.
+^C[06:23:12]
+PPC HCALL                                        COUNT
+H_PUT_TERM_CHAR                                     62
+H_ENTER                                              2
+
+Detaching...
