@@ -345,4 +345,31 @@ For example:
 dd;[unknown] 1
 dd;[unknown];[unknown] 1
 dd;[unknown];[unknown] 1
-dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];rw_verify_area_[k];security_file_permission_[k];__fsnotify_parent_[k] 1
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k];__fsnotify_parent_[k] 1
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];__fdget_pos_[k] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];rw_verify_area_[k];apparmor_file_permission_[k] 1
+dd;[unknown] 1
+dd;[unknown];[unknown] 1
+dd;__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k] 1
+dd;[unknown] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];__fget_light_[k] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];rw_verify_area_[k];__fsnotify_parent_[k] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k] 1
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];__fget_light_[k] 1
+dd;[unknown];[unknown] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k] 1
+dd;[unknown];[unknown] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k] 1
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];read_iter_zero_[k] 1
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__fsnotify_parent_[k] 1
+dd;[unknown];[unknown] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];rw_verify_area_[k];security_file_permission_[k];apparmor_file_permission_[k];common_file_perm_[k] 1
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];__fsnotify_parent_[k] 1
+dd;__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k];fsnotify_[k] 1
+dd;__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k];rw_verify_area_[k];security_file_permission_[k] 1
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];__fdget_pos_[k] 1
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k] 1
+dd;[unknown];[unknown] 1
+dd;read;-;entry
