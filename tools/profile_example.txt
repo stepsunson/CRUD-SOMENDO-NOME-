@@ -547,4 +547,81 @@ dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k]
 dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k] 5
 dd;[unknown];[unknown] 5
 dd;[unknown];[unknown] 5
-dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k] 6
+dd;read 15
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k];__clear_user_[k] 19
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k] 20
+dd;read;-;entry_SYSCALL_64_fastpath_[k] 23
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k];__clear_user_[k] 24
+dd;__write;-;entry_SYSCALL_64_fastpath_[k] 25
+dd;__write 29
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k] 31
+
+This can be made into a flamegraph. Eg:
+
+# ./profile -adf -p `pgrep -n func_ab` 10 > out.profile
+# git clone https://github.com/brendangregg/FlameGraph
+# ./FlameGraph/flamegraph.pl --color=java < out.profile > out.svg
+
+It will highlight the kernel frames in orange, and user-level in red (and Java
+in green, and C++ in yellow). If you copy-n-paste the above output into a
+out.profile file, you can try it out.
+
+
+You can increase or decrease the sample frequency. Eg, sampling at 9 Hertz:
+
+# ./profile -F 9
+Sampling at 9 Hertz of all threads by user + kernel stack... Hit Ctrl-C to end.
+^C
+[...]
+
+    func_b
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (2930)
+        1
+
+[...]
+
+
+You can also restrict profiling to just kernel stacks (-K) or user stacks (-U).
+For example, just user stacks:
+
+# ./profile -C 7 2
+Sampling at 49 Hertz of all threads by user + kernel stack on CPU#7 for 2 secs.
+
+    PyEval_EvalFrameEx
+    [unknown]
+    [unknown]
+    -                python (2827439)
+        1
+
+    PyDict_GetItem
+    [unknown]
+    -                python (2827439)
+        1
+
+    [unknown]
+    -                python (2827439)
+        1
+
+    PyEval_EvalFrameEx
+    [unknown]
+    [unknown]
+    -                python (2827439)
+        1
+
+    PyEval_EvalFrameEx
+    -                python (2827439)
+        1
+
+    [unknown]
+    [unknown]
+    -                python (2827439)
+
+in this example python application was busylooping on a single core/cpu (#7)
+we were collecting stack traces only from it
+
+# ./profile -U
+Sampling at 49 Hertz of all threads by user
