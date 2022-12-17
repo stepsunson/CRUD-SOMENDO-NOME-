@@ -518,4 +518,33 @@ dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vf
 dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k] 2
 dd;read;-;SyS_read_[k] 2
 dd;[unknown] 2
-dd;__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k];rw_ve
+dd;__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k];rw_verify_area_[k] 2
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];__fget_light_[k] 2
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k] 2
+dd;__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k];rw_verify_area_[k];security_file_permission_[k];apparmor_file_permission_[k] 2
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];__clear_user_[k] 2
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];rw_verify_area_[k] 2
+dd;[unknown];[unknown] 3
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];rw_verify_area_[k] 3
+dd;[unknown];[unknown] 3
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k];__clear_user_[k] 3
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k] 3
+dd;[unknown];[unknown] 3
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k] 3
+dd;[unknown];[unknown] 3
+dd;[unknown];[unknown] 3
+dd;__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k] 3
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k] 3
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k];__clear_user_[k] 3
+dd;[unknown] 4
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k] 4
+dd;[unknown];[unknown] 4
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k] 4
+dd;[unknown] 4
+dd;[unknown];[unknown] 4
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k] 4
+dd;read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_read_[k];__vfs_read_[k];read_iter_zero_[k];iov_iter_zero_[k];__clear_user_[k] 5
+dd;[unknown];__write;-;entry_SYSCALL_64_fastpath_[k];sys_write_[k];vfs_write_[k] 5
+dd;[unknown];[unknown] 5
+dd;[unknown];[unknown] 5
+dd;[unknown];read;-;entry_SYSCALL_64_fastpath_[k];SyS_read_[k];vfs_
