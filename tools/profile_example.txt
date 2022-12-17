@@ -624,4 +624,126 @@ in this example python application was busylooping on a single core/cpu (#7)
 we were collecting stack traces only from it
 
 # ./profile -U
-Sampling at 49 Hertz of all threads by user
+Sampling at 49 Hertz of all threads by user stack... Hit Ctrl-C to end.
+^C
+    [unknown]
+    [unknown]
+    -                dd (2931)
+        1
+
+    [unknown]
+    [unknown]
+    -                dd (2931)
+        1
+
+    [unknown]
+    [unknown]
+    -                dd (2931)
+        1
+
+    [unknown]
+    [unknown]
+    -                dd (2931)
+        1
+
+    [unknown]
+    [unknown]
+    -                dd (2931)
+        1
+
+    func_b
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (2930)
+        1
+
+    [unknown]
+    -                dd (2931)
+        1
+
+    [unknown]
+    -                dd (2931)
+        1
+
+    func_a
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (2930)
+        3
+
+    __write
+    [unknown]
+    -                dd (2931)
+        3
+
+    func_a
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (2930)
+        4
+
+    func_b
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (2930)
+        7
+
+    -                swapper/6 (0)
+        10
+
+    func_b
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (2930)
+        10
+
+    __write
+    -                dd (2931)
+        10
+
+    func_a
+    main
+    __libc_start_main
+    [unknown]
+    -                func_ab (2930)
+        11
+
+    read
+    -                dd (2931)
+        12
+
+    read
+    [unknown]
+    -                dd (2931)
+        14
+
+
+If there are too many unique stack traces for the kernel to save, a warning
+will be printed. Eg:
+
+# ./profile
+[...]
+WARNING: 8 stack traces could not be displayed. Consider increasing --stack-storage-size.
+
+Run ./profile -h to see the default.
+
+The --cgroupmap option filters based on a cgroup set. It is meant to be used
+with an externally created map.
+
+# ./profile --cgroupmap /sys/fs/bpf/test01
+
+For more details, see docs/special_filtering.md
+
+
+USAGE message:
+
+# ./profile -h
+usage: profile.py [-h] [-p PID | -L TID] [-U | -K] [-F FREQUENCY | -c COUNT]
+                  [-d] [-a] [-I] [-f]
+                  [--stack-storage-size STACK_STORAGE_SIZE] [-C CPU]
+                  [--cgr
