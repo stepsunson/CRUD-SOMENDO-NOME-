@@ -790,4 +790,6 @@ examples:
     ./profile -p 185      # only profile process with PID 185
     ./profile -L 185      # only profile thread with TID 185
     ./profile -U          # only show user space stacks (no kernel)
-    ./profile -K          # only show kerne
+    ./profile -K          # only show kernel space stacks (no user)
+    ./profile --cgroupmap mappath  # only trace cgroups in this BPF map
+    ./profile --mntnsmap mappath   # only trace mount namespaces in the map
