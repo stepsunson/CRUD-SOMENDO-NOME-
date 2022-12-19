@@ -48,4 +48,90 @@ BPF_HISTOGRAM(dist);
 """
 
 bpf_text_kprobe = """
-int entry__do_page_cache_readahead(struct pt_reg
+int entry__do_page_cache_readahead(struct pt_regs *ctx) {
+    u32 pid;
+    u8 one = 1;
+    pid = bpf_get_current_pid_tgid();
+    flag.update(&pid, &one);
+    return 0;
+}
+
+int exit__do_page_cache_readahead(struct pt_regs *ctx) {
+    u32 pid;
+    u8 zero = 0;
+    pid = bpf_get_current_pid_tgid();
+    flag.update(&pid, &zero);
+    return 0;
+}
+
+int exit__page_cache_alloc(struct pt_regs *ctx) {
+    u32 pid;
+    u64 ts;
+    struct page *retval = (struct page*) GET_RETVAL_PAGE;
+    u32 zero = 0; // static key for accessing pages[0]
+    pid = bpf_get_current_pid_tgid();
+    u8 *f = flag.lookup(&pid);
+    if (f != NULL && *f == 1) {
+        ts = bpf_ktime_get_ns();
+        birth.update(&retval, &ts);
+        pages.atomic_increment(zero);
+    }
+    return 0;
+}
+
+int entry_mark_page_accessed(struct pt_regs *ctx) {
+    u64 ts, delta;
+    struct page *arg0 = (struct page *) PT_REGS_PARM1(ctx);
+    u32 zero = 0; // static key for accessing pages[0]
+    u64 *bts = birth.lookup(&arg0);
+    if (bts != NULL) {
+        delta = bpf_ktime_get_ns() - *bts;
+        dist.atomic_increment(bpf_log2l(delta/1000000));
+        pages.atomic_increment(zero, -1);
+        birth.delete(&arg0); // remove the entry from hashmap
+    }
+    return 0;
+}
+"""
+
+bpf_text_kfunc = """
+KFUNC_PROBE(RA_FUNC)
+{
+    u32 pid = bpf_get_current_pid_tgid();
+    u8 one = 1;
+
+    flag.update(&pid, &one);
+    return 0;
+}
+
+KRETFUNC_PROBE(RA_FUNC)
+{
+    u32 pid = bpf_get_current_pid_tgid();
+    u8 zero = 0;
+
+    flag.update(&pid, &zero);
+    return 0;
+}
+
+KFUNC_PROBE(mark_page_accessed, struct page *arg0)
+{
+    u64 ts, delta;
+    u32 zero = 0; // static key for accessing pages[0]
+    u64 *bts = birth.lookup(&arg0);
+
+    if (bts != NULL) {
+        delta = bpf_ktime_get_ns() - *bts;
+        dist.atomic_increment(bpf_log2l(delta/1000000));
+        pages.atomic_increment(zero, -1);
+        birth.delete(&arg0); // remove the entry from hashmap
+    }
+    return 0;
+}
+"""
+
+bpf_text_kfunc_cache_alloc_ret_page = """
+KRETFUNC_PROBE(__page_cache_alloc, gfp_t gfp, struct page *retval)
+{
+    u64 ts;
+    u32 zero = 0; // static key for accessing pages[0]
+    u32 pid = 
