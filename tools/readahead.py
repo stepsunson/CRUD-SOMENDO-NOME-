@@ -134,4 +134,67 @@ KRETFUNC_PROBE(__page_cache_alloc, gfp_t gfp, struct page *retval)
 {
     u64 ts;
     u32 zero = 0; // static key for accessing pages[0]
-    u32 pid = 
+    u32 pid = bpf_get_current_pid_tgid();
+    u8 *f = flag.lookup(&pid);
+
+    if (f != NULL && *f == 1) {
+        ts = bpf_ktime_get_ns();
+        birth.update(&retval, &ts);
+        pages.atomic_increment(zero);
+    }
+    return 0;
+}
+"""
+
+bpf_text_kfunc_cache_alloc_ret_folio = """
+KRETFUNC_PROBE(filemap_alloc_folio, gfp_t gfp, unsigned int order,
+    struct folio *retval)
+{
+    u64 ts;
+    u32 zero = 0; // static key for accessing pages[0]
+    u32 pid = bpf_get_current_pid_tgid();
+    u8 *f = flag.lookup(&pid);
+    struct page *page = folio_page(retval, 0);
+
+    if (f != NULL && *f == 1) {
+        ts = bpf_ktime_get_ns();
+        birth.update(&page, &ts);
+        pages.atomic_increment(zero);
+    }
+    return 0;
+}
+"""
+
+if BPF.support_kfunc():
+    if BPF.get_kprobe_functions(b"__do_page_cache_readahead"):
+        ra_func = "__do_page_cache_readahead"
+    elif BPF.get_kprobe_functions(b"do_page_cache_ra"):
+        ra_func = "do_page_cache_ra"
+    elif BPF.get_kprobe_functions(b"page_cache_ra_order"):
+        ra_func = "page_cache_ra_order"
+    else:
+        print("Not found any kfunc.")
+        exit()
+    bpf_text += bpf_text_kfunc.replace("RA_FUNC", ra_func)
+    if BPF.get_kprobe_functions(b"__page_cache_alloc"):
+        bpf_text += bpf_text_kfunc_cache_alloc_ret_page
+    else:
+        bpf_text += bpf_text_kfunc_cache_alloc_ret_folio
+    b = BPF(text=bpf_text)
+else:
+    bpf_text += bpf_text_kprobe
+    if BPF.get_kprobe_functions(b"__do_page_cache_readahead"):
+        ra_event = "__do_page_cache_readahead"
+    elif BPF.get_kprobe_functions(b"do_page_cache_ra"):
+        ra_event = "do_page_cache_ra"
+    elif BPF.get_kprobe_functions(b"page_cache_ra_order"):
+        ra_event = "page_cache_ra_order"
+    else:
+        print("Not found any kprobe.")
+        exit()
+    if BPF.get_kprobe_functions(b"__page_cache_alloc"):
+        cache_func = "__page_cache_alloc"
+        bpf_text = bpf_text.replace('GET_RETVAL_PAGE', 'PT_REGS_RC(ctx)')
+    else:
+        cache_func = "filemap_alloc_folio"
+        bpf_text = bpf_text.replace('GET_RETVAL_PAGE', 'folio_page((struct folio *)
