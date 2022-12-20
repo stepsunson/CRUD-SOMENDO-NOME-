@@ -1,0 +1,26 @@
+Demonstration of readahead, the Linux eBPF/bcc version
+
+Read-ahead mechanism is used by operation sytems to optimize sequential operations
+by reading ahead some pages to avoid more expensive filesystem operations. This tool
+shows the performance of the read-ahead caching on the system under a given load to
+investigate any caching issues. It shows a count for unused pages in the cache and
+also prints a histogram showing how long they have remianed there.
+
+Usage Scenario
+==============
+
+Consider that you are developing a React Native application which performs aggressive
+reads while re-encoding a video in local-storage. Usually such an app would be multi-
+layered and have transitional library dependencies. The actual read may be performed
+by some unknown native library which may or may not be using hints to the OS, such as
+madvise(p, LEN, MADV_SEQUENTIAL). If high IOPS is observed in such an app, running
+readahead may pin the issue much faster in this case as the developer digs deeper
+into what may be causing this.
+
+An example where such an issue can surface is: https://github.com/boltdb/bolt/issues/691
+
+# readahead -d 30
+Tracing... Hit Ctrl-C to end.
+^C
+Read-ahead unused pages: 6765
+Histogram of read-

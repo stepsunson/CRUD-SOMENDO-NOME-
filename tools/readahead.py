@@ -197,4 +197,30 @@ else:
         bpf_text = bpf_text.replace('GET_RETVAL_PAGE', 'PT_REGS_RC(ctx)')
     else:
         cache_func = "filemap_alloc_folio"
-        bpf_text = bpf_text.replace('GET_RETVAL_PAGE', 'folio_page((struct folio *)
+        bpf_text = bpf_text.replace('GET_RETVAL_PAGE', 'folio_page((struct folio *)PT_REGS_RC(ctx), 0)')
+    b = BPF(text=bpf_text)
+    b.attach_kprobe(event=ra_event, fn_name="entry__do_page_cache_readahead")
+    b.attach_kretprobe(event=ra_event, fn_name="exit__do_page_cache_readahead")
+    b.attach_kretprobe(event=cache_func, fn_name="exit__page_cache_alloc")
+    b.attach_kprobe(event="mark_page_accessed", fn_name="entry_mark_page_accessed")
+
+# header
+print("Tracing... Hit Ctrl-C to end.")
+
+# print
+def print_stats():
+    print()
+    print("Read-ahead unused pages: %d" % (b["pages"][ct.c_ulong(0)].value))
+    print("Histogram of read-ahead used page age (ms):")
+    print("")
+    b["dist"].print_log2_hist("age (ms)")
+    b["dist"].clear()
+    b["pages"].clear()
+
+while True:
+    try:
+        sleep(args.duration)
+        print_stats()
+    except KeyboardInterrupt:
+        print_stats()
+        break
