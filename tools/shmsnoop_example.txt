@@ -1,0 +1,7 @@
+Demonstrations of shmsnoop, the Linux eBPF/bcc version.
+
+shmsnoop traces shm*() syscalls, for example:
+
+# ./shmsnoop.py
+PID    COMM                SYS              RET ARGs
+19813  server           SHMGET            10000 key: 0x78020001, size: 2

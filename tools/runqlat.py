@@ -266,3 +266,56 @@ if args.pids or args.tids:
     section = "pid"
     pid = "tgid"
     if args.tids:
+        pid = "pid"
+        section = "tid"
+    bpf_text = bpf_text.replace('STORAGE',
+        'BPF_HISTOGRAM(dist, pid_key_t);')
+    bpf_text = bpf_text.replace('STORE',
+        'pid_key_t key = {.id = ' + pid + ', .slot = bpf_log2l(delta)}; ' +
+        'dist.increment(key);')
+elif args.pidnss:
+    section = "pidns"
+    bpf_text = bpf_text.replace('STORAGE',
+        'BPF_HISTOGRAM(dist, pidns_key_t);')
+    bpf_text = bpf_text.replace('STORE', 'pidns_key_t key = ' +
+        '{.id = pid_namespace(prev), ' +
+        '.slot = bpf_log2l(delta)}; dist.atomic_increment(key);')
+else:
+    section = ""
+    bpf_text = bpf_text.replace('STORAGE', 'BPF_HISTOGRAM(dist);')
+    bpf_text = bpf_text.replace('STORE',
+        'dist.atomic_increment(bpf_log2l(delta));')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# load BPF program
+b = BPF(text=bpf_text)
+if not is_support_raw_tp:
+    b.attach_kprobe(event="ttwu_do_wakeup", fn_name="trace_ttwu_do_wakeup")
+    b.attach_kprobe(event="wake_up_new_task", fn_name="trace_wake_up_new_task")
+    b.attach_kprobe(event_re="^finish_task_switch$|^finish_task_switch\.isra\.\d$",
+                    fn_name="trace_run")
+
+print("Tracing run queue latency... Hit Ctrl-C to end.")
+
+# output
+exiting = 0 if args.interval else 1
+dist = b.get_table("dist")
+while (1):
+    try:
+        sleep(int(args.interval))
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print()
+    if args.timestamp:
+        print("%-8s\n" % strftime("%H:%M:%S"), end="")
+
+    dist.print_log2_hist(label, section, section_print_fn=int)
+    dist.clear()
+
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
