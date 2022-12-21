@@ -75,3 +75,61 @@ function writefile {
 }
 
 # only write when force is used
+function checkfile {
+	file=$1
+	write=$2
+	expected=$3
+	if [[ ! -e $file ]]; then
+		echo >&2 "WARNING: file $file doesn't exist. Skipping."
+		return
+	fi
+	if (( opt_force )); then
+		writefile $file $write
+		return
+	fi
+	(( opt_quiet )) && return
+
+	vecho "Checking $PWD/$file"
+        contents=$(grep -v '^#' $file)
+	if [[ "$contents" != "$expected" ]]; then
+		echo "Noticed unrelated tracing file $PWD/$file isn't set as" \
+		    "expected. Not resetting (-F to force, -v for verbose)."
+		vecho "Contents of $file is (line enumerated):"
+		(( opt_verbose )) && cat -nv $file
+		vecho "Expected \"$expected\"."
+	fi
+}
+
+### process options
+while getopts Fhqv opt
+do
+	case $opt in
+	F)	opt_force=1 ;;
+	q)	opt_quiet=1 ;;
+	v)	opt_verbose=1 ;;
+	h|?)	usage ;;
+	esac
+done
+shift $(( $OPTIND - 1 ))
+
+### reset tracing state
+vecho "Resetting tracing state..."
+vecho
+cd $tracing || die "ERROR: accessing tracing. Root user? /sys/kernel/debug?"
+
+# files bcc uses
+writefile kprobe_events "" ""
+writefile uprobe_events "" ""
+writefile trace "" ""         # clears trace_pipe
+
+# non-bcc files
+checkfile current_tracer nop nop
+checkfile set_ftrace_filter "" ""
+checkfile set_graph_function "" ""
+checkfile set_ftrace_pid "" "no pid"
+checkfile events/enable 0 0
+checkfile tracing_thresh 0 0
+checkfile tracing_on 1 1
+
+vecho
+vecho "Done."
