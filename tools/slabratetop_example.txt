@@ -29,4 +29,50 @@ pid                                  24       3072
 sigqueue                             17       2720
 ext4_inode_cache                      2       2160
 buffer_head                          16       1664
-xfs_
+xfs_trans                             5       1160
+
+By default the screen refreshes every one second, and only the top 20 caches
+are shown. These can be tuned with options: see USAGE (-h).
+
+The output above showed that the kmalloc-4096 cache allocated the most, about
+14 Mbytes during this interval. This is a generic cache; other caches have
+more meaningful names ("dentry", "TCP", "pid", etc).
+
+slabtop(1) is a similar tool that shows the current static volume and usage
+of the caches. slabratetop shows the active call rates and total size of the
+allocations.
+
+
+Since "kmalloc-4096" isn't very descriptive, I'm interested in seeing the
+kernel stacks that led to this allocation. In the future (maybe by now) the
+bcc trace tool could do this. As I'm writing this, it can't, so I'll use my
+older ftrace-based kprobe tool as a workarond. This is from my perf-tools
+collection: https://github.com/brendangregg/perf-tools.
+
+# ./perf-tools/bin/kprobe -s 'p:kmem_cache_alloc name=+0(+96(%di)):string' 'name == "kmalloc-4096' | head -100
+Tracing kprobe kmem_cache_alloc. Ctrl-C to end.
+          kprobe-3892  [002] d... 7888274.478331: kmem_cache_alloc: (kmem_cache_alloc+0x0/0x1b0) name="kmalloc-4096"
+          kprobe-3892  [002] d... 7888274.478333: <stack trace>
+ => kmem_cache_alloc
+ => user_path_at_empty
+ => vfs_fstatat
+ => SYSC_newstat
+ => SyS_newstat
+ => entry_SYSCALL_64_fastpath
+          kprobe-3892  [002] d... 7888274.478340: kmem_cache_alloc: (kmem_cache_alloc+0x0/0x1b0) name="kmalloc-4096"
+          kprobe-3892  [002] d... 7888274.478341: <stack trace>
+ => kmem_cache_alloc
+ => user_path_at_empty
+ => vfs_fstatat
+ => SYSC_newstat
+ => SyS_newstat
+ => entry_SYSCALL_64_fastpath
+          kprobe-3892  [002] d... 7888274.478345: kmem_cache_alloc: (kmem_cache_alloc+0x0/0x1b0) name="kmalloc-4096"
+          kprobe-3892  [002] d... 7888274.478346: <stack trace>
+ => kmem_cache_alloc
+ => user_path_at_empty
+ => vfs_fstatat
+ => SYSC_newstat
+ => SyS_newstat
+ => entry_SYSCALL_64_fastpath
+          kprobe-3892  [002] d... 7888274.478350: kmem_cache_al
