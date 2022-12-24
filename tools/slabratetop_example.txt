@@ -75,4 +75,60 @@ Tracing kprobe kmem_cache_alloc. Ctrl-C to end.
  => SYSC_newstat
  => SyS_newstat
  => entry_SYSCALL_64_fastpath
-          kprobe-3892  [002] d... 7888274.478350: kmem_cache_al
+          kprobe-3892  [002] d... 7888274.478350: kmem_cache_alloc: (kmem_cache_alloc+0x0/0x1b0) name="kmalloc-4096"
+          kprobe-3892  [002] d... 7888274.478351: <stack trace>
+ => kmem_cache_alloc
+ => user_path_at_empty
+ => vfs_fstatat
+ => SYSC_newstat
+ => SyS_newstat
+ => entry_SYSCALL_64_fastpath
+          kprobe-3892  [002] d... 7888274.478355: kmem_cache_alloc: (kmem_cache_alloc+0x0/0x1b0) name="kmalloc-4096"
+          kprobe-3892  [002] d... 7888274.478355: <stack trace>
+ => kmem_cache_alloc
+ => user_path_at_empty
+ => vfs_fstatat
+ => SYSC_newstat
+ => SyS_newstat
+ => entry_SYSCALL_64_fastpath
+          kprobe-3892  [002] d... 7888274.478359: kmem_cache_alloc: (kmem_cache_alloc+0x0/0x1b0) name="kmalloc-4096"
+          kprobe-3892  [002] d... 7888274.478359: <stack trace>
+ => kmem_cache_alloc
+ => user_path_at_empty
+ => vfs_fstatat
+ => SYSC_newstat
+ => SyS_newstat
+ => entry_SYSCALL_64_fastpath
+[...]
+
+This is just an example so that you can see it's possible to dig further.
+Please don't copy-n-paste that kprobe command, as it's unlikely to work (the
+"+0(+96(%di))" text is specific to a kernel version and architecture).
+
+So these allocations are coming from user_path_at_empty(), which calls other
+functions (not seen in the stack: I suspect it's a tail-call compiler
+optimization).
+
+
+USAGE:
+
+# ./slabratetop -h
+usage: slabratetop [-h] [-C] [-r MAXROWS] [interval] [count]
+
+Kernel SLAB/SLUB memory cache allocation rate top
+
+positional arguments:
+  interval              output interval, in seconds
+  count                 number of outputs
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -C, --noclear         don't clear the screen
+  -r MAXROWS, --maxrows MAXROWS
+                        maximum rows to print, default 20
+
+examples:
+    ./slabratetop            # kmem_cache_alloc() top, 1 second refresh
+    ./slabratetop -C         # don't clear the screen
+    ./slabratetop 5          # 5 second summaries
+    ./slabratetop 5 10       # 5 second summaries, 10 times only
