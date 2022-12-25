@@ -148,4 +148,72 @@ TRACEPOINT_PROBE(irq, softirq_exit)
     // store as sum or histogram
     STORE
 
-    start.delete(&entry_k
+    start.delete(&entry_key);
+    return 0;
+}
+"""
+
+if args.events:
+    bpf_text += bpf_text_count
+else:
+    bpf_text += bpf_text_time
+
+# code substitutions
+if args.dist:
+    bpf_text = bpf_text.replace('STORE',
+        'key.vec = vec; key.slot = bpf_log2l(delta / %d); ' % factor +
+        'dist.atomic_increment(key);')
+else:
+    bpf_text = bpf_text.replace('STORE',
+        'key.vec = valp->vec; ' +
+        'dist.atomic_increment(key, delta);')
+if args.cpu is not None:
+    bpf_text = bpf_text.replace('FILTER_CPU',
+        'if (cpu != %d) { return 0; }' % int(args.cpu))
+else:
+    bpf_text = bpf_text.replace('FILTER_CPU', '')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# load BPF program
+b = BPF(text=bpf_text)
+
+def vec_to_name(vec):
+    # copied from softirq_to_name() in kernel/softirq.c
+    # may need updates if new softirq handlers are added
+    return ["hi", "timer", "net_tx", "net_rx", "block", "irq_poll",
+            "tasklet", "sched", "hrtimer", "rcu"][vec]
+
+if args.events:
+    print("Tracing soft irq events... Hit Ctrl-C to end.")
+else:
+    print("Tracing soft irq event time... Hit Ctrl-C to end.")
+
+# output
+exiting = 0 if args.interval else 1
+dist = b.get_table("dist")
+while (1):
+    try:
+        sleep(int(args.interval))
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print()
+    if args.timestamp:
+        print("%-8s\n" % strftime("%H:%M:%S"), end="")
+
+    if args.dist:
+        dist.print_log2_hist(label, "softirq", section_print_fn=vec_to_name)
+    else:
+        print("%-16s %11s" % ("SOFTIRQ", "TOTAL_" + label))
+        for k, v in sorted(dist.items(), key=lambda dist: dist[1].value):
+            print("%-16s %11d" % (vec_to_name(k.vec), v.value / factor))
+    dist.clear()
+
+    sys.stdout.flush()
+
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
