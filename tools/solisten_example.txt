@@ -30,4 +30,11 @@ different network namespace than netcat and nginx. In this specific case
 it was launched in a docker container. It listens both on IPv4 and IPv4
 with up to 128 pending connections.
 
-Determining the actual container is out if the scope of this tool. It coul
+Determining the actual container is out if the scope of this tool. It could
+be derived by scrapping /proc/<PID>/cgroup. Note that this is racy.
+
+The overhead of this tool is negligeable as it traces listen() calls which are
+invoked in the initialization path of a program. The operation part will remain
+unaffected. In particular, accept() calls will not be affected. Neither
+individual read() and write().
+

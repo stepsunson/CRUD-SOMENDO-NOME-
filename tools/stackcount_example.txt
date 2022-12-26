@@ -1,0 +1,30 @@
+Demonstrations of stackcount, the Linux eBPF/bcc version.
+
+
+This program traces functions and frequency counts them with their entire
+stack trace, summarized in-kernel for efficiency. For example, counting
+stack traces that led to the submit_bio() kernel function, which creates
+block device I/O:
+
+# ./stackcount submit_bio
+Tracing 1 functions for "submit_bio"... Hit Ctrl-C to end.
+^C
+  submit_bio
+  submit_bh
+  journal_submit_commit_record.isra.13
+  jbd2_journal_commit_transaction
+  kjournald2
+  kthread
+  ret_from_fork
+  mb_cache_list
+    1
+
+  submit_bio
+  __block_write_full_page.constprop.39
+  block_write_full_page
+  blkdev_writepage
+  __writepage
+  write_cache_pages
+  generic_writepages
+  do_writepages
+  __writeback_single_inode
