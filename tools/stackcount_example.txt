@@ -28,3 +28,112 @@ Tracing 1 functions for "submit_bio"... Hit Ctrl-C to end.
   generic_writepages
   do_writepages
   __writeback_single_inode
+  writeback_sb_inodes
+  __writeback_inodes_wb
+    2
+
+  submit_bio
+  __block_write_full_page.constprop.39
+  block_write_full_page
+  blkdev_writepage
+  __writepage
+  write_cache_pages
+  generic_writepages
+  do_writepages
+  __filemap_fdatawrite_range
+  filemap_fdatawrite
+  fdatawrite_one_bdev
+    36
+
+  submit_bio
+  submit_bh
+  jbd2_journal_commit_transaction
+  kjournald2
+  kthread
+  ret_from_fork
+  mb_cache_list
+    38
+
+  submit_bio
+  ext4_writepages
+  do_writepages
+  __filemap_fdatawrite_range
+  filemap_flush
+  ext4_alloc_da_blocks
+  ext4_rename
+  ext4_rename2
+  vfs_rename
+  sys_rename
+  entry_SYSCALL_64_fastpath
+    79
+
+Detaching...
+
+The output shows unique stack traces, in order from leaf (on-CPU) to root,
+followed by their occurrence count. The last stack trace in the above output
+shows syscall handling, ext4_rename(), and filemap_flush(): looks like an
+application issued file rename has caused back end disk I/O due to ext4
+block allocation and a filemap_flush().
+
+
+Now adding the -P option to display stacks separately for each process:
+
+# ./stackcount -P submit_bio
+Tracing 1 functions for "submit_bio"... Hit Ctrl-C to end.
+^C
+  submit_bio
+  ext4_writepages
+  do_writepages
+  __filemap_fdatawrite_range
+  filemap_flush
+  ext4_alloc_da_blocks
+  ext4_release_file
+  __fput
+  ____fput
+  task_work_run
+  exit_to_usermode_loop
+  syscall_return_slowpath
+  entry_SYSCALL_64_fastpath
+  [unknown]
+  [unknown]
+    tar [15069]
+    5
+
+  submit_bio
+  ext4_bio_write_page
+  mpage_submit_page
+  mpage_map_and_submit_buffers
+  ext4_writepages
+  do_writepages
+  __filemap_fdatawrite_range
+  filemap_flush
+  ext4_alloc_da_blocks
+  ext4_release_file
+  __fput
+  ____fput
+  task_work_run
+  exit_to_usermode_loop
+  syscall_return_slowpath
+  entry_SYSCALL_64_fastpath
+  [unknown]
+  [unknown]
+    tar [15069]
+    15
+
+  submit_bio
+  ext4_readpages
+  __do_page_cache_readahead
+  ondemand_readahead
+  page_cache_async_readahead
+  generic_file_read_iter
+  __vfs_read
+  vfs_read
+  sys_read
+  entry_SYSCALL_64_fastpath
+  [unknown]
+    tar [15069]
+    113
+
+Detaching...
+
+The last stack trace in the above output shows syscal
