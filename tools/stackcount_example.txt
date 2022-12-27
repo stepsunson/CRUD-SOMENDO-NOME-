@@ -198,4 +198,132 @@ Tracing 1 functions for "submit_bio"... Hit Ctrl-C to end.
   ____fput
   task_work_run
   exit_to_usermode_loop
- 
+  syscall_return_slowpath
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+  [unknown]
+    tar [15187]
+    5
+
+  submit_bio
+  ext4_bio_write_page
+  mpage_submit_page
+  mpage_map_and_submit_buffers
+  ext4_writepages
+  do_writepages
+  __filemap_fdatawrite_range
+  filemap_flush
+  ext4_alloc_da_blocks
+  ext4_release_file
+  __fput
+  ____fput
+  task_work_run
+  exit_to_usermode_loop
+  syscall_return_slowpath
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+  [unknown]
+    tar [15187]
+    15
+
+  submit_bio
+  ext4_readpages
+  __do_page_cache_readahead
+  ondemand_readahead
+  page_cache_async_readahead
+  generic_file_read_iter
+  __vfs_read
+  vfs_read
+  sys_read
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+  [unknown]
+  [unknown]
+    tar [15187]
+    171
+
+Detaching...
+
+A "--" is printed between the kernel and user stacks.
+
+
+As a different example, here is the kernel function hrtimer_init_sleeper():
+
+# ./stackcount.py -P -d hrtimer_init_sleeper
+Tracing 1 functions for "hrtimer_init_sleeper"... Hit Ctrl-C to end.
+^C
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+    containerd [16020]
+    1
+
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_fastpath
+    --
+  __pthread_cond_timedwait
+  Monitor::IWait(Thread*, long)
+  Monitor::wait(bool, long, bool)
+  CompileQueue::get()
+  CompileBroker::compiler_thread_loop()
+  JavaThread::thread_main_inner()
+  JavaThread::run()
+  java_start(Thread*)
+  start_thread
+    java [4996]
+    1
+
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+  [unknown]
+    containerd [16020]
+    1
+
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_fastpath
+    --
+  __pthread_cond_timedwait
+  VMThread::loop()
+  VMThread::run()
+  java_start(Thread*)
+  start_thread
+    java [4996]
+    3
+
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+    dockerd [16008]
+    4
+
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+  [unknown]
+    dockerd [16008]
+    4
+
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_
