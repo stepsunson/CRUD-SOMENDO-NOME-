@@ -326,4 +326,108 @@ Tracing 1 functions for "hrtimer_init_sleeper"... Hit Ctrl-C to end.
   hrtimer_init_sleeper
   do_futex
   SyS_futex
-  entry_SYSCALL_64_
+  entry_SYSCALL_64_fastpath
+    --
+  __pthread_cond_timedwait
+  Lio/netty/util/ThreadDeathWatcher$Watcher;::run
+  Interpreter
+  Interpreter
+  call_stub
+  JavaCalls::call_helper(JavaValue*, methodHandle*, JavaCallArguments*, Thread*)
+  JavaCalls::call_virtual(JavaValue*, KlassHandle, Symbol*, Symbol*, JavaCallArguments*, Thread*)
+  JavaCalls::call_virtual(JavaValue*, Handle, KlassHandle, Symbol*, Symbol*, Thread*)
+  thread_entry(JavaThread*, Thread*)
+  JavaThread::thread_main_inner()
+  JavaThread::run()
+  java_start(Thread*)
+  start_thread
+    java [4996]
+    4
+
+  hrtimer_init_sleeper
+  do_futex
+  SyS_futex
+  entry_SYSCALL_64_fastpath
+    --
+  __pthread_cond_timedwait
+  clock_gettime
+  [unknown]
+    java [4996]
+    79
+
+Detaching...
+
+I was just trying to find a more interesting example. This output includes
+some Java stacks where user-level has been walked correctly (even includes a
+JIT symbol translation). dockerd and containerd don't have frame pointers
+(grumble), but Java does (which is running with -XX:+PreserveFramePointer).
+
+
+Here's another kernel function, ip_output():
+
+# ./stackcount.py -P -d ip_output
+Tracing 1 functions for "ip_output"... Hit Ctrl-C to end.
+^C
+  ip_output
+  ip_queue_xmit
+  tcp_transmit_skb
+  tcp_write_xmit
+  __tcp_push_pending_frames
+  tcp_push
+  tcp_sendmsg
+  inet_sendmsg
+  sock_sendmsg
+  sock_write_iter
+  __vfs_write
+  vfs_write
+  SyS_write
+  entry_SYSCALL_64_fastpath
+    --
+  __write_nocancel
+  [unknown]
+    sshd [15015]
+    5
+
+  ip_output
+  ip_queue_xmit
+  tcp_transmit_skb
+  tcp_write_xmit
+  __tcp_push_pending_frames
+  tcp_push
+  tcp_sendmsg
+  inet_sendmsg
+  sock_sendmsg
+  sock_write_iter
+  __vfs_write
+  vfs_write
+  SyS_write
+  entry_SYSCALL_64_fastpath
+    --
+  __write_nocancel
+  [unknown]
+  [unknown]
+    sshd [8234]
+    5
+
+  ip_output
+  ip_queue_xmit
+  tcp_transmit_skb
+  tcp_write_xmit
+  __tcp_push_pending_frames
+  tcp_push
+  tcp_sendmsg
+  inet_sendmsg
+  sock_sendmsg
+  sock_write_iter
+  __vfs_write
+  vfs_write
+  SyS_write
+  entry_SYSCALL_64_fastpath
+    --
+  __write_nocancel
+    sshd [15015]
+    7
+
+Detaching...
+
+This ti
