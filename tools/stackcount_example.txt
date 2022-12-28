@@ -430,4 +430,94 @@ Tracing 1 functions for "ip_output"... Hit Ctrl-C to end.
 
 Detaching...
 
-This ti
+This time just sshd is triggering ip_output() calls.
+
+
+Watch what happens if I filter on kernel stacks only (-K) for ip_output():
+
+# ./stackcount.py -K ip_output
+Tracing 1 functions for "ip_output"... Hit Ctrl-C to end.
+^C
+  ip_output
+  ip_queue_xmit
+  tcp_transmit_skb
+  tcp_write_xmit
+  __tcp_push_pending_frames
+  tcp_push
+  tcp_sendmsg
+  inet_sendmsg
+  sock_sendmsg
+  sock_write_iter
+  __vfs_write
+  vfs_write
+  SyS_write
+  entry_SYSCALL_64_fastpath
+    13
+
+Detaching...
+
+They have grouped together as a single unique stack, since the kernel part
+was the same.
+
+
+Here is just the user stacks, fetched during the kernel function ip_output():
+
+# ./stackcount.py -P -U ip_output
+Tracing 1 functions for "ip_output"... Hit Ctrl-C to end.
+^C
+  [unknown]
+    snmpd [1645]
+    1
+
+  __write_nocancel
+  [unknown]
+  [unknown]
+    sshd [8234]
+    3
+
+  __write_nocancel
+    sshd [15015]
+    4
+
+I should really run a custom sshd with frame pointers so we can see its
+stack trace...
+
+
+User-space functions can also be traced if a library name is provided. For
+example, to quickly identify code locations that allocate heap memory for
+PID 4902 (using -p), by tracing malloc from libc ("c:malloc"):
+
+# ./stackcount -p 4902 c:malloc
+Tracing 1 functions for "malloc"... Hit Ctrl-C to end.
+^C
+  malloc
+  rbtree_new
+  main
+  [unknown]
+    12
+
+  malloc
+  _rbtree_node_new_internal
+  _rbtree_node_insert
+  rbtree_insert
+  main
+  [unknown]
+    1189
+
+Detaching...
+
+Kernel stacks are absent as this didn't enter kernel code.
+
+Note that user-space uses of stackcount can be somewhat more limited because
+a lot of user-space libraries and binaries are compiled without frame-pointers
+as discussed earlier (the -fomit-frame-pointer compiler default) or are used
+without debuginfo.
+
+
+In addition to kernel and user-space functions, kernel tracepoints and USDT
+tracepoints are also supported.
+
+For example, to determine where threads are being created in a particular
+process, use the pthread_create USDT tracepoint:
+
+# ./stackcount -P -p $(pidof parprimes) u:pthread:pthread_c
