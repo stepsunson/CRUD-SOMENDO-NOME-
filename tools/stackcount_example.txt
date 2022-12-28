@@ -520,4 +520,103 @@ tracepoints are also supported.
 For example, to determine where threads are being created in a particular
 process, use the pthread_create USDT tracepoint:
 
-# ./stackcount -P -p $(pidof parprimes) u:pthread:pthread_c
+# ./stackcount -P -p $(pidof parprimes) u:pthread:pthread_create
+Tracing 1 functions for "u:pthread:pthread_create"... Hit Ctrl-C to end.
+^C
+
+    parprimes [11923]
+  pthread_create@@GLIBC_2.2.5
+  main
+  __libc_start_main
+  [unknown]
+    7
+
+You can use "readelf -n file" to see if it has USDT tracepoints.
+
+
+Similarly, to determine where context switching is happening in the kernel,
+use the sched:sched_switch kernel tracepoint:
+
+# ./stackcount -P t:sched:sched_switch
+  __schedule
+  schedule
+  worker_thread
+  kthread
+  ret_from_fork
+    kworker/0:2 [25482]
+    1
+
+  __schedule
+  schedule
+  schedule_hrtimeout_range_clock
+  schedule_hrtimeout_range
+  ep_poll
+  SyS_epoll_wait
+  entry_SYSCALL_64_fastpath
+  epoll_wait
+  Lsun/nio/ch/SelectorImpl;::lockAndDoSelect
+  Lsun/nio/ch/SelectorImpl;::select
+  Lio/netty/channel/nio/NioEventLoop;::select
+  Lio/netty/channel/nio/NioEventLoop;::run
+  Interpreter
+  Interpreter
+  call_stub
+  JavaCalls::call_helper(JavaValue*, methodHandle*, JavaCallArguments*, Thread*)
+  JavaCalls::call_virtual(JavaValue*, KlassHandle, Symbol*, Symbol*, JavaCallArguments*, Thread*)
+  JavaCalls::call_virtual(JavaValue*, Handle, KlassHandle, Symbol*, Symbol*, Thread*)
+  thread_entry(JavaThread*, Thread*)
+  JavaThread::thread_main_inner()
+  JavaThread::run()
+  java_start(Thread*)
+  start_thread
+    java [4996]
+    1
+
+... (omitted for brevity)
+
+  __schedule
+  schedule
+  schedule_preempt_disabled
+  cpu_startup_entry
+  xen_play_dead
+  arch_cpu_idle_dead
+  cpu_startup_entry
+  cpu_bringup_and_idle
+    swapper/1 [0]
+    289
+
+
+A -i option can be used to set an output interval, and -T to include a
+timestamp. For example:
+
+# ./stackcount.py -P -Tdi 1 submit_bio
+Tracing 1 functions for "submit_bio"... Hit Ctrl-C to end.
+
+06:05:13
+
+06:05:14
+  submit_bio
+  xfs_do_writepage
+  write_cache_pages
+  xfs_vm_writepages
+  do_writepages
+  __writeback_single_inode
+  writeback_sb_inodes
+  __writeback_inodes_wb
+  wb_writeback
+  wb_workfn
+  process_one_work
+  worker_thread
+  kthread
+  ret_from_fork
+    --
+    kworker/u16:1 [15686]
+    1
+
+  submit_bio
+  process_one_work
+  worker_thread
+  kthread
+  ret_from_fork
+    --
+    kworker/u16:0 [1600
