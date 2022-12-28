@@ -619,4 +619,139 @@ Tracing 1 functions for "submit_bio"... Hit Ctrl-C to end.
   kthread
   ret_from_fork
     --
-    kworker/u16:0 [1600
+    kworker/u16:0 [16007]
+    1
+
+  submit_bio
+  xfs_buf_submit
+  xlog_bdstrat
+  xlog_sync
+  xlog_state_release_iclog
+  _xfs_log_force
+  xfs_log_force
+  xfs_fs_sync_fs
+  sync_fs_one_sb
+  iterate_supers
+  sys_sync
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+    sync [16039]
+    1
+
+  submit_bio
+  submit_bh
+  journal_submit_commit_record
+  jbd2_journal_commit_transaction
+  kjournald2
+  kthread
+  ret_from_fork
+    --
+    jbd2/xvda1-8 [405]
+    1
+
+  submit_bio
+  process_one_work
+  worker_thread
+  kthread
+  ret_from_fork
+    --
+    kworker/0:2 [25482]
+    2
+
+  submit_bio
+  ext4_writepages
+  do_writepages
+  __writeback_single_inode
+  writeback_sb_inodes
+  __writeback_inodes_wb
+  wb_writeback
+  wb_workfn
+  process_one_work
+  worker_thread
+  kthread
+  ret_from_fork
+    --
+    kworker/u16:0 [16007]
+    4
+
+  submit_bio
+  xfs_vm_writepages
+  do_writepages
+  __writeback_single_inode
+  writeback_sb_inodes
+  __writeback_inodes_wb
+  wb_writeback
+  wb_workfn
+  process_one_work
+  worker_thread
+  kthread
+  ret_from_fork
+    --
+    kworker/u16:1 [15686]
+    5
+
+  submit_bio
+  __block_write_full_page
+  block_write_full_page
+  blkdev_writepage
+  __writepage
+  write_cache_pages
+  generic_writepages
+  blkdev_writepages
+  do_writepages
+  __filemap_fdatawrite_range
+  filemap_fdatawrite
+  fdatawrite_one_bdev
+  iterate_bdevs
+  sys_sync
+  entry_SYSCALL_64_fastpath
+    --
+  [unknown]
+    sync [16039]
+    7
+
+  submit_bio
+  submit_bh
+  jbd2_journal_commit_transaction
+  kjournald2
+  kthread
+  ret_from_fork
+    --
+    jbd2/xvda1-8 [405]
+    8
+
+  submit_bio
+  ext4_bio_write_page
+  mpage_submit_page
+  mpage_map_and_submit_buffers
+  ext4_writepages
+  do_writepages
+  __writeback_single_inode
+  writeback_sb_inodes
+  __writeback_inodes_wb
+  wb_writeback
+  wb_workfn
+  process_one_work
+  worker_thread
+  kthread
+  ret_from_fork
+    --
+    kworker/u16:0 [16007]
+    8
+
+  submit_bio
+  __block_write_full_page
+  block_write_full_page
+  blkdev_writepage
+  __writepage
+  write_cache_pages
+  generic_writepages
+  blkdev_writepages
+  do_writepages
+  __writeback_single_inode
+  writeback_sb_inodes
+  __writeback_inodes_wb
+  wb_writeback
+  wb_workfn
+  process
