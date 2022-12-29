@@ -754,4 +754,104 @@ Tracing 1 functions for "submit_bio"... Hit Ctrl-C to end.
   __writeback_inodes_wb
   wb_writeback
   wb_workfn
-  process
+  process_one_work
+  worker_thread
+  kthread
+  ret_from_fork
+    --
+    kworker/u16:0 [16007]
+    60
+
+
+06:05:15
+
+06:05:16
+
+Detaching...
+
+This only included output for the 06:05:14 interval. The other internals
+did not span block device I/O.
+
+
+The -s output prints the return instruction offset for each function (aka
+symbol offset). Eg:
+
+# ./stackcount.py -P -s tcp_sendmsg
+Tracing 1 functions for "tcp_sendmsg"... Hit Ctrl-C to end.
+^C
+  tcp_sendmsg+0x1
+  sock_sendmsg+0x38
+  sock_write_iter+0x85
+  __vfs_write+0xe3
+  vfs_write+0xb8
+  SyS_write+0x55
+  entry_SYSCALL_64_fastpath+0x1e
+  __write_nocancel+0x7
+    sshd [15015]
+    3
+
+  tcp_sendmsg+0x1
+  sock_sendmsg+0x38
+  sock_write_iter+0x85
+  __vfs_write+0xe3
+  vfs_write+0xb8
+  SyS_write+0x55
+  entry_SYSCALL_64_fastpath+0x1e
+  __write_nocancel+0x7
+    sshd [8234]
+    3
+
+Detaching...
+
+If it wasn't clear how one function called another, knowing the instruction
+offset can help you locate the lines of code from a disassembly dump.
+
+
+The -v output is verbose, and shows raw addresses:
+
+./stackcount.py -P -v tcp_sendmsg
+Tracing 1 functions for "tcp_sendmsg"... Hit Ctrl-C to end.
+^C
+  ffffffff817b05c1 tcp_sendmsg
+  ffffffff8173ea48 sock_sendmsg
+  ffffffff8173eae5 sock_write_iter
+  ffffffff81232b33 __vfs_write
+  ffffffff812331b8 vfs_write
+  ffffffff81234625 SyS_write
+  ffffffff818739bb entry_SYSCALL_64_fastpath
+  7f120511e6e0     __write_nocancel
+    sshd [8234]
+    3
+
+  ffffffff817b05c1 tcp_sendmsg
+  ffffffff8173ea48 sock_sendmsg
+  ffffffff8173eae5 sock_write_iter
+  ffffffff81232b33 __vfs_write
+  ffffffff812331b8 vfs_write
+  ffffffff81234625 SyS_write
+  ffffffff818739bb entry_SYSCALL_64_fastpath
+  7f919c5a26e0     __write_nocancel
+    sshd [15015]
+    11
+
+Detaching...
+
+
+A wildcard can also be used. Eg, all functions beginning with "tcp_send",
+kernel stacks only (-K) with offsets (-s):
+
+# ./stackcount -Ks 'tcp_send*'
+Tracing 14 functions for "tcp_send*"... Hit Ctrl-C to end.
+^C
+  tcp_send_delayed_ack0x1
+  tcp_rcv_established0x3b1
+  tcp_v4_do_rcv0x130
+  tcp_v4_rcv0x8e0
+  ip_local_deliver_finish0x9f
+  ip_local_deliver0x51
+  ip_rcv_finish0x8a
+  ip_rcv0x29d
+  __netif_receive_skb_core0x637
+  __netif_receive_skb0x18
+  netif_receive_skb_internal0x23
+    1
