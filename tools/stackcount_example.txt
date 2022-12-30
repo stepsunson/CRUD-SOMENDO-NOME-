@@ -855,3 +855,57 @@ Tracing 14 functions for "tcp_send*"... Hit Ctrl-C to end.
   __netif_receive_skb0x18
   netif_receive_skb_internal0x23
     1
+
+  tcp_send_delayed_ack0x1
+  tcp_rcv_established0x222
+  tcp_v4_do_rcv0x130
+  tcp_v4_rcv0x8e0
+  ip_local_deliver_finish0x9f
+  ip_local_deliver0x51
+  ip_rcv_finish0x8a
+  ip_rcv0x29d
+  __netif_receive_skb_core0x637
+  __netif_receive_skb0x18
+  netif_receive_skb_internal0x23
+    4
+
+  tcp_send_mss0x1
+  inet_sendmsg0x67
+  sock_sendmsg0x38
+  sock_write_iter0x78
+  __vfs_write0xaa
+  vfs_write0xa9
+  sys_write0x46
+  entry_SYSCALL_64_fastpath0x16
+    7
+
+  tcp_sendmsg0x1
+  sock_sendmsg0x38
+  sock_write_iter0x78
+  __vfs_write0xaa
+  vfs_write0xa9
+  sys_write0x46
+  entry_SYSCALL_64_fastpath0x16
+    7
+
+Detaching...
+
+Use -r to allow regular expressions.
+
+
+The -f option will emit folded output, which can be used as input to other
+tools including flame graphs. For example, with delimiters as well:
+
+# ./stackcount.py -P -df t:sched:sched_switch
+^Csnmp-pass;[unknown];[unknown];[unknown];[unknown];[unknown];-;entry_SYSCALL_64_fastpath;SyS_select;core_sys_select;do_select;poll_schedule_timeout;schedule_hrtimeout_range;schedule_hrtimeout_range_clock;schedule;__schedule 1
+kworker/7:0;-;ret_from_fork;kthread;worker_thread;schedule;__schedule 1
+watchdog/0;-;ret_from_fork;kthread;smpboot_thread_fn;schedule;__schedule 1
+snmp-pass;[unknown];[unknown];[unknown];[unknown];[unknown];-;entry_SYSCALL_64_fastpath;SyS_select;core_sys_select;do_select;poll_schedule_timeout;schedule_hrtimeout_range;schedule_hrtimeout_range_clock;schedule;__schedule 1
+svscan;[unknown];-;entry_SYSCALL_64_fastpath;SyS_nanosleep;hrtimer_nanosleep;do_nanosleep;schedule;__schedule 1
+python;[unknown];__select_nocancel;-;entry_SYSCALL_64_fastpath;SyS_select;core_sys_select;do_select;poll_schedule_timeout;schedule_hrtimeout_range;schedule_hrtimeout_range_clock;schedule;__schedule 1
+kworker/2:0;-;ret_from_fork;kthread;worker_thread;schedule;__schedule 1
+[...]
+
+Flame graphs visualize stack traces. For information about them and links
+to open source software, see http://www.brendangregg.com/flamegraphs.html .
+This folded output can be piped directly into flamegraph.pl (the Perl 
