@@ -908,4 +908,52 @@ kworker/2:0;-;ret_from_fork;kthread;worker_thread;schedule;__schedule 1
 
 Flame graphs visualize stack traces. For information about them and links
 to open source software, see http://www.brendangregg.com/flamegraphs.html .
-This folded output can be piped directly into flamegraph.pl (the Perl 
+This folded output can be piped directly into flamegraph.pl (the Perl version).
+
+
+USAGE message:
+
+# ./stackcount -h
+usage: stackcount [-h] [-p PID] [-c CPU] [-i INTERVAL] [-D DURATION] [-T] [-r]
+                  [-s] [-P] [-K] [-U] [-v] [-d] [-f] [--debug]
+                  pattern
+
+Count events and their stack traces
+
+positional arguments:
+  pattern               search expression for events
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PID, --pid PID     trace this PID only
+  -c CPU, --cpu CPU     trace this CPU only
+  -i INTERVAL, --interval INTERVAL
+                        summary interval, seconds
+  -D DURATION, --duration DURATION
+                        total duration of trace, seconds
+  -T, --timestamp       include timestamp on output
+  -r, --regexp          use regular expressions. Default is "*" wildcards
+                        only.
+  -s, --offset          show address offsets
+  -P, --perpid          display stacks separately for each process
+  -K, --kernel-stacks-only
+                        kernel stack only
+  -U, --user-stacks-only
+                        user stack only
+  -v, --verbose         show raw addresses
+  -d, --delimited       insert delimiter between kernel/user stacks
+  -f, --folded          output folded format
+  --debug               print BPF program before starting (for debugging
+                        purposes)
+
+examples:
+    ./stackcount submit_bio         # count kernel stack traces for submit_bio
+    ./stackcount -d ip_output       # include a user/kernel stack delimiter
+    ./stackcount -s ip_output       # show symbol offsets
+    ./stackcount -sv ip_output      # show offsets and raw addresses (verbose)
+    ./stackcount 'tcp_send*'        # count stacks for funcs matching tcp_send*
+    ./stackcount -r '^tcp_send.*'   # same as above, using regular expressions
+    ./stackcount -Ti 5 ip_output    # output every 5 seconds, with timestamps
+    ./stackcount -p 185 ip_output   # count ip_output stacks for PID 185 only
+    ./stackcount -p 185 c:malloc    # count stacks for malloc in PID 185
+    ./stackcount t:sched:sched_fork # count
