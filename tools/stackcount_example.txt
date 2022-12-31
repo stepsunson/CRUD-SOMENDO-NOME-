@@ -956,4 +956,8 @@ examples:
     ./stackcount -Ti 5 ip_output    # output every 5 seconds, with timestamps
     ./stackcount -p 185 ip_output   # count ip_output stacks for PID 185 only
     ./stackcount -p 185 c:malloc    # count stacks for malloc in PID 185
-    ./stackcount t:sched:sched_fork # count
+    ./stackcount t:sched:sched_fork # count stacks for sched_fork tracepoint
+    ./stackcount -p 185 u:node:*    # count stacks for all USDT probes in node
+    ./stackcount -c 1 put_prev_entity   # count put_prev_entity stacks for CPU 1 only
+    ./stackcount -K t:sched:sched_switch   # kernel stacks only
+    ./stackcount -U t:sched:sched_switch   # user stacks only
