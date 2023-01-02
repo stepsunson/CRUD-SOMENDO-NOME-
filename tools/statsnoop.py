@@ -60,4 +60,80 @@ struct data_t {
 BPF_HASH(infotmp, u32, struct val_t);
 BPF_PERF_OUTPUT(events);
 
-static int trace_entry(struct
+static int trace_entry(struct pt_regs *ctx, const char __user *filename)
+{
+    struct val_t val = {};
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    FILTER
+    val.fname = filename;
+    infotmp.update(&tid, &val);
+
+    return 0;
+};
+
+int stat_entry(struct pt_regs *ctx, const char __user *filename)
+{
+    return trace_entry(ctx, filename);
+}
+
+int statx_entry(struct pt_regs *ctx, int dfd, const char __user *filename)
+{
+    return trace_entry(ctx, filename);
+}
+
+int trace_return(struct pt_regs *ctx)
+{
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 tid = (u32)pid_tgid;
+    struct val_t *valp;
+
+    valp = infotmp.lookup(&tid);
+    if (valp == 0) {
+        // missed entry
+        return 0;
+    }
+
+    struct data_t data = {.pid = pid_tgid >> 32};
+    bpf_probe_read_user(&data.fname, sizeof(data.fname), (void *)valp->fname);
+    bpf_get_current_comm(&data.comm, sizeof(data.comm));
+    data.ts_ns = bpf_ktime_get_ns();
+    data.ret = PT_REGS_RC(ctx);
+
+    events.perf_submit(ctx, &data, sizeof(data));
+    infotmp.delete(&tid);
+
+    return 0;
+}
+"""
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER',
+        'if (pid != %s) { return 0; }' % args.pid)
+else:
+    bpf_text = bpf_text.replace('FILTER', '')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# initialize BPF
+b = BPF(text=bpf_text)
+
+# for POSIX compliance, all architectures implement these
+# system calls but the name of the actual entry point may
+# be different for which we must check if the entry points
+# actually exist before attaching the probes
+def try_attach_syscall_probes(syscall):
+    syscall_fnname = b.get_syscall_fnname(syscall)
+    if BPF.ksymname(syscall_fnname) != -1:
+        if syscall == "statx":
+            b.attach_kprobe(event=syscall_fnname, fn_name="statx_entry")
+        else:
+            b.attach_kprobe(event=syscall_fnname, fn_name="stat_entry")
+        b.attach_kretprobe(event=syscall_fnname, fn_name="trace_return")
+
+try_attach_syscall_probes("stat")
+try_attach_syscall_probes("statx")
+try_attach_sys
