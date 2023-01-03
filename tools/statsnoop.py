@@ -136,4 +136,51 @@ def try_attach_syscall_probes(syscall):
 
 try_attach_syscall_probes("stat")
 try_attach_syscall_probes("statx")
-try_attach_sys
+try_attach_syscall_probes("statfs")
+try_attach_syscall_probes("newstat")
+try_attach_syscall_probes("newlstat")
+
+start_ts = 0
+prev_ts = 0
+delta = 0
+
+# header
+if args.timestamp:
+    print("%-14s" % ("TIME(s)"), end="")
+print("%-7s %-16s %4s %3s %s" % ("PID", "COMM", "FD", "ERR", "PATH"))
+
+# process event
+def print_event(cpu, data, size):
+    event = b["events"].event(data)
+    global start_ts
+    global prev_ts
+    global delta
+    global cont
+
+    # split return value into FD and errno columns
+    if event.ret >= 0:
+        if args.failed:
+            return
+        fd_s = event.ret
+        err = 0
+    else:
+        fd_s = -1
+        err = - event.ret
+
+    if start_ts == 0:
+        start_ts = event.ts_ns
+
+    if args.timestamp:
+        print("%-14.9f" % (float(event.ts_ns - start_ts) / 1000000000), end="")
+
+    print("%-7d %-16s %4d %3d %s" % (event.pid,
+        event.comm.decode('utf-8', 'replace'), fd_s, err,
+        event.fname.decode('utf-8', 'replace')))
+
+# loop with callback to print_event
+b["events"].open_perf_buffer(print_event, page_cnt=64)
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
