@@ -55,3 +55,100 @@ start_rport = end_rport = -1
 if args.remoteport:
     rports = args.remoteport.split("-")
     if (len(rports) != 2) and (len(rports) != 1):
+        print("unrecognized remote port range")
+        exit(1)
+    if len(rports) == 2:
+        start_rport = int(rports[0])
+        end_rport = int(rports[1])
+    else:
+        start_rport = int(rports[0])
+        end_rport = int(rports[0])
+if start_rport > end_rport:
+    tmp = start_rport
+    start_rport = end_rport
+    end_rport = tmp
+
+start_lport = end_lport = -1
+if args.localport:
+    lports = args.localport.split("-")
+    if (len(lports) != 2) and (len(lports) != 1):
+        print("unrecognized local port range")
+        exit(1)
+    if len(lports) == 2:
+        start_lport = int(lports[0])
+        end_lport = int(lports[1])
+    else:
+        start_lport = int(lports[0])
+        end_lport = int(lports[0])
+if start_lport > end_lport:
+    tmp = start_lport
+    start_lport = end_lport
+    end_lport = tmp
+
+# define BPF program
+bpf_head_text = """
+#include <uapi/linux/ptrace.h>
+#include <net/sock.h>
+#include <bcc/proto.h>
+#include <net/tcp.h>
+#include <net/inet_connection_sock.h>
+
+typedef struct ipv4_flow_key {
+    u32 saddr;
+    u32 daddr;
+    u16 lport;
+    u16 dport;
+} ipv4_flow_key_t;
+
+typedef struct ipv6_flow_key {
+    unsigned __int128 saddr;
+    unsigned __int128 daddr;
+    u16 lport;
+    u16 dport;
+} ipv6_flow_key_t;
+
+typedef struct data_val {
+    DEF_TEXT
+    u64  last_ts;
+    u16  last_cong_stat;
+} data_val_t;
+
+BPF_HASH(ipv4_stat, ipv4_flow_key_t, data_val_t);
+BPF_HASH(ipv6_stat, ipv6_flow_key_t, data_val_t);
+
+HIST_TABLE
+"""
+
+bpf_extra_head = """
+typedef struct process_key {
+    char comm[TASK_COMM_LEN];
+    u32  tid;
+} process_key_t;
+
+typedef struct ipv4_flow_val {
+    ipv4_flow_key_t ipv4_key;
+    u16  cong_state;
+} ipv4_flow_val_t;
+
+typedef struct ipv6_flow_val {
+    ipv6_flow_key_t ipv6_key;
+    u16  cong_state;
+} ipv6_flow_val_t;
+
+BPF_HASH(start_ipv4, process_key_t, ipv4_flow_val_t);
+BPF_HASH(start_ipv6, process_key_t, ipv6_flow_val_t);
+SOCK_STORE_DEF
+
+typedef struct cong {
+    u8  cong_stat:5,
+        ca_inited:1,
+        ca_setsockopt:1,
+        ca_dstlocked:1;
+} cong_status_t;
+"""
+
+bpf_no_ca_tp_body_text = """
+static int entry_state_update_func(struct sock *sk)
+{
+    u16 dport = 0, lport = 0;
+    
