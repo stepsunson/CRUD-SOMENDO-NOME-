@@ -151,4 +151,56 @@ bpf_no_ca_tp_body_text = """
 static int entry_state_update_func(struct sock *sk)
 {
     u16 dport = 0, lport = 0;
-    
+    u32 tid = bpf_get_current_pid_tgid();
+    process_key_t key = {0};
+    bpf_get_current_comm(&key.comm, sizeof(key.comm));
+    key.tid = tid;
+
+    u64 family = sk->__sk_common.skc_family;
+    struct inet_connection_sock *icsk = inet_csk(sk);
+    cong_status_t cong_status;
+    bpf_probe_read_kernel(&cong_status, sizeof(cong_status),
+        (void *)((long)&icsk->icsk_retransmits) - 1);
+    if (family == AF_INET) {
+        ipv4_flow_val_t ipv4_val = {0};
+        ipv4_val.ipv4_key.saddr = sk->__sk_common.skc_rcv_saddr;
+        ipv4_val.ipv4_key.daddr = sk->__sk_common.skc_daddr;
+        ipv4_val.ipv4_key.lport = sk->__sk_common.skc_num;
+        dport = sk->__sk_common.skc_dport;
+        dport = ntohs(dport);
+        lport = ipv4_val.ipv4_key.lport;
+        FILTER_LPORT
+        FILTER_DPORT
+        ipv4_val.ipv4_key.dport = dport;
+        ipv4_val.cong_state = cong_status.cong_stat + 1;
+        start_ipv4.update(&key, &ipv4_val);
+    } else if (family == AF_INET6) {
+        ipv6_flow_val_t ipv6_val = {0};
+        bpf_probe_read_kernel(&ipv6_val.ipv6_key.saddr,
+            sizeof(ipv6_val.ipv6_key.saddr),
+            &sk->__sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+        bpf_probe_read_kernel(&ipv6_val.ipv6_key.daddr,
+            sizeof(ipv6_val.ipv6_key.daddr),
+            &sk->__sk_common.skc_v6_daddr.in6_u.u6_addr32);
+        ipv6_val.ipv6_key.lport = sk->__sk_common.skc_num;
+        dport = sk->__sk_common.skc_dport;
+        dport = ntohs(dport);
+        lport = ipv6_val.ipv6_key.lport;
+        FILTER_LPORT
+        FILTER_DPORT
+        ipv6_val.ipv6_key.dport = dport;
+        ipv6_val.cong_state = cong_status.cong_stat + 1;
+        start_ipv6.update(&key, &ipv6_val);
+    }
+    SOCK_STORE_ADD
+    return 0;
+}
+
+static int ret_state_update_func(struct sock *sk)
+{
+    u64 ts, ts1;
+    u16 family, last_cong_state;
+    u16 dport = 0, lport = 0;
+    u32 tid = bpf_get_current_pid_tgid();
+    process_key_t key = {0};
+    bpf_get_current_comm(&key.comm, sizeof(ke
