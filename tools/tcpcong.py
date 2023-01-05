@@ -328,4 +328,100 @@ TRACEPOINT_PROBE(tcp, tcp_cong_state_set)
         FILTER_DPORT
         key6.lport = lport;
         key6.dport = dport;
-        datap = ipv6
+        datap = ipv6_stat.lookup(&key6);
+        if (datap == 0) {
+            data.last_ts = bpf_ktime_get_ns();
+            data.last_cong_stat = cong_state + 1;
+            ipv6_stat.update(&key6, &data);
+        } else {
+            last_cong_state = datap->last_cong_stat;
+            if ((cong_state + 1) != last_cong_state) {
+                ts1 = bpf_ktime_get_ns();
+                ts = ts1 - datap->last_ts;
+                datap->last_ts = ts1;
+                datap->last_cong_stat = cong_state + 1;
+                ts /= 1000;
+                STORE
+            }
+        }
+    }
+    return 0;
+}
+"""
+
+kprobe_program = """
+int entry_func(struct pt_regs *ctx, struct sock *sk)
+{
+    return entry_state_update_func(sk);
+}
+
+int ret_func(struct pt_regs *ctx)
+{
+    u32 tid = bpf_get_current_pid_tgid();
+    process_key_t key = {0};
+    bpf_get_current_comm(&key.comm, sizeof(key.comm));
+    key.tid = tid;
+    struct sock **sockpp;
+    sockpp = sock_store.lookup(&key);
+    if (sockpp == 0) {
+        return 0; //miss the entry
+    }
+    struct sock *sk = *sockpp;
+    return ret_state_update_func(sk);
+}
+"""
+
+kfunc_program = """
+KFUNC_PROBE(tcp_fastretrans_alert, struct sock *sk)
+{
+    return entry_state_update_func(sk);
+}
+
+KRETFUNC_PROBE(tcp_fastretrans_alert, struct sock *sk)
+{
+    return ret_state_update_func(sk);
+}
+
+KFUNC_PROBE(tcp_enter_cwr, struct sock *sk)
+{
+    return entry_state_update_func(sk);
+}
+
+KRETFUNC_PROBE(tcp_enter_cwr, struct sock *sk)
+{
+    return ret_state_update_func(sk);
+}
+
+KFUNC_PROBE(tcp_enter_loss, struct sock *sk)
+{
+    return entry_state_update_func(sk);
+}
+
+KRETFUNC_PROBE(tcp_enter_loss, struct sock *sk)
+{
+    return ret_state_update_func(sk);
+}
+
+KFUNC_PROBE(tcp_enter_recovery, struct sock *sk)
+{
+    return entry_state_update_func(sk);
+}
+
+KRETFUNC_PROBE(tcp_enter_recovery, struct sock *sk)
+{
+    return ret_state_update_func(sk);
+}
+
+KFUNC_PROBE(tcp_process_tlp_ack, struct sock *sk)
+{
+    return entry_state_update_func(sk);
+}
+
+KRETFUNC_PROBE(tcp_process_tlp_ack, struct sock *sk)
+{
+    return ret_state_update_func(sk);
+}
+"""
+
+# code replace
+is_supp
