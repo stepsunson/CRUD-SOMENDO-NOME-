@@ -263,4 +263,69 @@ static int ret_state_update_func(struct sock *sk)
             data.last_cong_stat = val6->cong_state;
             ipv6_stat.update(&keyv6, &data);
         } else {
-    
+            last_cong_state = val6->cong_state;
+            if ((cong_status.cong_stat + 1) != last_cong_state) {
+                ts1 = bpf_ktime_get_ns();
+                ts = ts1 - datap->last_ts;
+                datap->last_ts = ts1;
+                datap->last_cong_stat = (cong_status.cong_stat + 1);
+                ts /= 1000;
+                STORE
+            }
+        }
+        start_ipv6.delete(&key);
+    }
+    SOCK_STORE_DEL
+    return 0;
+}
+"""
+
+bpf_ca_tp_body_text = """
+TRACEPOINT_PROBE(tcp, tcp_cong_state_set)
+{
+    u64 ts, ts1;
+    u16 family, last_cong_state, dport = 0, lport = 0;
+    u8 cong_state;
+    const struct sock *sk = (const struct sock *)args->skaddr;
+    data_val_t *datap, data = {0};
+
+    family = sk->__sk_common.skc_family;
+    dport = args->dport;
+    lport = args->sport;
+    cong_state = args->cong_state;
+    STATE_KEY
+    if (family == AF_INET) {
+        ipv4_flow_key_t key4 = {0};
+        key4.saddr = sk->__sk_common.skc_rcv_saddr;
+        key4.daddr = sk->__sk_common.skc_daddr;
+        FILTER_LPORT
+        FILTER_DPORT
+        key4.lport = lport;
+        key4.dport = dport;
+        datap = ipv4_stat.lookup(&key4);
+        if (datap == 0) {
+            data.last_ts = bpf_ktime_get_ns();
+            data.last_cong_stat = cong_state + 1;
+            ipv4_stat.update(&key4, &data);
+        } else {
+            last_cong_state = datap->last_cong_stat;
+            if ((cong_state + 1) != last_cong_state) {
+                ts1 = bpf_ktime_get_ns();
+                ts = ts1 - datap->last_ts;
+                datap->last_ts = ts1;
+                datap->last_cong_stat = cong_state + 1;
+                ts /= 1000;
+                STORE
+            }
+        }
+    } else if (family == AF_INET6) {
+        ipv6_flow_key_t key6 = {0};
+        bpf_probe_read_kernel(&key6.saddr, sizeof(key6.saddr),
+            &sk->__sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+        bpf_probe_read_kernel(&key6.daddr, sizeof(key6.daddr),
+            &sk->__sk_common.skc_v6_daddr.in6_u.u6_addr32);
+        FILTER_LPORT
+        FILTER_DPORT
+        key6.lport = lport;
+        key6.dport = dport;
+        datap = ipv6
