@@ -203,4 +203,64 @@ static int ret_state_update_func(struct sock *sk)
     u16 dport = 0, lport = 0;
     u32 tid = bpf_get_current_pid_tgid();
     process_key_t key = {0};
-    bpf_get_current_comm(&key.comm, sizeof(ke
+    bpf_get_current_comm(&key.comm, sizeof(key.comm));
+    key.tid = tid;
+
+    struct inet_connection_sock *icsk = inet_csk(sk);
+    cong_status_t cong_status;
+    bpf_probe_read_kernel(&cong_status, sizeof(cong_status),
+        (void *)((long)&icsk->icsk_retransmits) - 1);
+    data_val_t *datap, data = {0};
+    STATE_KEY
+    bpf_probe_read_kernel(&family, sizeof(family),
+        &sk->__sk_common.skc_family);
+    if (family == AF_INET) {
+        ipv4_flow_val_t *val4 = start_ipv4.lookup(&key);
+        if (val4 == 0) {
+            SOCK_STORE_DEL
+            return 0; //missed
+        }
+        ipv4_flow_key_t keyv4 = {0};
+        bpf_probe_read_kernel(&keyv4, sizeof(ipv4_flow_key_t),
+            &(val4->ipv4_key));
+        dport = keyv4.dport;
+        lport = keyv4.lport;
+        FILTER_LPORT
+        FILTER_DPORT
+        datap = ipv4_stat.lookup(&keyv4);
+        if (datap == 0) {
+            data.last_ts = bpf_ktime_get_ns();
+            data.last_cong_stat = val4->cong_state;
+            ipv4_stat.update(&keyv4, &data);
+        } else {
+            last_cong_state = val4->cong_state;
+            if ((cong_status.cong_stat + 1) != last_cong_state) {
+                ts1 = bpf_ktime_get_ns();
+                ts = ts1 - datap->last_ts;
+                datap->last_ts = ts1;
+                datap->last_cong_stat = cong_status.cong_stat + 1;
+                ts /= 1000;
+                STORE
+            }
+        }
+        start_ipv4.delete(&key);
+    } else if (family == AF_INET6) {
+        ipv6_flow_val_t *val6 = start_ipv6.lookup(&key);
+        if (val6 == 0) {
+            SOCK_STORE_DEL
+            return 0; //missed
+        }
+        ipv6_flow_key_t keyv6 = {0};
+        bpf_probe_read_kernel(&keyv6, sizeof(ipv6_flow_key_t),
+            &(val6->ipv6_key));
+        dport = keyv6.dport;
+        lport = keyv6.lport;
+        FILTER_LPORT
+        FILTER_DPORT
+        datap = ipv6_stat.lookup(&keyv6);
+        if (datap == 0) {
+            data.last_ts = bpf_ktime_get_ns();
+            data.last_cong_stat = val6->cong_state;
+            ipv6_stat.update(&keyv6, &data);
+        } else {
+    
