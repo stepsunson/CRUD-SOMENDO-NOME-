@@ -480,4 +480,63 @@ store_text = """
                     datap->recover_dura += ts;
                 } else if (last_cong_state == (TCP_CA_Loss + 1)) {
                     datap->loss_dura += ts;
- 
+                }
+"""
+
+store_dist_text = """
+                if (last_cong_state == (TCP_CA_Open + 1)) {
+                    key_s.state = TCP_CA_Open;
+                } else if (last_cong_state == (TCP_CA_Disorder + 1)) {
+                    key_s.state = TCP_CA_Disorder;
+                } else if (last_cong_state == (TCP_CA_CWR + 1)) {
+                    key_s.state = TCP_CA_CWR;
+                } else if (last_cong_state == (TCP_CA_Recovery + 1)) {
+                    key_s.state = TCP_CA_Recovery;
+                } else if (last_cong_state == (TCP_CA_Loss + 1)) {
+                    key_s.state = TCP_CA_Loss;
+                }
+                TIME_UNIT
+                key_s.slot = bpf_log2l(ts);
+                dist.atomic_increment(key_s);
+"""
+
+hist_table_text = """
+typedef struct congest_state_key {
+    u32  state;
+    u64  slot;
+}congest_state_key_t;
+
+BPF_HISTOGRAM(dist, congest_state_key_t);
+"""
+
+if args.dist:
+    bpf_text = bpf_text.replace('DEF_TEXT', '')
+    bpf_text = bpf_text.replace('STORE', store_dist_text)
+    bpf_text = bpf_text.replace('STATE_KEY',
+        'congest_state_key_t key_s = {0};')
+    bpf_text = bpf_text.replace('HIST_TABLE', hist_table_text)
+    if args.microseconds:
+        bpf_text = bpf_text.replace('TIME_UNIT', '')
+    else:
+        bpf_text = bpf_text.replace('TIME_UNIT', 'ts /= 1000;')
+else:
+    bpf_text = bpf_text.replace('DEF_TEXT', table_def_text)
+    bpf_text = bpf_text.replace('STORE', store_text)
+    bpf_text = bpf_text.replace('STATE_KEY', '')
+    bpf_text = bpf_text.replace('HIST_TABLE', '')
+
+
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# load BPF program
+b = BPF(text=bpf_text)
+
+if not is_support_tp_ca and not is_support_kfunc:
+    # all the tcp congestion control status update functions
+    # are called by below 5 functions.
+    b.attach_kprobe(event="tcp_fastretrans_alert", fn_name="entry_func")
+    b.attach_kretprobe(event="tcp_fastretrans_alert", fn_name="ret_func")
+    b.attach_kprobe(event="t
