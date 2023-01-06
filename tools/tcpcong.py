@@ -424,4 +424,60 @@ KRETFUNC_PROBE(tcp_process_tlp_ack, struct sock *sk)
 """
 
 # code replace
-is_supp
+is_support_tp_ca = BPF.tracepoint_exists("tcp", "tcp_cong_state_set")
+if is_support_tp_ca:
+    bpf_text = bpf_head_text + bpf_ca_tp_body_text
+else:
+    bpf_text = bpf_head_text + bpf_extra_head
+    bpf_text += bpf_no_ca_tp_body_text
+    is_support_kfunc = BPF.support_kfunc()
+    if is_support_kfunc:
+        bpf_text += kfunc_program
+        bpf_text = bpf_text.replace('SOCK_STORE_DEF', '')
+        bpf_text = bpf_text.replace('SOCK_STORE_ADD', '')
+        bpf_text = bpf_text.replace('SOCK_STORE_DEL', '')
+    else:
+        bpf_text += kprobe_program
+        bpf_text = bpf_text.replace('SOCK_STORE_DEF',
+                       'BPF_HASH(sock_store, process_key_t, struct sock *);')
+        bpf_text = bpf_text.replace('SOCK_STORE_ADD',
+                       'sock_store.update(&key, &sk);')
+        bpf_text = bpf_text.replace('SOCK_STORE_DEL',
+                       'sock_store.delete(&key);')
+
+if args.localport:
+    bpf_text = bpf_text.replace('FILTER_LPORT',
+        'if (lport < %d || lport > %d) { return 0; }'
+        % (start_lport, end_lport))
+else:
+    bpf_text = bpf_text.replace('FILTER_LPORT', '')
+
+if args.remoteport:
+    bpf_text = bpf_text.replace('FILTER_DPORT',
+        'if (dport < %d || dport > %d) { return 0; }'
+        % (start_rport, end_rport))
+else:
+    bpf_text = bpf_text.replace('FILTER_DPORT', '')
+
+table_def_text = """
+    u64  open_dura;
+    u64  loss_dura;
+    u64  disorder_dura;
+    u64  recover_dura;
+    u64  cwr_dura;
+    u64  total_changes;
+"""
+
+store_text = """
+                datap->total_changes += 1;
+                if (last_cong_state == (TCP_CA_Open + 1)) {
+                    datap->open_dura += ts;
+                } else if (last_cong_state == (TCP_CA_Disorder + 1)) {
+                    datap->disorder_dura += ts;
+                } else if (last_cong_state == (TCP_CA_CWR + 1)) {
+                    datap->cwr_dura += ts;
+                } else if (last_cong_state == (TCP_CA_Recovery + 1)) {
+                    datap->recover_dura += ts;
+                } else if (last_cong_state == (TCP_CA_Loss + 1)) {
+                    datap->loss_dura += ts;
+ 
