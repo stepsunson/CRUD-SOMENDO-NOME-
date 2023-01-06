@@ -539,4 +539,60 @@ if not is_support_tp_ca and not is_support_kfunc:
     # are called by below 5 functions.
     b.attach_kprobe(event="tcp_fastretrans_alert", fn_name="entry_func")
     b.attach_kretprobe(event="tcp_fastretrans_alert", fn_name="ret_func")
-    b.attach_kprobe(event="t
+    b.attach_kprobe(event="tcp_enter_cwr", fn_name="entry_func")
+    b.attach_kretprobe(event="tcp_enter_cwr", fn_name="ret_func")
+    b.attach_kprobe(event="tcp_process_tlp_ack", fn_name="entry_func")
+    b.attach_kretprobe(event="tcp_process_tlp_ack", fn_name="ret_func")
+    b.attach_kprobe(event="tcp_enter_loss", fn_name="entry_func")
+    b.attach_kretprobe(event="tcp_enter_loss", fn_name="ret_func")
+    b.attach_kprobe(event="tcp_enter_recovery", fn_name="entry_func")
+    b.attach_kretprobe(event="tcp_enter_recovery", fn_name="ret_func")
+
+print("Tracing tcp congestion control status duration... Hit Ctrl-C to end.")
+
+
+def cong_state_to_name(state):
+    # this need to match with kernel state
+    state_name = ["open", "disorder", "cwr", "recovery", "loss"]
+    return state_name[state]
+
+# output
+exiting = 0 if args.interval else 1
+ipv6_stat = b.get_table("ipv6_stat")
+ipv4_stat = b.get_table("ipv4_stat")
+if args.dist:
+    dist = b.get_table("dist")
+label = "ms"
+if args.microseconds:
+    label = "us"
+while (1):
+    try:
+        sleep(int(args.interval))
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print()
+    if args.timestamp:
+        print("%-8s\n" % strftime("%H:%M:%S"), end="")
+    if args.dist:
+        if args.microseconds:
+            dist.print_log2_hist("usecs", "tcp_congest_state",
+                section_print_fn=cong_state_to_name)
+        else:
+            dist.print_log2_hist("msecs", "tcp_congest_state",
+                section_print_fn=cong_state_to_name)
+        dist.clear()
+    else:
+        if ipv4_stat:
+            print("%-21s% -21s %-7s %-6s %-7s %-7s %-6s %-5s" % ("LAddrPort",
+                "RAddrPort", "Open_" + label, "Dod_" + label,
+                "Rcov_" + label, "Cwr_" + label, "Los_" + label, "Chgs"))
+        laddr = ""
+        raddr = ""
+        for k, v in sorted(ipv4_stat.items(), key=lambda ipv4_stat: ipv4_stat[0].lport):
+            laddr = inet_ntop(AF_INET, pack("I", k.saddr))
+            raddr = inet_ntop(AF_INET, pack("I", k.daddr))
+            open_dura = v.open_dura
+            disorder_dura = v.disorder_dura
+            recover_dura = v.recover_dura
+            cwr_dura = v.
