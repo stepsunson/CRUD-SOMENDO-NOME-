@@ -595,4 +595,44 @@ while (1):
             open_dura = v.open_dura
             disorder_dura = v.disorder_dura
             recover_dura = v.recover_dura
-            cwr_dura = v.
+            cwr_dura = v.cwr_dura
+            loss_dura = v.loss_dura
+            if not args.microseconds:
+                open_dura /= 1000
+                disorder_dura /= 1000
+                recover_dura /= 1000
+                cwr_dura /= 1000
+                loss_dura /= 1000
+            if v.total_changes != 0:
+                print("%-21s %-21s %-7d %-6d %-7d %-7d %-6d %-5d" % (laddr +
+                    "/" + str(k.lport), raddr + "/" + str(k.dport), open_dura,
+                    disorder_dura, recover_dura, cwr_dura, loss_dura,
+                    v.total_changes))
+        if ipv6_stat:
+            print("%-32s %-32s %-7s %-6s %-7s %-7s %-6s %-5s" % ("LAddrPort6",
+                "RAddrPort6", "Open_" + label, "Dod_" + label, "Rcov_" + label,
+                "Cwr_" + label, "Los_" + label, "Chgs"))
+        for k, v in sorted(ipv6_stat.items(), key=lambda ipv6_stat: ipv6_stat[0].lport):
+            laddr = inet_ntop(AF_INET6, bytes(k.saddr))
+            raddr = inet_ntop(AF_INET6, bytes(k.daddr))
+            open_dura = v.open_dura
+            disorder_dura = v.disorder_dura
+            recover_dura = v.recover_dura
+            cwr_dura = v.cwr_dura
+            loss_dura = v.loss_dura
+            if not args.microseconds:
+                open_dura /= 1000
+                disorder_dura /= 1000
+                recover_dura /= 1000
+                cwr_dura /= 1000
+                loss_dura /= 1000
+            if v.total_changes != 0:
+                print("%-32s %-32s %-7d %-7d %-7d %-6d %-6d %-5d" % (laddr +
+                    "/" + str(k.lport), raddr + "/" + str(k.dport), open_dura,
+                    disorder_dura, recover_dura, cwr_dura, loss_dura,
+                    v.total_changes))
+    ipv4_stat.clear()
+    ipv6_stat.clear()
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
