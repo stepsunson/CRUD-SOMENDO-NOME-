@@ -256,4 +256,36 @@ fe80::bace:f6ff:fe14:d21c/32816  fe80::bace:f6ff:fe43:fe96/19226  765172  0     
 
 11:31:57
 LAddrPort6                       RAddrPort6                       Open_us Dod_us Rcov_us Cwr_us  Los_us Chgs
-fe80::bace:f6ff:
+fe80::bace:f6ff:fe14:d21c/32810  fe80::bace:f6ff:fe43:fe96/19226  839563  0       0       98313  0      149
+fe80::bace:f6ff:fe14:d21c/32812  fe80::bace:f6ff:fe43:fe96/19226  534816  0       0       329683 0      495
+fe80::bace:f6ff:fe14:d21c/32814  fe80::bace:f6ff:fe43:fe96/19226  841706  103     2404    91273  0      132
+fe80::bace:f6ff:fe14:d21c/32816  fe80::bace:f6ff:fe43:fe96/19226  633320  0       0       286584 0      565
+
+
+The distribution of congestion status duration can be printed as a histogram 
+with the -d option and also optionally a count. Eg printing output every 
+1 second for microseconds, and including timestamps (-T):
+./tcpcong.py -d -u -T 1 2
+Tracing tcp congestion control status duration... Hit Ctrl-C to end.
+
+07:40:12
+
+tcp_congest_state = cwr
+     usecs               : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 11       |                                        |
+         8 -> 15         : 10       |                                        |
+        16 -> 31         : 25       |                                        |
+        32 -> 63         : 58       |                                        |
+        64 -> 127        : 117      |                                        |
+       128 -> 255        : 2924     |*******                                 |
+       256 -> 511        : 16249    |****************************************|
+       512 -> 1023       : 15340    |*************************************   |
+      1024 -> 2047       : 786      |*                                       |
+      2048 -> 4095       : 24       |                                        |
+      4096 -> 8191       : 7        |                                        |
+      8192 -> 16383      : 0        |                                        |
+     16384 -> 32767      : 0        |                                        |
+     32768 -> 65535      : 1        |                                        |
+   
