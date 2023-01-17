@@ -1,0 +1,13 @@
+Demonstrations of tcpconnlat, the Linux eBPF/bcc version.
+
+
+This tool traces the kernel function performing active TCP connections
+(eg, via a connect() syscall), and shows the latency (time) for the connection
+as measured locally: the time from SYN sent to the response packet.
+For example:
+
+# ./tcpconnlat
+PID    COMM         IP SADDR            DADDR            DPORT LAT(ms)
+1201   wget         4  10.153.223.157   23.23.100.231    80    1.65
+1201   wget         4  10.153.223.157   23.23.100.231    443   1.60
+1433  
