@@ -59,4 +59,63 @@ The -L option prints a LPORT column:
 
 # ./tcpconnect -L
 PID    COMM         IP SADDR            LPORT  DADDR            DPORT
-3706   nc           4  192.168.122.205  57266
+3706   nc           4  192.168.122.205  57266  192.168.122.150  5000
+3722   ssh          4  192.168.122.205  50966  192.168.122.150  22
+3779   ssh          6  fe80::1          52328  fe80::2          22
+
+
+The -U option prints a UID column:
+
+# ./tcpconnect -U
+UID   PID    COMM         IP SADDR            DADDR            DPORT
+0     31333  telnet       6  ::1              ::1              23
+0     31333  telnet       4  127.0.0.1        127.0.0.1        23
+1000  31322  curl         4  127.0.0.1        127.0.0.1        80
+1000  31322  curl         6  ::1              ::1              80
+
+
+The -u option filtering UID:
+
+# ./tcpconnect -Uu 1000
+UID   PID    COMM         IP SADDR            DADDR            DPORT
+1000  31338  telnet       6  ::1              ::1              23
+1000  31338  telnet       4  127.0.0.1        127.0.0.1        23
+
+To spot heavy outbound connections quickly one can use the -c flag. It will
+count all active connections per source ip and destination ip/port.
+
+# ./tcpconnect.py -c
+Tracing connect ... Hit Ctrl-C to end
+^C
+LADDR                 RADDR                      RPORT             CONNECTS
+192.168.10.50         172.217.21.194             443               70
+192.168.10.50         172.213.11.195             443               34
+192.168.10.50         172.212.22.194             443               21
+[...]
+
+
+The --cgroupmap option filters based on a cgroup set. It is meant to be used
+with an externally created map.
+
+# ./tcpconnect --cgroupmap /sys/fs/bpf/test01
+
+For more details, see docs/special_filtering.md
+
+
+USAGE message:
+
+# ./tcpconnect -h
+
+usage: tcpconnect.py [-h] [-t] [-p PID] [-P PORT] [-4 | -6] [-L] [-U] [-u UID]
+                     [-c] [--cgroupmap CGROUPMAP] [--mntnsmap MNTNSMAP] [-d]
+
+Trace TCP connects
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t, --timestamp       include timestamp on output
+  -p PID, --pid PID     trace this PID only
+  -P PORT, --port PORT  comma-separated list of destination ports to trace.
+  -4, --ipv4            trace IPv4 family only
+  -6, --ipv6            trace IPv6 family only
+  -L, --lport           include LPO
