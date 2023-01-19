@@ -72,4 +72,5 @@ optional arguments:
 
 examples:
     ./tcpdrop           # trace kernel TCP drops
-    ./tcpdrop -4        # trace IPv4 fami
+    ./tcpdrop -4        # trace IPv4 family only
+    ./tcpdrop -6        # trace IPv6 family only
