@@ -113,4 +113,94 @@ static int trace_event(struct pt_regs *ctx, struct sock *skp, struct sk_buff *sk
 
     if (skp == NULL)
         return 0;
-    u32 pid = bpf_get_current_pid_tgid(
+    u32 pid = bpf_get_current_pid_tgid() >> 32;
+
+    // pull in details
+    u16 family = skp->__sk_common.skc_family;
+    u16 lport = skp->__sk_common.skc_num;
+    u16 dport = skp->__sk_common.skc_dport;
+    char state = skp->__sk_common.skc_state;
+
+    seq = 0;
+    if (skb) {
+        /* macro TCP_SKB_CB from net/tcp.h */
+        tcb = ((struct tcp_skb_cb *)&((skb)->cb[0]));
+        seq = tcb->seq;
+    }
+
+    FILTER_FAMILY
+
+    if (family == AF_INET) {
+        IPV4_INIT
+        IPV4_CORE
+    } else if (family == AF_INET6) {
+        IPV6_INIT
+        IPV6_CORE
+    }
+    // else drop
+
+    return 0;
+}
+"""
+
+bpf_text_kprobe_retransmit = """
+int trace_retransmit(struct pt_regs *ctx, struct sock *sk, struct sk_buff *skb)
+{
+    trace_event(ctx, sk, skb, RETRANSMIT);
+    return 0;
+}
+"""
+
+bpf_text_kprobe_tlp = """
+int trace_tlp(struct pt_regs *ctx, struct sock *sk)
+{
+    trace_event(ctx, sk, NULL, TLP);
+    return 0;
+}
+"""
+
+bpf_text_tracepoint = """
+TRACEPOINT_PROBE(tcp, tcp_retransmit_skb)
+{
+    struct tcp_skb_cb *tcb;
+    u32 seq;
+
+    u32 pid = bpf_get_current_pid_tgid() >> 32;
+    const struct sock *skp = (const struct sock *)args->skaddr;
+    const struct sk_buff *skb = (const struct sk_buff *)args->skbaddr;
+    u16 lport = args->sport;
+    u16 dport = args->dport;
+    char state = skp->__sk_common.skc_state;
+    u16 family = skp->__sk_common.skc_family;
+
+    seq = 0;
+    if (skb) {
+        /* macro TCP_SKB_CB from net/tcp.h */
+        tcb = ((struct tcp_skb_cb *)&((skb)->cb[0]));
+        seq = tcb->seq;
+    }
+
+    FILTER_FAMILY
+
+    if (family == AF_INET) {
+        IPV4_CODE
+    } else if (family == AF_INET6) {
+        IPV6_CODE
+    }
+    return 0;
+}
+"""
+
+struct_init = { 'ipv4':
+        { 'count' :
+            """
+               struct ipv4_flow_key_t flow_key = {};
+               flow_key.saddr = skp->__sk_common.skc_rcv_saddr;
+               flow_key.daddr = skp->__sk_common.skc_daddr;
+               // lport is host order
+               flow_key.lport = lport;
+               flow_key.dport = ntohs(dport);""",
+               'trace' :
+               """
+               struct ipv4_data_t data4 = {};
+      
