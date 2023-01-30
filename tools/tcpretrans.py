@@ -203,4 +203,50 @@ struct_init = { 'ipv4':
                'trace' :
                """
                struct ipv4_data_t data4 = {};
-      
+               data4.pid = pid;
+               data4.ip = 4;
+               data4.seq = seq;
+               data4.type = type;
+               data4.saddr = skp->__sk_common.skc_rcv_saddr;
+               data4.daddr = skp->__sk_common.skc_daddr;
+               // lport is host order
+               data4.lport = lport;
+               data4.dport = ntohs(dport);
+               data4.state = state; """
+               },
+        'ipv6':
+        { 'count' :
+            """
+                    struct ipv6_flow_key_t flow_key = {};
+                    bpf_probe_read_kernel(&flow_key.saddr, sizeof(flow_key.saddr),
+                        skp->__sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+                    bpf_probe_read_kernel(&flow_key.daddr, sizeof(flow_key.daddr),
+                        skp->__sk_common.skc_v6_daddr.in6_u.u6_addr32);
+                    // lport is host order
+                    flow_key.lport = lport;
+                    flow_key.dport = ntohs(dport);""",
+          'trace' : """
+                    struct ipv6_data_t data6 = {};
+                    data6.pid = pid;
+                    data6.ip = 6;
+                    data6.seq = seq;
+                    data6.type = type;
+                    bpf_probe_read_kernel(&data6.saddr, sizeof(data6.saddr),
+                        skp->__sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+                    bpf_probe_read_kernel(&data6.daddr, sizeof(data6.daddr),
+                        skp->__sk_common.skc_v6_daddr.in6_u.u6_addr32);
+                    // lport is host order
+                    data6.lport = lport;
+                    data6.dport = ntohs(dport);
+                    data6.state = state;"""
+                }
+        }
+
+struct_init_tracepoint = { 'ipv4':
+        { 'count' : """
+               struct ipv4_flow_key_t flow_key = {};
+               __builtin_memcpy(&flow_key.saddr, args->saddr, sizeof(flow_key.saddr));
+               __builtin_memcpy(&flow_key.daddr, args->daddr, sizeof(flow_key.daddr));
+               flow_key.lport = lport;
+               flow_key.dport = dport;
+               ipv4_count.incr
