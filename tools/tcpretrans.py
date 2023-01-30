@@ -299,4 +299,60 @@ if BPF.tracepoint_exists("tcp", "tcp_retransmit_skb"):
         bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV4_CODE", struct_init_tracepoint['ipv4']['count'])
         bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV6_CODE", struct_init_tracepoint['ipv6']['count'])
     else:
-        bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV4_CODE", struct_i
+        bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV4_CODE", struct_init_tracepoint['ipv4']['trace'])
+        bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV6_CODE", struct_init_tracepoint['ipv6']['trace'])
+    bpf_text += bpf_text_tracepoint
+
+if args.lossprobe or not BPF.tracepoint_exists("tcp", "tcp_retransmit_skb"):
+    bpf_text += bpf_text_kprobe
+    if args.count:
+        bpf_text = bpf_text.replace("IPV4_INIT", struct_init['ipv4']['count'])
+        bpf_text = bpf_text.replace("IPV6_INIT", struct_init['ipv6']['count'])
+        bpf_text = bpf_text.replace("IPV4_CORE", count_core_base.replace("COUNT_STRUCT", 'ipv4_count'))
+        bpf_text = bpf_text.replace("IPV6_CORE", count_core_base.replace("COUNT_STRUCT", 'ipv6_count'))
+    else:
+        bpf_text = bpf_text.replace("IPV4_INIT", struct_init['ipv4']['trace'])
+        bpf_text = bpf_text.replace("IPV6_INIT", struct_init['ipv6']['trace'])
+        bpf_text = bpf_text.replace("IPV4_CORE", "ipv4_events.perf_submit(ctx, &data4, sizeof(data4));")
+        bpf_text = bpf_text.replace("IPV6_CORE", "ipv6_events.perf_submit(ctx, &data6, sizeof(data6));")
+    if args.lossprobe:
+        bpf_text += bpf_text_kprobe_tlp
+    if not BPF.tracepoint_exists("tcp", "tcp_retransmit_skb"):
+        bpf_text += bpf_text_kprobe_retransmit
+if args.ipv4:
+    bpf_text = bpf_text.replace('FILTER_FAMILY',
+        'if (family != AF_INET) { return 0; }')
+elif args.ipv6:
+    bpf_text = bpf_text.replace('FILTER_FAMILY',
+        'if (family != AF_INET6) { return 0; }')
+else:
+    bpf_text = bpf_text.replace('FILTER_FAMILY', '')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# from bpf_text:
+type = {}
+type[1] = 'R'
+type[2] = 'L'
+
+# from include/net/tcp_states.h:
+tcpstate = {}
+tcpstate[1] = 'ESTABLISHED'
+tcpstate[2] = 'SYN_SENT'
+tcpstate[3] = 'SYN_RECV'
+tcpstate[4] = 'FIN_WAIT1'
+tcpstate[5] = 'FIN_WAIT2'
+tcpstate[6] = 'TIME_WAIT'
+tcpstate[7] = 'CLOSE'
+tcpstate[8] = 'CLOSE_WAIT'
+tcpstate[9] = 'LAST_ACK'
+tcpstate[10] = 'LISTEN'
+tcpstate[11] = 'CLOSING'
+tcpstate[12] = 'NEW_SYN_RECV'
+
+# process event
+def print_ipv4_event(cpu, data, size):
+    event = b["ipv4_events"].event(data)
+    
