@@ -249,4 +249,54 @@ struct_init_tracepoint = { 'ipv4':
                __builtin_memcpy(&flow_key.daddr, args->daddr, sizeof(flow_key.daddr));
                flow_key.lport = lport;
                flow_key.dport = dport;
-               ipv4_count.incr
+               ipv4_count.increment(flow_key);
+               """,
+          'trace' : """
+               struct ipv4_data_t data4 = {};
+               data4.pid = pid;
+               data4.lport = lport;
+               data4.dport = dport;
+               data4.type = RETRANSMIT;
+               data4.ip = 4;
+               data4.seq = seq;
+               data4.state = state;
+               __builtin_memcpy(&data4.saddr, args->saddr, sizeof(data4.saddr));
+               __builtin_memcpy(&data4.daddr, args->daddr, sizeof(data4.daddr));
+               ipv4_events.perf_submit(args, &data4, sizeof(data4));
+               """
+               },
+        'ipv6':
+        { 'count' : """
+               struct ipv6_flow_key_t flow_key = {};
+               __builtin_memcpy(&flow_key.saddr, args->saddr_v6, sizeof(flow_key.saddr));
+               __builtin_memcpy(&flow_key.daddr, args->daddr_v6, sizeof(flow_key.daddr));
+               flow_key.lport = lport;
+               flow_key.dport = dport;
+               ipv6_count.increment(flow_key);
+               """,
+          'trace' : """
+               struct ipv6_data_t data6 = {};
+               data6.pid = pid;
+               data6.lport = lport;
+               data6.dport = dport;
+               data6.type = RETRANSMIT;
+               data6.ip = 6;
+               data6.seq = seq;
+               data6.state = state;
+               __builtin_memcpy(&data6.saddr, args->saddr_v6, sizeof(data6.saddr));
+               __builtin_memcpy(&data6.daddr, args->daddr_v6, sizeof(data6.daddr));
+               ipv6_events.perf_submit(args, &data6, sizeof(data6));
+               """
+               }
+        }
+
+count_core_base = """
+        COUNT_STRUCT.increment(flow_key);
+"""
+
+if BPF.tracepoint_exists("tcp", "tcp_retransmit_skb"):
+    if args.count:
+        bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV4_CODE", struct_init_tracepoint['ipv4']['count'])
+        bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV6_CODE", struct_init_tracepoint['ipv6']['count'])
+    else:
+        bpf_text_tracepoint = bpf_text_tracepoint.replace("IPV4_CODE", struct_i
