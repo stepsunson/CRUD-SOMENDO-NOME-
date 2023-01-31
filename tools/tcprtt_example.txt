@@ -1,0 +1,29 @@
+Demonstrations of tcprtt, the Linux eBPF/bcc version.
+
+
+This program traces TCP RTT(round-trip time) to analyze the quality of
+network, then help us to distinguish the network latency trouble is from
+user process or physical network.
+
+For example, wrk show the http request latency distribution:
+# wrk -d 30 -c 10 --latency http://192.168.122.100/index.html
+Running 30s test @ http://192.168.122.100/index.html
+  2 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    86.75ms  153.76ms   1.54s    90.85%
+    Req/Sec   160.91     76.07   424.00     67.06%
+  Latency Distribution
+     50%   14.55ms
+     75%  119.21ms
+     90%  230.22ms
+     99%  726.90ms
+  9523 requests in 30.02s, 69.62MB read
+  Socket errors: connect 0, read 0, write 0, timeout 1
+
+During wrk testing, run tcprtt:
+# ./tcprtt -i 1 -d 10 -m
+Tracing TCP RTT... Hit Ctrl-C to end.
+     msecs               : count     distribution
+         0 -> 1          : 4        |                                        |
+         2 -> 3          : 0        |                                        |
+      

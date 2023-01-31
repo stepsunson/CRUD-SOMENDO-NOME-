@@ -408,4 +408,23 @@ if args.count:
         pass
 
     # header
-    print("\n%-25s %-25s %
+    print("\n%-25s %-25s %-10s" % (
+        "LADDR:LPORT", "RADDR:RPORT", "RETRANSMITS"))
+    depict_cnt(b.get_table("ipv4_count"))
+    depict_cnt(b.get_table("ipv6_count"), l3prot='ipv6')
+# read events
+else:
+    # header
+    print("%-8s %-7s %-2s %-20s %1s> %-20s" % ("TIME", "PID", "IP",
+        "LADDR:LPORT", "T", "RADDR:RPORT"), end='')
+    if args.sequence:
+        print(" %-12s %-10s" % ("STATE", "SEQ"))
+    else:
+        print(" %-4s" % ("STATE"))
+    b["ipv4_events"].open_perf_buffer(print_ipv4_event)
+    b["ipv6_events"].open_perf_buffer(print_ipv6_event)
+    while 1:
+        try:
+            b.perf_buffer_poll()
+        except KeyboardInterrupt:
+            exit()
