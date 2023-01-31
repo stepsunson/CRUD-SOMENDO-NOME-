@@ -355,4 +355,57 @@ tcpstate[12] = 'NEW_SYN_RECV'
 # process event
 def print_ipv4_event(cpu, data, size):
     event = b["ipv4_events"].event(data)
-    
+    print("%-8s %-7d %-2d %-20s %1s> %-20s" % (
+        strftime("%H:%M:%S"), event.pid, event.ip,
+        "%s:%d" % (inet_ntop(AF_INET, pack('I', event.saddr)), event.lport),
+        type[event.type],
+        "%s:%s" % (inet_ntop(AF_INET, pack('I', event.daddr)), event.dport)),
+        end='')
+    if args.sequence:
+        print(" %-12s %s" % (tcpstate[event.state], event.seq))
+    else:
+        print(" %s" % (tcpstate[event.state]))
+
+def print_ipv6_event(cpu, data, size):
+    event = b["ipv6_events"].event(data)
+    print("%-8s %-7d %-2d %-20s %1s> %-20s" % (
+        strftime("%H:%M:%S"), event.pid, event.ip,
+        "%s:%d" % (inet_ntop(AF_INET6, event.saddr), event.lport),
+        type[event.type],
+        "%s:%d" % (inet_ntop(AF_INET6, event.daddr), event.dport)),
+        end='')
+    if args.sequence:
+        print(" %-12s %s" % (tcpstate[event.state], event.seq))
+    else:
+        print(" %s" % (tcpstate[event.state]))
+
+def depict_cnt(counts_tab, l3prot='ipv4'):
+    for k, v in sorted(counts_tab.items(), key=lambda counts: counts[1].value):
+        depict_key = ""
+        ep_fmt = "[%s]#%d"
+        if l3prot == 'ipv4':
+            depict_key = "%-20s <-> %-20s" % (ep_fmt % (inet_ntop(AF_INET, pack('I', k.saddr)), k.lport),
+                                              ep_fmt % (inet_ntop(AF_INET, pack('I', k.daddr)), k.dport))
+        else:
+            depict_key = "%-20s <-> %-20s" % (ep_fmt % (inet_ntop(AF_INET6, k.saddr), k.lport),
+                                              ep_fmt % (inet_ntop(AF_INET6, k.daddr), k.dport))
+
+        print ("%s %10d" % (depict_key, v.value))
+
+# initialize BPF
+b = BPF(text=bpf_text)
+if not BPF.tracepoint_exists("tcp", "tcp_retransmit_skb"):
+    b.attach_kprobe(event="tcp_retransmit_skb", fn_name="trace_retransmit")
+if args.lossprobe:
+    b.attach_kprobe(event="tcp_send_loss_probe", fn_name="trace_tlp")
+
+print("Tracing retransmits ... Hit Ctrl-C to end")
+if args.count:
+    try:
+        while 1:
+            sleep(99999999)
+    except BaseException:
+        pass
+
+    # header
+    print("\n%-25s %-25s %
