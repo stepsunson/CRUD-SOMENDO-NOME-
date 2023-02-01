@@ -26,4 +26,40 @@ Tracing TCP RTT... Hit Ctrl-C to end.
      msecs               : count     distribution
          0 -> 1          : 4        |                                        |
          2 -> 3          : 0        |                                        |
-      
+         4 -> 7          : 1055     |****************************************|
+         8 -> 15         : 26       |                                        |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 0        |                                        |
+        64 -> 127        : 18       |                                        |
+       128 -> 255        : 14       |                                        |
+       256 -> 511        : 14       |                                        |
+       512 -> 1023       : 12       |                                        |
+
+The wrk output shows that the latency of web service is not stable, and tcprtt
+also shows unstable TCP RTT. So in this situation, we need to make sure the
+quality of network is good or not firstly.
+
+
+Use filter for address and(or) port. Ex, only collect local address 192.168.122.200
+and remote address 192.168.122.100 and remote port 80.
+# ./tcprtt -i 1 -d 10 -m -a 192.168.122.200 -A 192.168.122.100 -P 80
+
+
+Tracing at server side, show each clients with its own histogram.
+For example, run tcprtt on a storage node to show initiators' rtt histogram:
+# ./tcprtt -i 1 --lport 3260 --byraddr -e
+Tracing TCP RTT... Hit Ctrl-C to end.
+
+
+Remote Addres = 10.194.87.206 [AVG 170]
+     usecs               : count     distribution
+         0 -> 1          : 0        |                                        |
+         2 -> 3          : 0        |                                        |
+         4 -> 7          : 0        |                                        |
+         8 -> 15         : 0        |                                        |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 31       |                                        |
+        64 -> 127        : 5150     |*******************                     |
+       128 -> 255        : 10327    |****************************************|
+       256 -> 511        : 1014     |***                                     |
+       512 -
