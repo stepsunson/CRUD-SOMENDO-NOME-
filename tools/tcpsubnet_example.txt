@@ -1,0 +1,25 @@
+Demonstrations of tcpsubnet, the Linux eBPF/bcc version.
+
+
+tcpsubnet summarizes throughput by destination subnet.
+It works only for IPv4. Eg:
+
+# tcpsubnet
+Tracing... Output every 1 secs. Hit Ctrl-C to end
+[03/05/18 22:32:47]
+127.0.0.1/32               8
+[03/05/18 22:32:48]
+[03/05/18 22:32:49]
+[03/05/18 22:32:50]
+[03/05/18 22:32:51]
+[03/05/18 22:32:52]
+127.0.0.1/32              10
+[03/05/18 22:32:53]
+
+This example output shows the number of bytes sent to 127.0.0.1/32 (the
+loopback interface). For demo purposes, I set netcat listening on port
+8080, connected to it and sent the following payloads.
+
+# nc 127.0.0.1 8080
+1111111
+11

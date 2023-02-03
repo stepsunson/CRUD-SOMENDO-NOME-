@@ -173,4 +173,16 @@ optional arguments:
   -6, --ipv6            trace IPv6 family only
 
 examples:
-    ./t
+    ./tcprtt            # summarize TCP RTT
+    ./tcprtt -i 1 -d 10 # print 1 second summaries, 10 times
+    ./tcprtt -m -T      # summarize in millisecond, and timestamps
+    ./tcprtt -p         # filter for local port
+    ./tcprtt -P         # filter for remote port
+    ./tcprtt -a         # filter for local address
+    ./tcprtt -A         # filter for remote address
+    ./tcprtt -b         # show sockets histogram by local address
+    ./tcprtt -B         # show sockets histogram by remote address
+    ./tcprtt -D         # show debug bpf text
+    ./tcprtt -e         # show extension summary(average)
+    ./tcprtt -4         # trace IPv4 family only
+    ./tcprtt -6         # trace IPv6 family only
