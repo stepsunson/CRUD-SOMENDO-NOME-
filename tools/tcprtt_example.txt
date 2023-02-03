@@ -126,4 +126,51 @@ All Addresses = ******* [AVG 324]
          0 -> 1          : 0        |                                        |
          2 -> 3          : 0        |                                        |
          4 -> 7          : 0        |                                        |
-         8 -> 15         : 0        |           
+         8 -> 15         : 0        |                                        |
+        16 -> 31         : 0        |                                        |
+        32 -> 63         : 0        |                                        |
+        64 -> 127        : 5360     |********                                |
+       128 -> 255        : 23834    |****************************************|
+       256 -> 511        : 11276    |******************                      |
+       512 -> 1023       : 700      |*                                       |
+      1024 -> 2047       : 434      |                                        |
+      2048 -> 4095       : 356      |                                        |
+      4096 -> 8191       : 328      |                                        |
+      8192 -> 16383      : 91       |                                        |
+
+
+Full USAGE:
+
+# ./tcprtt -h
+usage: tcprtt [-h] [-i INTERVAL] [-d DURATION] [-T] [-m] [-p LPORT]
+              [-P RPORT] [-a LADDR] [-A RADDR] [-b] [-B] [-e] [-D]
+              [-4 | -6]
+
+Summarize TCP RTT as a histogram
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INTERVAL, --interval INTERVAL
+                        summary interval, seconds
+  -d DURATION, --duration DURATION
+                        total duration of trace, seconds
+  -T, --timestamp       include timestamp on output
+  -m, --milliseconds    millisecond histogram
+  -p LPORT, --lport LPORT
+                        filter for local port
+  -P RPORT, --rport RPORT
+                        filter for remote port
+  -a LADDR, --laddr LADDR
+                        filter for local address
+  -A RADDR, --raddr RADDR
+                        filter for remote address
+  -b, --byladdr         show sockets histogram by local address
+  -B, --byraddr         show sockets histogram by remote address
+  -e, --extension       show extension summary(average)
+  -D, --debug           print BPF program before starting (for debugging
+                        purposes)
+  -4, --ipv4            trace IPv4 family only
+  -6, --ipv6            trace IPv6 family only
+
+examples:
+    ./t
