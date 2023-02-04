@@ -90,3 +90,58 @@ NOTE: When used in production, it is expected that you will have full
 information about your network topology. In which case you won't need
 to approximate subnets nor need to put individual IP addresses like
 we just did.
+
+Notice that the order of the subnet matters. Say, we put 0.0.0.0/0 as
+the first element of the list and 192.130.253.112/32 as the second, all the
+traffic going to 192.130.253.112/32 will have been categorized in
+0.0.0.0/0 as 192.130.253.112/32 is contained in 0.0.0.0/0.
+
+The default output unit is bytes. You can change it by using the
+-f [--format] flag. tcpsubnet uses the same flags as iperf for the unit
+format and adds mM. When using kmKM, the output will be rounded to floor.
+Eg:
+
+# tcpsubnet -fK 0.0.0.0/0
+[03/05/18 22:44:04]
+0.0.0.0/0                  1
+[03/05/18 22:44:05]
+0.0.0.0/0                  5
+[03/05/18 22:44:06]
+0.0.0.0/0                 31
+
+Just like the majority of the bcc tools, tcpsubnet supports -i and --ebpf
+
+It also supports -v [--verbose] which gives useful debugging information
+on how the subnets are evaluated and the BPF program is constructed.
+
+Last but not least, it supports -J [--json] to print the output in
+JSON format. This is handy if you're calling tcpsubnet from another
+program (say a nodejs server) and would like to have a structured stdout.
+The output in JSON format will also include the date and time.
+Eg:
+
+# tcpsubnet -J -fK 192.130.253.110/27,0.0.0.0/0
+{"date": "03/05/18", "entries": {"0.0.0.0/0": 2}, "time": "22:46:27"}
+{"date": "03/05/18", "entries": {}, "time": "22:46:28"}
+{"date": "03/05/18", "entries": {}, "time": "22:46:29"}
+{"date": "03/05/18", "entries": {}, "time": "22:46:30"}
+{"date": "03/05/18", "entries": {"192.30.253.110/27": 0}, "time": "22:46:31"}
+{"date": "03/05/18", "entries": {"192.30.253.110/27": 1}, "time": "22:46:32"}
+{"date": "03/05/18", "entries": {"192.30.253.110/27": 18}, "time": "22:46:32"}
+
+
+USAGE:
+
+# ./tcpsubnet -h
+usage: tcpsubnet.py [-h] [-v] [-J] [-f {b,k,m,B,K,M}] [-i INTERVAL] [subnets]
+
+Summarize TCP send and aggregate by subnet
+
+positional arguments:
+  subnets               comma separated list of subnets
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --verbose         output debug statements
+  -J, --json            format output in JSON
+  -f {b,k,m,B,K,M}, 
