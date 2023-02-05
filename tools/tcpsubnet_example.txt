@@ -144,4 +144,18 @@ optional arguments:
   -h, --help            show this help message and exit
   -v, --verbose         output debug statements
   -J, --json            format output in JSON
-  -f {b,k,m,B,K,M}, 
+  -f {b,k,m,B,K,M}, --format {b,k,m,B,K,M}
+                        [bkmBKM] format to report: bits, Kbits, Mbits, bytes,
+                        KBytes, MBytes (default B)
+  -i INTERVAL, --interval INTERVAL
+                        output interval, in seconds (default 1)
+
+examples:
+    ./tcpsubnet                 # Trace TCP sent to the default subnets:
+                                # 127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,
+                                # 192.168.0.0/16,0.0.0.0/0
+    ./tcpsubnet -f K            # Trace TCP sent to the default subnets
+                                # aggregated in KBytes.
+    ./tcpsubnet 10.80.0.0/24    # Trace TCP sent to 10.80.0.0/24 only
+    ./tcpsubnet -J              # Format the output in JSON.
+
