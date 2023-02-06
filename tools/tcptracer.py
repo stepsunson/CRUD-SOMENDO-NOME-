@@ -133,4 +133,94 @@ static int read_ipv4_tuple(struct ipv4_tuple_t *tuple, struct sock *skp)
   tuple->saddr = saddr;
   tuple->daddr = daddr;
   tuple->sport = sport;
-  tuple->d
+  tuple->dport = dport;
+  tuple->netns = net_ns_inum;
+
+  // if addresses or ports are 0, ignore
+  if (saddr == 0 || daddr == 0 || sport == 0 || dport == 0) {
+      return 0;
+  }
+
+  return 1;
+}
+
+static int read_ipv6_tuple(struct ipv6_tuple_t *tuple, struct sock *skp)
+{
+  u32 net_ns_inum = 0;
+  unsigned __int128 saddr = 0, daddr = 0;
+  struct inet_sock *sockp = (struct inet_sock *)skp;
+  u16 sport = sockp->inet_sport;
+  u16 dport = skp->__sk_common.skc_dport;
+#ifdef CONFIG_NET_NS
+  net_ns_inum = skp->__sk_common.skc_net.net->ns.inum;
+#endif
+  bpf_probe_read_kernel(&saddr, sizeof(saddr),
+                 skp->__sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+  bpf_probe_read_kernel(&daddr, sizeof(daddr),
+                 skp->__sk_common.skc_v6_daddr.in6_u.u6_addr32);
+
+  ##FILTER_NETNS##
+
+  tuple->saddr = saddr;
+  tuple->daddr = daddr;
+  tuple->sport = sport;
+  tuple->dport = dport;
+  tuple->netns = net_ns_inum;
+
+  // if addresses or ports are 0, ignore
+  if (saddr == 0 || daddr == 0 || sport == 0 || dport == 0) {
+      return 0;
+  }
+
+  return 1;
+}
+
+static bool check_family(struct sock *sk, u16 expected_family) {
+  u64 zero = 0;
+  u16 family = sk->__sk_common.skc_family;
+  return family == expected_family;
+}
+
+int trace_connect_v4_entry(struct pt_regs *ctx, struct sock *sk)
+{
+  if (container_should_be_filtered()) {
+    return 0;
+  }
+
+  u64 pid = bpf_get_current_pid_tgid();
+
+  ##FILTER_PID##
+  
+  u16 family = sk->__sk_common.skc_family;
+  ##FILTER_FAMILY##
+
+
+  // stash the sock ptr for lookup on return
+  connectsock.update(&pid, &sk);
+
+  return 0;
+}
+
+int trace_connect_v4_return(struct pt_regs *ctx)
+{
+  int ret = PT_REGS_RC(ctx);
+  u64 pid = bpf_get_current_pid_tgid();
+
+  struct sock **skpp;
+  skpp = connectsock.lookup(&pid);
+  if (skpp == 0) {
+      return 0;       // missed entry
+  }
+
+  connectsock.delete(&pid);
+
+  if (ret != 0) {
+      // failed to send SYNC packet, may not have populated
+      // socket __sk_common.{skc_rcv_saddr, ...}
+      return 0;
+  }
+
+  // pull in details
+  struct sock *skp = *skpp;
+  struct ipv4_tuple_t t = { };
+  if (!read_i
