@@ -223,4 +223,104 @@ int trace_connect_v4_return(struct pt_regs *ctx)
   // pull in details
   struct sock *skp = *skpp;
   struct ipv4_tuple_t t = { };
-  if (!read_i
+  if (!read_ipv4_tuple(&t, skp)) {
+      return 0;
+  }
+
+  struct pid_comm_t p = { };
+  p.pid = pid;
+  bpf_get_current_comm(&p.comm, sizeof(p.comm));
+
+  tuplepid_ipv4.update(&t, &p);
+
+  return 0;
+}
+
+int trace_connect_v6_entry(struct pt_regs *ctx, struct sock *sk)
+{
+  if (container_should_be_filtered()) {
+    return 0;
+  }
+  u64 pid = bpf_get_current_pid_tgid();
+
+  ##FILTER_PID##
+  u16 family = sk->__sk_common.skc_family;
+  ##FILTER_FAMILY##
+
+  // stash the sock ptr for lookup on return
+  connectsock.update(&pid, &sk);
+
+  return 0;
+}
+
+int trace_connect_v6_return(struct pt_regs *ctx)
+{
+  int ret = PT_REGS_RC(ctx);
+  u64 pid = bpf_get_current_pid_tgid();
+
+  struct sock **skpp;
+  skpp = connectsock.lookup(&pid);
+  if (skpp == 0) {
+      return 0;       // missed entry
+  }
+
+  connectsock.delete(&pid);
+
+  if (ret != 0) {
+      // failed to send SYNC packet, may not have populated
+      // socket __sk_common.{skc_rcv_saddr, ...}
+      return 0;
+  }
+
+  // pull in details
+  struct sock *skp = *skpp;
+  struct ipv6_tuple_t t = { };
+  if (!read_ipv6_tuple(&t, skp)) {
+      return 0;
+  }
+
+  struct pid_comm_t p = { };
+  p.pid = pid;
+  bpf_get_current_comm(&p.comm, sizeof(p.comm));
+
+  tuplepid_ipv6.update(&t, &p);
+
+  return 0;
+}
+
+int trace_tcp_set_state_entry(struct pt_regs *ctx, struct sock *skp, int state)
+{
+  if (state != TCP_ESTABLISHED && state != TCP_CLOSE) {
+      return 0;
+  }
+
+  u16 family = skp->__sk_common.skc_family;
+  ##FILTER_FAMILY##
+  
+  u8 ipver = 0;
+  if (check_family(skp, AF_INET)) {
+      ipver = 4;
+      struct ipv4_tuple_t t = { };
+      if (!read_ipv4_tuple(&t, skp)) {
+          return 0;
+      }
+
+      if (state == TCP_CLOSE) {
+          tuplepid_ipv4.delete(&t);
+          return 0;
+      }
+
+      struct pid_comm_t *p;
+      p = tuplepid_ipv4.lookup(&t);
+      if (p == 0) {
+          return 0;       // missed entry
+      }
+
+      struct tcp_ipv4_event_t evt4 = { };
+      evt4.ts_ns = bpf_ktime_get_ns();
+      evt4.type = TCP_EVENT_TYPE_CONNECT;
+      evt4.pid = p->pid >> 32;
+      evt4.ip = ipver;
+      evt4.saddr = t.saddr;
+      evt4.daddr = t.daddr;
+      e
