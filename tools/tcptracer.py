@@ -323,4 +323,91 @@ int trace_tcp_set_state_entry(struct pt_regs *ctx, struct sock *skp, int state)
       evt4.ip = ipver;
       evt4.saddr = t.saddr;
       evt4.daddr = t.daddr;
-      e
+      evt4.sport = ntohs(t.sport);
+      evt4.dport = ntohs(t.dport);
+      evt4.netns = t.netns;
+
+      int i;
+      for (i = 0; i < TASK_COMM_LEN; i++) {
+          evt4.comm[i] = p->comm[i];
+      }
+
+      tcp_ipv4_event.perf_submit(ctx, &evt4, sizeof(evt4));
+      tuplepid_ipv4.delete(&t);
+  } else if (check_family(skp, AF_INET6)) {
+      ipver = 6;
+      struct ipv6_tuple_t t = { };
+      if (!read_ipv6_tuple(&t, skp)) {
+          return 0;
+      }
+
+      if (state == TCP_CLOSE) {
+          tuplepid_ipv6.delete(&t);
+          return 0;
+      }
+
+      struct pid_comm_t *p;
+      p = tuplepid_ipv6.lookup(&t);
+      if (p == 0) {
+          return 0;       // missed entry
+      }
+
+      struct tcp_ipv6_event_t evt6 = { };
+      evt6.ts_ns = bpf_ktime_get_ns();
+      evt6.type = TCP_EVENT_TYPE_CONNECT;
+      evt6.pid = p->pid >> 32;
+      evt6.ip = ipver;
+      evt6.saddr = t.saddr;
+      evt6.daddr = t.daddr;
+      evt6.sport = ntohs(t.sport);
+      evt6.dport = ntohs(t.dport);
+      evt6.netns = t.netns;
+
+      int i;
+      for (i = 0; i < TASK_COMM_LEN; i++) {
+          evt6.comm[i] = p->comm[i];
+      }
+
+      tcp_ipv6_event.perf_submit(ctx, &evt6, sizeof(evt6));
+      tuplepid_ipv6.delete(&t);
+  }
+  // else drop
+
+  return 0;
+}
+
+int trace_close_entry(struct pt_regs *ctx, struct sock *skp)
+{
+  if (container_should_be_filtered()) {
+    return 0;
+  }
+
+  u64 pid = bpf_get_current_pid_tgid();
+
+  ##FILTER_PID##
+  
+  u16 family = skp->__sk_common.skc_family;
+  ##FILTER_FAMILY##
+
+  u8 oldstate = skp->sk_state;
+  // Don't generate close events for connections that were never
+  // established in the first place.
+  if (oldstate == TCP_SYN_SENT ||
+      oldstate == TCP_SYN_RECV ||
+      oldstate == TCP_NEW_SYN_RECV)
+      return 0;
+
+  u8 ipver = 0;
+  if (check_family(skp, AF_INET)) {
+      ipver = 4;
+      struct ipv4_tuple_t t = { };
+      if (!read_ipv4_tuple(&t, skp)) {
+          return 0;
+      }
+
+      struct tcp_ipv4_event_t evt4 = { };
+      evt4.ts_ns = bpf_ktime_get_ns();
+      evt4.type = TCP_EVENT_TYPE_CLOSE;
+      evt4.pid = pid >> 32;
+      evt4.ip = ipver;
+      evt4.saddr = t.saddr
