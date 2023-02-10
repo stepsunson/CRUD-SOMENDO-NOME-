@@ -410,4 +410,91 @@ int trace_close_entry(struct pt_regs *ctx, struct sock *skp)
       evt4.type = TCP_EVENT_TYPE_CLOSE;
       evt4.pid = pid >> 32;
       evt4.ip = ipver;
-      evt4.saddr = t.saddr
+      evt4.saddr = t.saddr;
+      evt4.daddr = t.daddr;
+      evt4.sport = ntohs(t.sport);
+      evt4.dport = ntohs(t.dport);
+      evt4.netns = t.netns;
+      bpf_get_current_comm(&evt4.comm, sizeof(evt4.comm));
+
+      tcp_ipv4_event.perf_submit(ctx, &evt4, sizeof(evt4));
+  } else if (check_family(skp, AF_INET6)) {
+      ipver = 6;
+      struct ipv6_tuple_t t = { };
+      if (!read_ipv6_tuple(&t, skp)) {
+          return 0;
+      }
+
+      struct tcp_ipv6_event_t evt6 = { };
+      evt6.ts_ns = bpf_ktime_get_ns();
+      evt6.type = TCP_EVENT_TYPE_CLOSE;
+      evt6.pid = pid >> 32;
+      evt6.ip = ipver;
+      evt6.saddr = t.saddr;
+      evt6.daddr = t.daddr;
+      evt6.sport = ntohs(t.sport);
+      evt6.dport = ntohs(t.dport);
+      evt6.netns = t.netns;
+      bpf_get_current_comm(&evt6.comm, sizeof(evt6.comm));
+
+      tcp_ipv6_event.perf_submit(ctx, &evt6, sizeof(evt6));
+  }
+  // else drop
+
+  return 0;
+};
+
+int trace_accept_return(struct pt_regs *ctx)
+{
+  if (container_should_be_filtered()) {
+    return 0;
+  }
+
+  struct sock *newsk = (struct sock *)PT_REGS_RC(ctx);
+  u64 pid = bpf_get_current_pid_tgid();
+
+  ##FILTER_PID##
+
+  if (newsk == NULL) {
+      return 0;
+  }
+
+  // pull in details
+  u16 lport = 0, dport = 0;
+  u32 net_ns_inum = 0;
+  u8 ipver = 0;
+
+  dport = newsk->__sk_common.skc_dport;
+  lport = newsk->__sk_common.skc_num;
+
+  // Get network namespace id, if kernel supports it
+#ifdef CONFIG_NET_NS
+  net_ns_inum = newsk->__sk_common.skc_net.net->ns.inum;
+#endif
+
+  ##FILTER_NETNS##
+  
+  u16 family = newsk->__sk_common.skc_family;
+  ##FILTER_FAMILY##
+
+  if (check_family(newsk, AF_INET)) {
+      ipver = 4;
+
+      struct tcp_ipv4_event_t evt4 = { 0 };
+
+      evt4.ts_ns = bpf_ktime_get_ns();
+      evt4.type = TCP_EVENT_TYPE_ACCEPT;
+      evt4.netns = net_ns_inum;
+      evt4.pid = pid >> 32;
+      evt4.ip = ipver;
+
+      evt4.saddr = newsk->__sk_common.skc_rcv_saddr;
+      evt4.daddr = newsk->__sk_common.skc_daddr;
+
+      evt4.sport = lport;
+      evt4.dport = ntohs(dport);
+      bpf_get_current_comm(&evt4.comm, sizeof(evt4.comm));
+
+      // do not send event if IP address is 0.0.0.0 or port is 0
+      if (evt4.saddr != 0 && evt4.daddr != 0 &&
+          ev
