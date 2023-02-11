@@ -565,4 +565,76 @@ def print_ipv4_event(cpu, data, size):
           (event.pid, event.comm.decode('utf-8', 'replace'),
            event.ip,
            inet_ntop(AF_INET, pack("I", event.saddr)),
-           inet_ntop(AF_INET, pack("I", even
+           inet_ntop(AF_INET, pack("I", event.daddr)),
+           event.sport,
+           event.dport), end="")
+    if args.verbose and not args.netns:
+        print(" %-8d" % event.netns)
+    else:
+        print()
+
+
+def print_ipv6_event(cpu, data, size):
+    event = b["tcp_ipv6_event"].event(data)
+    global start_ts
+    if args.timestamp:
+        if start_ts == 0:
+            start_ts = event.ts_ns
+        if args.verbose:
+            print("%-14d" % (event.ts_ns - start_ts), end="")
+        else:
+            print("%-9.3f" % ((event.ts_ns - start_ts) / 1000000000.0), end="")
+    if event.type == 1:
+        type_str = "C"
+    elif event.type == 2:
+        type_str = "A"
+    elif event.type == 3:
+        type_str = "X"
+    else:
+        type_str = "U"
+
+    if args.verbose:
+        print("%-12s " % (verbose_types[type_str]), end="")
+    else:
+        print("%-2s " % (type_str), end="")
+
+    print("%-6d %-16s %-2d %-16s %-16s %-6d %-6d" %
+          (event.pid, event.comm.decode('utf-8', 'replace'),
+           event.ip,
+           "[" + inet_ntop(AF_INET6, event.saddr) + "]",
+           "[" + inet_ntop(AF_INET6, event.daddr) + "]",
+           event.sport,
+           event.dport), end="")
+    if args.verbose and not args.netns:
+        print(" %-8d" % event.netns)
+    else:
+        print()
+
+
+pid_filter = ""
+netns_filter = ""
+
+if args.pid:
+    pid_filter = 'if (pid >> 32 != %d) { return 0; }' % args.pid
+if args.netns:
+    netns_filter = 'if (net_ns_inum != %d) { return 0; }' % args.netns
+if args.ipv4:
+    bpf_text = bpf_text.replace('##FILTER_FAMILY##',
+        'if (family != AF_INET) { return 0; }')
+elif args.ipv6:
+    bpf_text = bpf_text.replace('##FILTER_FAMILY##',
+        'if (family != AF_INET6) { return 0; }')
+bpf_text = bpf_text.replace('##FILTER_FAMILY##', '')
+bpf_text = bpf_text.replace('##FILTER_PID##', pid_filter)
+bpf_text = bpf_text.replace('##FILTER_NETNS##', netns_filter)
+bpf_text = filter_by_containers(args) + bpf_text
+
+if args.ebpf:
+    print(bpf_text)
+    exit()
+
+# initialize BPF
+b = BPF(text=bpf_text)
+if args.ipv4:
+    b.attach_kprobe(event="tcp_v4_connect", fn_name="trace_connect_v4_entry")
+    b.attach_kretprobe(event="tcp_v4_connect", fn_name="trace_connect_v4_ret
