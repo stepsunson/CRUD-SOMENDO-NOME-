@@ -637,4 +637,52 @@ if args.ebpf:
 b = BPF(text=bpf_text)
 if args.ipv4:
     b.attach_kprobe(event="tcp_v4_connect", fn_name="trace_connect_v4_entry")
-    b.attach_kretprobe(event="tcp_v4_connect", fn_name="trace_connect_v4_ret
+    b.attach_kretprobe(event="tcp_v4_connect", fn_name="trace_connect_v4_return")
+elif args.ipv6:
+    b.attach_kprobe(event="tcp_v6_connect", fn_name="trace_connect_v6_entry")
+    b.attach_kretprobe(event="tcp_v6_connect", fn_name="trace_connect_v6_return")
+else:
+    b.attach_kprobe(event="tcp_v4_connect", fn_name="trace_connect_v4_entry")
+    b.attach_kretprobe(event="tcp_v4_connect", fn_name="trace_connect_v4_return")
+    b.attach_kprobe(event="tcp_v6_connect", fn_name="trace_connect_v6_entry")
+    b.attach_kretprobe(event="tcp_v6_connect", fn_name="trace_connect_v6_return")
+b.attach_kprobe(event="tcp_set_state", fn_name="trace_tcp_set_state_entry")
+b.attach_kprobe(event="tcp_close", fn_name="trace_close_entry")
+b.attach_kretprobe(event="inet_csk_accept", fn_name="trace_accept_return")
+
+print("Tracing TCP established connections. Ctrl-C to end.")
+
+# header
+if args.verbose:
+    if args.timestamp:
+        print("%-14s" % ("TIME(ns)"), end="")
+    print("%-12s %-6s %-16s %-2s %-16s %-16s %-6s %-7s" % ("TYPE",
+          "PID", "COMM", "IP", "SADDR", "DADDR", "SPORT", "DPORT"), end="")
+    if not args.netns:
+        print("%-8s" % "NETNS", end="")
+    print()
+else:
+    if args.timestamp:
+        print("%-9s" % ("TIME(s)"), end="")
+    print("%-2s %-6s %-16s %-2s %-16s %-16s %-6s %-6s" %
+          ("T", "PID", "COMM", "IP", "SADDR", "DADDR", "SPORT", "DPORT"))
+
+start_ts = 0
+
+def inet_ntoa(addr):
+    dq = ''
+    for i in range(0, 4):
+        dq = dq + str(addr & 0xff)
+        if (i != 3):
+            dq = dq + '.'
+        addr = addr >> 8
+    return dq
+
+
+b["tcp_ipv4_event"].open_perf_buffer(print_ipv4_event)
+b["tcp_ipv6_event"].open_perf_buffer(print_ipv6_event)
+while True:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()

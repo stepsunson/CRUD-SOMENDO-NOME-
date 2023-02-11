@@ -1,0 +1,11 @@
+Demonstrations of tcptracer, the Linux eBPF/bcc version.
+
+
+This tool traces the kernel function performing TCP connections (eg, via a
+connect() or accept() syscalls) and closing them (explicitly or if the process
+dies). Some example output (IP addresses are fake):
+
+```
+# ./tcptracer
+Tracing TCP established connections. Ctrl-C to end.
+T  PID    COMM             IP SADDR          
