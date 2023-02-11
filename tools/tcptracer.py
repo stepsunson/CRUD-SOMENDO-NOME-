@@ -497,4 +497,72 @@ int trace_accept_return(struct pt_regs *ctx)
 
       // do not send event if IP address is 0.0.0.0 or port is 0
       if (evt4.saddr != 0 && evt4.daddr != 0 &&
-          ev
+          evt4.sport != 0 && evt4.dport != 0) {
+          tcp_ipv4_event.perf_submit(ctx, &evt4, sizeof(evt4));
+      }
+  } else if (check_family(newsk, AF_INET6)) {
+      ipver = 6;
+
+      struct tcp_ipv6_event_t evt6 = { 0 };
+
+      evt6.ts_ns = bpf_ktime_get_ns();
+      evt6.type = TCP_EVENT_TYPE_ACCEPT;
+      evt6.netns = net_ns_inum;
+      evt6.pid = pid >> 32;
+      evt6.ip = ipver;
+
+      bpf_probe_read_kernel(&evt6.saddr, sizeof(evt6.saddr),
+                     newsk->__sk_common.skc_v6_rcv_saddr.in6_u.u6_addr32);
+      bpf_probe_read_kernel(&evt6.daddr, sizeof(evt6.daddr),
+                     newsk->__sk_common.skc_v6_daddr.in6_u.u6_addr32);
+
+      evt6.sport = lport;
+      evt6.dport = ntohs(dport);
+      bpf_get_current_comm(&evt6.comm, sizeof(evt6.comm));
+
+      // do not send event if IP address is 0.0.0.0 or port is 0
+      if (evt6.saddr != 0 && evt6.daddr != 0 &&
+          evt6.sport != 0 && evt6.dport != 0) {
+          tcp_ipv6_event.perf_submit(ctx, &evt6, sizeof(evt6));
+      }
+  }
+  // else drop
+
+  return 0;
+}
+"""
+
+verbose_types = {"C": "connect", "A": "accept",
+                 "X": "close", "U": "unknown"}
+
+
+def print_ipv4_event(cpu, data, size):
+    event = b["tcp_ipv4_event"].event(data)
+    global start_ts
+
+    if args.timestamp:
+        if start_ts == 0:
+            start_ts = event.ts_ns
+        if args.verbose:
+            print("%-14d" % (event.ts_ns - start_ts), end="")
+        else:
+            print("%-9.3f" % ((event.ts_ns - start_ts) / 1000000000.0), end="")
+    if event.type == 1:
+        type_str = "C"
+    elif event.type == 2:
+        type_str = "A"
+    elif event.type == 3:
+        type_str = "X"
+    else:
+        type_str = "U"
+
+    if args.verbose:
+        print("%-12s " % (verbose_types[type_str]), end="")
+    else:
+        print("%-2s " % (type_str), end="")
+
+    print("%-6d %-16s %-2d %-16s %-16s %-6d %-6d" %
+          (event.pid, event.comm.decode('utf-8', 'replace'),
+           event.ip,
+           inet_ntop(AF_INET, pack("I", event.saddr)),
+           inet_ntop(AF_INET, pack("I", even
