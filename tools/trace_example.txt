@@ -1,0 +1,30 @@
+Demonstrations of trace.
+
+
+trace probes functions you specify and displays trace messages if a particular
+condition is met. You can control the message format to display function
+arguments and return values.
+
+For example, suppose you want to trace all commands being exec'd across the
+system:
+
+# trace 'sys_execve "%s", arg1'
+PID    COMM         FUNC             -
+4402   bash         sys_execve       /usr/bin/man
+4411   man          sys_execve       /usr/local/bin/less
+4411   man          sys_execve       /usr/bin/less
+4410   man          sys_execve       /usr/local/bin/nroff
+4410   man          sys_execve       /usr/bin/nroff
+4409   man          sys_execve       /usr/local/bin/tbl
+4409   man          sys_execve       /usr/bin/tbl
+4408   man          sys_execve       /usr/local/bin/preconv
+4408   man          sys_execve       /usr/bin/preconv
+4415   nroff        sys_execve       /usr/bin/locale
+4416   nroff        sys_execve       /usr/bin/groff
+4418   groff        sys_execve       /usr/bin/grotty
+4417   groff        sys_execve       /usr/bin/troff
+^C
+
+The ::sys_execve syntax specifies that you want an entry probe (which is the
+default), in a kernel function (which is the default) called sys_execve. Next,
+the format string to print is simply "%s", which prints a
