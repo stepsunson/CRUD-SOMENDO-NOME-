@@ -76,4 +76,48 @@ PID     TID     COMM            FUNC             -
 9557    9557    a.out           do_sys_open      temp.1
         do_sys_open+0x1 [kernel]
         do_syscall_64+0x5b [kernel]
-        entry_SYSCALL_64_after_
+        entry_SYSCALL_64_after_hwframe+0x44 [kernel]
+        __open_nocancel+0x7 [libc-2.17.so]
+        __libc_start_main+0xf5 [libc-2.17.so]
+
+You can also trace user functions. For example, let's simulate the bashreadline
+script, which attaches to the readline function in bash and prints its return
+value, effectively snooping all bash shell input across the system:
+
+# trace 'r:bash:readline "%s", retval'
+PID    COMM         FUNC             -
+2740   bash         readline         echo hi!
+2740   bash         readline         man ls
+^C
+
+The special retval keyword stands for the function's return value, and can
+be used only in a retprobe, specified by the 'r' prefix. The next component
+of the probe is the library that contains the desired function. It's OK to
+specify executables too, as long as they can be found in the PATH. Or, you
+can specify the full path to the executable (e.g. "/usr/bin/bash").
+
+Sometimes it can be useful to see where in code the events happen. There are
+flags to print the kernel stack (-K), the user stack (-U) and optionally
+include the virtual address in the stacks as well (-a):
+
+# trace.py -U -a 'r::sys_futex "%d", retval'
+PID     TID     COMM            FUNC             -
+793922  793951  poller          sys_futex        0
+        7f6c72b6497a __lll_unlock_wake+0x1a [libpthread-2.23.so]
+              627fef folly::FunctionScheduler::run()+0x46f [router]
+        7f6c7345f171 execute_native_thread_routine+0x21 [libstdc++.so.6.0.21]
+        7f6c72b5b7a9 start_thread+0xd9 [libpthread-2.23.so]
+        7f6c7223fa7d clone+0x6d [libc-2.23.so]
+
+Multiple probes can be combined on the same command line. For example, let's
+trace failed read and write calls on the libc level, and include a time column:
+
+# trace 'r:c:read ((int)retval < 0) "read failed: %d", retval' \
+        'r:c:write ((int)retval < 0) "write failed: %d", retval' -T
+TIME     PID    COMM         FUNC             -
+05:31:57 3388   bash         write            write failed: -1
+05:32:00 3388   bash         write            write failed: -1
+^C
+
+Note that the retval variable must be cast to int before comparing to zero.
+The reason is that the defaul
