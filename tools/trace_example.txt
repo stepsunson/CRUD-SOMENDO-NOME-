@@ -120,4 +120,54 @@ TIME     PID    COMM         FUNC             -
 ^C
 
 Note that the retval variable must be cast to int before comparing to zero.
-The reason is that the defaul
+The reason is that the default type for argN and retval is an unsigned 64-bit
+integer, which can never be smaller than 0.
+
+trace has also some basic support for kernel tracepoints. For example, let's
+trace the block:block_rq_complete tracepoint and print out the number of sectors
+transferred:
+
+# trace 't:block:block_rq_complete "sectors=%d", args->nr_sector' -T
+TIME     PID    COMM         FUNC             -
+01:23:51 0      swapper/0    block_rq_complete sectors=8
+01:23:55 10017  kworker/u64: block_rq_complete sectors=1
+01:23:55 0      swapper/0    block_rq_complete sectors=8
+^C
+
+Suppose that you want to trace a system-call in a short-lived process, you can use
+the -s option to trace. The option is followed by list of libraries/executables to
+use for symbol resolution.
+# trace -s /lib/x86_64-linux-gnu/libc.so.6,/bin/ping 'p:c:inet_pton' -U
+Note: Kernel bpf will report stack map with ip/build_id
+PID     TID     COMM            FUNC
+4175    4175    ping            inet_pton
+        inet_pton+0x136340 [libc.so.6]
+        getaddrinfo+0xfb510 [libc.so.6]
+        _init+0x2a08 [ping]
+
+During the trace, 'ping -c1 google.com' was executed to obtain the above results
+
+To discover the tracepoint structure format (which you can refer to as the "args"
+pointer variable), use the tplist tool. For example:
+
+# tplist -v block:block_rq_complete
+block:block_rq_complete
+    dev_t dev;
+    sector_t sector;
+    unsigned int nr_sector;
+    int errors;
+    char rwbs[8];
+
+This output tells you that you can use "args->dev", "args->sector", etc. in your
+predicate and trace arguments.
+
+
+More and more high-level libraries are instrumented with USDT probe support.
+These probes can be traced by trace just like kernel tracepoints. For example,
+trace new threads being created and their function name, include time column
+and on which CPU it happened:
+
+# trace 'u:pthread:pthread_create "%U", arg3' -T -C
+TIME     CPU PID     TID     COMM            FUNC             -
+13:22:01 25  2627    2629    automount       pthread_create   expire_proc_indirect+0x0 [automount]
+13:22:01 5   21360   2141
