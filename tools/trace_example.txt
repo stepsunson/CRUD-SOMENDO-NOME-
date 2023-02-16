@@ -217,4 +217,54 @@ TIME     PID    COMM         FUNC             -
 
 In the preceding example, as well as in many others, readability may be
 improved by providing the function's signature, which names the arguments and
-lets you access structure sub-fields, which is hard with the "ar
+lets you access structure sub-fields, which is hard with the "arg1", "arg2"
+convention. For example:
+
+# trace 'p:c:open(char *filename) "opening %s", filename'
+PID    TID    COMM         FUNC             -
+17507  17507  cat          open             opening FAQ.txt
+^C
+
+# trace 'p::SyS_nanosleep(struct timespec *ts) "sleep for %lld ns", ts->tv_nsec'
+PID    TID    COMM         FUNC             -
+777    785    automount    SyS_nanosleep    sleep for 500000000 ns
+777    785    automount    SyS_nanosleep    sleep for 500000000 ns
+777    785    automount    SyS_nanosleep    sleep for 500000000 ns
+777    785    automount    SyS_nanosleep    sleep for 500000000 ns
+^C
+
+Remember to use the -I argument include the appropriate header file. We didn't
+need to do that here because `struct timespec` is used internally by the tool,
+so it always includes this header file.
+
+To aggregate amount of trace, you need specify -A with -M EVENTS. A typical
+example:
+1, if we find that the sys CPU utilization is higher by 'top' command
+2, then find that the timer interrupt is more normal by 'irqtop' command
+3, to confirm kernel timer setting frequence by 'funccount -i 1 clockevents_program_event'
+4, to trace timer setting by 'trace clockevents_program_event -K -A -M 1000'
+
+1294576 1294584 CPU 0/KVM       clockevents_program_event
+        clockevents_program_event+0x1 [kernel]
+        hrtimer_start_range_ns+0x209 [kernel]
+        start_sw_timer+0x173 [kvm]
+        restart_apic_timer+0x6c [kvm]
+        kvm_set_msr_common+0x442 [kvm]
+        __kvm_set_msr+0xa2 [kvm]
+        kvm_emulate_wrmsr+0x36 [kvm]
+        vcpu_enter_guest+0x326 [kvm]
+        kvm_arch_vcpu_ioctl_run+0xcc [kvm]
+        kvm_vcpu_ioctl+0x22f [kvm]
+        do_vfs_ioctl+0xa1 [kernel]
+        ksys_ioctl+0x60 [kernel]
+        __x64_sys_ioctl+0x16 [kernel]
+        do_syscall_64+0x59 [kernel]
+        entry_SYSCALL_64_after_hwframe+0x44 [kernel]
+-->COUNT 271
+...
+So we can know that 271 timer setting in recent 1000(~27%).
+
+As a final example, let's trace open syscalls for a specific process. By
+default, tracing is system-wide, but the -p switch overrides this:
+
+# trace
