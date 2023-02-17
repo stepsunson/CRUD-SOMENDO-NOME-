@@ -267,4 +267,50 @@ So we can know that 271 timer setting in recent 1000(~27%).
 As a final example, let's trace open syscalls for a specific process. By
 default, tracing is system-wide, but the -p switch overrides this:
 
-# trace
+# trace -p 2740 'do_sys_open "%s", arg2@user' -T
+TIME     PID    COMM         FUNC             -
+05:36:16 15872  ls           do_sys_open      /etc/ld.so.cache
+05:36:16 15872  ls           do_sys_open      /lib64/libselinux.so.1
+05:36:16 15872  ls           do_sys_open      /lib64/libcap.so.2
+05:36:16 15872  ls           do_sys_open      /lib64/libacl.so.1
+05:36:16 15872  ls           do_sys_open      /lib64/libc.so.6
+05:36:16 15872  ls           do_sys_open      /lib64/libpcre.so.1
+05:36:16 15872  ls           do_sys_open      /lib64/libdl.so.2
+05:36:16 15872  ls           do_sys_open      /lib64/libattr.so.1
+05:36:16 15872  ls           do_sys_open      /lib64/libpthread.so.0
+05:36:16 15872  ls           do_sys_open      /usr/lib/locale/locale-archive
+05:36:16 15872  ls           do_sys_open      /home/vagrant
+^C
+
+In this example, we traced the "ls ~" command as it was opening its shared
+libraries and then accessing the /home/vagrant directory listing.
+
+
+Lastly, if a high-frequency event is traced you may overflow the perf ring
+buffer. This shows as "Lost N samples":
+
+# trace sys_open
+5087   5087   pgrep        sys_open
+5087   5087   pgrep        sys_open
+5087   5087   pgrep        sys_open
+5087   5087   pgrep        sys_open
+5087   5087   pgrep        sys_open
+Lost 764896 samples
+Lost 764896 samples
+Lost 764896 samples
+
+The perf ring buffer size can be changed with -b. The unit is size per-CPU buffer
+size and is measured in pages. The value must be a power of two and defaults to
+64 pages.
+
+# trace.py 'sys_setsockopt(int fd, int level, int optname, char* optval, int optlen)(level==0 && optname == 1 && STRCMP("{0x6C, 0x00, 0x00, 0x00}", optval))' -U -M 1 --bin_cmp
+PID     TID     COMM            FUNC             -
+1855611 1863183 worker          sys_setsockopt   found
+
+In this example we are catching setsockopt syscall to change IPv4 IP_TOS
+value only for the cases where new TOS value is equal to 108. we are using
+STRCMP helper in binary mode (--bin_cmp flag) to compare optval array
+against int value of 108 (parametr of setsockopt call) in hex representation
+(little endian format)
+
+F
