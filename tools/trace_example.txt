@@ -364,4 +364,47 @@ PID     TID     COMM            FUNC             -
 USAGE message:
 
 usage: trace [-h] [-b BUFFER_PAGES] [-p PID] [-L TID] [--uid UID] [-v]
-             [-Z STRI
+             [-Z STRING_SIZE] [-S] [-M MAX_EVENTS] [-t] [-u] [-T] [-C]
+             [-c CGROUP_PATH] [-n NAME] [-f MSG_FILTER] [-B]
+             [-s SYM_FILE_LIST] [-K] [-U] [-a] [-I header]
+             probe [probe ...]
+
+Attach to functions and print trace messages.
+
+positional arguments:
+  probe                 probe specifier (see examples)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b BUFFER_PAGES, --buffer-pages BUFFER_PAGES
+                        number of pages to use for perf_events ring buffer
+                        (default: 64)
+  -p PID, --pid PID     id of the process to trace (optional)
+  -L TID, --tid TID     id of the thread to trace (optional)
+  --uid UID             id of the user to trace (optional)
+  -v, --verbose         print resulting BPF program code before executing
+  -Z STRING_SIZE, --string-size STRING_SIZE
+                        maximum size to read from strings
+  -S, --include-self    do not filter trace's own pid from the trace
+  -M MAX_EVENTS, --max-events MAX_EVENTS
+                        number of events to print before quitting
+  -t, --timestamp       print timestamp column (offset from trace start)
+  -u, --unix-timestamp  print UNIX timestamp instead of offset from trace
+                        start, requires -t
+  -T, --time            print time column
+  -C, --print_cpu       print CPU id
+  -c CGROUP_PATH, --cgroup-path CGROUP_PATH
+                        cgroup path
+  -n NAME, --name NAME  only print process names containing this name
+  -f MSG_FILTER, --msg-filter MSG_FILTER
+                        only print the msg of event containing this string
+  -B, --bin_cmp         allow to use STRCMP with binary values
+  -s SYM_FILE_LIST, --sym_file_list SYM_FILE_LIST
+                        comma separated list of symbol files to use for symbol
+                        resolution
+  -K, --kernel-stack    output kernel stack trace
+  -U, --user-stack      output user stack trace
+  -a, --address         print virtual address in stacks
+  -I header, --include header
+                        additional header files to include in the BPF program
+                        as either full path,
