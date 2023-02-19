@@ -53,4 +53,36 @@ This can also snoop tty devices using their full path. Eg, snooping the system
 console:
 
 # ./ttysnoop /dev/console
-Oct 16 01:32:06 bgregg-xenial-bpf-i-xxx kernel: [780087.407428]
+Oct 16 01:32:06 bgregg-xenial-bpf-i-xxx kernel: [780087.407428] bash (9888): drop_caches: 1
+Oct 16 01:32:38 bgregg-xenial-bpf-i-xxx snmpd[2708]: Cannot statfs /sys/kernel/debug/tracing: Permission denied
+Oct 16 01:33:32 bgregg-xenial-bpf-i-xxx snmpd[2708]: Cannot statfs /sys/kernel/debug/tracing: Permission denied
+Oct 16 01:34:26 bgregg-xenial-bpf-i-xxx snmpd[2708]: Cannot statfs /sys/kernel/debug/tracing: Permission denied
+^C
+
+Neat!
+
+
+USAGE:
+
+# ./ttysnoop.py -h
+usage: ttysnoop.py [-h] [-C] device
+
+Snoop output from a pts or tty device, eg, a shell
+
+positional arguments:
+  device         path to a tty device (eg, /dev/tty0) or pts number
+
+optional arguments:
+  -h, --help      show this help message and exit
+  -C, --noclear   don't clear the screen
+  -s, --datasize  size of the transmitting buffer (default 256)
+  -c, --datacount number of times ttysnop checks for data (default 16)
+
+examples:
+    ./ttysnoop /dev/pts/2          # snoop output from /dev/pts/2
+    ./ttysnoop 2                   # snoop output from /dev/pts/2 (shortcut)
+    ./ttysnoop /dev/console        # snoop output from the system console
+    ./ttysnoop /dev/tty0           # snoop output from /dev/tty0
+    ./ttysnoop /dev/pts/2 -s 1024  # snoop output from /dev/pts/2 with data size 1024
+    ./ttysnoop /dev/pts/2 -c 2     # snoop output from /dev/pts/2 with 2 checks for 256 bytes of data in buffer
+                                     (potentionaly retrieving 512 bytes)
