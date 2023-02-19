@@ -89,4 +89,63 @@ else:
 
 if args.pid:
     bpf_text = bpf_text.replace('PID_FILTER', """
-    u32 pid = bpf_get_current_pid_tgid(
+    u32 pid = bpf_get_current_pid_tgid() >> 32;
+    if (pid != %s) {
+        return;
+    }
+    """ % args.pid)
+else:
+    bpf_text = bpf_text.replace('PID_FILTER', '')
+
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+b = BPF(text=bpf_text)
+if not is_support_kfunc:
+    b.attach_kprobe(event="vfs_read",         fn_name="do_read")
+    b.attach_kprobe(event="vfs_write",        fn_name="do_write")
+    b.attach_kprobe(event="vfs_fsync_range",  fn_name="do_fsync")
+    b.attach_kprobe(event="vfs_open",         fn_name="do_open")
+    b.attach_kprobe(event="vfs_create",       fn_name="do_create")
+
+# stat column labels and indexes
+stat_types = {
+    "READ": 1,
+    "WRITE": 2,
+    "FSYNC": 3,
+    "OPEN": 4,
+    "CREATE": 5
+}
+
+# header
+print("%-8s  " % "TIME", end="")
+for stype in stat_types.keys():
+    print(" %8s" % (stype + "/s"), end="")
+    idx = stat_types[stype]
+print("")
+
+# output
+exiting = 0 if args.interval else 1
+while (1):
+    try:
+        sleep(int(args.interval))
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print("%-8s: " % strftime("%H:%M:%S"), end="")
+    # print each statistic as a column
+    for stype in stat_types.keys():
+        idx = stat_types[stype]
+        try:
+            val = b["stats"][c_int(idx)].value / int(args.interval)
+            print(" %8d" % val, end="")
+        except:
+            print(" %8d" % 0, end="")
+    b["stats"].clear()
+    print("")
+
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
