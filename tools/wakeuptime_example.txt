@@ -1,0 +1,14 @@
+
+Demonstrations of wakeuptime, the Linux eBPF/bcc version.
+
+
+This program measures when threads block, and shows the stack traces for the
+threads that performed the wakeup, along with the process names of the waker
+and target processes, and the total blocked time. This blocked time is measured
+from when a thread blocks, to when the wakeup signal is sent. Note that this
+time excludes some run queue latency from the target thread, which may not
+immediately execute if it needs to wait its turn on-CPU. All the data shown,
+stack traces, process names, and times, are summarized in-kernel using an eBPF
+map for efficiency.
+
+This tool is intended to be used after offcputime, which shows the directly
