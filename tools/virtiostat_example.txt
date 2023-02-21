@@ -1,0 +1,17 @@
+Demonstrations of virtiostat, the Linux eBPF/bcc version.
+
+
+This program traces virtio devices to analyze the IO operations and
+throughput. For example, guest side mounts a 9p fs, and we can't get
+io statistics by `iostat` command any more. In this scenario, we can
+only get statistics from VIRTIO layer instead of block layer.
+
+Example
+#./virtiostat -T
+Tracing virtio devices statistics ... Hit Ctrl-C to end.
+14:48:30
+        Driver   Device    VQ Name  In SGs Out SGs          In BW         Out BW
+    virtio_net  virtio0    input.0  260669       0      406743040              0
+    virtio_net  virtio0   output.0       0    9873              0         833344
+    virtio_blk  virtio4      req.0      28      46            448         278976
+  9pnet_virtio  virtio6   requests   990
