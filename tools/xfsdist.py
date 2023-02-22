@@ -45,3 +45,98 @@ countdown = int(args.count)
 if args.milliseconds:
     factor = 1000000
     label = "msecs"
+else:
+    factor = 1000
+    label = "usecs"
+if args.interval and int(args.interval) == 0:
+    print("ERROR: interval 0. Exiting.")
+    exit()
+debug = 0
+
+# define BPF program
+bpf_text = """
+#include <uapi/linux/ptrace.h>
+#include <linux/fs.h>
+#include <linux/sched.h>
+
+#define OP_NAME_LEN 8
+typedef struct dist_key {
+    char op[OP_NAME_LEN];
+    u64 slot;
+} dist_key_t;
+BPF_HASH(start, u32);
+BPF_HISTOGRAM(dist, dist_key_t);
+
+// time operation
+int trace_entry(struct pt_regs *ctx)
+{
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    if (FILTER_PID)
+        return 0;
+    u64 ts = bpf_ktime_get_ns();
+    start.update(&tid, &ts);
+    return 0;
+}
+
+static int trace_return(struct pt_regs *ctx, const char *op)
+{
+    u64 *tsp;
+    u64 pid_tgid = bpf_get_current_pid_tgid();
+    u32 pid = pid_tgid >> 32;
+    u32 tid = (u32)pid_tgid;
+
+    // fetch timestamp and calculate delta
+    tsp = start.lookup(&tid);
+    if (tsp == 0) {
+        return 0;   // missed start or filtered
+    }
+    u64 delta = (bpf_ktime_get_ns() - *tsp) / FACTOR;
+
+    // store as histogram
+    dist_key_t key = {.slot = bpf_log2l(delta)};
+    __builtin_memcpy(&key.op, op, sizeof(key.op));
+    dist.atomic_increment(key);
+
+    start.delete(&tid);
+    return 0;
+}
+
+int trace_read_return(struct pt_regs *ctx)
+{
+    char *op = "read";
+    return trace_return(ctx, op);
+}
+
+int trace_write_return(struct pt_regs *ctx)
+{
+    char *op = "write";
+    return trace_return(ctx, op);
+}
+
+int trace_open_return(struct pt_regs *ctx)
+{
+    char *op = "open";
+    return trace_return(ctx, op);
+}
+
+int trace_fsync_return(struct pt_regs *ctx)
+{
+    char *op = "fsync";
+    return trace_return(ctx, op);
+}
+"""
+bpf_text = bpf_text.replace('FACTOR', str(factor))
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER_PID', 'pid != %s' % pid)
+else:
+    bpf_text = bpf_text.replace('FILTER_PID', '0')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# load BPF program
+b = BPF(te
