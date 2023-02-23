@@ -139,4 +139,39 @@ if debug or args.ebpf:
         exit()
 
 # load BPF program
-b = BPF(te
+b = BPF(text=bpf_text)
+
+# common file functions
+b.attach_kprobe(event="xfs_file_read_iter", fn_name="trace_entry")
+b.attach_kprobe(event="xfs_file_write_iter", fn_name="trace_entry")
+b.attach_kprobe(event="xfs_file_open", fn_name="trace_entry")
+b.attach_kprobe(event="xfs_file_fsync", fn_name="trace_entry")
+b.attach_kretprobe(event="xfs_file_read_iter", fn_name="trace_read_return")
+b.attach_kretprobe(event="xfs_file_write_iter", fn_name="trace_write_return")
+b.attach_kretprobe(event="xfs_file_open", fn_name="trace_open_return")
+b.attach_kretprobe(event="xfs_file_fsync", fn_name="trace_fsync_return")
+
+print("Tracing XFS operation latency... Hit Ctrl-C to end.")
+
+# output
+exiting = 0
+dist = b.get_table("dist")
+while (1):
+    try:
+        if args.interval:
+            sleep(int(args.interval))
+        else:
+            sleep(99999999)
+    except KeyboardInterrupt:
+        exiting = 1
+
+    print()
+    if args.interval and (not args.notimestamp):
+        print(strftime("%H:%M:%S:"))
+
+    dist.print_log2_hist(label, "operation", section_print_fn=bytes.decode)
+    dist.clear()
+
+    countdown -= 1
+    if exiting or countdown == 0:
+        exit()
