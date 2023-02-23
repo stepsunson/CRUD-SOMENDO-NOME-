@@ -93,4 +93,98 @@ BPF_PERF_OUTPUT(events);
 // Store timestamp and size on entry
 //
 
-// xfs_file_read_iter(), xfs_file_write_ite
+// xfs_file_read_iter(), xfs_file_write_iter():
+int trace_rw_entry(struct pt_regs *ctx, struct kiocb *iocb)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = iocb->ki_filp;
+    val.offset = iocb->ki_pos;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+// xfs_file_open():
+int trace_open_entry(struct pt_regs *ctx, struct inode *inode,
+    struct file *file)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = file;
+    val.offset = 0;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+// xfs_file_fsync():
+int trace_fsync_entry(struct pt_regs *ctx, struct file *file)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = file;
+    val.offset = 0;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+//
+// Output
+//
+
+static int trace_return(struct pt_regs *ctx, int type)
+{
+    struct val_t *valp;
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    valp = entryinfo.lookup(&id);
+    if (valp == 0) {
+        // missed tracing issue or filtered
+        return 0;
+    }
+
+    // calculate delta
+    u64 ts = bpf_ktime_get_ns();
+    u64 delta_us = ts - valp->ts;
+    entryinfo.delete(&id);
+
+    // Skip entries with backwards time: temp workaround for #728
+    if ((s64) delta_us < 0)
+        return 0;
+
+    delta_us /= 1000;
+
+    if (FILTER_US)
+        return 0;
+
+    // populate output struct
+    u32 size = PT_REGS_RC(ctx);
+    struct data_t data = {};
+    data.type 
