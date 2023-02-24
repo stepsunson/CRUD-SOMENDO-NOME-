@@ -187,4 +187,84 @@ static int trace_return(struct pt_regs *ctx, int type)
     // populate output struct
     u32 size = PT_REGS_RC(ctx);
     struct data_t data = {};
-    data.type 
+    data.type = type;
+    data.size = size;
+    data.delta_us = delta_us;
+    data.pid = pid;
+    data.ts_us = ts / 1000;
+    data.offset = valp->offset;
+    bpf_get_current_comm(&data.task, sizeof(data.task));
+
+    // workaround (rewriter should handle file to d_name in one step):
+    struct qstr qs = valp->fp->f_path.dentry->d_name;
+    if (qs.len == 0)
+        return 0;
+    bpf_probe_read_kernel(&data.file, sizeof(data.file), (void *)qs.name);
+
+    // output
+    events.perf_submit(ctx, &data, sizeof(data));
+
+    return 0;
+}
+
+int trace_read_return(struct pt_regs *ctx)
+{
+    return trace_return(ctx, TRACE_READ);
+}
+
+int trace_write_return(struct pt_regs *ctx)
+{
+    return trace_return(ctx, TRACE_WRITE);
+}
+
+int trace_open_return(struct pt_regs *ctx)
+{
+    return trace_return(ctx, TRACE_OPEN);
+}
+
+int trace_fsync_return(struct pt_regs *ctx)
+{
+    return trace_return(ctx, TRACE_FSYNC);
+}
+
+"""
+if min_ms == 0:
+    bpf_text = bpf_text.replace('FILTER_US', '0')
+else:
+    bpf_text = bpf_text.replace('FILTER_US',
+        'delta_us <= %s' % str(min_ms * 1000))
+if args.pid:
+    bpf_text = bpf_text.replace('FILTER_PID', 'pid != %s' % pid)
+else:
+    bpf_text = bpf_text.replace('FILTER_PID', '0')
+if debug or args.ebpf:
+    print(bpf_text)
+    if args.ebpf:
+        exit()
+
+# process event
+def print_event(cpu, data, size):
+    event = b["events"].event(data)
+
+    type = 'R'
+    if event.type == 1:
+        type = 'W'
+    elif event.type == 2:
+        type = 'O'
+    elif event.type == 3:
+        type = 'S'
+
+    if (csv):
+        print("%d,%s,%d,%s,%d,%d,%d,%s" % (
+            event.ts_us, event.task, event.pid, type, event.size,
+            event.offset, event.delta_us, event.file))
+        return
+    print("%-8s %-14.14s %-6s %1s %-7s %-8d %7.2f %s" % (strftime("%H:%M:%S"),
+        event.task, event.pid, type, event.size, event.offset / 1024,
+        float(event.delta_us) / 1000, event.file))
+
+# initialize BPF
+b = BPF(text=bpf_text)
+
+# common file functions
+b.attach_kprobe(event="xfs_file_read_iter", fn_name="trace
