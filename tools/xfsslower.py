@@ -267,4 +267,30 @@ def print_event(cpu, data, size):
 b = BPF(text=bpf_text)
 
 # common file functions
-b.attach_kprobe(event="xfs_file_read_iter", fn_name="trace
+b.attach_kprobe(event="xfs_file_read_iter", fn_name="trace_rw_entry")
+b.attach_kprobe(event="xfs_file_write_iter", fn_name="trace_rw_entry")
+b.attach_kprobe(event="xfs_file_open", fn_name="trace_open_entry")
+b.attach_kprobe(event="xfs_file_fsync", fn_name="trace_fsync_entry")
+b.attach_kretprobe(event="xfs_file_read_iter", fn_name="trace_read_return")
+b.attach_kretprobe(event="xfs_file_write_iter", fn_name="trace_write_return")
+b.attach_kretprobe(event="xfs_file_open", fn_name="trace_open_return")
+b.attach_kretprobe(event="xfs_file_fsync", fn_name="trace_fsync_return")
+
+# header
+if (csv):
+    print("ENDTIME_us,TASK,PID,TYPE,BYTES,OFFSET_b,LATENCY_us,FILE")
+else:
+    if min_ms == 0:
+        print("Tracing XFS operations")
+    else:
+        print("Tracing XFS operations slower than %d ms" % min_ms)
+    print("%-8s %-14s %-6s %1s %-7s %-8s %7s %s" % ("TIME", "COMM", "PID", "T",
+        "BYTES", "OFF_KB", "LAT(ms)", "FILENAME"))
+
+# read events
+b["events"].open_perf_buffer(print_event, page_cnt=64)
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
