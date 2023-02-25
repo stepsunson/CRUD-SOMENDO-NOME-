@@ -77,3 +77,105 @@ struct val_t {
     struct file *fp;
 };
 
+struct data_t {
+    // XXX: switch some to u32's when supported
+    u64 ts_us;
+    u64 type;
+    u32 size;
+    u64 offset;
+    u64 delta_us;
+    u32 pid;
+    char task[TASK_COMM_LEN];
+    char file[DNAME_INLINE_LEN];
+};
+
+BPF_HASH(entryinfo, u64, struct val_t);
+BPF_PERF_OUTPUT(events);
+
+//
+// Store timestamp and size on entry
+//
+
+// zpl_read(), zpl_write():
+int trace_rw_entry(struct pt_regs *ctx, struct file *filp, char __user *buf,
+    size_t len, loff_t *ppos)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = filp;
+    val.offset = *ppos;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+// zpl_open():
+int trace_open_entry(struct pt_regs *ctx, struct inode *inode,
+    struct file *filp)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filep and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = filp;
+    val.offset = 0;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+// zpl_fsync():
+int trace_fsync_entry(struct pt_regs *ctx, struct file *filp)
+{
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    if (FILTER_PID)
+        return 0;
+
+    // store filp and timestamp by id
+    struct val_t val = {};
+    val.ts = bpf_ktime_get_ns();
+    val.fp = filp;
+    val.offset = 0;
+    if (val.fp)
+        entryinfo.update(&id, &val);
+
+    return 0;
+}
+
+//
+// Output
+//
+
+static int trace_return(struct pt_regs *ctx, int type)
+{
+    struct val_t *valp;
+    u64 id = bpf_get_current_pid_tgid();
+    u32 pid = id >> 32; // PID is higher part
+
+    valp = entryinfo.lookup(&id);
+    if (valp == 0) {
+        // missed tracing issue or filtered
+        return 0;
+    }
+
+    // calculate delta
+    u64 ts = bpf_ktime_get_ns();
+    u64 delta_us = (ts - valp->ts) / 1000;
+    entryinfo.delete(&id);
+    if (
