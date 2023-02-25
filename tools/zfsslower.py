@@ -260,4 +260,48 @@ def print_event(cpu, data, size):
         event.offset / 1024, float(event.delta_us) / 1000,
         event.file.decode('utf-8', 'replace')))
 
-# initialize BP
+# initialize BPF
+b = BPF(text=bpf_text)
+
+# common file functions
+if BPF.get_kprobe_functions(b'zpl_iter'):
+    b.attach_kprobe(event="zpl_iter_read", fn_name="trace_rw_entry")
+    b.attach_kprobe(event="zpl_iter_write", fn_name="trace_rw_entry")
+elif BPF.get_kprobe_functions(b'zpl_aio'):
+    b.attach_kprobe(event="zpl_aio_read", fn_name="trace_rw_entry")
+    b.attach_kprobe(event="zpl_aio_write", fn_name="trace_rw_entry")
+else:
+    b.attach_kprobe(event="zpl_read", fn_name="trace_rw_entry")
+    b.attach_kprobe(event="zpl_write", fn_name="trace_rw_entry")
+b.attach_kprobe(event="zpl_open", fn_name="trace_open_entry")
+b.attach_kprobe(event="zpl_fsync", fn_name="trace_fsync_entry")
+if BPF.get_kprobe_functions(b'zpl_iter'):
+    b.attach_kretprobe(event="zpl_iter_read", fn_name="trace_read_return")
+    b.attach_kretprobe(event="zpl_iter_write", fn_name="trace_write_return")
+elif BPF.get_kprobe_functions(b'zpl_aio'):
+    b.attach_kretprobe(event="zpl_aio_read", fn_name="trace_read_return")
+    b.attach_kretprobe(event="zpl_aio_write", fn_name="trace_write_return")
+else:
+    b.attach_kretprobe(event="zpl_read", fn_name="trace_read_return")
+    b.attach_kretprobe(event="zpl_write", fn_name="trace_write_return")
+b.attach_kretprobe(event="zpl_open", fn_name="trace_open_return")
+b.attach_kretprobe(event="zpl_fsync", fn_name="trace_fsync_return")
+
+# header
+if (csv):
+    print("ENDTIME_us,TASK,PID,TYPE,BYTES,OFFSET_b,LATENCY_us,FILE")
+else:
+    if min_ms == 0:
+        print("Tracing ZFS operations")
+    else:
+        print("Tracing ZFS operations slower than %d ms" % min_ms)
+    print("%-8s %-14s %-6s %1s %-7s %-8s %7s %s" % ("TIME", "COMM", "PID", "T",
+        "BYTES", "OFF_KB", "LAT(ms)", "FILENAME"))
+
+# read events
+b["events"].open_perf_buffer(print_event, page_cnt=64)
+while 1:
+    try:
+        b.perf_buffer_poll()
+    except KeyboardInterrupt:
+        exit()
